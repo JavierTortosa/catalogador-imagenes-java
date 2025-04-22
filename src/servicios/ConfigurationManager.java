@@ -406,7 +406,19 @@ public class ConfigurationManager
 		//Inicio
 		defaults.put("inicio.carpeta", inicioCarpetaDefault);
 		defaults.put("inicio.imagen", inicioImagenDefault);
+		
+		// Comportamiento
+		defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
+		defaults.put("comportamiento.carga.conRutas", "false");
 
+		// //===== Personalizacion =====
+		
+		//TODO temas 
+		//tema claro
+		//tema oscuro
+		//tema azul
+		//tema verde
+		
 		//TODO Colores 
 		defaults.put("colores.Fondo", "238, 238, 238");
 		defaults.put("colores.FondoBotonActivado", "84, 144, 164");
@@ -415,10 +427,7 @@ public class ConfigurationManager
 		//TODO Iconos
 		defaults.put("iconos.alto" , "24");
 		defaults.put("iconos.ancho" , "24");
-		
-		// Comportamiento
-		defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
-		defaults.put("comportamiento.carga.conRutas", "false");
+		defaults.put("iconos.carpeta.color", "black");
 		
     	//===== Barra de Miniaturas =====
     	//Cantidad de miniaturas antes/después de la seleccionada
@@ -433,7 +442,6 @@ public class ConfigurationManager
 		defaults.put("miniaturas.tamano.normal.ancho", "40");
 		defaults.put("miniaturas.tamano.normal.alto", "40");
 
-		
     	//===== Estados Interfaz Usuario =====
 		
     	//--- Botones ---

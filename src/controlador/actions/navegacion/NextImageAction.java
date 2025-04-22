@@ -15,8 +15,13 @@ public class NextImageAction extends BaseVisorAction
         super("Siguiente", controller);
         putValue(Action.SHORT_DESCRIPTION, "Ir a la siguiente imagen");
 
+        String iconos = "/iconos";
+        String tema = "/black";
+        String nombreIcono = "/1003-Siguiente_48x48.png";
+        String iconPath = iconos + tema + nombreIcono;
+        
         try {
-            java.net.URL iconUrl = getClass().getResource("/iconos/02-Siguiente_48x48.png");
+            java.net.URL iconUrl = getClass().getResource(iconPath);//"/iconos/1003-Siguiente_48x48.png");
             if (iconUrl != null) {
                 ImageIcon icon = new ImageIcon(iconUrl);
                 // --- MODIFICADO: Usar ancho y alto recibidos ---

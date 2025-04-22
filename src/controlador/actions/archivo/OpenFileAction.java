@@ -15,7 +15,7 @@ public class OpenFileAction extends BaseVisorAction {
 
         try {
             // Icono para el botón "Selector_de_Carpetas"
-            java.net.URL iconUrl = getClass().getResource("/iconos/24-Selector_de_Carpetas_48x48.png");
+            java.net.URL iconUrl = getClass().getResource("/iconos/6024-Selector_de_Carpetas_48x48.png");
             if (iconUrl != null) {
                 ImageIcon icon = new ImageIcon(iconUrl);
                 Image scaledImg = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);

@@ -1,0 +1,41 @@
+iconosMovimiento 
+"1001-Anterior_48x48.png" 	imagen anterior tanto en el list como en las miniaturas
+"1002-Siguiente_48x48.png"	imagen siguiente tanto en el list como en las miniaturas
+"1003-Primera_48x48-png"	ir a la primera imagen tanto en el list como en las miniaturas
+"1004-Ultima_48x48-png"		ir a la primera imagen tanto en el list como en las miniaturas
+
+
+iconosEdicion
+"2003-Rotar_Izquierda_48x48.png"
+"2004-Rotar_Derecha_48x48.png"
+"2005-Espejo_Horizontal_48x48.png"
+"2006-Espejo_Vertical_48x48.png"
+"2007-Recortar_48x48.png"
+
+
+iconosZoom
+"3008-Zoom_48x48.png"
+"3009-Zoom_Auto_48x48.png"
+"3010-Ajustar_al_Ancho_48x48.png"
+"3011-Ajustar_al_Alto_48x48.png"
+"3012-Escalar_Para_Ajustar_48x48.png"
+"3013-Zoom_Fijo_48x48.png"
+"3014-Reset_48x48.png");
+
+iconosVista
+"4015-Panel-Galeria_48x48.png"
+"4016-Grid_48x48.png"
+"4017-Pantalla_Completa_48x48.png"
+"4018-Lista_48x48.png"
+"4019-Carrousel_48x48.png"
+
+iconosControl
+"5020-Refrescar_48x48.png"
+"5021-Subcarpetas_48x48.png"
+"5022-lista_de_favoritos_48x48.png"
+"5023-Borrar_48x48.png"
+
+iconosEspeciales
+"6024-Selector_de_Carpetas_48x48.png"
+"6025-Menu_48x48.png"
+"6026-Botones_Ocultos_48x48.png"

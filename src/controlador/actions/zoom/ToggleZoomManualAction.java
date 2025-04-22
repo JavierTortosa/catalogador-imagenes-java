@@ -17,8 +17,13 @@ public class ToggleZoomManualAction extends BaseVisorAction {
         // La propiedad SELECTED_KEY manejará el estado del check
         // El estado inicial se leerá de config y se pondrá en initializeActions
 
+        String iconos = "/iconos";
+        String tema = "/black";
+        String nombreIcono = "/3008-zoom_48x48.png";
+        String iconPath = iconos + tema + nombreIcono;
+        
         try {
-            java.net.URL iconUrl = getClass().getResource("/iconos/08-Zoom_48x48.png");
+            java.net.URL iconUrl = getClass().getResource(iconPath);
             if (iconUrl != null) {
                 ImageIcon icon = new ImageIcon(iconUrl);
                 Image scaledImg = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);

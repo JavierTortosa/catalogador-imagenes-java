@@ -25,7 +25,11 @@ public class PreviousImageAction extends BaseVisorAction {
 
         // --- DECLARAR url ANTES del try ---
         URL iconUrl = null; // Inicializar a null
-        String iconPath = "/iconos/01-Anterior_48x48.png"; // Guardar ruta para logs
+        String iconos = "/iconos";
+        String tema = "/black";
+        String nombreIcono = "/1002-Anterior_48x48.png";
+        String iconPath = iconos + tema + nombreIcono;
+        //String iconPath = "/iconos/1002-Anterior_48x48.png"; // Guardar ruta para logs
 
         try {
             System.out.println("  -> Intentando cargar icono desde: " + iconPath);

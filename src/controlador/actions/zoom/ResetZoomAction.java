@@ -15,8 +15,13 @@ public class ResetZoomAction extends BaseVisorAction {
         // Empieza deshabilitado, se habilitará junto con el zoom manual
         setEnabled(false);
 
+        String iconos = "/iconos";
+        String tema = "/black";
+        String nombreIcono = "/3014-Reset_48x48.png";
+        String iconPath = iconos + tema + nombreIcono;
+        
         try {
-            java.net.URL iconUrl = getClass().getResource("/iconos/14-Reset_48x48.png");
+            java.net.URL iconUrl = getClass().getResource(iconPath);
             if (iconUrl != null) {
                 ImageIcon icon = new ImageIcon(iconUrl);
                 Image scaledImg = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);

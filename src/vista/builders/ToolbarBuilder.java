@@ -87,13 +87,45 @@ public class ToolbarBuilder {
      */
     public JPanel buildToolbar() {
         // --- Definición de Iconos y Layout (Movido desde VisorView) ---
-        List<String> iconosMovimiento = List.of("01-Anterior_48x48.png", "02-Siguiente_48x48.png");
-        List<String> iconosEdicion = List.of("03-Rotar_Izquierda_48x48.png", "04-Rotar_Derecha_48x48.png", "05-Espejo_Horizontal_48x48.png", "06-Espejo_Vertical_48x48.png", "07-Recortar_48x48.png");
-        List<String> iconosZoom = List.of("08-Zoom_48x48.png", "09-Zoom_Auto_48x48.png", "10-Ajustar_al_Ancho_48x48.png", "11-Ajustar_al_Alto_48x48.png", "12-Escalar_Para_Ajustar_48x48.png", "13-Zoom_Fijo_48x48.png", "14-Reset_48x48.png");
-        List<String> iconosVista = List.of("15-Panel-Galeria_48x48.png", "16-Grid_48x48.png", "17-Pantalla_Completa_48x48.png", "18-Lista_48x48.png", "19-Carrousel_48x48.png");
-        List<String> iconosControl = List.of("20-Refrescar_48x48.png", "21-Subcarpetas_48x48.png", "22-lista_de_favoritos_48x48.png", "23-Borrar_48x48.png");
-        List<String> iconosEspeciales = List.of("24-Selector_de_Carpetas_48x48.png", "25-Menu_48x48.png", "26-Botones_Ocultos_48x48.png");
+    	
+        List<String> iconosMovimiento = List.of(
+        		"1001-Primera_48x48.png",	//new
+        		"1002-Anterior_48x48.png", 
+        		"1003-Siguiente_48x48.png",
+        		"1004-Ultima_48x48.png"		//new
+        		);
+        List<String> iconosEdicion = List.of(
+        		"2001-Rotar_Izquierda_48x48.png", 
+        		"2002-Rotar_Derecha_48x48.png", 
+        		"2003-Espejo_Horizontal_48x48.png", 
+        		"2004-Espejo_Vertical_48x48.png", 
+        		"2005-Recortar_48x48.png");
+        List<String> iconosZoom = List.of(
+        		"3008-Zoom_48x48.png", 
+        		"3009-Zoom_Auto_48x48.png", 
+        		"3010-Ajustar_al_Ancho_48x48.png", 
+        		"3011-Ajustar_al_Alto_48x48.png", 
+        		"3012-Escalar_Para_Ajustar_48x48.png", 
+        		"3013-Zoom_Fijo_48x48.png", 
+        		"3014-Reset_48x48.png");
+        List<String> iconosVista = List.of(
+        		"4015-Panel-Galeria_48x48.png", 
+        		"4016-Grid_48x48.png", 
+        		"4017-Pantalla_Completa_48x48.png", 
+        		"4018-Lista_48x48.png", 
+        		"4019-Carrousel_48x48.png");
+        List<String> iconosControl = List.of(
+        		"5020-Refrescar_48x48.png", 
+        		"5021-Subcarpetas_48x48.png", 
+        		"5022-lista_de_favoritos_48x48.png", 
+        		"5023-Borrar_48x48.png");
+        List<String> iconosEspeciales = List.of(
+        		"6024-Selector_de_Carpetas_48x48.png", 
+        		"6025-Menu_48x48.png", 
+        		"6026-Botones_Ocultos_48x48.png");
 
+        
+        
         List<ButtonGroupConfig> buttonLayoutConfig = List.of(
             new ButtonGroupConfig("movimiento", FlowLayout.LEFT, iconosMovimiento),
             new ButtonGroupConfig("edicion", FlowLayout.CENTER, iconosEdicion),
