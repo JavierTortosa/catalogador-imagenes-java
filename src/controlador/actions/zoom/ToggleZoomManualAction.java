@@ -11,7 +11,12 @@ import controlador.actions.BaseVisorAction;
 
 public class ToggleZoomManualAction extends BaseVisorAction {
 
-    public ToggleZoomManualAction(VisorController controller) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public ToggleZoomManualAction(VisorController controller) {
         super("Activar Zoom Manual", controller); // Texto para menú/checkbox
         putValue(Action.SHORT_DESCRIPTION, "Activar/desactivar zoom y desplazamiento manual");
         // La propiedad SELECTED_KEY manejará el estado del check

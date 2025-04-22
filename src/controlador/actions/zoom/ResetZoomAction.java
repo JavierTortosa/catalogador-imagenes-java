@@ -9,7 +9,12 @@ import controlador.actions.BaseVisorAction;
 
 public class ResetZoomAction extends BaseVisorAction {
 
-    public ResetZoomAction(VisorController controller) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public ResetZoomAction(VisorController controller) {
         super("Resetear Zoom", controller); // Texto para menú
         putValue(Action.SHORT_DESCRIPTION, "Volver al zoom 100% sin desplazamiento");
         // Empieza deshabilitado, se habilitará junto con el zoom manual

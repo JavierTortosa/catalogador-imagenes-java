@@ -10,6 +10,11 @@ import controlador.actions.BaseVisorAction;
 public class NextImageAction extends BaseVisorAction 
 {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public NextImageAction(VisorController controller, int anchoIcono, int altoIcono) 
 	{
         super("Siguiente", controller);
