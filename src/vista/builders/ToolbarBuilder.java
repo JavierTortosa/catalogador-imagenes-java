@@ -18,6 +18,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import vista.util.IconUtils;
+
 // Clase auxiliar interna para la configuración del layout de botones
 class ButtonGroupConfig { // Puedes mantenerla aquí o hacerla pública si es necesario
     final String category;
@@ -54,14 +56,22 @@ public class ToolbarBuilder {
 
     private Map<String, Action> actionMap; // NUEVO: Mapa de acciones
     
+    private final IconUtils iconUtils;
+    
     // --- Constructor acepta el mapa de Actions ---
-    public ToolbarBuilder(Map<String, Action> actionMap, Color colorFondo, int iconoAncho, int iconoAlto) {
+    public ToolbarBuilder(Map<String, Action> actionMap, Color colorFondo, int iconoAncho, int iconoAlto, IconUtils iconUtils) 
+    {
         // Guarda los parámetros recibidos
         this.actionMap = actionMap != null ? actionMap : new HashMap<>();
         this.colorOriginalFondoBoton = colorFondo != null ? colorFondo : new Color(238, 238, 238);
-        this.iconoAncho = iconoAncho > 0 ? iconoAncho : 32;
-        this.iconoAlto = iconoAlto; // Guarda -1 si se pasó para mantener proporción
+        this.iconoAncho = iconoAncho > 0 ? iconoAncho : 24;
+        this.iconoAlto = iconoAlto> 0 ? iconoAlto : 24; // Guarda -1 si se pasó para mantener proporción
 
+        if (iconUtils == null) { // Validación
+            throw new IllegalArgumentException("IconUtils no puede ser null en ToolbarBuilder");
+        }
+        this.iconUtils = iconUtils;
+        
         // Inicializa otras variables miembro
         this.botonesPorNombre = new HashMap<>();
         panelBotonesIzquierda = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
@@ -157,7 +167,8 @@ public class ToolbarBuilder {
      * Procesa la creación y configuración de un botón individual,
      * usando los colores y tamaños de icono configurados.
      */
-    private void procesarBoton(String nombreIcono, String categoria, int flowLayoutAlignment) {
+    private void procesarBoton(String nombreIcono, String categoria, int flowLayoutAlignment) 
+    {
         JButton button = new JButton(); // Crea el botón
 
         // --- Claves y Action Command ---
@@ -168,8 +179,11 @@ public class ToolbarBuilder {
         // --- Configurar propiedades básicas del botón ---
         // Determinar tamaño final del botón basado en config
         int anchoBoton = this.iconoAncho;
-        int altoBoton = (this.iconoAlto <= 0) ? this.iconoAncho : this.iconoAlto; // Si alto es -1, usar ancho
-        button.setPreferredSize(new Dimension(anchoBoton, altoBoton));
+        //int altoBoton = (this.iconoAlto <= 0) ? this.iconoAncho : this.iconoAlto; // Si alto es -1, usar ancho
+        
+        //button.setPreferredSize(new Dimension(anchoBoton, altoBoton));
+        button.setPreferredSize(new Dimension(anchoBoton, this.iconoAlto > 0 ? this.iconoAlto : anchoBoton)); // Ajustar prefSize
+
         button.setMargin(new Insets(0, 0, 0, 0));
         button.setBorderPainted(false);
         button.setFocusPainted(false);
@@ -193,16 +207,24 @@ public class ToolbarBuilder {
 
             // Intentar obtener icono y tooltip DESDE la Action
             Object iconValue = action.getValue(Action.SMALL_ICON);
-            if (iconValue instanceof Icon) {
-                iconParaBoton = (ImageIcon) iconValue; // Guardar icono de la action
-                System.out.println("    -> Icono VÁLIDO encontrado en Action.");
-                button.setHideActionText(true); // Ocultar texto si la Action tiene icono VÁLIDO
-                button.setText(""); // Borrar texto por si acaso
+            
+            if (iconValue instanceof ImageIcon) { // Comprobar que sea ImageIcon
+                iconParaBoton = (ImageIcon) iconValue;
+                //System.out.println("    -> Icono VÁLIDO obtenido desde Action.");
+                 button.setHideActionText(true);
+                 button.setText("");
             } else {
-                System.out.println("    -> Icono NO válido o NULL encontrado en Action (Valor: " + iconValue + ").");
-                button.setIcon(null);
-                button.setHideActionText(false); // Mostrar texto de Action si no hay icono
-                // El texto se pondrá automáticamente por setAction
+                // Si la Action no tiene icono (o es incorrecto), intentar cargarlo aquí como fallback
+                //System.out.println("    -> Icono NO válido/NULL en Action. Intentando carga fallback con IconUtils...");
+                iconParaBoton = this.iconUtils.getScaledIcon(nombreIcono, this.iconoAncho, this.iconoAlto);
+                 if (iconParaBoton != null) {
+                      button.setHideActionText(true);
+                      button.setText("");
+                 } else {
+                      System.err.println("    -> ERROR: Falló carga fallback del icono: " + nombreIcono);
+                      button.setIcon(null); // Asegurar que no hay icono
+                      button.setHideActionText(false); // Mostrar texto de la Action
+                 }
             }
 
             Object tooltipValue = action.getValue(Action.SHORT_DESCRIPTION);
@@ -212,37 +234,47 @@ public class ToolbarBuilder {
 
         } else {
             // --- Caso 2: No se encontró Action (Fallback) ---
-            System.out.println("    -> Sin Action asociada. Configurando manualmente.");
-            button.setActionCommand(shortActionCommand); // Asignar comando corto
+        	//System.out.println("    -> Sin Action asociada. Configurando manualmente.");
+            button.setActionCommand(shortActionCommand);
 
-            // Cargar icono manualmente
-            try {
-                //System.out.println("      -> Intentando cargar icono fallback: /iconos/" + nombreIcono);
-                java.net.URL iconUrl = getClass().getResource("/iconos/" + nombreIcono);
-                if (iconUrl != null) {
-                    ImageIcon icon = new ImageIcon(ImageIO.read(iconUrl));
-                     if (icon.getImageLoadStatus() == java.awt.MediaTracker.COMPLETE) {
-                        // Escalar al tamaño configurado
-                        int altoFinalFallback = (this.iconoAlto <= 0) ? -1 : this.iconoAlto;
-                        Image scaledImg = icon.getImage().getScaledInstance(this.iconoAncho, altoFinalFallback, Image.SCALE_SMOOTH);
-                        iconParaBoton = new ImageIcon(scaledImg); // Guardar icono fallback
-                        //System.out.println("      -> Icono fallback cargado.");
-                     } else {
-                         System.err.println("      -> ERROR: Icono fallback NO cargado correctamente (Estado: " + icon.getImageLoadStatus() + ")");
-                     }
-                } else {
-                     System.err.println("      -> ERROR: Icono fallback NO encontrado en ruta: /iconos/" + nombreIcono);
-                }
-            } catch (Exception e) {
-                System.err.println("      -> ERROR EXCEPCIÓN cargando icono fallback: " + e.getMessage());
-            }
+            // Cargar icono manualmente usando IconUtils
+        	//LOG     -> Sin Action asociada. Configurando manualmente.
+            //System.out.println("      -> Intentando cargar icono fallback con IconUtils: " + nombreIcono);
+            iconParaBoton = this.iconUtils.getScaledIcon(nombreIcono, this.iconoAncho, this.iconoAlto);
+            // --- FIN MODIFICACION ---
 
-            // Si no se pudo cargar icono en fallback, poner placeholder
-            if (iconParaBoton == null) {
-                 button.setText("?");
-            } else {
-                 button.setText(""); // Borrar texto si hay icono fallback
-            }
+            
+//            System.out.println("    -> Sin Action asociada. Configurando manualmente.");
+//            button.setActionCommand(shortActionCommand); // Asignar comando corto
+//
+//            // Cargar icono manualmente
+//            try {
+//                //System.out.println("      -> Intentando cargar icono fallback: /iconos/" + nombreIcono);
+//                java.net.URL iconUrl = getClass().getResource("/iconos/" + nombreIcono);
+//                if (iconUrl != null) {
+//                    ImageIcon icon = new ImageIcon(ImageIO.read(iconUrl));
+//                     if (icon.getImageLoadStatus() == java.awt.MediaTracker.COMPLETE) {
+//                        // Escalar al tamaño configurado
+//                        int altoFinalFallback = (this.iconoAlto <= 0) ? -1 : this.iconoAlto;
+//                        Image scaledImg = icon.getImage().getScaledInstance(this.iconoAncho, altoFinalFallback, Image.SCALE_SMOOTH);
+//                        iconParaBoton = new ImageIcon(scaledImg); // Guardar icono fallback
+//                        //System.out.println("      -> Icono fallback cargado.");
+//                     } else {
+//                         System.err.println("      -> ERROR: Icono fallback NO cargado correctamente (Estado: " + icon.getImageLoadStatus() + ")");
+//                     }
+//                } else {
+//                     System.err.println("      -> ERROR: Icono fallback NO encontrado en ruta: /iconos/" + nombreIcono);
+//                }
+//            } catch (Exception e) {
+//                System.err.println("      -> ERROR EXCEPCIÓN cargando icono fallback: " + e.getMessage());
+//            }
+//
+//            // Si no se pudo cargar icono en fallback, poner placeholder
+//            if (iconParaBoton == null) {
+//                 button.setText("?");
+//            } else {
+//                 button.setText(""); // Borrar texto si hay icono fallback
+//            }
         }
 
         // --- Asignar Icono y Tooltip finales ---

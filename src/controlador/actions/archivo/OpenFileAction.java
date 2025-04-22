@@ -2,14 +2,22 @@ package controlador.actions.archivo;
 
 import java.awt.Image;
 import java.awt.event.ActionEvent;
+
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+
 import controlador.VisorController;
 import controlador.actions.BaseVisorAction;
+import vista.util.IconUtils;
 
 public class OpenFileAction extends BaseVisorAction {
 
-    public OpenFileAction(VisorController controller) {
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public OpenFileAction(VisorController controller, IconUtils iconUtils, int width, int height) {
         super("Abrir Archivo...", controller);
         putValue(Action.SHORT_DESCRIPTION, "Abrir una nueva carpeta de imágenes");
 

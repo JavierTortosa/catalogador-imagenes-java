@@ -32,9 +32,9 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
 
-import vista.config.ViewUIConfig;
 import vista.builders.MenuBarBuilder;
 import vista.builders.ToolbarBuilder;
+import vista.config.ViewUIConfig;
 
 public class VisorView extends JFrame
 {
@@ -122,7 +122,8 @@ public class VisorView extends JFrame
                 this.uiConfig.actionMap, // Mapa de actions desde uiConfig
                 this.uiConfig.colorFondo, // Color desde uiConfig
                 this.uiConfig.iconoAncho, // Ancho desde uiConfig
-                this.uiConfig.iconoAlto  // Alto desde uiConfig
+                this.uiConfig.iconoAlto,  // Alto desde uiConfig
+                this.uiConfig.iconUtils
         );
     
         JPanel panelDeBotones = toolbarBuilder.buildToolbar();
@@ -414,8 +415,10 @@ public class VisorView extends JFrame
             "--- Unload Imagen\n"+
             "\n"+
             "- Navegacion\n"+
+            "--- Primera Imagen\n"+
             "--- Imagen Aterior\n"+
             "--- Imagen Siguiente\n"+
+            "--- Ultima Imagen\n"+
             "_\n"+
             "--- Ir a...\n"+
             "--- Primera Imagen\n"+

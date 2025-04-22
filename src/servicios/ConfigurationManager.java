@@ -411,13 +411,16 @@ public class ConfigurationManager
 		defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
 		defaults.put("comportamiento.carga.conRutas", "false");
 
-		// //===== Personalizacion =====
 		
-		//TODO temas 
 		//tema claro
 		//tema oscuro
 		//tema azul
 		//tema verde
+		//tema
+		
+		//===== Personalizacion =====
+		//Tema
+		defaults.put("tema", "claro");
 		
 		//TODO Colores 
 		defaults.put("colores.Fondo", "238, 238, 238");
@@ -427,7 +430,6 @@ public class ConfigurationManager
 		//TODO Iconos
 		defaults.put("iconos.alto" , "24");
 		defaults.put("iconos.ancho" , "24");
-		defaults.put("iconos.carpeta.color", "black");
 		
     	//===== Barra de Miniaturas =====
     	//Cantidad de miniaturas antes/después de la seleccionada
@@ -843,14 +845,19 @@ public class ConfigurationManager
         // --- Secciones Principales ---
         comments.put("comportamiento", 	"# ===== Comportamiento =====");
         comments.put("inicio",         	"# ===== Inicio =====");
-        comments.put("colores", 	   	"# ===== Colores del UI =====");
         comments.put("miniaturas",     	"# ===== Barra de Imagenes en Miniatura =====");
         comments.put("interfaz",       	"# ===== Interfaz =====");
-        comments.put("iconos", 			"# ===== Iconos =====");
 
+        
+        // --- Personalizacion
+        comments.put("tema",			"# ===== Tema Visual=====");
+        comments.put("colores", 	   	"# ===== Colores UI =====");
+        comments.put("iconos",         	"# ===== Configuración General Iconos ====="); // Para 'iconos.alto', 'iconos.ancho'
+        
+        
         // --- Subgrupos Nivel 1 (Dentro de interfaz) ---
-        comments.put("interfaz.boton", "# == Botones =="); // Subgrupo para TODOS los botones
-        comments.put("interfaz.menu",  "# == Menús ==");  // Subgrupo para TODOS los menús
+        comments.put("interfaz.boton", 	"# == Botones =="); // Subgrupo para TODOS los botones
+        comments.put("interfaz.menu",  	"# == Menús ==");  // Subgrupo para TODOS los menús
 
         // --- Subgrupos Nivel 2 (Dentro de interfaz.boton) ---
         comments.put("interfaz.boton.movimiento", "# === Botones de Movimiento ==="); // Nota: Uso "===" para diferenciar nivel
@@ -1037,5 +1044,86 @@ public class ConfigurationManager
 
 	}
 
+	
+	/**
+     * Obtiene el nombre del tema actual definido en la configuración (clave 'tema').
+     * Si la clave 'tema' no está definida en el archivo cargado,
+     * devuelve el valor por defecto definido en DEFAULT_CONFIG ("claro").
+     * Si DEFAULT_CONFIG tampoco tiene 'tema', devuelve "claro" como último recurso.
+     *
+     * @return El nombre del tema actual (ej. "claro", "oscuro", "azul", "verde", "naranja").
+     */
+    public String getTemaActual() {
+        // Usamos getString que ya maneja la lógica de buscar en 'config' y luego en 'DEFAULT_CONFIG'
+        // El segundo argumento de getString es el fallback final si la clave no existe en NINGUNO
+        return getString("tema", "claro");
+    }
+    
+    
+    /**
+     * Determina el nombre de la carpeta de iconos correspondiente al tema actual.
+     * Mapea los nombres de tema ("claro", "oscuro", "azul", etc.) a los nombres
+     * de las carpetas físicas de iconos ("black", "white", "blue", etc.).
+     *
+     * @return El nombre de la subcarpeta de iconos a usar (ej. "black", "white").
+     */
+    public String getCarpetaIconosTemaActual() {
+        String tema = getTemaActual(); // Obtiene el tema ("claro", "oscuro", etc.)
+
+        // Convertimos a minúsculas para hacer la comparación insensible a mayúsculas/minúsculas
+        switch (tema.toLowerCase()) {
+            case "oscuro":
+                return "white"; // Tema oscuro usa iconos blancos
+            case "azul":
+                return "blue";  // Tema azul usa iconos azules
+            case "verde":
+                return "green"; // Tema verde usa iconos verdes
+            case "naranja":
+                return "orange";// Tema naranja usa iconos naranjas
+            case "claro":
+                 // Incluye el caso por defecto si el tema no es reconocido o es "claro"
+            default:
+                return "black"; // Tema claro (o desconocido) usa iconos negros
+        }
+    }
+    
+    
+    /**
+     * Establece un nuevo tema en la configuración en memoria y luego
+     * guarda toda la configuración actual en el archivo 'config.cfg'.
+     *
+     * @param nuevoTema El nombre del nuevo tema a establecer (ej. "oscuro", "claro").
+     *                  Debe coincidir con las opciones válidas ("claro", "oscuro", "azul", etc.).
+     */
+    public void setTemaActualYGuardar(String nuevoTema) {
+        if (nuevoTema == null || nuevoTema.trim().isEmpty()) {
+            System.err.println("WARN [ConfigurationManager]: Intento de establecer un tema nulo o vacío. No se guardará.");
+            return;
+        }
+    
+     // Podrías añadir una validación aquí para asegurar que nuevoTema es uno de los soportados
+        // List<String> temasValidos = List.of("claro", "oscuro", "azul", "verde", "naranja");
+        // if (!temasValidos.contains(nuevoTema.toLowerCase())) {
+        //     System.err.println("WARN [ConfigurationManager]: Tema '" + nuevoTema + "' no reconocido. No se guardará.");
+        //     return;
+        // }
+
+        // Actualiza el valor en el mapa 'config' en memoria
+        setString("tema", nuevoTema.trim()); // setString ya imprime un log
+
+        // Guarda el mapa 'config' completo (que ahora incluye el nuevo tema) en el archivo
+        try {
+            guardarConfiguracion(this.config); // Usa el método existente para guardar
+            System.out.println("[ConfigurationManager]: Tema cambiado a '" + nuevoTema + "' y configuración guardada en " + CONFIG_FILE_PATH);
+            // IMPORTANTE: Este cambio SOLO afecta al archivo y a la memoria de esta clase.
+            // La interfaz gráfica (UI) NO se actualizará automáticamente.
+            // Necesitarás lógica adicional en tu UI (posiblemente reiniciar o recargar elementos)
+            // para que los nuevos iconos (y futuros colores) se muestren.
+        } catch (IOException e) {
+            System.err.println("ERROR CRÍTICO [ConfigurationManager]: No se pudo guardar la configuración después de cambiar el tema a '" + nuevoTema + "'. Error: " + e.getMessage());
+            // Considera notificar al usuario o revertir el cambio en 'config' si el guardado falla.
+        }
+    }
+        
 } //Fin configurationManager
 

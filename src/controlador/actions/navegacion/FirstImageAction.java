@@ -4,14 +4,16 @@ package controlador.actions.navegacion;
 // Ya no necesitas Image aquí
 // import java.awt.Image;
 import java.awt.event.ActionEvent;
+
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+
 import controlador.VisorController;
 import controlador.actions.BaseVisorAction;
 import vista.util.IconUtils; // <-- Importar IconUtils
 // --- FIN MODIFICACION ---
 
-public class NextImageAction extends BaseVisorAction
+public class FirstImageAction extends BaseVisorAction
 {
 
     private static final long serialVersionUID = 1L;
@@ -19,19 +21,19 @@ public class NextImageAction extends BaseVisorAction
     // private IconUtils iconUtils;
 
     // --- TEXTO MODIFICADO: Constructor CORRECTO ---
-    public NextImageAction(VisorController controller, IconUtils iconUtils, int width, int height) {
+    public FirstImageAction(VisorController controller, IconUtils iconUtils, int width, int height) {
         // Llama al constructor de la superclase (ajusta si es diferente)
-        super("Siguiente", controller);
+        super("Primera Imagen", controller);
 
         // Guarda referencias si es necesario
         // this.iconUtils = iconUtils;
 
         // Establece descripción (tooltip)
-        putValue(Action.SHORT_DESCRIPTION, "Ir a la siguiente imagen");
+        putValue(Action.SHORT_DESCRIPTION, "Ir a la primera imagen");
 
         // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
         // Llama a getScaledIcon pasando el nombre del archivo y los tamaños recibidos
-        ImageIcon icon = iconUtils.getScaledIcon("1003-Siguiente_48x48.png", width, height);
+        ImageIcon icon = iconUtils.getScaledIcon("1001-Primera_48x48.png", width, height);
 
         // Verifica si se cargó y asigna
         if (icon != null) {
@@ -55,9 +57,9 @@ public class NextImageAction extends BaseVisorAction
 
         // Acción
         if (controller != null) {
-            controller.navegarImagen(1);
+            controller.navegarAIndice(0);
         } else {
-             System.err.println("Error: Controller es null en NextImageAction");
+             System.err.println("Error: Controller es null en FirstImageAction");
         }
     }
 }

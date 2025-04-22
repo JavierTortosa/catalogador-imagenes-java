@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
-// Usar imports específicos es mejor a la larga
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
@@ -56,6 +55,8 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
 import controlador.actions.archivo.OpenFileAction;
+import controlador.actions.navegacion.FirstImageAction;
+import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
 import controlador.actions.zoom.ResetZoomAction;
@@ -64,6 +65,7 @@ import modelo.VisorModel; // Importar el Modelo
 import servicios.ConfigurationManager;
 import vista.VisorView; // Importar la Vista
 import vista.config.ViewUIConfig;
+import vista.util.IconUtils; 
 
 /**
  * Controlador principal para el Visor de Imágenes. Orquesta la interacción
@@ -79,6 +81,8 @@ public class VisorController implements ActionListener, ClipboardOwner
 	private VisorModel model;
 	private VisorView view;
 	private ConfigurationManager configuration;
+	
+	private IconUtils iconUtils;
 
 	// --- Servicios ---
 	private ExecutorService executorService;
@@ -99,8 +103,10 @@ public class VisorController implements ActionListener, ClipboardOwner
 
 	// --- NUEVO: Instancias de Action ---
 	// TODO: Añade actions para todas las demás funcionalidades
+	private Action firstImageAction;
 	private Action previousImageAction;
 	private Action nextImageAction;
+	private Action lastImageAction;
 	
     private Action openAction;
     private Action toggleSubfoldersAction;
@@ -129,20 +135,31 @@ public class VisorController implements ActionListener, ClipboardOwner
     private Map<String, Action> actionMap;
     
 	// --- Constructor ---
-    public VisorController() {
+    public VisorController() 
+    {
         // 1. Inicializar Modelo
         model = new VisorModel();
 
         // 2. Inicializar Servicios
-        try { configuration = new ConfigurationManager(); } catch (IOException e) { /* ... */ System.exit(1); }
+        try 
+        { 
+        	configuration = new ConfigurationManager(); 
+        } catch (IOException e) { 
+        	System.err.println("FALLO CRÍTICO al cargar/crear configuración: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Error fatal al leer la configuración.\n" + e.getMessage(), "Error Configuración", JOptionPane.ERROR_MESSAGE);
+        	System.exit(1); }
+        
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
+        // 2.5 Inicializar IconUtils (DESPUÉS de ConfigurationManager)
+        this.iconUtils = new IconUtils(configuration);
+        
         // --- LEER VALORES DE UI DE CONFIG (Se leen aquí para crear el objeto config) ---
         Color colorFondoLeido = parseColor(configuration.getString("colores.Fondo", "238, 238, 238"));
         Color colorActivadoLeido = parseColor(configuration.getString("colores.FondoBotonActivado", "84, 144, 164"));
         Color colorAnimacionLeido = parseColor(configuration.getString("colores.FondoBotonAnimacion", "173, 216, 230"));
-        int anchoIconoLeido = configuration.getInt("iconos.ancho", 32);
-        int altoIconoLeido = configuration.getInt("iconos.alto", 32);
+        int anchoIconoLeido = configuration.getInt("iconos.ancho", 24);
+        int altoIconoLeido = configuration.getInt("iconos.alto", 24);
         // -----------------------------------------------------------------------
 
         // --- Inicializar Actions (Pasar tamaño leído) ---
@@ -154,17 +171,20 @@ public class VisorController implements ActionListener, ClipboardOwner
 
         // --- Calcular Altura Miniaturas ---
         int selThumbH = configuration.getInt("miniaturas.tamano.seleccionada.alto");
+
+        //FIXME ajustar el padding de la barra de miniaturas en el config 
         int paddingVerticalTotal = 40;
+        
         final int calculatedMiniaturePanelHeight = selThumbH + paddingVerticalTotal;
         System.out.println("[Controller Init] Altura calculada panel miniaturas: " + calculatedMiniaturePanelHeight);
 
 
-        // --- NUEVO: Crear instancia de ViewUIConfig ---
+        // --- Crear instancia de ViewUIConfig ---
         final ViewUIConfig uiConfig = new ViewUIConfig(
             colorFondoLeido, colorActivadoLeido, colorAnimacionLeido,
-            anchoIconoLeido, altoIconoLeido, this.actionMap // Pasar el mapa de actions
+            anchoIconoLeido, altoIconoLeido, this.actionMap,
+            this.iconUtils// Pasar el mapa de actions
         );
-        // --- FIN NUEVO ---
 
         // --- Crear Vista y Conectar en el EDT ---
         final VisorController controllerInstance = this;
@@ -177,14 +197,23 @@ public class VisorController implements ActionListener, ClipboardOwner
             view.setListaImagenesModel(model.getModeloLista());
             controllerInstance.aplicarConfiguracionInicial();
             controllerInstance.cargarEstadoInicial();
-            controllerInstance.configurarComponentActions();
-            controllerInstance.configurarListenersNoAction();
+            
+//            controllerInstance.configurarComponentActions();
+            controllerInstance.configurarListenersNoAction();// Configura JList, Mouse, etc.
+            // Configurar Actions DESPUÉS de que la vista esté visible y componentes creados?
+            // Es más seguro hacerlo DESPUÉS de setVisible(true) o al final de este invokeLater
+            controllerInstance.configurarComponentActions(); // Configura setAction para botones/menus
+            
             view.setVisible(true);
+            
+            //LOG [Controller] Inicialización de UI en EDT completada.
             System.out.println("[Controller] Inicialización de UI en EDT completada.");
 
         }); // Fin invokeLater
 
         configurarShutdownHook();
+
+        //LOG [Controller] Constructor finalizado.
         System.out.println("[Controller] Constructor finalizado.");
 
     }
@@ -231,14 +260,22 @@ public class VisorController implements ActionListener, ClipboardOwner
 		//LOG [Controller] Inicializando Actions
 	    System.out.println("[Controller] Inicializando Actions...");
 
+	    if (this.iconUtils == null) { // Validación importante
+            System.err.println("FATAL [Controller]: IconUtils no está inicializado antes de initializeActions!");
+            // Considerar lanzar excepción o salir
+            return;
+        }
+	    
 	    // --- Instanciar TODAS las Actions usando sus clases dedicadas ---
 	    // Asegúrate de haber creado los archivos .java correspondientes en controlador.actions
-
-	    openAction = new OpenFileAction(this); // Asume que OpenFileAction existe y carga icono
-	    resetZoomAction = new ResetZoomAction(this); // Asume que ResetZoomAction existe y carga icono
-	    toggleZoomManualAction = new ToggleZoomManualAction(this); // Asume que ToggleZoomManualAction existe y carga icono
-	    previousImageAction = new PreviousImageAction(this, iconoAncho, iconoAlto); // Pasa tamaño
-        nextImageAction = new NextImageAction(this, iconoAncho, iconoAlto); // Pasa tamaño
+	    firstImageAction = new FirstImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
+	    previousImageAction = new PreviousImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
+	    nextImageAction = new NextImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
+	    lastImageAction = new LastImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
+	    
+	    openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que OpenFileAction existe y carga icono
+	    resetZoomAction = new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ResetZoomAction existe y carga icono
+	    toggleZoomManualAction = new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ToggleZoomManualAction existe y carga icono
 	    
 	    
 	    // --- CREA INSTANCIAS PARA LAS OTRAS ACTIONS (DEBES CREAR ESTAS CLASES) ---
@@ -307,12 +344,18 @@ public class VisorController implements ActionListener, ClipboardOwner
         mapaDeAcciones.put("Activar_Zoom_Manual", toggleZoomManualAction);
         mapaDeAcciones.put("Zoom_48x48", this.toggleZoomManualAction);// toggleZoomManualAction); // Botón
 
+        mapaDeAcciones.put("Primera_Imagen", firstImageAction);
+        mapaDeAcciones.put("Primera_48x48", this.firstImageAction);//); // Botón
+        
         mapaDeAcciones.put("Imagen_Siguiente", nextImageAction);
         mapaDeAcciones.put("Siguiente_48x48", this.nextImageAction);//); // Botón
 
         mapaDeAcciones.put("Imagen_Aterior", previousImageAction); // Cuidado con Typo si existe
         mapaDeAcciones.put("Anterior_48x48", this.previousImageAction); //previousImageAction); // Botón
 
+        mapaDeAcciones.put("Ultima_Imagen", lastImageAction);
+        mapaDeAcciones.put("Ultima_48x48", this.lastImageAction);//); // Boton
+        
         // --- AÑADE LAS OTRAS ACTIONS AL MAPA ---
         mapaDeAcciones.put("Girar_Izquierda", rotateLeftAction);
         mapaDeAcciones.put("Rotar_Izquierda_48x48", rotateLeftAction);
@@ -905,7 +948,7 @@ public class VisorController implements ActionListener, ClipboardOwner
 				DefaultListModel<String> nuevoModeloTemp = new DefaultListModel<>();
 				Map<String, Path> nuevoRutaCompletaMapTemp = new HashMap<>();
 				Set<String> archivosAgregadosTemp = new HashSet<>(); // Para evitar duplicados si walk los devuelve
-				long taskStartTime = System.currentTimeMillis();
+				//long taskStartTime = System.currentTimeMillis();
 				
 				//LOG -->>> Tarea background (lista) iniciada
 				//System.out.println("-->>> Tarea background (lista) iniciada @ " + taskStartTime);
@@ -1489,41 +1532,6 @@ public class VisorController implements ActionListener, ClipboardOwner
         //LOG [Controller] setManualZoomEnabled terminado.
          //System.out.println("[Controller] setManualZoomEnabled terminado.");
     }
-
-	
-	
-	private void setManualZoomEnabled1(boolean enable) 
-	{
-	    //LOG [Controller] setManualZoomEnabled
-		
-		//System.out.println("[Controller] setManualZoomEnabled llamado con: " + enable);
-	    
-	    
-
-	    // 1. Actualizar Modelo
-	    model.setZoomHabilitado(enable);
-
-	    // 2. Actualizar Vista (Llamando a métodos específicos de la vista)
-	    if (view != null) {
-	         // La vista se encarga de encontrar los componentes correctos internamente
-	         view.actualizarEstadoControlesZoom(enable, enable); // El reset se habilita/deshabilita con el zoom manual
-	         view.setEstadoMenuActivarZoomManual(enable); // Asegura que el checkbox refleje el estado
-	    }
-
-	    // 3. Lógica adicional (Resetear al activar, reajustar al desactivar)
-	    if (enable) {
-	        System.out.println("Zoom Manual activado. Aplicando reset inicial...");
-	        aplicarResetZoomAction(); // Este sigue actualizando el modelo y llamando a view.setImagenMostrada
-	    } else {
-	        System.out.println("Zoom Manual desactivado. Reajustando imagen...");
-	        model.resetZoomState();
-	        Image reescalada = reescalarImagenParaAjustar();
-	        if (view != null) { // Chequeo por seguridad
-	            view.setImagenMostrada(reescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-	        }
-	    }
-	     System.out.println("[Controller] setManualZoomEnabled terminado.");
-	}
 	
 	
 	/**
@@ -1537,7 +1545,6 @@ public class VisorController implements ActionListener, ClipboardOwner
 		Image reescalada = reescalarImagenParaAjustar(); // Recalcular imagen base
 		view.setImagenMostrada(reescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
 		view.aplicarAnimacionBoton("Reset_48x48");
-
 	}
 
 	
@@ -2051,7 +2058,7 @@ public class VisorController implements ActionListener, ClipboardOwner
 	/**
 	 * Navega a un índice específico en la lista.
 	 */
-	private void navegarAIndice (int index)
+	public void navegarAIndice (int index)
 	{
 
 		if (model.getModeloLista().isEmpty() || index < 0 || index >= model.getModeloLista().getSize())
@@ -2062,8 +2069,20 @@ public class VisorController implements ActionListener, ClipboardOwner
 		}
 		view.getListaImagenes().setSelectedIndex(index);
 		view.getListaImagenes().ensureIndexIsVisible(index);
-
 	}
+	
+	
+	/**
+	 * Devuelve el número actual de elementos en el modelo de la lista de imágenes.
+	 * @return El tamaño de la lista, o 0 si el modelo no está inicializado.
+	 */
+	public int getTamanioListaImagenes() {
+	    if (model != null && model.getModeloLista() != null) {
+	        return model.getModeloLista().getSize();
+	    }
+	    return 0; // Devuelve 0 si algo no está listo
+	}
+	
 
 	/**
 	 * Muestra u oculta paneles principales de la interfaz.

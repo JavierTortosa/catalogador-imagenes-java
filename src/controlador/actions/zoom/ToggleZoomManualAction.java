@@ -1,6 +1,8 @@
 package controlador.actions.zoom;
 
-import java.awt.Image;
+// --- TEXTO MODIFICADO ---
+// Ya no necesitas Image
+// import java.awt.Image;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -8,38 +10,48 @@ import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import controlador.VisorController;
 import controlador.actions.BaseVisorAction;
+import vista.util.IconUtils; // <-- Importar
+// --- FIN MODIFICACION ---
 
 public class ToggleZoomManualAction extends BaseVisorAction {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    // Opcional: private IconUtils iconUtils;
 
-	public ToggleZoomManualAction(VisorController controller) {
-        super("Activar Zoom Manual", controller); // Texto para menú/checkbox
+    // --- TEXTO MODIFICADO: Constructor CORRECTO ---
+    public ToggleZoomManualAction(VisorController controller, IconUtils iconUtils, int width, int height) {
+        // Llama al constructor de la superclase
+        super("Activar Zoom Manual", controller);
+
+        // Establece descripción
         putValue(Action.SHORT_DESCRIPTION, "Activar/desactivar zoom y desplazamiento manual");
-        // La propiedad SELECTED_KEY manejará el estado del check
-        // El estado inicial se leerá de config y se pondrá en initializeActions
+        // El estado inicial SELECTED_KEY se pone en initializeActions
 
-        String iconos = "/iconos";
-        String tema = "/black";
-        String nombreIcono = "/3008-zoom_48x48.png";
-        String iconPath = iconos + tema + nombreIcono;
-        
-        try {
-            java.net.URL iconUrl = getClass().getResource(iconPath);
-            if (iconUrl != null) {
-                ImageIcon icon = new ImageIcon(iconUrl);
-                Image scaledImg = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
-                putValue(Action.SMALL_ICON, new ImageIcon(scaledImg));
-            } else { System.err.println("WARN [ToggleZoomManualAction]: Icono no encontrado."); }
-        } catch (Exception e) { System.err.println("ERROR cargando icono para ToggleZoomManualAction: " + e); }
+        // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
+        // Llama a getScaledIcon con el nombre del icono CORRECTO (con Z mayúscula)
+        // y los tamaños recibidos
+        ImageIcon icon = iconUtils.getScaledIcon("3008-Zoom_48x48.png", width, height); // <-- 'Z' mayúscula
+
+        // Verifica y asigna el icono
+        if (icon != null) {
+            putValue(Action.SMALL_ICON, icon);
+        } else {
+            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '3008-Zoom_48x48.png' usando IconUtils.");
+            // Opcional: putValue(Action.NAME, "Zoom");
+        }
+        // --- FIN DE LA PARTE IMPORTANTE ---
     }
+    // --- FIN CONSTRUCTOR MODIFICADO ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller == null) return;
+        if (controller == null) {
+             System.err.println("Error: Controller es null en ToggleZoomManualAction");
+             return;
+        }
+
+        // Loguear primero
+        controller.logActionInfo(e);
 
         // Determinar el nuevo estado deseado basándose en la fuente del evento
         boolean newState = false;
@@ -48,20 +60,22 @@ public class ToggleZoomManualAction extends BaseVisorAction {
             newState = ((JCheckBoxMenuItem) source).isSelected();
         } else if (source instanceof JButton) {
             // Si viene del botón, togglea el estado actual del modelo
-            newState = !controller.isZoomManualCurrentlyEnabled(); // Necesitarás un getter en Controller para el estado del modelo
+            newState = !controller.isZoomManualCurrentlyEnabled();
         } else {
-             // Otro tipo de componente? Tomar estado actual de la Action?
+             // Otro tipo de componente? Togglear estado actual Action
              Object selectedValue = getValue(Action.SELECTED_KEY);
-             newState = !(selectedValue instanceof Boolean && (Boolean)selectedValue); // Toggle estado actual Action
+             newState = !(selectedValue instanceof Boolean && (Boolean)selectedValue);
              System.out.println("WARN [ToggleZoomManualAction]: Evento de fuente desconocida, toggleando estado actual.");
         }
 
-
-        // Llama al método del controller que maneja la lógica y actualiza otras Actions/UI
+        // Llama al método del controller que maneja la lógica
         controller.setManualZoomEnabled(newState);
 
-        // Actualiza el estado SELECTED de esta propia Action para mantener sincronizados
-        // los checkboxes/togglebuttons que la usen.
+        // Actualiza el estado SELECTED de esta propia Action
+        // Es importante hacerlo DESPUÉS de llamar a setManualZoomEnabled por si esa
+        // lógica también actualiza este valor (aunque en este caso no debería).
+        // Asegura que el estado visual (checkbox/botón) se actualice si la lógica
+        // del controlador no lo hizo explícitamente para el componente fuente.
         putValue(Action.SELECTED_KEY, newState);
     }
 }
