@@ -5,8 +5,14 @@ import javax.swing.AbstractAction;
 import controlador.VisorController; // Importa el Controller
 
 // Clase abstracta base para Actions que necesitan el Controller
-public abstract class BaseVisorAction extends AbstractAction {
-    protected VisorController controller; // Referencia al controller
+public abstract class BaseVisorAction extends AbstractAction 
+{
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	protected VisorController controller; // Referencia al controller
 
     // Constructor que recibe el nombre de la acción y el controller
     public BaseVisorAction(String name, VisorController controller) {

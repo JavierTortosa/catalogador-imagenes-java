@@ -54,18 +54,24 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+// Imports de mis clases
+import modelo.VisorModel; 
+import servicios.ConfigurationManager;
+import vista.VisorView; 
+import vista.config.ViewUIConfig;
+import vista.util.IconUtils;
+
+// Actions
 import controlador.actions.archivo.OpenFileAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
 import controlador.actions.zoom.ResetZoomAction;
+
 import controlador.actions.zoom.ToggleZoomManualAction;
-import modelo.VisorModel; // Importar el Modelo
-import servicios.ConfigurationManager;
-import vista.VisorView; // Importar la Vista
-import vista.config.ViewUIConfig;
-import vista.util.IconUtils; 
+import controlador.actions.tema.ToggleThemeAction;
+
 
 /**
  * Controlador principal para el Visor de Imágenes. Orquesta la interacción
@@ -81,7 +87,6 @@ public class VisorController implements ActionListener, ClipboardOwner
 	private VisorModel model;
 	private VisorView view;
 	private ConfigurationManager configuration;
-	
 	private IconUtils iconUtils;
 
 	// --- Servicios ---
@@ -94,30 +99,28 @@ public class VisorController implements ActionListener, ClipboardOwner
 	private Future<?> cargaMiniaturasFuture;
 	private Future<?> cargaImagenPrincipalFuture = null;
 	
-	// --- NUEVO: Variables para almacenar valores de UI leídos ---
-//    private Color colorFondoUI;
-//    private Color colorFondoBotonActivadoUI;
-//    private Color colorFondoBotonAnimacionUI;
-//    private int iconoAncho;
-//    private int iconoAlto;
-
-	// --- NUEVO: Instancias de Action ---
+	// --- Instancias de Action ---
 	// TODO: Añade actions para todas las demás funcionalidades
+	
+	//Navegacion 
 	private Action firstImageAction;
 	private Action previousImageAction;
 	private Action nextImageAction;
 	private Action lastImageAction;
 	
+	//Archivo
     private Action openAction;
     private Action toggleSubfoldersAction;
     private Action deleteAction;
     
+    //Edicion
     private Action rotateLeftAction;
     private Action rotateRightAction;
     private Action flipHorizontalAction;
     private Action flipVerticalAction;
     private Action cortarAction;
     
+    //Zoom 
     private Action toggleZoomManualAction;
     private Action zoomAutoAction;
     private Action resetZoomAction;
@@ -127,9 +130,20 @@ public class VisorController implements ActionListener, ClipboardOwner
     private Action zoomFitAction;
     private Action zoomFixedAction;
     
+    //Servicios
     private Action refreshAction;
     private Action menuAction;
     private Action hiddenButtonsAction;
+    
+    //Tema
+    private Action toggleThemeAction;
+    private Action temaClearAction;
+    private Action temaDarkAction;
+    private Action temaBlueAction;
+    private Action temaGreenAction;
+    private Action temaOrangeAction;
+    // Guardar lista para fácil manejo
+    private List<Action> themeActions;
     
     // Mapa a pasar
     private Map<String, Action> actionMap;
@@ -268,40 +282,48 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    
 	    // --- Instanciar TODAS las Actions usando sus clases dedicadas ---
 	    // Asegúrate de haber creado los archivos .java correspondientes en controlador.actions
+
+	  //Navegacion
 	    firstImageAction = new FirstImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
 	    previousImageAction = new PreviousImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
 	    nextImageAction = new NextImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
 	    lastImageAction = new LastImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
 	    
+	  //Archivo
 	    openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que OpenFileAction existe y carga icono
-	    resetZoomAction = new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ResetZoomAction existe y carga icono
-	    toggleZoomManualAction = new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ToggleZoomManualAction existe y carga icono
 	    
-	    
-	    // --- CREA INSTANCIAS PARA LAS OTRAS ACTIONS (DEBES CREAR ESTAS CLASES) ---
+	  //Edicion
 	    //rotateLeftAction = new RotateLeftAction(this);
 	    //rotateRightAction = new RotateRightAction(this);
 	    //flipHorizontalAction = new FlipHorizontalAction(this);
 	    //flipVerticalAction = new FlipVerticalAction(this);
 	    //cropAction = new CropAction(this);
+	    
+	  //Zoom
+	    toggleZoomManualAction = new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ToggleZoomManualAction existe y carga icono
 	    //zoomAutoAction = new ZoomAutoAction(this);
 	    //zoomWidthAction = new ZoomWidthAction(this);
 	    //zoomHeightAction = new ZoomHeightAction(this);
 	    //zoomFitAction = new ZoomFitAction(this);
 	    //zoomFixedAction = new ZoomFixedAction(this);
+	    resetZoomAction = new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ResetZoomAction existe y carga icono
+	    
+	  //Servicios
 	    //toggleSubfoldersAction = new ToggleSubfoldersAction(this);
 	    //refreshAction = new RefreshAction(this);
 	    //deleteAction = new DeleteAction(this);
-	    // ... Crea instancias para TODAS tus acciones ...
-
-	    // --- ELIMINA TODAS LAS DEFINICIONES ANÓNIMAS DE AQUÍ ---
-	    // openAction = new AbstractAction("Abrir Archivo...") { ... }; // <-- ELIMINAR
-	    // resetZoomAction = new AbstractAction("Resetear Zoom") { ... }; // <-- ELIMINAR
-	    // toggleZoomManualAction = new AbstractAction("Activar Zoom Manual") { ... }; // <-- ELIMINAR
-	    // nextImageAction = new AbstractAction("Siguiente") { ... }; // <-- ELIMINAR
-	    // previousImageAction = new AbstractAction("Anterior") { ... }; // <-- ELIMINAR
-	    // --- FIN ELIMINAR ---
-
+	    
+	  //Tema
+	    temaClearAction = new ToggleThemeAction(this, "clear", "Tema Clear");
+	    temaDarkAction = new ToggleThemeAction(this, "dark", "Tema Dark");
+	    temaBlueAction = new ToggleThemeAction(this, "blue", "Tema Blue");
+	    temaGreenAction = new ToggleThemeAction(this, "green", "Tema Gren");
+	    temaOrangeAction = new ToggleThemeAction(this, "orange", "Tema Orange");
+	    
+	    themeActions = List.of(
+	    		temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction
+	    	);
+	    
 
 	    // --- Configuración adicional (como el estado inicial de SELECTED_KEY) ---
 	    // Esto SÍ puede quedar aquí o moverse al constructor de la Action específica
@@ -335,48 +357,29 @@ public class VisorController implements ActionListener, ClipboardOwner
     	
         Map<String, Action> mapaDeAcciones = new HashMap<>();
         // Clave = ActionCommand CORTO, Valor = Instancia de Action
-        mapaDeAcciones.put("Abrir_Archivo", openAction);
-        mapaDeAcciones.put("Selector_de_Carpetas_48x48", this.openAction); //openAction); // Botón
-
-        mapaDeAcciones.put("Resetear_Zoom", resetZoomAction);
-        mapaDeAcciones.put("Reset_48x48", this.resetZoomAction); //resetZoomAction); // Botón
-
-        mapaDeAcciones.put("Activar_Zoom_Manual", toggleZoomManualAction);
-        mapaDeAcciones.put("Zoom_48x48", this.toggleZoomManualAction);// toggleZoomManualAction); // Botón
-
+        
+        // TODO --- AÑADIR LAS OTRAS ACTIONS AL MAPA ---
+        
+      //Navegacion
         mapaDeAcciones.put("Primera_Imagen", firstImageAction);
         mapaDeAcciones.put("Primera_48x48", this.firstImageAction);//); // Botón
         
         mapaDeAcciones.put("Imagen_Siguiente", nextImageAction);
         mapaDeAcciones.put("Siguiente_48x48", this.nextImageAction);//); // Botón
-
+        
         mapaDeAcciones.put("Imagen_Aterior", previousImageAction); // Cuidado con Typo si existe
         mapaDeAcciones.put("Anterior_48x48", this.previousImageAction); //previousImageAction); // Botón
-
+        
         mapaDeAcciones.put("Ultima_Imagen", lastImageAction);
         mapaDeAcciones.put("Ultima_48x48", this.lastImageAction);//); // Boton
         
-        // --- AÑADE LAS OTRAS ACTIONS AL MAPA ---
-        mapaDeAcciones.put("Girar_Izquierda", rotateLeftAction);
-        mapaDeAcciones.put("Rotar_Izquierda_48x48", rotateLeftAction);
+      // Archivo
+        mapaDeAcciones.put("Abrir_Archivo", openAction);
+        mapaDeAcciones.put("Selector_de_Carpetas_48x48", this.openAction); //openAction); // Botón
 
-        mapaDeAcciones.put("Girar_Derecha", rotateRightAction);
-        mapaDeAcciones.put("Rotar_Derecha_48x48", rotateRightAction);
-
-        mapaDeAcciones.put("Voltear_Horizontal", flipHorizontalAction);
-        mapaDeAcciones.put("Espejo_Horizontal_48x48", flipHorizontalAction);
-
-        mapaDeAcciones.put("Voltear_Vertical", flipVerticalAction);
-        mapaDeAcciones.put("Espejo_Vertical_48x48", flipVerticalAction);
-
-     // Asumiendo que solo hay botón
-        mapaDeAcciones.put("Recortar_48x48", cortarAction); 
-        
-        mapaDeAcciones.put("Menu_48x48",menuAction);         
-        
-        mapaDeAcciones.put("Botones_Ocultos_48x48",hiddenButtonsAction);
-        
-        
+      // Zoom  
+        mapaDeAcciones.put("Resetear_Zoom", resetZoomAction);
+        mapaDeAcciones.put("Reset_48x48", this.resetZoomAction); //resetZoomAction); // Botón
 
         mapaDeAcciones.put("Zoom_Automatico", zoomAutoAction);
         mapaDeAcciones.put("Zoom_Auto_48x48", zoomAutoAction);
@@ -392,22 +395,102 @@ public class VisorController implements ActionListener, ClipboardOwner
 
         mapaDeAcciones.put("Zoom_Actual_Fijo", zoomFixedAction);
         mapaDeAcciones.put("Zoom_Fijo_48x48", zoomFixedAction);
+        
+        mapaDeAcciones.put("Activar_Zoom_Manual", toggleZoomManualAction);
+        mapaDeAcciones.put("Zoom_48x48", this.toggleZoomManualAction);// toggleZoomManualAction); // Botón
+        
+      //Edicion
+        mapaDeAcciones.put("Girar_Izquierda", rotateLeftAction);
+        mapaDeAcciones.put("Rotar_Izquierda_48x48", rotateLeftAction);
+        
+        mapaDeAcciones.put("Girar_Derecha", rotateRightAction);
+        mapaDeAcciones.put("Rotar_Derecha_48x48", rotateRightAction);
+        
+        mapaDeAcciones.put("Voltear_Horizontal", flipHorizontalAction);
+        mapaDeAcciones.put("Espejo_Horizontal_48x48", flipHorizontalAction);
+        
+        mapaDeAcciones.put("Voltear_Vertical", flipVerticalAction);
+        mapaDeAcciones.put("Espejo_Vertical_48x48", flipVerticalAction);
+        
+        mapaDeAcciones.put("Recortar_48x48", cortarAction);
+        
 
-        mapaDeAcciones.put("Mostrar_Imagenes_de_Subcarpetas", toggleSubfoldersAction); // Radio button 1
-        mapaDeAcciones.put("Mostrar_Solo_Carpeta_Actual", toggleSubfoldersAction);    // Radio button 2 (necesitarán lógica especial en la Action)
+      //Visualizar
+        
+        
+      // Servicios
+        mapaDeAcciones.put("Menu_48x48",menuAction);         
+        
+        mapaDeAcciones.put("Botones_Ocultos_48x48",hiddenButtonsAction);
+        
         mapaDeAcciones.put("Subcarpetas_48x48", toggleSubfoldersAction);             // Botón
 
         mapaDeAcciones.put("Refrescar_48x48", refreshAction); // Solo botón
+        
         mapaDeAcciones.put("Recargar_Lista_de_Imagenes", refreshAction); // Opción de menú
 
         mapaDeAcciones.put("Eliminar_Permanentemente", deleteAction);
+        
         mapaDeAcciones.put("Borrar_48x48", deleteAction);
 
+      // Acciones de RadioButtons
+        //Mostrar Subcarpeta Si/No 
+        mapaDeAcciones.put("Mostrar_Imagenes_de_Subcarpetas", toggleSubfoldersAction); // Radio button 1
+        mapaDeAcciones.put("Mostrar_Solo_Carpeta_Actual", toggleSubfoldersAction);    // Radio button 2 (necesitarán lógica especial en la Action)
+        
+        // Mostrar Tema
+        mapaDeAcciones.put("Tema_Clear", 	temaDarkAction);
+        mapaDeAcciones.put("Tema_Dark", 	temaClearAction);
+    	mapaDeAcciones.put("Tema_Blue", 	temaBlueAction);
+    	mapaDeAcciones.put("Tema_Orange", 	temaGreenAction);
+    	mapaDeAcciones.put("Tema_Green", 	temaOrangeAction);
+        
+    	
         // ... Añade el resto ...
 
         return mapaDeAcciones;
     }
 	
+    
+    /**
+     * Cambia el tema actual en la configuración, guarda, notifica al usuario
+     * y actualiza el estado de las Actions de tema.
+     * @param nuevoTema El nombre del nuevo tema a establecer (en minúsculas).
+     */
+    public void cambiarTemaYNotificar(String nuevoTema) {
+        if (configuration == null || nuevoTema == null || nuevoTema.trim().isEmpty()) {
+            System.err.println("Error: No se puede cambiar tema (Configuración o nombre inválido).");
+            return;
+        }
+
+        // 1. Cambiar y Guardar en ConfigurationManager
+        configuration.setTemaActualYGuardar(nuevoTema); // Este método ya guarda
+
+        // 2. Actualizar Estado de Selección de TODAS las Actions de Tema
+        //    Esto asegura que solo el JRadioButtonMenuItem correcto quede marcado.
+        if (themeActions != null) {
+            for (Action action : themeActions) {
+                if (action instanceof ToggleThemeAction) {
+                    ((ToggleThemeAction) action).actualizarEstadoSeleccion(nuevoTema);
+                }
+            }
+        }
+
+        // 3. Notificar al Usuario (Opción Fácil: Reinicio Necesario)
+        String nombreTemaDisplay = nuevoTema.substring(0, 1).toUpperCase() + nuevoTema.substring(1); // Pone mayúscula inicial
+        JOptionPane.showMessageDialog(
+            view.getFrame(), // Asegúrate que view y getFrame() no sean null
+            "El tema se ha cambiado a '" + nombreTemaDisplay + "'.\n" +
+            "Por favor, reinicie la aplicación para aplicar los cambios visuales.",
+            "Cambio de Tema",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+
+        // 4. (Futuro - Opción Difícil) Llamar a método para refrescar UI dinámicamente
+        // refrescarUIParaNuevoTema();
+    }
+    
+    
  // --- NUEVO: Método para configurar Actions en la Vista ---
     // Este método reemplazará la necesidad de addActionListener para componentes con Actions
     private void configurarComponentActions() {
@@ -634,8 +717,10 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    System.out.println("Configuración inicial aplicada (Modelo y Vista).");
 	}
 
-	private void guardarConfiguracionActual() {
-	    if (configuration == null || view == null || model == null) {
+	private void guardarConfiguracionActual() 
+	{
+	    if (configuration == null || view == null || model == null) 
+	    {
 	        System.err.println("Error: Configuración, Vista o Modelo nulos en guardarConfiguracionActual.");
 	        return;
 	    }
@@ -687,6 +772,14 @@ public class VisorController implements ActionListener, ClipboardOwner
 	        System.err.println("Advertencia: view.getMenuItemsPorNombre() es null en guardarConfiguracionActual.");
 	    }
 
+	    // --- ¡IMPORTANTE! Asegurarse que el valor de tema.nombre sea el ÚLTIMO actualizado ---
+	    // Aunque ya debería estar en el mapa por iniciar con getConfigMap(),
+	    // podemos reconfirmarlo obteniéndolo directamente de configuration justo antes de guardar.
+	    String temaActualParaGuardar = configuration.getTemaActual(); // Obtiene el valor más reciente en memoria
+	    currentStateToSave.put("tema.nombre", temaActualParaGuardar); // Sobrescribe o añade la clave
+	    System.out.println("  -> Valor final de 'tema.nombre' a guardar: " + temaActualParaGuardar);
+	    
+	    
 	    // --- Guardar usando ConfigurationManager ---
 	    try {
 	        // Pasamos el mapa que hemos construido con el estado actual
@@ -1351,86 +1444,6 @@ public class VisorController implements ActionListener, ClipboardOwner
 
 	
 	
-//	
-//	private void mostrarImagenSeleccionada ()
-//	{
-//
-//		// Obtener clave seleccionada de la VISTA
-//		String archivoSeleccionadoKey = view.getListaImagenes().getSelectedValue();
-//
-//		if (archivoSeleccionadoKey == null || archivoSeleccionadoKey.equals(model.getSelectedImageKey()))
-//		{
-//
-//			// No hacer nada si no hay selección o es la misma que ya está cargada
-//			return;
-//
-//		}
-//
-//		System.out.println("\nIntentando mostrar: '" + archivoSeleccionadoKey + "'");
-//		// Actualizar modelo
-//		model.setSelectedImageKey(archivoSeleccionadoKey);
-//		Path rutaCompleta = model.getRutaCompleta(archivoSeleccionadoKey);
-//
-//		if (rutaCompleta != null)
-//		{
-//
-//			view.setTextoRuta(rutaCompleta.toString());
-//
-//			try
-//			{
-//
-//				// Cargar imagen y actualizar modelo
-//				BufferedImage img = ImageIO.read(rutaCompleta.toFile());
-//				model.setCurrentImage(img);
-//
-//				// Resetear zoom si no está habilitado el modo manual
-//				if (!model.isZoomHabilitado())
-//				{
-//
-//					model.resetZoomState(); // Actualiza modelo
-//
-//				}
-//
-//				// Calcular imagen reescalada (lógica)
-//				Image reescalada = reescalarImagenParaAjustar();
-//				// Actualizar VISTA con la nueva imagen y estado de zoom del modelo
-//				view.setImagenMostrada(reescalada, model.getZoomFactor(), model.getImageOffsetX(),
-//						model.getImageOffsetY());
-//
-//			} catch (IOException | OutOfMemoryError e)
-//			{ // Capturar OutOfMemory también
-//
-//				System.err.println("Error al cargar imagen " + rutaCompleta + ": " + e.getMessage());
-//				model.setCurrentImage(null); // Limpiar en modelo
-//				view.limpiarImagenMostrada(); // Limpiar en vista
-//				view.setTextoRuta("Error al cargar: " + rutaCompleta.getFileName());
-//				JOptionPane.showMessageDialog(view.getFrame(), "Error al cargar la imagen:\n" + e.getMessage(),
-//						"Error de Carga", JOptionPane.ERROR_MESSAGE);
-//
-//				// Resetear estado de zoom en modelo y desactivar en UI si estaba activo
-//				model.resetZoomState();
-//
-//				if (model.isZoomHabilitado())
-//				{
-//
-//					setManualZoomEnabled(false);
-//
-//				}
-//
-//			}
-//
-//		} else
-//		{
-//
-//			System.err.println("WARN: No se encontró ruta para la clave: " + archivoSeleccionadoKey);
-//			model.setCurrentImage(null);
-//			model.setSelectedImageKey(null); // Limpiar clave seleccionada también
-//			view.limpiarImagenMostrada();
-//			view.setTextoRuta("");
-//
-//		}
-//
-//	}
 
 	/**
 	 * Calcula la imagen reescalada basada en la imagen actual del modelo y el
@@ -2586,7 +2599,17 @@ public class VisorController implements ActionListener, ClipboardOwner
          }
          return null;
     }
-	
+
+    
+ // --- Getter para ConfigurationManager (necesario para el constructor de ToggleThemeAction) ---
+    /**
+     * Devuelve la instancia del ConfigurationManager.
+     * @return la instancia de ConfigurationManager.
+     */
+    public ConfigurationManager getConfigurationManager() {
+        return configuration;
+    }
+    
 } // Fin de VisorController
 
 

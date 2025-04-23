@@ -1,6 +1,5 @@
 package controlador.actions.archivo;
 
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 
 import javax.swing.Action;
@@ -18,19 +17,46 @@ public class OpenFileAction extends BaseVisorAction {
 	private static final long serialVersionUID = 1L;
 
 	public OpenFileAction(VisorController controller, IconUtils iconUtils, int width, int height) {
+        // Llama al constructor de la superclase
+        // El texto "Abrir Archivo..." se usa para el menú
         super("Abrir Archivo...", controller);
+
+        // Establece descripción (tooltip)
         putValue(Action.SHORT_DESCRIPTION, "Abrir una nueva carpeta de imágenes");
 
-        try {
-            // Icono para el botón "Selector_de_Carpetas"
-            java.net.URL iconUrl = getClass().getResource("/iconos/6024-Selector_de_Carpetas_48x48.png");
-            if (iconUrl != null) {
-                ImageIcon icon = new ImageIcon(iconUrl);
-                Image scaledImg = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
-                putValue(Action.SMALL_ICON, new ImageIcon(scaledImg));
-            } else { System.err.println("WARN [OpenFileAction]: Icono no encontrado."); }
-        } catch (Exception e) { System.err.println("ERROR cargando icono para OpenFileAction: " + e); }
+        // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
+        // Llama a getScaledIcon con el nombre del icono y los tamaños recibidos.
+        // Verifica el nombre del archivo: ¿es 'Selector_de_Carpetas' o 'selector_de_carpetas'?
+        // Usa el nombre que realmente tengan tus archivos PNG. Asumiré mayúsculas basado en el botón.
+        ImageIcon icon = iconUtils.getScaledIcon("6024-Selector_de_Carpetas_48x48.png", width, height);
+
+        // Verifica y asigna el icono
+        if (icon != null) {
+            // Este icono se asociará con la Action. Si el menú o el botón usan
+            // setAction(), tomarán este icono (si el LookAndFeel lo permite para menús).
+            putValue(Action.SMALL_ICON, icon);
+        } else {
+            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '6024-Selector_de_Carpetas_48x48.png' usando IconUtils.");
+            // Opcional: texto fallback
+            // putValue(Action.NAME, "Abrir");
+        }
+        // --- FIN DE LA PARTE IMPORTANTE ---
     }
+	
+//	public OpenFileAction(VisorController controller, IconUtils iconUtils, int width, int height) {
+//        super("Abrir Archivo...", controller);
+//        putValue(Action.SHORT_DESCRIPTION, "Abrir una nueva carpeta de imágenes");
+//
+//        try {
+//            // Icono para el botón "Selector_de_Carpetas"
+//            java.net.URL iconUrl = getClass().getResource("/iconos/6024-selector_de_carpetas_48x48.png");
+//            if (iconUrl != null) {
+//                ImageIcon icon = new ImageIcon(iconUrl);
+//                Image scaledImg = icon.getImage().getScaledInstance(24, 24, Image.SCALE_SMOOTH);
+//                putValue(Action.SMALL_ICON, new ImageIcon(scaledImg));
+//            } else { System.err.println("WARN [OpenFileAction]: Icono no encontrado."); }
+//        } catch (Exception e) { System.err.println("ERROR cargando icono para OpenFileAction: " + e); }
+//    }
 
     @Override
     public void actionPerformed(ActionEvent e) {

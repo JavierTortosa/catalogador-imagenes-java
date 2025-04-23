@@ -19,10 +19,12 @@ public class MenuBarBuilder {
     private ButtonGroup currentButtonGroup = null;
     private final String menuOptionsString;
     private Map<String, Action> actionMap; // Mapa Comando CORTO -> Action
-
+    
     // Prefijo base para las claves de configuración del menú
     private final String CONFIG_KEY_PREFIX = "interfaz.menu";
-
+    
+    private String menuDefinition;
+    
     /**
      * Constructor que recibe la definición del menú y el mapa de Actions.
      */
@@ -36,6 +38,18 @@ public class MenuBarBuilder {
         this.menuBar = new JMenuBar();
     }
 
+    
+    public MenuBarBuilder(Map<String, Action> actionMap) {
+    	menuDefinition = getMenuDefinitionString();
+        if (menuDefinition == null || menuDefinition.trim().isEmpty()) {
+            throw new IllegalArgumentException("La definición del menú no puede ser nula o vacía.");
+        }
+        this.menuOptionsString = menuDefinition;
+        this.actionMap = actionMap != null ? actionMap : new HashMap<>(); // Evitar NullPointer
+        this.menuItemsPorNombre = new HashMap<>();
+        this.menuBar = new JMenuBar();
+    }
+    
     /**
      * Construye la barra de menú completa basada en la definición proporcionada.
      * @return La JMenuBar construida.
@@ -105,7 +119,7 @@ public class MenuBarBuilder {
                              else if (currentMenu != null && currentMenu.getActionCommand() != null) parentKey = currentMenu.getActionCommand();
 
                              if (!parentKey.isEmpty()) {
-                                 fullConfigKey = parentKey + "." + baseActionCommand;
+                                 fullConfigKey = parentKey + "." + baseActionCommand;//.toLowerCase();
                              } else { /* fallback */ fullConfigKey = CONFIG_KEY_PREFIX + ".error." + baseActionCommand; }
                              break;
                          default: /* fallback */ fullConfigKey = CONFIG_KEY_PREFIX + ".unknown." + baseActionCommand; break;
@@ -184,5 +198,487 @@ public class MenuBarBuilder {
         return this.menuItemsPorNombre;
     }
 
+ // Método para obtener la definición del menú como String
+    private String getMenuDefinitionString() {
+        // como un único String multilinea. Asegúrate de que los saltos
+        // de línea sean correctos (puedes usar \n).
+    	String parteMenuArchivo = (
+    			"- Archivo\n"+
+            	"--- Abrir Archivo\n"+
+            	"--- Abrir en ventana nueva\n"+
+            	"--- Guardar\n"+
+            	"--- Guardar Como\n"+
+            	
+            	"_\n"+
+            	
+            	"--- Abrir Con...\n"+
+            	"--- Editar Imagen\n"+
+            	"--- Imprimir\n"+
+            	"--- Compartir\n"+
+            	
+            	"_\n"+
+            	
+            	"--- Refrescar Imagen\n"+
+            	"--- Volver a Cargar\n"+
+            	"--- Recargar Lista de Imagenes\n"+
+            	"--- Unload Imagen\n"+
+            "\n");
+    	
+    	String parteMenuNavegacion = ("- Navegacion\n"+
+	            "--- Primera Imagen\n"+
+	            "--- Imagen Aterior\n"+
+	            "--- Imagen Siguiente\n"+
+	            "--- Ultima Imagen\n"+
+	            
+	            "_\n"+
+	            
+	            "--- Ir a...\n"+
+	            "--- Primera Imagen\n"+
+	            "--- Ultima Imagen\n"+
+	            
+	            "_\n"+
+	            
+	            "--- Anterior Fotograma\n"+
+	            "--- Siguiente Fotograma\n"+
+	            "--- Primer Fotograma\n"+
+	            "--- Ultimo Fotograma\n"+
+            "\n");
+    	
+    	String parteMenuZoom= ("- Zoom\n"+
+	            "--- Acercar\n"+
+	            "--- Alejar\n"+
+	            "--- Zoom Personalizado %\n"+
+	            "--- Zoom Tamaño Real\n"+
+	            "---* Mantener Proporciones\n"+
+	            
+	            "_\n"+
+	            
+	            "---* Activar Zoom Manual\n"+
+	            "--- Resetear Zoom\n"+
+	            
+	            "_\n"+
+	            
+	            "--< Tipos de Zoom\n"+
+		            "--{\n"+
+		            "---. Zoom Automatico\n"+
+		            "---. Zoom a lo Ancho\n"+
+		            "---. Zoom a lo Alto\n"+
+		            "---. Escalar Para Ajustar\n"+
+		            "---. Zoom Actual Fijo\n"+
+		            "---. Zoom Especificado\n"+
+		            "---. Escalar Para Rellenar\n"+
+		            "--}\n"+
+	            "-->\n"+
+            "\n");
+    	
+    	String parteMenuImagen =(
+                "- Imagen\n"+
+    	            "--< Carga y Orden\n"+
+    			        "--{\n"+
+    			            "----. Nombre por Defecto\n"+
+    			            "----. Tamaño de Archivo\n"+
+    			            "----. Fecha de Creacion\n"+
+    			            "----. Extension\n"+
+    			        "--}\n"+
+    			            
+    		            "_\n"+
+    		            
+    			        "--{\n"+
+    			            "----. Sin Ordenar\n"+
+    			            "----. Ascendente\n"+
+    			            "----. Descendente\n"+
+    			        "--}\n"+
+    		            
+    	            "-->\n"+
+    	            "--< Edicion\n"+
+    		            "---- Girar Izquierda\n"+
+    		            "---- Girar Derecha\n"+
+    		            "---- Voltear Horizontal\n"+
+    		            "---- Voltear Vertical\n"+
+    	            "-->\n"+
+    		            
+    	            "_\n"+
+    	            
+    	            "--- Cambiar Nombre de la Imagen\n"+
+    	            "--- Mover a la Papelera\n"+
+    	            "--- Eliminar Permanentemente\n"+
+    	            
+    	            "_\n"+
+    	            
+    	            "--- Establecer Como Fondo de Escritorio\n"+
+    	            "--- Establecer Como Imagen de Bloqueo\n"+
+    	            "--- Abrir Ubicacion del Archivo\n"+
+    	            
+    	            "_\n"+
+    	            
+    	            "--- Propiedades de la imagen\n"+
+                "\n");
+    	
+    	String parteMenuVista =(
+    			"- Vista\n"+
+        	            "---* Barra de Menu\n"+
+        	            "---* Barra de Botones\n"+
+        	            "---* Mostrar/Ocultar la Lista de Archivos\n"+
+        	            "---* Imagenes en Miniatura\n"+
+        	            "---* Linea de Ubicacion del Archivo\n"+
+        	            
+        	            "_\n"+
+        	            
+        	            "---* Fondo a Cuadros\n"+
+        	            "---* Mantener Ventana Siempre Encima\n"+
+        	            
+        	            "_\n"+
+        	            
+        	            "--- Mostrar Dialogo Lista de Imagenes\n"+
+                    "\n");
+    	
+    	String parteMenuGeneral = (
+    			"- Configuracion\n"+
+        	            "--< Carga de Imagenes\n"+
+                    
+        		            "--{\n"+
+        		            "---. Mostrar Solo Carpeta Actual\n"+
+        		            "---. Mostrar Imagenes de Subcarpetas\n"+
+        		            "--}\n"+
+        		            
+        		            "_\n"+
+        		        
+        		            "---- Miniaturas en la Barra de Imagenes\n"+
+        		        "-->\n"+
+        		            
+        	            "_\n"+
+        	            
+        	            "--< General\n"+
+        		            "---* Mostrar Imagen de Bienvenida\n"+
+        		            "---* Abrir Ultima Imagen Vista\n"+
+        		            
+        		            "_\n"+
+        		            
+        		            "---* Volver a la Primera Imagen al Llegar al final de la Lista\n"+
+        		            "---* Mostrar Flechas de Navegacion\n"+
+        	            "-->\n"+
+        		            
+        	            "_\n"+
+        	            
+        	            "--< Visualizar Botones\n"+
+        		            "---* Botón Rotar Izquierda\n"+
+        		            "---* Botón Rotar Derecha\n"+
+        		            "---* Botón Espejo Horizontal\n"+
+        		            "---* Botón Espejo Vertical\n"+
+        		            "---* Botón Recortar\n"+
+        		            
+        		            "_\n"+
+        		            
+        		            "---* Botón Zoom\n"+
+        		            "---* Botón Zoom Automatico\n"+
+        		            "---* Botón Ajustar al Ancho\n"+
+        		            "---* Botón Ajustar al Alto\n"+
+        		            "---* Botón Escalar para Ajustar\n"+
+        		            "---* Botón Zoom Fijo\n"+
+        		            "---* Botón Reset Zoom\n"+
+        		            
+        		            "_\n"+
+        		            
+        		            "---* Botón Panel-Galeria\n"+
+        		            "---* Botón Grid\n"+
+        		            "---* Botón Pantalla Completa\n"+
+        		            "---* Botón Lista\n"+
+        		            "---* Botón Carrousel\n"+
+        		            
+        		            "_\n"+
+        		            
+        		            "---* Botón Refrescar\n"+
+        		            "---* Botón Subcarpetas\n"+
+        		            "---* Botón Lista de Favoritos\n"+
+        		            
+        		            "_\n"+
+        		            
+        		            "---* Botón Borrar\n"+
+        		            
+        		            "_\n"+
+        		            
+        		            "---* Botón Menu\n"+
+        		            "---* Mostrar Boton de Botones Ocultos\n"+
+        		        "-->\n"+
+        		            
+        	            "_\n"+
+        	            
+        	            "--< Barra de Informacion\n"+
+        		            "--{\n"+
+        		            "---. Nombre del Archivo\n"+
+        		            "---. Ruta y Nombre del Archivo\n"+
+        		            "--}\n"+
+        		            
+        		            "_\n"+
+        		            
+        		            "---* Numero de Imagenes en la Carpeta Actual\n"+
+        		            "---* % de Zoom actual\n"+
+        		            "---* Tamaño del Archivo\n"+
+        		            "---* Fecha y Hora de la Imagen\n"+
+        	            "-->\n"+
+        		            
+        		        "--< Tema\n"+
+        	            	"--{\n"+
+        	            	"---. Tema Clear\n"+
+        	            	"---. Tema Dark\n"+
+//        	            	"--}\n"+
+//        	            	
+//        	            	"_\n"+
+//        	            	
+//        	            	"--{\n"+
+        	            	"---. Tema Blue\n"+
+        	            	"---. Tema Orange\n"+
+        	            	"---. Tema Green\n"+
+        	            	"--}\n"+
+        	            "-->\n"+
+        	            	
+        	            "_\n"+
+        	            
+        	            "--- Guardar Configuracion Actual\n"+
+        	            "--- Cargar Configuracion Inicial\n"+
+        	            "_\n"+
+        	            "--- Version");
+    	
+    	return
+    			parteMenuArchivo+ "\n" +
+    			parteMenuNavegacion+ "\n" +
+    			parteMenuZoom+ "\n" +
+    			parteMenuImagen+ "\n" +
+    			parteMenuVista+ "\n" +
+    			parteMenuGeneral;
+    	
+    	//return menuTotal;
+    }
+/*    	
+        return
+            "- Archivo\n"+
+            	"--- Abrir Archivo\n"+
+            	"--- Abrir en ventana nueva\n"+
+            	"--- Guardar\n"+
+            	"--- Guardar Como\n"+
+            	
+            	"_\n"+
+            	
+            	"--- Abrir Con...\n"+
+            	"--- Editar Imagen\n"+
+            	"--- Imprimir\n"+
+            	"--- Compartir\n"+
+            	
+            	"_\n"+
+            	
+            	"--- Refrescar Imagen\n"+
+            	"--- Volver a Cargar\n"+
+            	"--- Recargar Lista de Imagenes\n"+
+            	"--- Unload Imagen\n"+
+            "\n"+
+            	
+            "- Navegacion\n"+
+	            "--- Primera Imagen\n"+
+	            "--- Imagen Aterior\n"+
+	            "--- Imagen Siguiente\n"+
+	            "--- Ultima Imagen\n"+
+	            
+	            "_\n"+
+	            
+	            "--- Ir a...\n"+
+	            "--- Primera Imagen\n"+
+	            "--- Ultima Imagen\n"+
+	            
+	            "_\n"+
+	            
+	            "--- Anterior Fotograma\n"+
+	            "--- Siguiente Fotograma\n"+
+	            "--- Primer Fotograma\n"+
+	            "--- Ultimo Fotograma\n"+
+            "\n"+
+	            
+            "- Zoom\n"+
+	            "--- Acercar\n"+
+	            "--- Alejar\n"+
+	            "--- Zoom Personalizado %\n"+
+	            "--- Zoom Tamaño Real\n"+
+	            "---* Mantener Proporciones\n"+
+	            
+	            "_\n"+
+	            
+	            "---* Activar Zoom Manual\n"+
+	            "--- Resetear Zoom\n"+
+	            
+	            "_\n"+
+	            
+	            "--< Tipos de Zoom\n"+
+		            "--{\n"+
+		            "---. Zoom Automatico\n"+
+		            "---. Zoom a lo Ancho\n"+
+		            "---. Zoom a lo Alto\n"+
+		            "---. Escalar Para Ajustar\n"+
+		            "---. Zoom Actual Fijo\n"+
+		            "---. Zoom Especificado\n"+
+		            "---. Escalar Para Rellenar\n"+
+		            "--}\n"+
+	            "-->\n"+
+            "\n"+
+	            
+            "- Imagen\n"+
+	            "--< Carga y Orden\n"+
+			        "--{\n"+
+			            "----. Nombre por Defecto\n"+
+			            "----. Tamaño de Archivo\n"+
+			            "----. Fecha de Creacion\n"+
+			            "----. Extension\n"+
+			        "--}\n"+
+			            
+		            "_\n"+
+		            
+			        "--{\n"+
+			            "----. Sin Ordenar\n"+
+			            "----. Ascendente\n"+
+			            "----. Descendente\n"+
+			        "--}\n"+
+		            
+	            "-->\n"+
+	            "--< Edicion\n"+
+		            "---- Girar Izquierda\n"+
+		            "---- Girar Derecha\n"+
+		            "---- Voltear Horizontal\n"+
+		            "---- Voltear Vertical\n"+
+	            "-->\n"+
+		            
+	            "_\n"+
+	            
+	            "--- Cambiar Nombre de la Imagen\n"+
+	            "--- Mover a la Papelera\n"+
+	            "--- Eliminar Permanentemente\n"+
+	            
+	            "_\n"+
+	            
+	            "--- Establecer Como Fondo de Escritorio\n"+
+	            "--- Establecer Como Imagen de Bloqueo\n"+
+	            "--- Abrir Ubicacion del Archivo\n"+
+	            
+	            "_\n"+
+	            
+	            "--- Propiedades de la imagen\n"+
+            "\n"+
+	            
+            "- Vista\n"+
+	            "---* Barra de Menu\n"+
+	            "---* Barra de Botones\n"+
+	            "---* Mostrar/Ocultar la Lista de Archivos\n"+
+	            "---* Imagenes en Miniatura\n"+
+	            "---* Linea de Ubicacion del Archivo\n"+
+	            
+	            "_\n"+
+	            
+	            "---* Fondo a Cuadros\n"+
+	            "---* Mantener Ventana Siempre Encima\n"+
+	            
+	            "_\n"+
+	            
+	            "--- Mostrar Dialogo Lista de Imagenes\n"+
+            "\n"+
+	            
+            "- Configuracion\n"+
+	            "--< Carga de Imagenes\n"+
+            
+		            "--{\n"+
+		            "---. Mostrar Solo Carpeta Actual\n"+
+		            "---. Mostrar Imagenes de Subcarpetas\n"+
+		            "--}\n"+
+		            
+		            "_\n"+
+		        
+		            "---- Miniaturas en la Barra de Imagenes\n"+
+		        "-->\n"+
+		            
+	            "_\n"+
+	            
+	            "--< General\n"+
+		            "---* Mostrar Imagen de Bienvenida\n"+
+		            "---* Abrir Ultima Imagen Vista\n"+
+		            
+		            "_\n"+
+		            
+		            "---* Volver a la Primera Imagen al Llegar al final de la Lista\n"+
+		            "---* Mostrar Flechas de Navegacion\n"+
+	            "-->\n"+
+		            
+	            "_\n"+
+	            
+	            "--< Visualizar Botones\n"+
+		            "---* Botón Rotar Izquierda\n"+
+		            "---* Botón Rotar Derecha\n"+
+		            "---* Botón Espejo Horizontal\n"+
+		            "---* Botón Espejo Vertical\n"+
+		            "---* Botón Recortar\n"+
+		            
+		            "_\n"+
+		            
+		            "---* Botón Zoom\n"+
+		            "---* Botón Zoom Automatico\n"+
+		            "---* Botón Ajustar al Ancho\n"+
+		            "---* Botón Ajustar al Alto\n"+
+		            "---* Botón Escalar para Ajustar\n"+
+		            "---* Botón Zoom Fijo\n"+
+		            "---* Botón Reset Zoom\n"+
+		            
+		            "_\n"+
+		            
+		            "---* Botón Panel-Galeria\n"+
+		            "---* Botón Grid\n"+
+		            "---* Botón Pantalla Completa\n"+
+		            "---* Botón Lista\n"+
+		            "---* Botón Carrousel\n"+
+		            
+		            "_\n"+
+		            
+		            "---* Botón Refrescar\n"+
+		            "---* Botón Subcarpetas\n"+
+		            "---* Botón Lista de Favoritos\n"+
+		            
+		            "_\n"+
+		            
+		            "---* Botón Borrar\n"+
+		            
+		            "_\n"+
+		            
+		            "---* Botón Menu\n"+
+		            "---* Mostrar Boton de Botones Ocultos\n"+
+		        "-->\n"+
+		            
+	            "_\n"+
+	            
+	            "--< Barra de Informacion\n"+
+		            "--{\n"+
+		            "---. Nombre del Archivo\n"+
+		            "---. Ruta y Nombre del Archivo\n"+
+		            "--}\n"+
+		            
+		            "_\n"+
+		            
+		            "---* Numero de Imagenes en la Carpeta Actual\n"+
+		            "---* % de Zoom actual\n"+
+		            "---* Tamaño del Archivo\n"+
+		            "---* Fecha y Hora de la Imagen\n"+
+	            "-->\n"+
+		            
+		        "--< Tema\n"+
+	            	"--{\n"+
+	            	"---. Negro\n"+
+	            	"---. Blanco\n"+
+	            	"---. Azul\n"+
+	            	"---. Naranja\n"+
+	            	"---. Verde\n"+
+	            	"--}\n"+
+	            "-->\n"+
+	            	
+	            "_\n"+
+	            
+	            "--- Guardar Configuracion Actual\n"+
+	            "--- Cargar Configuracion Inicial\n"+
+	            "_\n"+
+	            "--- Version";
+    }
+*/    
 } // <-- Cierra CLASE MenuBarBuilder
 

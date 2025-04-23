@@ -25,6 +25,8 @@ public class ConfigurationManager
 
 	private static final Map<String, String> DEFAULT_GROUP_COMMENTS;
 	private static final Map<String, String> DEFAULT_CONFIG;
+	private static final String KEY_TEMA_NOMBRE = "tema.nombre";
+	
 	static
 	{
 		// Usar un método estático para inicializar el mapa de defaults
@@ -32,6 +34,8 @@ public class ConfigurationManager
 		System.out.println("Mapa de configuración por defecto inicializado con " + DEFAULT_CONFIG.size() + " claves.");
 		DEFAULT_GROUP_COMMENTS = Collections.unmodifiableMap(createDefaultGroupCommentsMap());
 		System.out.println("Mapa DEFAULT_GROUP_COMMENTS inicializado con " + DEFAULT_GROUP_COMMENTS.size() + " entradas.");
+		
+		
 	}
 
 	// Lista de prefijos que definen SECCIONES PRINCIPALES (las que usan =====)
@@ -155,6 +159,16 @@ public class ConfigurationManager
 	public void guardarConfiguracion (Map<String, String> configAGuardar) throws IOException
 	{
 
+		// LOG DETALLADO: Inicio y verificación del valor a guardar ---
+        System.out.println("\n[ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===");
+        System.out.println("[ConfigurationManager guardarConfiguracion] Intentando guardar en: " + CONFIG_FILE_PATH);
+        String temaEnMapaAGuardar = configAGuardar.get(KEY_TEMA_NOMBRE);
+        System.out.println("[ConfigurationManager guardarConfiguracion] Valor de '" + KEY_TEMA_NOMBRE + "' que se intentará guardar: '" + temaEnMapaAGuardar + "'");
+        if (temaEnMapaAGuardar == null) {
+             System.err.println("  --> ¡¡ADVERTENCIA!! La clave '" + KEY_TEMA_NOMBRE + "' NO está en el mapa que se va a guardar.");
+        }
+        //------------------------------------
+		
 		File configFile = new File(CONFIG_FILE_PATH);
 		File tempFile = new File(CONFIG_FILE_PATH + ".tmp"); // Archivo temporal
 
@@ -412,15 +426,15 @@ public class ConfigurationManager
 		defaults.put("comportamiento.carga.conRutas", "false");
 
 		
-		//tema claro
-		//tema oscuro
-		//tema azul
+		//tema clear
+		//tema dark
+		//tema blue
 		//tema verde
 		//tema
 		
 		//===== Personalizacion =====
 		//Tema
-		defaults.put("tema", "claro");
+		defaults.put(KEY_TEMA_NOMBRE, "clear");
 		
 		//TODO Colores 
 		defaults.put("colores.Fondo", "238, 238, 238");
@@ -450,11 +464,15 @@ public class ConfigurationManager
     	//# Formato: interfaz.boton.<ActionCommand>.{activado|visible} = {true|false}\n\n");
 
     	//-- Navegación --
+		defaults.put("interfaz.boton.movimiento.Primera_48x48.activado", "true");
+		defaults.put("interfaz.boton.movimiento.Primera_48x48.visible", "true");
 		defaults.put("interfaz.boton.movimiento.Anterior_48x48.activado", "true");
 		defaults.put("interfaz.boton.movimiento.Anterior_48x48.visible", "true");
 		defaults.put("interfaz.boton.movimiento.Siguiente_48x48.activado", "true");
 		defaults.put("interfaz.boton.movimiento.Siguiente_48x48.visible", "true");
-
+		defaults.put("interfaz.boton.movimiento.Ultima_48x48.activado", "true");
+		defaults.put("interfaz.boton.movimiento.Ultima_48x48.visible", "true");
+		
     	//-- Edición --
 		defaults.put("interfaz.boton.edicion.Rotar_Izquierda_48x48.activado", "true");
 		defaults.put("interfaz.boton.edicion.Rotar_Izquierda_48x48.visible", "true");
@@ -827,6 +845,22 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.configuracion.barra_de_informacion.Fecha_y_Hora_de_la_Imagen.seleccionado", "false");
 		defaults.put("interfaz.menu.configuracion.barra_de_informacion.Fecha_y_Hora_de_la_Imagen.visible", "true");
                                    
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.activado", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.seleccionado", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.visible", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.activado", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.seleccionado", "false");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.visible", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.activado", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.seleccionado", "false");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.visible", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.activado", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.seleccionado", "false");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.visible", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.activado", "true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.seleccionado", "false");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.visible", "true");
+		
 		defaults.put("interfaz.menu.configuracion.Guardar_Configuracion_Actual.activado", "true");
 		defaults.put("interfaz.menu.configuracion.Guardar_Configuracion_Actual.visible", "true");
 		defaults.put("interfaz.menu.configuracion.Cargar_Configuracion_Inicial.activado", "true");
@@ -850,9 +884,13 @@ public class ConfigurationManager
 
         
         // --- Personalizacion
-        comments.put("tema",			"# ===== Tema Visual=====");
         comments.put("colores", 	   	"# ===== Colores UI =====");
         comments.put("iconos",         	"# ===== Configuración General Iconos ====="); // Para 'iconos.alto', 'iconos.ancho'
+
+        
+        comments.put("tema",			"# ===== Tema Visual=====");
+        comments.put("tema.nombre", 	"# Nombre del tema (dark, clear, blue, orange, green");
+        comments.put("interfaz.menu.configuracion.tema", "# ===== Tema Visual=====");
         
         
         // --- Subgrupos Nivel 1 (Dentro de interfaz) ---
@@ -1010,6 +1048,11 @@ public class ConfigurationManager
 
 		if (config != null && key != null && value != null)
 		{
+			
+			//LOG [Config Mgr setString] Actualizando clave
+			String oldValue = config.get(key); // Obtener valor anterior
+            System.out.println("[Config Mgr setString] Actualizando clave: '" + key + "' | Valor Anterior: '" + oldValue + "' | Valor Nuevo: '" + value + "'");
+			
 			config.put(key, value);
 			System.out.println("[Config Mgr] Valor en memoria actualizado: " + key + " = " + value); // Log
 		} else
@@ -1048,42 +1091,42 @@ public class ConfigurationManager
 	/**
      * Obtiene el nombre del tema actual definido en la configuración (clave 'tema').
      * Si la clave 'tema' no está definida en el archivo cargado,
-     * devuelve el valor por defecto definido en DEFAULT_CONFIG ("claro").
-     * Si DEFAULT_CONFIG tampoco tiene 'tema', devuelve "claro" como último recurso.
+     * devuelve el valor por defecto definido en DEFAULT_CONFIG ("clear").
+     * Si DEFAULT_CONFIG tampoco tiene 'tema', devuelve "clear" como último recurso.
      *
-     * @return El nombre del tema actual (ej. "claro", "oscuro", "azul", "verde", "naranja").
+     * @return El nombre del tema actual (ej. "clear", "dark", "blue", "green", "orange").
      */
     public String getTemaActual() {
         // Usamos getString que ya maneja la lógica de buscar en 'config' y luego en 'DEFAULT_CONFIG'
         // El segundo argumento de getString es el fallback final si la clave no existe en NINGUNO
-        return getString("tema", "claro");
+        return getString(KEY_TEMA_NOMBRE, "clear");
     }
     
     
     /**
      * Determina el nombre de la carpeta de iconos correspondiente al tema actual.
-     * Mapea los nombres de tema ("claro", "oscuro", "azul", etc.) a los nombres
+     * Mapea los nombres de tema ("clear", "dark", "blue", etc.) a los nombres
      * de las carpetas físicas de iconos ("black", "white", "blue", etc.).
      *
      * @return El nombre de la subcarpeta de iconos a usar (ej. "black", "white").
      */
     public String getCarpetaIconosTemaActual() {
-        String tema = getTemaActual(); // Obtiene el tema ("claro", "oscuro", etc.)
+        String tema = getTemaActual(); // Obtiene el tema ("clear", "dark", etc.)
 
         // Convertimos a minúsculas para hacer la comparación insensible a mayúsculas/minúsculas
         switch (tema.toLowerCase()) {
-            case "oscuro":
-                return "white"; // Tema oscuro usa iconos blancos
-            case "azul":
-                return "blue";  // Tema azul usa iconos azules
-            case "verde":
-                return "green"; // Tema verde usa iconos verdes
-            case "naranja":
-                return "orange";// Tema naranja usa iconos naranjas
-            case "claro":
-                 // Incluye el caso por defecto si el tema no es reconocido o es "claro"
+            case "dark":
+                return "white"; // Tema dark usa iconos blancos
+            case "blue":
+                return "blue";  // Tema blue usa iconos azules
+            case "green":
+                return "green"; // Tema green usa iconos verdes
+            case "orange":
+                return "orange";// Tema orange usa iconos naranjas
+            case "clear":
+                 // Incluye el caso por defecto si el tema no es reconocido o es "clear"
             default:
-                return "black"; // Tema claro (o desconocido) usa iconos negros
+                return "black"; // Tema clear (o desconocido) usa iconos negros
         }
     }
     
@@ -1092,8 +1135,8 @@ public class ConfigurationManager
      * Establece un nuevo tema en la configuración en memoria y luego
      * guarda toda la configuración actual en el archivo 'config.cfg'.
      *
-     * @param nuevoTema El nombre del nuevo tema a establecer (ej. "oscuro", "claro").
-     *                  Debe coincidir con las opciones válidas ("claro", "oscuro", "azul", etc.).
+     * @param nuevoTema El nombre del nuevo tema a establecer (ej. "dark", "clear").
+     *                  Debe coincidir con las opciones válidas ("clear", "dark", "blue", etc.).
      */
     public void setTemaActualYGuardar(String nuevoTema) {
         if (nuevoTema == null || nuevoTema.trim().isEmpty()) {
@@ -1102,15 +1145,23 @@ public class ConfigurationManager
         }
     
      // Podrías añadir una validación aquí para asegurar que nuevoTema es uno de los soportados
-        // List<String> temasValidos = List.of("claro", "oscuro", "azul", "verde", "naranja");
+        // List<String> temasValidos = List.of("clear", "dark", "blue", "green", "orange");
         // if (!temasValidos.contains(nuevoTema.toLowerCase())) {
         //     System.err.println("WARN [ConfigurationManager]: Tema '" + nuevoTema + "' no reconocido. No se guardará.");
         //     return;
         // }
 
         // Actualiza el valor en el mapa 'config' en memoria
-        setString("tema", nuevoTema.trim()); // setString ya imprime un log
+        setString(KEY_TEMA_NOMBRE, nuevoTema.trim()); // setString ya imprime un log
 
+        //LOG [ConfigurationManager setTemaActualYGuardar] Valor de: 
+        String valorEnMemoria = config.get(KEY_TEMA_NOMBRE);
+        System.out.println("[ConfigurationManager setTemaActualYGuardar] Valor de '" + KEY_TEMA_NOMBRE + "' en memoria ANTES de guardar: '" + valorEnMemoria + "'");
+        if (!nuevoTema.trim().equals(valorEnMemoria)) {
+             System.err.println("  --> ¡¡ADVERTENCIA!! El valor en memoria no coincide con el solicitado después de setString.");
+        }
+        //-----------------------
+        
         // Guarda el mapa 'config' completo (que ahora incluye el nuevo tema) en el archivo
         try {
             guardarConfiguracion(this.config); // Usa el método existente para guardar
