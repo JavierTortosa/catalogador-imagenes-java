@@ -30,7 +30,7 @@ public class ToggleZoomManualAction extends BaseVisorAction {
         // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
         // Llama a getScaledIcon con el nombre del icono CORRECTO (con Z mayúscula)
         // y los tamaños recibidos
-        ImageIcon icon = iconUtils.getScaledIcon("3008-Zoom_48x48.png", width, height); // <-- 'Z' mayúscula
+        ImageIcon icon = iconUtils.getScaledIcon("3001-Zoom_48x48.png", width, height); // <-- 'Z' mayúscula
 
         // Verifica y asigna el icono
         if (icon != null) {

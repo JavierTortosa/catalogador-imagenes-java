@@ -27,7 +27,7 @@ public class ResetZoomAction extends BaseVisorAction {
 
         // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
         // Llama a getScaledIcon con el nombre del icono y los tamaños recibidos
-        ImageIcon icon = iconUtils.getScaledIcon("3014-Reset_48x48.png", width, height);
+        ImageIcon icon = iconUtils.getScaledIcon("3007-Reset_48x48.png", width, height);
 
         // Verifica y asigna el icono
         if (icon != null) {

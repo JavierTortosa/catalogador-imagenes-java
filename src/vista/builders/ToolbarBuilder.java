@@ -111,13 +111,13 @@ public class ToolbarBuilder {
         		"2004-Espejo_Vertical_48x48.png", 
         		"2005-Recortar_48x48.png");
         List<String> iconosZoom = List.of(
-        		"3008-Zoom_48x48.png", 
-        		"3009-Zoom_Auto_48x48.png", 
-        		"3010-Ajustar_al_Ancho_48x48.png", 
-        		"3011-Ajustar_al_Alto_48x48.png", 
-        		"3012-Escalar_Para_Ajustar_48x48.png", 
-        		"3013-Zoom_Fijo_48x48.png", 
-        		"3014-Reset_48x48.png");
+        		"3001-Zoom_48x48.png", 
+        		"3002-Zoom_Auto_48x48.png", 
+        		"3003-Ajustar_al_Ancho_48x48.png", 
+        		"3004-Ajustar_al_Alto_48x48.png", 
+        		"3005-Escalar_Para_Ajustar_48x48.png", 
+        		"3006-Zoom_Fijo_48x48.png", 
+        		"3007-Reset_48x48.png");
         List<String> iconosVista = List.of(
         		"4015-Panel-Galeria_48x48.png", 
         		"4016-Grid_48x48.png", 
