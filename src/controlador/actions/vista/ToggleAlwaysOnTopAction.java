@@ -14,12 +14,12 @@ public class ToggleAlwaysOnTopAction extends BaseVisorAction {
 
     private static final long serialVersionUID = 1L;
     // Clave de configuración para el estado de este toggle
-    private static final String CONFIG_KEY = "interfaz.menu.vista.Barra_de_Menu.seleccionado";
+    private static final String CONFIG_KEY = "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima.seleccionado";
 
     public ToggleAlwaysOnTopAction(VisorController controller) {
         // --- TEXTO NUEVO ---
-        super("ToggleAlwaysOnTopAction", controller); // Texto del menú
-        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la ToggleAlwaysOnTopActionBarra de Menú");
+        super("Mantener_Ventana_Siempre_Encima", controller); // Texto del menú
+        putValue(Action.SHORT_DESCRIPTION, "Mantiene la Ventana Siempre Encima");
 
         // --- Estado Inicial Seleccionado ---
         if (controller != null && controller.getConfigurationManager() != null) {
@@ -35,8 +35,8 @@ public class ToggleAlwaysOnTopAction extends BaseVisorAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // --- TEXTO NUEVO ---
-        if (controller == null) { /*...*/ return; }
+
+    	if (controller == null) { /*...*/ return; }
         controller.logActionInfo(e);
 
         // Determinar el nuevo estado deseado
@@ -53,7 +53,7 @@ public class ToggleAlwaysOnTopAction extends BaseVisorAction {
         }
 
         // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("Barra_de_Menu", newState);
+        controller.setComponenteVisibleAndUpdateConfig("Mantener_Ventana_Siempre_Encima", newState);
 
         // Actualizar el estado de esta Action para sincronizar
         putValue(Action.SELECTED_KEY, newState);

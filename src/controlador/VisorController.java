@@ -264,13 +264,39 @@ public class VisorController implements ActionListener, ClipboardOwner
         // --- 10. Crear Vista y Conectar en el EDT ---
         final VisorController controllerInstance = this;
         SwingUtilities.invokeLater(() -> {
+        	//System.out.println("[EDT] Creando VisorView...");
             view = new VisorView(calculatedMiniaturePanelHeight, uiConfig);
+            //System.out.println("[EDT] Asignando modelo a JList...");
             view.setListaImagenesModel(model.getModeloLista());
+            //System.out.println("[EDT] Llamando a aplicarConfiguracionInicial...");
             controllerInstance.aplicarConfiguracionInicial(); // Aplica estados enabled/visible/selected
+            //System.out.println("[EDT] Llamando a cargarEstadoInicial...");
             controllerInstance.cargarEstadoInicial();       // Carga carpeta e imagen inicial
+            //System.out.println("[EDT] Llamando a configurarListenersNoAction...");
             controllerInstance.configurarListenersNoAction(); // JList, Mouse, etc.
+            //System.out.println("[EDT] Llamando a configurarComponentActions...");
             controllerInstance.configurarComponentActions(); // setAction para botones/menus
+            
+            //System.out.println("[EDT] Haciendo visible la vista...");
             view.setVisible(true);
+            
+         // --- TEXTO MODIFICADO: Sincronizar estado inicial Fondo a Cuadros ---
+            // Después de que todo es visible, leer el estado de la Action
+            // y aplicarlo explícitamente a la lógica de pintado de la vista.
+            //System.out.println("[EDT] Sincronizando estado visual inicial de Fondo a Cuadros...");
+            if (toggleCheckeredBgAction != null && view != null) {
+                 boolean initialState = Boolean.TRUE.equals(toggleCheckeredBgAction.getValue(Action.SELECTED_KEY));
+                 //System.out.println("  -> Estado inicial de Action Fondo a Cuadros: " + initialState);
+                 view.setCheckeredBackgroundEnabled(initialState); // Llamada explícita AHORA
+            } else {
+                 System.err.println("ERROR: No se pudo sincronizar estado inicial de Fondo a Cuadros (Action o View nula).");
+            }
+            // --- FIN MODIFICACION ---
+
+             // El forzado visual de los Radio Buttons de tema (si aún lo tienes) también iría aquí o en su propio invokeLater
+             // SwingUtilities.invokeLater(() -> { /* ... forzado visual radios ... */ });
+
+            
             System.out.println("[Controller] Inicialización de UI en EDT completada.");
         }); // Fin invokeLater
 
@@ -638,6 +664,7 @@ public class VisorController implements ActionListener, ClipboardOwner
         // Construir la clave de configuración correspondiente al estado ".seleccionado"
         // Esto asume una estructura consistente de claves. Ajustar si es necesario.
         String configKeyBase = null;
+        
         switch (nombreComponente) {
             case "Barra_de_Menu":
                 configKeyBase = "interfaz.menu.vista.Barra_de_Menu";
@@ -660,8 +687,15 @@ public class VisorController implements ActionListener, ClipboardOwner
                  view.setLocationBarVisible(visible); // Necesitas este método en VisorView
                  break;
              case "Fondo_a_Cuadros":
+            	 System.out.println("entro en el case Fondo_a_Cuadros");
                  configKeyBase = "interfaz.menu.vista.Fondo_a_Cuadros";
-                 view.setCheckeredBackground(visible); // Necesitas este método en VisorView
+                 if (view != null) {
+                	 //view.setCheckeredBackground(visible); // Necesitas este método en VisorView
+                	 view.setCheckeredBackgroundEnabled(visible);
+                	 //LOG-> [Controller] Llamando a view.setCheckeredBackgroundEnabled
+                	 System.out.println("  -> [Controller] Llamando a view.setCheckeredBackgroundEnabled(" + visible + ")");
+                 }
+                 System.out.println("Justo antes del break de Fondo_a_Cuadros");
                  break;
              case "Mantener_Ventana_Siempre_Encima":
                   configKeyBase = "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima";
@@ -837,7 +871,8 @@ public class VisorController implements ActionListener, ClipboardOwner
 
                         // Aplicar estado seleccionado para CheckBox y RadioButton
                         if (menuItem instanceof JCheckBoxMenuItem) {
-                            ((JCheckBoxMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
+                            //((JCheckBoxMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
+                        	((JCheckBoxMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
                         } else if (menuItem instanceof JRadioButtonMenuItem) {
 
                             // --- TEXTO MODIFICADO: LÓGICA PARA RADIO BUTTONS ---

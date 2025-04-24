@@ -14,12 +14,12 @@ public class ToggleFileListAction extends BaseVisorAction {
 
     private static final long serialVersionUID = 1L;
     // Clave de configuración para el estado de este toggle
-    private static final String CONFIG_KEY = "interfaz.menu.vista.Barra_de_Menu.seleccionado";
+    private static final String CONFIG_KEY = "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos.seleccionado";
 
     public ToggleFileListAction(VisorController controller) {
         // --- TEXTO NUEVO ---
-        super("ToggleFileListAction Barra de Menu", controller); // Texto del menú
-        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la ToggleFileListActionBarra de Menú");
+        super("Ocultar la Lista de Archivos", controller); // Texto del menú
+        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la Ocultar la Lista de Archivos");
 
         // --- Estado Inicial Seleccionado ---
         if (controller != null && controller.getConfigurationManager() != null) {
@@ -53,7 +53,7 @@ public class ToggleFileListAction extends BaseVisorAction {
         }
 
         // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("ToggleFileListActionBarra_de_Menu", newState);
+        controller.setComponenteVisibleAndUpdateConfig("Mostrar/Ocultar_la_Lista_de_Archivos", newState);
 
         // Actualizar el estado de esta Action para sincronizar
         putValue(Action.SELECTED_KEY, newState);

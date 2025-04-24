@@ -14,12 +14,12 @@ public class ToggleToolBarAction extends BaseVisorAction {
 
     private static final long serialVersionUID = 1L;
     // Clave de configuración para el estado de este toggle
-    private static final String CONFIG_KEY = "interfaz.menu.vista.Barra_de_Menu.seleccionado";
+    private static final String CONFIG_KEY = "interfaz.menu.vista.Barra_de_Botones.seleccionado";
 
     public ToggleToolBarAction(VisorController controller) {
         // --- TEXTO NUEVO ---
-        super("ToggleToolBarAction Barra de Menu", controller); // Texto del menú
-        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la ToggleToolBarActionBarra de Menú");
+        super("Barra de Botones", controller); // Texto del menú
+        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la Barra de Botones");
 
         // --- Estado Inicial Seleccionado ---
         if (controller != null && controller.getConfigurationManager() != null) {
@@ -53,7 +53,7 @@ public class ToggleToolBarAction extends BaseVisorAction {
         }
 
         // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("ToggleToolBarActionBarra_de_Menu", newState);
+        controller.setComponenteVisibleAndUpdateConfig("Barra_de_Botones", newState);
 
         // Actualizar el estado de esta Action para sincronizar
         putValue(Action.SELECTED_KEY, newState);

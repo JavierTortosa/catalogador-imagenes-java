@@ -14,12 +14,12 @@ public class ToggleLocationBarAction extends BaseVisorAction {
 
     private static final long serialVersionUID = 1L;
     // Clave de configuración para el estado de este toggle
-    private static final String CONFIG_KEY = "interfaz.menu.vista.LocationBarra_de_Menu.seleccionado";
+    private static final String CONFIG_KEY = "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo.seleccionado";
 
     public ToggleLocationBarAction(VisorController controller) {
         // --- TEXTO NUEVO ---
-        super("ToggleLocationBarActionBarra de Menu", controller); // Texto del menú
-        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la ToggleLocationBarActionBarra de Menú");
+        super("Linea de Ubicacion del Archivo", controller); // Texto del menú
+        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la Linea de Ubicacion del Archivo");
 
         // --- Estado Inicial Seleccionado ---
         if (controller != null && controller.getConfigurationManager() != null) {
@@ -53,7 +53,7 @@ public class ToggleLocationBarAction extends BaseVisorAction {
         }
 
         // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("ToggleLocationBarActionBarra_de_Menu", newState);
+        controller.setComponenteVisibleAndUpdateConfig("Linea_de_Ubicacion_del_Archivo", newState);
 
         // Actualizar el estado de esta Action para sincronizar
         putValue(Action.SELECTED_KEY, newState);

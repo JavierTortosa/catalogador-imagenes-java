@@ -77,6 +77,12 @@ public class VisorView extends JFrame
 	private int imageOffsetXView = 0;
 	private int imageOffsetYView = 0;
 	
+	//Variables del fondo a cuadros
+	private boolean fondoACuadrosActivado = false; // Estado inicial
+    private Color colorCuadroClaro = new Color(204, 204, 204); // Gris claro para cuadros
+    private Color colorCuadroOscuro = new Color(255, 255, 255); // Blanco para cuadros
+    private final int TAMANO_CUADRO = 16; // Tamaño de cada cuadrito en píxeles
+	
 	// --- Constructor ---
 	public VisorView(int miniaturaPanelHeight, ViewUIConfig config) 
 	{
@@ -310,72 +316,111 @@ public class VisorView extends JFrame
 	}
 
 	
+	// --- Dentro de la clase vista/VisorView.java ---
 	private void inicializarEtiquetaMostrarImagen ()
 	{
-		etiquetaImagen = new JLabel()
-		{
-			private static final long serialVersionUID = 1L; // Nuevo UID
+		etiquetaImagen = new JLabel() {
+			private static final long serialVersionUID = 1L;
 
 			@Override
-			protected void paintComponent (Graphics g)
-			{
-				super.paintComponent(g);
+			protected void paintComponent (Graphics g) {
 
-				// Usa las variables de la View para dibujar
-				if (imagenReescaladaView != null)
-				{
+				boolean dibujarCuadros = VisorView.this.fondoACuadrosActivado;
+				
+				// --- LOG AÑADIDO ---
+				System.out.println("[paintComponent etiquetaImagen] Ejecutando. fondoACuadrosActivado = " + dibujarCuadros);
+                System.out.println("[paintComponent etiquetaImagen] Ejecutando. fondoACuadrosActivado = " + fondoACuadrosActivado);
+				
+                // Obtener dimensiones UNA VEZ
+                int width = getWidth();
+                int height = getHeight();
 
-					Graphics2D g2d = (Graphics2D) g.create();
-					// Aplicar antialiasing puede mejorar la calidad al escalar
-					g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-					g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-					g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                // 1. Dibujar el Fondo (cuadros o sólido)
+                if (fondoACuadrosActivado) {
+                	
+                	// --- LOG AÑADIDO ---
+                    System.out.println("  -> Dibujando fondo a cuadros...");
                     
-					// Obtenemos el tamaño ACTUAL del componente JLabel donde dibujamos
-                    int panelWidth = getWidth();
-                    int panelHeight = getHeight();
-                    
-                    // Obtenemos el tamaño de la IMAGEN BASE (la pre-escalada)
-                    int baseImageWidth = imagenReescaladaView.getWidth(null);
-                    int baseImageHeight = imagenReescaladaView.getHeight(null);
-                    
-                    // Si la imagen base no tiene tamaño, no podemos dibujar
-                    if (baseImageWidth <= 0 || baseImageHeight <= 0) 
-                    {
-                        g2d.dispose(); // Liberamos la copia de Graphics
-                        return;       // Salimos del método
-                    }                    
-
-                    // Calculamos el tamaño FINAL que tendrá la imagen DESPUÉS de aplicar el zoom
-                    int finalZoomedWidth = (int) (baseImageWidth * zoomFactorView);
-                    int finalZoomedHeight = (int) (baseImageHeight * zoomFactorView);
-                    
-                    // Calculamos dónde empezar a dibujar (esquina superior izquierda de la imagen)
-                    // para que quede CENTRADA en el panel Y con el DESPLAZAMIENTO aplicado.
-                    int drawX = (panelWidth - finalZoomedWidth) / 2 + imageOffsetXView;
-                    int drawY = (panelHeight - finalZoomedHeight) / 2 + imageOffsetYView;
-                    
-                    // ¡La orden de dibujar!
-                    // Dibuja la imagen BASE (imagenReescaladaView)
-                    // en la posición (drawX, drawY)
-                    // y con el tamaño FINAL calculado (finalZoomedWidth, finalZoomedHeight).
-                    g2d.drawImage(imagenReescaladaView, drawX, drawY, finalZoomedWidth, finalZoomedHeight, null);
-
-                    // Ya hemos terminado de dibujar, liberamos la copia de Graphics
-                    g2d.dispose();
-
+                    // Crear copia de Graphics SOLO para el fondo a cuadros
+                    Graphics2D g2dFondo = (Graphics2D) g.create();
+                    try {
+                        for (int row = 0; row < height; row += TAMANO_CUADRO) {
+                            for (int col = 0; col < width; col += TAMANO_CUADRO) {
+                                if (((row / TAMANO_CUADRO) % 2) == ((col / TAMANO_CUADRO) % 2)) {
+                                    g2dFondo.setColor(colorCuadroClaro);
+                                } else {
+                                    g2dFondo.setColor(colorCuadroOscuro);
+                                }
+                                g2dFondo.fillRect(col, row, TAMANO_CUADRO, TAMANO_CUADRO);
+                            }
+                        }
+                    } finally {
+                        g2dFondo.dispose(); // Liberar copia del fondo
+                    }
                 } else {
-                    // Opcional: poner aquí un texto como "Cargando..." o "Sin imagen" 
+                    // Pintar fondo sólido del tema si no hay cuadros
+                    g.setColor(getBackground()); // Usar el background del JLabel
+                    g.fillRect(0, 0, width, height);
                 }
-			}
-		};
-		
+
+                // 2. Dibujar la Imagen (si existe) ENCIMA del fondo
+				// No llamar a super.paintComponent(g) aquí, ya pintamos el fondo nosotros.
+
+				if (imagenReescaladaView != null) {
+                    // Crear copia de Graphics DIFERENTE para la imagen
+					Graphics2D g2dImagen = (Graphics2D) g.create();
+                    try {
+                        // Aplicar hints a ESTA copia
+                        g2dImagen.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                        g2dImagen.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+                        g2dImagen.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+                        int baseImageWidth = imagenReescaladaView.getWidth(null);
+                        int baseImageHeight = imagenReescaladaView.getHeight(null);
+
+                        if (baseImageWidth > 0 && baseImageHeight > 0) {
+                            int finalZoomedWidth = (int) (baseImageWidth * zoomFactorView);
+                            int finalZoomedHeight = (int) (baseImageHeight * zoomFactorView);
+                            int drawX = (width - finalZoomedWidth) / 2 + imageOffsetXView;
+                            int drawY = (height - finalZoomedHeight) / 2 + imageOffsetYView;
+
+                            // Dibujar la imagen
+                            g2dImagen.drawImage(imagenReescaladaView, drawX, drawY, finalZoomedWidth, finalZoomedHeight, null);
+                        }
+                    } finally {
+                        g2dImagen.dispose(); // Liberar copia de la imagen
+                    }
+                }
+                // 3. (Opcional) Dibujar texto "Cargando..." si no hay imagen
+                //    Esto debería hacerse DESPUÉS de pintar el fondo
+                else if (getText() != null && !getText().isEmpty()) {
+                     // JLabel puede pintar el texto por sí mismo si llamamos a super.paintComponent
+                     // PERO queremos controlar el fondo, así que lo pintamos manualmente:
+                     g.setColor(getForeground()); // Usar color de texto del JLabel
+                     g.setFont(getFont());
+                     // Centrar texto (cálculo aproximado)
+                     java.awt.FontMetrics fm = g.getFontMetrics();
+                     int textWidth = fm.stringWidth(getText());
+                     int textHeight = fm.getAscent(); // Altura desde la línea base
+                     int textX = (width - textWidth) / 2;
+                     int textY = (height - fm.getHeight()) / 2 + textHeight;
+                     g.drawString(getText(), textX, textY);
+                }
+
+                // --- FIN MODIFICACION ---
+			} // Fin paintComponent
+		}; // Fin JLabel anónimo
+
 		etiquetaImagen.setHorizontalAlignment(SwingConstants.CENTER);
 		etiquetaImagen.setVerticalAlignment(SwingConstants.CENTER);
-		// Quitar el borde si no es necesario o manejarlo dinámicamente
-		// etiquetaImagen.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		etiquetaImagen.setOpaque(true); // Puede ser útil para ver el área
-		etiquetaImagen.setBackground(this.uiConfig.colorFondoSecundario); //Color de fondo cuando NO hay imagen
+        // --- TEXTO MODIFICADO ---
+		etiquetaImagen.setOpaque(false); // *** MUY IMPORTANTE: Hacer NO opaco ***
+                                         // Para que nuestro pintado manual del fondo se vea.
+        // Establecer el color de fondo base que usará paintComponent si fondoACuadrosActivado es false
+		etiquetaImagen.setBackground(this.uiConfig.colorFondoSecundario);
+        
+		// Establecer el color de texto que usará paintComponent si no hay imagen
+        etiquetaImagen.setForeground(this.uiConfig.colorTextoPrimario);
 	}
 	
 	
@@ -653,9 +698,31 @@ public class VisorView extends JFrame
 	     }
 	 }
 	
-
+	 
+	// --- Método para activar/desactivar ---
+    /**
+     * Activa o desactiva el pintado del fondo a cuadros detrás de la imagen.
+     * @param activado true para mostrar el fondo a cuadros, false para ocultarlo.
+     */
+    public void setCheckeredBackgroundEnabled(boolean activado)
+    {
+    	 // --- LOG AÑADIDO ---
+        System.out.println("[VisorView setCheckeredBackgroundEnabled] Solicitado: " + activado + ", Estado actual: " + this.fondoACuadrosActivado);
+        
+        if (this.fondoACuadrosActivado != activado) {
+            this.fondoACuadrosActivado = activado;
+            if (etiquetaImagen != null) {
+                etiquetaImagen.repaint(); // Forzar repintado de la etiqueta para aplicar el cambio
+                System.out.println("[VisorView] Fondo a cuadros " + (activado ? "activado" : "desactivado") + ". Repintando etiqueta.");
+            }
+        }
+    }
+	    
+	    
+	// ************************************************************************
 	// --- Getters para componentes específicos que el Controller necesita ---
-
+	// ************************************************************************
+	    
 	public JList<String> getListaImagenes ()
 	{
 		return listaImagenes;
