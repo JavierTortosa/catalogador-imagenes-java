@@ -57,6 +57,10 @@ import javax.swing.SwingUtilities;
 
 // Actions
 import controlador.actions.archivo.OpenFileAction;
+import controlador.actions.edicion.FlipHorizontalAction;
+import controlador.actions.edicion.FlipVerticalAction;
+import controlador.actions.edicion.RotateLeftAction;
+import controlador.actions.edicion.RotateRightAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
@@ -67,12 +71,12 @@ import controlador.actions.zoom.ToggleZoomManualAction;
 // Imports de mis clases
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
+import servicios.image.ImageEdition;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
 import vista.theme.Tema;
 import vista.theme.ThemeManager; // Importar ThemeManager
 import vista.util.IconUtils;
-
 
 
 /**
@@ -277,10 +281,10 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que OpenFileAction existe y carga icono
 	    
 	  //Edicion
-	    //rotateLeftAction = new RotateLeftAction(this);
-	    //rotateRightAction = new RotateRightAction(this);
-	    //flipHorizontalAction = new FlipHorizontalAction(this);
-	    //flipVerticalAction = new FlipVerticalAction(this);
+	    rotateLeftAction = new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    rotateRightAction = new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    flipHorizontalAction = new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    flipVerticalAction = new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
 	    //cropAction = new CropAction(this);
 	    
 	  //Zoom
@@ -2695,6 +2699,104 @@ public class VisorController implements ActionListener, ClipboardOwner
 		System.out.println("Listeners del Controller añadidos a la Vista.");
 
 	}
+	
+	
+	//*********************************** METODOS DE EDICION DE IMAGENES ***************************************
+	
+    public void aplicarVolteoHorizontal() {
+        if (model == null || view == null) return;
+        BufferedImage imagenOriginal = model.getCurrentImage();
+        if (imagenOriginal == null) { /*...*/ return; }
+
+        System.out.println("[Volteo H] Solicitando volteo a ImageEditor...");
+        // --- TEXTO MODIFICADO ---
+        // Llamar al método estático de ImageEditor
+        BufferedImage imagenVolteada = ImageEdition.flipHorizontal(imagenOriginal);
+        // --- FIN MODIFICACION ---
+
+        if (imagenVolteada != null) {
+            // Actualizar Modelo
+            model.setCurrentImage(imagenVolteada);
+            // Resetear zoom?
+            // model.resetZoomState();
+            // Actualizar Vista
+            Image imagenReescalada = reescalarImagenParaAjustar();
+            if (view != null) {
+                view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+                view.aplicarAnimacionBoton("Espejo_Horizontal_48x48");
+            }
+            System.out.println("[Volteo H] Volteo aplicado y vista actualizada.");
+        } else {
+            System.err.println("ERROR [Volteo H] ImageEditor devolvió null.");
+            JOptionPane.showMessageDialog(view.getFrame(), "Error al intentar voltear la imagen.", "Error de Volteo", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    // --- NUEVOS MÉTODOS PARA OTRAS EDICIONES ---
+    /**
+     * Aplica un volteo vertical llamando a ImageEditor y actualiza modelo/vista.
+     */
+    public void aplicarVolteoVertical() {
+        if (model == null || view == null) return;
+        BufferedImage imagenOriginal = model.getCurrentImage();
+        if (imagenOriginal == null) { /*...*/ return; }
+        System.out.println("[Volteo V] Solicitando volteo a ImageEditor...");
+        BufferedImage imagenVolteada = ImageEdition.flipVertical(imagenOriginal); // Llamar al método correspondiente
+        if (imagenVolteada != null) {
+            model.setCurrentImage(imagenVolteada);
+            Image imagenReescalada = reescalarImagenParaAjustar();
+            if (view != null) {
+                view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+                view.aplicarAnimacionBoton("Espejo_Vertical_48x48"); // Usar nombre correcto
+            }
+            System.out.println("[Volteo V] Volteo aplicado y vista actualizada.");
+        } else { /*...*/ }
+    }
+
+     /**
+     * Aplica rotación izquierda llamando a ImageEditor y actualiza modelo/vista.
+     */
+    public void aplicarRotarIzquierda() {
+        if (model == null || view == null) return;
+        BufferedImage imagenOriginal = model.getCurrentImage();
+        if (imagenOriginal == null) { /*...*/ return; }
+        System.out.println("[Rotar Izq] Solicitando rotación a ImageEditor...");
+        BufferedImage imagenRotada = ImageEdition.rotateLeft(imagenOriginal); // Llamar al método correspondiente
+        if (imagenRotada != null) {
+            model.setCurrentImage(imagenRotada);
+            // ¡Importante! Resetear zoom/pan después de rotar porque las dimensiones cambian
+            model.resetZoomState();
+            Image imagenReescalada = reescalarImagenParaAjustar();
+            if (view != null) {
+                view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+                view.aplicarAnimacionBoton("Rotar_Izquierda_48x48"); // Usar nombre correcto
+            }
+            System.out.println("[Rotar Izq] Rotación aplicada y vista actualizada.");
+        } else { /*...*/ }
+    }
+
+     /**
+     * Aplica rotación derecha llamando a ImageEditor y actualiza modelo/vista.
+     */
+    public void aplicarRotarDerecha() {
+         if (model == null || view == null) return;
+        BufferedImage imagenOriginal = model.getCurrentImage();
+        if (imagenOriginal == null) { /*...*/ return; }
+        System.out.println("[Rotar Der] Solicitando rotación a ImageEditor...");
+        BufferedImage imagenRotada = ImageEdition.rotateRight(imagenOriginal); // Llamar al método correspondiente
+        if (imagenRotada != null) {
+            model.setCurrentImage(imagenRotada);
+            model.resetZoomState(); // Resetear zoom
+            Image imagenReescalada = reescalarImagenParaAjustar();
+            if (view != null) {
+                view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+                view.aplicarAnimacionBoton("Rotar_Derecha_48x48"); // Usar nombre correcto
+            }
+            System.out.println("[Rotar Der] Rotación aplicada y vista actualizada.");
+        } else { /*...*/ }
+    }
+
+	
 } // Fin de VisorController
 
 
