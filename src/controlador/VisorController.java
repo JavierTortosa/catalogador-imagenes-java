@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -54,23 +55,24 @@ import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
-// Imports de mis clases
-import modelo.VisorModel; 
-import servicios.ConfigurationManager;
-import vista.VisorView; 
-import vista.config.ViewUIConfig;
-import vista.util.IconUtils;
-
 // Actions
 import controlador.actions.archivo.OpenFileAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
-import controlador.actions.zoom.ResetZoomAction;
-
-import controlador.actions.zoom.ToggleZoomManualAction;
 import controlador.actions.tema.ToggleThemeAction;
+import controlador.actions.zoom.ResetZoomAction;
+import controlador.actions.zoom.ToggleZoomManualAction;
+// Imports de mis clases
+import modelo.VisorModel;
+import servicios.ConfigurationManager;
+import vista.VisorView;
+import vista.config.ViewUIConfig;
+import vista.theme.Tema;
+import vista.theme.ThemeManager; // Importar ThemeManager
+import vista.util.IconUtils;
+
 
 
 /**
@@ -88,7 +90,8 @@ public class VisorController implements ActionListener, ClipboardOwner
 	private VisorView view;
 	private ConfigurationManager configuration;
 	private IconUtils iconUtils;
-
+	private ThemeManager themeManager;
+	
 	// --- Servicios ---
 	private ExecutorService executorService;
 
@@ -149,120 +152,101 @@ public class VisorController implements ActionListener, ClipboardOwner
     private Map<String, Action> actionMap;
     
 	// --- Constructor ---
-    public VisorController() 
+    public VisorController()
     {
+    	// ********************* COSAS A IMPLEMENTAR EN UN FUTURO: ***************************
+    	
+    	//TODO TwelveMonkeys: 	Para ampliar los tipos de imagenes soportados
+    	//TODO FlatLaf:			Para configurar los colores profundamente
+    	
+    	// ***********************************************************************************
+    	
+        System.out.println("Iniciando Visor de Imágenes V2 (con ThemeManager)...");
         // 1. Inicializar Modelo
         model = new VisorModel();
 
-        // 2. Inicializar Servicios
-        try 
-        { 
-        	configuration = new ConfigurationManager(); 
-        } catch (IOException e) { 
-        	System.err.println("FALLO CRÍTICO al cargar/crear configuración: " + e.getMessage());
-            JOptionPane.showMessageDialog(null, "Error fatal al leer la configuración.\n" + e.getMessage(), "Error Configuración", JOptionPane.ERROR_MESSAGE);
-        	System.exit(1); }
-        
+        // 2. Inicializar ConfigurationManager
+        try {
+        	configuration = new ConfigurationManager();
+        } catch (IOException e) { /* Manejo de error fatal */ System.exit(1); }
+
+        // 3. Inicializar ThemeManager (DESPUÉS de ConfigurationManager)
+        this.themeManager = new ThemeManager(configuration);
+
+        // 4. Inicializar IconUtils (DESPUÉS de ThemeManager)
+        this.iconUtils = new IconUtils(this.themeManager); // Pasa ThemeManager
+
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        // 2.5 Inicializar IconUtils (DESPUÉS de ConfigurationManager)
-        this.iconUtils = new IconUtils(configuration);
+        // --- 5. LEER VALORES DE UI INICIALES ---
+        // Obtener el objeto Tema actual
+        Tema temaInicial = this.themeManager.getTemaActual();
         
-        // --- LEER VALORES DE UI DE CONFIG (Se leen aquí para crear el objeto config) ---
-        Color colorFondoLeido = parseColor(configuration.getString("colores.Fondo", "238, 238, 238"));
-        Color colorActivadoLeido = parseColor(configuration.getString("colores.FondoBotonActivado", "84, 144, 164"));
-        Color colorAnimacionLeido = parseColor(configuration.getString("colores.FondoBotonAnimacion", "173, 216, 230"));
-        int anchoIconoLeido = configuration.getInt("iconos.ancho", 24);
-        int altoIconoLeido = configuration.getInt("iconos.alto", 24);
+        Objects.requireNonNull(temaInicial, "El tema inicial no puede ser nulo");
+        
+        // Extraer colores específicos del objeto Tema
+        Color cFondoPrincipal 		= temaInicial.colorFondoPrincipal();
+        Color cFondoSecundario 		= temaInicial.colorFondoSecundario();
+        Color cTextoPrimario 		= temaInicial.colorTextoPrimario();
+        Color cTextoSecundario 		= temaInicial.colorTextoSecundario();
+        Color cBorde 				= temaInicial.colorBorde();
+        Color cBordeTitulo 			= temaInicial.colorBordeTitulo();
+        Color cSeleccionFondo 		= temaInicial.colorSeleccionFondo();
+        Color cSeleccionTexto 		= temaInicial.colorSeleccionTexto();
+        Color cBotonFondo 			= temaInicial.colorBotonFondo();
+        Color cBotonTexto 			= temaInicial.colorBotonTexto();
+        Color cBotonFondoActivado 	= temaInicial.colorBotonFondoActivado();
+        Color cBotonFondoAnimacion 	= temaInicial.colorBotonFondoAnimacion();
+
+        // Leer tamaño iconos (desde ConfigurationManager como antes)
+        int anchoIconoLeido 		= configuration.getInt("iconos.ancho", 24);
+        int altoIconoLeido 			= configuration.getInt("iconos.alto", 24);
         // -----------------------------------------------------------------------
 
-        // --- Inicializar Actions (Pasar tamaño leído) ---
-        // Ahora pasamos los tamaños leídos directamente a initializeActions
-        initializeActions(anchoIconoLeido, altoIconoLeido);
+        // --- 6. Inicializar Actions ---
+        initializeActions(anchoIconoLeido, altoIconoLeido); // Pasa IconUtils implícitamente
 
-        // --- Crear el mapa de actions ---
+        // --- 7. Crear mapa de actions ---
         this.actionMap = createActionMap();
 
-        // --- Calcular Altura Miniaturas ---
+        // --- 8. Calcular Altura Miniaturas ---
         int selThumbH = configuration.getInt("miniaturas.tamano.seleccionada.alto");
-
-        //FIXME ajustar el padding de la barra de miniaturas en el config 
         int paddingVerticalTotal = 40;
-        
         final int calculatedMiniaturePanelHeight = selThumbH + paddingVerticalTotal;
-        System.out.println("[Controller Init] Altura calculada panel miniaturas: " + calculatedMiniaturePanelHeight);
 
-
-        // --- Crear instancia de ViewUIConfig ---
+        // --- 9. Crear instancia de ViewUIConfig ---
         final ViewUIConfig uiConfig = new ViewUIConfig(
-            colorFondoLeido, colorActivadoLeido, colorAnimacionLeido,
-            anchoIconoLeido, altoIconoLeido, this.actionMap,
-            this.iconUtils// Pasar el mapa de actions
+        		cFondoPrincipal, // Pasando color principal como 'colorFondo' obsoleto
+                cBotonFondoActivado, // Pasando color activado
+                cBotonFondoAnimacion, // Pasando color animación
+                // Configuración estándar
+                anchoIconoLeido, altoIconoLeido, this.actionMap, this.iconUtils,
+                // Nuevos colores específicos (ASEGURA QUE ViewUIConfig LOS ACEPTA)
+                cFondoPrincipal, cFondoSecundario, cTextoPrimario, cTextoSecundario,
+                cBorde, cBordeTitulo, cSeleccionFondo, cSeleccionTexto,
+                cBotonFondo, cBotonTexto, cBotonFondoActivado, cBotonFondoAnimacion
         );
 
-        // --- Crear Vista y Conectar en el EDT ---
+        // --- 10. Crear Vista y Conectar en el EDT ---
         final VisorController controllerInstance = this;
         SwingUtilities.invokeLater(() -> {
-
-            // --- MODIFICADO: Pasar solo altura y objeto uiConfig a View ---
             view = new VisorView(calculatedMiniaturePanelHeight, uiConfig);
-            // -----------------------------------------------------------
-
             view.setListaImagenesModel(model.getModeloLista());
-            controllerInstance.aplicarConfiguracionInicial();
-            controllerInstance.cargarEstadoInicial();
-            
-//            controllerInstance.configurarComponentActions();
-            controllerInstance.configurarListenersNoAction();// Configura JList, Mouse, etc.
-            // Configurar Actions DESPUÉS de que la vista esté visible y componentes creados?
-            // Es más seguro hacerlo DESPUÉS de setVisible(true) o al final de este invokeLater
-            controllerInstance.configurarComponentActions(); // Configura setAction para botones/menus
-            
+            controllerInstance.aplicarConfiguracionInicial(); // Aplica estados enabled/visible/selected
+            controllerInstance.cargarEstadoInicial();       // Carga carpeta e imagen inicial
+            controllerInstance.configurarListenersNoAction(); // JList, Mouse, etc.
+            controllerInstance.configurarComponentActions(); // setAction para botones/menus
             view.setVisible(true);
-            
-            //LOG [Controller] Inicialización de UI en EDT completada.
             System.out.println("[Controller] Inicialización de UI en EDT completada.");
-
         }); // Fin invokeLater
 
+        // 11. Configurar Hook de cierre
         configurarShutdownHook();
-
-        //LOG [Controller] Constructor finalizado.
         System.out.println("[Controller] Constructor finalizado.");
-
     }
     
 
-	// Método helper para parsear Color desde String "R, G, B" ---
-    private Color parseColor(String rgbString) 
-    {
-        if (rgbString == null || rgbString.trim().isEmpty()) 
-        {
-            return Color.LIGHT_GRAY; // Default si es inválido
-        }
-        
-        String[] components = rgbString.split(",");
-        if (components.length == 3) 
-        {
-            try 
-            {
-                int r = Integer.parseInt(components[0].trim());
-                int g = Integer.parseInt(components[1].trim());
-                int b = Integer.parseInt(components[2].trim());
-                // Validar rango 0-255
-                r = Math.max(0, Math.min(255, r));
-                g = Math.max(0, Math.min(255, g));
-                b = Math.max(0, Math.min(255, b));
-                return new Color(r, g, b);
-            } catch (NumberFormatException e) {
-                System.err.println("WARN: Formato de color inválido en config: '" + rgbString + "'. Usando Gris Claro.");
-                return Color.LIGHT_GRAY;
-            }
-        } else {
-             System.err.println("WARN: Formato de color debe ser R,G,B: '" + rgbString + "'. Usando Gris Claro.");
-             return Color.LIGHT_GRAY;
-        }
-    }
+	
 	
 	
 	// --- Método para inicializar las Actions ---
@@ -439,11 +423,11 @@ public class VisorController implements ActionListener, ClipboardOwner
         mapaDeAcciones.put("Mostrar_Solo_Carpeta_Actual", toggleSubfoldersAction);    // Radio button 2 (necesitarán lógica especial en la Action)
         
         // Mostrar Tema
-        mapaDeAcciones.put("Tema_Clear", 	temaDarkAction);
-        mapaDeAcciones.put("Tema_Dark", 	temaClearAction);
+        mapaDeAcciones.put("Tema_Clear", 	temaClearAction);
+        mapaDeAcciones.put("Tema_Dark", 	temaDarkAction);
     	mapaDeAcciones.put("Tema_Blue", 	temaBlueAction);
-    	mapaDeAcciones.put("Tema_Orange", 	temaGreenAction);
-    	mapaDeAcciones.put("Tema_Green", 	temaOrangeAction);
+    	mapaDeAcciones.put("Tema_Green", 	temaGreenAction);
+    	mapaDeAcciones.put("Tema_Orange", 	temaOrangeAction);
         
     	
         // ... Añade el resto ...
@@ -453,47 +437,51 @@ public class VisorController implements ActionListener, ClipboardOwner
 	
     
     /**
-     * Cambia el tema actual en la configuración, guarda, notifica al usuario
-     * y actualiza el estado de las Actions de tema.
-     * @param nuevoTema El nombre del nuevo tema a establecer (en minúsculas).
+     * Cambia el tema actual usando ThemeManager, guarda SOLO el nombre en config,
+     * actualiza las Actions y notifica al usuario.
      */
     public void cambiarTemaYNotificar(String nuevoTema) {
-        if (configuration == null || nuevoTema == null || nuevoTema.trim().isEmpty()) {
-            System.err.println("Error: No se puede cambiar tema (Configuración o nombre inválido).");
+        if (themeManager == null || nuevoTema == null || nuevoTema.trim().isEmpty()) { // Verificar themeManager
+            System.err.println("Error: No se puede cambiar tema (ThemeManager o nombre inválido).");
             return;
         }
+        System.out.println("[Controller] Solicitud para cambiar tema a: " + nuevoTema);
 
-        // 1. Cambiar y Guardar en ConfigurationManager
-        configuration.setTemaActualYGuardar(nuevoTema); // Este método ya guarda
+        // --- TEXTO MODIFICADO ---
+        // 1. Establecer tema en ThemeManager (este llama a configManager.setString internamente)
+        boolean cambiado = themeManager.setTemaActual(nuevoTema);
+        // Ya NO se llama a configuration.setTemaActualYGuardar()
+        // --- FIN MODIFICACION ---
 
-        // 2. Actualizar Estado de Selección de TODAS las Actions de Tema
-        //    Esto asegura que solo el JRadioButtonMenuItem correcto quede marcado.
-        if (themeActions != null) {
-            for (Action action : themeActions) {
-                if (action instanceof ToggleThemeAction) {
-                    ((ToggleThemeAction) action).actualizarEstadoSeleccion(nuevoTema);
+        if (cambiado) { // Solo actualizar/notificar si realmente cambió
+            // 2. Actualizar Estado de Selección de TODAS las Actions de Tema
+            if (themeActions != null) {
+                String temaConfirmado = themeManager.getTemaActual().nombreInterno(); // Obtener el nombre actual confirmado
+                for (Action action : themeActions) {
+                    if (action instanceof ToggleThemeAction) {
+                        ((ToggleThemeAction) action).actualizarEstadoSeleccion(temaConfirmado);
+                    }
                 }
+                 System.out.println("[Controller] Estado de selección de Actions de tema actualizado.");
             }
+
+            // 3. Notificar al Usuario (Reinicio Necesario)
+            String nombreTemaDisplay = nuevoTema.substring(0, 1).toUpperCase() + nuevoTema.substring(1);
+            JOptionPane.showMessageDialog(
+                (view != null ? view.getFrame() : null), // Manejar vista nula
+                "El tema se ha cambiado a '" + nombreTemaDisplay + "'.\n" +
+                "Por favor, reinicie la aplicación para aplicar los cambios visuales.",
+                "Cambio de Tema",
+                JOptionPane.INFORMATION_MESSAGE
+            );
         }
-
-        // 3. Notificar al Usuario (Opción Fácil: Reinicio Necesario)
-        String nombreTemaDisplay = nuevoTema.substring(0, 1).toUpperCase() + nuevoTema.substring(1); // Pone mayúscula inicial
-        JOptionPane.showMessageDialog(
-            view.getFrame(), // Asegúrate que view y getFrame() no sean null
-            "El tema se ha cambiado a '" + nombreTemaDisplay + "'.\n" +
-            "Por favor, reinicie la aplicación para aplicar los cambios visuales.",
-            "Cambio de Tema",
-            JOptionPane.INFORMATION_MESSAGE
-        );
-
-        // 4. (Futuro - Opción Difícil) Llamar a método para refrescar UI dinámicamente
-        // refrescarUIParaNuevoTema();
     }
     
     
- // --- NUEVO: Método para configurar Actions en la Vista ---
+    //Método para configurar Actions en la Vista ---
     // Este método reemplazará la necesidad de addActionListener para componentes con Actions
-    private void configurarComponentActions() {
+    private void configurarComponentActions() 
+    {
         System.out.println("[Controller] Configurando Actions en componentes...");
         if (view == null) {
             System.err.println("ERROR: Vista no inicializada al configurar actions.");
@@ -513,11 +501,11 @@ public class VisorController implements ActionListener, ClipboardOwner
                 this.iconoAlto);
         // MenuBarBuilder menuBuilder = new MenuBarBuilder(getMenuDefinitionString(), this.actionMap);
         */
-        // --- FIN MODIFICADO ---
 
-
-        // --- Asignar Actions a los componentes OBTENIDOS de la vista ---
+        // --- TODO Asignar Actions a los botones OBTENIDOS de la vista ---
+        
         Map<String, JButton> botones = view.getBotonesPorNombre(); // Obtiene los botones ya creados por la vista/builder
+        
         if (botones != null) {
             // Mapear Clave Larga de Configuración -> Action
             setActionForKey(botones, "interfaz.boton.movimiento.Anterior_48x48", previousImageAction);
@@ -525,11 +513,12 @@ public class VisorController implements ActionListener, ClipboardOwner
             setActionForKey(botones, "interfaz.boton.zoom.Reset_48x48", resetZoomAction);
             setActionForKey(botones, "interfaz.boton.zoom.Zoom_48x48", toggleZoomManualAction);
             setActionForKey(botones, "interfaz.boton.especiales.Selector_de_Carpetas_48x48", openAction);
-
             // TODO: Añadir setActionForKey para TODOS los demás botones...
 
         } else { System.err.println("WARN: Mapa de botones es null."); }
 
+        // --- TODO Asignar Actions a los menuitems OBTENIDOS de la vista ---
+        
         Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre(); // Obtiene los items ya creados por la vista/builder
         if (menuItems != null) {
             // Mapear Clave Larga de Configuración -> Action
@@ -538,9 +527,16 @@ public class VisorController implements ActionListener, ClipboardOwner
             setActionForKey(menuItems, "interfaz.menu.navegacion.Imagen_Siguiente", nextImageAction);
             setActionForKey(menuItems, "interfaz.menu.zoom.Resetear_Zoom", resetZoomAction);
             setActionForKey(menuItems, "interfaz.menu.zoom.Activar_Zoom_Manual", toggleZoomManualAction);
+            // TODO: Añadir setActionForKey para TODOS los demás items de menú...
 
-           // TODO: Añadir setActionForKey para TODOS los demás items de menú...
-
+            //LOG   -> Asignando Actions de Tema a Menús...
+            System.out.println("  -> Asignando Actions de Tema a Menús...");
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Clear", temaClearAction); // Clave LARGA usada por MenuBuilder
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Dark", temaDarkAction);
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Blue", temaBlueAction);
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Green", temaGreenAction);
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Orange", temaOrangeAction);
+            
             addFallbackListeners(menuItems); // Añadir listeners a los que no tienen Action
 
         } else { System.err.println("WARN: Mapa de menús es null."); }
@@ -551,7 +547,7 @@ public class VisorController implements ActionListener, ClipboardOwner
    }
     
     
- // --- NUEVO: Método auxiliar para setAction ---
+ // --- Método auxiliar para setAction ---
     private <T extends AbstractButton> void setActionForKey(Map<String, T> componentMap, String key, Action action) {
         T component = componentMap.get(key);
         if (component != null && action != null) {
@@ -644,78 +640,124 @@ public class VisorController implements ActionListener, ClipboardOwner
 	
 	// --- Métodos de Lógica (Movidos desde VisorV2 y Adaptados) ---
 
-	
-	private void aplicarConfiguracionInicial() {
-	    System.out.println("Aplicando configuración inicial...");
+    private void aplicarConfiguracionInicial() {
+	    System.out.println("Aplicando configuración inicial..."); // Log inicio
+
+	    // --- Validación: Asegurarse que todo está listo ---
 	    if (configuration == null || view == null || model == null) {
-	         System.err.println("Error: Configuración, Vista o Modelo nulos en aplicarConfiguracionInicial.");
+	         System.err.println("ERROR [aplicarConfiguracionInicial]: Configuración, Vista o Modelo nulos. Abortando.");
 	         return;
 	    }
 
-	    // --- Aplicar configuración al MODELO (Sin cambios aquí) ---
-	    model.setMiniaturasAntes(configuration.getInt("miniaturas.cantidad.antes"));
-	    model.setMiniaturasDespues(configuration.getInt("miniaturas.cantidad.despues"));
-	    model.setMiniaturaSelAncho(configuration.getInt("miniaturas.tamano.seleccionada.ancho"));
-	    model.setMiniaturaSelAlto(configuration.getInt("miniaturas.tamano.seleccionada.alto"));
-	    model.setMiniaturaNormAncho(configuration.getInt("miniaturas.tamano.normal.ancho"));
-	    model.setMiniaturaNormAlto(configuration.getInt("miniaturas.tamano.normal.alto"));
-	    boolean cargarSubcarpetas = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas");
-	    model.setMostrarSoloCarpetaActual(!cargarSubcarpetas);
-
-	    // --- Aplicar configuración a la VISTA (estado de botones y menús) ---
-
-	    // Aplicar a Botones (Sin cambios aquí, ya usaba la clave completa del mapa)
-	    if (view.getBotonesPorNombre() != null) {
-	        view.getBotonesPorNombre().forEach((claveCompletaBoton, button) -> {
-	            button.setEnabled(configuration.getBoolean(claveCompletaBoton + ".activado", true));
-	            button.setVisible(configuration.getBoolean(claveCompletaBoton + ".visible", true));
-	        });
-	    } else {
-	         System.err.println("Advertencia: view.getBotonesPorNombre() es null en aplicarConfiguracionInicial.");
+	    // --- 1. Aplicar configuración al MODELO ---
+	    // (Estos valores afectan la lógica, no directamente la UI inicial visible)
+	    try { // Es buena idea envolver lecturas de config en try-catch por si acaso
+	        model.setMiniaturasAntes(configuration.getInt("miniaturas.cantidad.antes", 7)); // Usar defaults seguros
+	        model.setMiniaturasDespues(configuration.getInt("miniaturas.cantidad.despues", 7));
+	        model.setMiniaturaSelAncho(configuration.getInt("miniaturas.tamano.seleccionada.ancho", 60));
+	        model.setMiniaturaSelAlto(configuration.getInt("miniaturas.tamano.seleccionada.alto", 60));
+	        model.setMiniaturaNormAncho(configuration.getInt("miniaturas.tamano.normal.ancho", 40));
+	        model.setMiniaturaNormAlto(configuration.getInt("miniaturas.tamano.normal.alto", 40));
+	        boolean cargarSubcarpetas = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true); // Default seguro
+	        model.setMostrarSoloCarpetaActual(!cargarSubcarpetas);
+             System.out.println("  -> Configuración del Modelo aplicada.");
+	    } catch (Exception e) {
+	        System.err.println("ERROR [aplicarConfiguracionInicial]: Excepción al aplicar configuración al Modelo: " + e.getMessage());
+	        // Considerar mostrar error al usuario o usar valores por defecto más robustos
 	    }
 
-	    // Aplicar a Menús (MODIFICADO: Asegurarse de usar las claves COMPLETAS del mapa)
-	    if (view.getMenuItemsPorNombre() != null) {
-	        view.getMenuItemsPorNombre().forEach((claveCompletaMenu, menuItem) -> {
-	             // MODIFICADO: claveCompletaMenu AHORA es la clave jerárquica correcta del mapa
 
-	             if (!(menuItem instanceof JMenu)) { // Aplicar solo a items finales, no a contenedores JMenu
-	                // MODIFICADO: Usar claveCompletaMenu directamente para leer de config
-	                menuItem.setEnabled(configuration.getBoolean(claveCompletaMenu + ".activado", true));
-	                menuItem.setVisible(configuration.getBoolean(claveCompletaMenu + ".visible", true));
-
-	                // Aplicar estado seleccionado para CheckBox y RadioButton
-	                if (menuItem instanceof JCheckBoxMenuItem) {
-	                    // MODIFICADO: Usar claveCompletaMenu directamente
-	                    ((JCheckBoxMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
-	                } else if (menuItem instanceof JRadioButtonMenuItem) {
-	                    // Lógica especial para radios que controlan el modelo directamente
-	                    // MODIFICADO: Usar las claves jerárquicas COMPLETAS aquí
-	                    if (claveCompletaMenu.equals("interfaz.menu.configuracion.Mostrar_Solo_Carpeta_Actual")) {
-	                         ((JRadioButtonMenuItem) menuItem).setSelected(model.isMostrarSoloCarpetaActual());
-	                    } else if (claveCompletaMenu.equals("interfaz.menu.configuracion.Mostrar_Imagenes_de_Subcarpetas")) {
-	                         ((JRadioButtonMenuItem) menuItem).setSelected(!model.isMostrarSoloCarpetaActual());
-	                    } else {
-	                        // Para otros radios, leer su estado 'seleccionado' de la config
-	                        // MODIFICADO: Usar claveCompletaMenu directamente
-	                        ((JRadioButtonMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
-	                    }
-	                }
-	             }
-	             // else { // Aquí podrías añadir lógica para habilitar/deshabilitar JMenu enteros si fuera necesario }
+	    // --- 2. Aplicar configuración a la VISTA (Botones) ---
+	    Map<String, JButton> botones = view.getBotonesPorNombre();
+	    if (botones != null) {
+             System.out.println("  -> Aplicando estado inicial a Botones...");
+	        botones.forEach((claveCompletaBoton, button) -> {
+                try {
+	                button.setEnabled(configuration.getBoolean(claveCompletaBoton + ".activado", true));
+	                button.setVisible(configuration.getBoolean(claveCompletaBoton + ".visible", true));
+                } catch (Exception e) {
+                    System.err.println("ERROR [aplicarConfiguracionInicial]: Aplicando estado a Botón '" + claveCompletaBoton + "': " + e.getMessage());
+                }
 	        });
+            System.out.println("  -> Estado inicial de Botones aplicado.");
 	    } else {
-	         System.err.println("Advertencia: view.getMenuItemsPorNombre() es null en aplicarConfiguracionInicial.");
+	         System.err.println("WARN [aplicarConfiguracionInicial]: view.getBotonesPorNombre() es null.");
 	    }
 
-	    // Forzar estado inicial de Zoom Manual basado en config
-	    // MODIFICADO: Usar la clave jerárquica COMPLETA
-	    boolean zoomInicialActivado = configuration.getBoolean("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", false);
-	    // Llama a la lógica del controlador para actualizar modelo y vista correctamente
-	    setManualZoomEnabled(zoomInicialActivado);
 
-	    System.out.println("Configuración inicial aplicada (Modelo y Vista).");
+	    // --- 3. Aplicar configuración a la VISTA (Menús) ---
+	    Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
+	    if (menuItems != null) {
+	        System.out.println("  -> Aplicando estado inicial a Menús...");
+	        menuItems.forEach((claveCompletaMenu, menuItem) -> {
+                 try {
+                     // Solo aplicar a items finales, no a los JMenu contenedores
+                     if (!(menuItem instanceof JMenu)) {
+                        // Aplicar Enabled y Visible a todos los items finales
+                        menuItem.setEnabled(configuration.getBoolean(claveCompletaMenu + ".activado", true));
+                        menuItem.setVisible(configuration.getBoolean(claveCompletaMenu + ".visible", true));
+
+                        // Aplicar estado seleccionado para CheckBox y RadioButton
+                        if (menuItem instanceof JCheckBoxMenuItem) {
+                            ((JCheckBoxMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
+                        } else if (menuItem instanceof JRadioButtonMenuItem) {
+
+                            // --- TEXTO MODIFICADO: LÓGICA PARA RADIO BUTTONS ---
+
+                            // Identificar si es un RadioButton de Tema
+                            boolean esTemaRadioButton = claveCompletaMenu.startsWith("interfaz.menu.configuracion.tema.Tema_"); // Comprobar prefijo
+
+                            if (esTemaRadioButton) {
+                                // *** NO HACER NADA AQUÍ ***
+                                // El estado 'seleccionado' de los radio buttons de tema
+                                // es controlado automáticamente por la propiedad Action.SELECTED_KEY
+                                // de la ToggleThemeAction asignada. Esta propiedad se establece
+                                // correctamente en el constructor de ToggleThemeAction al inicio,
+                                // basándose en el tema leído de la configuración.
+                                // Leer y establecer 'setSelected' desde el archivo aquí
+                                // causaría inconsistencias visuales.
+                                // System.out.println("    -> Omitiendo setSelected para RadioButton de tema: " + claveCompletaMenu); // Log opcional
+
+                            } else if (claveCompletaMenu.equals("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual")) {
+                                 // Caso especial: Radio de Subcarpetas (depende del Modelo)
+                                 ((JRadioButtonMenuItem) menuItem).setSelected(model.isMostrarSoloCarpetaActual());
+                            } else if (claveCompletaMenu.equals("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas")) {
+                                 // Caso especial: Radio de Subcarpetas (depende del Modelo)
+                                 ((JRadioButtonMenuItem) menuItem).setSelected(!model.isMostrarSoloCarpetaActual());
+                            } else {
+                                // Para CUALQUIER OTRO JRadioButtonMenuItem, leer su estado
+                                // 'seleccionado' directamente del archivo de configuración.
+                                ((JRadioButtonMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
+                            }
+                            // --- FIN TEXTO MODIFICADO ---
+                        }
+                     } // Fin if (!(menuItem instanceof JMenu))
+                 } catch (Exception e) {
+                    System.err.println("ERROR [aplicarConfiguracionInicial]: Aplicando estado a Menú '" + claveCompletaMenu + "': " + e.getMessage());
+                 }
+	        });
+             System.out.println("  -> Estado inicial de Menús aplicado.");
+	    } else {
+	         System.err.println("WARN [aplicarConfiguracionInicial]: view.getMenuItemsPorNombre() es null.");
+	    }
+
+
+	    // --- 4. Aplicar estado inicial de Zoom Manual ---
+	    // (Esto no depende directamente de un componente específico de menú/botón,
+	    // sino de un estado guardado que afecta a varios componentes y al modelo)
+        try {
+            // Usar la clave larga y correcta
+            boolean zoomInicialActivado = configuration.getBoolean("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", false);
+            // Llamar al método del controlador que actualiza modelo y UI relacionada
+            setManualZoomEnabled(zoomInicialActivado); // Este método actualiza la Action y la UI
+            System.out.println("  -> Estado inicial de Zoom Manual aplicado.");
+        } catch (Exception e) {
+             System.err.println("ERROR [aplicarConfiguracionInicial]: Aplicando estado Zoom Manual: " + e.getMessage());
+        }
+
+	    System.out.println("Configuración inicial aplicada (Modelo y Vista)."); // Log fin
 	}
+
 
 	private void guardarConfiguracionActual() 
 	{
@@ -724,7 +766,8 @@ public class VisorController implements ActionListener, ClipboardOwner
 	        System.err.println("Error: Configuración, Vista o Modelo nulos en guardarConfiguracionActual.");
 	        return;
 	    }
-	    Map<String, String> currentStateToSave = new HashMap<>();
+	    
+	    Map<String, String> currentStateToSave = configuration.getConfigMap();//new HashMap<>();
 	    System.out.println("Recopilando estado actual para guardar configuración...");
 
 	    // --- Obtener estado del MODELO (Sin cambios aquí) ---
@@ -752,7 +795,8 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    }
 
 	    // Estado de Menús (MODIFICADO: Asegurarse de usar las claves COMPLETAS del mapa)
-	    if (view.getMenuItemsPorNombre() != null) {
+	    if (view.getMenuItemsPorNombre() != null) 
+	    {
 	        view.getMenuItemsPorNombre().forEach( (claveCompletaMenu, menuItem) -> { // MODIFICADO: claveCompletaMenu AHORA es la clave correcta
 	             if (!(menuItem instanceof JMenu)) { // Solo guardar estado de items reales
 	                // MODIFICADO: Usar claveCompletaMenu directamente para guardar
@@ -775,6 +819,10 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    // --- ¡IMPORTANTE! Asegurarse que el valor de tema.nombre sea el ÚLTIMO actualizado ---
 	    // Aunque ya debería estar en el mapa por iniciar con getConfigMap(),
 	    // podemos reconfirmarlo obteniéndolo directamente de configuration justo antes de guardar.
+	    
+	    //LOG -> Valor final de 'tema.nombre' a guardar (desde mapa inicial):
+	    System.out.println("  -> Valor final de 'tema.nombre' a guardar (desde mapa inicial): " + currentStateToSave.get("tema.nombre"));
+	    
 	    String temaActualParaGuardar = configuration.getTemaActual(); // Obtiene el valor más reciente en memoria
 	    currentStateToSave.put("tema.nombre", temaActualParaGuardar); // Sobrescribe o añade la clave
 	    System.out.println("  -> Valor final de 'tema.nombre' a guardar: " + temaActualParaGuardar);
@@ -1561,69 +1609,7 @@ public class VisorController implements ActionListener, ClipboardOwner
 	}
 
 	
-	/**
-	 * Alterna el modo de carga (con/sin subcarpetas).
-	 */
-	private void alternarModoCarga (boolean soloCarpetaActual)
-	{
-
-		if (configuration == null)
-			return;
-		// 1. Actualizar Modelo
-		model.setMostrarSoloCarpetaActual(soloCarpetaActual);
-
-		// 2. Actualizar Vista (Radios del menú)
-		JMenuItem rbSolo = view.getMenuItemsPorNombre().get("Mostrar_Solo_Carpeta_Actual");
-		if (rbSolo instanceof JRadioButtonMenuItem)
-			((JRadioButtonMenuItem) rbSolo).setSelected(soloCarpetaActual);
-		JMenuItem rbSub = view.getMenuItemsPorNombre().get("Mostrar_Imagenes_de_Subcarpetas");
-		if (rbSub instanceof JRadioButtonMenuItem)
-			((JRadioButtonMenuItem) rbSub).setSelected(!soloCarpetaActual);
-
-		// 3. Guardar Configuración
-		try
-		{
-
-			Map<String, String> currentConfig = configuration.getConfigMap();
-			currentConfig.put("comportamiento.carpeta.cargarSubcarpetas",
-					String.valueOf(!model.isMostrarSoloCarpetaActual()));
-			configuration.guardarConfiguracion(currentConfig);
-
-		} catch (IOException ex)
-		{
-
-			System.err.println("Error al guardar modo carga: " + ex.getMessage());
-			JOptionPane.showMessageDialog(view.getFrame(), "Error al guardar config:\n" + ex.getMessage(), "Error",
-					JOptionPane.ERROR_MESSAGE);
-
-		}
-
-		// 4. Recargar Lista
-		cargarListaImagenes();
-
-		// 5. Notificar Usuario (Vista)
-		SwingUtilities.invokeLater( () -> {
-
-			String mensaje = soloCarpetaActual ? "Mostrando solo imágenes de la carpeta actual."
-					: "Mostrando imágenes de la carpeta actual y subcarpetas.";
-			JOptionPane.showMessageDialog(view.getFrame(), mensaje, "Cambio de Configuración",
-					JOptionPane.INFORMATION_MESSAGE);
-			System.out.println(mensaje);
-
-		});
-
-	}
 	
-
-	/**
-	 * Recarga la lista de imágenes actual.
-	 */
-	private void refrescarListaImagenes ()
-	{
-
-		cargarListaImagenes();
-
-	}
 
 	/**
 	 * Abre el selector de carpetas y carga la seleccionada.
@@ -1790,137 +1776,7 @@ public class VisorController implements ActionListener, ClipboardOwner
 	/**
 	 * Añade los listeners del controlador a los componentes de la vista.
 	 */
-	private void configurarEventosVista ()
-	{
-
-		// Listener para selección en JList
-		view.addListaImagenesSelectionListener(e -> {
-
-			if (!e.getValueIsAdjusting() && !estaCargandoLista)
-			{ // Evitar durante ajuste y carga
-
-				int indiceSeleccionado = view.getListaImagenes().getSelectedIndex();
-
-				if (indiceSeleccionado >= 0)
-				{
-
-					String selectedKey = model.getModeloLista().getElementAt(indiceSeleccionado);
-
-					// Evitar recargar si ya es la imagen seleccionada en el modelo
-					if (!selectedKey.equals(model.getSelectedImageKey()))
-					{
-
-						mostrarImagenSeleccionada();
-
-					}
-					// Siempre actualizar miniaturas al seleccionar
-					actualizarImagenesMiniaturaConRango(indiceSeleccionado);
-
-				}
-
-			}
-
-		});
-
-		// Listeners para Zoom/Pan en JLabel
-		view.addEtiquetaImagenMouseWheelListener(e -> {
-
-			if (model.isZoomHabilitado())
-			{ // Usa estado del MODELO
-
-				int notches = e.getWheelRotation();
-				double zoomIncrement = 0.1; // Hacer configurable?
-				double newZoomFactor = model.getZoomFactor() + (notches < 0 ? zoomIncrement : -zoomIncrement);
-				// Actualizar MODELO
-				model.setZoomFactor(newZoomFactor);
-				// Actualizar VISTA
-				Image currentReescaled = reescalarImagenParaAjustar();
-				view.setImagenMostrada(currentReescaled, model.getZoomFactor(), model.getImageOffsetX(),
-						model.getImageOffsetY());
-
-			}
-
-		});
-		view.addEtiquetaImagenMouseListener(new java.awt.event.MouseAdapter()
-		{
-			@Override
-			public void mousePressed (java.awt.event.MouseEvent e)
-			{
-
-				if (model.isZoomHabilitado())
-				{
-
-					lastMouseX = e.getX(); // Guarda estado local del Controller
-					lastMouseY = e.getY();
-
-				}
-
-			}
-		});
-		view.addEtiquetaImagenMouseMotionListener(new java.awt.event.MouseMotionAdapter()
-		{
-			@Override
-			public void mouseDragged (java.awt.event.MouseEvent e)
-			{
-
-				if (model.isZoomHabilitado())
-				{
-
-					int deltaX = e.getX() - lastMouseX;
-					int deltaY = e.getY() - lastMouseY;
-					// Actualizar MODELO
-					model.addImageOffsetX(deltaX);
-					model.addImageOffsetY(deltaY);
-					// Actualizar estado local del Controller
-					lastMouseX = e.getX();
-					lastMouseY = e.getY();
-					// Actualizar VISTA
-					Image currentReescaled = reescalarImagenParaAjustar();
-					view.setImagenMostrada(currentReescaled, model.getZoomFactor(), model.getImageOffsetX(),
-							model.getImageOffsetY());
-
-				}
-
-			}
-		});
-
-		// Añadir ActionListener a TODOS los botones y menús relevantes
-		// 'this' (el Controller) implementa ActionListener y redirigirá
-		if (view.getBotonesPorNombre() != null)
-		{
-
-			//view.getBotonesPorNombre().keySet().forEach(nombreBoton -> view.addButtonActionListener(nombreBoton, this));
-			view.getBotonesPorNombre().keySet().forEach(configKey -> { // configKey es la clave LARGA
-	            view.addButtonActionListener(configKey, this); // Pasa la clave LARGA para añadir listener
-			});
-			
-		}else {
-	         System.err.println("WARN: Mapa de botones en la vista es null al configurar eventos.");
-	    }
-
-		if (view.getMenuItemsPorNombre() != null)
-		{
-
-			//view.getMenuItemsPorNombre().keySet().forEach(actionCommand -> view.addMenuItemActionListener(actionCommand, this));
-
-		}else {
-	         System.err.println("WARN: Mapa de menús en la vista es null al configurar eventos.");
-	    }
-		
-		 if (view.getMenuItemsPorNombre() != null) {
-		        // ***** RESTAURAR ESTE BUCLE *****
-		        view.getMenuItemsPorNombre().keySet().forEach(configKey -> { // Itera claves LARGAS
-		            // Llama al método PÚBLICO de la vista, pasándole la clave larga
-		            view.addMenuItemActionListener(configKey, this);
-		        });
-		        // ********************************
-		    } else {
-		        System.err.println("WARN: Mapa de menús en la vista es null al configurar eventos.");
-		    }
-		
-		System.out.println("Listeners del Controller añadidos a la Vista.");
-
-	}
+	
 	
 	
 	// --- Implementación de ActionListener ---
@@ -2277,7 +2133,7 @@ public class VisorController implements ActionListener, ClipboardOwner
                      // --- Bloque TRY-CATCH para UNA miniatura ---
                      try { // <-- Abre TRY miniatura individual
                          final boolean esSeleccionada = (i == finalIndiceSeleccionado);
-                         final int indiceActual = i; // Para listener
+//                         final int indiceActual = i; // Para listener
 
                          ImageIcon miniaturaIcon = model.getMiniatura(uniqueKey);
                          Image imagenBase = null;
@@ -2609,7 +2465,236 @@ public class VisorController implements ActionListener, ClipboardOwner
     public ConfigurationManager getConfigurationManager() {
         return configuration;
     }
+
     
+ // Método helper para parsear Color desde String "R, G, B" ---
+    private Color parseColor(String rgbString) 
+    {
+        if (rgbString == null || rgbString.trim().isEmpty()) 
+        {
+            return Color.LIGHT_GRAY; // Default si es inválido
+        }
+        
+        String[] components = rgbString.split(",");
+        if (components.length == 3) 
+        {
+            try 
+            {
+                int r = Integer.parseInt(components[0].trim());
+                int g = Integer.parseInt(components[1].trim());
+                int b = Integer.parseInt(components[2].trim());
+                // Validar rango 0-255
+                r = Math.max(0, Math.min(255, r));
+                g = Math.max(0, Math.min(255, g));
+                b = Math.max(0, Math.min(255, b));
+                return new Color(r, g, b);
+            } catch (NumberFormatException e) {
+                System.err.println("WARN: Formato de color inválido en config: '" + rgbString + "'. Usando Gris Claro.");
+                return Color.LIGHT_GRAY;
+            }
+        } else {
+             System.err.println("WARN: Formato de color debe ser R,G,B: '" + rgbString + "'. Usando Gris Claro.");
+             return Color.LIGHT_GRAY;
+        }
+    }
+
+    
+    /**
+	 * Alterna el modo de carga (con/sin subcarpetas).
+	 */
+	private void alternarModoCarga (boolean soloCarpetaActual)
+	{
+
+		if (configuration == null)
+			return;
+		// 1. Actualizar Modelo
+		model.setMostrarSoloCarpetaActual(soloCarpetaActual);
+
+		// 2. Actualizar Vista (Radios del menú)
+		JMenuItem rbSolo = view.getMenuItemsPorNombre().get("Mostrar_Solo_Carpeta_Actual");
+		if (rbSolo instanceof JRadioButtonMenuItem)
+			((JRadioButtonMenuItem) rbSolo).setSelected(soloCarpetaActual);
+		JMenuItem rbSub = view.getMenuItemsPorNombre().get("Mostrar_Imagenes_de_Subcarpetas");
+		if (rbSub instanceof JRadioButtonMenuItem)
+			((JRadioButtonMenuItem) rbSub).setSelected(!soloCarpetaActual);
+
+		// 3. Guardar Configuración
+		try
+		{
+
+			Map<String, String> currentConfig = configuration.getConfigMap();
+			currentConfig.put("comportamiento.carpeta.cargarSubcarpetas",
+					String.valueOf(!model.isMostrarSoloCarpetaActual()));
+			configuration.guardarConfiguracion(currentConfig);
+
+		} catch (IOException ex)
+		{
+
+			System.err.println("Error al guardar modo carga: " + ex.getMessage());
+			JOptionPane.showMessageDialog(view.getFrame(), "Error al guardar config:\n" + ex.getMessage(), "Error",
+					JOptionPane.ERROR_MESSAGE);
+
+		}
+
+		// 4. Recargar Lista
+		cargarListaImagenes();
+
+		// 5. Notificar Usuario (Vista)
+		SwingUtilities.invokeLater( () -> {
+
+			String mensaje = soloCarpetaActual ? "Mostrando solo imágenes de la carpeta actual."
+					: "Mostrando imágenes de la carpeta actual y subcarpetas.";
+			JOptionPane.showMessageDialog(view.getFrame(), mensaje, "Cambio de Configuración",
+					JOptionPane.INFORMATION_MESSAGE);
+			System.out.println(mensaje);
+
+		});
+
+	}
+	
+
+	/**
+	 * Recarga la lista de imágenes actual.
+	 */
+	private void refrescarListaImagenes ()
+	{
+
+		cargarListaImagenes();
+
+	}
+
+	
+	private void configurarEventosVista ()
+	{
+
+		// Listener para selección en JList
+		view.addListaImagenesSelectionListener(e -> {
+
+			if (!e.getValueIsAdjusting() && !estaCargandoLista)
+			{ // Evitar durante ajuste y carga
+
+				int indiceSeleccionado = view.getListaImagenes().getSelectedIndex();
+
+				if (indiceSeleccionado >= 0)
+				{
+
+					String selectedKey = model.getModeloLista().getElementAt(indiceSeleccionado);
+
+					// Evitar recargar si ya es la imagen seleccionada en el modelo
+					if (!selectedKey.equals(model.getSelectedImageKey()))
+					{
+
+						mostrarImagenSeleccionada();
+
+					}
+					// Siempre actualizar miniaturas al seleccionar
+					actualizarImagenesMiniaturaConRango(indiceSeleccionado);
+
+				}
+
+			}
+
+		});
+
+		// Listeners para Zoom/Pan en JLabel
+		view.addEtiquetaImagenMouseWheelListener(e -> {
+
+			if (model.isZoomHabilitado())
+			{ // Usa estado del MODELO
+
+				int notches = e.getWheelRotation();
+				double zoomIncrement = 0.1; // Hacer configurable?
+				double newZoomFactor = model.getZoomFactor() + (notches < 0 ? zoomIncrement : -zoomIncrement);
+				// Actualizar MODELO
+				model.setZoomFactor(newZoomFactor);
+				// Actualizar VISTA
+				Image currentReescaled = reescalarImagenParaAjustar();
+				view.setImagenMostrada(currentReescaled, model.getZoomFactor(), model.getImageOffsetX(),
+						model.getImageOffsetY());
+
+			}
+
+		});
+		view.addEtiquetaImagenMouseListener(new java.awt.event.MouseAdapter()
+		{
+			@Override
+			public void mousePressed (java.awt.event.MouseEvent e)
+			{
+
+				if (model.isZoomHabilitado())
+				{
+
+					lastMouseX = e.getX(); // Guarda estado local del Controller
+					lastMouseY = e.getY();
+
+				}
+
+			}
+		});
+		view.addEtiquetaImagenMouseMotionListener(new java.awt.event.MouseMotionAdapter()
+		{
+			@Override
+			public void mouseDragged (java.awt.event.MouseEvent e)
+			{
+
+				if (model.isZoomHabilitado())
+				{
+
+					int deltaX = e.getX() - lastMouseX;
+					int deltaY = e.getY() - lastMouseY;
+					// Actualizar MODELO
+					model.addImageOffsetX(deltaX);
+					model.addImageOffsetY(deltaY);
+					// Actualizar estado local del Controller
+					lastMouseX = e.getX();
+					lastMouseY = e.getY();
+					// Actualizar VISTA
+					Image currentReescaled = reescalarImagenParaAjustar();
+					view.setImagenMostrada(currentReescaled, model.getZoomFactor(), model.getImageOffsetX(),
+							model.getImageOffsetY());
+
+				}
+
+			}
+		});
+
+		// Añadir ActionListener a TODOS los botones y menús relevantes
+		// 'this' (el Controller) implementa ActionListener y redirigirá
+		if (view.getBotonesPorNombre() != null)
+		{
+
+			//view.getBotonesPorNombre().keySet().forEach(nombreBoton -> view.addButtonActionListener(nombreBoton, this));
+			view.getBotonesPorNombre().keySet().forEach(configKey -> { // configKey es la clave LARGA
+	            view.addButtonActionListener(configKey, this); // Pasa la clave LARGA para añadir listener
+			});
+			
+		}else {
+	         System.err.println("WARN: Mapa de botones en la vista es null al configurar eventos.");
+	    }
+
+		if (view.getMenuItemsPorNombre() != null)
+		{
+
+			//view.getMenuItemsPorNombre().keySet().forEach(actionCommand -> view.addMenuItemActionListener(actionCommand, this));
+
+		}else {
+	         System.err.println("WARN: Mapa de menús en la vista es null al configurar eventos.");
+	    }
+		
+		 if (view.getMenuItemsPorNombre() != null) {
+		        // ***** RESTAURAR ESTE BUCLE *****
+		        view.getMenuItemsPorNombre().keySet().forEach(configKey -> { // Itera claves LARGAS
+		            // Llama al método PÚBLICO de la vista, pasándole la clave larga
+		            view.addMenuItemActionListener(configKey, this);
+		        });
+		        // ********************************
+		    } else {
+		        System.err.println("WARN: Mapa de menús en la vista es null al configurar eventos.");
+		    }
+		
+		System.out.println("Listeners del Controller añadidos a la Vista.");
+
+	}
 } // Fin de VisorController
 
 

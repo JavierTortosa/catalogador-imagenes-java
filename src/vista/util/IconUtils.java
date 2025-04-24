@@ -1,10 +1,14 @@
 // --- NUEVA CLASE ---
 package vista.util; // O el paquete que prefieras para utilidades de vista
 
-import javax.swing.ImageIcon;
-import java.awt.Image;
 import java.net.URL;
-import servicios.ConfigurationManager; // Importa tu ConfigurationManager
+import java.util.Objects;
+
+import javax.swing.ImageIcon;
+
+import vista.theme.Tema;
+import vista.theme.ThemeManager;
+
 
 /**
  * Clase de utilidad para cargar y gestionar iconos de la aplicación.
@@ -12,61 +16,73 @@ import servicios.ConfigurationManager; // Importa tu ConfigurationManager
  * correcta según el tema seleccionado.
  */
 public class IconUtils {
+	
+	private final ThemeManager themeManager;
 
-    private final ConfigurationManager configManager;
 
     /**
      * Constructor que requiere una instancia de ConfigurationManager.
      * @param configManager La instancia del gestor de configuración.
      */
-    public IconUtils(ConfigurationManager configManager) {
-        if (configManager == null) {
-            throw new IllegalArgumentException("ConfigurationManager no puede ser null en IconUtils");
-        }
-        this.configManager = configManager;
+	 public IconUtils(ThemeManager themeManager)
+	 {
+		 this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en IconUtils");
+		 
+        
     }
 
-    /**
+	 /**
      * Obtiene un ImageIcon a partir del nombre del archivo de icono.
      * La carpeta de iconos se determina dinámicamente según el tema actual.
      *
      * @param nombreIcono El nombre del archivo de icono (ej. "add.png").
      * @return El ImageIcon correspondiente, o null si no se encuentra o hay error.
      */
-    public ImageIcon getIcon(String nombreIcono) {
+    public ImageIcon getIcon(String nombreIcono) 
+    {
         if (nombreIcono == null || nombreIcono.trim().isEmpty()) {
             System.err.println("ERROR [IconUtils]: nombreIcono no puede ser nulo o vacío.");
             return null;
         }
 
-        // 1. Obtener la carpeta de iconos correcta basada en el tema actual
-        String nombreCarpetaIconos = configManager.getCarpetaIconosTemaActual(); // Ej: "black", "white", "blue"...
+        // 1. Obtener el TEMA actual del ThemeManager
+        Tema temaActual = themeManager.getTemaActual();
+        if (temaActual == null) {
+             System.err.println("ERROR [IconUtils]: No se pudo obtener el tema actual desde ThemeManager.");
+             // Puedes intentar obtener el tema por defecto aquí como fallback si ThemeManager lo permite
+             // temaActual = themeManager.obtenerTemaPorDefecto();
+             // if (temaActual == null) return null; // Salir si ni el default funciona
+             return null; // Salir por ahora
+        }
 
-        // 2. Construir la ruta completa al recurso del icono
-        //    Asume que tus iconos están en /resources/iconos/{nombreCarpeta}/...
-        //    La ruta debe empezar con '/' para ser absoluta desde el classpath.
+        // 2. Obtener la CARPETA de iconos desde el objeto Tema
+        String nombreCarpetaIconos = temaActual.carpetaIconos(); // Usa el getter del Record/Clase Tema
+        if (nombreCarpetaIconos == null || nombreCarpetaIconos.isBlank()){
+            System.err.println("ERROR [IconUtils]: La carpeta de iconos definida en el tema '" + temaActual.nombreInterno() + "' es inválida.");
+            nombreCarpetaIconos = "black"; // Fallback a 'black' si la carpeta del tema es inválida
+        }
+
+        // 3. Construir la ruta completa al recurso del icono
         String pathCompleto = "/iconos/" + nombreCarpetaIconos + "/" + nombreIcono;
 
-        //System.out.println("[IconUtils] Intentando cargar icono desde: " + pathCompleto); // Log para depurar
+        // System.out.println("[IconUtils] Intentando cargar icono desde: " + pathCompleto);
 
-        // 3. Cargar el recurso ImageIcon
-        //    Usamos getClass() para obtener el ClassLoader correcto.
+        // 4. Cargar el recurso ImageIcon
         URL imgURL = getClass().getResource(pathCompleto);
 
         if (imgURL != null) {
-            //System.out.println("  -> Icono encontrado: " + imgURL.getPath());
             return new ImageIcon(imgURL);
         } else {
             System.err.println("WARN [IconUtils]: No se pudo encontrar el icono en la ruta: " + pathCompleto);
-            // Podrías intentar cargar un icono de fallback desde la carpeta 'black'?
-            String fallbackPath = "/iconos/black/" + nombreIcono; // Asume 'black' como fallback
+            // Fallback a la carpeta "black" (asumiendo que siempre existe)
+            String fallbackPath = "/iconos/black/" + nombreIcono;
             URL fallbackURL = getClass().getResource(fallbackPath);
             if (fallbackURL != null) {
                  System.out.println("  -> Usando icono de fallback desde: " + fallbackPath);
                  return new ImageIcon(fallbackURL);
             } else {
                  System.err.println("  -> Fallback tampoco encontrado: " + fallbackPath);
-                 return null; // O devolver un icono de "imagen no encontrada" específico
+                 return null;
             }
         }
     }

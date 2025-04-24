@@ -6,8 +6,6 @@ import javax.swing.JRadioButtonMenuItem; // Importar para detectar la fuente
 
 import controlador.VisorController;
 import controlador.actions.BaseVisorAction;
-// No necesita IconUtils ni tamaño si esta Action es solo para el menú y no tendrá icono propio
-// import vista.util.IconUtils;
 
 public class ToggleThemeAction extends BaseVisorAction {
 
@@ -33,17 +31,8 @@ public class ToggleThemeAction extends BaseVisorAction {
         // Descripción (Tooltip) - Opcional para menús
         putValue(Action.SHORT_DESCRIPTION, "Establecer el tema visual a " + textoMenu);
 
-        // --- Iconos para el Menú (Opcional) ---
-        // Generalmente los JRadioButtonMenuItem no muestran iconos por defecto.
-        // Si quisieras forzarlo, necesitarías IconUtils aquí y cargarlo.
-        // ImageIcon icon = iconUtils.getScaledIcon("icono_tema_" + this.nombreTema + ".png", 16, 16);
-        // if (icon != null) {
-        //     putValue(Action.SMALL_ICON, icon);
-        // }
-        // ------------------------------------
-
         // --- Estado Inicial Seleccionado ---
-        // Comprueba si el tema actual en la configuración coincide con el tema de esta acción
+        // si el tema actual en la configuración coincide con el tema de esta acción
         if (controller != null && controller.getConfigurationManager() != null) { // Añadir chequeo configMgr
              String temaActual = controller.getConfigurationManager().getTemaActual();
              // Poner el estado SELECTED_KEY si este tema es el actual
@@ -86,14 +75,9 @@ public class ToggleThemeAction extends BaseVisorAction {
         //    No es estrictamente necesario si el controlador actualiza todas las Actions,
         //    pero es más seguro hacerlo aquí también.
         putValue(Action.SELECTED_KEY, true);
-
-        // 5. Desmarcar las OTRAS actions de tema (IMPORTANTE para Radio Buttons)
-        //    El controlador debería manejar esto idealmente, pero lo podemos hacer aquí
-        //    si la Action tiene acceso a las otras Actions (lo cual complica el diseño).
-        //    => Es MEJOR que el controlador se encargue de actualizar el estado de todas las Actions de tema.
     }
 
-    // --- Nuevo método para actualizar estado ---
+    // --- método para actualizar estado ---
     /**
      * Actualiza el estado de selección (SELECTED_KEY) de esta acción
      * basándose en si su tema coincide con el tema global actual.

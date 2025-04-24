@@ -37,7 +37,7 @@ public class VisorModel
     private int miniaturaNormAncho;
     private int miniaturaNormAlto;
 
-	// --- Caché de Miniaturas (Considerar si va aquí o en Controller/Servicio) ---
+	// FIXME --- Caché de Miniaturas (Considerar si va aquí o en Controller/Servicio) ---
 	// Por simplicidad inicial, la ponemos aquí. Si crece mucho, se puede extraer.
 	private Map<String, ImageIcon> miniaturasMap;
 
@@ -76,8 +76,10 @@ public class VisorModel
 		{ // Añadir chequeo null
 
 			this.modeloLista = nuevoModelo;
-			System.out.println(
-					"[Model] Referencia de modeloLista actualizada. Nuevo tamaño: " + this.modeloLista.getSize());
+			
+			//LOG [Model] Referencia de modeloLista actualizada. Nuevo tamaño: 
+			//System.out.println(
+			//		"[Model] Referencia de modeloLista actualizada. Nuevo tamaño: " + this.modeloLista.getSize());
 
 		} else
 		{
@@ -86,7 +88,6 @@ public class VisorModel
 			this.modeloLista = new DefaultListModel<>(); // Poner uno vacío para evitar NullPointer
 
 		}
-
 	}
 
 	public void limpiarModeloLista ()
@@ -173,7 +174,6 @@ public class VisorModel
 
 		if (!zoomHabilitado)
 		{
-
 			// Podríamos resetear el zoom al desactivar, como opción de diseño
 			// resetZoomState();
 		}

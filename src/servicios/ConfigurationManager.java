@@ -51,11 +51,7 @@ public class ConfigurationManager
 
 		config = cargarConfiguracion();
 		
-		//FIXEM ultima comprobacion borrar cuando funcione
-//		System.out.println(">>> DEBUG CONFIG: Valor cargado para 'miniaturas.tamano.seleccionada.alto' = " + config.get("miniaturas.tamano.seleccionada.alto"));
-//      System.out.println(">>> DEBUG CONFIG: Valor cargado para 'miniaturas.tamano.seleccionada.ancho' = " + config.get("miniaturas.tamano.seleccionada.ancho"));
-
-		// SYSO LOG ConfigurationManager inicializado.
+		//LOG ConfigurationManager inicializado.
 		//System.out.println("ConfigurationManager inicializado.");
 
 	}
@@ -86,7 +82,6 @@ public class ConfigurationManager
 			}
 		} else
 		{
-
 			// Si existe, intentar leerlo
 			try
 			{
@@ -140,17 +135,13 @@ public class ConfigurationManager
                         } else { System.err.println("WARN: Clave vacía en línea " + lineNumber); }
                     } else { System.err.println("WARN: Línea mal formada en " + lineNumber + ": " + lineaOriginal); }
                 } else {
+                	// LOG Loguear líneas de comentario/vacías si quieres ver todo
                      // Opcional: Loguear líneas de comentario/vacías si quieres ver todo
                      // System.out.println("  Línea " + lineNumber + ": Ignorada (comentario/vacía)");
                 }
             }
         } catch (IOException e) { /* ... */ throw e; } // Asegúrate que el throw esté fuera del try-catch interno si lo hubiera
 
-        
-        //FIXEM ultima comprobacion borrar cuando funcione
-//        System.out.println("DEBUG: en leerArchivoConfigExistente alto=" + loadedConfig.get("miniaturas.tamano.seleccionada.alto"));
-//        System.out.println("DEBUG: en leerArchivoConfigExistente ancho=" + loadedConfig.get("miniaturas.tamano.seleccionada.ancho"));
-        
         System.out.println("Configuración leída. Total claves: " + loadedConfig.size());
         return loadedConfig;
     }
@@ -175,6 +166,7 @@ public class ConfigurationManager
 		// Crear una copia del mapa para poder eliminar claves mientras se procesan
 		Map<String, String> configPendiente = new HashMap<>(configAGuardar);
 
+		//LOG Guardando configuración (preservando estructura) en
 		System.out.println("Guardando configuración (preservando estructura) en " + CONFIG_FILE_PATH);
 		System.out.println("Claves a guardar/actualizar: " + configPendiente.size());
 
@@ -215,9 +207,6 @@ public class ConfigurationManager
 							//System.out.println("  Actualizado: " + key + " = " + newValue);
 						} else
 						{
-							// Clave del archivo no está en el mapa a guardar (quizás obsoleta?)
-							// Por ahora, la mantenemos como estaba. O podrías comentarla:
-							// writer.write("# " + currentLine + "\n"); // Opción: comentar obsoletas
 							writer.write(currentLine + "\n"); // Opción: mantenerla
 						}
 					} else
@@ -266,7 +255,6 @@ public class ConfigurationManager
 		// Reemplazar el archivo original con el temporal de forma segura
 		try
 		{
-
 			// Primero, intentar borrar el original (puede fallar si está bloqueado)
 			if (configFile.exists() && !configFile.delete())
 			{
@@ -297,7 +285,6 @@ public class ConfigurationManager
 
 	// --- Crear Archivo de Configuración por Defecto ---
 
-	
 	// En ConfigurationManager
 
 	private void crearConfigPorDefecto(File configFile) throws IOException {
@@ -352,14 +339,12 @@ public class ConfigurationManager
 	                     }
 	                 }
 
-
 	                 // Escribir salto de línea antes del comentario si no es el primero general
 	                 // Y si es un cambio de sección mayor O si simplemente cambió el prefijo
 	                 if (!firstEntryOverall) {
 	                     // Poner doble salto si es cambio de sección mayor, simple si es subgrupo
 	                     writer.write(isMajorSectionChange ? "\n\n" : "\n");
 	                 }
-
 
 	                // Escribir el comentario si encontramos un prefijo para esta clave
 	                if (bestMatchingPrefixForKey != null) {
@@ -410,7 +395,6 @@ public class ConfigurationManager
 	// Método estático privado para crear el mapa de defaults
 	private static Map<String, String> createDefaultConfigMap ()
 	{
-
 		// ===== Inicio =====
 		Map<String, String> defaults = new HashMap<>();
 
@@ -424,22 +408,11 @@ public class ConfigurationManager
 		// Comportamiento
 		defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
 		defaults.put("comportamiento.carga.conRutas", "false");
-
-		
-		//tema clear
-		//tema dark
-		//tema blue
-		//tema verde
-		//tema
+			
 		
 		//===== Personalizacion =====
 		//Tema
 		defaults.put(KEY_TEMA_NOMBRE, "clear");
-		
-		//TODO Colores 
-		defaults.put("colores.Fondo", "238, 238, 238");
-		defaults.put("colores.FondoBotonActivado", "84, 144, 164");
-		defaults.put("colores.FondoBotonAnimacion", "173, 216, 230");
 		
 		//TODO Iconos
 		defaults.put("iconos.alto" , "24");
@@ -844,31 +817,52 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.configuracion.barra_de_informacion.Fecha_y_Hora_de_la_Imagen.activado", "true");
 		defaults.put("interfaz.menu.configuracion.barra_de_informacion.Fecha_y_Hora_de_la_Imagen.seleccionado", "false");
 		defaults.put("interfaz.menu.configuracion.barra_de_informacion.Fecha_y_Hora_de_la_Imagen.visible", "true");
-                                   
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.activado", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.seleccionado", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.visible", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.activado", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.seleccionado", "false");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.visible", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.activado", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.seleccionado", "false");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.visible", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.activado", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.seleccionado", "false");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.visible", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.activado", "true");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.seleccionado", "false");
-		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.visible", "true");
+
+		//Tema
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.activado", 		"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.seleccionado", 	"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Clear.visible", 		"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.activado", 		"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.seleccionado", 	"false");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Dark.visible", 			"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.activado", 		"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.seleccionado", 	"false");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Blue.visible", 			"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.activado", 		"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.seleccionado", 	"false");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Orange.visible", 		"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.activado", 		"true");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.seleccionado", 	"false");
+		defaults.put("interfaz.menu.configuracion.tema.Tema_Green.visible", 		"true");
 		
-		defaults.put("interfaz.menu.configuracion.Guardar_Configuracion_Actual.activado", "true");
-		defaults.put("interfaz.menu.configuracion.Guardar_Configuracion_Actual.visible", "true");
-		defaults.put("interfaz.menu.configuracion.Cargar_Configuracion_Inicial.activado", "true");
-		defaults.put("interfaz.menu.configuracion.Cargar_Configuracion_Inicial.visible", "true");
+		defaults.put("interfaz.menu.configuracion.Guardar_Configuracion_Actual.activado", 	"true");
+		defaults.put("interfaz.menu.configuracion.Guardar_Configuracion_Actual.visible", 	"true");
+		defaults.put("interfaz.menu.configuracion.Cargar_Configuracion_Inicial.activado", 	"true");
+		defaults.put("interfaz.menu.configuracion.Cargar_Configuracion_Inicial.visible", 	"true");
 		
 		defaults.put("interfaz.menu.configuracion.Version.activado", "true");
 		defaults.put("interfaz.menu.configuracion.Version.visible", "true");
 
+		//Colores
+		
+		//# --- Tema Claro (Basado en Swing Defaults) ---
+		defaults.put("colores.claro.fondo.principal",  		"238, 238, 238");
+		defaults.put("colores.claro.fondo.secundario",  	"255, 255, 255");
+		defaults.put("colores.claro.texto.primario",  		"0, 0, 0      ");
+		defaults.put("colores.claro.texto.secundario",  	"80, 80, 80   ");
+		defaults.put("colores.claro.borde.color",  			"184, 207, 229");
+		defaults.put("colores.claro.borde.titulo",  		"0, 0, 0      ");
+		defaults.put("colores.claro.seleccion.fondo",  		"57, 105, 138 ");
+		defaults.put("colores.claro.seleccion.texto",  		"255, 255, 255");
+		defaults.put("colores.claro.boton.fondo",  			"238, 238, 238");
+		defaults.put("colores.claro.boton.texto",  			"0, 0, 0      ");
+		defaults.put("colores.claro.boton.fondoActivado",  	"84, 144, 164 ");
+		defaults.put("colores.claro.boton.fondoAnimacion",  "173, 216, 230");
+        
+		
+		
+		
+		
 		return defaults;
 	}
 
@@ -884,13 +878,12 @@ public class ConfigurationManager
 
         
         // --- Personalizacion
-        comments.put("colores", 	   	"# ===== Colores UI =====");
+//        comments.put("colores", 	   	"# ===== Colores UI =====");
         comments.put("iconos",         	"# ===== Configuración General Iconos ====="); // Para 'iconos.alto', 'iconos.ancho'
-
-        
         comments.put("tema",			"# ===== Tema Visual=====");
-        comments.put("tema.nombre", 	"# Nombre del tema (dark, clear, blue, orange, green");
-        comments.put("interfaz.menu.configuracion.tema", "# ===== Tema Visual=====");
+        
+//        comments.put("tema.nombre", 	"# Nombre del tema (dark, clear, blue, orange, green");
+//        comments.put("interfaz.menu.configuracion.tema", "# ===== Tema Visual=====");
         
         
         // --- Subgrupos Nivel 1 (Dentro de interfaz) ---
@@ -928,16 +921,13 @@ public class ConfigurationManager
 
 	// ************************************************************************************
 	// GETTERS Y SETTERS
+	// ************************************************************************************
 
 	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
 	public String getString (String key, String defaultValue)
 	{
-		// getOrDefault es seguro incluso si config es null, pero el constructor ahora
-		// lanza excepción, así que config no debería ser null si la instancia se creó.
 
 		return config.getOrDefault(key, defaultValue);
-
-		// return config.getOrDefault(key, DEFAULT_CONFIG.getOrDefault(key, ""));
 	}
 
 	// Sobrecarga para mantener compatibilidad si se quiere pasar un default
@@ -1144,7 +1134,7 @@ public class ConfigurationManager
             return;
         }
     
-     // Podrías añadir una validación aquí para asegurar que nuevoTema es uno de los soportados
+        // Podrías añadir una validación aquí para asegurar que nuevoTema es uno de los soportados
         // List<String> temasValidos = List.of("clear", "dark", "blue", "green", "orange");
         // if (!temasValidos.contains(nuevoTema.toLowerCase())) {
         //     System.err.println("WARN [ConfigurationManager]: Tema '" + nuevoTema + "' no reconocido. No se guardará.");
@@ -1166,10 +1156,7 @@ public class ConfigurationManager
         try {
             guardarConfiguracion(this.config); // Usa el método existente para guardar
             System.out.println("[ConfigurationManager]: Tema cambiado a '" + nuevoTema + "' y configuración guardada en " + CONFIG_FILE_PATH);
-            // IMPORTANTE: Este cambio SOLO afecta al archivo y a la memoria de esta clase.
-            // La interfaz gráfica (UI) NO se actualizará automáticamente.
             // Necesitarás lógica adicional en tu UI (posiblemente reiniciar o recargar elementos)
-            // para que los nuevos iconos (y futuros colores) se muestren.
         } catch (IOException e) {
             System.err.println("ERROR CRÍTICO [ConfigurationManager]: No se pudo guardar la configuración después de cambiar el tema a '" + nuevoTema + "'. Error: " + e.getMessage());
             // Considera notificar al usuario o revertir el cambio en 'config' si el guardado falla.
