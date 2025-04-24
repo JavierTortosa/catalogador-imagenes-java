@@ -51,6 +51,9 @@ public class VisorView extends JFrame
 	private JPanel panelIzquierdo;
 	private JPanel panelImagenesMiniatura;
 	
+	// --- Guardar referencia al panel de botones ---
+	private JPanel panelDeBotones; 
+	
 	// --- Mapas para acceder a componentes por nombre (Pertenecen a la View) ---
 	private Map<String, JButton> botonesPorNombre = new HashMap<>();
 	private Map<String, JMenuItem> menuItemsPorNombre = new HashMap<>();
@@ -122,7 +125,10 @@ public class VisorView extends JFrame
                 this.uiConfig.iconUtils
             );
         
-        JPanel panelDeBotones = toolbarBuilder.buildToolbar();
+     // --- Guardar referencia ---
+        this.panelDeBotones = toolbarBuilder.buildToolbar(); // Guarda la referencia
+        
+        //JPanel panelDeBotones = toolbarBuilder.buildToolbar();
         this.botonesPorNombre = toolbarBuilder.getBotonesPorNombreMap();
 
         // 2. Crear el builder pasando la definición y las actions
@@ -171,6 +177,68 @@ public class VisorView extends JFrame
     }
     
 
+    // --- Métodos para controlar visibilidad de los paneles---
+    
+    public void setJMenuBarVisible(boolean visible) {
+        JMenuBar mb = getJMenuBar();
+        if (mb != null) {
+            mb.setVisible(visible);
+        }
+    }
+    
+    
+    public void setToolBarVisible(boolean visible) {
+        if (this.panelDeBotones != null) { // Usa la variable de instancia guardada
+            this.panelDeBotones.setVisible(visible);
+        }
+    }
+    
+    
+    public void setFileListVisible(boolean visible) {
+        if (panelIzquierdo != null) {
+            panelIzquierdo.setVisible(visible);
+            // Puede ser necesario ajustar el divisor del JSplitPane después
+            if (splitPane != null) {
+                splitPane.resetToPreferredSizes(); // Intenta reajustar
+                // O podrías necesitar guardar/restaurar la posición del divisor:
+                // if (!visible) lastDividerLocation = splitPane.getDividerLocation();
+                // else splitPane.setDividerLocation(lastDividerLocation);
+            }
+        }
+    }
+    
+    
+    public void setThumbnailsVisible(boolean visible) {
+        // Asumiendo que 'panelTempImagenesMiniatura' es el contenedor que se añade al SOUTH
+         if (panelImagenesMiniatura != null && panelImagenesMiniatura.getParent() instanceof JPanel) {
+             ((JPanel)panelImagenesMiniatura.getParent()).setVisible(visible); // Ocultar el contenedor
+         } else if (panelImagenesMiniatura != null) {
+             panelImagenesMiniatura.setVisible(visible); // Ocultar solo el panel interno si no hay contenedor
+         }
+        // Necesita revalidate/repaint en el contenedor principal
+        if (panelPrincipal != null) {
+            panelPrincipal.revalidate();
+            panelPrincipal.repaint();
+        }
+    }
+    
+    
+    public void setLocationBarVisible(boolean visible) {
+        if (textoRuta != null) {
+            textoRuta.setVisible(visible);
+        }
+    }
+    
+    
+    public void setCheckeredBackground(boolean checkered) {
+        System.out.println("TODO: Implementar fondo a cuadros en paintComponent de etiquetaImagen si checkered=" + checkered);
+        // Necesitarías modificar el método paintComponent de etiquetaImagen
+        // para dibujar un patrón de cuadros debajo de la imagen si este flag está activo.
+        // Y luego llamar a etiquetaImagen.repaint().
+        etiquetaImagen.repaint(); // Forzar repintado para que paintComponent se ejecute
+    }
+    //-----------------------------------------------------------------------------------------------
+    
 	private void inicializarPanelIzquierdo ()
 	{
 		// Crear la lista de imágenes (USANDO EL MODELO TEMPORAL)
@@ -620,6 +688,7 @@ public class VisorView extends JFrame
 		return panelImagenesMiniatura;
 	}
 
+	
 	
 } //fin VisorView
 

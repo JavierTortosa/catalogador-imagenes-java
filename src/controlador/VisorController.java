@@ -68,6 +68,13 @@ import controlador.actions.navegacion.PreviousImageAction;
 import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubcarpetasAction;
+import controlador.actions.vista.ToggleAlwaysOnTopAction;
+import controlador.actions.vista.ToggleCheckeredBackgroundAction;
+import controlador.actions.vista.ToggleFileListAction;
+import controlador.actions.vista.ToggleLocationBarAction;
+import controlador.actions.vista.ToggleMenuBarAction;
+import controlador.actions.vista.ToggleThumbnailsAction;
+import controlador.actions.vista.ToggleToolBarAction;
 import controlador.actions.zoom.ResetZoomAction;
 import controlador.actions.zoom.ToggleZoomManualAction;
 import controlador.actions.zoom.ZoomAltoAction;
@@ -145,6 +152,15 @@ public class VisorController implements ActionListener, ClipboardOwner
     private Action zoomFitAction;
     private Action zoomFixedAction;
     private Action zoomFijadoAction;
+    
+    //Vista
+    private Action toggleMenuBarAction;
+    private Action toggleToolBarAction; // Renombrado desde toggleButtonBarAction
+    private Action toggleFileListAction;
+    private Action toggleThumbnailsAction;
+    private Action toggleLocationBarAction;
+    private Action toggleCheckeredBgAction;
+    private Action toggleAlwaysOnTopAction;
     
     //Servicios
     private Action refreshAction;
@@ -305,6 +321,14 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    zoomFijadoAction	 	= new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
 	    resetZoomAction 		= new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ResetZoomAction existe y carga icono
 	    
+	  //Vista
+	    toggleMenuBarAction = new ToggleMenuBarAction(this); // No necesita icono ni tamaño
+        toggleToolBarAction = new ToggleToolBarAction(this); // Cambiado nombre clase
+        toggleFileListAction = new ToggleFileListAction(this);
+        toggleThumbnailsAction = new ToggleThumbnailsAction(this);
+        toggleLocationBarAction = new ToggleLocationBarAction(this);
+        toggleCheckeredBgAction = new ToggleCheckeredBackgroundAction(this);
+        toggleAlwaysOnTopAction = new ToggleAlwaysOnTopAction(this);
 	  //Servicios
 	    //toggleSubfoldersAction = new ToggleSubfoldersAction(this, this.iconUtils, iconoAncho, iconoAlto);
 	    //refreshAction = new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);
@@ -419,8 +443,14 @@ public class VisorController implements ActionListener, ClipboardOwner
         mapaDeAcciones.put("Recortar_48x48", cortarAction);
         
 
-      //Visualizar
-        
+      //Vista
+        mapaDeAcciones.put("Barra_de_Menu", toggleMenuBarAction);
+        mapaDeAcciones.put("Barra_de_Botones", toggleToolBarAction); // Clave del menú
+        mapaDeAcciones.put("Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction);
+        mapaDeAcciones.put("Imagenes_en_Miniatura", toggleThumbnailsAction);
+        mapaDeAcciones.put("Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction);
+        mapaDeAcciones.put("Fondo_a_Cuadros", toggleCheckeredBgAction);
+        mapaDeAcciones.put("Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
         
       // Servicios
         mapaDeAcciones.put("Menu_48x48",menuAction);         
@@ -565,6 +595,20 @@ public class VisorController implements ActionListener, ClipboardOwner
             setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Green", temaGreenAction);
             setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Orange", temaOrangeAction);
             
+            //vista
+            //LOG -> Asignando Actions de Vista/Toggle a Menús
+            System.out.println("  -> Asignando Actions de Vista/Toggle a Menús...");
+            
+            setActionForKey(menuItems, "interfaz.menu.vista.Barra_de_Menu", toggleMenuBarAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.Barra_de_Botones", toggleToolBarAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.Imagenes_en_Miniatura", toggleThumbnailsAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.Fondo_a_Cuadros", toggleCheckeredBgAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
+            
+            System.out.println("  -> Actions de Vista/Toggle asignadas.");
+            
             addFallbackListeners(menuItems); // Añadir listeners a los que no tienen Action
 
         } else { System.err.println("WARN: Mapa de menús es null."); }
@@ -574,6 +618,72 @@ public class VisorController implements ActionListener, ClipboardOwner
         System.out.println("[Controller] Actions configuradas.");
    }
     
+    // --- TEXTO NUEVO: Método para manejar visibilidad y configuración ---
+    /**
+     * Actualiza la visibilidad de un componente específico en la vista y
+     * guarda el nuevo estado en la configuración en memoria.
+     *
+     * @param nombreComponente Identificador del componente (debe coincidir con parte de la clave de config).
+     * @param visible          El nuevo estado de visibilidad (true para mostrar, false para ocultar).
+     */
+    public void setComponenteVisibleAndUpdateConfig(String nombreComponente, boolean visible) 
+    {
+        if (view == null || configuration == null) {
+            System.err.println("Error: Vista o Configuración no disponibles para actualizar visibilidad.");
+            return;
+        }
+
+        System.out.println("[Controller] Cambiando visibilidad de '" + nombreComponente + "' a: " + visible);
+
+        // Construir la clave de configuración correspondiente al estado ".seleccionado"
+        // Esto asume una estructura consistente de claves. Ajustar si es necesario.
+        String configKeyBase = null;
+        switch (nombreComponente) {
+            case "Barra_de_Menu":
+                configKeyBase = "interfaz.menu.vista.Barra_de_Menu";
+                view.setJMenuBarVisible(visible); // Necesitas este método en VisorView
+                break;
+            case "Barra_de_Botones":
+                configKeyBase = "interfaz.menu.vista.Barra_de_Botones";
+                view.setToolBarVisible(visible); // Necesitas este método en VisorView
+                break;
+            case "Mostrar/Ocultar_la_Lista_de_Archivos": // Nombre largo del menú
+                configKeyBase = "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos";
+                view.setFileListVisible(visible); // Necesitas este método en VisorView
+                break;
+            case "Imagenes_en_Miniatura":
+                configKeyBase = "interfaz.menu.vista.Imagenes_en_Miniatura";
+                view.setThumbnailsVisible(visible); // Necesitas este método en VisorView
+                break;
+             case "Linea_de_Ubicacion_del_Archivo":
+                 configKeyBase = "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo";
+                 view.setLocationBarVisible(visible); // Necesitas este método en VisorView
+                 break;
+             case "Fondo_a_Cuadros":
+                 configKeyBase = "interfaz.menu.vista.Fondo_a_Cuadros";
+                 view.setCheckeredBackground(visible); // Necesitas este método en VisorView
+                 break;
+             case "Mantener_Ventana_Siempre_Encima":
+                  configKeyBase = "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima";
+                  view.setAlwaysOnTop(visible); // Método estándar de JFrame
+                  break;
+            default:
+                System.err.println("WARN [setComponenteVisibleAndUpdateConfig]: Nombre de componente no reconocido: " + nombreComponente);
+                return; // Salir si no sabemos qué componente es
+        }
+
+        // Construir clave completa y actualizar configuración en memoria
+        if (configKeyBase != null) {
+            String fullConfigKey = configKeyBase + ".seleccionado";
+            configuration.setString(fullConfigKey, String.valueOf(visible));
+            System.out.println("  -> Configuración en memoria actualizada: " + fullConfigKey + "=" + visible);
+            // El guardado real al archivo ocurrirá en el ShutdownHook al llamar a guardarConfiguracionActual()
+        }
+
+        // Revalidar y repintar el frame principal puede ser necesario
+        view.getFrame().revalidate();
+        view.getFrame().repaint();
+    }
     
  // --- Método auxiliar para setAction ---
     private <T extends AbstractButton> void setActionForKey(Map<String, T> componentMap, String key, Action action) {
