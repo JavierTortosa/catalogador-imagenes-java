@@ -129,33 +129,41 @@ public class ToolbarBuilder {
         		"3004-Ajustar_al_Alto_48x48.png", 
         		"3005-Escalar_Para_Ajustar_48x48.png", 
         		"3006-Zoom_Fijo_48x48.png", 
-        		"3007-Reset_48x48.png");
+        		"3007-zoom_especifico_48x48.png",
+        		"3008-Reset_48x48.png");
         
         List<String> iconosVista = List.of(
-        		"4015-Panel-Galeria_48x48.png", 
-        		"4016-Grid_48x48.png", 
-        		"4017-Pantalla_Completa_48x48.png", 
-        		"4018-Lista_48x48.png", 
-        		"4019-Carrousel_48x48.png");
+        		"4001-Panel-Galeria_48x48.png", 
+        		"4002-Grid_48x48.png", 
+        		"4003-Pantalla_Completa_48x48.png", 
+        		"4004-Lista_48x48.png", 
+        		"4005-Carrousel_48x48.png");
         
         List<String> iconosControl = List.of(
-        		"5020-Refrescar_48x48.png", 
-        		"5021-Subcarpetas_48x48.png", 
-        		"5022-lista_de_favoritos_48x48.png", 
-        		"5023-Borrar_48x48.png");
+        		"5001-Refrescar_48x48.png", 
+        		"5003-lista_de_favoritos_48x48.png", 
+        		"5004-Borrar_48x48.png");
         
         List<String> iconosEspeciales = List.of(
-        		"6024-Selector_de_Carpetas_48x48.png", 
-        		"6025-Menu_48x48.png", 
-        		"6026-Botones_Ocultos_48x48.png");
+        		"6001-Selector_de_Carpetas_48x48.png", 
+        		"6002-Menu_48x48.png", 
+        		"6003-Botones_Ocultos_48x48.png");
+        
+        List<String> iconosOnOff = List.of(
+        		"7001-Subcarpetas_48x48.png",
+        		"7002-Mantener_Proporciones_48x48.png",
+        		"7003-Mostrar_Favoritos_48x48.png"
+        		);
 
         List<ButtonGroupConfig> buttonLayoutConfig = List.of(
             new ButtonGroupConfig("movimiento", FlowLayout.LEFT, iconosMovimiento),
             new ButtonGroupConfig("edicion", FlowLayout.CENTER, iconosEdicion),
             new ButtonGroupConfig("zoom", FlowLayout.CENTER, iconosZoom),
             new ButtonGroupConfig("vista", FlowLayout.CENTER, iconosVista),
+            new ButtonGroupConfig("onoff", FlowLayout.CENTER, iconosOnOff),
             new ButtonGroupConfig("control", FlowLayout.CENTER, iconosControl),
             new ButtonGroupConfig("especiales", FlowLayout.RIGHT, iconosEspeciales)
+            
         );
         // -------------------------------------------------------------
 

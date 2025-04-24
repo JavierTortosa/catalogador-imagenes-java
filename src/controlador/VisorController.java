@@ -66,8 +66,16 @@ import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
 import controlador.actions.tema.ToggleThemeAction;
+import controlador.actions.toggle.ToggleProporcionesAction;
+import controlador.actions.toggle.ToggleSubcarpetasAction;
 import controlador.actions.zoom.ResetZoomAction;
 import controlador.actions.zoom.ToggleZoomManualAction;
+import controlador.actions.zoom.ZoomAltoAction;
+import controlador.actions.zoom.ZoomAnchoAction;
+import controlador.actions.zoom.ZoomAutoAction;
+import controlador.actions.zoom.ZoomFijadoAction;
+import controlador.actions.zoom.ZoomFitAction;
+import controlador.actions.zoom.ZoomFixedAction;
 // Imports de mis clases
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
@@ -136,6 +144,7 @@ public class VisorController implements ActionListener, ClipboardOwner
     private Action zoomAltoAction;
     private Action zoomFitAction;
     private Action zoomFixedAction;
+    private Action zoomFijadoAction;
     
     //Servicios
     private Action refreshAction;
@@ -149,6 +158,11 @@ public class VisorController implements ActionListener, ClipboardOwner
     private Action temaBlueAction;
     private Action temaGreenAction;
     private Action temaOrangeAction;
+    
+    //OnOff
+    private Action toggleSubcarpetasAction;
+    private Action toggleProporcionesAction;
+    
     // Guardar lista para fácil manejo
     private List<Action> themeActions;
     
@@ -249,14 +263,8 @@ public class VisorController implements ActionListener, ClipboardOwner
         System.out.println("[Controller] Constructor finalizado.");
     }
     
-
 	
-	
-	
-	// --- Método para inicializar las Actions ---
-	// EN: controlador.VisorController.java
-
-	// --- NUEVO: Método para inicializar las Actions (CORREGIDO) ---
+	// --- Método para inicializar las Actions (CORREGIDO) ---
 	private void initializeActions(int iconoAncho, int iconoAlto) 
 	{
 		//LOG [Controller] Inicializando Actions
@@ -272,41 +280,46 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    // Asegúrate de haber creado los archivos .java correspondientes en controlador.actions
 
 	  //Navegacion
-	    firstImageAction = new FirstImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
-	    previousImageAction = new PreviousImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
-	    nextImageAction = new NextImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
-	    lastImageAction = new LastImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
+	    firstImageAction 		= new FirstImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
+	    previousImageAction 	= new PreviousImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
+	    nextImageAction 		= new NextImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
+	    lastImageAction 		= new LastImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
 	    
 	  //Archivo
-	    openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que OpenFileAction existe y carga icono
+	    openAction 				= new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que OpenFileAction existe y carga icono
 	    
 	  //Edicion
-	    rotateLeftAction = new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    rotateRightAction = new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    flipHorizontalAction = new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    flipVerticalAction = new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    //cropAction = new CropAction(this);
+	    rotateLeftAction 		= new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    rotateRightAction 		= new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    flipHorizontalAction 	= new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    flipVerticalAction 		= new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    //cropAction = new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);
 	    
 	  //Zoom
-	    toggleZoomManualAction = new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ToggleZoomManualAction existe y carga icono
-	    //zoomAutoAction = new ZoomAutoAction(this);
-	    //zoomWidthAction = new ZoomWidthAction(this);
-	    //zoomHeightAction = new ZoomHeightAction(this);
-	    //zoomFitAction = new ZoomFitAction(this);
-	    //zoomFixedAction = new ZoomFixedAction(this);
-	    resetZoomAction = new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ResetZoomAction existe y carga icono
+	    toggleZoomManualAction 	= new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ToggleZoomManualAction existe y carga icono
+	    zoomAutoAction 			= new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    zoomAnchoAction 		= new ZoomAnchoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    zoomAltoAction 			= new ZoomAltoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    zoomFitAction 			= new ZoomFitAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    zoomFixedAction 		= new ZoomFixedAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    zoomFijadoAction	 	= new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    resetZoomAction 		= new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ResetZoomAction existe y carga icono
 	    
 	  //Servicios
-	    //toggleSubfoldersAction = new ToggleSubfoldersAction(this);
-	    //refreshAction = new RefreshAction(this);
-	    //deleteAction = new DeleteAction(this);
+	    //toggleSubfoldersAction = new ToggleSubfoldersAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    //refreshAction = new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    //deleteAction = new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);
 	    
 	  //Tema
-	    temaClearAction = new ToggleThemeAction(this, "clear", "Tema Clear");
-	    temaDarkAction = new ToggleThemeAction(this, "dark", "Tema Dark");
-	    temaBlueAction = new ToggleThemeAction(this, "blue", "Tema Blue");
-	    temaGreenAction = new ToggleThemeAction(this, "green", "Tema Gren");
-	    temaOrangeAction = new ToggleThemeAction(this, "orange", "Tema Orange");
+	    temaClearAction 		= new ToggleThemeAction(this, "clear", "Tema Clear");
+	    temaDarkAction 			= new ToggleThemeAction(this, "dark", "Tema Dark");
+	    temaBlueAction 			= new ToggleThemeAction(this, "blue", "Tema Blue");
+	    temaGreenAction 		= new ToggleThemeAction(this, "green", "Tema Gren");
+	    temaOrangeAction 		= new ToggleThemeAction(this, "orange", "Tema Orange");
+	    
+	  //OnOff
+	    toggleSubcarpetasAction = new ToggleSubcarpetasAction (this, this.iconUtils, iconoAncho, iconoAlto);
+	    toggleProporcionesAction= new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
 	    
 	    themeActions = List.of(
 	    		temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction
@@ -369,7 +382,7 @@ public class VisorController implements ActionListener, ClipboardOwner
         mapaDeAcciones.put("Resetear_Zoom", resetZoomAction);
         mapaDeAcciones.put("Reset_48x48", this.resetZoomAction); //resetZoomAction); // Botón
 
-        mapaDeAcciones.put("Zoom_Automatico", zoomAutoAction);
+        mapaDeAcciones.put("Zoom_Automatico", zoomAutoAction); //tamaño de la imagen original
         mapaDeAcciones.put("Zoom_Auto_48x48", zoomAutoAction);
 
         mapaDeAcciones.put("Zoom_a_lo_Ancho", zoomAnchoAction);
@@ -383,6 +396,9 @@ public class VisorController implements ActionListener, ClipboardOwner
 
         mapaDeAcciones.put("Zoom_Actual_Fijo", zoomFixedAction);
         mapaDeAcciones.put("Zoom_Fijo_48x48", zoomFixedAction);
+        
+        mapaDeAcciones.put("Zoom_Especificado", zoomFijadoAction);
+        mapaDeAcciones.put("Zoom_Especifico_48x48", zoomFijadoAction);
         
         mapaDeAcciones.put("Activar_Zoom_Manual", toggleZoomManualAction);
         mapaDeAcciones.put("Zoom_48x48", this.toggleZoomManualAction);// toggleZoomManualAction); // Botón
@@ -433,6 +449,14 @@ public class VisorController implements ActionListener, ClipboardOwner
     	mapaDeAcciones.put("Tema_Green", 	temaGreenAction);
     	mapaDeAcciones.put("Tema_Orange", 	temaOrangeAction);
         
+    	//Botones OnOff
+    	mapaDeAcciones.put("Mostrar_Imagenes_de_Subcarpetas", toggleSubcarpetasAction);
+    	mapaDeAcciones.put("Mostrar_Solo_Carpeta_Actual", toggleSubcarpetasAction);
+    	mapaDeAcciones.put("subcarpetas_48x48", toggleSubcarpetasAction);
+    	
+    	mapaDeAcciones.put("Mostrar_Imagenes_de_Subcarpetas", toggleProporcionesAction);
+    	mapaDeAcciones.put("Mostrar_Solo_Carpeta_Actual", toggleProporcionesAction);
+    	mapaDeAcciones.put("Mantener_Proporciones_48x48", toggleProporcionesAction);
     	
         // ... Añade el resto ...
 

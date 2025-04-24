@@ -27,13 +27,13 @@ public class ResetZoomAction extends BaseVisorAction {
 
         // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
         // Llama a getScaledIcon con el nombre del icono y los tamaños recibidos
-        ImageIcon icon = iconUtils.getScaledIcon("3007-Reset_48x48.png", width, height);
+        ImageIcon icon = iconUtils.getScaledIcon("3008-Reset_48x48.png", width, height);
 
         // Verifica y asigna el icono
         if (icon != null) {
             putValue(Action.SMALL_ICON, icon);
         } else {
-            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '3014-Reset_48x48.png' usando IconUtils.");
+            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '3008-Reset_48x48.png' usando IconUtils.");
             // Opcional: putValue(Action.NAME, "Reset");
         }
         // --- FIN DE LA PARTE IMPORTANTE ---
