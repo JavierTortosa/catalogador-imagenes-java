@@ -1,0 +1,187 @@
+Iniciando Visor de Imágenes V2...
+Iniciando Visor de Imágenes V2 (con ThemeManager)...
+Mapa de configuración por defecto inicializado con 386 claves.
+Mapa DEFAULT_GROUP_COMMENTS inicializado con 23 entradas.
+Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
+Configuración leída. Total claves: 386
+[ThemeManager] Tema inicial establecido a: clear
+[Controller] Inicializando Actions...
+[PreviousImageAction] Constructor iniciado.
+  -> Icono para PreviousImageAction cargado y asignado vía IconUtils.
+[PreviousImageAction] Constructor finalizado.
+[ToggleMenuBarAction] Estado inicial leído (interfaz.menu.vista.Barra_de_Menu.seleccionado): true
+[ToggleToolBarAction] Estado inicial leído (interfaz.menu.vista.Barra_de_Botones.seleccionado): true
+[ToggleFileListAction] Estado inicial leído (interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos.seleccionado): true
+[ToggleThumbnailsAction] Estado inicial leído (interfaz.menu.vista.Imagenes_en_Miniatura.seleccionado): true
+[ToggleLocationBarAction] Estado inicial leído (interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo.seleccionado): true
+[ToggleCheckeredBG] Estado inicial leído (interfaz.menu.vista.Fondo_a_Cuadros.seleccionado): false
+[ToggleAlwaysOnTopAction] Estado inicial leído (interfaz.menu.vista.Mantener_Ventana_Siempre_Encima.seleccionado): false
+[ToggleSubfoldersAction] Estado inicial leído (comportamiento.carpeta.cargarSubcarpetas): true
+[ViewUIConfig] Configuración UI creada con colores de tema.
+[Controller] Constructor finalizado.
+VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
+  [ToolbarBuilder] Procesando botón: Primera_48x48 (Icono Archivo: 1001-Primera_48x48.png)
+  [ToolbarBuilder] Procesando botón: Anterior_48x48 (Icono Archivo: 1002-Anterior_48x48.png)
+  [ToolbarBuilder] Procesando botón: Siguiente_48x48 (Icono Archivo: 1003-Siguiente_48x48.png)
+  [ToolbarBuilder] Procesando botón: Ultima_48x48 (Icono Archivo: 1004-Ultima_48x48.png)
+  [ToolbarBuilder] Procesando botón: Rotar_Izquierda_48x48 (Icono Archivo: 2001-Rotar_Izquierda_48x48.png)
+  [ToolbarBuilder] Procesando botón: Rotar_Derecha_48x48 (Icono Archivo: 2002-Rotar_Derecha_48x48.png)
+  [ToolbarBuilder] Procesando botón: Espejo_Horizontal_48x48 (Icono Archivo: 2003-Espejo_Horizontal_48x48.png)
+  [ToolbarBuilder] Procesando botón: Espejo_Vertical_48x48 (Icono Archivo: 2004-Espejo_Vertical_48x48.png)
+  [ToolbarBuilder] Procesando botón: Recortar_48x48 (Icono Archivo: 2005-Recortar_48x48.png)
+  [ToolbarBuilder] Procesando botón: Zoom_48x48 (Icono Archivo: 3001-Zoom_48x48.png)
+  [ToolbarBuilder] Procesando botón: Zoom_Auto_48x48 (Icono Archivo: 3002-Zoom_Auto_48x48.png)
+  [ToolbarBuilder] Procesando botón: Ajustar_al_Ancho_48x48 (Icono Archivo: 3003-Ajustar_al_Ancho_48x48.png)
+  [ToolbarBuilder] Procesando botón: Ajustar_al_Alto_48x48 (Icono Archivo: 3004-Ajustar_al_Alto_48x48.png)
+  [ToolbarBuilder] Procesando botón: Escalar_Para_Ajustar_48x48 (Icono Archivo: 3005-Escalar_Para_Ajustar_48x48.png)
+  [ToolbarBuilder] Procesando botón: Zoom_Fijo_48x48 (Icono Archivo: 3006-Zoom_Fijo_48x48.png)
+  [ToolbarBuilder] Procesando botón: zoom_especifico_48x48 (Icono Archivo: 3007-zoom_especifico_48x48.png)
+  [ToolbarBuilder] Procesando botón: Reset_48x48 (Icono Archivo: 3008-Reset_48x48.png)
+  [ToolbarBuilder] Procesando botón: Panel-Galeria_48x48 (Icono Archivo: 4001-Panel-Galeria_48x48.png)
+  [ToolbarBuilder] Procesando botón: Grid_48x48 (Icono Archivo: 4002-Grid_48x48.png)
+  [ToolbarBuilder] Procesando botón: Pantalla_Completa_48x48 (Icono Archivo: 4003-Pantalla_Completa_48x48.png)
+  [ToolbarBuilder] Procesando botón: Lista_48x48 (Icono Archivo: 4004-Lista_48x48.png)
+  [ToolbarBuilder] Procesando botón: Carrousel_48x48 (Icono Archivo: 4005-Carrousel_48x48.png)
+  [ToolbarBuilder] Procesando botón: Subcarpetas_48x48 (Icono Archivo: 7001-Subcarpetas_48x48.png)
+  [ToolbarBuilder] Procesando botón: Mantener_Proporciones_48x48 (Icono Archivo: 7002-Mantener_Proporciones_48x48.png)
+  [ToolbarBuilder] Procesando botón: Mostrar_Favoritos_48x48 (Icono Archivo: 7003-Mostrar_Favoritos_48x48.png)
+  [ToolbarBuilder] Procesando botón: Refrescar_48x48 (Icono Archivo: 5001-Refrescar_48x48.png)
+  [ToolbarBuilder] Procesando botón: lista_de_favoritos_48x48 (Icono Archivo: 5003-lista_de_favoritos_48x48.png)
+  [ToolbarBuilder] Procesando botón: Borrar_48x48 (Icono Archivo: 5004-Borrar_48x48.png)
+  [ToolbarBuilder] Procesando botón: Selector_de_Carpetas_48x48 (Icono Archivo: 6001-Selector_de_Carpetas_48x48.png)
+  [ToolbarBuilder] Procesando botón: Menu_48x48 (Icono Archivo: 6002-Menu_48x48.png)
+  [ToolbarBuilder] Procesando botón: Botones_Ocultos_48x48 (Icono Archivo: 6003-Botones_Ocultos_48x48.png)
+MenuBarBuilder: Menú construido. Total items en mapa: 119
+[VisorView] Estableciendo posición inicial del divisor JSplitPane a 0.2
+[View] Modelo asignado a JList. Tamaño actual: 0
+[Controller EDT] Carpeta Raíz Inicial establecida desde config: M:\Archivos 3D
+Aplicando configuración inicial...
+  -> Configuración del Modelo aplicada.
+  -> Aplicando estado inicial a Botones...
+  -> Estado inicial de Botones aplicado.
+  -> Aplicando estado inicial a Menús...
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Nombre_del_Archivo
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.%_de_Zoom_actual
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Rellenar
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Reset_Zoom
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Lista
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Espejo_Vertical
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Fecha_de_Creacion
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Espejo_Horizontal
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Mostrar_Boton_de_Botones_Ocultos
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Tamaño_del_Archivo
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Ajustar_al_Alto
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.general.Mostrar_Flechas_de_Navegacion
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Subcarpetas
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Ruta_y_Nombre_del_Archivo
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Escalar_para_Ajustar
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Zoom
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Zoom_Automatico
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Refrescar
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.general.Abrir_Ultima_Imagen_Vista
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Carrousel
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Ascendente
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Recortar
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Rotar_Izquierda
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Ajustar_al_Ancho
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.general.Volver_a_la_Primera_Imagen_al_Llegar_al_final_de_la_Lista
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Nombre_por_Defecto
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Descendente
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Numero_de_Imagenes_en_la_Carpeta_Actual
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.general.Mostrar_Imagen_de_Bienvenida
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Borrar
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Extension
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Fecha_y_Hora_de_la_Imagen
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Menu
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Rotar_Derecha
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Pantalla_Completa
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Zoom_Fijo
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Lista_de_Favoritos
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Grid
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Panel-Galeria
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Sin_Ordenar
+    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Tamaño_de_Archivo
+  -> Estado inicial de Menús aplicado.
+  -> Estado inicial de Zoom Manual aplicado.
+Aplicando estado inicial de Subcarpetas...
+  -> Estado inicial de Action Subcarpetas: true
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
+  -> [Controller] Sincronizando estado visual de Radios a: Subcarpetas
+  -> Estado visual inicial de Radios aplicado.
+  -> Estado inicial de Subcarpetas aplicado y UI sincronizada.
+Configuración inicial aplicada (Modelo y Vista).
+  -> cargarListaImagenes() llamado (seleccionará la primera imagen por defecto).
+
+
+-->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: null
+  -> Modo: Subcarpetas.
+    -> Iniciando walk desde carpeta raíz actual: M:\Archivos 3D
+-->>> FIN MÉTODO cargarListaImagenes DETALLADA (Controller) ***
+Listeners específicos (Lista, Mouse) añadidos.
+[Controller] Configurando Actions y Listeners en componentes...
+  -> Asignando Actions a Botones...
+  -> Actions asignadas a Botones.
+  -> Asignando Actions a Menús (donde aplica)...
+WARN [setActionForKey]: Action es null para clave: interfaz.menu.zoom.Acercar
+WARN [setActionForKey]: Action es null para clave: interfaz.menu.zoom.Alejar
+  -> Asignando ActionListener SIMPLIFICADO a Radios de Subcarpetas...
+  -> ActionListener SIMPLIFICADO asignado a Radios.
+[Controller] Actions y Listeners configurados.
+  [BG] Iniciando Files.walk con depth: 2147483647 en M:\Archivos 3D
+[VisorView setCheckeredBackgroundEnabled] Solicitado: false, Estado actual: false
+[Controller] Inicialización de UI en EDT completada.
+[VisorView EDT Post-Init] Estableciendo divisor JSplitPane a 0.2
+  [BG] Files.walk terminado. Elementos encontrados: 13413
+  [EDT] Modelo actualizado. Tamaño: 13413
+    -> Limpiando selectedImageKey en modelo antes de seleccionar índice...
+  -->>> estaCargandoLista = false
+    -> No había imagen a mantener o lista estaba vacía. Seleccionando índice 0.
+    -> Aplicando selección al índice: 0
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+
+[Controller] Iniciando carga para: 'Contadores y heridas/castnplay_dial_2.png'
+  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\castnplay_dial_2.png
+[Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
+  [BG Carga Imagen] Imagen leída correctamente.
+[Miniaturas EDT] Placeholders mostrados para rango 0-7
+[Miniaturas EDT] Reemplazando placeholders con resultados.
+[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
+ Tarea Miniaturas terminada en 411 ms.
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=true, estaCargandoLista=false
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+
+[Controller] Iniciando carga para: 'Contadores y heridas/castnplay_dial_3.png'
+[Miniaturas] Rango calculado: 0 a 8 (Seleccionado: 1)
+  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\castnplay_dial_3.png
+[Miniaturas EDT] Placeholders mostrados para rango 0-8
+  [BG Carga Imagen] Imagen leída correctamente.
+ Tarea Miniaturas terminada en 125 ms.
+[Miniaturas EDT] Reemplazando placeholders con resultados.
+[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=true, estaCargandoLista=false
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+
+[Controller] Iniciando carga para: 'Contadores y heridas/castnplay_dial_2.png'
+[Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
+  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\castnplay_dial_2.png
+[Miniaturas EDT] Placeholders mostrados para rango 0-7
+ Tarea Miniaturas terminada en 20 ms.
+[Miniaturas EDT] Reemplazando placeholders con resultados.
+[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
+  [BG Carga Imagen] Imagen leída correctamente.
+Hook: Guardando configuración...
+Recopilando estado actual para guardar configuración...
+  -> Valor final de 'tema.nombre' a guardar (desde mapa inicial): clear
+  -> Valor final de 'tema.nombre' a guardar: clear
+
+[ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
+[ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
+[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
+Guardando configuración (preservando estructura) en config.cfg
+Claves a guardar/actualizar: 386
+Archivo de configuración actualizado exitosamente.
+Configuración actual guardada exitosamente.
+Hook: Apagando ExecutorService...
+--- Shutdown Hook Terminado ---

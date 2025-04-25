@@ -149,7 +149,7 @@ public class ToolbarBuilder {
         		"6002-Menu_48x48.png", 
         		"6003-Botones_Ocultos_48x48.png");
         
-        List<String> iconosOnOff = List.of(
+        List<String> iconosToggle = List.of(
         		"7001-Subcarpetas_48x48.png",
         		"7002-Mantener_Proporciones_48x48.png",
         		"7003-Mostrar_Favoritos_48x48.png"
@@ -160,7 +160,7 @@ public class ToolbarBuilder {
             new ButtonGroupConfig("edicion", FlowLayout.CENTER, iconosEdicion),
             new ButtonGroupConfig("zoom", FlowLayout.CENTER, iconosZoom),
             new ButtonGroupConfig("vista", FlowLayout.CENTER, iconosVista),
-            new ButtonGroupConfig("onoff", FlowLayout.CENTER, iconosOnOff),
+            new ButtonGroupConfig("toggle", FlowLayout.CENTER, iconosToggle),
             new ButtonGroupConfig("control", FlowLayout.CENTER, iconosControl),
             new ButtonGroupConfig("especiales", FlowLayout.RIGHT, iconosEspeciales)
             

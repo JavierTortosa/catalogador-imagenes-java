@@ -30,6 +30,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
@@ -106,10 +107,32 @@ public class VisorView extends JFrame
 		 // Aplicar color de fondo general (usando el valor del objeto config)
 		 getContentPane().setBackground(this.uiConfig.colorFondoPrincipal);
         
-        
 		 this.modeloLista = new DefaultListModel<>();
 		 inicializarComponentes(); // Llama al método que AHORA usará el actionMap
-	}
+		 
+		// Empaquetar la ventana para que calcule tamaños preferidos
+	        pack();
+	        // Centrar en pantalla (opcional)
+	        setLocationRelativeTo(null);
+
+	        // --- Establecer la ubicación del divisor DESPUÉS de pack/setVisible ---
+	        // Usamos invokeLater para asegurarnos de que se ejecute después
+	        // de que la ventana esté completamente establecida.
+	        SwingUtilities.invokeLater(() -> {
+	            if (splitPane != null) {
+	                // Asegúrate de que el splitPane ya exista en este punto
+	                splitPane.setDividerLocation(0.2);
+	                System.out.println("[VisorView EDT Post-Init] Estableciendo divisor JSplitPane a 0.2");
+	            } else {
+	                 System.err.println("[VisorView EDT Post-Init] ERROR: splitPane es null al intentar setDividerLocation.");
+	            }
+	        });
+
+	        // Hacer visible la ventana (puede ir antes o después del invokeLater,
+	        // pero ponerlo antes a veces ayuda a que los cálculos de tamaño se completen)
+	        // setVisible(true); // Movido desde el Controller al constructor de la View
+
+	} // Fin del constructor
 	
 
 	// --- Métodos de Inicialización UI ---
@@ -151,17 +174,27 @@ public class VisorView extends JFrame
         // -----------------------------------
         
         
+        
         inicializarPanelIzquierdo();
         inicializarEtiquetaMostrarImagen();
         
         splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, panelIzquierdo, etiquetaImagen);
-        splitPane.setResizeWeight(0.5);
+        splitPane.setResizeWeight(0.25);
         splitPane.setContinuousLayout(true);
         // Aplicar color de fondo (puede necesitar ajustes finos o UIManager para el divisor)
         splitPane.setBackground(this.uiConfig.colorFondoPrincipal);
         splitPane.setOpaque(true); // Importante para que el fondo se vea
         // Considerar quitar borde si interfiere con el diseño del tema
         // splitPane.setBorder(BorderFactory.createEmptyBorder());
+        
+          
+        
+        // Establece el divisor para que el componente izquierdo (panelIzquierdo)
+        // ocupe el 20% (1/5) del ancho inicial.
+        splitPane.setDividerLocation(0.2);
+        
+        //LOG [VisorView] Estableciendo posición inicial del divisor JSplitPane a 0.2
+        System.out.println("[VisorView] Estableciendo posición inicial del divisor JSplitPane a 0.2"); // Log para confirmar
         
         JPanel panelTempImagenesMiniatura = inicializarPanelImagenesMiniatura();
         
@@ -325,11 +358,11 @@ public class VisorView extends JFrame
 			@Override
 			protected void paintComponent (Graphics g) {
 
-				boolean dibujarCuadros = VisorView.this.fondoACuadrosActivado;
 				
 				// --- LOG AÑADIDO ---
-				System.out.println("[paintComponent etiquetaImagen] Ejecutando. fondoACuadrosActivado = " + dibujarCuadros);
-                System.out.println("[paintComponent etiquetaImagen] Ejecutando. fondoACuadrosActivado = " + fondoACuadrosActivado);
+				//boolean dibujarCuadros = VisorView.this.fondoACuadrosActivado;
+				//System.out.println("[paintComponent etiquetaImagen] Ejecutando. fondoACuadrosActivado = " + dibujarCuadros);
+                //System.out.println("[paintComponent etiquetaImagen] Ejecutando. fondoACuadrosActivado = " + fondoACuadrosActivado);
 				
                 // Obtener dimensiones UNA VEZ
                 int width = getWidth();
@@ -339,7 +372,7 @@ public class VisorView extends JFrame
                 if (fondoACuadrosActivado) {
                 	
                 	// --- LOG AÑADIDO ---
-                    System.out.println("  -> Dibujando fondo a cuadros...");
+                    //System.out.println("  -> Dibujando fondo a cuadros...");
                     
                     // Crear copia de Graphics SOLO para el fondo a cuadros
                     Graphics2D g2dFondo = (Graphics2D) g.create();

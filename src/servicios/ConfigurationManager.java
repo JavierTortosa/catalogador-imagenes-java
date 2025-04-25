@@ -402,108 +402,119 @@ public class ConfigurationManager
 		String inicioImagenDefault = "";//"pandoras pedestals sagas.png";
 
 		//Inicio
-		defaults.put("inicio.carpeta", inicioCarpetaDefault);
-		defaults.put("inicio.imagen", inicioImagenDefault);
+			defaults.put("inicio.carpeta", inicioCarpetaDefault);
+			defaults.put("inicio.imagen", inicioImagenDefault);
 		
 		// Comportamiento
-		defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
-		defaults.put("comportamiento.carga.conRutas", "false");
+			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
+			defaults.put("comportamiento.carga.conRutas", "false");
 			
 		
 		//===== Personalizacion =====
 		//Tema
-		defaults.put(KEY_TEMA_NOMBRE, "clear");
+			defaults.put(KEY_TEMA_NOMBRE, "clear");
 		
 		//TODO Iconos
-		defaults.put("iconos.alto" , "24");
-		defaults.put("iconos.ancho" , "24");
+			defaults.put("iconos.alto" , "24");
+			defaults.put("iconos.ancho" , "24");
 		
     	//===== Barra de Miniaturas =====
     	//Cantidad de miniaturas antes/después de la seleccionada
-		defaults.put("miniaturas.cantidad.antes", "7");
-		defaults.put("miniaturas.cantidad.despues", "7");
+			defaults.put("miniaturas.cantidad.antes", "7");
+			defaults.put("miniaturas.cantidad.despues", "7");
 
     	//Tamaño (píxeles) para miniaturas seleccionadas
-		defaults.put("miniaturas.tamano.seleccionada.ancho", "60");
-		defaults.put("miniaturas.tamano.seleccionada.alto", "60");
+			defaults.put("miniaturas.tamano.seleccionada.ancho", "60");
+			defaults.put("miniaturas.tamano.seleccionada.alto", "60");
 
     	//Tamaño (píxeles) para miniaturas normales
-		defaults.put("miniaturas.tamano.normal.ancho", "40");
-		defaults.put("miniaturas.tamano.normal.alto", "40");
+			defaults.put("miniaturas.tamano.normal.ancho", "40");
+			defaults.put("miniaturas.tamano.normal.alto", "40");
 
     	//===== Estados Interfaz Usuario =====
 		
     	//--- Botones ---
     	//# Formato: interfaz.boton.<ActionCommand>.{activado|visible} = {true|false}\n\n");
 
+		//toggle
+			defaults.put("interfaz.boton.toggle.Mantener_Proporciones_48x48.activado", "true");
+			defaults.put("interfaz.boton.toggle.Mantener_Proporciones_48x48.visible", "true");
+			defaults.put("interfaz.boton.toggle.Mostrar_Favoritos_48x48.activado", "true");
+			defaults.put("interfaz.boton.toggle.Mostrar_Favoritos_48x48.visible", "true");
+			defaults.put("interfaz.boton.toggle.Subcarpetas_48x48.activado", "true");
+			defaults.put("interfaz.boton.toggle.Subcarpetas_48x48.visible", "true");
+			
     	//-- Navegación --
-		defaults.put("interfaz.boton.movimiento.Primera_48x48.activado", "true");
-		defaults.put("interfaz.boton.movimiento.Primera_48x48.visible", "true");
-		defaults.put("interfaz.boton.movimiento.Anterior_48x48.activado", "true");
-		defaults.put("interfaz.boton.movimiento.Anterior_48x48.visible", "true");
-		defaults.put("interfaz.boton.movimiento.Siguiente_48x48.activado", "true");
-		defaults.put("interfaz.boton.movimiento.Siguiente_48x48.visible", "true");
-		defaults.put("interfaz.boton.movimiento.Ultima_48x48.activado", "true");
-		defaults.put("interfaz.boton.movimiento.Ultima_48x48.visible", "true");
+			defaults.put("interfaz.boton.movimiento.Primera_48x48.activado", "true");
+			defaults.put("interfaz.boton.movimiento.Primera_48x48.visible", "true");
+			defaults.put("interfaz.boton.movimiento.Anterior_48x48.activado", "true");
+			defaults.put("interfaz.boton.movimiento.Anterior_48x48.visible", "true");
+			defaults.put("interfaz.boton.movimiento.Siguiente_48x48.activado", "true");
+			defaults.put("interfaz.boton.movimiento.Siguiente_48x48.visible", "true");
+			defaults.put("interfaz.boton.movimiento.Ultima_48x48.activado", "true");
+			defaults.put("interfaz.boton.movimiento.Ultima_48x48.visible", "true");
 		
     	//-- Edición --
-		defaults.put("interfaz.boton.edicion.Rotar_Izquierda_48x48.activado", "true");
-		defaults.put("interfaz.boton.edicion.Rotar_Izquierda_48x48.visible", "true");
-		defaults.put("interfaz.boton.edicion.Rotar_Derecha_48x48.activado", "true");
-		defaults.put("interfaz.boton.edicion.Rotar_Derecha_48x48.visible", "true");
-		defaults.put("interfaz.boton.edicion.Espejo_Horizontal_48x48.activado", "true");
-		defaults.put("interfaz.boton.edicion.Espejo_Horizontal_48x48.visible", "true");
-		defaults.put("interfaz.boton.edicion.Espejo_Vertical_48x48.activado", "true");
-		defaults.put("interfaz.boton.edicion.Espejo_Vertical_48x48.visible", "true");
-		defaults.put("interfaz.boton.edicion.Recortar_48x48.activado", "true");
-		defaults.put("interfaz.boton.edicion.Recortar_48x48.visible", "true");
+			defaults.put("interfaz.boton.edicion.Rotar_Izquierda_48x48.activado", "true");
+			defaults.put("interfaz.boton.edicion.Rotar_Izquierda_48x48.visible", "true");
+			defaults.put("interfaz.boton.edicion.Rotar_Derecha_48x48.activado", "true");
+			defaults.put("interfaz.boton.edicion.Rotar_Derecha_48x48.visible", "true");
+			defaults.put("interfaz.boton.edicion.Espejo_Horizontal_48x48.activado", "true");
+			defaults.put("interfaz.boton.edicion.Espejo_Horizontal_48x48.visible", "true");
+			defaults.put("interfaz.boton.edicion.Espejo_Vertical_48x48.activado", "true");
+			defaults.put("interfaz.boton.edicion.Espejo_Vertical_48x48.visible", "true");
+			defaults.put("interfaz.boton.edicion.Recortar_48x48.activado", "true");
+			defaults.put("interfaz.boton.edicion.Recortar_48x48.visible", "true");
 
     	//-- Zoom --
-		defaults.put("interfaz.boton.zoom.Zoom_48x48.activado", "true");	
-		defaults.put("interfaz.boton.zoom.Zoom_48x48.visible", "true");
-		defaults.put("interfaz.boton.zoom.Reset_48x48.activado", "false");	
-		defaults.put("interfaz.boton.zoom.Reset_48x48.visible", "true");	
-		defaults.put("interfaz.boton.zoom.Zoom_Auto_48x48.activado", "true");
-		defaults.put("interfaz.boton.zoom.Zoom_Auto_48x48.visible", "true");
-		defaults.put("interfaz.boton.zoom.Ajustar_al_Ancho_48x48.activado", "true");
-		defaults.put("interfaz.boton.zoom.Ajustar_al_Ancho_48x48.visible", "true");
-		defaults.put("interfaz.boton.zoom.Ajustar_al_Alto_48x48.activado", "true");
-		defaults.put("interfaz.boton.zoom.Ajustar_al_Alto_48x48.visible", "true");
-		defaults.put("interfaz.boton.zoom.Escalar_Para_Ajustar_48x48.activado", "true");
-		defaults.put("interfaz.boton.zoom.Escalar_Para_Ajustar_48x48.visible", "true");
-		defaults.put("interfaz.boton.zoom.Zoom_Fijo_48x48.activado", "true");
-		defaults.put("interfaz.boton.zoom.Zoom_Fijo_48x48.visible", "true");	
+			defaults.put("interfaz.boton.zoom.Zoom_48x48.activado", "true");	
+			defaults.put("interfaz.boton.zoom.Zoom_48x48.visible", "true");
+			defaults.put("interfaz.boton.zoom.Reset_48x48.activado", "false");	
+			defaults.put("interfaz.boton.zoom.Reset_48x48.visible", "true");	
+			defaults.put("interfaz.boton.zoom.Zoom_Auto_48x48.activado", "true");
+			defaults.put("interfaz.boton.zoom.Zoom_Auto_48x48.visible", "true");
+			defaults.put("interfaz.boton.zoom.Ajustar_al_Ancho_48x48.activado", "true");
+			defaults.put("interfaz.boton.zoom.Ajustar_al_Ancho_48x48.visible", "true");
+			defaults.put("interfaz.boton.zoom.Ajustar_al_Alto_48x48.activado", "true");
+			defaults.put("interfaz.boton.zoom.Ajustar_al_Alto_48x48.visible", "true");
+			defaults.put("interfaz.boton.zoom.Escalar_Para_Ajustar_48x48.activado", "true");
+			defaults.put("interfaz.boton.zoom.Escalar_Para_Ajustar_48x48.visible", "true");
+			defaults.put("interfaz.boton.zoom.Zoom_Fijo_48x48.activado", "true");
+			defaults.put("interfaz.boton.zoom.Zoom_Fijo_48x48.visible", "true");
+			
+			defaults.put("interfaz.boton.zoom.zoom_especifico_48x48.activado", "true");
+			defaults.put("interfaz.boton.zoom.zoom_especifico_48x48.visible", "true");
 
     	//-- Vista --
-		defaults.put("interfaz.boton.vista.Panel-Galeria_48x48.activado", "true");
-		defaults.put("interfaz.boton.vista.Panel-Galeria_48x48.visible", "true");
-		defaults.put("interfaz.boton.vista.Grid_48x48.activado", "true");
-		defaults.put("interfaz.boton.vista.Grid_48x48.visible", "true");
-		defaults.put("interfaz.boton.vista.Pantalla_Completa_48x48.activado", "true");
-		defaults.put("interfaz.boton.vista.Pantalla_Completa_48x48.visible", "true");
-		defaults.put("interfaz.boton.vista.Lista_48x48.activado", "true");
-		defaults.put("interfaz.boton.vista.Lista_48x48.visible", "true");
-		defaults.put("interfaz.boton.vista.Carrousel_48x48.activado", "true");
-		defaults.put("interfaz.boton.vista.Carrousel_48x48.visible", "true");
+			defaults.put("interfaz.boton.vista.Panel-Galeria_48x48.activado", "true");
+			defaults.put("interfaz.boton.vista.Panel-Galeria_48x48.visible", "true");
+			defaults.put("interfaz.boton.vista.Grid_48x48.activado", "true");
+			defaults.put("interfaz.boton.vista.Grid_48x48.visible", "true");
+			defaults.put("interfaz.boton.vista.Pantalla_Completa_48x48.activado", "true");
+			defaults.put("interfaz.boton.vista.Pantalla_Completa_48x48.visible", "true");
+			defaults.put("interfaz.boton.vista.Lista_48x48.activado", "true");
+			defaults.put("interfaz.boton.vista.Lista_48x48.visible", "true");
+			defaults.put("interfaz.boton.vista.Carrousel_48x48.activado", "true");
+			defaults.put("interfaz.boton.vista.Carrousel_48x48.visible", "true");
 
     	//-- Control --
-		defaults.put("interfaz.boton.control.Refrescar_48x48.activado", "true");
-		defaults.put("interfaz.boton.control.Refrescar_48x48.visible", "true");
-		defaults.put("interfaz.boton.control.Subcarpetas_48x48.activado", "true");
-		defaults.put("interfaz.boton.control.Subcarpetas_48x48.visible", "true");
-		defaults.put("interfaz.boton.control.lista_de_favoritos_48x48.activado", "true");
-		defaults.put("interfaz.boton.control.lista_de_favoritos_48x48.visible", "true");
-		defaults.put("interfaz.boton.control.Borrar_48x48.activado", "true");
-		defaults.put("interfaz.boton.control.Borrar_48x48.visible", "true");
-
+			defaults.put("interfaz.boton.control.Refrescar_48x48.activado", "true");
+			defaults.put("interfaz.boton.control.Refrescar_48x48.visible", "true");
+			defaults.put("interfaz.boton.control.lista_de_favoritos_48x48.activado", "true");
+			defaults.put("interfaz.boton.control.lista_de_favoritos_48x48.visible", "true");
+			defaults.put("interfaz.boton.control.Borrar_48x48.activado", "true");
+			defaults.put("interfaz.boton.control.Borrar_48x48.visible", "true");
+			
     	//-- Especiales --
-		defaults.put("interfaz.boton.especiales.Selector_de_Carpetas_48x48.activado", "true");
-		defaults.put("interfaz.boton.especiales.Selector_de_Carpetas_48x48.visible", "true");
-		defaults.put("interfaz.boton.especiales.Menu_48x48.activado", "true");
-		defaults.put("interfaz.boton.especiales.Menu_48x48.visible", "true");
-		defaults.put("interfaz.boton.especiales.Botones_Ocultos_48x48.activado", "true");
-		defaults.put("interfaz.boton.especiales.Botones_Ocultos_48x48.visible", "true");
+			defaults.put("interfaz.boton.especiales.Selector_de_Carpetas_48x48.activado", "true");
+			defaults.put("interfaz.boton.especiales.Selector_de_Carpetas_48x48.visible", "true");
+			defaults.put("interfaz.boton.especiales.Menu_48x48.activado", "true");
+			defaults.put("interfaz.boton.especiales.Menu_48x48.visible", "true");
+			defaults.put("interfaz.boton.especiales.Botones_Ocultos_48x48.activado", "true");
+			defaults.put("interfaz.boton.especiales.Botones_Ocultos_48x48.visible", "true");
 
+		
+		
     	//--- Menú ---\n");
     	//Formato: interfaz.menu.<ActionCommand>.{activado|visible|seleccionado} = {true|false}\n");
     	//Nota: .seleccionado solo aplica a CheckBox y RadioButton\n\n");
@@ -843,6 +854,10 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.configuracion.Version.activado", "true");
 		defaults.put("interfaz.menu.configuracion.Version.visible", "true");
 
+		
+
+		
+		
 		//Colores
 		
 		//# --- Tema Claro (Basado en Swing Defaults) ---

@@ -14,20 +14,20 @@ import vista.util.IconUtils;
  * y tiene en cuenta si "Mantener Proporciones" esta activado o no
  */
 
-public class ToggleProporcionesAction extends BaseVisorAction
+public class ToggleProporcionesAction1 extends BaseVisorAction
 {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 
-	public ToggleProporcionesAction (VisorController controller, IconUtils iconUtils, int width, int height) 
+	public ToggleProporcionesAction1 (VisorController controller, IconUtils iconUtils, int width, int height) 
 	{
 		super("Mantener Proporciones", controller);
 	
 		// Cargar icono usando IconUtils
         // Asegúrate que el nombre del archivo PNG sea correcto
-        ImageIcon icon = iconUtils.getScaledIcon("7002-Mantener_proporciones_48x48.png", width, height);
+        ImageIcon icon = iconUtils.getScaledIcon("7002-Mantener_Proporciones_48x48.png", width, height);
         if (icon != null) {
             putValue(Action.SMALL_ICON, icon);
         } else {
