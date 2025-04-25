@@ -8,6 +8,7 @@ import java.util.Objects;
 
 import javax.swing.Action;
 
+import servicios.ConfigurationManager;
 import vista.util.IconUtils; // Importar la nueva clase
 
 
@@ -26,6 +27,7 @@ public class ViewUIConfig {
 	public final int iconoAncho;
 	public final IconUtils iconUtils;
 	
+	
     public final Color colorFondo;
     public final Color colorBotonActivado;
     public final Color colorBotonAnimacion;
@@ -40,6 +42,8 @@ public class ViewUIConfig {
     public Color colorBordeTitulo;
     public Color colorSeleccionFondo;
     public Color colorSeleccionTexto;
+    
+    public final ConfigurationManager configurationManager; // <-- AÑADIR CAMPO
 
     /**
      * Constructor para inicializar la configuración de la UI.
@@ -74,7 +78,8 @@ public class ViewUIConfig {
             Color colorBotonFondo,              // 16 Color
             Color colorBotonTexto,              // 17 Color
             Color colorBotonFondoActivado,      // 18 Color
-            Color colorBotonFondoAnimacion       // 19 Color
+            Color colorBotonFondoAnimacion,       // 19 Color
+            ConfigurationManager configurationManager
         ) {
 
     	// Asignar estándar
@@ -100,6 +105,10 @@ public class ViewUIConfig {
         this.colorBotonAnimacion = Objects.requireNonNull(colorBotonFondoAnimacion, "colorBotonFondoAnimacion nulo");
         this.colorFondo = this.colorFondoPrincipal;
     	
+        this.configurationManager = configurationManager;
+        
+        
+        
         System.out.println("[ViewUIConfig] Configuración UI creada con colores de tema.");
     }
     

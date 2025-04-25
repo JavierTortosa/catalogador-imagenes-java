@@ -27,6 +27,14 @@ public class ConfigurationManager
 	private static final Map<String, String> DEFAULT_CONFIG;
 	private static final String KEY_TEMA_NOMBRE = "tema.nombre";
 	
+	// --- CONSTANTES PARA ESTADO VENTANA ---
+    public static final String KEY_WINDOW_X = "window.x";
+    public static final String KEY_WINDOW_Y = "window.y";
+    public static final String KEY_WINDOW_WIDTH = "window.width";
+    public static final String KEY_WINDOW_HEIGHT = "window.height";
+    public static final String KEY_WINDOW_MAXIMIZED = "window.maximized";
+	
+	
 	static
 	{
 		// Usar un método estático para inicializar el mapa de defaults
@@ -409,6 +417,13 @@ public class ConfigurationManager
 			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
 			defaults.put("comportamiento.carga.conRutas", "false");
 			
+		// Ventana de la aplicacion
+	        // Usar -1 para indicar que no hay posición/tamaño guardado (usar defaults del sistema/pack)
+	        defaults.put(KEY_WINDOW_X, "-1");
+	        defaults.put(KEY_WINDOW_Y, "-1");
+	        defaults.put(KEY_WINDOW_WIDTH, "-1");  // O un tamaño default razonable si prefieres
+	        defaults.put(KEY_WINDOW_HEIGHT, "-1"); // Ej: defaults.put(KEY_WINDOW_WIDTH, "1200");
+	        defaults.put(KEY_WINDOW_MAXIMIZED, "false"); // Por defecto no empieza maximizada
 		
 		//===== Personalizacion =====
 		//Tema
@@ -882,7 +897,7 @@ public class ConfigurationManager
 	}
 
 	
-	private static Map<String, String> createDefaultGroupCommentsMap() {
+	private static Map<String, String> createDefaultGroupCommentsMap () {
         Map<String, String> comments = new HashMap<>();
 
         // --- Secciones Principales ---
@@ -891,6 +906,9 @@ public class ConfigurationManager
         comments.put("miniaturas",     	"# ===== Barra de Imagenes en Miniatura =====");
         comments.put("interfaz",       	"# ===== Interfaz =====");
 
+        // --- Ventana de la aplicacion
+        comments.put("window", "# ===== Estado de la Ventana de la aplicacion=====");
+       // --------------------------------------------
         
         // --- Personalizacion
 //        comments.put("colores", 	   	"# ===== Colores UI =====");

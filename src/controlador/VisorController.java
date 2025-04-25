@@ -44,6 +44,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -92,7 +93,6 @@ import vista.config.ViewUIConfig;
 import vista.theme.Tema;
 import vista.theme.ThemeManager; // Importar ThemeManager
 import vista.util.IconUtils;
-
 
 /**
  * Controlador principal para el Visor de Imágenes. Orquesta la interacción
@@ -189,8 +189,8 @@ public class VisorController implements ActionListener, ClipboardOwner
     
     
 	// --- Constructor ---
-    public VisorController()
-    {
+      public VisorController(){
+    
     	// ********************* COSAS A IMPLEMENTAR EN UN FUTURO: ***************************
     	
     	//TODO TwelveMonkeys: 	Para ampliar los tipos de imagenes soportados
@@ -261,7 +261,8 @@ public class VisorController implements ActionListener, ClipboardOwner
                 // Nuevos colores específicos (ASEGURA QUE ViewUIConfig LOS ACEPTA)
                 cFondoPrincipal, cFondoSecundario, cTextoPrimario, cTextoSecundario,
                 cBorde, cBordeTitulo, cSeleccionFondo, cSeleccionTexto,
-                cBotonFondo, cBotonTexto, cBotonFondoActivado, cBotonFondoAnimacion
+                cBotonFondo, cBotonTexto, cBotonFondoActivado, cBotonFondoAnimacion,
+                this.configuration
         );
 
         // --- 10. Crear Vista y Conectar en el EDT ---
@@ -2911,64 +2912,72 @@ public class VisorController implements ActionListener, ClipboardOwner
 	
 
 	// --- Hook de Cierre ---
-	private void configurarShutdownHook ()
-	{
+    // --- INICIO CÓDIGO CORREGIDO en VisorController.configurarShutdownHook ---
+    private void configurarShutdownHook () {
+        Runtime.getRuntime().addShutdownHook(new Thread( () -> {
+            System.out.println("--- Hook de Cierre Iniciado ---");
 
-		Runtime.getRuntime().addShutdownHook(new Thread( () -> {
+            // --- GUARDAR ESTADO DE LA VENTANA ---
+            if (view != null && configuration != null) {
+                 System.out.println("  -> Guardando estado de la ventana...");
+                 try {
+                     boolean isMaximized = (view.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
+                     // --- AÑADIR ConfigurationManager. ---
+                     configuration.setString(ConfigurationManager.KEY_WINDOW_MAXIMIZED, String.valueOf(isMaximized));
 
-			System.out.println("Hook: Guardando configuración...");
+                     if (!isMaximized) {
+                         java.awt.Rectangle bounds = view.getBounds();
+                         configuration.setString(ConfigurationManager.KEY_WINDOW_X, String.valueOf(bounds.x));
+                         configuration.setString(ConfigurationManager.KEY_WINDOW_Y, String.valueOf(bounds.y));
+                         configuration.setString(ConfigurationManager.KEY_WINDOW_WIDTH, String.valueOf(bounds.width));
+                         configuration.setString(ConfigurationManager.KEY_WINDOW_HEIGHT, String.valueOf(bounds.height));
+                          System.out.println("    -> Bounds guardados: " + bounds);
+                     } else {
+                          System.out.println("    -> Ventana maximizada, no se guardan bounds específicos.");
+                     }
+                     // ---------------------------------
+                 } catch (Exception e) {
+                      System.err.println("  -> ERROR al guardar estado de ventana: " + e.getMessage());
+                 }
+            } else {
+                 System.out.println("  -> No se pudo guardar estado de ventana (Vista o Config null).");
+            }
 
-			if (configuration != null)
-			{
+            // --- Guardar configuración general ---
+            System.out.println("  -> Guardando configuración general...");
+            if (configuration != null) {
+                guardarConfiguracionActual();
+            } else {
+                 System.err.println("  -> ConfigurationManager null, no se puede guardar config.");
+            }
 
-				guardarConfiguracionActual(); // Llama a método del controller
+            // --- Apagar ExecutorService ---
+            System.out.println("  -> Apagando ExecutorService...");
+            if (executorService != null && !executorService.isShutdown()) {
+               // ... (lógica de apagado) ...
+               executorService.shutdown();
+               try {
+                   if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                       executorService.shutdownNow();
+                       if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                            System.err.println("  -> ExecutorService no terminó.");
+                       }
+                   }
+               } catch (InterruptedException ie) {
+                   executorService.shutdownNow();
+                   Thread.currentThread().interrupt();
+               }
+               System.out.println("     -> ExecutorService apagado.");
+            } else {
+                System.out.println("     -> ExecutorService ya apagado o nulo.");
+            }
+            System.out.println("--- Hook de Cierre Terminado ---");
 
-			} else
-			{
-
-				/* ... */ }
-
-			System.out.println("Hook: Apagando ExecutorService...");
-
-			if (executorService != null && !executorService.isShutdown())
-			{
-
-				// ... (lógica de apagado del ExecutorService igual que antes) ...
-				executorService.shutdown();
-
-				try
-				{
-
-					if (!executorService.awaitTermination(5, TimeUnit.SECONDS))
-					{
-
-						executorService.shutdownNow();
-
-						if (!executorService.awaitTermination(5, TimeUnit.SECONDS))
-						{
-
-							/* ... */ }
-
-					}
-
-				} catch (InterruptedException e)
-				{
-
-					executorService.shutdownNow();
-					Thread.currentThread().interrupt();
-
-				}
-
-			} else
-			{
-
-				/* ... */ }
-			System.out.println("--- Shutdown Hook Terminado ---");
-
-		}, "AppShutdownThread"));
-
-	}
-	
+        }, "AppShutdownThread"));
+    }
+    // --- FIN CÓDIGO CORREGIDO en VisorController.configurarShutdownHook ---
+    
+    
 	/**
 	 * Devuelve si el zoom manual está habilitado actualmente en el modelo.
 	 * Necesario para que ToggleZoomManualAction sepa cómo alternar desde un botón.

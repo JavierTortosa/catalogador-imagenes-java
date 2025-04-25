@@ -35,6 +35,7 @@ import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
+import servicios.ConfigurationManager;
 import vista.builders.MenuBarBuilder;
 import vista.builders.ToolbarBuilder;
 import vista.config.ViewUIConfig;
@@ -85,55 +86,120 @@ public class VisorView extends JFrame
     private final int TAMANO_CUADRO = 16; // Tamaño de cada cuadrito en píxeles
 	
 	// --- Constructor ---
-	public VisorView(int miniaturaPanelHeight, ViewUIConfig config) 
-	{
-		 super("Visor de Imágenes");
 
-		 if (config == null) { // Validación
-			 throw new IllegalArgumentException("ViewUIConfig no puede ser null");
-		 }
-		 
-		 this.uiConfig = Objects.requireNonNull(config, "ViewUIConfig no puede ser null");
-        
-		 this.miniaturaScrollPaneHeight = miniaturaPanelHeight;
-		 //this.uiConfig = config; // Guarda la referencia al objeto de configuración
-        
-        
-		 // ... setDefaultCloseOperation, setLayout, setSize ...
-		 setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		 setLayout(new BorderLayout());
-		 setSize(1500, 600);
+    /**
+     * Constructor de la ventana principal del visor de imágenes.
+     * Inicializa los componentes, aplica la configuración UI y restaura
+     * el estado (tamaño, posición, maximización) de la ventana si existe
+     * una configuración guardada.
+     *
+     * @param miniaturaPanelHeight Altura deseada para el panel de miniaturas.
+     * @param config Objeto que contiene la configuración de UI, incluyendo colores,
+     *               mapa de acciones, iconUtils y el ConfigurationManager.
+     */
+    public VisorView(int miniaturaPanelHeight, ViewUIConfig config) {
+        // 1. Llamada al constructor de JFrame (Título de la ventana)
+        super("Visor de Imágenes");
 
-		 // Aplicar color de fondo general (usando el valor del objeto config)
-		 getContentPane().setBackground(this.uiConfig.colorFondoPrincipal);
-        
-		 this.modeloLista = new DefaultListModel<>();
-		 inicializarComponentes(); // Llama al método que AHORA usará el actionMap
-		 
-		// Empaquetar la ventana para que calcule tamaños preferidos
-	        pack();
-	        // Centrar en pantalla (opcional)
-	        setLocationRelativeTo(null);
+        // 2. Validación y almacenamiento de configuración inicial
+        if (config == null) { throw new IllegalArgumentException("ViewUIConfig no puede ser null"); }
+        this.uiConfig = Objects.requireNonNull(config, "ViewUIConfig no puede ser null"); // Guardar config UI
+        this.miniaturaScrollPaneHeight = miniaturaPanelHeight; // Guardar altura miniaturas
 
-	        // --- Establecer la ubicación del divisor DESPUÉS de pack/setVisible ---
-	        // Usamos invokeLater para asegurarnos de que se ejecute después
-	        // de que la ventana esté completamente establecida.
-	        SwingUtilities.invokeLater(() -> {
-	            if (splitPane != null) {
-	                // Asegúrate de que el splitPane ya exista en este punto
-	                splitPane.setDividerLocation(0.2);
-	                System.out.println("[VisorView EDT Post-Init] Estableciendo divisor JSplitPane a 0.2");
-	            } else {
-	                 System.err.println("[VisorView EDT Post-Init] ERROR: splitPane es null al intentar setDividerLocation.");
-	            }
-	        });
+        // 3. Configuración básica del JFrame
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Asegura que se cierre la app y se llame al ShutdownHook
+        setLayout(new BorderLayout()); // Establecer el layout manager principal
+        getContentPane().setBackground(this.uiConfig.colorFondoPrincipal); // Aplicar color de fondo del tema
 
-	        // Hacer visible la ventana (puede ir antes o después del invokeLater,
-	        // pero ponerlo antes a veces ayuda a que los cálculos de tamaño se completen)
-	        // setVisible(true); // Movido desde el Controller al constructor de la View
+        // 4. Inicializar modelo de lista temporal (será reemplazado por el del Controller)
+        this.modeloLista = new DefaultListModel<>();
 
-	} // Fin del constructor
-	
+        // 5. Crear todos los componentes Swing internos (paneles, botones, menús, lista, etiqueta, etc.)
+         System.out.println("[VisorView Constructor] Inicializando componentes internos...");
+        inicializarComponentes(); // Este método crea JMenuBar, Toolbar, JSplitPane, etc.
+         System.out.println("[VisorView Constructor] Componentes internos inicializados.");
+
+        // --- 6. Restaurar Estado de la Ventana (Tamaño, Posición, Maximizado) ---
+        boolean restoredState = false; // Flag para saber si aplicamos estado guardado
+        ConfigurationManager cfg = this.uiConfig.configurationManager; // Obtener el gestor de configuración
+
+        if (cfg != null) { // Solo si tenemos acceso a la configuración
+             System.out.println("[VisorView Constructor] Intentando restaurar estado de ventana desde config...");
+             try {
+                 // 6a. Leer si estaba maximizada
+                 boolean wasMaximized = cfg.getBoolean(ConfigurationManager.KEY_WINDOW_MAXIMIZED, false);
+
+                 if (wasMaximized) {
+                     // 6b. Aplicar estado maximizado
+                     setExtendedState(JFrame.MAXIMIZED_BOTH);
+                     restoredState = true; // Marcar que se restauró
+                     System.out.println("  -> Restaurando estado MAXIMIZED.");
+                 } else {
+                     // 6c. Si no estaba maximizada, intentar leer y aplicar bounds (x, y, w, h)
+                     int x = cfg.getInt(ConfigurationManager.KEY_WINDOW_X, -1);
+                     int y = cfg.getInt(ConfigurationManager.KEY_WINDOW_Y, -1);
+                     int w = cfg.getInt(ConfigurationManager.KEY_WINDOW_WIDTH, -1);
+                     int h = cfg.getInt(ConfigurationManager.KEY_WINDOW_HEIGHT, -1);
+
+                     // 6d. Validar y aplicar bounds solo si son razonables
+                     if (w > 50 && h > 50) { // Usar valores mínimos razonables
+                         // Ajustar coords para asegurar visibilidad (opcional pero recomendado)
+                         java.awt.Dimension screenSize = java.awt.Toolkit.getDefaultToolkit().getScreenSize();
+                         w = Math.min(w, screenSize.width); // No más ancho que la pantalla
+                         h = Math.min(h, screenSize.height); // No más alto que la pantalla
+                         x = Math.max(0, Math.min(x, screenSize.width - w)); // Evitar salir por la derecha/izquierda
+                         y = Math.max(0, Math.min(y, screenSize.height - h)); // Evitar salir por abajo/arriba
+
+                         setBounds(x, y, w, h); // Establecer posición y tamaño
+                         restoredState = true; // Marcar que se restauró
+                         System.out.println("  -> Restaurando Bounds a: " + getBounds());
+                     } else {
+                          System.out.println("  -> No se encontraron bounds válidos guardados (w=" + w + ", h=" + h + ").");
+                     } // Fin if (w > 0 && h > 0)
+                 } // Fin else (no estaba maximizada)
+             } catch (Exception e) {
+                  System.err.println("  -> ERROR al intentar restaurar estado de ventana: " + e.getMessage());
+                  // Continuar con el comportamiento por defecto si hay error
+             } // Fin try-catch
+        } else { // Si no se pudo obtener el ConfigurationManager
+             System.err.println("WARN [VisorView Constructor]: ConfigurationManager no disponible en uiConfig. No se puede restaurar estado.");
+        } // Fin if (cfg != null)
+        // --------------------------------------------------------------------------
+
+        // --- 7. Dimensionamiento y Posicionamiento Final ---
+        if (!restoredState) {
+             // Si NO se restauró un estado válido (primera vez, error, etc.),
+             // usar pack() para ajustar al contenido y centrar en pantalla.
+             System.out.println("[VisorView Constructor] No se restauró estado. Usando pack() y centrando.");
+             pack(); // Ajustar tamaño según contenido preferido
+             setLocationRelativeTo(null); // Centrar en pantalla
+        } else {
+            // Si SÍ se restauró el estado (maximizado o bounds), NO llamar a pack()
+            // ni setLocationRelativeTo(null) para respetar lo guardado.
+             System.out.println("[VisorView Constructor] Estado restaurado. Omitiendo pack() y centrado.");
+        }
+        // -------------------------------------------------
+
+        // --- 8. Establecer Posición Inicial del Divisor JSplitPane (en EDT) ---
+        // Se hace en invokeLater para asegurar que el componente ya tenga tamaño.
+        SwingUtilities.invokeLater(() -> { // Inicio invokeLater divisor
+            if (splitPane != null) { // Verificar que splitPane fue creado
+                splitPane.setDividerLocation(0.25); // Proporción 25% izquierda, 75% derecha
+                 System.out.println("[VisorView EDT Post-Init] Estableciendo divisor JSplitPane a 0.25");
+            } else {
+                 System.err.println("[VisorView EDT Post-Init] ERROR: splitPane es null al intentar setDividerLocation.");
+            } // Fin if (splitPane != null)
+        }); // Fin invokeLater divisor
+        // ----------------------------------------------------------------
+
+        // --- 9. Hacer Visible la Ventana ---
+        // Esto se hace al final, después de configurar tamaño/posición.
+        System.out.println("[VisorView Constructor] Haciendo ventana visible...");
+        setVisible(true);
+        System.out.println("[VisorView Constructor] Finalizado.");
+        // -----------------------------------
+
+    } // Fin del constructor de VisorView
 
 	// --- Métodos de Inicialización UI ---
     private void inicializarComponentes() 
