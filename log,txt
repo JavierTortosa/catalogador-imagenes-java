@@ -5,6 +5,8 @@ Mapa DEFAULT_GROUP_COMMENTS inicializado con 24 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 Configuración leída. Total claves: 395
 [ThemeManager] Tema inicial establecido a: clear
+[ThumbnailService] Servicio inicializado. Caché de miniaturas creado.
+[Controller] ThumbnailService instanciado.
 [Controller] Inicializando Actions...
 [PreviousImageAction] Constructor iniciado.
   -> Icono para PreviousImageAction cargado y asignado vía IconUtils.
@@ -17,7 +19,7 @@ Configuración leída. Total claves: 395
 [ToggleCheckeredBG] Estado inicial leído (interfaz.menu.vista.Fondo_a_Cuadros.seleccionado): false
 [ToggleAlwaysOnTopAction] Estado inicial leído (interfaz.menu.vista.Mantener_Ventana_Siempre_Encima.seleccionado): false
 [ToggleSubfoldersAction] Estado inicial leído (comportamiento.carpeta.cargarSubcarpetas): true
-[ToggleProporcionesAction1] Estado inicial SELECTED leído (interfaz.menu.zoom.Mantener_Proporciones.seleccionado): false
+[ToggleProporcionesAction1] Estado inicial SELECTED leído (interfaz.menu.zoom.Mantener_Proporciones.seleccionado): true
 [ViewUIConfig] Configuración UI creada con colores de tema.
 [Controller] Constructor finalizado.
 VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
@@ -58,12 +60,12 @@ MenuBarBuilder: Menú construido. Total items en mapa: 119
 [VisorView] Estableciendo posición inicial del divisor JSplitPane a 0.2
 [VisorView Constructor] Componentes internos inicializados.
 [VisorView Constructor] Intentando restaurar estado de ventana desde config...
-  -> Restaurando Bounds a: java.awt.Rectangle[x=118,y=0,width=1418,height=822]
+  -> Restaurando Bounds a: java.awt.Rectangle[x=0,y=12,width=1536,height=582]
 [VisorView Constructor] Estado restaurado. Omitiendo pack() y centrado.
 [VisorView Constructor] Haciendo ventana visible...
 [VisorView Constructor] Finalizado.
 [View] Modelo asignado a JList. Tamaño actual: 0
-[Controller EDT] Carpeta Raíz Inicial establecida desde config: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+[Controller EDT] Carpeta Raíz Inicial establecida desde config: M:\Archivos 3D
 Aplicando configuración inicial...
   -> Configuración del Modelo aplicada.
   -> Aplicando estado inicial a Botones...
@@ -115,10 +117,9 @@ Aplicando configuración inicial...
   -> Estado inicial de Menús aplicado.
   -> Estado inicial de Zoom Manual aplicado.
 Aplicando estado inicial de Mantener Proporciones...
-  -> Estado leído de config (interfaz.menu.zoom.Mantener_Proporciones.seleccionado): false
-  [Model] Estado mantenerProporcion cambiado a: false
-  -> Estado inicial de Action Proporciones establecido a: false
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Normal
+  -> Estado leído de config (interfaz.menu.zoom.Mantener_Proporciones.seleccionado): true
+  -> Estado inicial de Action Proporciones establecido a: true
+  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
   -> Aspecto visual inicial del botón Proporciones actualizado.
   -> Estado inicial de Mantener Proporciones aplicado.
 Aplicando estado inicial de Subcarpetas...
@@ -133,9 +134,8 @@ Configuración inicial aplicada (Modelo y Vista).
 
 -->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: null
   -> Modo: Subcarpetas.
-    -> Iniciando walk desde carpeta raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
--->>> FIN MÉTODO cargarListaImagenes DETALLADA (Controller) ***
-  [BG] Iniciando Files.walk con depth: 2147483647 en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    -> Iniciando búsqueda desde carpeta raíz actual: M:\Archivos 3D
+  [Worker BG] Iniciando búsqueda en M:\Archivos 3D con profundidad 2147483647
 Listeners específicos (Lista, Mouse) añadidos.
 [Controller] Configurando Actions y Listeners en componentes...
   -> Asignando Actions a Botones...
@@ -146,556 +146,391 @@ WARN [setActionForKey]: Action es null para clave: interfaz.menu.zoom.Alejar
   -> Asignando ActionListener SIMPLIFICADO a Radios de Subcarpetas...
   -> ActionListener SIMPLIFICADO asignado a Radios.
 [Controller] Actions y Listeners configurados.
-  [BG] Files.walk terminado. Elementos encontrados: 165
 [VisorView setCheckeredBackgroundEnabled] Solicitado: false, Estado actual: false
 [Controller] Inicialización de UI en EDT completada.
 [VisorView EDT Post-Init] Estableciendo divisor JSplitPane a 0.25
-  [EDT] Modelo actualizado. Tamaño: 165
-    -> Limpiando selectedImageKey en modelo antes de seleccionar índice...
-  -->>> estaCargandoLista = false
+[Controller EDT] Mostrando diálogo de progreso...
+  [Worker BG] Files.walk terminado. Archivos encontrados: 13413
+[Worker EDT] Método done() alcanzado.
+[Controller EDT - done] Actualizando modelo y vista con resultado (13413 elementos)...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 13413
+[View] Modelo asignado a JList. Tamaño actual: 13413
+-->>> estaCargandoLista = false (en done, después de actualizar UI)
     -> No había imagen a mantener o lista estaba vacía. Seleccionando índice 0.
     -> Aplicando selección al índice: 0
 [ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
 
-[Controller] Iniciando carga para: 'cyberpunk-city-anime-girl-5k-0e-1.png'
-  [BG Carga Imagen] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
+[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
+  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
 [Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
+[Miniaturas BG] Tarea iniciada para rango 0-7
   [BG Carga Imagen] Imagen leída correctamente.
+[Controller EDT] Diálogo de progreso cerrado.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+[Miniaturas BG] ThumbnailService devolvió null para: Contadores y heridas/Medidor/no vale.jpg
+[Miniaturas] Tarea Miniaturas terminada en 154 ms.
 [Miniaturas EDT] Placeholders mostrados para rango 0-7
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
 [Miniaturas EDT] Reemplazando placeholders con resultados.
 [Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
- Tarea Miniaturas terminada en 558 ms.
+--- Acción Detectada ---
+  Fuente     : JButton
+  Comando    : null
+  Clave Larga: interfaz.boton.toggle.Subcarpetas_48x48
+  Icono      : Subcarpetas_48x48.png
+-------------------------
+[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: false
+
+[Controller setMostrarSubcarpetas] INICIO. Deseado: false
+  -> Estado Lógico Actual (Action.SELECTED_KEY): true
+  -> Aplicando cambio a estado: false
+    -> Clave a intentar mantener: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+    1. Actualizando Action.SELECTED_KEY...
+       -> Action.SELECTED_KEY AHORA ES: false
+    2. Actualizando Modelo...
+       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: true
+    3. Actualizando Configuración en Memoria...
+[Config Mgr setString] Actualizando clave: 'comportamiento.carpeta.cargarSubcarpetas' | Valor Anterior: 'true' | Valor Nuevo: 'false'
+[Config Mgr] Valor en memoria actualizado: comportamiento.carpeta.cargarSubcarpetas = false
+       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: false
+    4. Sincronizando UI (Botón y Radios)...
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Normal
+  -> [Controller] Sincronizando estado visual de Radios a: Solo Carpeta
+    5. Programando recarga de lista en EDT (manteniendo clave)...
+[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
+      -> [EDT] Llamando a cargarListaImagenes("Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png") para recargar...
+
+
+-->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+  -> Modo: Solo Carpeta Actual.
+    -> Iniciando búsqueda desde carpeta de imagen: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images
+  [Worker BG] Iniciando búsqueda en M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images con profundidad 1
+  [Worker BG] Files.walk terminado. Archivos encontrados: 7
+[Controller EDT] Mostrando diálogo de progreso...
+[Worker EDT] Método done() alcanzado.
+[Controller EDT - done] Actualizando modelo y vista con resultado (7 elementos)...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 7
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=true
+[View] Modelo asignado a JList. Tamaño actual: 7
+-->>> estaCargandoLista = false (en done, después de actualizar UI)
+    -> Imagen a mantener encontrada en índice: 0
+    -> Aplicando selección al índice: 0
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+
+[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
+[Miniaturas] Rango calculado: 0 a 6 (Seleccionado: 0)
+  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
+[Miniaturas BG] Tarea iniciada para rango 0-6
+  [BG Carga Imagen] Imagen leída correctamente.
+[Miniaturas] Tarea Miniaturas terminada en 39 ms.
+[Controller EDT] Diálogo de progreso cerrado.
+[Miniaturas EDT] Placeholders mostrados para rango 0-6
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[Miniaturas EDT] Reemplazando placeholders con resultados.
+[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
+--- Acción Detectada ---
+  Fuente     : JButton
+  Comando    : null
+  Clave Larga: interfaz.boton.toggle.Subcarpetas_48x48
+  Icono      : Subcarpetas_48x48.png
+-------------------------
+[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: true
+
+[Controller setMostrarSubcarpetas] INICIO. Deseado: true
+  -> Estado Lógico Actual (Action.SELECTED_KEY): false
+  -> Aplicando cambio a estado: true
+    -> Clave a intentar mantener: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+    1. Actualizando Action.SELECTED_KEY...
+       -> Action.SELECTED_KEY AHORA ES: true
+    2. Actualizando Modelo...
+       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: false
+    3. Actualizando Configuración en Memoria...
+[Config Mgr setString] Actualizando clave: 'comportamiento.carpeta.cargarSubcarpetas' | Valor Anterior: 'false' | Valor Nuevo: 'true'
+[Config Mgr] Valor en memoria actualizado: comportamiento.carpeta.cargarSubcarpetas = true
+       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: true
+    4. Sincronizando UI (Botón y Radios)...
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
+  -> [Controller] Sincronizando estado visual de Radios a: Subcarpetas
+    5. Programando recarga de lista en EDT (manteniendo clave)...
+[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
+      -> [EDT] Llamando a cargarListaImagenes("Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png") para recargar...
+
+
+-->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+  -> Modo: Subcarpetas.
+    -> Iniciando búsqueda desde carpeta raíz actual: M:\Archivos 3D
+  [Worker BG] Iniciando búsqueda en M:\Archivos 3D con profundidad 2147483647
+[Controller EDT] Mostrando diálogo de progreso...
+  [Worker BG] Files.walk terminado. Archivos encontrados: 13413
+[Worker EDT] Método done() alcanzado.
+[Controller EDT - done] Actualizando modelo y vista con resultado (13413 elementos)...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 13413
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=true
+[View] Modelo asignado a JList. Tamaño actual: 13413
+-->>> estaCargandoLista = false (en done, después de actualizar UI)
+    -> Imagen a mantener encontrada en índice: 0
+    -> Aplicando selección al índice: 0
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+
+[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
+[Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
+  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
+[Miniaturas BG] Tarea iniciada para rango 0-7
+  [BG Carga Imagen] Imagen leída correctamente.
+[Miniaturas BG] ThumbnailService devolvió null para: Contadores y heridas/Medidor/no vale.jpg
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+[Miniaturas] Tarea Miniaturas terminada en 9 ms.
+[Controller EDT] Diálogo de progreso cerrado.
+[Miniaturas EDT] Placeholders mostrados para rango 0-7
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[Miniaturas EDT] Reemplazando placeholders con resultados.
+[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
+--- Acción Detectada ---
+  Fuente     : JButton
+  Comando    : null
+  Clave Larga: interfaz.boton.toggle.Subcarpetas_48x48
+  Icono      : Subcarpetas_48x48.png
+-------------------------
+[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: false
+
+[Controller setMostrarSubcarpetas] INICIO. Deseado: false
+  -> Estado Lógico Actual (Action.SELECTED_KEY): true
+  -> Aplicando cambio a estado: false
+    -> Clave a intentar mantener: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+    1. Actualizando Action.SELECTED_KEY...
+       -> Action.SELECTED_KEY AHORA ES: false
+    2. Actualizando Modelo...
+       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: true
+    3. Actualizando Configuración en Memoria...
+[Config Mgr setString] Actualizando clave: 'comportamiento.carpeta.cargarSubcarpetas' | Valor Anterior: 'true' | Valor Nuevo: 'false'
+[Config Mgr] Valor en memoria actualizado: comportamiento.carpeta.cargarSubcarpetas = false
+       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: false
+    4. Sincronizando UI (Botón y Radios)...
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Normal
+  -> [Controller] Sincronizando estado visual de Radios a: Solo Carpeta
+    5. Programando recarga de lista en EDT (manteniendo clave)...
+[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
+      -> [EDT] Llamando a cargarListaImagenes("Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png") para recargar...
+
+
+-->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+  -> Modo: Solo Carpeta Actual.
+    -> Iniciando búsqueda desde carpeta de imagen: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images
+  [Worker BG] Iniciando búsqueda en M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images con profundidad 1
+  [Worker BG] Files.walk terminado. Archivos encontrados: 7
+[Controller EDT] Mostrando diálogo de progreso...
+[Worker EDT] Método done() alcanzado.
+[Controller EDT - done] Actualizando modelo y vista con resultado (7 elementos)...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 7
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=true
+[View] Modelo asignado a JList. Tamaño actual: 7
+-->>> estaCargandoLista = false (en done, después de actualizar UI)
+    -> Imagen a mantener encontrada en índice: 0
+    -> Aplicando selección al índice: 0
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+
+[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
+[Miniaturas] Rango calculado: 0 a 6 (Seleccionado: 0)
+  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
+[Miniaturas BG] Tarea iniciada para rango 0-6
+  [BG Carga Imagen] Imagen leída correctamente.
+[Miniaturas] Tarea Miniaturas terminada en 20 ms.
+[Controller EDT] Diálogo de progreso cerrado.
+[Miniaturas EDT] Placeholders mostrados para rango 0-6
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[Miniaturas EDT] Reemplazando placeholders con resultados.
+[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
+--- Acción Detectada ---
+  Fuente     : JButton
+  Comando    : null
+  Clave Larga: interfaz.boton.toggle.Subcarpetas_48x48
+  Icono      : Subcarpetas_48x48.png
+-------------------------
+[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: true
+
+[Controller setMostrarSubcarpetas] INICIO. Deseado: true
+  -> Estado Lógico Actual (Action.SELECTED_KEY): false
+  -> Aplicando cambio a estado: true
+    -> Clave a intentar mantener: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+    1. Actualizando Action.SELECTED_KEY...
+       -> Action.SELECTED_KEY AHORA ES: true
+    2. Actualizando Modelo...
+       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: false
+    3. Actualizando Configuración en Memoria...
+[Config Mgr setString] Actualizando clave: 'comportamiento.carpeta.cargarSubcarpetas' | Valor Anterior: 'false' | Valor Nuevo: 'true'
+[Config Mgr] Valor en memoria actualizado: comportamiento.carpeta.cargarSubcarpetas = true
+       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: true
+    4. Sincronizando UI (Botón y Radios)...
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
+  -> [Controller] Sincronizando estado visual de Radios a: Subcarpetas
+    5. Programando recarga de lista en EDT (manteniendo clave)...
+[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
+      -> [EDT] Llamando a cargarListaImagenes("Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png") para recargar...
+
+
+-->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+  -> Modo: Subcarpetas.
+    -> Iniciando búsqueda desde carpeta raíz actual: M:\Archivos 3D
+  [Worker BG] Iniciando búsqueda en M:\Archivos 3D con profundidad 2147483647
+[Controller EDT] Mostrando diálogo de progreso...
+  [Worker BG] Files.walk terminado. Archivos encontrados: 13413
+[Worker EDT] Método done() alcanzado.
+[Controller EDT - done] Actualizando modelo y vista con resultado (13413 elementos)...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 13413
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=true
+[View] Modelo asignado a JList. Tamaño actual: 13413
+-->>> estaCargandoLista = false (en done, después de actualizar UI)
+    -> Imagen a mantener encontrada en índice: 0
+    -> Aplicando selección al índice: 0
+[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+
+[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
+[Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
+  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
+[Miniaturas BG] Tarea iniciada para rango 0-7
+  [BG Carga Imagen] Imagen leída correctamente.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+[Miniaturas BG] ThumbnailService devolvió null para: Contadores y heridas/Medidor/no vale.jpg
+[Miniaturas] Tarea Miniaturas terminada en 9 ms.
+[Controller EDT] Diálogo de progreso cerrado.
+[Miniaturas EDT] Placeholders mostrados para rango 0-7
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[Miniaturas EDT] Reemplazando placeholders con resultados.
+[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
 --- Acción Detectada ---
   Fuente     : JButton
   Comando    : null
   Clave Larga: interfaz.boton.zoom.Zoom_48x48
   Icono      : Zoom_48x48.png
 -------------------------
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
---- Acción Detectada ---
-  Fuente     : JCheckBoxMenuItem
-  Comando    : Mantener Proporciones
-  Clave Larga: interfaz.menu.zoom.Mantener_Proporciones
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: false
-
-[Controller setMantenerProporciones] INICIO. Deseado: false
-  -> Estado Lógico Actual (Action.SELECTED_KEY): true
-  -> Aplicando cambio a estado: false
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: false
-    2. Actualizando Modelo...
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'false' | Valor Nuevo: 'false'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = false
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: false
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Normal
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
 --- Acción Detectada ---
   Fuente     : JButton
   Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
+  Clave Larga: interfaz.boton.zoom.Reset_48x48
+  Icono      : Reset_48x48.png
 -------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: true
-
-[Controller setMantenerProporciones] INICIO. Deseado: true
-  -> Estado Lógico Actual (Action.SELECTED_KEY): false
-  -> Aplicando cambio a estado: true
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: true
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: true
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'false' | Valor Nuevo: 'true'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = true
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: true
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: false
-
-[Controller setMantenerProporciones] INICIO. Deseado: false
-  -> Estado Lógico Actual (Action.SELECTED_KEY): true
-  -> Aplicando cambio a estado: false
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: false
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: false
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'true' | Valor Nuevo: 'false'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = false
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: false
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Normal
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: true
-
-[Controller setMantenerProporciones] INICIO. Deseado: true
-  -> Estado Lógico Actual (Action.SELECTED_KEY): false
-  -> Aplicando cambio a estado: true
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: true
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: true
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'false' | Valor Nuevo: 'true'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = true
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: true
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: false
-
-[Controller setMantenerProporciones] INICIO. Deseado: false
-  -> Estado Lógico Actual (Action.SELECTED_KEY): true
-  -> Aplicando cambio a estado: false
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: false
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: false
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'true' | Valor Nuevo: 'false'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = false
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: false
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Normal
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: true
-
-[Controller setMantenerProporciones] INICIO. Deseado: true
-  -> Estado Lógico Actual (Action.SELECTED_KEY): false
-  -> Aplicando cambio a estado: true
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: true
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: true
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'false' | Valor Nuevo: 'true'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = true
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: true
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: false
-
-[Controller setMantenerProporciones] INICIO. Deseado: false
-  -> Estado Lógico Actual (Action.SELECTED_KEY): true
-  -> Aplicando cambio a estado: false
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: false
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: false
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'true' | Valor Nuevo: 'false'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = false
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: false
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Normal
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: true
-
-[Controller setMantenerProporciones] INICIO. Deseado: true
-  -> Estado Lógico Actual (Action.SELECTED_KEY): false
-  -> Aplicando cambio a estado: true
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: true
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: true
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'false' | Valor Nuevo: 'true'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = true
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: true
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: false
-
-[Controller setMantenerProporciones] INICIO. Deseado: false
-  -> Estado Lógico Actual (Action.SELECTED_KEY): true
-  -> Aplicando cambio a estado: false
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: false
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: false
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'true' | Valor Nuevo: 'false'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = false
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: false
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Normal
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
-[reescalar] Escalando a 1045x604 | MantenerProporcion=false
-  -> SIN proporción: newW=1045, newH=604
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  Icono      : Mantener_Proporciones_48x48.png
--------------------------
-[ToggleProporcionesAction1] Solicitando cambio de estado a: true
-
-[Controller setMantenerProporciones] INICIO. Deseado: true
-  -> Estado Lógico Actual (Action.SELECTED_KEY): false
-  -> Aplicando cambio a estado: true
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: true
-    2. Actualizando Modelo...
-  [Model] Estado mantenerProporcion cambiado a: true
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' | Valor Anterior: 'false' | Valor Nuevo: 'true'
-[Config Mgr] Valor en memoria actualizado: interfaz.menu.zoom.Mantener_Proporciones.seleccionado = true
-       -> Config 'interfaz.menu.zoom.Mantener_Proporciones.seleccionado' AHORA ES: true
-    4. Sincronizando UI (Botón)...
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
-    5. Programando repintado de imagen principal en EDT...
-[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).
-      -> [EDT] Llamando a reescalar y mostrar imagen...
-[reescalar] Escalando a 1045x604 | MantenerProporcion=true
-  -> Con proporción: newW=749, newH=604
+Ejecutando acción de Reset Zoom...
+[reescalar] Escalando a 1133x364 | MantenerProporcion=true
+  -> Con proporción: newW=484, newH=364
+  -> Buscando botón en mapa (Claves Largas)...
+    -> Botón encontrado con clave larga: interfaz.boton.zoom.Reset_48x48
+    -> Aplicando animación...
 --- Hook de Cierre Iniciado ---
   -> Guardando estado de la ventana...
 [Config Mgr setString] Actualizando clave: 'window.maximized' | Valor Anterior: 'false' | Valor Nuevo: 'false'
 [Config Mgr] Valor en memoria actualizado: window.maximized = false
-[Config Mgr setString] Actualizando clave: 'window.x' | Valor Anterior: '121' | Valor Nuevo: '118'
-[Config Mgr] Valor en memoria actualizado: window.x = 118
-[Config Mgr setString] Actualizando clave: 'window.y' | Valor Anterior: '0' | Valor Nuevo: '0'
-[Config Mgr] Valor en memoria actualizado: window.y = 0
-[Config Mgr setString] Actualizando clave: 'window.width' | Valor Anterior: '1418' | Valor Nuevo: '1418'
-[Config Mgr] Valor en memoria actualizado: window.width = 1418
-[Config Mgr setString] Actualizando clave: 'window.height' | Valor Anterior: '822' | Valor Nuevo: '822'
-[Config Mgr] Valor en memoria actualizado: window.height = 822
-    -> Bounds guardados: java.awt.Rectangle[x=118,y=0,width=1418,height=822]
+[Config Mgr setString] Actualizando clave: 'window.x' | Valor Anterior: '0' | Valor Nuevo: '0'
+[Config Mgr] Valor en memoria actualizado: window.x = 0
+[Config Mgr setString] Actualizando clave: 'window.y' | Valor Anterior: '12' | Valor Nuevo: '12'
+[Config Mgr] Valor en memoria actualizado: window.y = 12
+[Config Mgr setString] Actualizando clave: 'window.width' | Valor Anterior: '1536' | Valor Nuevo: '1536'
+[Config Mgr] Valor en memoria actualizado: window.width = 1536
+[Config Mgr setString] Actualizando clave: 'window.height' | Valor Anterior: '582' | Valor Nuevo: '582'
+[Config Mgr] Valor en memoria actualizado: window.height = 582
+    -> Bounds guardados: java.awt.Rectangle[x=0,y=12,width=1536,height=582]
   -> Guardando configuración general...
 Recopilando estado actual para guardar configuración...
   -> Valor final de 'tema.nombre' a guardar (desde mapa inicial): clear

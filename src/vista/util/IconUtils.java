@@ -1,4 +1,3 @@
-// --- NUEVA CLASE ---
 package vista.util; // O el paquete que prefieras para utilidades de vista
 
 import java.net.URL;
@@ -151,4 +150,4 @@ public class IconUtils {
     }
 
 }
-// --- FIN NUEVA CLASE ---
+// --- FIN IconUtils

@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon; // Necesario para el caché de miniaturas si lo ponemos aquí
@@ -39,10 +40,6 @@ public class VisorModel
     private int miniaturaNormAlto;
     private boolean mantenerProporcion;
 
-	// FIXME --- Caché de Miniaturas (Considerar si va aquí o en Controller/Servicio) ---
-	// Por simplicidad inicial, la ponemos aquí. Si crece mucho, se puede extraer.
-	private Map<String, ImageIcon> miniaturasMap;
-
 	// --- Constructor ---
 	public VisorModel()
 	{
@@ -50,7 +47,6 @@ public class VisorModel
 		// Inicializar colecciones y valores por defecto
 		modeloLista = new DefaultListModel<>();
 		rutaCompletaMap = new HashMap<>();
-		miniaturasMap = new HashMap<>(); // Inicializar caché
 
 		// Valores iniciales por defecto (podrían ser sobrescritos por config)
 		currentImage = null;
@@ -65,6 +61,36 @@ public class VisorModel
 
    	}
 
+	
+	/**
+     * Reemplaza el modelo de lista interno y el mapa de rutas con los nuevos
+     * proporcionados. Esta es una forma más eficiente de actualizar la lista
+     * cuando se carga un gran número de elementos.
+     *
+     * @param nuevoModelo El nuevo DefaultListModel construido en segundo plano.
+     * @param nuevoMapaRutas El nuevo mapa de rutas correspondiente.
+     */
+    public void actualizarListaCompleta(DefaultListModel<String> nuevoModelo, Map<String, Path> nuevoMapaRutas) {
+        Objects.requireNonNull(nuevoModelo, "El nuevo modelo no puede ser nulo");
+        Objects.requireNonNull(nuevoMapaRutas, "El nuevo mapa de rutas no puede ser nulo");
+
+        // Reemplaza las referencias internas
+        this.modeloLista = nuevoModelo;
+        this.rutaCompletaMap = nuevoMapaRutas;
+
+        // Limpiamos la selección y la imagen actual, ya que la lista ha cambiado
+        this.selectedImageKey = null;
+        this.currentImage = null;
+        // Podríamos resetear el zoom aquí también si quisiéramos
+        // this.resetZoomState();
+
+        System.out.println("[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: " + this.modeloLista.getSize());
+        // ¡Importante! No dispares eventos manualmente aquí. La actualización
+        // se hará en la JList cuando el Controller le pase este nuevo modeloLista.
+    }
+    // --- FIN CÓDIGO NUEVO ---
+	
+	
 	// --- Getters y Setters (o métodos de modificación) ---
 
 	public DefaultListModel<String> getModeloLista ()
@@ -350,42 +376,6 @@ public class VisorModel
 
 	}
 
-	// --- Métodos para caché de miniaturas ---
-	public Map<String, ImageIcon> getMiniaturasMap ()
-	{
-
-		return miniaturasMap;
-
-	}
-
-	public void setMiniaturasMap (Map<String, ImageIcon> nuevoMapa)
-	{
-
-		this.miniaturasMap = nuevoMapa;
-
-	}
-
-	public void limpiarMiniaturasMap ()
-	{
-
-		this.miniaturasMap.clear();
-
-	}
-
-	public ImageIcon getMiniatura (String key)
-	{
-
-		return miniaturasMap.get(key);
-
-	}
-
-	public void putMiniatura (String key, ImageIcon icon)
-	{
-
-		miniaturasMap.put(key, icon);
-
-	}
-	
 	
 	public boolean isMantenerProporcion() {
         return mantenerProporcion;

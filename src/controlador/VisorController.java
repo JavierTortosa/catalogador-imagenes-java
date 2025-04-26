@@ -20,12 +20,15 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -55,6 +58,7 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 
 // Actions
 import controlador.actions.archivo.OpenFileAction;
@@ -85,12 +89,15 @@ import controlador.actions.zoom.ZoomFijadoAction;
 import controlador.actions.zoom.ZoomFitAction;
 import controlador.actions.zoom.ZoomFixedAction;
 import controlador.imagen.LocateFileAction;
+import controlador.worker.BuscadorArchivosWorker;
 // Imports de mis clases
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.image.ImageEdition;
+import servicios.image.ThumbnailService;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
+import vista.dialogos.ProgresoCargaDialog;
 import vista.theme.Tema;
 import vista.theme.ThemeManager; // Importar ThemeManager
 import vista.util.IconUtils;
@@ -105,11 +112,12 @@ public class VisorController implements ActionListener, ClipboardOwner
 {
 
 	// --- Referencias ---
-	  private VisorModel model;
-	  private VisorView view;
-	  private ConfigurationManager configuration;
-	  private IconUtils iconUtils;
-	  private ThemeManager themeManager;
+	  private VisorModel model;						//Clase principal de Modelo (MVC)
+	  private VisorView view; 						//clase principal de Vista (MVC) (interfaz de usuario)
+	  private ConfigurationManager configuration;	//Configuracion en base a config.cfg
+	  private IconUtils iconUtils;					//Clase de utilidad para cargar y gestionar iconos de la aplicación.
+	  private ThemeManager themeManager;			//Temas y personalizacion
+	  private ThumbnailService servicioMiniaturas;	//Carga de miniaturas optimizada
 	  
 	// --- Servicios ---
 	  private ExecutorService executorService;
@@ -219,7 +227,11 @@ public class VisorController implements ActionListener, ClipboardOwner
 
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
 
-        // --- 5. LEER VALORES DE UI INICIALES ---
+        // 5. Inicializar ThumbnailService
+        this.servicioMiniaturas = new ThumbnailService(); // Creamos la instancia del servicio
+        System.out.println("[Controller] ThumbnailService instanciado.");
+        
+        // --- 6. LEER VALORES DE UI INICIALES ---
         // Obtener el objeto Tema actual
         Tema temaInicial = this.themeManager.getTemaActual();
         
@@ -960,6 +972,13 @@ public class VisorController implements ActionListener, ClipboardOwner
          System.out.println("Listeners específicos (Lista, Mouse) añadidos.");
     }
 
+    
+    // Asegúrate de que getModeloLista() sigue devolviendo la referencia actual
+//	public DefaultListModel<String> getModeloLista ()
+//	{
+//		return modeloLista;
+//	}
+	
 	
 	// --- Métodos de Lógica (Movidos desde VisorV2 y Adaptados) ---
 
@@ -1413,7 +1432,6 @@ public class VisorController implements ActionListener, ClipboardOwner
 		// Limpiar Modelo
 		model.limpiarModeloLista();
 		model.limpiarRutaCompletaMap();
-		model.limpiarMiniaturasMap();
 		model.setCurrentImage(null);
 		model.setSelectedImageKey(null);
 		model.resetZoomState();
@@ -1445,236 +1463,267 @@ public class VisorController implements ActionListener, ClipboardOwner
      * Método público o de conveniencia para iniciar la carga usando la
      * carpeta raíz actual y seleccionando la primera imagen.
      */
-    private void cargarListaImagenes() {
+    private void cargarListaImagenes () {
         System.out.println("  -> cargarListaImagenes() llamado (seleccionará la primera imagen por defecto).");
         cargarListaImagenes(null); // Llama a la versión detallada sin clave específica a mantener
     }
 
 
     // --- INICIO CÓDIGO COMPLETO Y CORREGIDO (Versión 3): cargarListaImagenes(String claveImagenAMantener) ---
-    /**
-     * Carga o recarga la lista de imágenes, permitiendo especificar una imagen
-     * a mantener seleccionada y ajustando la carpeta de inicio según el modo
-     * (Subcarpetas vs Solo Carpeta).
-     * Funciona en segundo plano.
-     *
-     * @param claveImagenAMantener La clave (ruta relativa a carpetaRaizActual)
-     *                             de la imagen que se intentará reseleccionar,
-     *                             o null para seleccionar la primera.
-     */
-    private void cargarListaImagenes(String claveImagenAMantener) { // Inicio del método
+ // --- Dentro de la clase VisorController ---
 
-        // --- 1. Verificaciones Previas ---
-        if (configuration == null || model == null) { // Inicio if (verificaciones)
-            System.err.println("ERROR: ConfigurationManager o Modelo nulos en cargarListaImagenes.");
-            if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
-            estaCargandoLista = false;
-            return;
-        } // Fin if (verificaciones)
-        System.out.println("\n\n-->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: " + claveImagenAMantener);
-        this.estaCargandoLista = true;
+ // --- Asegúrate de tener estos imports (o los necesarios según tu estructura) ---
+     /**
+      * Carga o recarga la lista de imágenes usando un SwingWorker para mostrar progreso.
+      * Permite especificar una imagen a mantener seleccionada y ajusta la carpeta
+      * de inicio según el modo (Subcarpetas vs Solo Carpeta).
+      *
+      * @param claveImagenAMantener La clave (ruta relativa a carpetaRaizActual)
+      *                             de la imagen que se intentará reseleccionar,
+      *                             o null para seleccionar la primera.
+      */
+     private void cargarListaImagenes(String claveImagenAMantener) { // Inicio del método
 
-        // --- 2. Cancelar Tareas Anteriores ---
-        if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) { // Inicio if (cancelar future lista)
-             System.out.println("  -> Cancelando tarea de carga de lista anterior...");
-             cargaImagenesFuture.cancel(true);
-        } // Fin if (cancelar future lista)
-        if (cargaMiniaturasFuture != null && !cargaMiniaturasFuture.isDone()) { // Inicio if (cancelar future miniaturas)
-             System.out.println("  -> Cancelando tarea de carga de miniaturas anterior...");
-             cargaMiniaturasFuture.cancel(true);
-        } // Fin if (cancelar future miniaturas)
+         // --- 1. Verificaciones Previas ---
+         if (configuration == null || model == null) {
+             System.err.println("ERROR: ConfigurationManager o Modelo nulos en cargarListaImagenes.");
+             if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
+             estaCargandoLista = false; // Asegurar flag a false si salimos
+             return;
+         }
+         System.out.println("\n\n-->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: " + claveImagenAMantener);
+         this.estaCargandoLista = true; // Marcar como cargando ANTES de empezar
 
-        // --- 3. Determinar Carpeta de Inicio (pathDeInicioWalk) y Profundidad (depth) ---
-        final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
-        Path pathDeInicioWalk = null;
-        int depth;
+         // --- 2. Cancelar Tareas Anteriores ---
+         if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
+              System.out.println("  -> Cancelando tarea de carga de lista anterior...");
+              cargaImagenesFuture.cancel(true);
+         }
+         if (cargaMiniaturasFuture != null && !cargaMiniaturasFuture.isDone()) {
+              System.out.println("  -> Cancelando tarea de carga de miniaturas anterior...");
+              cargaMiniaturasFuture.cancel(true);
+         }
 
-        if (mostrarSoloCarpeta) { // Inicio if (modo solo carpeta)
-            System.out.println("  -> Modo: Solo Carpeta Actual.");
-            depth = 1;
-            String claveReferencia = claveImagenAMantener != null ? claveImagenAMantener : model.getSelectedImageKey();
-            Path rutaCompletaReferencia = claveReferencia != null ? model.getRutaCompleta(claveReferencia) : null;
+         // --- 3. Determinar Carpeta de Inicio y Profundidad ---
+         final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
+         Path pathDeInicioWalk = null;
+         int depth;
 
-            if (rutaCompletaReferencia != null && Files.isRegularFile(rutaCompletaReferencia)) { // Inicio if (ruta referencia válida)
-                 pathDeInicioWalk = rutaCompletaReferencia.getParent();
-                 System.out.println("    -> Iniciando walk desde carpeta de imagen: " + pathDeInicioWalk);
-            } else { // Else (ruta referencia inválida)
-                System.out.println("    -> No se pudo obtener carpeta de imagen válida (Clave: " + claveReferencia + "). Usando carpeta raíz actual como fallback.");
-                pathDeInicioWalk = this.carpetaRaizActual;
-            } // Fin else (ruta referencia inválida)
-        } else { // Else (modo subcarpetas)
-            System.out.println("  -> Modo: Subcarpetas.");
-            depth = Integer.MAX_VALUE;
-            pathDeInicioWalk = this.carpetaRaizActual;
-            System.out.println("    -> Iniciando walk desde carpeta raíz actual: " + pathDeInicioWalk);
-        } // Fin else (modo subcarpetas)
+         if (mostrarSoloCarpeta) {
+             System.out.println("  -> Modo: Solo Carpeta Actual.");
+             depth = 1;
+             String claveReferencia = claveImagenAMantener != null ? claveImagenAMantener : model.getSelectedImageKey();
+             Path rutaCompletaReferencia = claveReferencia != null ? model.getRutaCompleta(claveReferencia) : null;
 
-        // --- 4. Validar pathDeInicioWalk Final y Proceder ---
-        if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk)) { // Inicio if (pathDeInicioWalk válido)
+             if (rutaCompletaReferencia != null && Files.isRegularFile(rutaCompletaReferencia)) {
+                  pathDeInicioWalk = rutaCompletaReferencia.getParent();
+                  if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk)){
+                       System.out.println("    -> No se pudo obtener carpeta padre válida para " + rutaCompletaReferencia + ". Usando raíz actual.");
+                       pathDeInicioWalk = this.carpetaRaizActual;
+                  } else {
+                       System.out.println("    -> Iniciando búsqueda desde carpeta de imagen: " + pathDeInicioWalk);
+                  }
+             } else {
+                 System.out.println("    -> No se pudo obtener carpeta de imagen válida (Clave: " + claveReferencia + "). Usando carpeta raíz actual como fallback.");
+                 pathDeInicioWalk = this.carpetaRaizActual;
+             }
+         } else {
+             System.out.println("  -> Modo: Subcarpetas.");
+             depth = Integer.MAX_VALUE;
+             pathDeInicioWalk = this.carpetaRaizActual;
+              if (pathDeInicioWalk == null) {
+                  System.out.println("    -> Carpeta raíz actual es null. No se puede iniciar búsqueda.");
+                  if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
+                  estaCargandoLista = false;
+                  return;
+              }
+             System.out.println("    -> Iniciando búsqueda desde carpeta raíz actual: " + pathDeInicioWalk);
+         }
 
-            final Path finalStartPath = pathDeInicioWalk;
-            final int finalDepth = depth;
+         // --- 4. Validar pathDeInicioWalk Final y Proceder ---
+         if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk)) {
 
-            // --- 5. Limpieza Inicial UI y Modelo (EDT) ---
-            SwingUtilities.invokeLater(() -> { // Inicio lambda limpieza EDT
-                 if (view != null) { // Inicio if (view no null)
+             final Path finalStartPath = pathDeInicioWalk;
+             final int finalDepth = depth;
+             final String finalClaveImagenAMantener = claveImagenAMantener;
+
+             // --- 5. Limpieza Inicial UI (EDT) ---
+             if (view != null) {
+                 SwingUtilities.invokeLater(() -> {
                      view.limpiarPanelMiniaturas();
                      view.limpiarImagenMostrada();
                      view.setTextoRuta("");
-                     view.setTituloPanelIzquierdo("Cargando Lista...");
-                 } // Fin if (view no null)
-                 if (model != null) { // Inicio if (model no null)
-                     model.limpiarModeloLista();
-                     model.limpiarRutaCompletaMap();
-                     model.limpiarMiniaturasMap();
-                 } // Fin if (model no null)
-            }); // Fin lambda limpieza EDT
+                     view.setTituloPanelIzquierdo("Iniciando escaneo...");
+                 });
+             }
+             // if (servicioMiniaturas != null) { servicioMiniaturas.limpiarCache(); } // Opcional
 
-            // --- 6. Iniciar Tarea de Búsqueda en Segundo Plano ---
-            cargaImagenesFuture = executorService.submit(() -> { // Inicio lambda tarea background
-                DefaultListModel<String> nuevoModeloTemp = new DefaultListModel<>();
-                Map<String, Path> nuevoRutaCompletaMapTemp = new HashMap<>();
-                Set<String> archivosAgregadosTemp = new HashSet<>();
+             // --- 6. Crear y Configurar el SwingWorker y el Diálogo ---
 
-                try { // <--- TRY principal de la tarea background
+             // *** PASO 1: Crear el diálogo (aún no visible) ***
+             // Pasamos null como worker inicialmente, lo asignaremos después.
+             final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view != null ? view.getFrame() : null, null);
 
-                    // --- 7. Recorrer Sistema de Archivos (Files.walk) ---
-                    System.out.println("  [BG] Iniciando Files.walk con depth: " + finalDepth + " en " + finalStartPath);
-                    try (Stream<Path> stream = Files.walk(finalStartPath, finalDepth)) { // Inicio try-with-resources stream
-                        stream
-                            .filter(Files::isRegularFile)
-                            .filter(this::esArchivoImagenSoportado)
-                            .forEach(path -> { // Inicio lambda forEach
-                                if (Thread.currentThread().isInterrupted()) { throw new RuntimeException("Tarea cancelada"); }
+             // *** PASO 2: Crear el Worker, pasando el diálogo ***
+             BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
+                 finalStartPath,
+                 finalDepth,
+                 this.carpetaRaizActual,
+                 this::esArchivoImagenSoportado,
+                 dialogo // Pasamos la instancia del diálogo aquí
+             );
 
-                                Path relativePathToRoot;
-                                if (this.carpetaRaizActual != null) { // Inicio if (raiz no null)
-                                    try { // Inicio try (relativizar)
-                                        relativePathToRoot = this.carpetaRaizActual.relativize(path);
-                                    } catch (IllegalArgumentException e) { // Catch (relativizar)
-                                         System.err.println("  [BG] WARN: No se pudo relativizar " + path + " a " + this.carpetaRaizActual + ". Usando nombre archivo.");
-                                         relativePathToRoot = path.getFileName();
-                                    } // Fin catch (relativizar)
-                                } else { // Else (raiz null)
-                                     System.err.println("  [BG] WARN: carpetaRaizActual es null al generar clave. Usando nombre archivo.");
-                                     relativePathToRoot = path.getFileName();
-                                } // Fin else (raiz null)
-                                String uniqueKey = relativePathToRoot.toString().replace("\\", "/");
+             // *** PASO 3: Asignar el worker al diálogo para el botón Cancelar ***
+             dialogo.setWorkerAsociado(worker);
 
-                                if (archivosAgregadosTemp.add(uniqueKey)) { // Inicio if (añadir a temp)
-                                    nuevoModeloTemp.addElement(uniqueKey);
-                                    nuevoRutaCompletaMapTemp.put(uniqueKey, path);
-                                } // Fin if (añadir a temp)
-                            }); // Fin lambda forEach
-                    } catch (IOException | SecurityException ioOrSecEx) { // Catch (Files.walk)
-                         System.err.println("  [BG] Error durante Files.walk: " + ioOrSecEx.getMessage());
-                         String errorType = (ioOrSecEx instanceof IOException) ? "Error al leer directorio" : "Error de permisos";
-                         throw new RuntimeException(errorType, ioOrSecEx);
-                    } // Fin catch (Files.walk)
-                    System.out.println("  [BG] Files.walk terminado. Elementos encontrados: " + nuevoModeloTemp.getSize());
+             // Guardar la referencia al worker actual
+             this.cargaImagenesFuture = worker;
 
-                    // --- 8. Actualizar Modelo y Vista (EDT) ---
-                    if (!Thread.currentThread().isInterrupted()) { // Inicio if (no interrumpido)
-                        final DefaultListModel<String> finalNuevoModeloTemp = nuevoModeloTemp;
-                        final Map<String, Path> finalNuevoRutaCompletaMapTemp = nuevoRutaCompletaMapTemp;
-                        final String finalClaveImagenAMantener = claveImagenAMantener;
+             // *** PASO 4: Añadir el PropertyChangeListener para manejar el estado DONE ***
+             worker.addPropertyChangeListener(evt -> {
+                 if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
+                     // Este código se ejecuta en el EDT cuando el worker termina
 
-                        SwingUtilities.invokeLater(() -> { // Inicio lambda actualización UI
-                            if (model == null || view == null || view.getListaImagenes() == null) { // Inicio if (componentes OK)
-                                 System.err.println("ERROR [Controller EDT]: Modelo o Vista no disponibles al actualizar tras carga.");
-                                 estaCargandoLista = false;
-                                 return;
-                             } // Fin if (componentes OK)
+                     dialogo.cerrar(); // Cerrar el diálogo primero
 
-                            // 8a. Actualizar Modelo
-                            DefaultListModel<String> modeloActual = model.getModeloLista();
-                            modeloActual.clear();
-                            for (int idx = 0; idx < finalNuevoModeloTemp.getSize(); idx++) { // Inicio for (llenar modelo)
-                                modeloActual.addElement(finalNuevoModeloTemp.getElementAt(idx));
-                            } // Fin for (llenar modelo)
-                            model.setRutaCompletaMap(finalNuevoRutaCompletaMapTemp);
-                            System.out.println("  [EDT] Modelo actualizado. Tamaño: " + modeloActual.getSize());
+                     if (worker.isCancelled()) {
+                         System.out.println("[Controller EDT - done] La tarea fue cancelada.");
+                         if(view != null) {
+                              limpiarUI();
+                              view.setTituloPanelIzquierdo("Carga Cancelada");
+                         }
+                         estaCargandoLista = false;
+                         return;
+                     }
 
-                            // 8b. Actualizar Título
-                            view.setTituloPanelIzquierdo("Archivos: " + modeloActual.getSize());
+                     try {
+                         Map<String, Path> mapaResultado = worker.get();
 
-                            // 8c. Limpiar clave
-                             System.out.println("    -> Limpiando selectedImageKey en modelo antes de seleccionar índice...");
-                             model.setSelectedImageKey(null);
+                         if (mapaResultado != null) {
+                             DefaultListModel<String> nuevoModeloLista = new DefaultListModel<>();
+                             List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
+                             Collections.sort(clavesOrdenadas);
+                             for (String clave : clavesOrdenadas) {
+                                 nuevoModeloLista.addElement(clave);
+                             }
 
-                            // 8d. Marcar Fin Carga
-                            estaCargandoLista = false;
-                            System.out.println("  -->>> estaCargandoLista = false");
+                             System.out.println("[Controller EDT - done] Actualizando modelo y vista con resultado ("+ nuevoModeloLista.getSize() +" elementos)...");
 
-                            // 8e. Seleccionar Índice
-                            int indiceSeleccionado = -1;
-                            if (finalClaveImagenAMantener != null && modeloActual.getSize() > 0) { // Inicio if (mantener clave)
-                                for (int i = 0; i < modeloActual.getSize(); i++) { // Inicio for (buscar clave)
-                                    if (finalClaveImagenAMantener.equals(modeloActual.getElementAt(i))) { // Inicio if (clave encontrada)
-                                        indiceSeleccionado = i;
-                                        break;
-                                    } // Fin if (clave encontrada)
-                                } // Fin for (buscar clave)
-                                if (indiceSeleccionado != -1) { // Inicio if (indice encontrado)
-                                     System.out.println("    -> Imagen a mantener encontrada en índice: " + indiceSeleccionado);
-                                } else { // Else (indice no encontrado)
-                                     System.out.println("    -> Imagen a mantener NO encontrada. Seleccionando índice 0.");
-                                     indiceSeleccionado = 0;
-                                } // Fin else (indice no encontrado)
-                            } else if (modeloActual.getSize() > 0) { // Else if (no mantener clave pero hay elementos)
-                                 System.out.println("    -> No había imagen a mantener o lista estaba vacía. Seleccionando índice 0.");
-                                 indiceSeleccionado = 0;
-                            } // Fin else if (no mantener clave pero hay elementos)
+                             model.actualizarListaCompleta(nuevoModeloLista, mapaResultado);
+                             view.setListaImagenesModel(model.getModeloLista());
+                             view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
 
-                            // Aplicar selección
-                            if (indiceSeleccionado != -1) { // Inicio if (aplicar seleccion)
-                                System.out.println("    -> Aplicando selección al índice: " + indiceSeleccionado);
-                                view.getListaImagenes().setSelectedIndex(indiceSeleccionado);
-                                view.getListaImagenes().ensureIndexIsVisible(indiceSeleccionado);
-                            } else { // Else (lista vacía)
-                                System.out.println("    -->>> Lista vacía tras carga. Limpiando UI.");
-                                limpiarUI();
-                            } // Fin else (lista vacía)
-                        }); // Fin lambda actualización UI
-
-                    } else { // Else (interrumpido)
-                        System.out.println("  [BG] Tarea interrumpida ANTES de actualizar UI.");
-                        SwingUtilities.invokeLater(() -> { // Inicio lambda interrupción
-                             if(view != null) view.setTituloPanelIzquierdo("Carga Cancelada");
                              estaCargandoLista = false;
+                             System.out.println("-->>> estaCargandoLista = false (en done, después de actualizar UI)");
+
+                             int indiceSeleccionado = -1;
+                             DefaultListModel<String> modeloActualizado = model.getModeloLista();
+                             if (finalClaveImagenAMantener != null && modeloActualizado.getSize() > 0) {
+                                 for (int i = 0; i < modeloActualizado.getSize(); i++) {
+                                     if (finalClaveImagenAMantener.equals(modeloActualizado.getElementAt(i))) {
+                                         indiceSeleccionado = i; break;
+                                     }
+                                 }
+                                 if (indiceSeleccionado == -1){
+                                      System.out.println("    -> Imagen a mantener NO encontrada. Seleccionando índice 0.");
+                                      indiceSeleccionado = 0;
+                                 } else {
+                                      System.out.println("    -> Imagen a mantener encontrada en índice: " + indiceSeleccionado);
+                                 }
+                             } else if (modeloActualizado.getSize() > 0) {
+                                  System.out.println("    -> No había imagen a mantener o lista estaba vacía. Seleccionando índice 0.");
+                                  indiceSeleccionado = 0;
+                             }
+
+                             if (indiceSeleccionado != -1) {
+                                 // Comprobar vista antes de usarla
+                                 if (view != null && view.getListaImagenes() != null) {
+                                      System.out.println("    -> Aplicando selección al índice: " + indiceSeleccionado);
+                                      view.getListaImagenes().setSelectedIndex(indiceSeleccionado);
+                                      view.getListaImagenes().ensureIndexIsVisible(indiceSeleccionado);
+                                 } else {
+                                      System.err.println("WARN [Controller EDT - done]: Vista o JList no disponible al intentar seleccionar índice.");
+                                 }
+                             } else {
+                                 System.out.println("    -->>> Lista vacía tras carga. Limpiando UI.");
+                                 limpiarUI();
+                             }
+                         } else {
+                              System.out.println("[Controller EDT - done] El resultado del worker fue null (cancelado?).");
+                              if(view != null) { limpiarUI(); view.setTituloPanelIzquierdo("Carga Incompleta/Cancelada"); }
+                              estaCargandoLista = false;
+                         }
+                     } catch (CancellationException ce) {
+                         System.out.println("[Controller EDT - done] La tarea fue cancelada (detectado en get).");
+                          if(view != null) { limpiarUI(); view.setTituloPanelIzquierdo("Carga Cancelada"); }
+                         estaCargandoLista = false;
+                     } catch (InterruptedException ie) {
+                         System.err.println("[Controller EDT - done] Hilo interrumpido mientras esperaba resultado.");
+                          if(view != null) { limpiarUI(); view.setTituloPanelIzquierdo("Carga Interrumpida"); }
+                         Thread.currentThread().interrupt();
+                         estaCargandoLista = false;
+                     } catch (ExecutionException ee) {
+                         System.err.println("[Controller EDT - done] Error durante la ejecución del worker: " + ee.getCause());
+                         Throwable causa = ee.getCause();
+                         String mensajeError = (causa != null) ? causa.getMessage() : ee.getMessage();
+                         if(view != null) {
+                             JOptionPane.showMessageDialog(view.getFrame(),
+                                                           "Error durante la carga:\n" + mensajeError,
+                                                           "Error de Carga", JOptionPane.ERROR_MESSAGE);
                              limpiarUI();
-                        }); // Fin lambda interrupción
-                    } // Fin else (interrumpido)
+                             view.setTituloPanelIzquierdo("Error de Carga");
+                         }
+                         if (causa != null) causa.printStackTrace(); else ee.printStackTrace();
+                         estaCargandoLista = false;
+                     } finally {
+                         if (estaCargandoLista) {
+                              System.out.println("WARN [Controller EDT - done]: estaCargandoLista aún era true al final. Forzando a false.");
+                              estaCargandoLista = false;
+                         }
+                          if (cargaImagenesFuture == worker) {
+                              cargaImagenesFuture = null;
+                          }
+                     }
+                 } // Fin if ("state" == DONE)
+             }); // Fin addPropertyChangeListener
 
-                } catch (RuntimeException e) { // Catch principal tarea background
-                     System.err.println("  [BG] Error en tarea background: " + e.getMessage());
-                     final String errorMsg = e.getMessage();
-                     SwingUtilities.invokeLater(() -> { // Inicio lambda manejo error
-                          if(view != null) { // Inicio if (view no null)
-                              String dialogTitle = "Error de Carga";
-                              String dialogMessage = "Error durante la carga: " + errorMsg;
-                              if (!"Tarea cancelada".equals(errorMsg)) { // Inicio if (no cancelacion)
-                                  JOptionPane.showMessageDialog(view.getFrame(), dialogMessage, dialogTitle, JOptionPane.ERROR_MESSAGE);
-                              } // Fin if (no cancelacion)
-                              view.setTituloPanelIzquierdo("Error Carga");
-                          } // Fin if (view no null)
-                          estaCargandoLista = false;
-                          limpiarUI();
-                     }); // Fin lambda manejo error
-                     if (!"Tarea cancelada".equals(errorMsg)) { e.printStackTrace(); } // Loguear si no fue cancelacion
-                } // Fin catch principal tarea background
+             // --- 7. Ejecutar Worker y Mostrar Diálogo ---
+             worker.execute(); // Iniciar la tarea en segundo plano
 
-            }); // Fin lambda tarea background
+             SwingUtilities.invokeLater(() -> {
+                 System.out.println("[Controller EDT] Mostrando diálogo de progreso...");
+                 dialogo.setVisible(true); // Mostrar el diálogo modal
+                 // La ejecución se reanuda aquí cuando el diálogo se cierra desde el listener
+                  System.out.println("[Controller EDT] Diálogo de progreso cerrado.");
+             });
 
-        } else { // Else (pathDeInicioWalk NO válido) <--- ESTE ES EL ELSE QUE DABA ERROR ANTES
-            System.out.println("No se puede cargar la lista: Carpeta de inicio no válida o no establecida.");
-            if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
-            estaCargandoLista = false;
-        } // Fin else (pathDeInicioWalk NO válido)
+         } else { // Else (pathDeInicioWalk NO válido)
+             System.out.println("No se puede cargar la lista: Carpeta de inicio no válida o no establecida.");
+             if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
+             estaCargandoLista = false;
+         } // Fin else (pathDeInicioWalk NO válido)
 
-        System.out.println("-->>> FIN MÉTODO cargarListaImagenes DETALLADA (Controller) ***");
+     } // Fin del método cargarListaImagenes(String claveImagenAMantener)
 
-    } // Fin del método cargarListaImagenes(String claveImagenAMantener)
+
+
+
+    // Asegúrate de que el método esArchivoImagenSoportado siga existiendo en VisorController
+	/**
+	 * Verifica si un archivo tiene una extensión de imagen soportada.
+	 */
+	private boolean esArchivoImagenSoportado (Path path)
+	{
+		String fileName = path.getFileName().toString().toLowerCase();
+		return fileName.endsWith(".jpg") ||
+				fileName.endsWith(".jpeg") ||
+				fileName.endsWith(".png") ||
+				fileName.endsWith(".gif") ||
+				fileName.endsWith(".bmp");
+	}
+
+    // El método limpiarUI() sigue igual
+    // ...
     // --- FIN CÓDIGO COMPLETO Y CORREGIDO (Versión 3): cargarListaImagenes(String claveImagenAMantener) ---
     
 	
@@ -1746,7 +1795,6 @@ public class VisorController implements ActionListener, ClipboardOwner
                 if (model != null) { // Comprobación extra
                     model.limpiarModeloLista();
                     model.limpiarRutaCompletaMap();
-                    model.limpiarMiniaturasMap();
                 }
             });
 
@@ -1886,23 +1934,8 @@ public class VisorController implements ActionListener, ClipboardOwner
             estaCargandoLista = false; // Marcar como no cargando
         }
         System.out.println("-->>> FIN MÉTODO cargarListaImagenes (Controller) ***");
-    }
-// --- FIN MÉTODO cargarListaImagenes ---
+    }// --- FIN MÉTODO cargarListaImagenes ---
 	
-	/**
-	 * Verifica si un archivo tiene una extensión de imagen soportada.
-	 */
-	private boolean esArchivoImagenSoportado (Path path)
-	{
-
-		String fileName = path.getFileName().toString().toLowerCase();
-		return fileName.endsWith(".jpg") || 
-				fileName.endsWith(".jpeg") || 
-				fileName.endsWith(".png") || 
-				fileName.endsWith(".gif") || 
-				fileName.endsWith(".bmp");
-
-	}
 
 	/**
 	 * Muestra la imagen seleccionada en la lista.
@@ -2047,10 +2080,10 @@ public class VisorController implements ActionListener, ClipboardOwner
 	                    view.limpiarImagenMostrada(); // Limpiar vista
 	                    view.setTextoRuta("Error al cargar: " + finalPath.getFileName() + (finalErrorMsg != null ? " ("+finalErrorMsg+")" : ""));
 	                    // Mostrar diálogo de error
-	                    JOptionPane.showMessageDialog(view.getFrame(),
-	                        "Error al cargar la imagen:\n" + finalPath.getFileName() +
-	                        (finalErrorMsg != null ? "\n" + finalErrorMsg : ""),
-	                        "Error de Carga", JOptionPane.ERROR_MESSAGE);
+//	                    JOptionPane.showMessageDialog(view.getFrame(),
+//	                        "Error al cargar la imagen:\n" + finalPath.getFileName() +
+//	                        (finalErrorMsg != null ? "\n" + finalErrorMsg : ""),
+//	                        "Error de Carga", JOptionPane.ERROR_MESSAGE);
 	                     // Resetear zoom por si acaso
 	                     model.resetZoomState();
 	                     if(model.isZoomHabilitado()) setManualZoomEnabled(false);
@@ -2142,56 +2175,7 @@ public class VisorController implements ActionListener, ClipboardOwner
              return null;
         }
     }
-    // --- FIN reescalarImagenParaAjustar ---
-	
     
-//	private Image reescalarImagenParaAjustar ()
-//	{
-//
-//		BufferedImage current = model.getCurrentImage();
-//		if (current == null)
-//			return null;
-//
-//		int width = view.getEtiquetaImagen().getWidth();
-//		int height = view.getEtiquetaImagen().getHeight();
-//
-//		if (width <= 0 || height <= 0)
-//		{
-//
-//			// Si la etiqueta aún no tiene tamaño, no podemos escalar bien.
-//			// Devolver la imagen original o null. Devolver null evita dibujar algo
-//			// incorrecto.
-//			return null;
-//
-//			// Alternativa: return current; // Pero puede ser muy grande
-//		}
-//
-//		double imageAspectRatio = (double) current.getWidth() / current.getHeight();
-//		double panelAspectRatio = (double) width / height;
-//		int newWidth;
-//		int newHeight;
-//
-//		if (panelAspectRatio > imageAspectRatio)
-//		{
-//
-//			newHeight = height;
-//			newWidth = (int) (height * imageAspectRatio);
-//
-//		} else
-//		{
-//
-//			newWidth = width;
-//			newHeight = (int) (width / imageAspectRatio);
-//
-//		}
-//
-//		// Usar SCALE_SMOOTH para mejor calidad, aunque es más lento
-//		return current.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-//
-//		// Alternativa más rápida pero de peor calidad: Image.SCALE_FAST
-//		// Alternativa intermedia: Image.SCALE_REPLICATE
-//	}
-
 	
 	public void setManualZoomEnabled(boolean enable) 
 	{
@@ -2732,316 +2716,251 @@ public class VisorController implements ActionListener, ClipboardOwner
 	}
 
 	
-    /**
-     * Carga y muestra las miniaturas para el rango visible alrededor del índice seleccionado.
-     * Muestra placeholders inmediatamente, carga/escala en background, y actualiza la UI.
-     * Maneja errores específicos como IOException y OutOfMemoryError.
-     *
-     * @param indiceSeleccionado El índice de la imagen actualmente seleccionada en la lista principal.
-     */
-    private void actualizarImagenesMiniaturaConRango(int indiceSeleccionado) {
-        // --- Verificar si los servicios necesarios están disponibles ---
-        if (executorService == null || executorService.isShutdown()) {
-            System.err.println("[Miniaturas] No se pueden cargar: ExecutorService no está activo.");
-            return;
-        }
-        if (model == null) {
-             System.err.println("[Miniaturas] No se pueden cargar: Modelo no inicializado.");
-             return;
-        }
-         if (view == null) {
-             System.err.println("[Miniaturas] No se pueden cargar: Vista no inicializada.");
-             return;
-         }
-        // --- FIN Verificar ---
+	// --- Dentro de la clase VisorController ---
 
-        // --- Cancelar tarea anterior ---
-        if (cargaMiniaturasFuture != null && !cargaMiniaturasFuture.isDone()) {
-            System.out.println("[Miniaturas] Cancelando tarea anterior...");
-            cargaMiniaturasFuture.cancel(true);
-        }
-        // --- FIN Cancelar ---
+	 /**
+	  * Carga y muestra las miniaturas para el rango visible alrededor del índice seleccionado.
+	  * Muestra placeholders inmediatamente, carga/escala en background usando ThumbnailService,
+	  * y actualiza la UI.
+	  * Maneja errores específicos como IOException y OutOfMemoryError a través del servicio.
+	  *
+	  * @param indiceSeleccionado El índice de la imagen actualmente seleccionada en la lista principal.
+	  */
+	 private void actualizarImagenesMiniaturaConRango(int indiceSeleccionado) {
+	     // --- Verificar si los servicios necesarios están disponibles ---
+	     // --- INICIO CÓDIGO MODIFICADO (añadir chequeo servicioMiniaturas) ---
+	     if (executorService == null || executorService.isShutdown() || servicioMiniaturas == null) {
+	         System.err.println("[Miniaturas] No se pueden cargar: ExecutorService o ThumbnailService no está activo/inicializado.");
+	         return;
+	     }
+	     // --- FIN CÓDIGO MODIFICADO ---
+	     if (model == null) {
+	          System.err.println("[Miniaturas] No se pueden cargar: Modelo no inicializado.");
+	          return;
+	     }
+	      if (view == null) {
+	          System.err.println("[Miniaturas] No se pueden cargar: Vista no inicializada.");
+	          return;
+	      }
+	     // --- FIN Verificar ---
 
-        // --- Obtener total, validar índice ---
-        int totalImagenes = model.getModeloLista().getSize();
-        if (totalImagenes == 0) {
-            System.out.println("[Miniaturas] Lista de imágenes vacía, no hay nada que cargar.");
-             if(view != null) SwingUtilities.invokeLater(view::limpiarPanelMiniaturas); // Limpiar por si acaso
-            return;
-        }
-        // Corregir índice si está fuera de rango
-        if (indiceSeleccionado < 0 || indiceSeleccionado >= totalImagenes) {
-             System.err.println("[Miniaturas] Índice seleccionado inválido: " + indiceSeleccionado + ". Usando 0.");
-             indiceSeleccionado = 0;
-             final int finalIndiceValidado = indiceSeleccionado; // Usar una nueva variable final
-             SwingUtilities.invokeLater(() -> {
-                 if (view != null && view.getListaImagenes() != null) { // Chequeos extra
-                      // Solo seleccionar si el índice actual no es ya el corregido
-                      if (view.getListaImagenes().getSelectedIndex() != finalIndiceValidado) {
-                           view.getListaImagenes().setSelectedIndex(finalIndiceValidado);
-                      }
-                 }
-             });
-        }
-        // --- FIN Validar índice ---
+	     // --- Cancelar tarea anterior ---
+	     if (cargaMiniaturasFuture != null && !cargaMiniaturasFuture.isDone()) {
+	         System.out.println("[Miniaturas] Cancelando tarea anterior...");
+	         cargaMiniaturasFuture.cancel(true);
+	     }
+	     // --- FIN Cancelar ---
 
-        // --- Calcular rango y hacerlos FINAL ---
-        final int inicio = Math.max(0, indiceSeleccionado - model.getMiniaturasAntes());
-        final int fin = Math.min(totalImagenes - 1, indiceSeleccionado + model.getMiniaturasDespues());
-        // -------------------------------------
+	     // --- Obtener total, validar índice ---
+	     int totalImagenes = model.getModeloLista().getSize();
+	     if (totalImagenes == 0) {
+	         System.out.println("[Miniaturas] Lista de imágenes vacía, no hay nada que cargar.");
+	          if(view != null) SwingUtilities.invokeLater(view::limpiarPanelMiniaturas); // Limpiar por si acaso
+	         return;
+	     }
+	     // Corregir índice si está fuera de rango (sin cambios)
+	     if (indiceSeleccionado < 0 || indiceSeleccionado >= totalImagenes) {
+	          System.err.println("[Miniaturas] Índice seleccionado inválido: " + indiceSeleccionado + ". Usando 0.");
+	          indiceSeleccionado = 0;
+	          final int finalIndiceValidado = indiceSeleccionado; // Usar una nueva variable final
+	          SwingUtilities.invokeLater(() -> {
+	              if (view != null && view.getListaImagenes() != null) { // Chequeos extra
+	                   // Solo seleccionar si el índice actual no es ya el corregido
+	                   if (view.getListaImagenes().getSelectedIndex() != finalIndiceValidado) {
+	                        view.getListaImagenes().setSelectedIndex(finalIndiceValidado);
+	                   }
+	              }
+	          });
+	     }
+	     // --- FIN Validar índice ---
 
-        System.out.println("[Miniaturas] Rango calculado: " + inicio + " a " + fin + " (Seleccionado: " + indiceSeleccionado + ")");
+	     // --- Calcular rango y hacerlos FINAL --- (sin cambios)
+	     final int inicio = Math.max(0, indiceSeleccionado - model.getMiniaturasAntes());
+	     final int fin = Math.min(totalImagenes - 1, indiceSeleccionado + model.getMiniaturasDespues());
+	     // -------------------------------------
 
-        final int finalIndiceSeleccionado = indiceSeleccionado; // Usar el índice potencialmente corregido
+	     System.out.println("[Miniaturas] Rango calculado: " + inicio + " a " + fin + " (Seleccionado: " + indiceSeleccionado + ")");
 
-        // --- Placeholders en EDT ---
-        final List<String> keysInRange = new ArrayList<>();
-        for (int i = inicio; i <= fin; i++) {
-            if (i >= 0 && i < model.getModeloLista().getSize()) {
-                 keysInRange.add(model.getModeloLista().getElementAt(i));
-            } else {
-                 System.err.println("WARN [Miniaturas]: Índice " + i + " fuera de rango del modelo al crear lista de claves.");
-                 keysInRange.add(null); // Añadir null como marcador de error de índice
-            }
-        }
+	     final int finalIndiceSeleccionado = indiceSeleccionado; // Usar el índice potencialmente corregido
 
-        SwingUtilities.invokeLater(() -> { // <-- Lambda para Placeholders
-             if (view == null) return;
-             view.limpiarPanelMiniaturas();
-             for (int i = 0; i < keysInRange.size(); i++) {
-                 String currentKey = keysInRange.get(i);
-                 boolean esSel = (inicio + i == finalIndiceSeleccionado);
+	     // --- Placeholders en EDT --- (sin cambios en esta parte)
+	     final List<String> keysInRange = new ArrayList<>();
+	     for (int i = inicio; i <= fin; i++) {
+	         if (i >= 0 && i < model.getModeloLista().getSize()) {
+	              keysInRange.add(model.getModeloLista().getElementAt(i));
+	         } else {
+	              System.err.println("WARN [Miniaturas]: Índice " + i + " fuera de rango del modelo al crear lista de claves.");
+	              keysInRange.add(null); // Añadir null como marcador de error de índice
+	         }
+	     }
 
-                 // Calcular tamaño objetivo para el placeholder
-                 int phAncho = esSel ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
-                 int phAlto = esSel ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
-                 String phTooltip;
-                 if (currentKey != null) {
-                    phTooltip = "Cargando: " + currentKey;
-                 } else {
-                     phTooltip = "Error: Índice inválido";
-                     phAncho = model.getMiniaturaNormAncho(); // Usar tamaño normal para error de índice
-                     phAlto = model.getMiniaturaNormAlto();
-                     esSel = false; // No puede ser seleccionada si el índice es inválido
-                 }
+	     SwingUtilities.invokeLater(() -> { // <-- Lambda para Placeholders
+	          if (view == null) return;
+	          view.limpiarPanelMiniaturas();
+	          for (int i = 0; i < keysInRange.size(); i++) {
+	              String currentKey = keysInRange.get(i);
+	              boolean esSel = (inicio + i == finalIndiceSeleccionado);
 
-                 // Llamar con los 4 argumentos
-                 view.agregarMiniatura(crearPlaceholderMiniatura(phTooltip, phAncho, phAlto, esSel));
-             }
-             view.refrescarPanelMiniaturas();
-             System.out.println("[Miniaturas EDT] Placeholders mostrados para rango " + inicio + "-" + fin);
-        }); // <-- Fin Lambda Placeholders
+	              // Calcular tamaño objetivo para el placeholder
+	              int phAncho = esSel ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
+	              int phAlto = esSel ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
+	              String phTooltip;
+	              if (currentKey != null) {
+	                 phTooltip = "Cargando: " + currentKey;
+	              } else {
+	                  phTooltip = "Error: Índice inválido";
+	                  phAncho = model.getMiniaturaNormAncho(); // Usar tamaño normal para error de índice
+	                  phAlto = model.getMiniaturaNormAlto();
+	                  esSel = false; // No puede ser seleccionada si el índice es inválido
+	              }
 
-        // --- Tarea en Background ---
-        cargaMiniaturasFuture = executorService.submit(() -> { // <-- Lambda Background
-            Map<Integer, JLabel> miniaturasRealesMap = new HashMap<>();
-            long miniTaskStart = System.currentTimeMillis();
-            
-            //LOG [Miniaturas BG] Tarea iniciada para rango
-            //System.out.println("[Miniaturas BG] Tarea iniciada para rango " + inicio + "-" + fin);
+	              // Llamar con los 4 argumentos
+	              view.agregarMiniatura(crearPlaceholderMiniatura(phTooltip, phAncho, phAlto, esSel));
+	          }
+	          view.refrescarPanelMiniaturas();
+	          System.out.println("[Miniaturas EDT] Placeholders mostrados para rango " + inicio + "-" + fin);
+	     }); // <-- Fin Lambda Placeholders
 
-            try { // <-- TRY principal de la tarea
-                for (int i = inicio; i <= fin; i++) { // <-- Abre FOR BG
-                     if (Thread.currentThread().isInterrupted()) {
-                    	 
-                    	 //LOG [Miniaturas BG] Tarea interrumpida en bucle (índice
-                         System.out.println("[Miniaturas BG] Tarea interrumpida en bucle (índice " + i + ").");
-                         return;
-                     }
+	     // --- Tarea en Background ---
+	     cargaMiniaturasFuture = executorService.submit(() -> { // <-- Lambda Background
+	         Map<Integer, JLabel> miniaturasRealesMap = new HashMap<>();
+	         long miniTaskStart = System.currentTimeMillis();
 
-                     // Validar índice de nuevo por seguridad
-                     if (i < 0 || i >= model.getModeloLista().getSize()) {
-                    	 
-                         System.err.println("WARN [Miniaturas BG]: Índice " + i + " fuera de rango del modelo.");
-                         
-                         continue; // Saltar esta iteración
-                     }
-                     String uniqueKey = model.getModeloLista().getElementAt(i);
-                     Path ruta = model.getRutaCompleta(uniqueKey);
+	         System.out.println("[Miniaturas BG] Tarea iniciada para rango " + inicio + "-" + fin);
 
-                     if (ruta == null || !Files.exists(ruta)) {
-                    	  
-                          System.err.println("[Miniaturas BG] Ruta inválida o no encontrada para clave: " + uniqueKey);
-                          continue; // Saltar, el placeholder de error ya está (o debería estar)
-                     }
+	         try { // <-- TRY principal de la tarea
+	             for (int i = inicio; i <= fin; i++) { // <-- Abre FOR BG
+	                  if (Thread.currentThread().isInterrupted()) {
+	                      System.out.println("[Miniaturas BG] Tarea interrumpida en bucle (índice " + i + ").");
+	                      return;
+	                  }
 
-                     JLabel etiquetaReal = null;
-                     // --- Bloque TRY-CATCH para UNA miniatura ---
-                     try { // <-- Abre TRY miniatura individual
-                         final boolean esSeleccionada = (i == finalIndiceSeleccionado);
-//                         final int indiceActual = i; // Para listener
+	                  // Validar índice de nuevo por seguridad
+	                  if (i < 0 || i >= model.getModeloLista().getSize()) {
+	                      System.err.println("WARN [Miniaturas BG]: Índice " + i + " fuera de rango del modelo.");
+	                      miniaturasRealesMap.put(i, null); // Marcar como error para la UI
+	                      continue; // Saltar esta iteración
+	                  }
+	                  String uniqueKey = model.getModeloLista().getElementAt(i);
+	                  Path ruta = model.getRutaCompleta(uniqueKey);
 
-                         ImageIcon miniaturaIcon = model.getMiniatura(uniqueKey);
-                         Image imagenBase = null;
+	                  if (ruta == null) { // Ya no necesitamos verificar Files.exists aquí, el servicio lo hará
+	                       System.err.println("[Miniaturas BG] Ruta es null para clave: " + uniqueKey);
+	                       miniaturasRealesMap.put(i, null); // Marcar como error para la UI
+	                       continue; // Saltar
+	                  }
 
-                         final int anchoObjetivo = esSeleccionada ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
-                         final int altoObjetivo = esSeleccionada ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
+	                  JLabel etiquetaReal = null;
+	                  ImageIcon miniaturaIcon = null; // Para guardar el resultado del servicio
 
-                         if (anchoObjetivo <= 0 || altoObjetivo <= 0) {
-                              throw new IllegalArgumentException("Dimensiones objetivo inválidas ("+anchoObjetivo+"x"+altoObjetivo+")");
-                         }
+	                  // --- INICIO CÓDIGO MODIFICADO ---
+	                  // Ya no hay try-catch individual aquí, el servicio maneja sus errores internos.
+	                  // Calculamos si es seleccionada y las dimensiones objetivo
+	                  final boolean esSeleccionada = (i == finalIndiceSeleccionado);
+	                  final int anchoObjetivo = esSeleccionada ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
+	                  final int altoObjetivo = esSeleccionada ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
 
-                         boolean necesitaCargaOReescalado = false;
-                          if (miniaturaIcon == null) {
-                              necesitaCargaOReescalado = true;
-                          } else if (esSeleccionada && (miniaturaIcon.getIconWidth() != anchoObjetivo || miniaturaIcon.getIconHeight() != altoObjetivo)) {
-                              necesitaCargaOReescalado = true;
-                          } else if (!esSeleccionada && (miniaturaIcon.getIconWidth() != anchoObjetivo || miniaturaIcon.getIconHeight() != altoObjetivo)) {
-                              necesitaCargaOReescalado = true;
-                              
-                              System.out.println("WARN [Miniaturas BG]: Miniatura normal en caché con tamaño incorrecto para " + uniqueKey + ". Reescalando/recargando.");
-                          }
+	                  // Llamamos al servicio para obtener la miniatura
+	                  // Pasamos '!esSeleccionada' como 'esTamanoNormal' porque solo queremos cachear
+	                  // las miniaturas de tamaño normal, no las seleccionadas (que son más grandes).
+	                  miniaturaIcon = servicioMiniaturas.obtenerOCrearMiniatura(ruta, uniqueKey, anchoObjetivo, altoObjetivo, !esSeleccionada);
 
-                         if (necesitaCargaOReescalado) {
-                              if (miniaturaIcon != null && esSeleccionada) { // Si es seleccionada y tenemos caché (normal), reescalamos desde ahí
-                                   imagenBase = miniaturaIcon.getImage();
-                                   // System.out.println("  [Miniaturas BG] Reescalando desde caché para " + uniqueKey + " a " + anchoObjetivo + "x" + altoObjetivo);
-                              } else { // Si no hay caché, o no es seleccionada (queremos tamaño normal exacto), o caché normal tenía tamaño erróneo
-                                  // Cargar desde disco
-                                  // System.out.println("  [Miniaturas BG] Cargando desde disco para " + uniqueKey);
-                                  BufferedImage bufferedImg = ImageIO.read(ruta.toFile());
-                                  if (bufferedImg == null) throw new IOException("Formato no soportado o archivo inválido para ImageIO");
-                                  imagenBase = bufferedImg;
-                              }
+	                  // Si el servicio devolvió un icono (no hubo error grave)...
+	                  if (miniaturaIcon != null) {
+	                      // Crear JLabel real
+	                      etiquetaReal = new JLabel(miniaturaIcon);
+	                      // Calcular alto real por si se mantuvo proporción (importante si altoObjetivo era <= 0)
+	                      int altoReal = miniaturaIcon.getIconHeight(); // El icono ya tiene el alto correcto
+	                      // Asegurar que el alto no sea 0 si algo falló en el cálculo de proporción
+	                      if (altoReal <= 0) altoReal = altoObjetivo > 0 ? altoObjetivo : anchoObjetivo;
 
-                              // Escalar
-                              int altoFinal = (altoObjetivo <= 0) ? -1 : altoObjetivo;
-                              Image escalada = imagenBase.getScaledInstance(anchoObjetivo, altoFinal, Image.SCALE_SMOOTH);
-                              if (escalada == null) throw new IOException("Resultado de escalado fue null");
-                              miniaturaIcon = new ImageIcon(escalada);
-                              // Esperar a que la imagen escalada esté lista (importante!)
-                              if (miniaturaIcon.getImageLoadStatus() != java.awt.MediaTracker.COMPLETE) {
-                                  System.out.println("  [Miniaturas BG] Esperando carga de imagen escalada para " + uniqueKey);
-                                  // Podríamos añadir un bucle con espera corta, pero ImageIcon suele ser síncrono aquí
-                                  // Si sigue dando problemas, investigar MediaTracker explícito
-                              }
+	                      etiquetaReal.setPreferredSize(new Dimension(anchoObjetivo, altoReal));
+	                      etiquetaReal.setOpaque(true);
+	                      etiquetaReal.setToolTipText(ruta.getFileName().toString());
+	                      etiquetaReal.setHorizontalAlignment(SwingConstants.CENTER);
+	                      etiquetaReal.setVerticalAlignment(SwingConstants.CENTER);
 
+	                      // Aplicar estilo (borde/fondo) basado en si es seleccionada
+	                      if (esSeleccionada) {
+	                          etiquetaReal.setBorder(BorderFactory.createLineBorder(Color.BLUE, 3));
+	                          etiquetaReal.setBackground(new Color(200, 200, 255)); // Considerar usar colores del tema
+	                      } else {
+	                          etiquetaReal.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY)); // Considerar usar colores del tema
+	                          etiquetaReal.setBackground(Color.WHITE); // Considerar usar colores del tema
+	                      }
 
-                              // Guardar en caché SI es tamaño NORMAL y la carga fue exitosa
-                              boolean esTamanoNormal = !esSeleccionada &&
-                                                       (miniaturaIcon.getIconWidth() == model.getMiniaturaNormAncho()) &&
-                                                       ( (model.getMiniaturaNormAlto() <= 0 && miniaturaIcon.getIconHeight() > 0) ||
-                                                         (miniaturaIcon.getIconHeight() == model.getMiniaturaNormAlto()) );
-
-                              if (esTamanoNormal) {
-                            	  
-                            	  //LOG [Miniaturas BG] Guardando miniatura NORMAL en caché
-                                  //System.out.println("  [Miniaturas BG] Guardando miniatura NORMAL en caché para " + uniqueKey);
-                                   
-                                   model.putMiniatura(uniqueKey, miniaturaIcon);
-                              }
-                         } else {
-                              // System.out.println("  [Miniaturas BG] Usando miniatura desde caché para " + uniqueKey);
-                         }
-
-                         // Crear JLabel real
-                         etiquetaReal = new JLabel(miniaturaIcon);
-                         // Calcular alto real por si se mantuvo proporción
-                         int altoReal = (altoObjetivo <=0 && miniaturaIcon != null) ? miniaturaIcon.getIconHeight() : altoObjetivo;
-                         if(altoReal <= 0) altoReal = anchoObjetivo; // Fallback si algo falla
-                         etiquetaReal.setPreferredSize(new Dimension(anchoObjetivo, altoReal));
-
-                         etiquetaReal.setOpaque(true);
-                         etiquetaReal.setToolTipText(ruta.getFileName().toString());
-                         etiquetaReal.setHorizontalAlignment(SwingConstants.CENTER);
-                         etiquetaReal.setVerticalAlignment(SwingConstants.CENTER);
-                         if (esSeleccionada) {
-                             etiquetaReal.setBorder(BorderFactory.createLineBorder(Color.BLUE, 3));
-                             etiquetaReal.setBackground(new Color(200, 200, 255));
-                         } else {
-                             etiquetaReal.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
-                             etiquetaReal.setBackground(Color.WHITE);
-                         }
-
-                         // Añadir Listener
-                         final int indiceListener = i; // Usar una variable final diferente para el listener
-                         etiquetaReal.addMouseListener(new java.awt.event.MouseAdapter() {
-                              @Override
-                              public void mouseClicked(java.awt.event.MouseEvent e) {
-                                   if (estaCargandoLista) { return; }
-                                   if (view != null && view.getListaImagenes().getSelectedIndex() != indiceListener) {
-                                        view.getListaImagenes().setSelectedIndex(indiceListener);
-                                        view.getListaImagenes().ensureIndexIsVisible(indiceListener);
-                                   }
-                              }
-                         });
-
-                     // --- Catch Específicos para UNA miniatura ---
-                     } catch (IOException ioe) {
-                          System.err.println("[Miniaturas BG] Error IO procesando miniatura " + uniqueKey + ": " + ioe.getMessage());
-                          etiquetaReal = null;
-                     } catch (IllegalArgumentException iae) {
-                          System.err.println("[Miniaturas BG] Error Args procesando miniatura " + uniqueKey + ": " + iae.getMessage());
-                          etiquetaReal = null;
-                     } catch (OutOfMemoryError oom) {
-                         System.err.println("[Miniaturas BG] Falta de memoria procesando miniatura " + uniqueKey + ": " + oom.getMessage());
-                         etiquetaReal = null;
-                         model.limpiarMiniaturasMap();
-                         // Considera no continuar el bucle si falta memoria
-                         // break; // O return; si quieres parar toda la tarea
-                     } catch (Exception e) {
-                         System.err.println("[Miniaturas BG] Error INESPERADO procesando miniatura " + uniqueKey + ": " + e.getMessage());
-                         e.printStackTrace();
-                         etiquetaReal = null;
-                     } // --- Fin TRY-CATCH miniatura individual ---
+	                      // Añadir Listener (sin cambios)
+	                      final int indiceListener = i; // Usar una variable final diferente para el listener
+	                      etiquetaReal.addMouseListener(new java.awt.event.MouseAdapter() {
+	                           @Override
+	                           public void mouseClicked(java.awt.event.MouseEvent e) {
+	                                if (estaCargandoLista) { return; }
+	                                if (view != null && view.getListaImagenes().getSelectedIndex() != indiceListener) {
+	                                     view.getListaImagenes().setSelectedIndex(indiceListener);
+	                                     view.getListaImagenes().ensureIndexIsVisible(indiceListener);
+	                                }
+	                           }
+	                      });
+	                  } else {
+	                       // Si servicioMiniaturas.obtenerOCrearMiniatura devolvió null,
+	                       // etiquetaReal permanecerá null, indicando un error para la UI.
+	                       System.out.println("[Miniaturas BG] ThumbnailService devolvió null para: " + uniqueKey);
+	                  }
+	                  // --- FIN CÓDIGO MODIFICADO ---
 
 
-                     if (etiquetaReal != null) {
-                         miniaturasRealesMap.put(i, etiquetaReal); // Guardar por índice absoluto
-                     } else {
-                         // Asegurarse de que el mapa contenga algo (incluso null) para este índice
-                         // para que el bucle de actualización sepa que hubo un error
-                          miniaturasRealesMap.put(i, null);
-                     }
+	                  // Guardar la etiqueta (o null si hubo error) en el mapa
+	                  miniaturasRealesMap.put(i, etiquetaReal); // Guardar por índice absoluto
 
 
-                } // <-- Cierra FOR BG
+	             } // <-- Cierra FOR BG
 
-                // --- Actualizar la VISTA en el EDT ---
-                if (!Thread.currentThread().isInterrupted()) { // <-- Abre IF (!interrupted)
-                    // Crear copia final del mapa para la lambda
-                    final Map<Integer, JLabel> finalMiniaturasMap = new HashMap<>(miniaturasRealesMap);
-                    SwingUtilities.invokeLater(() -> { // <-- Abre invokeLater anidado
-                       if (view != null) { // <-- Abre IF (view != null)
-                           System.out.println("[Miniaturas EDT] Reemplazando placeholders con resultados.");
-                           view.limpiarPanelMiniaturas(); // Limpiar placeholders
-                           // Añadir en el orden correcto del rango
-                           for (int idx = inicio; idx <= fin; idx++) { // <-- Abre FOR EDT Update
-                                JLabel lbl = finalMiniaturasMap.get(idx); // Obtener del mapa final
-                                if (lbl != null) {
-                                    view.agregarMiniatura(lbl); // Añadir real
-                                } else {
-                                    // Si falló (era null en el mapa), añadir placeholder de error
-                                    String keyFallida = (idx >= 0 && idx < model.getModeloLista().getSize())
-                                                        ? model.getModeloLista().getElementAt(idx) : "Índice inválido";
-                                    boolean esSelFallida = (idx == finalIndiceSeleccionado);
-                                    int phAnchoErr = esSelFallida ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
-                                    int phAltoErr = esSelFallida ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
-                                    view.agregarMiniatura(crearPlaceholderMiniatura(
-                                         "Error: " + keyFallida, phAnchoErr, phAltoErr, esSelFallida
-                                    ));
-                                }
-                           } // <-- Cierra FOR EDT Update
-                           view.refrescarPanelMiniaturas();
-                           System.out.println("[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.");
-                       } else {
-                            System.out.println("[Miniaturas EDT] Vista es nula, no se puede actualizar.");
-                       } // <-- Cierra IF (view != null)
-                    }); // <-- Cierra invokeLater anidado
-                } else {
-                     System.out.println("[Miniaturas BG] Tarea interrumpida ANTES de actualizar UI.");
-                } // <-- Cierra IF (!interrupted)
+	             // --- Actualizar la VISTA en el EDT --- (sin cambios en esta parte)
+	             if (!Thread.currentThread().isInterrupted()) { // <-- Abre IF (!interrupted)
+	                 // Crear copia final del mapa para la lambda
+	                 final Map<Integer, JLabel> finalMiniaturasMap = new HashMap<>(miniaturasRealesMap);
+	                 SwingUtilities.invokeLater(() -> { // <-- Abre invokeLater anidado
+	                    if (view != null) { // <-- Abre IF (view != null)
+	                        System.out.println("[Miniaturas EDT] Reemplazando placeholders con resultados.");
+	                        view.limpiarPanelMiniaturas(); // Limpiar placeholders
+	                        // Añadir en el orden correcto del rango
+	                        for (int idx = inicio; idx <= fin; idx++) { // <-- Abre FOR EDT Update
+	                             JLabel lbl = finalMiniaturasMap.get(idx); // Obtener del mapa final
+	                             if (lbl != null) {
+	                                 view.agregarMiniatura(lbl); // Añadir real
+	                             } else {
+	                                 // Si falló (era null en el mapa), añadir placeholder de error
+	                                 String keyFallida = (idx >= 0 && idx < model.getModeloLista().getSize())
+	                                                     ? model.getModeloLista().getElementAt(idx) : "Índice inválido";
+	                                 boolean esSelFallida = (idx == finalIndiceSeleccionado);
+	                                 int phAnchoErr = esSelFallida ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
+	                                 int phAltoErr = esSelFallida ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
+	                                 view.agregarMiniatura(crearPlaceholderMiniatura(
+	                                      "Error: " + keyFallida, phAnchoErr, phAltoErr, esSelFallida
+	                                 ));
+	                             }
+	                        } // <-- Cierra FOR EDT Update
+	                        view.refrescarPanelMiniaturas();
+	                        System.out.println("[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.");
+	                    } else {
+	                         System.out.println("[Miniaturas EDT] Vista es nula, no se puede actualizar.");
+	                    } // <-- Cierra IF (view != null)
+	                 }); // <-- Cierra invokeLater anidado
+	             } else {
+	                  System.out.println("[Miniaturas BG] Tarea interrumpida ANTES de actualizar UI.");
+	             } // <-- Cierra IF (!interrupted)
 
-            } catch (Exception e) { // <-- Catch TAREA GRAVE
-                System.err.println("[Miniaturas] Error GRAVE en tarea background: " + e.getMessage());
-                e.printStackTrace();
-            } finally { // <-- Abre FINALLY
-                long miniTaskEnd = System.currentTimeMillis();
-                System.out.println(" Tarea Miniaturas terminada en " + (miniTaskEnd - miniTaskStart) + " ms.");
-            } // <-- Cierra FINALLY
+	         } catch (Exception e) { // <-- Catch TAREA GRAVE (inesperado fuera del servicio)
+	             System.err.println("[Miniaturas] Error GRAVE en tarea background: " + e.getMessage());
+	             e.printStackTrace();
+	         } finally { // <-- Abre FINALLY
+	             long miniTaskEnd = System.currentTimeMillis();
+	             System.out.println("[Miniaturas] Tarea Miniaturas terminada en " + (miniTaskEnd - miniTaskStart) + " ms.");
+	         } // <-- Cierra FINALLY
 
-        }); // <-- Cierra submit lambda
-    } // <-- Cierra MÉTODO actualizarImagenesMiniaturaConRango
+	     }); // <-- Cierra submit lambda
+	 } // <-- Cierra MÉTODO actualizarImagenesMiniaturaConRango
+
 	
     private JLabel crearPlaceholderMiniatura(String toolTipText, int ancho, int alto, boolean esSeleccionada) {//weno
         JLabel placeholder = new JLabel("...", SwingConstants.CENTER);
