@@ -120,7 +120,8 @@ public class ToolbarBuilder {
         		"2002-Rotar_Derecha_48x48.png", 
         		"2003-Espejo_Horizontal_48x48.png", 
         		"2004-Espejo_Vertical_48x48.png", 
-        		"2005-Recortar_48x48.png");
+        		"2005-Recortar_48x48.png"
+        		);
         
         List<String> iconosZoom = List.of(
         		"3001-Zoom_48x48.png", 
@@ -130,24 +131,29 @@ public class ToolbarBuilder {
         		"3005-Escalar_Para_Ajustar_48x48.png", 
         		"3006-Zoom_Fijo_48x48.png", 
         		"3007-zoom_especifico_48x48.png",
-        		"3008-Reset_48x48.png");
+        		"3008-Reset_48x48.png"
+        		);
         
         List<String> iconosVista = List.of(
         		"4001-Panel-Galeria_48x48.png", 
         		"4002-Grid_48x48.png", 
         		"4003-Pantalla_Completa_48x48.png", 
         		"4004-Lista_48x48.png", 
-        		"4005-Carrousel_48x48.png");
+        		"4005-Carrousel_48x48.png"
+        		);
         
         List<String> iconosControl = List.of(
         		"5001-Refrescar_48x48.png", 
         		"5003-lista_de_favoritos_48x48.png", 
-        		"5004-Borrar_48x48.png");
+        		"5004-Borrar_48x48.png",
+        		"7004-Ubicacion_de_Archivo_48x48.png"
+        		);
         
         List<String> iconosEspeciales = List.of(
         		"6001-Selector_de_Carpetas_48x48.png", 
         		"6002-Menu_48x48.png", 
-        		"6003-Botones_Ocultos_48x48.png");
+        		"6003-Botones_Ocultos_48x48.png"
+        		);
         
         List<String> iconosToggle = List.of(
         		"7001-Subcarpetas_48x48.png",

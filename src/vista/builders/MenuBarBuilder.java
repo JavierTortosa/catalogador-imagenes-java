@@ -218,6 +218,7 @@ public class MenuBarBuilder {
             	
             	"_\n"+
             	
+//				"--- Abrir Ubicacion del Archivo\n"+
             	"--- Refrescar Imagen\n"+
             	"--- Volver a Cargar\n"+
             	"--- Recargar Lista de Imagenes\n"+
@@ -307,10 +308,10 @@ public class MenuBarBuilder {
     	            
     	            "--- Establecer Como Fondo de Escritorio\n"+
     	            "--- Establecer Como Imagen de Bloqueo\n"+
-    	            "--- Abrir Ubicacion del Archivo\n"+
     	            
     	            "_\n"+
     	            
+					"--- Abrir Ubicacion del Archivo\n"+
     	            "--- Propiedades de la imagen\n"+
                 "\n");
     	

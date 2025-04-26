@@ -459,6 +459,7 @@ public class ConfigurationManager
 			defaults.put("interfaz.boton.toggle.Subcarpetas_48x48.activado", "true");
 			defaults.put("interfaz.boton.toggle.Subcarpetas_48x48.visible", "true");
 			
+			
     	//-- Navegación --
 			defaults.put("interfaz.boton.movimiento.Primera_48x48.activado", "true");
 			defaults.put("interfaz.boton.movimiento.Primera_48x48.visible", "true");
@@ -528,7 +529,8 @@ public class ConfigurationManager
 			defaults.put("interfaz.boton.especiales.Botones_Ocultos_48x48.activado", "true");
 			defaults.put("interfaz.boton.especiales.Botones_Ocultos_48x48.visible", "true");
 
-		
+			defaults.put("interfaz.boton.control.Ubicacion_de_Archivo_48x48.activado", "true");
+			defaults.put("interfaz.boton.control.Ubicacion_de_Archivo_48x48.visible", "true");
 		
     	//--- Menú ---\n");
     	//Formato: interfaz.menu.<ActionCommand>.{activado|visible|seleccionado} = {true|false}\n");
@@ -562,7 +564,9 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.archivo.Recargar_Lista_de_Imagenes.visible", "true");
 		defaults.put("interfaz.menu.archivo.Unload_Imagen.activado", "true");
 		defaults.put("interfaz.menu.archivo.Unload_Imagen.visible", "true");
-
+		defaults.put("interfaz.menu.archivo.Abrir_Ubicacion_del_Archivo.activado", "true");
+		defaults.put("interfaz.menu.archivo.Abrir_Ubicacion_del_Archivo.visible", "true");
+				
 		//-- Navegacion --
 		defaults.put("interfaz.menu.navegacion.Navegacion.activado", "true");
 		defaults.put("interfaz.menu.navegacion.Navegacion.visible", "true");

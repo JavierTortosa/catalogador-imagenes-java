@@ -1,9 +1,12 @@
 Iniciando Visor de Imágenes V2...
 Iniciando Visor de Imágenes V2 (con ThemeManager)...
-Mapa de configuración por defecto inicializado con 391 claves.
+Mapa de configuración por defecto inicializado con 395 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 24 entradas.
+Config no encontrado. Creando por defecto...
+Creando config por defecto (estructura jerárquica v2.1)...
+Archivo de configuración por defecto creado en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 391
+Configuración leída. Total claves: 395
 [ThemeManager] Tema inicial establecido a: clear
 [Controller] Inicializando Actions...
 [PreviousImageAction] Constructor iniciado.
@@ -49,6 +52,7 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   [ToolbarBuilder] Procesando botón: Refrescar_48x48 (Icono Archivo: 5001-Refrescar_48x48.png)
   [ToolbarBuilder] Procesando botón: lista_de_favoritos_48x48 (Icono Archivo: 5003-lista_de_favoritos_48x48.png)
   [ToolbarBuilder] Procesando botón: Borrar_48x48 (Icono Archivo: 5004-Borrar_48x48.png)
+  [ToolbarBuilder] Procesando botón: Ubicacion_de_Archivo_48x48 (Icono Archivo: 7004-Ubicacion_de_Archivo_48x48.png)
   [ToolbarBuilder] Procesando botón: Selector_de_Carpetas_48x48 (Icono Archivo: 6001-Selector_de_Carpetas_48x48.png)
   [ToolbarBuilder] Procesando botón: Menu_48x48 (Icono Archivo: 6002-Menu_48x48.png)
   [ToolbarBuilder] Procesando botón: Botones_Ocultos_48x48 (Icono Archivo: 6003-Botones_Ocultos_48x48.png)
@@ -56,12 +60,12 @@ MenuBarBuilder: Menú construido. Total items en mapa: 119
 [VisorView] Estableciendo posición inicial del divisor JSplitPane a 0.2
 [VisorView Constructor] Componentes internos inicializados.
 [VisorView Constructor] Intentando restaurar estado de ventana desde config...
-  -> Restaurando estado MAXIMIZED.
-[VisorView Constructor] Estado restaurado. Omitiendo pack() y centrado.
+  -> No se encontraron bounds válidos guardados (w=-1, h=-1).
+[VisorView Constructor] No se restauró estado. Usando pack() y centrando.
 [VisorView Constructor] Haciendo ventana visible...
 [VisorView Constructor] Finalizado.
 [View] Modelo asignado a JList. Tamaño actual: 0
-[Controller EDT] Carpeta Raíz Inicial establecida desde config: M:\Archivos 3D
+[Controller EDT] Carpeta Raíz Inicial establecida desde config: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
 Aplicando configuración inicial...
   -> Configuración del Modelo aplicada.
   -> Aplicando estado inicial a Botones...
@@ -124,51 +128,51 @@ Configuración inicial aplicada (Modelo y Vista).
 
 -->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: null
   -> Modo: Subcarpetas.
-    -> Iniciando walk desde carpeta raíz actual: M:\Archivos 3D
+    -> Iniciando walk desde carpeta raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
 -->>> FIN MÉTODO cargarListaImagenes DETALLADA (Controller) ***
 Listeners específicos (Lista, Mouse) añadidos.
 [Controller] Configurando Actions y Listeners en componentes...
   -> Asignando Actions a Botones...
-  [BG] Iniciando Files.walk con depth: 2147483647 en M:\Archivos 3D
+  [BG] Iniciando Files.walk con depth: 2147483647 en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
   -> Actions asignadas a Botones.
   -> Asignando Actions a Menús (donde aplica)...
-  -> Asignando ActionListener SIMPLIFICADO a Radios de Subcarpetas...
 WARN [setActionForKey]: Action es null para clave: interfaz.menu.zoom.Acercar
 WARN [setActionForKey]: Action es null para clave: interfaz.menu.zoom.Alejar
+  [BG] Files.walk terminado. Elementos encontrados: 165
+  -> Asignando ActionListener SIMPLIFICADO a Radios de Subcarpetas...
   -> ActionListener SIMPLIFICADO asignado a Radios.
 [Controller] Actions y Listeners configurados.
 [VisorView setCheckeredBackgroundEnabled] Solicitado: false, Estado actual: false
 [Controller] Inicialización de UI en EDT completada.
 [VisorView EDT Post-Init] Estableciendo divisor JSplitPane a 0.25
-  [BG] Files.walk terminado. Elementos encontrados: 13413
-  [EDT] Modelo actualizado. Tamaño: 13413
+  [EDT] Modelo actualizado. Tamaño: 165
     -> Limpiando selectedImageKey en modelo antes de seleccionar índice...
   -->>> estaCargandoLista = false
     -> No había imagen a mantener o lista estaba vacía. Seleccionando índice 0.
     -> Aplicando selección al índice: 0
 [ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
 
-[Controller] Iniciando carga para: 'Contadores y heridas/castnplay_dial_2.png'
-  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\castnplay_dial_2.png
+[Controller] Iniciando carga para: 'cyberpunk-city-anime-girl-5k-0e-1.png'
+  [BG Carga Imagen] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
 [Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
-[Miniaturas EDT] Placeholders mostrados para rango 0-7
   [BG Carga Imagen] Imagen leída correctamente.
+[Miniaturas EDT] Placeholders mostrados para rango 0-7
+ Tarea Miniaturas terminada en 572 ms.
 [Miniaturas EDT] Reemplazando placeholders con resultados.
 [Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
- Tarea Miniaturas terminada en 465 ms.
 --- Hook de Cierre Iniciado ---
   -> Guardando estado de la ventana...
-[Config Mgr setString] Actualizando clave: 'window.maximized' | Valor Anterior: 'true' | Valor Nuevo: 'false'
+[Config Mgr setString] Actualizando clave: 'window.maximized' | Valor Anterior: 'false' | Valor Nuevo: 'false'
 [Config Mgr] Valor en memoria actualizado: window.maximized = false
-[Config Mgr setString] Actualizando clave: 'window.x' | Valor Anterior: '0' | Valor Nuevo: '0'
-[Config Mgr] Valor en memoria actualizado: window.x = 0
-[Config Mgr setString] Actualizando clave: 'window.y' | Valor Anterior: '0' | Valor Nuevo: '0'
+[Config Mgr setString] Actualizando clave: 'window.x' | Valor Anterior: '-1' | Valor Nuevo: '121'
+[Config Mgr] Valor en memoria actualizado: window.x = 121
+[Config Mgr setString] Actualizando clave: 'window.y' | Valor Anterior: '-1' | Valor Nuevo: '0'
 [Config Mgr] Valor en memoria actualizado: window.y = 0
-[Config Mgr setString] Actualizando clave: 'window.width' | Valor Anterior: '133' | Valor Nuevo: '1542'
-[Config Mgr] Valor en memoria actualizado: window.width = 1542
-[Config Mgr setString] Actualizando clave: 'window.height' | Valor Anterior: '38' | Valor Nuevo: '605'
-[Config Mgr] Valor en memoria actualizado: window.height = 605
-    -> Bounds guardados: java.awt.Rectangle[x=0,y=0,width=1542,height=605]
+[Config Mgr setString] Actualizando clave: 'window.width' | Valor Anterior: '-1' | Valor Nuevo: '1418'
+[Config Mgr] Valor en memoria actualizado: window.width = 1418
+[Config Mgr setString] Actualizando clave: 'window.height' | Valor Anterior: '-1' | Valor Nuevo: '822'
+[Config Mgr] Valor en memoria actualizado: window.height = 822
+    -> Bounds guardados: java.awt.Rectangle[x=121,y=0,width=1418,height=822]
   -> Guardando configuración general...
 Recopilando estado actual para guardar configuración...
   -> Valor final de 'tema.nombre' a guardar (desde mapa inicial): clear
@@ -178,7 +182,7 @@ Recopilando estado actual para guardar configuración...
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 391
+Claves a guardar/actualizar: 395
 Archivo de configuración actualizado exitosamente.
 Configuración actual guardada exitosamente.
   -> Apagando ExecutorService...

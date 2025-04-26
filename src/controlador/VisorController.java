@@ -84,6 +84,7 @@ import controlador.actions.zoom.ZoomAutoAction;
 import controlador.actions.zoom.ZoomFijadoAction;
 import controlador.actions.zoom.ZoomFitAction;
 import controlador.actions.zoom.ZoomFixedAction;
+import controlador.imagen.LocateFileAction;
 // Imports de mis clases
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
@@ -154,6 +155,9 @@ public class VisorController implements ActionListener, ClipboardOwner
       private Action zoomFitAction;
       private Action zoomFixedAction;
       private Action zoomFijadoAction;
+      
+      //Imagen
+      private Action locateFileAction;
       
       //Vista
       private Action toggleMenuBarAction;
@@ -363,6 +367,9 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    flipVerticalAction 		= new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
 	    //cropAction = new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);
 	    
+	  //Imagen
+	    locateFileAction = new LocateFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
+	    
 	  //Zoom
 	    toggleZoomManualAction 	= new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ToggleZoomManualAction existe y carga icono
 	    zoomAutoAction 			= new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
@@ -492,6 +499,9 @@ public class VisorController implements ActionListener, ClipboardOwner
         
         mapaDeAcciones.put("Recortar_48x48", cortarAction);
         
+      // Imagen
+        mapaDeAcciones.put("Abrir_Ubicacion_del_Archivo", locateFileAction);
+        mapaDeAcciones.put("Ubicacion_del_Archivo_48x48", locateFileAction);
 
       //Vista
         mapaDeAcciones.put("Barra_de_Menu", toggleMenuBarAction);
@@ -611,6 +621,8 @@ public class VisorController implements ActionListener, ClipboardOwner
             setActionForKey(botones, "interfaz.boton.toggle.Subcarpetas_48x48", toggleSubfoldersAction);
             setActionForKey(botones, "interfaz.boton.toggle.Mantener_Proporciones_48x48", toggleProporcionesAction);
             // setActionForKey(botones, "interfaz.boton.toggle.Mostrar_Favoritos_48x48", toggleFavoritosAction); // Cuando la tengas
+            setActionForKey(botones, "interfaz.boton.control.Ubicacion_de_Archivo_48x48" , locateFileAction);
+//+ "interfaz.boton.toggle.Ubicacion_de_Archivo_48x48"
 
             // --- Botones Navegación ---
             setActionForKey(botones, "interfaz.boton.movimiento.Primera_48x48", firstImageAction);
@@ -625,6 +637,9 @@ public class VisorController implements ActionListener, ClipboardOwner
             setActionForKey(botones, "interfaz.boton.edicion.Espejo_Vertical_48x48", flipVerticalAction);
             // setActionForKey(botones, "interfaz.boton.edicion.Recortar_48x48", cortarAction); // Cuando la tengas
 
+            //---- Botones Imagen
+            
+            
              // --- Botones Zoom ---
             setActionForKey(botones, "interfaz.boton.zoom.Zoom_48x48", toggleZoomManualAction);
             setActionForKey(botones, "interfaz.boton.zoom.Zoom_Auto_48x48", zoomAutoAction);
@@ -679,6 +694,10 @@ public class VisorController implements ActionListener, ClipboardOwner
             setActionForKey(menuItems, "interfaz.menu.navegacion.Ultima_Imagen", lastImageAction);
             // ... otros items de Navegación
 
+            //Imagen 
+          //Imagen
+            setActionForKey(menuItems, "interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo", locateFileAction);
+            
             // Zoom
             setActionForKey(menuItems, "interfaz.menu.zoom.Acercar", null); // TODO: Crear ZoomInAction
             setActionForKey(menuItems, "interfaz.menu.zoom.Alejar", null); // TODO: Crear ZoomOutAction
@@ -1360,6 +1379,12 @@ public class VisorController implements ActionListener, ClipboardOwner
 		view.setTituloPanelIzquierdo("Lista de Archivos");
 		view.limpiarPanelMiniaturas();
 
+		 // --- Actualizar estado de locateFileAction ---
+        if (locateFileAction instanceof LocateFileAction) {
+             ((LocateFileAction) locateFileAction).updateEnabledState(); // Se deshabilitará porque no hay imagen
+        }
+        // -------------------------------------------
+		
 		// Desactivar zoom si estaba activo
 		// if (model.isZoomHabilitado()) {
 		// setManualZoomEnabled(false);
@@ -1858,6 +1883,13 @@ public class VisorController implements ActionListener, ClipboardOwner
 
 	    System.out.println("\n[Controller] Iniciando carga para: '" + archivoSeleccionadoKey + "'");
 
+	    
+	    // --- Actualizar estado de locateFileAction ---
+        if (locateFileAction instanceof LocateFileAction) { // Buena práctica comprobar tipo
+             ((LocateFileAction) locateFileAction).updateEnabledState();
+        }
+        // ------------------------------
+	    
 	    // --- Actualizar Modelo y UI INMEDIATAMENTE (antes de cargar) ---
 	    model.setSelectedImageKey(archivoSeleccionadoKey); // Actualizar clave seleccionada
 	    model.setCurrentImage(null); // Limpiar imagen anterior del modelo
@@ -3603,6 +3635,15 @@ public class VisorController implements ActionListener, ClipboardOwner
         }
     }
 
+     // --- Necesitas un getter para el Model si LocateFileAction lo usa ---
+     public VisorModel getModel() {
+         return model;
+     }
+     // --- Y para la View si muestra JOptionPanes ---
+     public VisorView getView() {
+         return view;
+     }
+     // -----------------------------------------------------------------
 	
 } // Fin de VisorController
 
