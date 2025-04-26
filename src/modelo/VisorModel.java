@@ -22,11 +22,12 @@ public class VisorModel
 	private String selectedImageKey; // Clave (ruta relativa) de la imagen seleccionada
 
 	// --- Estado de Visualización/Interacción ---
-	private boolean zoomHabilitado;
-	private double zoomFactor;
 	private int imageOffsetX;
 	private int imageOffsetY;
-
+	private boolean zoomHabilitado;
+	private double zoomFactor;
+	
+	
 	// --- Estado de Configuración/Comportamiento (que afecta la lógica de
 	// carga/visualización) ---
 	private boolean mostrarSoloCarpetaActual;
@@ -36,6 +37,7 @@ public class VisorModel
     private int miniaturaSelAlto; // ¡Sin valor inicial aquí!
     private int miniaturaNormAncho;
     private int miniaturaNormAlto;
+    private boolean mantenerProporcion;
 
 	// FIXME --- Caché de Miniaturas (Considerar si va aquí o en Controller/Servicio) ---
 	// Por simplicidad inicial, la ponemos aquí. Si crece mucho, se puede extraer.
@@ -57,6 +59,9 @@ public class VisorModel
         zoomFactor = 1.0;     // Estado inicial funcional razonable
         imageOffsetX = 0;
         imageOffsetY = 0;
+        
+     // --- Valor mantener proporciones ---
+        mantenerProporcion = true; // Valor inicial por defecto (coincide con config default)
 
    	}
 
@@ -380,6 +385,20 @@ public class VisorModel
 		miniaturasMap.put(key, icon);
 
 	}
+	
+	
+	public boolean isMantenerProporcion() {
+        return mantenerProporcion;
+    }
+
+    public void setMantenerProporcion(boolean mantenerProporcion) {
+        if (this.mantenerProporcion != mantenerProporcion) { // Solo cambiar si es diferente
+            this.mantenerProporcion = mantenerProporcion;
+            System.out.println("  [Model] Estado mantenerProporcion cambiado a: " + this.mantenerProporcion);
+            // Opcional: Disparar un PropertyChangeEvent si tienes listeners observando el modelo
+            // firePropertyChange("mantenerProporcion", !this.mantenerProporcion, this.mantenerProporcion);
+        }
+    }
 
 } //fin VisorModel
 

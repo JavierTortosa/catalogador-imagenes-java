@@ -67,7 +67,7 @@ import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
 import controlador.actions.tema.ToggleThemeAction;
-import controlador.actions.toggle.ToggleProporcionesAction1;
+import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.vista.ToggleAlwaysOnTopAction;
 import controlador.actions.vista.ToggleCheckeredBackgroundAction;
@@ -401,7 +401,7 @@ public class VisorController implements ActionListener, ClipboardOwner
 	    
 	  //toggle
 	    toggleSubfoldersAction = new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
-	    toggleProporcionesAction= new ToggleProporcionesAction1 (this, this.iconUtils, iconoAncho, iconoAlto);
+	    toggleProporcionesAction= new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
 	    themeActions = List.of(
 	    		temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction
 	    	);
@@ -605,7 +605,7 @@ public class VisorController implements ActionListener, ClipboardOwner
      * Para casos específicos como los JRadioButtonMenuItem agrupados que comparten lógica
      * pero necesitan texto diferente, se usa ActionListener y se gestiona el estado manualmente.
      */
-    private void configurarComponentActions() {
+    private void configurarComponentActions () {
         System.out.println("[Controller] Configurando Actions y Listeners en componentes...");
         if (view == null) {
             System.err.println("ERROR: Vista no inicializada al configurar actions/listeners.");
@@ -701,19 +701,20 @@ public class VisorController implements ActionListener, ClipboardOwner
             // Zoom
             setActionForKey(menuItems, "interfaz.menu.zoom.Acercar", null); // TODO: Crear ZoomInAction
             setActionForKey(menuItems, "interfaz.menu.zoom.Alejar", null); // TODO: Crear ZoomOutAction
-            // setActionForKey(menuItems, "interfaz.menu.zoom.Zoom_Personalizado_%", zoomPersonalizadoAction);
-            // setActionForKey(menuItems, "interfaz.menu.zoom.Zoom_Tamaño_Real", zoomTamanioRealAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.Mantener_Proporciones", toggleProporcionesAction); // CheckBox SÍ usa setAction
             setActionForKey(menuItems, "interfaz.menu.zoom.Activar_Zoom_Manual", toggleZoomManualAction);    // CheckBox SÍ usa setAction
             setActionForKey(menuItems, "interfaz.menu.zoom.Resetear_Zoom", resetZoomAction);
-            // Tipos de Zoom (Radios) - Estos probablemente necesiten ActionListeners específicos o una Action más compleja
             setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Automatico", zoomAutoAction);
             setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_a_lo_Ancho", zoomAnchoAction);
             setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_a_lo_Alto", zoomAltoAction);
             setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Ajustar", zoomFitAction);
             setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Actual_Fijo", zoomFixedAction);
-             // setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Especificado", zoomFijadoAction);
-             // setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Rellenar", zoomRellenarAction);
+            setActionForKey(menuItems, "interfaz.menu.zoom.Mantener_Proporciones", toggleProporcionesAction); // CheckBox SÍ usa setAction
+
+            // setActionForKey(menuItems, "interfaz.menu.zoom.Zoom_Personalizado_%", zoomPersonalizadoAction);
+            // setActionForKey(menuItems, "interfaz.menu.zoom.Zoom_Tamaño_Real", zoomTamanioRealAction);
+            // Tipos de Zoom (Radios) - Estos probablemente necesiten ActionListeners específicos o una Action más compleja
+            // setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Especificado", zoomFijadoAction);
+            // setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Rellenar", zoomRellenarAction);
 
 
             // Imagen
@@ -962,7 +963,7 @@ public class VisorController implements ActionListener, ClipboardOwner
 	
 	// --- Métodos de Lógica (Movidos desde VisorV2 y Adaptados) ---
 
-    private void aplicarConfiguracionInicial() {
+    private void aplicarConfiguracionInicial () {
 	    System.out.println("Aplicando configuración inicial..."); // Log inicio
 
 	    // --- Validación: Asegurarse que todo está listo ---
@@ -982,6 +983,9 @@ public class VisorController implements ActionListener, ClipboardOwner
 
 	    // --- 4. Aplicar estado inicial de Zoom Manual ---
 	    aplicarEstadoInicialZoomManual();
+	    
+	    // --- 4b. Aplicar estado inicial de Proporciones
+	    aplicarEstadoInicialProporciones();
 
 	    // --- 5. Aplicar estado inicial Subcarpetas (Y SINCRONIZAR UI) ---
         aplicarEstadoInicialSubcarpetas();
@@ -990,6 +994,50 @@ public class VisorController implements ActionListener, ClipboardOwner
 	}
 
   //********************************************************************************************** PARTES DE aplicarConfiguracionInicial
+    
+    
+ // --- NUEVO MÉTODO para estado inicial proporciones ---
+    /**
+     * Lee el estado inicial de "Mantener Proporciones" desde la configuración,
+     * actualiza el modelo y el estado lógico de la Action correspondiente.
+     * La UI (CheckBox y Botón) se actualizará automáticamente vía setAction.
+     */
+    private void aplicarEstadoInicialProporciones() {
+        System.out.println("Aplicando estado inicial de Mantener Proporciones...");
+        try {
+            // Clave de configuración para el estado seleccionado
+            String configKey = "interfaz.menu.zoom.Mantener_Proporciones.seleccionado";
+            // Leer estado guardado (default true)
+            boolean proporcionesInicial = configuration.getBoolean(configKey, true);
+            System.out.println("  -> Estado leído de config (" + configKey + "): " + proporcionesInicial);
+
+            // 1. Actualizar Modelo
+            if (model != null) {
+                model.setMantenerProporcion(proporcionesInicial);
+            } else {
+                 System.err.println("WARN [aplicarEstadoInicialProporciones]: Modelo es null.");
+            }
+
+            // 2. Actualizar Estado Lógico de la Action
+            if (toggleProporcionesAction != null) {
+                toggleProporcionesAction.putValue(Action.SELECTED_KEY, proporcionesInicial);
+                System.out.println("  -> Estado inicial de Action Proporciones establecido a: " + proporcionesInicial);
+
+                // 3. (Opcional pero bueno) Actualizar aspecto visual del BOTÓN explícitamente
+                actualizarAspectoBotonToggle(toggleProporcionesAction, proporcionesInicial);
+                 System.out.println("  -> Aspecto visual inicial del botón Proporciones actualizado.");
+
+            } else {
+                System.err.println("WARN [aplicarEstadoInicialProporciones]: toggleProporcionesAction es null.");
+            }
+             System.out.println("  -> Estado inicial de Mantener Proporciones aplicado.");
+
+        } catch (Exception e) {
+            System.err.println("ERROR [aplicarEstadoInicialProporciones]: Excepción al aplicar estado: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    
     
     // Parte 1 de aplicarConfiguracionInicial
 	private void aplicarEstadoInicialSubcarpetas ()
@@ -2025,52 +2073,124 @@ public class VisorController implements ActionListener, ClipboardOwner
 	 * 
 	 * @return La imagen reescalada o null.
 	 */
-	private Image reescalarImagenParaAjustar ()
-	{
+    // --- INICIO CÓDIGO A MODIFICAR en VisorController.reescalarImagenParaAjustar ---
+    /**
+     * Calcula la imagen reescalada basada en la imagen actual del modelo,
+     * el tamaño de la etiqueta de la vista y el estado de 'mantenerProporcion' del modelo.
+     *
+     * @return La imagen reescalada o null si no hay imagen o la vista no tiene tamaño.
+     */
+    private Image reescalarImagenParaAjustar() {
+        if (model == null || view == null || view.getEtiquetaImagen() == null) return null; // Verificar todo
 
-		BufferedImage current = model.getCurrentImage();
-		if (current == null)
-			return null;
+        BufferedImage current = model.getCurrentImage();
+        if (current == null) return null;
 
-		int width = view.getEtiquetaImagen().getWidth();
-		int height = view.getEtiquetaImagen().getHeight();
+        int targetWidth = view.getEtiquetaImagen().getWidth();
+        int targetHeight = view.getEtiquetaImagen().getHeight();
 
-		if (width <= 0 || height <= 0)
-		{
+        if (targetWidth <= 0 || targetHeight <= 0) {
+            System.out.println("[reescalar] WARN: Etiqueta sin tamaño aún. No se puede escalar.");
+            return null; // No podemos escalar si no hay tamaño de destino
+        }
 
-			// Si la etiqueta aún no tiene tamaño, no podemos escalar bien.
-			// Devolver la imagen original o null. Devolver null evita dibujar algo
-			// incorrecto.
-			return null;
+        // --- NUEVA LÓGICA DE ESCALADO ---
+        int newWidth;
+        int newHeight;
+        boolean mantenerProp = model.isMantenerProporcion(); // Leer estado del modelo
+        System.out.println("[reescalar] Escalando a " + targetWidth + "x" + targetHeight + " | MantenerProporcion=" + mantenerProp);
 
-			// Alternativa: return current; // Pero puede ser muy grande
-		}
 
-		double imageAspectRatio = (double) current.getWidth() / current.getHeight();
-		double panelAspectRatio = (double) width / height;
-		int newWidth;
-		int newHeight;
+        if (mantenerProp) {
+            // --- LÓGICA ANTIGUA (MANTIENE PROPORCIÓN) ---
+            double imageAspectRatio = (double) current.getWidth() / current.getHeight();
+            double panelAspectRatio = (double) targetWidth / targetHeight;
 
-		if (panelAspectRatio > imageAspectRatio)
-		{
+            if (panelAspectRatio > imageAspectRatio) { // Panel más ancho que imagen (relativamente) -> ajustar a ALTO
+                newHeight = targetHeight;
+                newWidth = (int) (targetHeight * imageAspectRatio);
+            } else { // Panel más alto que imagen (relativamente) -> ajustar a ANCHO
+                newWidth = targetWidth;
+                //newHeight = (int) (targetWidth / imageAspectRatio); // <-- ¡CORRECCIÓN! Aquí debe ser targetWidth
+                // Corrección:
+                newHeight = (int) (targetWidth / imageAspectRatio);
+            }
+             System.out.println("  -> Con proporción: newW=" + newWidth + ", newH=" + newHeight);
+            // Asegurarse de que al menos sea 1x1 si los cálculos dan 0
+            newWidth = Math.max(1, newWidth);
+            newHeight = Math.max(1, newHeight);
+            // -------------------------------------------
 
-			newHeight = height;
-			newWidth = (int) (height * imageAspectRatio);
+        } else {
+            // --- NUEVA LÓGICA (NO MANTIENE PROPORCIÓN - ESTIRA/ENCOGE) ---
+            // Simplemente usar el tamaño del contenedor
+            newWidth = targetWidth;
+            newHeight = targetHeight;
+             System.out.println("  -> SIN proporción: newW=" + newWidth + ", newH=" + newHeight);
+            // ---------------------------------------------------------
+        }
 
-		} else
-		{
-
-			newWidth = width;
-			newHeight = (int) (width / imageAspectRatio);
-
-		}
-
-		// Usar SCALE_SMOOTH para mejor calidad, aunque es más lento
-		return current.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-
-		// Alternativa más rápida pero de peor calidad: Image.SCALE_FAST
-		// Alternativa intermedia: Image.SCALE_REPLICATE
-	}
+        // Usar SCALE_SMOOTH para mejor calidad
+        // Importante: getScaledInstance puede ser lento y asíncrono a veces.
+        // Si tienes problemas de rendimiento o parpadeo, investiga alternativas
+        // como usar AffineTransform o librerías como imgscalr.
+        try {
+             return current.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+        } catch (Exception e) {
+             System.err.println("ERROR [reescalar] Excepción en getScaledInstance: " + e.getMessage());
+             // Devolver original como fallback o null? Null es más seguro.
+             return null;
+        }
+    }
+    // --- FIN reescalarImagenParaAjustar ---
+	
+    
+//	private Image reescalarImagenParaAjustar ()
+//	{
+//
+//		BufferedImage current = model.getCurrentImage();
+//		if (current == null)
+//			return null;
+//
+//		int width = view.getEtiquetaImagen().getWidth();
+//		int height = view.getEtiquetaImagen().getHeight();
+//
+//		if (width <= 0 || height <= 0)
+//		{
+//
+//			// Si la etiqueta aún no tiene tamaño, no podemos escalar bien.
+//			// Devolver la imagen original o null. Devolver null evita dibujar algo
+//			// incorrecto.
+//			return null;
+//
+//			// Alternativa: return current; // Pero puede ser muy grande
+//		}
+//
+//		double imageAspectRatio = (double) current.getWidth() / current.getHeight();
+//		double panelAspectRatio = (double) width / height;
+//		int newWidth;
+//		int newHeight;
+//
+//		if (panelAspectRatio > imageAspectRatio)
+//		{
+//
+//			newHeight = height;
+//			newWidth = (int) (height * imageAspectRatio);
+//
+//		} else
+//		{
+//
+//			newWidth = width;
+//			newHeight = (int) (width / imageAspectRatio);
+//
+//		}
+//
+//		// Usar SCALE_SMOOTH para mejor calidad, aunque es más lento
+//		return current.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+//
+//		// Alternativa más rápida pero de peor calidad: Image.SCALE_FAST
+//		// Alternativa intermedia: Image.SCALE_REPLICATE
+//	}
 
 	
 	public void setManualZoomEnabled(boolean enable) 
@@ -3644,6 +3764,70 @@ public class VisorController implements ActionListener, ClipboardOwner
          return view;
      }
      // -----------------------------------------------------------------
+
+
+     /**
+      * Actualiza el estado lógico y visual para mantener/no mantener proporciones.
+      * Guarda el nuevo estado en la configuración, actualiza la Action, el modelo
+      * y el aspecto del botón. Finalmente, repinta la imagen principal.
+      *
+      * @param mantener True si se deben mantener las proporciones, false si no.
+      */
+     public void setMantenerProporcionesAndUpdateConfig(boolean mantener) {
+         System.out.println("\n[Controller setMantenerProporciones] INICIO. Deseado: " + mantener);
+
+         if (model == null || configuration == null || toggleProporcionesAction == null || view == null) {
+             System.err.println("  -> ERROR: Componentes necesarios nulos. Saliendo.");
+             return;
+         }
+
+         // Comprobar si el cambio es necesario (comparando con el estado actual de la Action)
+         boolean estadoActualAction = Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY));
+         System.out.println("  -> Estado Lógico Actual (Action.SELECTED_KEY): " + estadoActualAction);
+         if (mantener == estadoActualAction) {
+             System.out.println("  -> Estado deseado ya es el actual. No se hace nada.");
+              // Podríamos llamar a actualizarAspectoBotonToggle por si acaso, pero no es estrictamente necesario
+              // actualizarAspectoBotonToggle(toggleProporcionesAction, estadoActualAction);
+              System.out.println("[Controller setMantenerProporciones] FIN (Sin cambios).");
+             return;
+         }
+
+         System.out.println("  -> Aplicando cambio a estado: " + mantener);
+
+         // 1. Actualizar estado lógico Action
+         System.out.println("    1. Actualizando Action.SELECTED_KEY...");
+         toggleProporcionesAction.putValue(Action.SELECTED_KEY, mantener);
+         System.out.println("       -> Action.SELECTED_KEY AHORA ES: " + Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY)));
+
+         // 2. Actualizar Modelo
+          System.out.println("    2. Actualizando Modelo...");
+         model.setMantenerProporcion(mantener); // Llama al nuevo setter del modelo
+          // El log ya está dentro del setter del modelo
+
+         // 3. Actualizar Configuración en Memoria
+          System.out.println("    3. Actualizando Configuración en Memoria...");
+         String configKey = "interfaz.menu.zoom.Mantener_Proporciones.seleccionado";
+         configuration.setString(configKey, String.valueOf(mantener));
+         System.out.println("       -> Config '" + configKey + "' AHORA ES: " + configuration.getString(configKey));
+
+         // 4. Sincronizar UI (Botón) - El CheckBox se actualiza solo por setAction
+         System.out.println("    4. Sincronizando UI (Botón)...");
+         actualizarAspectoBotonToggle(toggleProporcionesAction, mantener); // Actualiza color/apariencia botón
+
+         // 5. Repintar la Imagen Principal
+         // Como cambiar la proporción afecta directamente cómo se ve, forzamos repintado.
+         System.out.println("    5. Programando repintado de imagen principal en EDT...");
+         SwingUtilities.invokeLater(() -> {
+             System.out.println("      -> [EDT] Llamando a reescalar y mostrar imagen...");
+             Image imagenReescalada = reescalarImagenParaAjustar(); // Volver a calcular con el nuevo estado del modelo
+             if (view != null && model != null) { // Doble chequeo
+                 // Pasar el zoom/offset actual del modelo
+                 view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+             }
+         });
+
+         System.out.println("[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).");
+     }
 	
 } // Fin de VisorController
 
