@@ -1,5 +1,8 @@
 package utils; // O package servicios;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,6 +59,71 @@ public final class StringUtils { // 'final' para evitar herencia
                      .collect(Collectors.joining(" "));
     }
 
+    
+    //********************************************************************************** dynamicLOG
+    
+    /**
+     * Registra dinámicamente pares de nombre-valor en la consola.
+     * Se espera que los argumentos se pasen en pares: "nombreVariable", valorVariable, "otroNombre", otroValor, ...
+     *
+     * @param argsPares Una secuencia de objetos donde cada par representa
+     *                  un nombre (String) y su valor correspondiente (Object).
+     */
+    public static void dynamicLog(String titulo, Object... argsPares) {
+        // Marca de tiempo para saber cuándo se hizo el log
+    	String timestamp = LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_TIME);
+    	
+    	System.out.println("\n************************************** DYNAMIC LOG **************************************");
+    	System.out.println(timestamp + ": " + titulo != null ? titulo : "Sin Título" + "\n");
+    	
+//    	System.out.println("----- [" + timestamp + "] LOG: " + (titulo != null ? titulo : "Sin Título") + " -----");
+    	
+//        System.out.println("----- DYNAMIC LOG [" + timestamp + "] -----");
+
+        if (argsPares == null || argsPares.length == 0) {
+            System.out.println("  (No se proporcionaron argumentos)");
+        } else if (argsPares.length % 2 != 0) {
+            // Advertencia si el número de argumentos no es par
+            System.out.println("  ADVERTENCIA: Número impar de argumentos. Se esperan pares nombre-valor.");
+            // Intenta mostrar los pares posibles
+            logPairs(argsPares, argsPares.length - 1);
+            // Muestra el último argumento que quedó sin par
+            System.out.println("  Argumento sin par: " + formatValue(argsPares[argsPares.length - 1]));
+        } else {
+            // Procesa los pares nombre-valor
+            logPairs(argsPares, argsPares.length);
+        }
+
+        System.out.println("*****************************************************************************************\n");
+    }
+
+    // Método auxiliar para procesar y mostrar los pares
+    private static void logPairs(Object[] args, int limit) {
+        for (int i = 0; i < limit; i += 2) {
+            Object nameObj = args[i];
+            Object valueObj = args[i + 1];
+
+            // Asegurarse de que el nombre sea una cadena (o representarlo como tal)
+            String name = (nameObj instanceof String) ? (String) nameObj : String.valueOf(nameObj);
+
+            System.out.println("  " + name + ": " + formatValue(valueObj));
+        }
+    }
+
+    // Método auxiliar para formatear el valor (maneja null y cadenas explícitamente)
+    private static String formatValue(Object value) {
+        if (value == null) {
+            return "[null]";
+        } else if (value instanceof String) {
+            return "\"" + value + "\""; // Poner comillas a las cadenas
+        } else {
+            // Usa Objects.toString para manejar arrays de forma más legible que el toString por defecto
+            return Objects.toString(value);
+        }
+    }
+    // --- Fin del método dynamicLog ---
+    
+  //********************************************************************************** FIN dynamicLOG    
     
 
 } //fin StringUtils

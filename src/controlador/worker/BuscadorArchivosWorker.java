@@ -29,8 +29,10 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
     private int contadorArchivos = 0;
     // --- FIN CÓDIGO MODIFICADO ---
 
-    public BuscadorArchivosWorker(Path rutaInicio, int profundidadBusqueda, Path rutaRaizParaRelativizar,
-                                Predicate<Path> filtroImagen, ProgresoCargaDialog dialogoProgreso) {
+	public BuscadorArchivosWorker(Path rutaInicio, int profundidadBusqueda, Path rutaRaizParaRelativizar,
+			Predicate<Path> filtroImagen, ProgresoCargaDialog dialogoProgreso)
+	{
+
         this.rutaInicio = rutaInicio;
         this.profundidadBusqueda = profundidadBusqueda;
         this.rutaRaizParaRelativizar = rutaRaizParaRelativizar;

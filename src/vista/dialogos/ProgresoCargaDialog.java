@@ -7,7 +7,11 @@ import java.awt.event.ActionListener;
 
 public class ProgresoCargaDialog extends JDialog {
 
-    private JLabel etiquetaMensaje;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private JLabel etiquetaMensaje;
     private JLabel etiquetaContador;
     private JProgressBar barraProgreso;
     private JButton botonCancelar;

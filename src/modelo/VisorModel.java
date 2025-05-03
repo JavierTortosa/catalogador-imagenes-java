@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon; // Necesario para el caché de miniaturas si lo ponemos aquí
 
 /**
  * Modelo de datos para el Visor de Imágenes. Contiene el estado de la
@@ -88,7 +87,6 @@ public class VisorModel
         // ¡Importante! No dispares eventos manualmente aquí. La actualización
         // se hará en la JList cuando el Controller le pase este nuevo modeloLista.
     }
-    // --- FIN CÓDIGO NUEVO ---
 	
 	
 	// --- Getters y Setters (o métodos de modificación) ---
@@ -107,10 +105,6 @@ public class VisorModel
 		{ // Añadir chequeo null
 
 			this.modeloLista = nuevoModelo;
-			
-			//LOG [Model] Referencia de modeloLista actualizada. Nuevo tamaño: 
-			//System.out.println(
-			//		"[Model] Referencia de modeloLista actualizada. Nuevo tamaño: " + this.modeloLista.getSize());
 
 		} else
 		{

@@ -234,8 +234,9 @@ public class MenuBarBuilder {
 	            "_\n"+
 	            
 	            "--- Ir a...\n"+
-	            "--- Primera Imagen\n"+
-	            "--- Ultima Imagen\n"+
+	            "--- Buscar...\n"+
+	            //"--- Primera Imagen\n"+
+	            //"--- Ultima Imagen\n"+
 	            
 	            "_\n"+
 	            

@@ -1,60 +1,46 @@
-package controlador.actions.navegacion;
+package controlador.actions.navegacion; // Asegúrate que el paquete sea correcto
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
+// import javax.swing.KeyStroke; // Descomentar si usas atajos
+// import java.awt.event.KeyEvent; // Descomentar si usas atajos
 
-public class LastImageAction extends BaseVisorAction {
+import controlador.ListCoordinator; // Importar el Coordinador
+import vista.util.IconUtils;      // Importar IconUtils
+
+public class LastImageAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
-    // Opcional: private IconUtils iconUtils;
+    private final ListCoordinator coordinator;
+    private final IconUtils iconUtils;
 
-    // --- TEXTO MODIFICADO: Constructor ---
-    public LastImageAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        // Cambiar texto base y descripción
-        super("Última Imagen", controller); // <-- Corregido
-        putValue(Action.SHORT_DESCRIPTION, "Ir a la última imagen"); // <-- Corregido
+    /**
+     * Constructor para la acción de ir a la última imagen.
+     * @param coordinator El ListCoordinator que maneja la navegación.
+     * @param iconUtils La utilidad para cargar iconos.
+     * @param iconoAncho Ancho deseado para el icono.
+     * @param iconoAlto Alto deseado para el icono.
+     */
+    public LastImageAction(ListCoordinator coordinator, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
+        super("Última Imagen"); // Nombre visible
 
-        // Cargar icono
-        ImageIcon icon = iconUtils.getScaledIcon("1004-Ultima_48x48.png", width, height);
+        this.coordinator = Objects.requireNonNull(coordinator, "ListCoordinator no puede ser null");
+        this.iconUtils = Objects.requireNonNull(iconUtils, "IconUtils no puede ser null");
 
-        // Verificar y asignar
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-        } else {
-            // Corregir mensaje de error
-            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '1004-Ultima_48x48.png' usando IconUtils."); // <-- Corregido
-            // Opcional: putValue(Action.NAME, ">>|");
-        }
+        // Configurar propiedades
+        putValue(Action.SHORT_DESCRIPTION, "Ir a la última imagen de la lista"); // Tooltip
+        putValue(Action.SMALL_ICON, iconUtils.getScaledIcon("1004-Ultima_48x48.png", iconoAncho, iconoAlto)); // Icono
+
+        // Atajo de teclado (opcional)
+        // putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_END, 0)); // Tecla Fin
     }
-    // --- FIN MODIFICACION CONSTRUCTOR ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Loguear
-        if (controller != null) {
-            controller.logActionInfo(e);
-        } else {
-             System.err.println("Error: Controller es null en LastImageAction");
-             return; // Salir si no hay controller
-        }
-
-        // --- TEXTO MODIFICADO: Acción ---
-        // Necesitamos obtener el tamaño de la lista para calcular el último índice.
-        // La forma más limpia es añadir un método al Controller para esto.
-        int lastIndex = controller.getTamanioListaImagenes() - 1;
-
-        // Solo navegar si el índice es válido (la lista no está vacía)
-        if (lastIndex >= 0) {
-            controller.navegarAIndice(lastIndex);
-        } else {
-            System.out.println("[LastImageAction] La lista está vacía, no se puede navegar a la última imagen.");
-            // Opcional: puedes poner un pequeño beep o feedback visual si lo deseas
-            // java.awt.Toolkit.getDefaultToolkit().beep();
-        }
-        // --- FIN MODIFICACION ACCION ---
+        System.out.println("Acción: Última Imagen -> Llamando coordinator.seleccionarUltimo()");
+        // Delegar al ListCoordinator
+        coordinator.seleccionarUltimo();
     }
 }

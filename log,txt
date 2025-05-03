@@ -1,16 +1,19 @@
 Iniciando Visor de Imágenes V2...
-Iniciando Visor de Imágenes V2 (con ThemeManager)...
+--- Iniciando VisorController ---
+  1. Modelo inicializado.
 Mapa de configuración por defecto inicializado con 395 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 24 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 395
+Configuración leída. Total claves: 397
+  2. Configuración inicializada.
 [ThemeManager] Tema inicial establecido a: clear
+  3. ThemeManager inicializado.
+  4. IconUtils inicializado.
+  5. ExecutorService inicializado (16 hilos).
 [ThumbnailService] Servicio inicializado. Caché de miniaturas creado.
-[Controller] ThumbnailService instanciado.
-[Controller] Inicializando Actions...
-[PreviousImageAction] Constructor iniciado.
-  -> Icono para PreviousImageAction cargado y asignado vía IconUtils.
-[PreviousImageAction] Constructor finalizado.
+  6. ThumbnailService inicializado.
+  7. Config UI leída (Iconos: 24x24).
+  [Init Actions] Inicializando...
 [ToggleMenuBarAction] Estado inicial leído (interfaz.menu.vista.Barra_de_Menu.seleccionado): true
 [ToggleToolBarAction] Estado inicial leído (interfaz.menu.vista.Barra_de_Botones.seleccionado): true
 [ToggleFileListAction] Estado inicial leído (interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos.seleccionado): true
@@ -20,10 +23,28 @@ Configuración leída. Total claves: 395
 [ToggleAlwaysOnTopAction] Estado inicial leído (interfaz.menu.vista.Mantener_Ventana_Siempre_Encima.seleccionado): false
 [ToggleSubfoldersAction] Estado inicial leído (comportamiento.carpeta.cargarSubcarpetas): true
 [ToggleProporcionesAction1] Estado inicial SELECTED leído (interfaz.menu.zoom.Mantener_Proporciones.seleccionado): true
+  [Init Actions] Finalizado.
+  8. Actions (parcialmente) inicializadas.
+  [Create ActionMap] Creando mapa...
+  [Create ActionMap] Finalizado.
+  9. Mapa de Actions (parcial) creado (50 entradas).
+ 10. Altura Scroll Miniaturas calculada: 100
 [ViewUIConfig] Configuración UI creada con colores de tema.
-[Controller] Constructor finalizado.
+ 11. ViewUIConfig creado.
+ -> Shutdown Hook registrado en la JVM.
+ 13. Shutdown Hook configurado.
+--- Constructor VisorController Finalizado ---
 VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
-[VisorView Constructor] Inicializando componentes internos...
+VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
+ [EDT] Iniciando creación/configuración Vista, Coordinador y Actions Nav...
+[VisorView Constructor] Iniciando...
+WARN [VisorView Constructor]: El modelo obtenido del VisorModel inicial es null. Creando uno vacío.
+  [Constructor] Dependencias validadas (Config, Modelo, Thumbs).
+  [Constructor] Configuración básica JFrame completada.
+  [Constructor] Referencia inicial al modelo obtenida (Tamaño: 0)
+  [Constructor] Llamando a inicializarComponentes...
+--- Iniciando inicializarComponentes ---
+1. Panel Principal creado.
   [ToolbarBuilder] Procesando botón: Primera_48x48 (Icono Archivo: 1001-Primera_48x48.png)
   [ToolbarBuilder] Procesando botón: Anterior_48x48 (Icono Archivo: 1002-Anterior_48x48.png)
   [ToolbarBuilder] Procesando botón: Siguiente_48x48 (Icono Archivo: 1003-Siguiente_48x48.png)
@@ -56,493 +77,2201 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   [ToolbarBuilder] Procesando botón: Selector_de_Carpetas_48x48 (Icono Archivo: 6001-Selector_de_Carpetas_48x48.png)
   [ToolbarBuilder] Procesando botón: Menu_48x48 (Icono Archivo: 6002-Menu_48x48.png)
   [ToolbarBuilder] Procesando botón: Botones_Ocultos_48x48 (Icono Archivo: 6003-Botones_Ocultos_48x48.png)
-MenuBarBuilder: Menú construido. Total items en mapa: 119
-[VisorView] Estableciendo posición inicial del divisor JSplitPane a 0.2
-[VisorView Constructor] Componentes internos inicializados.
-[VisorView Constructor] Intentando restaurar estado de ventana desde config...
-  -> Restaurando Bounds a: java.awt.Rectangle[x=0,y=12,width=1536,height=582]
-[VisorView Constructor] Estado restaurado. Omitiendo pack() y centrado.
-[VisorView Constructor] Haciendo ventana visible...
+2. Toolbar añadida al NORTE.
+MenuBarBuilder: Menú construido. Total items en mapa: 120
+3. Barra de Menú establecida.
+  [Init Comp] Inicializando Panel Izquierdo...
+    -> NombreArchivoRenderer asignado a listaNombres.
+  [Init Comp] Panel Izquierdo finalizado.
+4. Panel Izquierdo (con listaNombres) inicializado: true
+  [Init Comp] Inicializando Panel Miniaturas...
+    [Init Miniaturas] Renderer y tamaño de celda (50x65) establecidos.
+  [Init Comp] Panel Miniaturas (JScrollPane con JList) finalizado. Altura preferida Scroll: 100
+5. Panel Miniaturas (con listaMiniaturas) inicializado: true
+6. ListSelectionModel NO compartido. Cada lista tiene el suyo.
+  [Init Comp] Inicializando Etiqueta Imagen...
+  [Init Comp] Etiqueta Imagen finalizada.
+7. Etiqueta Imagen inicializada: true
+8. SplitPane añadido al CENTRO.
+9. ScrollPane Miniaturas añadido al SUR.
+10. Panel Principal añadido al JFrame.
+11. Barra de Estado (textoRuta) añadida al JFrame.
+--- Inicialización de Componentes Completada ---
+  [Constructor] Componentes internos inicializados.
+  [Constructor] Intentando restaurar estado de ventana...
+    -> Bounds restaurados a: java.awt.Rectangle[x=245,y=223,width=1047,height=371]
+  [Constructor] Intento de restauración de estado finalizado.
+  [Constructor] Estado restaurado. Omitiendo pack()/centrado. Validando layout...
+  [Constructor] Dimensionamiento/Posicionamiento finalizado.
+  [Constructor] Haciendo ventana visible...
 [VisorView Constructor] Finalizado.
-[View] Modelo asignado a JList. Tamaño actual: 0
-[Controller EDT] Carpeta Raíz Inicial establecida desde config: M:\Archivos 3D
-Aplicando configuración inicial...
-  -> Configuración del Modelo aplicada.
-  -> Aplicando estado inicial a Botones...
-  -> Estado inicial de Botones aplicado.
-  -> Aplicando estado inicial a Menús...
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Nombre_del_Archivo
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.%_de_Zoom_actual
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Rellenar
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Reset_Zoom
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Lista
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Espejo_Vertical
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Fecha_de_Creacion
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Espejo_Horizontal
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Mostrar_Boton_de_Botones_Ocultos
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Tamaño_del_Archivo
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Ajustar_al_Alto
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.general.Mostrar_Flechas_de_Navegacion
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Subcarpetas
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Ruta_y_Nombre_del_Archivo
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Escalar_para_Ajustar
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Zoom
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Zoom_Automatico
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Refrescar
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.general.Abrir_Ultima_Imagen_Vista
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Carrousel
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Ascendente
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Recortar
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Rotar_Izquierda
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Ajustar_al_Ancho
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.general.Volver_a_la_Primera_Imagen_al_Llegar_al_final_de_la_Lista
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Nombre_por_Defecto
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Descendente
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Numero_de_Imagenes_en_la_Carpeta_Actual
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.general.Mostrar_Imagen_de_Bienvenida
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Borrar
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Extension
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.barra_de_informacion.Fecha_y_Hora_de_la_Imagen
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Menu
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Rotar_Derecha
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Pantalla_Completa
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Zoom_Fijo
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Lista_de_Favoritos
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Grid
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.configuracion.visualizar_botones.Botón_Panel-Galeria
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Sin_Ordenar
-    -> Aplicando .seleccionado desde config (sin Action): interfaz.menu.imagen.carga_y_orden.Tamaño_de_Archivo
-  -> Estado inicial de Menús aplicado.
-  -> Estado inicial de Zoom Manual aplicado.
-Aplicando estado inicial de Mantener Proporciones...
-  -> Estado leído de config (interfaz.menu.zoom.Mantener_Proporciones.seleccionado): true
-  -> Estado inicial de Action Proporciones establecido a: true
+ [EDT] VisorView instanciado.
+[ListCoordinator] Instancia creada.
+ [EDT] ListCoordinator instanciado.
+ [EDT] Creando Actions de Navegación...
+   -> Actions de Navegación creadas y añadidas al actionMap. Tamaño actual actionMap: 58
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
+ [EDT] Modelo de Miniaturas (inicialmente vacío) asignado a JList.
+ [EDT] Carpeta raíz inicial: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+ [EDT] Aplicando config inicial a UI...
+  [Apply Config] Aplicando configuración inicial...
+    -> Config Modelo OK.
+    -> Aplicando config a Botones...
+    -> Config Botones OK.
+    -> Aplicando config a Menús...
+    -> Config Menús OK.
   -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
-  -> Aspecto visual inicial del botón Proporciones actualizado.
-  -> Estado inicial de Mantener Proporciones aplicado.
-Aplicando estado inicial de Subcarpetas...
-  -> Estado inicial de Action Subcarpetas: true
   -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
-  -> [Controller] Sincronizando estado visual de Radios a: Subcarpetas
-  -> Estado visual inicial de Radios aplicado.
-  -> Estado inicial de Subcarpetas aplicado y UI sincronizada.
-Configuración inicial aplicada (Modelo y Vista).
-  -> cargarListaImagenes() llamado (seleccionará la primera imagen por defecto).
+  [Controller] Sincronizando estado visual de Radios Subcarpetas a: Mostrar Subcarpetas
+  [Controller] Estado visual de Radios Subcarpetas sincronizado.
+    -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados a UI.
+  [Apply Config] Finalizado.
+ [EDT] Cargando estado inicial (lista imágenes)...
+  [Load Initial State] Cargando estado inicial...
+    -> Cargando lista para carpeta inicial: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
 
-
--->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: null
-  -> Modo: Subcarpetas.
-    -> Iniciando búsqueda desde carpeta raíz actual: M:\Archivos 3D
-  [Worker BG] Iniciando búsqueda en M:\Archivos 3D con profundidad 2147483647
-Listeners específicos (Lista, Mouse) añadidos.
-[Controller] Configurando Actions y Listeners en componentes...
-  -> Asignando Actions a Botones...
-  -> Actions asignadas a Botones.
-  -> Asignando Actions a Menús (donde aplica)...
-WARN [setActionForKey]: Action es null para clave: interfaz.menu.zoom.Acercar
-WARN [setActionForKey]: Action es null para clave: interfaz.menu.zoom.Alejar
-  -> Asignando ActionListener SIMPLIFICADO a Radios de Subcarpetas...
-  -> ActionListener SIMPLIFICADO asignado a Radios.
-[Controller] Actions y Listeners configurados.
-[VisorView setCheckeredBackgroundEnabled] Solicitado: false, Estado actual: false
-[Controller] Inicialización de UI en EDT completada.
-[VisorView EDT Post-Init] Estableciendo divisor JSplitPane a 0.25
-[Controller EDT] Mostrando diálogo de progreso...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 13413
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: iconos/black/3003-ajustar_al_ancho_48x48.png
+  -> Modo búsqueda: Subcarpetas (depth=MAX)
+    -> Iniciando búsqueda desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Creando diálogo y worker para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Creando Worker...
+  -> Asociando worker al diálogo...
+  -> Diálogo y Worker creados y asociados.
+  -> Añadiendo PropertyChangeListener al worker...
+  -> Ejecutando worker y mostrando diálogo...
+-->>> FIN cargarListaImagenes(String) | Mantener Clave: iconos/black/3003-ajustar_al_ancho_48x48.png
+  [Load Initial State] Finalizado.
+ [EDT] Configurando listeners de la vista...
+[Controller] Configurando Listeners (Modelo Selección Compartido)...
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
+  -> Listener SEPARADO añadido a listaNombres.
+  -> Listener SEPARADO añadido a listaMiniaturas.
+  [Config Comp Actions] Configurando...
+    -> Actions asignadas a Botones.
+    -> Asignando Actions/Listeners a Menús...
+    [Fallback Listeners] Añadiendo ActionListener central a items sin Action...
+    [Fallback Listeners] Finalizado. Listeners fallback añadidos a 78 items.
+    -> Actions/Listeners asignados a Menús.
+  [Config Comp Actions] Finalizado.
+  -> Actions configuradas en componentes UI.
+  -> Interceptando acciones de teclado de las JLists...
+    -> Acciones de teclado interceptadas en listaNombres.
+  [Worker BG] Files.walk terminado. Archivos encontrados: 165
+    -> Acciones de teclado interceptadas en listaMiniaturas.
+  -> Intercepción de acciones de teclado de JLists completada.
+[Controller] Configuración de Listeners y Actions de Vista finalizada.
+ [EDT] Configurando Actions en Componentes UI...
+  [Config Comp Actions] Configurando...
+    -> Actions asignadas a Botones.
+    -> Asignando Actions/Listeners a Menús...
+    [Fallback Listeners] Añadiendo ActionListener central a items sin Action...
+    [Fallback Listeners] Finalizado. Listeners fallback añadidos a 78 items.
+    -> Actions/Listeners asignados a Menús.
+  [Config Comp Actions] Finalizado.
+ [EDT] Sincronizando UI final...
+[VisorView setCheckeredBG] Solicitado: false, Actual: false
+ [EDT] Inicialización de UI completada.
+  [Constructor EDT] Divisor JSplitPane establecido.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+[VisorView] Limpiando etiqueta de imagen principal...
+  -> Etiqueta de imagen limpiada.
+ [EDT] Mostrando diálogo de progreso...
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
 [Worker EDT] Método done() alcanzado.
-[Controller EDT - done] Actualizando modelo y vista con resultado (13413 elementos)...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 13413
-[View] Modelo asignado a JList. Tamaño actual: 13413
--->>> estaCargandoLista = false (en done, después de actualizar UI)
-    -> No había imagen a mantener o lista estaba vacía. Seleccionando índice 0.
-    -> Aplicando selección al índice: 0
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+ [EDT Worker Done] Tarea finalizada. Procesando resultado...
+   -> Resultado obtenido: 165 archivos. Actualizando...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
+   -> estaCargandoLista = false
+[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
+[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+     -> Clave a mantener encontrada en índice: 13
+   -> [ANTES de setSelectedIndex] Intentando aplicar selección inicial a índice: 13
+   -> Flag seleccionInicialEnCurso puesto a true.
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=true, isSincronizando=false, IndicePrincipal=13, Ignorado=true
+   -> [DESPUÉS de setSelectedIndex] Selección visual inicial aplicada a índice: 13. Selección JList: 13
+   -> Llamando MANUALMENTE a Coordinator para procesar índice inicial: 13
+>>> Coordinator: Solicitud para procesar índice: 13 (Actual Oficial: -1)
+    [Coordinator Flag] sincronizandoUI -> true
+  [ListCoordinator Interno] Procesando índice: 13 (Oficial actual: -1)
+    -> Actualizando índice oficial a: 13
+    -> Delegando carga de imagen al Controller para índice: 13
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/3003-ajustar_al_ancho_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 3003-ajustar_al_ancho_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3003-ajustar_al_ancho_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/3003-ajustar_al_ancho_48x48.png
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3003-ajustar_al_ancho_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 13
+      -> [UI Completa] Actualizando UI (Nombres y Miniaturas) para índice 13
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 13
+        -> Índice actual en JList 'Nombres': 13
+        -> Índice ya correcto. Asegurando solo visibilidad.
+      [BG Img Load] Lectura correcta.
+      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
 
-[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
-  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
-[Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
-[Miniaturas BG] Tarea iniciada para rango 0-7
-  [BG Carga Imagen] Imagen leída correctamente.
-[Controller EDT] Diálogo de progreso cerrado.
-[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
-[Miniaturas BG] ThumbnailService devolvió null para: Contadores y heridas/Medidor/no vale.jpg
-[Miniaturas] Tarea Miniaturas terminada en 154 ms.
-[Miniaturas EDT] Placeholders mostrados para rango 0-7
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[Miniaturas EDT] Reemplazando placeholders con resultados.
-[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Subcarpetas_48x48
-  Icono      : Subcarpetas_48x48.png
--------------------------
-[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: false
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 13
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
 
-[Controller setMostrarSubcarpetas] INICIO. Deseado: false
-  -> Estado Lógico Actual (Action.SELECTED_KEY): true
-  -> Aplicando cambio a estado: false
-    -> Clave a intentar mantener: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: false
-    2. Actualizando Modelo...
-       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: true
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'comportamiento.carpeta.cargarSubcarpetas' | Valor Anterior: 'true' | Valor Nuevo: 'false'
-[Config Mgr] Valor en memoria actualizado: comportamiento.carpeta.cargarSubcarpetas = false
-       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: false
-    4. Sincronizando UI (Botón y Radios)...
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Normal
-  -> [Controller] Sincronizando estado visual de Radios a: Solo Carpeta
-    5. Programando recarga de lista en EDT (manteniendo clave)...
-[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
-      -> [EDT] Llamando a cargarListaImagenes("Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png") para recargar...
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
 
 
--->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
-  -> Modo: Solo Carpeta Actual.
-    -> Iniciando búsqueda desde carpeta de imagen: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images
-  [Worker BG] Iniciando búsqueda en M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images con profundidad 1
-  [Worker BG] Files.walk terminado. Archivos encontrados: 7
-[Controller EDT] Mostrando diálogo de progreso...
-[Worker EDT] Método done() alcanzado.
-[Controller EDT - done] Actualizando modelo y vista con resultado (7 elementos)...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 7
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=true
-[View] Modelo asignado a JList. Tamaño actual: 7
--->>> estaCargandoLista = false (en done, después de actualizar UI)
-    -> Imagen a mantener encontrada en índice: 0
-    -> Aplicando selección al índice: 0
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [5..21]
 
-[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
-[Miniaturas] Rango calculado: 0 a 6 (Seleccionado: 0)
-  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
-[Miniaturas BG] Tarea iniciada para rango 0-6
-  [BG Carga Imagen] Imagen leída correctamente.
-[Miniaturas] Tarea Miniaturas terminada en 39 ms.
-[Controller EDT] Diálogo de progreso cerrado.
-[Miniaturas EDT] Placeholders mostrados para rango 0-6
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[Miniaturas EDT] Reemplazando placeholders con resultados.
-[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Subcarpetas_48x48
-  Icono      : Subcarpetas_48x48.png
--------------------------
-[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: true
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 13
+>>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(13)
+   -> Llamada MANUAL a Coordinator completada.
+ [EDT Worker Done] Procesamiento finalizado.
+ [EDT] Diálogo de progreso cerrado o ya no visible.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+  -> Solicitando repintado inicial de listaMiniaturas.
+          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 13
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/3003-ajustar_al_ancho_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=true, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+    [Coordinator Flag] sincronizandoUI -> false
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+   -> [Timer Fin Selección Inicial] Fin espera. Flag seleccionInicialEnCurso -> false.
+   -> [Timer Fin Selección Inicial] Asegurando visibilidad final para índice: 13
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=7, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=7, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 7 -> Clave 'iconos/black/3002-zoom_auto_48x48.png' -> Índice Principal 12
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(12)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 12 (Actual Oficial: 13)
+  [ListCoordinator Interno] Procesando índice: 12 (Oficial actual: 13)
+    -> Actualizando índice oficial a: 12
+    -> Delegando carga de imagen al Controller para índice: 12
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/3002-zoom_auto_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 3002-zoom_auto_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3002-zoom_auto_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/3002-zoom_auto_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 12
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3002-zoom_auto_48x48.png
+    -> Llamando a sincronizarListaUI(Nombres, 12)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 12
+        -> Índice actual en JList 'Nombres': 13
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 12
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=12, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 12
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(12) por seguridad de rango.
 
-[Controller setMostrarSubcarpetas] INICIO. Deseado: true
-  -> Estado Lógico Actual (Action.SELECTED_KEY): false
-  -> Aplicando cambio a estado: true
-    -> Clave a intentar mantener: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: true
-    2. Actualizando Modelo...
-       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: false
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'comportamiento.carpeta.cargarSubcarpetas' | Valor Anterior: 'false' | Valor Nuevo: 'true'
-[Config Mgr] Valor en memoria actualizado: comportamiento.carpeta.cargarSubcarpetas = true
-       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: true
-    4. Sincronizando UI (Botón y Radios)...
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
-  -> [Controller] Sincronizando estado visual de Radios a: Subcarpetas
-    5. Programando recarga de lista en EDT (manteniendo clave)...
-[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
-      -> [EDT] Llamando a cargarListaImagenes("Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png") para recargar...
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 12
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
 
-
--->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
-  -> Modo: Subcarpetas.
-    -> Iniciando búsqueda desde carpeta raíz actual: M:\Archivos 3D
-  [Worker BG] Iniciando búsqueda en M:\Archivos 3D con profundidad 2147483647
-[Controller EDT] Mostrando diálogo de progreso...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 13413
-[Worker EDT] Método done() alcanzado.
-[Controller EDT - done] Actualizando modelo y vista con resultado (13413 elementos)...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 13413
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=true
-[View] Modelo asignado a JList. Tamaño actual: 13413
--->>> estaCargandoLista = false (en done, después de actualizar UI)
-    -> Imagen a mantener encontrada en índice: 0
-    -> Aplicando selección al índice: 0
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
-
-[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
-[Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
-  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
-[Miniaturas BG] Tarea iniciada para rango 0-7
-  [BG Carga Imagen] Imagen leída correctamente.
-[Miniaturas BG] ThumbnailService devolvió null para: Contadores y heridas/Medidor/no vale.jpg
-[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
-[Miniaturas] Tarea Miniaturas terminada en 9 ms.
-[Controller EDT] Diálogo de progreso cerrado.
-[Miniaturas EDT] Placeholders mostrados para rango 0-7
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[Miniaturas EDT] Reemplazando placeholders con resultados.
-[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Subcarpetas_48x48
-  Icono      : Subcarpetas_48x48.png
--------------------------
-[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: false
-
-[Controller setMostrarSubcarpetas] INICIO. Deseado: false
-  -> Estado Lógico Actual (Action.SELECTED_KEY): true
-  -> Aplicando cambio a estado: false
-    -> Clave a intentar mantener: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: false
-    2. Actualizando Modelo...
-       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: true
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'comportamiento.carpeta.cargarSubcarpetas' | Valor Anterior: 'true' | Valor Nuevo: 'false'
-[Config Mgr] Valor en memoria actualizado: comportamiento.carpeta.cargarSubcarpetas = false
-       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: false
-    4. Sincronizando UI (Botón y Radios)...
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Normal
-  -> [Controller] Sincronizando estado visual de Radios a: Solo Carpeta
-    5. Programando recarga de lista en EDT (manteniendo clave)...
-[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
-      -> [EDT] Llamando a cargarListaImagenes("Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png") para recargar...
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
 
 
--->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
-  -> Modo: Solo Carpeta Actual.
-    -> Iniciando búsqueda desde carpeta de imagen: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images
-  [Worker BG] Iniciando búsqueda en M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images con profundidad 1
-  [Worker BG] Files.walk terminado. Archivos encontrados: 7
-[Controller EDT] Mostrando diálogo de progreso...
-[Worker EDT] Método done() alcanzado.
-[Controller EDT - done] Actualizando modelo y vista con resultado (7 elementos)...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 7
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=true
-[View] Modelo asignado a JList. Tamaño actual: 7
--->>> estaCargandoLista = false (en done, después de actualizar UI)
-    -> Imagen a mantener encontrada en índice: 0
-    -> Aplicando selección al índice: 0
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [4..20]
 
-[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
-[Miniaturas] Rango calculado: 0 a 6 (Seleccionado: 0)
-  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
-[Miniaturas BG] Tarea iniciada para rango 0-6
-  [BG Carga Imagen] Imagen leída correctamente.
-[Miniaturas] Tarea Miniaturas terminada en 20 ms.
-[Controller EDT] Diálogo de progreso cerrado.
-[Miniaturas EDT] Placeholders mostrados para rango 0-6
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[Miniaturas EDT] Reemplazando placeholders con resultados.
-[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.toggle.Subcarpetas_48x48
-  Icono      : Subcarpetas_48x48.png
--------------------------
-[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: true
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      [BG Img Load] Lectura correcta.
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(12)
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 12
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/3002-zoom_auto_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=6, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=6, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 6 -> Clave 'iconos/black/2005-recortar_48x48.png' -> Índice Principal 10
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(10)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 10 (Actual Oficial: 12)
+  [ListCoordinator Interno] Procesando índice: 10 (Oficial actual: 12)
+    -> Actualizando índice oficial a: 10
+    -> Delegando carga de imagen al Controller para índice: 10
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/2005-recortar_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 2005-recortar_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2005-recortar_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/2005-recortar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 10
+    -> Llamando a sincronizarListaUI(Nombres, 10)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 10
+        -> Índice actual en JList 'Nombres': 12
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 10
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2005-recortar_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=10, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 10
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(10) por seguridad de rango.
 
-[Controller setMostrarSubcarpetas] INICIO. Deseado: true
-  -> Estado Lógico Actual (Action.SELECTED_KEY): false
-  -> Aplicando cambio a estado: true
-    -> Clave a intentar mantener: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
-    1. Actualizando Action.SELECTED_KEY...
-       -> Action.SELECTED_KEY AHORA ES: true
-    2. Actualizando Modelo...
-       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: false
-    3. Actualizando Configuración en Memoria...
-[Config Mgr setString] Actualizando clave: 'comportamiento.carpeta.cargarSubcarpetas' | Valor Anterior: 'false' | Valor Nuevo: 'true'
-[Config Mgr] Valor en memoria actualizado: comportamiento.carpeta.cargarSubcarpetas = true
-       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: true
-    4. Sincronizando UI (Botón y Radios)...
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
-  -> [Controller] Sincronizando estado visual de Radios a: Subcarpetas
-    5. Programando recarga de lista en EDT (manteniendo clave)...
-[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
-      -> [EDT] Llamando a cargarListaImagenes("Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png") para recargar...
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 10
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
 
 
--->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
-  -> Modo: Subcarpetas.
-    -> Iniciando búsqueda desde carpeta raíz actual: M:\Archivos 3D
-  [Worker BG] Iniciando búsqueda en M:\Archivos 3D con profundidad 2147483647
-[Controller EDT] Mostrando diálogo de progreso...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 13413
-[Worker EDT] Método done() alcanzado.
-[Controller EDT - done] Actualizando modelo y vista con resultado (13413 elementos)...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 13413
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=true
-[View] Modelo asignado a JList. Tamaño actual: 13413
--->>> estaCargandoLista = false (en done, después de actualizar UI)
-    -> Imagen a mantener encontrada en índice: 0
-    -> Aplicando selección al índice: 0
-[ListSelectionListener] Evento detectado. ValueIsAdjusting=false, estaCargandoLista=false
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [2..18]
 
-[Controller] Iniciando carga para: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png'
-[Miniaturas] Rango calculado: 0 a 7 (Seleccionado: 0)
-  [BG Carga Imagen] Iniciando lectura para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
-[Miniaturas BG] Tarea iniciada para rango 0-7
-  [BG Carga Imagen] Imagen leída correctamente.
-[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
-[Miniaturas BG] ThumbnailService devolvió null para: Contadores y heridas/Medidor/no vale.jpg
-[Miniaturas] Tarea Miniaturas terminada en 9 ms.
-[Controller EDT] Diálogo de progreso cerrado.
-[Miniaturas EDT] Placeholders mostrados para rango 0-7
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[Miniaturas EDT] Reemplazando placeholders con resultados.
-[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.zoom.Zoom_48x48
-  Icono      : Zoom_48x48.png
--------------------------
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
---- Acción Detectada ---
-  Fuente     : JButton
-  Comando    : null
-  Clave Larga: interfaz.boton.zoom.Reset_48x48
-  Icono      : Reset_48x48.png
--------------------------
-Ejecutando acción de Reset Zoom...
-[reescalar] Escalando a 1133x364 | MantenerProporcion=true
-  -> Con proporción: newW=484, newH=364
-  -> Buscando botón en mapa (Claves Largas)...
-    -> Botón encontrado con clave larga: interfaz.boton.zoom.Reset_48x48
-    -> Aplicando animación...
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(10)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 10
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/2005-recortar_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=7, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=7, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 7 -> Clave 'iconos/black/2004-espejo_vertical_48x48.png' -> Índice Principal 9
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(9)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 9 (Actual Oficial: 10)
+  [ListCoordinator Interno] Procesando índice: 9 (Oficial actual: 10)
+    -> Actualizando índice oficial a: 9
+    -> Delegando carga de imagen al Controller para índice: 9
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/2004-espejo_vertical_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 2004-espejo_vertical_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2004-espejo_vertical_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/2004-espejo_vertical_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 9
+    -> Llamando a sincronizarListaUI(Nombres, 9)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 9
+        -> Índice actual en JList 'Nombres': 10
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 9
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=9, Ignorado=true
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2004-espejo_vertical_48x48.png
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 9
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(9) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 9
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [1..17]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(9)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 9
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/2004-espejo_vertical_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=9, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=9, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 9 -> Clave 'iconos/black/2005-recortar_48x48.png' -> Índice Principal 10
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(10)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 10 (Actual Oficial: 9)
+  [ListCoordinator Interno] Procesando índice: 10 (Oficial actual: 9)
+    -> Actualizando índice oficial a: 10
+    -> Delegando carga de imagen al Controller para índice: 10
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/2005-recortar_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 2005-recortar_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2005-recortar_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/2005-recortar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 10
+    -> Llamando a sincronizarListaUI(Nombres, 10)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 10
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2005-recortar_48x48.png
+        -> Índice actual en JList 'Nombres': 9
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 10
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=10, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 10
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(10) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 10
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+      [BG Img Load] Lectura correcta.
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [2..18]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(10)
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 10
+    [Coordinator Flag] sincronizandoUI -> false
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/2005-recortar_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=10, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=10, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 10 -> Clave 'iconos/black/3002-zoom_auto_48x48.png' -> Índice Principal 12
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(12)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 12 (Actual Oficial: 10)
+  [ListCoordinator Interno] Procesando índice: 12 (Oficial actual: 10)
+    -> Actualizando índice oficial a: 12
+    -> Delegando carga de imagen al Controller para índice: 12
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/3002-zoom_auto_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 3002-zoom_auto_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3002-zoom_auto_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/3002-zoom_auto_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 12
+    -> Llamando a sincronizarListaUI(Nombres, 12)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 12
+        -> Índice actual en JList 'Nombres': 10
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 12
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3002-zoom_auto_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=12, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 12
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(12) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 12
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [4..20]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(12)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 12
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/3002-zoom_auto_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=11, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=11, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 11 -> Clave 'iconos/black/3005-escalar_para_ajustar_48x48.png' -> Índice Principal 15
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(15)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 15 (Actual Oficial: 12)
+  [ListCoordinator Interno] Procesando índice: 15 (Oficial actual: 12)
+    -> Actualizando índice oficial a: 15
+    -> Delegando carga de imagen al Controller para índice: 15
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/3005-escalar_para_ajustar_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 3005-escalar_para_ajustar_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3005-escalar_para_ajustar_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/3005-escalar_para_ajustar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 15
+    -> Llamando a sincronizarListaUI(Nombres, 15)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 15
+        -> Índice actual en JList 'Nombres': 12
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 15
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3005-escalar_para_ajustar_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=15, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 15
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(15) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 15
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [7..23]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(15)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 15
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/3005-escalar_para_ajustar_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=13, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=13, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 13 -> Clave 'iconos/black/4002-grid_48x48.png' -> Índice Principal 20
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(20)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 20 (Actual Oficial: 15)
+  [ListCoordinator Interno] Procesando índice: 20 (Oficial actual: 15)
+    -> Actualizando índice oficial a: 20
+    -> Delegando carga de imagen al Controller para índice: 20
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4002-grid_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4002-grid_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4002-grid_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4002-grid_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 20
+    -> Llamando a sincronizarListaUI(Nombres, 20)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 20
+        -> Índice actual en JList 'Nombres': 15
+        -> Índice diferente. Iniciando cambio de selección...
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4002-grid_48x48.png
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 20
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=20, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 20
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(20) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 20
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [12..28]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(20)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 20
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4002-grid_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=11, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=11, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 11 -> Clave 'iconos/black/4005-carrousel_48x48.png' -> Índice Principal 23
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(23)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 23 (Actual Oficial: 20)
+  [ListCoordinator Interno] Procesando índice: 23 (Oficial actual: 20)
+    -> Actualizando índice oficial a: 23
+    -> Delegando carga de imagen al Controller para índice: 23
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4005-carrousel_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4005-carrousel_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4005-carrousel_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4005-carrousel_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 23
+    -> Llamando a sincronizarListaUI(Nombres, 23)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 23
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4005-carrousel_48x48.png
+        -> Índice actual en JList 'Nombres': 20
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 23
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=23, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 23
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(23) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 23
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [15..31]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(23)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 23
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4005-carrousel_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=9, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=9, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 9 -> Clave 'iconos/black/5001-refrescar_48x48.png' -> Índice Principal 24
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(24)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 24 (Actual Oficial: 23)
+  [ListCoordinator Interno] Procesando índice: 24 (Oficial actual: 23)
+    -> Actualizando índice oficial a: 24
+    -> Delegando carga de imagen al Controller para índice: 24
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/5001-refrescar_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 5001-refrescar_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5001-refrescar_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/5001-refrescar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 24
+    -> Llamando a sincronizarListaUI(Nombres, 24)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 24
+        -> Índice actual en JList 'Nombres': 23
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 24
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5001-refrescar_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=24, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 24
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(24) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 24
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [16..32]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(24)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 24
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/5001-refrescar_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=6, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=6, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 6 -> Clave 'iconos/black/4004-lista_48x48.png' -> Índice Principal 22
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(22)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 22 (Actual Oficial: 24)
+  [ListCoordinator Interno] Procesando índice: 22 (Oficial actual: 24)
+    -> Actualizando índice oficial a: 22
+    -> Delegando carga de imagen al Controller para índice: 22
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4004-lista_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4004-lista_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4004-lista_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4004-lista_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 22
+    -> Llamando a sincronizarListaUI(Nombres, 22)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 22
+        -> Índice actual en JList 'Nombres': 24
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 22
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4004-lista_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=22, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 22
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(22) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 22
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [14..30]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(22)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 22
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4004-lista_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER MINIATURAS: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndiceRelativo=5, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=5, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Traducción OK: Índice Relativo 5 -> Clave 'iconos/black/4001-panel-galeria_48x48.png' -> Índice Principal 19
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(19)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: 19 (Actual Oficial: 22)
+  [ListCoordinator Interno] Procesando índice: 19 (Oficial actual: 22)
+    -> Actualizando índice oficial a: 19
+    -> Delegando carga de imagen al Controller para índice: 19
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4001-panel-galeria_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4001-panel-galeria_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4001-panel-galeria_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4001-panel-galeria_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 19
+    -> Llamando a sincronizarListaUI(Nombres, 19)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 19
+        -> Índice actual en JList 'Nombres': 22
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 19
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4001-panel-galeria_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=19, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 19
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(19) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 19
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [11..27]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(19)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 19
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4001-panel-galeria_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+>>> LISTENER NOMBRES: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndicePrincipal=20, Ignorado=true
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndicePrincipal=20, Ignorado=false
+>>> LISTENER NOMBRES: Procesando -> Llamando a Coordinator.seleccionarDesdeNombres(20)
+>>> Coordinator: Recibido de Nombres -> Índice: 20 (Actual Oficial: 19)
+  [ListCoordinator Interno] Procesando índice: 20 (Oficial actual: 19)
+    -> Actualizando índice oficial a: 20
+    -> Delegando carga de imagen al Controller para índice: 20
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4002-grid_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4002-grid_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4002-grid_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4002-grid_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 20
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4002-grid_48x48.png
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(20)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 20
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [12..28]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(20)
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4002-grid_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ABAJO -> seleccionarSiguiente()
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 20)
+    -> Llamando a helper interno para procesar índice: 21
+  [ListCoordinator Interno] Procesando índice: 21 (Oficial actual: 20)
+    -> Actualizando índice oficial a: 21
+    -> Delegando carga de imagen al Controller para índice: 21
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4003-pantalla_completa_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4003-pantalla_completa_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4003-pantalla_completa_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4003-pantalla_completa_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 21
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4003-pantalla_completa_48x48.png
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 21
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 21
+        -> Índice actual en JList 'Nombres': 20
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 21
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=21, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 21
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 21
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [13..29]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 21
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 21
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4003-pantalla_completa_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ABAJO -> seleccionarSiguiente()
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 21)
+    -> Llamando a helper interno para procesar índice: 22
+  [ListCoordinator Interno] Procesando índice: 22 (Oficial actual: 21)
+    -> Actualizando índice oficial a: 22
+    -> Delegando carga de imagen al Controller para índice: 22
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4004-lista_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4004-lista_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4004-lista_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4004-lista_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 22
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 22
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4004-lista_48x48.png
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 22
+        -> Índice actual en JList 'Nombres': 21
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 22
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=22, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 22
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 22
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [14..30]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 22
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 22
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4004-lista_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ABAJO -> seleccionarSiguiente()
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 22)
+    -> Llamando a helper interno para procesar índice: 23
+  [ListCoordinator Interno] Procesando índice: 23 (Oficial actual: 22)
+    -> Actualizando índice oficial a: 23
+    -> Delegando carga de imagen al Controller para índice: 23
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4005-carrousel_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4005-carrousel_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4005-carrousel_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4005-carrousel_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 23
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 23
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 23
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4005-carrousel_48x48.png
+        -> Índice actual en JList 'Nombres': 22
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 23
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=23, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 23
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 23
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [15..31]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+      [BG Img Load] Lectura correcta.
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 23
+>>> Coordinator: Fin seleccionarSiguiente
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 23
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4005-carrousel_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ABAJO -> seleccionarSiguiente()
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 23)
+    -> Llamando a helper interno para procesar índice: 24
+  [ListCoordinator Interno] Procesando índice: 24 (Oficial actual: 23)
+    -> Actualizando índice oficial a: 24
+    -> Delegando carga de imagen al Controller para índice: 24
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/5001-refrescar_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 5001-refrescar_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5001-refrescar_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/5001-refrescar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 24
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 24
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 24
+        -> Índice actual en JList 'Nombres': 23
+        -> Índice diferente. Iniciando cambio de selección...
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5001-refrescar_48x48.png
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 24
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=24, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 24
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 24
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [16..32]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 24
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 24
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/5001-refrescar_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ABAJO -> seleccionarSiguiente()
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 24)
+    -> Llamando a helper interno para procesar índice: 25
+  [ListCoordinator Interno] Procesando índice: 25 (Oficial actual: 24)
+    -> Actualizando índice oficial a: 25
+    -> Delegando carga de imagen al Controller para índice: 25
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/5003-lista_de_favoritos_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 5003-lista_de_favoritos_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5003-lista_de_favoritos_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/5003-lista_de_favoritos_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 25
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 25
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 25
+        -> Índice actual en JList 'Nombres': 24
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 25
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=25, Ignorado=true
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5003-lista_de_favoritos_48x48.png
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 25
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 25
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [17..33]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 25
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 25
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/5003-lista_de_favoritos_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ABAJO -> seleccionarSiguiente()
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 25)
+    -> Llamando a helper interno para procesar índice: 26
+  [ListCoordinator Interno] Procesando índice: 26 (Oficial actual: 25)
+    -> Actualizando índice oficial a: 26
+    -> Delegando carga de imagen al Controller para índice: 26
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/5004-borrar_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 5004-borrar_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5004-borrar_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/5004-borrar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 26
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 26
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5004-borrar_48x48.png
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 26
+        -> Índice actual en JList 'Nombres': 25
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 26
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=26, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 26
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 26
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [18..34]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 26
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 26
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/5004-borrar_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ABAJO -> seleccionarSiguiente()
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 26)
+    -> Llamando a helper interno para procesar índice: 27
+  [ListCoordinator Interno] Procesando índice: 27 (Oficial actual: 26)
+    -> Actualizando índice oficial a: 27
+    -> Delegando carga de imagen al Controller para índice: 27
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/6001-selector_de_carpetas_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 6001-selector_de_carpetas_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\6001-selector_de_carpetas_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/6001-selector_de_carpetas_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 27
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 27
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 27
+        -> Índice actual en JList 'Nombres': 26
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 27
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\6001-selector_de_carpetas_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=27, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 27
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 27
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [19..35]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 27
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 27
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/6001-selector_de_carpetas_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 27)
+    -> Llamando a helper interno para procesar índice: 26
+  [ListCoordinator Interno] Procesando índice: 26 (Oficial actual: 27)
+    -> Actualizando índice oficial a: 26
+    -> Delegando carga de imagen al Controller para índice: 26
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/5004-borrar_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 5004-borrar_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5004-borrar_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/5004-borrar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 26
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 26
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 26
+        -> Índice actual en JList 'Nombres': 27
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 26
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5004-borrar_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=26, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 26
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 26
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [18..34]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 26
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 26
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/5004-borrar_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 26)
+    -> Llamando a helper interno para procesar índice: 25
+  [ListCoordinator Interno] Procesando índice: 25 (Oficial actual: 26)
+    -> Actualizando índice oficial a: 25
+    -> Delegando carga de imagen al Controller para índice: 25
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/5003-lista_de_favoritos_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 5003-lista_de_favoritos_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5003-lista_de_favoritos_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/5003-lista_de_favoritos_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 25
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 25
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 25
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5003-lista_de_favoritos_48x48.png
+        -> Índice actual en JList 'Nombres': 26
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 25
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=25, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 25
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 25
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [17..33]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 25
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 25
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/5003-lista_de_favoritos_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 25)
+    -> Llamando a helper interno para procesar índice: 24
+  [ListCoordinator Interno] Procesando índice: 24 (Oficial actual: 25)
+    -> Actualizando índice oficial a: 24
+    -> Delegando carga de imagen al Controller para índice: 24
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/5001-refrescar_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 5001-refrescar_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5001-refrescar_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/5001-refrescar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 24
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 24
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 24
+        -> Índice actual en JList 'Nombres': 25
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 24
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\5001-refrescar_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=24, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 24
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 24
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [16..32]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 24
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 24
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/5001-refrescar_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 24)
+    -> Llamando a helper interno para procesar índice: 23
+  [ListCoordinator Interno] Procesando índice: 23 (Oficial actual: 24)
+    -> Actualizando índice oficial a: 23
+    -> Delegando carga de imagen al Controller para índice: 23
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4005-carrousel_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4005-carrousel_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4005-carrousel_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4005-carrousel_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 23
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 23
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 23
+        -> Índice actual en JList 'Nombres': 24
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 23
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4005-carrousel_48x48.png
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=23, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 23
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 23
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [15..31]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 23
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 23
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4005-carrousel_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 23)
+    -> Llamando a helper interno para procesar índice: 22
+  [ListCoordinator Interno] Procesando índice: 22 (Oficial actual: 23)
+    -> Actualizando índice oficial a: 22
+    -> Delegando carga de imagen al Controller para índice: 22
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4004-lista_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4004-lista_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4004-lista_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4004-lista_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 22
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 22
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 22
+        -> Índice actual en JList 'Nombres': 23
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 22
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=22, Ignorado=true
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4004-lista_48x48.png
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 22
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 22
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [14..30]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 22
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 22
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4004-lista_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 22)
+    -> Llamando a helper interno para procesar índice: 21
+  [ListCoordinator Interno] Procesando índice: 21 (Oficial actual: 22)
+    -> Actualizando índice oficial a: 21
+    -> Delegando carga de imagen al Controller para índice: 21
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4003-pantalla_completa_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4003-pantalla_completa_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4003-pantalla_completa_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4003-pantalla_completa_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 21
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 21
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 21
+        -> Índice actual en JList 'Nombres': 22
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 21
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=21, Ignorado=true
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4003-pantalla_completa_48x48.png
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 21
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 21
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [13..29]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 21
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 21
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4003-pantalla_completa_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 21)
+    -> Llamando a helper interno para procesar índice: 20
+  [ListCoordinator Interno] Procesando índice: 20 (Oficial actual: 21)
+    -> Actualizando índice oficial a: 20
+    -> Delegando carga de imagen al Controller para índice: 20
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4002-grid_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4002-grid_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4002-grid_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4002-grid_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 20
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 20
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 20
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4002-grid_48x48.png
+        -> Índice actual en JList 'Nombres': 21
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 20
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=20, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 20
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 20
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [12..28]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 20
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 20
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4002-grid_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 20)
+    -> Llamando a helper interno para procesar índice: 19
+  [ListCoordinator Interno] Procesando índice: 19 (Oficial actual: 20)
+    -> Actualizando índice oficial a: 19
+    -> Delegando carga de imagen al Controller para índice: 19
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/4001-panel-galeria_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 4001-panel-galeria_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4001-panel-galeria_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/4001-panel-galeria_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 19
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 19
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 19
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4001-panel-galeria_48x48.png
+        -> Índice actual en JList 'Nombres': 20
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 19
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=19, Ignorado=true
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 19
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 19
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [11..27]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 19
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 19
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/4001-panel-galeria_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
+-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()
+>>> Coordinator: Navegación -> Anterior (Actual Oficial: 19)
+    -> Llamando a helper interno para procesar índice: 18
+  [ListCoordinator Interno] Procesando índice: 18 (Oficial actual: 19)
+    -> Actualizando índice oficial a: 18
+    -> Delegando carga de imagen al Controller para índice: 18
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/3008-Reset_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 3008-Reset_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3008-Reset_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/3008-Reset_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 18
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 18
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 18
+        -> Índice actual en JList 'Nombres': 19
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 18
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndicePrincipal=18, Ignorado=true
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3008-Reset_48x48.png
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 18
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 18
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+************************************** DYNAMIC LOG **************************************
+** actualizarModeloYVistaMiniaturas **
+  miniAntes: 8
+  miniDespues: 8
+*****************************************************************************************
+
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [10..26]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 17. Índice relativo calculado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 18
+>>> Coordinator: Fin seleccionarAnterior
+      [BG Img Load] Lectura correcta.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 18
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 17)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(8)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=8, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/3008-Reset_48x48.png
+      [EDT Img Load] Imagen final (finalImg) es null? false
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] Mensaje de error (finalErrorMsg): null
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(8)
+    [Coordinator Flag] sincronizandoUI -> false
 --- Hook de Cierre Iniciado ---
   -> Guardando estado de la ventana...
 [Config Mgr setString] Actualizando clave: 'window.maximized' | Valor Anterior: 'false' | Valor Nuevo: 'false'
 [Config Mgr] Valor en memoria actualizado: window.maximized = false
-[Config Mgr setString] Actualizando clave: 'window.x' | Valor Anterior: '0' | Valor Nuevo: '0'
-[Config Mgr] Valor en memoria actualizado: window.x = 0
-[Config Mgr setString] Actualizando clave: 'window.y' | Valor Anterior: '12' | Valor Nuevo: '12'
-[Config Mgr] Valor en memoria actualizado: window.y = 12
-[Config Mgr setString] Actualizando clave: 'window.width' | Valor Anterior: '1536' | Valor Nuevo: '1536'
-[Config Mgr] Valor en memoria actualizado: window.width = 1536
-[Config Mgr setString] Actualizando clave: 'window.height' | Valor Anterior: '582' | Valor Nuevo: '582'
-[Config Mgr] Valor en memoria actualizado: window.height = 582
-    -> Bounds guardados: java.awt.Rectangle[x=0,y=12,width=1536,height=582]
-  -> Guardando configuración general...
-Recopilando estado actual para guardar configuración...
-  -> Valor final de 'tema.nombre' a guardar (desde mapa inicial): clear
-  -> Valor final de 'tema.nombre' a guardar: clear
+[Config Mgr setString] Actualizando clave: 'window.x' | Valor Anterior: '245' | Valor Nuevo: '245'
+[Config Mgr] Valor en memoria actualizado: window.x = 245
+[Config Mgr setString] Actualizando clave: 'window.y' | Valor Anterior: '223' | Valor Nuevo: '223'
+[Config Mgr] Valor en memoria actualizado: window.y = 223
+[Config Mgr setString] Actualizando clave: 'window.width' | Valor Anterior: '1047' | Valor Nuevo: '1047'
+[Config Mgr] Valor en memoria actualizado: window.width = 1047
+[Config Mgr setString] Actualizando clave: 'window.height' | Valor Anterior: '371' | Valor Nuevo: '371'
+[Config Mgr] Valor en memoria actualizado: window.height = 371
+    -> Bounds guardados en memoria config: java.awt.Rectangle[x=245,y=223,width=1047,height=371]
+  -> Llamando a guardarConfiguracionActual()...
+  [ShutdownHook] Recopilando estado actual para guardar...
+    -> Estado recopilado completo. Tema a guardar: 'clear'
+    -> Llamando a configuration.guardarConfiguracion con 397 claves...
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 395
+Claves a guardar/actualizar: 397
 Archivo de configuración actualizado exitosamente.
-Configuración actual guardada exitosamente.
+  [ShutdownHook] Configuración actual guardada exitosamente.
+  [ShutdownHook] Fin guardarConfiguracionActual.
   -> Apagando ExecutorService...
-     -> ExecutorService apagado.
+    -> ExecutorService terminado ordenadamente.
 --- Hook de Cierre Terminado ---

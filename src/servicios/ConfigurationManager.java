@@ -25,7 +25,8 @@ public class ConfigurationManager
 
 	private static final Map<String, String> DEFAULT_GROUP_COMMENTS;
 	private static final Map<String, String> DEFAULT_CONFIG;
-	private static final String KEY_TEMA_NOMBRE = "tema.nombre";
+	
+	public static final String KEY_TEMA_NOMBRE = "tema.nombre";
 	
 	// --- CONSTANTES PARA ESTADO VENTANA ---
     public static final String KEY_WINDOW_X = "window.x";

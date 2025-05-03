@@ -1,6 +1,7 @@
 package controlador;
 
 import java.awt.BorderLayout;
+// --- Imports Esenciales ---
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -22,33 +23,34 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
+import javax.swing.JLabel;     // Placeholder
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -56,11 +58,14 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
+import javax.swing.ListModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.Timer;
 
-// Actions
+// --- Imports de Actions ---
 import controlador.actions.archivo.OpenFileAction;
 import controlador.actions.edicion.FlipHorizontalAction;
 import controlador.actions.edicion.FlipVerticalAction;
@@ -90,3664 +95,4820 @@ import controlador.actions.zoom.ZoomFitAction;
 import controlador.actions.zoom.ZoomFixedAction;
 import controlador.imagen.LocateFileAction;
 import controlador.worker.BuscadorArchivosWorker;
-// Imports de mis clases
+// --- Imports de Modelo, Servicios y Vista ---
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.image.ImageEdition;
 import servicios.image.ThumbnailService;
+import utils.StringUtils;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
 import vista.dialogos.ProgresoCargaDialog;
 import vista.theme.Tema;
-import vista.theme.ThemeManager; // Importar ThemeManager
+import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
 /**
- * Controlador principal para el Visor de Imágenes. Orquesta la interacción
- * entre el Modelo y la Vista.
+ * Controlador principal para el Visor de Imágenes (Versión con 2 JList sincronizadas).
+ * Orquesta la interacción entre Modelo y Vista, maneja acciones y lógica de negocio.
  */
-// Implementa ActionListener para manejar eventos de la Vista.
-public class VisorController implements ActionListener, ClipboardOwner
+public class VisorController implements ActionListener, ClipboardOwner {
 
-{
+    // --- 1. Referencias a Componentes del Sistema ---
+    private VisorModel model;						// El modelo de datos principal de la aplicación
+    private VisorView view;							// Clase principal de la Interfaz Grafica
+    private ConfigurationManager configuration;		// Gestor del archivo de configuracion
+    private IconUtils iconUtils;					// utilidad para cargar y gestionar iconos de la aplicación
+    private ThemeManager themeManager;				// Gestor de tema visual de la interfaz
+    private ThumbnailService servicioMiniaturas;	// Servicio para gestionar las miniaturas
+    private ListCoordinator listCoordinator;		// El coordinador para la selección y navegación en las listas
+    private StringUtils stringUtils;				// Utilidades de Strings y log dinamico con dynamicLog
+    
+    private ExecutorService executorService;		 
+    
+    // --- 2. Estado Interno del Controlador ---
+    private int lastMouseX, lastMouseY;
+    private Future<?> cargaImagenesFuture;
+    // private Future<?> cargaMiniaturasFuture; // Eliminado
+    private Future<?> cargaImagenPrincipalFuture;
+    private Path carpetaRaizActual = null;
+    private volatile boolean estaCargandoLista = false;
+    private volatile boolean seleccionInicialEnCurso = false; // Flag para ignorar listener durante selección inicial
+    
+    private DefaultListModel<String> modeloMiniaturas;
+    
+    // --- 3. Instancias de Actions ---
+    private Action firstImageAction, previousImageAction, nextImageAction, lastImageAction;
+    private Action openAction, deleteAction;
+    private Action rotateLeftAction, rotateRightAction, flipHorizontalAction, flipVerticalAction, cortarAction;
+    private Action toggleZoomManualAction, zoomAutoAction, resetZoomAction, zoomAnchoAction, zoomAltoAction, zoomFitAction, zoomFixedAction, zoomFijadoAction;
+    private Action locateFileAction;
+    private Action toggleMenuBarAction, toggleToolBarAction, toggleFileListAction, toggleThumbnailsAction, toggleLocationBarAction, toggleCheckeredBgAction, toggleAlwaysOnTopAction;
+    private Action refreshAction, menuAction, hiddenButtonsAction;
+    private Action temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction;
+    private List<Action> themeActions;
+    private Action toggleSubfoldersAction, toggleProporcionesAction;
+    private Map<String, Action> actionMap;
 
-	// --- Referencias ---
-	  private VisorModel model;						//Clase principal de Modelo (MVC)
-	  private VisorView view; 						//clase principal de Vista (MVC) (interfaz de usuario)
-	  private ConfigurationManager configuration;	//Configuracion en base a config.cfg
-	  private IconUtils iconUtils;					//Clase de utilidad para cargar y gestionar iconos de la aplicación.
-	  private ThemeManager themeManager;			//Temas y personalizacion
-	  private ThumbnailService servicioMiniaturas;	//Carga de miniaturas optimizada
-	  
-	// --- Servicios ---
-	  private ExecutorService executorService;
-      
-	// --- Estado del Controlador (cosas que no son datos puros del modelo) ---
-	  private int lastMouseX, lastMouseY; // Para drag
-	  private Future<?> cargaImagenesFuture;
-	  private Future<?> cargaMiniaturasFuture;
-	  private Future<?> cargaImagenPrincipalFuture = null;
-      
-	// --- Variables temporales y marcadores
-	  private volatile boolean estaCargandoLista = false; // Flag de estado de carga
-	  private Path carpetaRaizActual = null; // Variable para la carpeta raíz seleccionada por el usuario
-	  
-	// --- Instancias de Action ---
-	  // TODO: Añade actions para todas las demás funcionalidades
-	  
-	  //Navegacion 
-	  private Action firstImageAction;
-	  private Action previousImageAction;
-	  private Action nextImageAction;
-	  private Action lastImageAction;
-	  
-	  //Archivo
-      private Action openAction;
-      //private Action toggleSubfoldersAction;
-      private Action deleteAction;
-      
-      //Edicion
-      private Action rotateLeftAction;
-      private Action rotateRightAction;
-      private Action flipHorizontalAction;
-      private Action flipVerticalAction;
-      private Action cortarAction;
-      
-      //Zoom 
-      private Action toggleZoomManualAction;
-      private Action zoomAutoAction;
-      private Action resetZoomAction;
-      //private Action zoomWidthAction;
-      private Action zoomAnchoAction;
-      private Action zoomAltoAction;
-      private Action zoomFitAction;
-      private Action zoomFixedAction;
-      private Action zoomFijadoAction;
-      
-      //Imagen
-      private Action locateFileAction;
-      
-      //Vista
-      private Action toggleMenuBarAction;
-      private Action toggleToolBarAction; // Renombrado desde toggleButtonBarAction
-      private Action toggleFileListAction;
-      private Action toggleThumbnailsAction;
-      private Action toggleLocationBarAction;
-      private Action toggleCheckeredBgAction;
-      private Action toggleAlwaysOnTopAction;
-      
-      //Servicios
-      private Action refreshAction;
-      private Action menuAction;
-      private Action hiddenButtonsAction;
-      
-      //Tema
-      private Action toggleThemeAction;
-      private Action temaClearAction;
-      private Action temaDarkAction;
-      private Action temaBlueAction;
-      private Action temaGreenAction;
-      private Action temaOrangeAction;
-      
-      //toggle
-      private Action toggleSubfoldersAction;
-      private Action toggleProporcionesAction;
-      
-      // Guardar lista para fácil manejo
-      private List<Action> themeActions;
-      
-      // Mapa a pasar
-      private Map<String, Action> actionMap; 
-    
-    
-	// --- Constructor ---
-      public VisorController(){
-    
-    	// ********************* COSAS A IMPLEMENTAR EN UN FUTURO: ***************************
+
+    // --- 4. Constructor Principal ---
+ // En VisorController.java
+
+    // --- 4. Constructor Principal ---
+    public VisorController() {
     	
-    	//TODO TwelveMonkeys: 	Para ampliar los tipos de imagenes soportados
-    	//TODO FlatLaf:			Para configurar los colores profundamente
-    	
-    	// ***********************************************************************************
-    	
-        System.out.println ("Iniciando Visor de Imágenes V2 (con ThemeManager)...");
-        // 1. Inicializar Modelo
+        // 4.0. Log inicio
+        System.out.println("--- Iniciando VisorController ---");
+
+        // 4.1. Inicializar Modelo
         model = new VisorModel();
+        System.out.println("  1. Modelo inicializado.");
 
-        // 2. Inicializar ConfigurationManager
+        // 4.2. Inicializar Configuración
         try {
-        	configuration = new ConfigurationManager();
-        } catch (IOException e) { /* Manejo de error fatal */ System.exit(1); }
-
-        // 3. Inicializar ThemeManager (DESPUÉS de ConfigurationManager)
+            configuration = new ConfigurationManager();
+            System.out.println("  2. Configuración inicializada.");
+        } catch (IOException e) {
+            handleFatalError("Error al inicializar ConfigurationManager", e);
+        }
+        
+        // 4.3. Inicializar Gestor de Temas
         this.themeManager = new ThemeManager(configuration);
+        System.out.println("  3. ThemeManager inicializado.");
 
-        // 4. Inicializar IconUtils (DESPUÉS de ThemeManager)
-        this.iconUtils = new IconUtils(this.themeManager); // Pasa ThemeManager
+        // 4.4. Inicializar Utilidad de Iconos
+        this.iconUtils = new IconUtils(this.themeManager);
+        System.out.println("  4. IconUtils inicializado.");
 
+        // 4.5. Inicializar Servicio de Hilos
         executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        System.out.println("  5. ExecutorService inicializado ("+Runtime.getRuntime().availableProcessors()+" hilos).");
 
-        // 5. Inicializar ThumbnailService
-        this.servicioMiniaturas = new ThumbnailService(); // Creamos la instancia del servicio
-        System.out.println("[Controller] ThumbnailService instanciado.");
-        
-        // --- 6. LEER VALORES DE UI INICIALES ---
-        // Obtener el objeto Tema actual
+        // 4.6. Inicializar Servicio de Miniaturas
+        this.servicioMiniaturas = new ThumbnailService();
+        this.modeloMiniaturas = new DefaultListModel<>(); // Modelo para la lista de miniaturas (ventana deslizante)
+        System.out.println("  6. ThumbnailService inicializado.");
+
+        // 4.7. Leer Configuración UI Inicial
         Tema temaInicial = this.themeManager.getTemaActual();
-        
-        Objects.requireNonNull(temaInicial, "El tema inicial no puede ser nulo");
-        
-        // Extraer colores específicos del objeto Tema
-        Color cFondoPrincipal 		= temaInicial.colorFondoPrincipal();
-        Color cFondoSecundario 		= temaInicial.colorFondoSecundario();
-        Color cTextoPrimario 		= temaInicial.colorTextoPrimario();
-        Color cTextoSecundario 		= temaInicial.colorTextoSecundario();
-        Color cBorde 				= temaInicial.colorBorde();
-        Color cBordeTitulo 			= temaInicial.colorBordeTitulo();
-        Color cSeleccionFondo 		= temaInicial.colorSeleccionFondo();
-        Color cSeleccionTexto 		= temaInicial.colorSeleccionTexto();
-        Color cBotonFondo 			= temaInicial.colorBotonFondo();
-        Color cBotonTexto 			= temaInicial.colorBotonTexto();
-        Color cBotonFondoActivado 	= temaInicial.colorBotonFondoActivado();
-        Color cBotonFondoAnimacion 	= temaInicial.colorBotonFondoAnimacion();
+        Objects.requireNonNull(temaInicial, "Tema inicial nulo");
+        // Hacer final estas variables para usarlas en el invokeLater
+        final int anchoIconoLeido = configuration.getInt("iconos.ancho", 24);
+        final int altoIconoLeido = configuration.getInt("iconos.alto", 24);
+        System.out.println("  7. Config UI leída (Iconos: "+anchoIconoLeido+"x"+altoIconoLeido+").");
 
-        // Leer tamaño iconos (desde ConfigurationManager como antes)
-        int anchoIconoLeido 		= configuration.getInt("iconos.ancho", 24);
-        int altoIconoLeido 			= configuration.getInt("iconos.alto", 24);
-        // -----------------------------------------------------------------------
+        // 4.8. Inicializar Actions (Parcialmente - Sin Navegación AÚN)
+        initializeActions(anchoIconoLeido, altoIconoLeido); // Llama al método modificado
+        System.out.println("  8. Actions (parcialmente) inicializadas.");
 
-        // --- 6. Inicializar Actions ---
-        initializeActions(anchoIconoLeido, altoIconoLeido); // Pasa IconUtils implícitamente
+        // 4.9. Crear Mapa de Actions (Parcialmente - Sin Navegación AÚN)
+        this.actionMap = createActionMap(); // Llama al método modificado
+        System.out.println("  9. Mapa de Actions (parcial) creado ("+this.actionMap.size()+" entradas).");
 
-        // --- 7. Crear mapa de actions ---
-        this.actionMap = createActionMap();
+        // 4.10. Calcular Altura Panel Miniaturas
+        int selThumbH = configuration.getInt("miniaturas.tamano.seleccionada.alto", 60);
+        final int calculatedMiniaturePanelHeight = Math.max(80, selThumbH + 40); // Hacer final
+        System.out.println(" 10. Altura Scroll Miniaturas calculada: " + calculatedMiniaturePanelHeight);
 
-        // --- 8. Calcular Altura Miniaturas ---
-        int selThumbH = configuration.getInt("miniaturas.tamano.seleccionada.alto");
-        int paddingVerticalTotal = 40;
-        final int calculatedMiniaturePanelHeight = selThumbH + paddingVerticalTotal;
-
-        // --- 9. Crear instancia de ViewUIConfig ---
+        // 4.11. Crear Configuración para la Vista
+        // Hacer final para usarla en invokeLater
         final ViewUIConfig uiConfig = new ViewUIConfig(
-        		cFondoPrincipal, // Pasando color principal como 'colorFondo' obsoleto
-                cBotonFondoActivado, // Pasando color activado
-                cBotonFondoAnimacion, // Pasando color animación
-                // Configuración estándar
-                anchoIconoLeido, altoIconoLeido, this.actionMap, this.iconUtils,
-                // Nuevos colores específicos (ASEGURA QUE ViewUIConfig LOS ACEPTA)
-                cFondoPrincipal, cFondoSecundario, cTextoPrimario, cTextoSecundario,
-                cBorde, cBordeTitulo, cSeleccionFondo, cSeleccionTexto,
-                cBotonFondo, cBotonTexto, cBotonFondoActivado, cBotonFondoAnimacion,
+                temaInicial.colorFondoPrincipal(), temaInicial.colorBotonFondoActivado(), temaInicial.colorBotonFondoAnimacion(),
+                anchoIconoLeido, altoIconoLeido, this.actionMap, this.iconUtils, // Pasamos el actionMap parcial
+                temaInicial.colorFondoPrincipal(), temaInicial.colorFondoSecundario(), temaInicial.colorTextoPrimario(),
+                temaInicial.colorTextoSecundario(), temaInicial.colorBorde(), temaInicial.colorBordeTitulo(),
+                temaInicial.colorSeleccionFondo(), temaInicial.colorSeleccionTexto(), temaInicial.colorBotonFondo(),
+                temaInicial.colorBotonTexto(), temaInicial.colorBotonFondoActivado(), temaInicial.colorBotonFondoAnimacion(),
                 this.configuration
         );
+        System.out.println(" 11. ViewUIConfig creado.");
 
-        // --- 10. Crear Vista y Conectar en el EDT ---
-        final VisorController controllerInstance = this;
+        // 4.12. Crear e Inicializar la Vista, Coordinador y Actions restantes (en el EDT)
+        final VisorController controllerInstance = this; // Referencia final a this para la lambda
         SwingUtilities.invokeLater(() -> {
-        	//System.out.println("[EDT] Creando VisorView...");
-            view = new VisorView(calculatedMiniaturePanelHeight, uiConfig);
-            //System.out.println("[EDT] Asignando modelo a JList...");
-            view.setListaImagenesModel(model.getModeloLista());
-            
-         // --- Modificación: Obtener y Validar carpeta raíz inicial ---
-            String folderInitPath = configuration.getString("inicio.carpeta", "");
-            if (!folderInitPath.isEmpty()) {
-                try {
-                    Path tempPath = Paths.get(folderInitPath); // Usa variable temporal
-                    if (Files.isDirectory(tempPath)) { // Comprueba si es directorio válido
-                         this.carpetaRaizActual = tempPath; // Asigna a la variable de instancia
-                         System.out.println("[Controller EDT] Carpeta Raíz Inicial establecida desde config: " + this.carpetaRaizActual);
-                    } else {
-                         System.err.println("WARN [Controller EDT]: Carpeta raíz inicial de config NO es un directorio válido: " + folderInitPath);
-                         this.carpetaRaizActual = null;
-                    }
-                } catch (java.nio.file.InvalidPathException ipe) {
-                     System.err.println("WARN [Controller EDT]: Ruta de carpeta raíz inicial inválida en config: " + folderInitPath);
-                     this.carpetaRaizActual = null;
-                }
-            } else {
-                System.out.println("[Controller EDT] No hay carpeta inicial en la configuración.");
-                this.carpetaRaizActual = null;
-            }
-         //--------------------
-            
-            //System.out.println("[EDT] Llamando a aplicarConfiguracionInicial...");
-            controllerInstance.aplicarConfiguracionInicial(); // Aplica estados enabled/visible/selected
-            //System.out.println("[EDT] Llamando a cargarEstadoInicial...");
-            controllerInstance.cargarEstadoInicial();       // Carga carpeta e imagen inicial
-            //System.out.println("[EDT] Llamando a configurarListenersNoAction...");
-            controllerInstance.configurarListenersNoAction(); // JList, Mouse, etc.
-            //System.out.println("[EDT] Llamando a configurarComponentActions...");
-            controllerInstance.configurarComponentActions(); // setAction para botones/menus
-            
-            //System.out.println("[EDT] Haciendo visible la vista...");
-            view.setVisible(true);
-            
-         // --- Sincronizar estado inicial Fondo a Cuadros ---
-            // Después de que todo es visible, leer el estado de la Action
-            // y aplicarlo explícitamente a la lógica de pintado de la vista.
-            //System.out.println("[EDT] Sincronizando estado visual inicial de Fondo a Cuadros...");
-            if (toggleCheckeredBgAction != null && view != null) {
-                 boolean initialState = Boolean.TRUE.equals(toggleCheckeredBgAction.getValue(Action.SELECTED_KEY));
-                 //System.out.println("  -> Estado inicial de Action Fondo a Cuadros: " + initialState);
-                 view.setCheckeredBackgroundEnabled(initialState); // Llamada explícita AHORA
-            } else {
-                 System.err.println("ERROR: No se pudo sincronizar estado inicial de Fondo a Cuadros (Action o View nula).");
+            System.out.println(" [EDT] Iniciando creación/configuración Vista, Coordinador y Actions Nav...");
+            // Validar dependencias
+            if (model == null || servicioMiniaturas == null || uiConfig == null || iconUtils == null) { // Añadir iconUtils a la validación
+                 handleFatalError("[EDT] Dependencias nulas antes de crear Vista/Coordinator", null);
+                 return;
             }
 
-             // El forzado visual de los Radio Buttons de tema (si aún lo tienes) también iría aquí o en su propio invokeLater
-             // SwingUtilities.invokeLater(() -> { /* ... forzado visual radios ... */ });
+            // Crear Vista pasando dependencias
+            view = new VisorView(calculatedMiniaturePanelHeight, uiConfig, model, servicioMiniaturas);
+            System.out.println(" [EDT] VisorView instanciado.");
 
-            
-            System.out.println("[Controller] Inicialización de UI en EDT completada.");
+            // Instanciar ListCoordinator AHORA que tenemos view
+            listCoordinator = new ListCoordinator(model, view, controllerInstance);
+            System.out.println(" [EDT] ListCoordinator instanciado.");
+
+            // Crear Actions de Navegación AHORA, pasándoles el coordinator
+            System.out.println(" [EDT] Creando Actions de Navegación...");
+            try {
+                // Usar las variables final leídas antes
+                nextImageAction = new NextImageAction(listCoordinator, iconUtils, anchoIconoLeido, altoIconoLeido);
+                previousImageAction = new PreviousImageAction(listCoordinator, iconUtils, anchoIconoLeido, altoIconoLeido);
+                firstImageAction = new FirstImageAction(listCoordinator, iconUtils, anchoIconoLeido, altoIconoLeido);
+                lastImageAction = new LastImageAction(listCoordinator, iconUtils, anchoIconoLeido, altoIconoLeido);
+
+                // Actualizar el actionMap AHORA que existen
+                // Es importante usar las mismas claves que usa createActionMap y los builders
+                actionMap.put("Imagen_Siguiente", nextImageAction); actionMap.put("Siguiente_48x48", nextImageAction);
+                actionMap.put("Imagen_Aterior", previousImageAction); actionMap.put("Anterior_48x48", previousImageAction);
+                actionMap.put("Primera_Imagen", firstImageAction); actionMap.put("Primera_48x48", firstImageAction);
+                actionMap.put("Ultima_Imagen", lastImageAction); actionMap.put("Ultima_48x48", lastImageAction);
+                System.out.println("   -> Actions de Navegación creadas y añadidas al actionMap. Tamaño actual actionMap: " + actionMap.size());
+
+            } catch (Exception e) {
+                 System.err.println("ERROR [EDT] creando Actions de Navegación: " + e.getMessage());
+                 e.printStackTrace();
+                 // Considerar mostrar error al usuario o continuar sin esas actions
+            }
+
+            // Asignar modelo (de miniaturas) a la lista de miniaturas en la vista
+            // Asegurarse de que modeloMiniaturas (el de instancia) no es null
+             if (modeloMiniaturas == null) modeloMiniaturas = new DefaultListModel<>();
+             view.setModeloListaMiniaturas(this.modeloMiniaturas); // Usa el modelo de instancia
+             System.out.println(" [EDT] Modelo de Miniaturas (inicialmente vacío) asignado a JList.");
+
+             // Asignar modelo principal a la lista de nombres (si no se hizo antes)
+             // Esto asegura que ambas listas tengan su modelo asignado correctamente.
+             if(view.getListaNombres() != null && view.getListaNombres().getModel() != model.getModeloLista()){
+                 view.setListaImagenesModel(model.getModeloLista());
+                 System.out.println(" [EDT] Modelo Principal asignado también a JList Nombres.");
+             }
+
+            // Establecer carpeta raíz inicial
+            establecerCarpetaRaizDesdeConfig(); // Ya estaba
+            System.out.println(" [EDT] Carpeta raíz inicial: " + this.carpetaRaizActual);
+
+            // Aplicar estado inicial UI
+            System.out.println(" [EDT] Aplicando config inicial a UI...");
+            controllerInstance.aplicarConfiguracionInicial(); // Ya estaba
+
+            // Cargar contenido inicial
+            System.out.println(" [EDT] Cargando estado inicial (lista imágenes)...");
+            controllerInstance.cargarEstadoInicial(); // Ya estaba
+                        
+            // Configurar listeners de la vista (Usa el ListCoordinator ya creado)
+            System.out.println(" [EDT] Configurando listeners de la vista...");
+            controllerInstance.configurarListenersVista(); // Ya estaba
+
+            // Configurar Actions en componentes (AHORA el actionMap está completo)
+            System.out.println(" [EDT] Configurando Actions en Componentes UI...");
+            controllerInstance.configurarComponentActions(); // Llamada movida aquí
+
+            // Sincronizar estado visual final (como fondo a cuadros)
+            System.out.println(" [EDT] Sincronizando UI final...");
+            if (toggleCheckeredBgAction != null && view != null) { // Ya estaba
+                view.setCheckeredBackgroundEnabled(Boolean.TRUE.equals(toggleCheckeredBgAction.getValue(Action.SELECTED_KEY)));
+            }
+
+            System.out.println(" [EDT] Inicialización de UI completada.");
         }); // Fin invokeLater
 
-        // 11. Configurar Hook de cierre
-        configurarShutdownHook();
-        System.out.println("[Controller] Constructor finalizado.");
-    }
+        // 4.13. Configurar Hook de Cierre
+        configurarShutdownHook(); // Ya estaba
+        System.out.println(" 13. Shutdown Hook configurado.");
+
+        System.out.println("--- Constructor VisorController Finalizado ---");
+        System.out.println("VisorController instanciado. La inicialización de la UI ocurrirá en el EDT."); // Mensaje final
+    } // --- FIN CONSTRUCTOR ---
     
-	
-	// --- Método para inicializar las Actions (CORREGIDO) ---
-	private void initializeActions(int iconoAncho, int iconoAlto) 
-	{
-		//LOG [Controller] Inicializando Actions
-	    System.out.println("[Controller] Inicializando Actions...");
-
-	    if (this.iconUtils == null) { // Validación importante
-            System.err.println("FATAL [Controller]: IconUtils no está inicializado antes de initializeActions!");
-            // Considerar lanzar excepción o salir
-            return;
-        }
-	    
-	    // --- Instanciar TODAS las Actions usando sus clases dedicadas ---
-	    // Asegúrate de haber creado los archivos .java correspondientes en controlador.actions
-
-	  //Navegacion
-	    firstImageAction 		= new FirstImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
-	    previousImageAction 	= new PreviousImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
-	    nextImageAction 		= new NextImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
-	    lastImageAction 		= new LastImageAction(this, this.iconUtils, iconoAncho, iconoAlto); // Pasa tamaño
-	    
-	  //Archivo
-	    openAction 				= new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que OpenFileAction existe y carga icono
-	    
-	  //Edicion
-	    rotateLeftAction 		= new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    rotateRightAction 		= new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    flipHorizontalAction 	= new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    flipVerticalAction 		= new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    //cropAction = new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    
-	  //Imagen
-	    locateFileAction = new LocateFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    
-	  //Zoom
-	    toggleZoomManualAction 	= new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ToggleZoomManualAction existe y carga icono
-	    zoomAutoAction 			= new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    zoomAnchoAction 		= new ZoomAnchoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    zoomAltoAction 			= new ZoomAltoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    zoomFitAction 			= new ZoomFitAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    zoomFixedAction 		= new ZoomFixedAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    zoomFijadoAction	 	= new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    resetZoomAction 		= new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto); // Asume que ResetZoomAction existe y carga icono
-	    
-	  //Vista
-	    toggleMenuBarAction = new ToggleMenuBarAction(this); // No necesita icono ni tamaño
-        toggleToolBarAction = new ToggleToolBarAction(this); // Cambiado nombre clase
-        toggleFileListAction = new ToggleFileListAction(this);
-        toggleThumbnailsAction = new ToggleThumbnailsAction(this);
-        toggleLocationBarAction = new ToggleLocationBarAction(this);
-        toggleCheckeredBgAction = new ToggleCheckeredBackgroundAction(this);
-        toggleAlwaysOnTopAction = new ToggleAlwaysOnTopAction(this);
-	  //Servicios
-	    //refreshAction = new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    //deleteAction = new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);
-	    
-	  //Tema
-	    temaClearAction 		= new ToggleThemeAction(this, "clear", "Tema Clear");
-	    temaDarkAction 			= new ToggleThemeAction(this, "dark", "Tema Dark");
-	    temaBlueAction 			= new ToggleThemeAction(this, "blue", "Tema Blue");
-	    temaGreenAction 		= new ToggleThemeAction(this, "green", "Tema Gren");
-	    temaOrangeAction 		= new ToggleThemeAction(this, "orange", "Tema Orange");
-	    
-	  //toggle
-	    toggleSubfoldersAction = new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
-	    toggleProporcionesAction= new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
-	    themeActions = List.of(
-	    		temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction
-	    	);
-	    
-
-	    // --- Configuración adicional (como el estado inicial de SELECTED_KEY) ---
-	    // Esto SÍ puede quedar aquí o moverse al constructor de la Action específica
-	    boolean zoomInicialActivado = configuration.getBoolean("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", false);
-	    if (toggleZoomManualAction != null) { // Comprobar si la action se instanció
-	         toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomInicialActivado);
-	    }
-	     if (resetZoomAction != null) { // Comprobar si la action se instanció
-	          resetZoomAction.setEnabled(false); // Estado inicial deshabilitado
-	     }
-
-
-	    // LOG --- DEBUG: Verificar icono (opcional ahora, pero puede quedar) ---
-//	    if (previousImageAction != null && previousImageAction.getValue(Action.SMALL_ICON) != null) {
-//	        System.out.println("  [Controller DEBUG Post-Init] Icono para previousImageAction RECUPERADO. HashCode Action: " + previousImageAction.hashCode());
-//	    } else if (previousImageAction != null) {
-//	        System.err.println("  [Controller DEBUG Post-Init] ERROR: Icono para previousImageAction es NULL. HashCode Action: " + previousImageAction.hashCode());
-//	    } else {
-//	         System.err.println("  [Controller DEBUG Post-Init] ERROR: previousImageAction es NULL.");
-//	    }
-	    // --- FIN DEBUG ---
-
-	     
-	    //LOG [Controller] Actions inicializadas.
-	     //System.out.println("[Controller] Actions inicializadas.");
-	}
-	
     
-    private Map<String, Action> createActionMap() 
-    {
-    	
-        Map<String, Action> mapaDeAcciones = new HashMap<>();
-        // Clave = ActionCommand CORTO, Valor = Instancia de Action
-        
-        // TODO --- AÑADIR LAS OTRAS ACTIONS AL MAPA ---
-        
-      //Navegacion
-        mapaDeAcciones.put("Primera_Imagen", firstImageAction);
-        mapaDeAcciones.put("Primera_48x48", this.firstImageAction);//); // Botón
-        
-        mapaDeAcciones.put("Imagen_Siguiente", nextImageAction);
-        mapaDeAcciones.put("Siguiente_48x48", this.nextImageAction);//); // Botón
-        
-        mapaDeAcciones.put("Imagen_Aterior", previousImageAction); // Cuidado con Typo si existe
-        mapaDeAcciones.put("Anterior_48x48", this.previousImageAction); //previousImageAction); // Botón
-        
-        mapaDeAcciones.put("Ultima_Imagen", lastImageAction);
-        mapaDeAcciones.put("Ultima_48x48", this.lastImageAction);//); // Boton
-        
-      // Archivo
-        mapaDeAcciones.put("Abrir_Archivo", openAction);
-        mapaDeAcciones.put("Selector_de_Carpetas_48x48", this.openAction); //openAction); // Botón
+    // --- Métodos de Inicialización Interna ---
 
-      // Zoom  
-        mapaDeAcciones.put("Resetear_Zoom", resetZoomAction);
-        mapaDeAcciones.put("Reset_48x48", this.resetZoomAction); //resetZoomAction); // Botón
-
-        mapaDeAcciones.put("Zoom_Automatico", zoomAutoAction); //tamaño de la imagen original
-        mapaDeAcciones.put("Zoom_Auto_48x48", zoomAutoAction);
-
-        mapaDeAcciones.put("Zoom_a_lo_Ancho", zoomAnchoAction);
-        mapaDeAcciones.put("Ajustar_al_Ancho_48x48", zoomAnchoAction);
-
-        mapaDeAcciones.put("Zoom_a_lo_Alto", zoomAltoAction);
-        mapaDeAcciones.put("Ajustar_al_Alto_48x48", zoomAltoAction);
-
-        mapaDeAcciones.put("Escalar_Para_Ajustar", zoomFitAction);
-        mapaDeAcciones.put("Escalar_Para_Ajustar_48x48", zoomFitAction);
-
-        mapaDeAcciones.put("Zoom_Actual_Fijo", zoomFixedAction);
-        mapaDeAcciones.put("Zoom_Fijo_48x48", zoomFixedAction);
-        
-        mapaDeAcciones.put("Zoom_Especificado", zoomFijadoAction);
-        mapaDeAcciones.put("Zoom_Especifico_48x48", zoomFijadoAction);
-        
-        mapaDeAcciones.put("Activar_Zoom_Manual", toggleZoomManualAction);
-        mapaDeAcciones.put("Zoom_48x48", this.toggleZoomManualAction);// toggleZoomManualAction); // Botón
-        
-      //Edicion
-        mapaDeAcciones.put("Girar_Izquierda", rotateLeftAction);
-        mapaDeAcciones.put("Rotar_Izquierda_48x48", rotateLeftAction);
-        
-        mapaDeAcciones.put("Girar_Derecha", rotateRightAction);
-        mapaDeAcciones.put("Rotar_Derecha_48x48", rotateRightAction);
-        
-        mapaDeAcciones.put("Voltear_Horizontal", flipHorizontalAction);
-        mapaDeAcciones.put("Espejo_Horizontal_48x48", flipHorizontalAction);
-        
-        mapaDeAcciones.put("Voltear_Vertical", flipVerticalAction);
-        mapaDeAcciones.put("Espejo_Vertical_48x48", flipVerticalAction);
-        
-        mapaDeAcciones.put("Recortar_48x48", cortarAction);
-        
-      // Imagen
-        mapaDeAcciones.put("Abrir_Ubicacion_del_Archivo", locateFileAction);
-        mapaDeAcciones.put("Ubicacion_del_Archivo_48x48", locateFileAction);
-
-      //Vista
-        mapaDeAcciones.put("Barra_de_Menu", toggleMenuBarAction);
-        mapaDeAcciones.put("Barra_de_Botones", toggleToolBarAction); // Clave del menú
-        mapaDeAcciones.put("Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction);
-        mapaDeAcciones.put("Imagenes_en_Miniatura", toggleThumbnailsAction);
-        mapaDeAcciones.put("Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction);
-        mapaDeAcciones.put("Fondo_a_Cuadros", toggleCheckeredBgAction);
-        mapaDeAcciones.put("Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
-        
-      // Servicios
-        mapaDeAcciones.put("Menu_48x48",menuAction);         
-        
-        mapaDeAcciones.put("Botones_Ocultos_48x48",hiddenButtonsAction);
-        
-        mapaDeAcciones.put("Subcarpetas_48x48", toggleSubfoldersAction);             // Botón
-
-        mapaDeAcciones.put("Refrescar_48x48", refreshAction); // Solo botón
-        
-        mapaDeAcciones.put("Recargar_Lista_de_Imagenes", refreshAction); // Opción de menú
-
-        mapaDeAcciones.put("Eliminar_Permanentemente", deleteAction);
-        
-        mapaDeAcciones.put("Borrar_48x48", deleteAction);
-
-        //Mostrar Subcarpeta Si/No 
-        //mapaDeAcciones.put("Mostrar_Imagenes_de_Subcarpetas", toggleSubfoldersAction); // Radio button 1
-        //mapaDeAcciones.put("Mostrar_Solo_Carpeta_Actual", toggleSubfoldersAction);    // Radio button 2 (necesitarán lógica especial en la Action)
-        
-        // Mostrar Tema
-        mapaDeAcciones.put("Tema_Clear", 	temaClearAction);
-        mapaDeAcciones.put("Tema_Dark", 	temaDarkAction);
-    	mapaDeAcciones.put("Tema_Blue", 	temaBlueAction);
-    	mapaDeAcciones.put("Tema_Green", 	temaGreenAction);
-    	mapaDeAcciones.put("Tema_Orange", 	temaOrangeAction);
-        
-    	//Botones toggle
-//    	mapaDeAcciones.put("Subcarpetas_48x48", toggleSubfoldersAction);
-//    	mapaDeAcciones.put("Mostrar_Imagenes_de_Subcarpetas", toggleSubfoldersAction);
-//    	mapaDeAcciones.put("Mostrar_Solo_Carpeta_Actual", toggleSubfoldersAction);
-    	
-    		//Mostrar Subcarpeta Si/No
-    	mapaDeAcciones.put("Mantener_Proporciones", toggleProporcionesAction);
-    	mapaDeAcciones.put("Mantener_Proporciones_48x48", toggleProporcionesAction);
-    	
-        // ... Añade el resto ...
-
-        return mapaDeAcciones;
-    }
-	
     
     /**
-     * Cambia el tema actual usando ThemeManager, guarda SOLO el nombre en config,
-     * actualiza las Actions y notifica al usuario.
+     * Inicializa todas las instancias de Action.
      */
-    public void cambiarTemaYNotificar(String nuevoTema) {
-        if (themeManager == null || nuevoTema == null || nuevoTema.trim().isEmpty()) { // Verificar themeManager
-            System.err.println("Error: No se puede cambiar tema (ThemeManager o nombre inválido).");
-            return;
-        }
-        System.out.println("[Controller] Solicitud para cambiar tema a: " + nuevoTema);
+    private void initializeActions(int iconoAncho, int iconoAlto) {
+         System.out.println("  [Init Actions] Inicializando...");
+         if (this.iconUtils == null) { handleFatalError("IconUtils nulo en initializeActions", null); return; }
+        
+        openAction 					= new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        rotateLeftAction 			= new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        rotateRightAction 			= new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        flipHorizontalAction 		= new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        flipVerticalAction 			= new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        locateFileAction 			= new LocateFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        toggleZoomManualAction 		= new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomAutoAction 				= new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomAnchoAction 			= new ZoomAnchoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomAltoAction	 			= new ZoomAltoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomFitAction 				= new ZoomFitAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomFixedAction 			= new ZoomFixedAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomFijadoAction 			= new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        resetZoomAction 			= new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        toggleMenuBarAction 		= new ToggleMenuBarAction(this);
+        toggleToolBarAction 		= new ToggleToolBarAction(this);
+        toggleFileListAction 		= new ToggleFileListAction(this);
+        toggleThumbnailsAction 		= new ToggleThumbnailsAction(this);
+        toggleLocationBarAction 	= new ToggleLocationBarAction(this);
+        toggleCheckeredBgAction 	= new ToggleCheckeredBackgroundAction(this);
+        toggleAlwaysOnTopAction 	= new ToggleAlwaysOnTopAction(this);
+        temaClearAction 			= new ToggleThemeAction(this, "clear", "Tema Clear");
+        temaDarkAction 				= new ToggleThemeAction(this, "dark", "Tema Dark");
+        temaBlueAction 				= new ToggleThemeAction(this, "blue", "Tema Blue");
+        temaGreenAction 			= new ToggleThemeAction(this, "green", "Tema Green");
+        temaOrangeAction 			= new ToggleThemeAction(this, "orange", "Tema Orange");
+        toggleSubfoldersAction 		= new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
+        toggleProporcionesAction 	= new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
+        
+        themeActions = List.of(temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction);
+        
+        // Configurar estado inicial específico
+        if (toggleZoomManualAction != null) toggleZoomManualAction.putValue(Action.SELECTED_KEY, configuration.getBoolean("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", false));
+        if (resetZoomAction != null) resetZoomAction.setEnabled(false);
+         System.out.println("  [Init Actions] Finalizado.");
+    } //FIN initializeActions
 
-        // --- TEXTO MODIFICADO ---
-        // 1. Establecer tema en ThemeManager (este llama a configManager.setString internamente)
-        boolean cambiado = themeManager.setTemaActual(nuevoTema);
-        // Ya NO se llama a configuration.setTemaActualYGuardar()
-        // --- FIN MODIFICACION ---
-
-        if (cambiado) { // Solo actualizar/notificar si realmente cambió
-            // 2. Actualizar Estado de Selección de TODAS las Actions de Tema
-            if (themeActions != null) {
-                String temaConfirmado = themeManager.getTemaActual().nombreInterno(); // Obtener el nombre actual confirmado
-                for (Action action : themeActions) {
-                    if (action instanceof ToggleThemeAction) {
-                        ((ToggleThemeAction) action).actualizarEstadoSeleccion(temaConfirmado);
-                    }
-                }
-                 System.out.println("[Controller] Estado de selección de Actions de tema actualizado.");
-            }
-
-            // 3. Notificar al Usuario (Reinicio Necesario)
-            String nombreTemaDisplay = nuevoTema.substring(0, 1).toUpperCase() + nuevoTema.substring(1);
-            JOptionPane.showMessageDialog(
-                (view != null ? view.getFrame() : null), // Manejar vista nula
-                "El tema se ha cambiado a '" + nombreTemaDisplay + "'.\n" +
-                "Por favor, reinicie la aplicación para aplicar los cambios visuales.",
-                "Cambio de Tema",
-                JOptionPane.INFORMATION_MESSAGE
-            );
-        }
-    }
     
-    
-    //Método para configurar Actions en la Vista ---
-    // Este método reemplazará la necesidad de addActionListener para componentes con Actions
-    // --- INICIO MÉTODO COMPLETO Y CORREGIDO: configurarComponentActions ---
+    // --- 6. Métodos de Carga y Navegación --- (Añadir estos dos métodos aquí o en una sección similar)
+
     /**
-     * Configura las Actions y Listeners para los componentes interactivos de la vista (botones y menús).
-     * Utiliza setAction cuando es posible para aprovechar la sincronización automática de Swing,
-     * especialmente para estados como enabled, texto, icono y SELECTED_KEY.
-     * Para casos específicos como los JRadioButtonMenuItem agrupados que comparten lógica
-     * pero necesitan texto diferente, se usa ActionListener y se gestiona el estado manualmente.
+     * Carga la configuración inicial de la interfaz de usuario (visibilidad, selección de menús/botones)
+     * leyendo los valores desde ConfigurationManager y aplicándolos a la Vista y al Modelo.
+     * Se llama desde el constructor (en el EDT) después de crear la Vista.
      */
-    private void configurarComponentActions () {
-        System.out.println("[Controller] Configurando Actions y Listeners en componentes...");
-        if (view == null) {
-            System.err.println("ERROR: Vista no inicializada al configurar actions/listeners.");
+    private void aplicarConfiguracionInicial() {
+        System.out.println("  [Apply Config] Aplicando configuración inicial...");
+        // Verificar dependencias primero
+        if (configuration == null || view == null || model == null) {
+            System.err.println("ERROR [aplicarConfiguracionInicial]: Configuración, Vista o Modelo nulos. Abortando.");
             return;
         }
 
-        // --- 1. Asignar Actions a los BOTONES ---
+        // 6.1. Aplicar configuración al Modelo (valores que afectan lógica)
+        try {
+            model.setMiniaturasAntes(configuration.getInt("miniaturas.cantidad.antes", 7));
+            model.setMiniaturasDespues(configuration.getInt("miniaturas.cantidad.despues", 7));
+            model.setMiniaturaSelAncho(configuration.getInt("miniaturas.tamano.seleccionada.ancho", 60));
+            model.setMiniaturaSelAlto(configuration.getInt("miniaturas.tamano.seleccionada.alto", 60));
+            model.setMiniaturaNormAncho(configuration.getInt("miniaturas.tamano.normal.ancho", 40));
+            model.setMiniaturaNormAlto(configuration.getInt("miniaturas.tamano.normal.alto", 40));
+            boolean cargarSubcarpetas = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
+            model.setMostrarSoloCarpetaActual(!cargarSubcarpetas);
+            System.out.println("    -> Config Modelo OK.");
+        } catch (Exception e) { System.err.println("ERROR aplicando config al Modelo: " + e.getMessage()); }
+
+        // 6.2. Aplicar configuración a Botones (Enabled/Visible)
         Map<String, JButton> botones = view.getBotonesPorNombre();
-        if (botones != null) {
-            System.out.println("  -> Asignando Actions a Botones...");
-
-            // --- Botones Toggle ---
-            setActionForKey(botones, "interfaz.boton.toggle.Subcarpetas_48x48", toggleSubfoldersAction);
-            setActionForKey(botones, "interfaz.boton.toggle.Mantener_Proporciones_48x48", toggleProporcionesAction);
-            // setActionForKey(botones, "interfaz.boton.toggle.Mostrar_Favoritos_48x48", toggleFavoritosAction); // Cuando la tengas
-            setActionForKey(botones, "interfaz.boton.control.Ubicacion_de_Archivo_48x48" , locateFileAction);
-//+ "interfaz.boton.toggle.Ubicacion_de_Archivo_48x48"
-
-            // --- Botones Navegación ---
-            setActionForKey(botones, "interfaz.boton.movimiento.Primera_48x48", firstImageAction);
-            setActionForKey(botones, "interfaz.boton.movimiento.Anterior_48x48", previousImageAction);
-            setActionForKey(botones, "interfaz.boton.movimiento.Siguiente_48x48", nextImageAction);
-            setActionForKey(botones, "interfaz.boton.movimiento.Ultima_48x48", lastImageAction);
-
-            // --- Botones Edición ---
-            setActionForKey(botones, "interfaz.boton.edicion.Rotar_Izquierda_48x48", rotateLeftAction);
-            setActionForKey(botones, "interfaz.boton.edicion.Rotar_Derecha_48x48", rotateRightAction);
-            setActionForKey(botones, "interfaz.boton.edicion.Espejo_Horizontal_48x48", flipHorizontalAction);
-            setActionForKey(botones, "interfaz.boton.edicion.Espejo_Vertical_48x48", flipVerticalAction);
-            // setActionForKey(botones, "interfaz.boton.edicion.Recortar_48x48", cortarAction); // Cuando la tengas
-
-            //---- Botones Imagen
-            
-            
-             // --- Botones Zoom ---
-            setActionForKey(botones, "interfaz.boton.zoom.Zoom_48x48", toggleZoomManualAction);
-            setActionForKey(botones, "interfaz.boton.zoom.Zoom_Auto_48x48", zoomAutoAction);
-            setActionForKey(botones, "interfaz.boton.zoom.Ajustar_al_Ancho_48x48", zoomAnchoAction);
-            setActionForKey(botones, "interfaz.boton.zoom.Ajustar_al_Alto_48x48", zoomAltoAction);
-            setActionForKey(botones, "interfaz.boton.zoom.Escalar_Para_Ajustar_48x48", zoomFitAction);
-            setActionForKey(botones, "interfaz.boton.zoom.Zoom_Fijo_48x48", zoomFixedAction);
-            // setActionForKey(botones, "interfaz.boton.zoom.zoom_especifico_48x48", zoomFijadoAction); // Ajusta si la acción existe
-            setActionForKey(botones, "interfaz.boton.zoom.Reset_48x48", resetZoomAction);
-
-             // --- Botones Vista ---
-            // setActionForKey(botones, "interfaz.boton.vista.Panel-Galeria_48x48", panelGaleriaAction); // Cuando las tengas
-            // setActionForKey(botones, "interfaz.boton.vista.Grid_48x48", gridAction);
-            // setActionForKey(botones, "interfaz.boton.vista.Pantalla_Completa_48x48", pantallaCompletaAction);
-            // setActionForKey(botones, "interfaz.boton.vista.Lista_48x48", listaAction);
-            // setActionForKey(botones, "interfaz.boton.vista.Carrousel_48x48", carrouselAction);
-            
-             // --- Botones Control ---
-            // setActionForKey(botones, "interfaz.boton.control.Refrescar_48x48", refreshAction); // Cuando la tengas
-            // setActionForKey(botones, "interfaz.boton.control.lista_de_favoritos_48x48", listaFavoritosAction);
-            // setActionForKey(botones, "interfaz.boton.control.Borrar_48x48", deleteAction);
-
-             // --- Botones Especiales ---
-            setActionForKey(botones, "interfaz.boton.especiales.Selector_de_Carpetas_48x48", openAction); // Reutiliza OpenFileAction
-            // setActionForKey(botones, "interfaz.boton.especiales.Menu_48x48", menuAction); // Cuando la tengas
-            // setActionForKey(botones, "interfaz.boton.especiales.Botones_Ocultos_48x48", hiddenButtonsAction);
-
-
-            System.out.println("  -> Actions asignadas a Botones.");
-        } else {
-            System.err.println("WARN: Mapa de botones en la vista es null.");
-        }
-
-
-        // --- 2. Asignar Actions y Listeners a los MENÚS ---
-        Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
-        if (menuItems != null) {
-
-            // --- Asignar Actions a items de menú que SÍ la usarán directamente ---
-            System.out.println("  -> Asignando Actions a Menús (donde aplica)...");
-
-            // Archivo
-            setActionForKey(menuItems, "interfaz.menu.archivo.Abrir_Archivo", openAction);
-            // setActionForKey(menuItems, "interfaz.menu.archivo.Guardar", guardarAction); // Cuando las tengas
-            // setActionForKey(menuItems, "interfaz.menu.archivo.Guardar_Como", guardarComoAction);
-            // ... otros items de Archivo
-
-            // Navegación
-            setActionForKey(menuItems, "interfaz.menu.navegacion.Primera_Imagen", firstImageAction);
-            setActionForKey(menuItems, "interfaz.menu.navegacion.Imagen_Aterior", previousImageAction);
-            setActionForKey(menuItems, "interfaz.menu.navegacion.Imagen_Siguiente", nextImageAction);
-            setActionForKey(menuItems, "interfaz.menu.navegacion.Ultima_Imagen", lastImageAction);
-            // ... otros items de Navegación
-
-            //Imagen 
-          //Imagen
-            setActionForKey(menuItems, "interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo", locateFileAction);
-            
-            // Zoom
-            setActionForKey(menuItems, "interfaz.menu.zoom.Acercar", null); // TODO: Crear ZoomInAction
-            setActionForKey(menuItems, "interfaz.menu.zoom.Alejar", null); // TODO: Crear ZoomOutAction
-            setActionForKey(menuItems, "interfaz.menu.zoom.Activar_Zoom_Manual", toggleZoomManualAction);    // CheckBox SÍ usa setAction
-            setActionForKey(menuItems, "interfaz.menu.zoom.Resetear_Zoom", resetZoomAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Automatico", zoomAutoAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_a_lo_Ancho", zoomAnchoAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_a_lo_Alto", zoomAltoAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Ajustar", zoomFitAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Actual_Fijo", zoomFixedAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.Mantener_Proporciones", toggleProporcionesAction); // CheckBox SÍ usa setAction
-
-            // setActionForKey(menuItems, "interfaz.menu.zoom.Zoom_Personalizado_%", zoomPersonalizadoAction);
-            // setActionForKey(menuItems, "interfaz.menu.zoom.Zoom_Tamaño_Real", zoomTamanioRealAction);
-            // Tipos de Zoom (Radios) - Estos probablemente necesiten ActionListeners específicos o una Action más compleja
-            // setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Especificado", zoomFijadoAction);
-            // setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Rellenar", zoomRellenarAction);
-
-
-            // Imagen
-            // Carga y Orden (Radios) -> Necesitarán listeners específicos
-            // Edicion
-            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.Girar_Izquierda", rotateLeftAction);
-            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.Girar_Derecha", rotateRightAction);
-            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.Voltear_Horizontal", flipHorizontalAction);
-            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.Voltear_Vertical", flipVerticalAction);
-            // ... otros items de Imagen
-
-            // Vista (Checkboxes usan setAction)
-            setActionForKey(menuItems, "interfaz.menu.vista.Barra_de_Menu", toggleMenuBarAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Barra_de_Botones", toggleToolBarAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Imagenes_en_Miniatura", toggleThumbnailsAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Fondo_a_Cuadros", toggleCheckeredBgAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
-            // ... otros items de Vista
-
-            // Configuracion
-            // Carga de Imagenes (Radios - configuración especial abajo)
-            // General (Checkboxes usan setAction)
-            // setActionForKey(menuItems, "interfaz.menu.configuracion.general.Mostrar_Imagen_de_Bienvenida", toggleBienvenidaAction);
-            // setActionForKey(menuItems, "interfaz.menu.configuracion.general.Abrir_Ultima_Imagen_Vista", toggleUltimaImagenAction);
-            // setActionForKey(menuItems, "interfaz.menu.configuracion.general.Volver_a_la_Primera_Imagen_al_Llegar_al_final_de_la_Lista", toggleWrapAroundAction);
-            // setActionForKey(menuItems, "interfaz.menu.configuracion.general.Mostrar_Flechas_de_Navegacion", toggleFlechasAction);
-            // Visualizar Botones (Checkboxes) -> Necesitarán Actions o Listeners específicos
-            // Barra de Informacion (Radios/Checkboxes) -> Necesitarán Actions o Listeners específicos
-            // Tema (Radios usan setAction)
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Clear", temaClearAction);
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Dark", temaDarkAction);
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Blue", temaBlueAction);
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Green", temaGreenAction);
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Orange", temaOrangeAction);
-            // Guardar/Cargar Configuración -> Usarán Listeners de fallback probablemente
-
-
-            // --- ASIGNACION ESPECIAL PARA RADIOS DE SUBCARPETAS (USANDO ActionListener) ---
-            // --- ASIGNACIÓN PARA RADIOS DE SUBCARPETAS (SIMPLIFICANDO LISTENERS) ---
-            System.out.println("  -> Asignando ActionListener SIMPLIFICADO a Radios de Subcarpetas...");
-            String keyMostrarSub = "interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas";
-            String keyMostrarSolo = "interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual";
-
-            JMenuItem radioMostrarSub = menuItems.get(keyMostrarSub);
-            if (radioMostrarSub instanceof JRadioButtonMenuItem) {
-                for(ActionListener al : radioMostrarSub.getActionListeners()) radioMostrarSub.removeActionListener(al);
-                // Llama SIEMPRE al controller con 'true' al hacer clic
-                radioMostrarSub.addActionListener(e -> {
-                    System.out.println("ActionListener: Clic en 'Mostrar Subcarpetas'");
-                    setMostrarSubcarpetasAndUpdateConfig(true);
-                });
-                radioMostrarSub.setText("Mostrar Imágenes de Subcarpetas");
-            } else { /* ... error ... */ }
-
-            JMenuItem radioMostrarSolo = menuItems.get(keyMostrarSolo);
-            if (radioMostrarSolo instanceof JRadioButtonMenuItem) {
-                for(ActionListener al : radioMostrarSolo.getActionListeners()) radioMostrarSolo.removeActionListener(al);
-                 // Llama SIEMPRE al controller con 'false' al hacer clic
-                radioMostrarSolo.addActionListener(e -> {
-                    System.out.println("ActionListener: Clic en 'Mostrar Solo Carpeta Actual'");
-                    setMostrarSubcarpetasAndUpdateConfig(false);
-                });
-                radioMostrarSolo.setText("Mostrar Solo Carpeta Actual");
-            } else { /* ... error ... */ }
-            System.out.println("  -> ActionListener SIMPLIFICADO asignado a Radios.");
-        } else {
-            System.err.println("WARN: Mapa de menús en la vista es null.");
-        }
-
-        System.out.println("[Controller] Actions y Listeners configurados.");
-    }
-// --- FIN MÉTODO COMPLETO Y CORREGIDO: configurarComponentActions ---
-    
-    
-    // --- TEXTO NUEVO: Método para manejar visibilidad y configuración ---
-    /**
-     * Actualiza la visibilidad de un componente específico en la vista y
-     * guarda el nuevo estado en la configuración en memoria.
-     *
-     * @param nombreComponente Identificador del componente (debe coincidir con parte de la clave de config).
-     * @param visible          El nuevo estado de visibilidad (true para mostrar, false para ocultar).
-     */
-    public void setComponenteVisibleAndUpdateConfig(String nombreComponente, boolean visible) 
-    {
-        if (view == null || configuration == null) {
-            System.err.println("Error: Vista o Configuración no disponibles para actualizar visibilidad.");
-            return;
-        }
-
-        System.out.println("[Controller] Cambiando visibilidad de '" + nombreComponente + "' a: " + visible);
-
-        // Construir la clave de configuración correspondiente al estado ".seleccionado"
-        // Esto asume una estructura consistente de claves. Ajustar si es necesario.
-        String configKeyBase = null;
-        
-        switch (nombreComponente) {
-            case "Barra_de_Menu":
-                configKeyBase = "interfaz.menu.vista.Barra_de_Menu";
-                view.setJMenuBarVisible(visible); // Necesitas este método en VisorView
-                break;
-            case "Barra_de_Botones":
-                configKeyBase = "interfaz.menu.vista.Barra_de_Botones";
-                view.setToolBarVisible(visible); // Necesitas este método en VisorView
-                break;
-            case "Mostrar/Ocultar_la_Lista_de_Archivos": // Nombre largo del menú
-                configKeyBase = "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos";
-                view.setFileListVisible(visible); // Necesitas este método en VisorView
-                break;
-            case "Imagenes_en_Miniatura":
-                configKeyBase = "interfaz.menu.vista.Imagenes_en_Miniatura";
-                view.setThumbnailsVisible(visible); // Necesitas este método en VisorView
-                break;
-             case "Linea_de_Ubicacion_del_Archivo":
-                 configKeyBase = "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo";
-                 view.setLocationBarVisible(visible); // Necesitas este método en VisorView
-                 break;
-             case "Fondo_a_Cuadros":
-            	 System.out.println("entro en el case Fondo_a_Cuadros");
-                 configKeyBase = "interfaz.menu.vista.Fondo_a_Cuadros";
-                 if (view != null) {
-                	 //view.setCheckeredBackground(visible); // Necesitas este método en VisorView
-                	 view.setCheckeredBackgroundEnabled(visible);
-                	 //LOG-> [Controller] Llamando a view.setCheckeredBackgroundEnabled
-                	 System.out.println("  -> [Controller] Llamando a view.setCheckeredBackgroundEnabled(" + visible + ")");
-                 }
-                 System.out.println("Justo antes del break de Fondo_a_Cuadros");
-                 break;
-             case "Mantener_Ventana_Siempre_Encima":
-                  configKeyBase = "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima";
-                  view.setAlwaysOnTop(visible); // Método estándar de JFrame
-                  break;
-            default:
-                System.err.println("WARN [setComponenteVisibleAndUpdateConfig]: Nombre de componente no reconocido: " + nombreComponente);
-                return; // Salir si no sabemos qué componente es
-        }
-
-        // Construir clave completa y actualizar configuración en memoria
-        if (configKeyBase != null) {
-            String fullConfigKey = configKeyBase + ".seleccionado";
-            configuration.setString(fullConfigKey, String.valueOf(visible));
-            System.out.println("  -> Configuración en memoria actualizada: " + fullConfigKey + "=" + visible);
-            // El guardado real al archivo ocurrirá en el ShutdownHook al llamar a guardarConfiguracionActual()
-        }
-
-        // Revalidar y repintar el frame principal puede ser necesario
-        view.getFrame().revalidate();
-        view.getFrame().repaint();
-    }
-    
- // --- Método auxiliar para setAction ---
-    private <T extends AbstractButton> void setActionForKey(Map<String, T> componentMap, String key, Action action) {
-        T component = componentMap.get(key);
-        if (component != null && action != null) {
-            component.setAction(action);
-             // Opcional: Limpiar texto si es un botón y la Action ya tiene icono
-             if (component instanceof JButton && action.getValue(Action.SMALL_ICON) != null) {
-                 // ((JButton) component).setText(""); // Descomentar si quieres solo icono
-                 ((JButton) component).setHideActionText(true); // Mejor opción
-             }
-        } else {
-            if (component == null) System.err.println("WARN [setActionForKey]: Componente no encontrado para clave: " + key);
-            if (action == null) System.err.println("WARN [setActionForKey]: Action es null para clave: " + key);
-        }
-    }
-
-     // --- NUEVO: Método auxiliar para añadir listeners a items sin Action ---
-     private void addFallbackListeners(Map<String, JMenuItem> menuItems) {
-         menuItems.forEach((key, item) -> {
-             // Si el item es final (no JMenu) Y NO tiene una Action asignada aún
-             if (!(item instanceof JMenu) && item.getAction() == null) {
-            	 
-            	 //LOG -> Añadiendo Fallback Listener para
-                 //System.out.println("  -> Añadiendo Fallback Listener para: " + key + " (AC Corto: "+item.getActionCommand()+")");
-            	 
-                 // Asegurarse de no añadir múltiples veces
-                  for (ActionListener al : item.getActionListeners()) {
-                      item.removeActionListener(al);
-                  }
-                 item.addActionListener(this); // Añadir el listener del controller
-             }
-         });
-     }
-
-    // --- NUEVO: Configurar listeners que NO se manejan con Action ---
-    private void configurarListenersNoAction() {
-         if (view == null) return;
-         // Listener para selección en JList
-         view.addListaImagenesSelectionListener(e -> {
-        	 
-        	 //LOG [ListSelectionListener] Evento detectado. ValueIsAdjusting=
-        	 System.out.println("[ListSelectionListener] Evento detectado. ValueIsAdjusting=" + e.getValueIsAdjusting() + ", estaCargandoLista=" + estaCargandoLista);
-        	 
-             if (!e.getValueIsAdjusting() && !estaCargandoLista) {
-                 int indiceSeleccionado = view.getListaImagenes().getSelectedIndex();
-                 if (indiceSeleccionado >= 0) {
-                     String selectedKey = model.getModeloLista().getElementAt(indiceSeleccionado);
-                     if (!selectedKey.equals(model.getSelectedImageKey())) {
-                         mostrarImagenSeleccionada();
-                     }
-                     actualizarImagenesMiniaturaConRango(indiceSeleccionado);
-                 }
-             }
-         });
-
-         // Listeners para Zoom/Pan en JLabel (estos no son Actions)
-         view.addEtiquetaImagenMouseWheelListener(e -> {
-             if (model.isZoomHabilitado()) {
-                 // ... (lógica zoom rueda) ...
-                 int notches = e.getWheelRotation();
-                 double zoomIncrement = 0.1;
-                 double newZoomFactor = model.getZoomFactor() + (notches < 0 ? zoomIncrement : -zoomIncrement);
-                 model.setZoomFactor(newZoomFactor);
-                 Image currentReescaled = reescalarImagenParaAjustar();
-                 view.setImagenMostrada(currentReescaled, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-             }
-         });
-         view.addEtiquetaImagenMouseListener(new java.awt.event.MouseAdapter() {
-             @Override
-             public void mousePressed(java.awt.event.MouseEvent e) {
-                 if (model.isZoomHabilitado()) {
-                     lastMouseX = e.getX();
-                     lastMouseY = e.getY();
-                 }
-             }
-         });
-         view.addEtiquetaImagenMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
-             @Override
-             public void mouseDragged(java.awt.event.MouseEvent e) {
-                 if (model.isZoomHabilitado()) {
-                     int deltaX = e.getX() - lastMouseX;
-                     int deltaY = e.getY() - lastMouseY;
-                     model.addImageOffsetX(deltaX);
-                     model.addImageOffsetY(deltaY);
-                     lastMouseX = e.getX();
-                     lastMouseY = e.getY();
-                     Image currentReescaled = reescalarImagenParaAjustar();
-                     view.setImagenMostrada(currentReescaled, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-                 }
-             }
-         });
-         System.out.println("Listeners específicos (Lista, Mouse) añadidos.");
-    }
-
-    
-    // Asegúrate de que getModeloLista() sigue devolviendo la referencia actual
-//	public DefaultListModel<String> getModeloLista ()
-//	{
-//		return modeloLista;
-//	}
-	
-	
-	// --- Métodos de Lógica (Movidos desde VisorV2 y Adaptados) ---
-
-    private void aplicarConfiguracionInicial () {
-	    System.out.println("Aplicando configuración inicial..."); // Log inicio
-
-	    // --- Validación: Asegurarse que todo está listo ---
-	    if (configuration == null || view == null || model == null) {
-	         System.err.println("ERROR [aplicarConfiguracionInicial]: Configuración, Vista o Modelo nulos. Abortando.");
-	         return;
-	    }
-
-	    // --- 1. Aplicar configuración al MODELO ---
-	    aplicarConfiguracionAlModelo();
-
-	    // --- 2. Aplicar configuración a la VISTA (Botones) ---
-	    aplicarConfigAVistaBotones();
-
-	    // --- 3. Aplicar configuración a la VISTA (Menús) ---
-	    aplicarConfigAVistaMenus();
-
-	    // --- 4. Aplicar estado inicial de Zoom Manual ---
-	    aplicarEstadoInicialZoomManual();
-	    
-	    // --- 4b. Aplicar estado inicial de Proporciones
-	    aplicarEstadoInicialProporciones();
-
-	    // --- 5. Aplicar estado inicial Subcarpetas (Y SINCRONIZAR UI) ---
-        aplicarEstadoInicialSubcarpetas();
-        
-	    System.out.println("Configuración inicial aplicada (Modelo y Vista)."); // Log fin
-	}
-
-  //********************************************************************************************** PARTES DE aplicarConfiguracionInicial
-    
-    
- // --- NUEVO MÉTODO para estado inicial proporciones ---
-    /**
-     * Lee el estado inicial de "Mantener Proporciones" desde la configuración,
-     * actualiza el modelo y el estado lógico de la Action correspondiente.
-     * La UI (CheckBox y Botón) se actualizará automáticamente vía setAction.
-     */
-    private void aplicarEstadoInicialProporciones() {
-        System.out.println("Aplicando estado inicial de Mantener Proporciones...");
-        try {
-            // Clave de configuración para el estado seleccionado
-            String configKey = "interfaz.menu.zoom.Mantener_Proporciones.seleccionado";
-            // Leer estado guardado (default true)
-            boolean proporcionesInicial = configuration.getBoolean(configKey, true);
-            System.out.println("  -> Estado leído de config (" + configKey + "): " + proporcionesInicial);
-
-            // 1. Actualizar Modelo
-            if (model != null) {
-                model.setMantenerProporcion(proporcionesInicial);
-            } else {
-                 System.err.println("WARN [aplicarEstadoInicialProporciones]: Modelo es null.");
-            }
-
-            // 2. Actualizar Estado Lógico de la Action
-            if (toggleProporcionesAction != null) {
-                toggleProporcionesAction.putValue(Action.SELECTED_KEY, proporcionesInicial);
-                System.out.println("  -> Estado inicial de Action Proporciones establecido a: " + proporcionesInicial);
-
-                // 3. (Opcional pero bueno) Actualizar aspecto visual del BOTÓN explícitamente
-                actualizarAspectoBotonToggle(toggleProporcionesAction, proporcionesInicial);
-                 System.out.println("  -> Aspecto visual inicial del botón Proporciones actualizado.");
-
-            } else {
-                System.err.println("WARN [aplicarEstadoInicialProporciones]: toggleProporcionesAction es null.");
-            }
-             System.out.println("  -> Estado inicial de Mantener Proporciones aplicado.");
-
-        } catch (Exception e) {
-            System.err.println("ERROR [aplicarEstadoInicialProporciones]: Excepción al aplicar estado: " + e.getMessage());
-            e.printStackTrace();
-        }
-    }
-    
-    
-    // Parte 1 de aplicarConfiguracionInicial
-	private void aplicarEstadoInicialSubcarpetas ()
-	{
-
-		System.out.println("Aplicando estado inicial de Subcarpetas..."); // Añadir log específico
-
-		try
-		{
-			// 1. Leer el estado guardado
-			boolean subcarpetasInicial = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true); // Default
-																														// true
-
-			// 2. Verificar que la Action exista
-			if (toggleSubfoldersAction != null)
-			{
-				// 1. Establecer el estado lógico de la Action (SELECTED_KEY)
-				// Esto es importante para que la Action sepa su estado inicial.
-				toggleSubfoldersAction.putValue(Action.SELECTED_KEY, subcarpetasInicial);
-				System.out.println("  -> Estado inicial de Action Subcarpetas: " + subcarpetasInicial);
-
-				// 2. Sincronizar el aspecto visual del BOTÓN Toggle
-				actualizarAspectoBotonToggle(toggleSubfoldersAction, subcarpetasInicial);
-
-				 // 3. ESTABLECER ESTADO INICIAL DE LOS RADIOS EXPLÍCITAMENTE
-                restaurarSeleccionRadiosSubcarpetas(subcarpetasInicial); // <-- LLAMADA AÑADIDA
-                System.out.println("  -> Estado visual inicial de Radios aplicado.");
-				
-				// 5. Sincronizar el estado visual de los RADIO BUTTONS del menú
-//				sincronizarRadiosSubcarpetas(subcarpetasInicial);
-
-				System.out.println("  -> Estado inicial de Subcarpetas aplicado y UI sincronizada.");
-			} else
-			{
-				System.err.println(
-						"WARN [aplicarEstadoInicialSubcarpetas]: toggleSubfoldersAction es null, no se puede aplicar estado inicial.");
-			}
-
-		} catch (Exception e)
-		{
-			// Solo imprimir el error específico de esta parte
-			System.err
-					.println("ERROR [aplicarEstadoInicialSubcarpetas]: Excepción al aplicar estado: " + e.getMessage());
-			e.printStackTrace(); // Útil para depurar si hay errores inesperados
-		}
-	}
-
-	// Parte 2 de aplicarConfiguracionInicial
-	private void aplicarEstadoInicialZoomManual ()
-	{
-
-		// (Esto no depende directamente de un componente específico de menú/botón,
-	    // sino de un estado guardado que afecta a varios componentes y al modelo)
-        try {
-            // Usar la clave larga y correcta
-            boolean zoomInicialActivado = configuration.getBoolean("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", false);
-            // Llamar al método del controlador que actualiza modelo y UI relacionada
-            setManualZoomEnabled(zoomInicialActivado); // Este método actualiza la Action y la UI
-            System.out.println("  -> Estado inicial de Zoom Manual aplicado.");
-        } catch (Exception e) {
-             System.err.println("ERROR [aplicarConfiguracionInicial]: Aplicando estado Zoom Manual: " + e.getMessage());
-        }
-        
-//        try {
-//            boolean subcarpetasInicial = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
-//            if(toggleSubfoldersAction != null) {
-//                toggleSubfoldersAction.putValue(Action.SELECTED_KEY, subcarpetasInicial); // Asegurar estado Action
-//                actualizarAspectoBotonToggle(toggleSubfoldersAction, subcarpetasInicial); // Actualizar botón
-//                sincronizarRadiosSubcarpetas(subcarpetasInicial); // Sincronizar radios
-//            }
-//            System.out.println("  -> Estado inicial de Subcarpetas aplicado.");
-//        } catch (Exception e) {
-//             System.err.println("ERROR [aplicarConfiguracionInicial]: Aplicando estado Subcarpetas: " + e.getMessage());
-//        }
-
-	}
-
-	// Parte 3 de aplicarConfiguracionInicial
-	// Dentro de VisorController.aplicarConfigAVistaMenus
-
-	private void aplicarConfigAVistaMenus() {
-	    Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
-	    if (menuItems != null) {
-	        System.out.println("  -> Aplicando estado inicial a Menús...");
-	        menuItems.forEach((claveCompletaMenu, menuItem) -> {
-	             // --- LOG para depurar qué item se procesa ---
-	             // System.out.println(claveCompletaMenu); // Puedes mantenerlo si quieres
-
-	             try {
-	                 // Aplicar Enabled y Visible a TODOS los items (incluyendo JMenu si es necesario)
-	                 // Podrías querer aplicar esto también a los JMenu contenedores
-	                 menuItem.setEnabled(configuration.getBoolean(claveCompletaMenu + ".activado", true));
-	                 menuItem.setVisible(configuration.getBoolean(claveCompletaMenu + ".visible", true));
-
-	                 // --- SOLO aplicar estado seleccionado si NO tiene una Action que maneje SELECTED_KEY ---
-	                 // Verificamos si el item es de tipo seleccionable Y si tiene una Action asignada
-	                 boolean esSeleccionable = (menuItem instanceof JCheckBoxMenuItem || menuItem instanceof JRadioButtonMenuItem);
-	                 boolean tieneAction = (menuItem.getAction() != null); // Comprueba si se le asignó una Action
-
-	                 if (esSeleccionable && !tieneAction) {
-	                      // Si es seleccionable PERO NO tiene Action asignada,
-	                      // leemos y aplicamos el .seleccionado desde config.cfg
-	                      System.out.println("    -> Aplicando .seleccionado desde config (sin Action): " + claveCompletaMenu); // Log
-	                      if (menuItem instanceof JCheckBoxMenuItem) {
-	                          ((JCheckBoxMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
-	                      } else if (menuItem instanceof JRadioButtonMenuItem) {
-	                          ((JRadioButtonMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false));
-	                      }
-	                 } else if (esSeleccionable && tieneAction) {
-	                      // Si es seleccionable Y SÍ tiene una Action,
-	                      // *NO HACEMOS NADA* con setSelected aquí. El estado inicial
-	                      // de Action.SELECTED_KEY (establecido en el constructor de la Action)
-	                      // se encargará de la selección inicial.
-	                       //System.out.println("    -> Omitiendo .seleccionado (manejado por Action): " + claveCompletaMenu); // Log opcional
-	                 }
-	                 // Para items no seleccionables (JMenuItem normal, JMenu), no hacemos nada con .seleccionado
-
-	             } catch (Exception e) {
-	                System.err.println("ERROR [aplicarConfiguracionInicial]: Aplicando estado a Menú '" + claveCompletaMenu + "': " + e.getMessage());
-	             }
-	        });
-	         System.out.println("  -> Estado inicial de Menús aplicado.");
-	    } else {
-	         System.err.println("WARN [aplicarConfiguracionInicial]: view.getMenuItemsPorNombre() es null.");
-	    }
-	}
-
-	// Parte 4 de aplicarConfiguracionInicial
-	private void aplicarConfigAVistaBotones ()
-	{
-
-		Map<String, JButton> botones = view.getBotonesPorNombre();
 	    if (botones != null) {
-             System.out.println("  -> Aplicando estado inicial a Botones...");
+             System.out.println("    -> Aplicando config a Botones...");
 	        botones.forEach((claveCompletaBoton, button) -> {
                 try {
 	                button.setEnabled(configuration.getBoolean(claveCompletaBoton + ".activado", true));
 	                button.setVisible(configuration.getBoolean(claveCompletaBoton + ".visible", true));
-                } catch (Exception e) {
-                    System.err.println("ERROR [aplicarConfiguracionInicial]: Aplicando estado a Botón '" + claveCompletaBoton + "': " + e.getMessage());
-                }
+                } catch (Exception e) { System.err.println("ERROR aplicando a Botón '" + claveCompletaBoton + "': " + e.getMessage()); }
 	        });
-            System.out.println("  -> Estado inicial de Botones aplicado.");
-	    } else {
-	         System.err.println("WARN [aplicarConfiguracionInicial]: view.getBotonesPorNombre() es null.");
-	    }
+             System.out.println("    -> Config Botones OK.");
+	    } else { System.err.println("WARN: Mapa de botones nulo."); }
 
-	}
-
-	// Parte 5 de aplicarConfiguracionInicial
-	private void aplicarConfiguracionAlModelo ()
-	{
-	    // (Estos valores afectan la lógica, no directamente la UI inicial visible)
-	    try { // Es buena idea envolver lecturas de config en try-catch por si acaso
-	        model.setMiniaturasAntes(configuration.getInt("miniaturas.cantidad.antes", 7)); // Usar defaults seguros
-	        model.setMiniaturasDespues(configuration.getInt("miniaturas.cantidad.despues", 7));
-	        model.setMiniaturaSelAncho(configuration.getInt("miniaturas.tamano.seleccionada.ancho", 60));
-	        model.setMiniaturaSelAlto(configuration.getInt("miniaturas.tamano.seleccionada.alto", 60));
-	        model.setMiniaturaNormAncho(configuration.getInt("miniaturas.tamano.normal.ancho", 40));
-	        model.setMiniaturaNormAlto(configuration.getInt("miniaturas.tamano.normal.alto", 40));
-	        boolean cargarSubcarpetas = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true); // Default seguro
-	        model.setMostrarSoloCarpetaActual(!cargarSubcarpetas);
-             System.out.println("  -> Configuración del Modelo aplicada.");
-	    } catch (Exception e) {
-	        System.err.println("ERROR [aplicarConfiguracionInicial]: Excepción al aplicar configuración al Modelo: " + e.getMessage());
-	        // Considerar mostrar error al usuario o usar valores por defecto más robustos
-	    }
-
-	}
-
-
-	//**********************************************************************************************
-	
-	private void guardarConfiguracionActual() 
-	{
-	    if (configuration == null || view == null || model == null) 
-	    {
-	        System.err.println("Error: Configuración, Vista o Modelo nulos en guardarConfiguracionActual.");
-	        return;
-	    }
-	    
-	    Map<String, String> currentStateToSave = configuration.getConfigMap();//new HashMap<>();
-	    System.out.println("Recopilando estado actual para guardar configuración...");
-
-	    // --- Obtener estado del MODELO (Sin cambios aquí) ---
-	    currentStateToSave.put("inicio.carpeta", configuration.getString("inicio.carpeta", ""));
-	    currentStateToSave.put("inicio.imagen", model.getSelectedImageKey() != null ? model.getSelectedImageKey() : "");
-	    currentStateToSave.put("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(!model.isMostrarSoloCarpetaActual()));
-	    currentStateToSave.put("miniaturas.cantidad.antes", String.valueOf(model.getMiniaturasAntes()));
-	    currentStateToSave.put("miniaturas.cantidad.despues", String.valueOf(model.getMiniaturasDespues()));
-	    currentStateToSave.put("miniaturas.tamano.seleccionada.ancho", String.valueOf(model.getMiniaturaSelAncho()));
-	    currentStateToSave.put("miniaturas.tamano.seleccionada.alto", String.valueOf(model.getMiniaturaSelAlto()));
-	    currentStateToSave.put("miniaturas.tamano.normal.ancho", String.valueOf(model.getMiniaturaNormAncho()));
-	    currentStateToSave.put("miniaturas.tamano.normal.alto", String.valueOf(model.getMiniaturaNormAlto()));
-	    // currentStateToSave.put("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", String.valueOf(model.isZoomHabilitado())); // Opcional guardar estado zoom
-
-	    // --- Obtener estado de la VISTA (botones y menús) ---
-
-	    // Estado de Botones (Sin cambios aquí, ya usaba la clave completa del mapa)
-	    if (view.getBotonesPorNombre() != null) {
-	        view.getBotonesPorNombre().forEach( (claveCompletaBoton, button) -> {
-	            currentStateToSave.put(claveCompletaBoton + ".activado", String.valueOf(button.isEnabled()));
-	            currentStateToSave.put(claveCompletaBoton + ".visible", String.valueOf(button.isVisible()));
+        // 6.3. Aplicar configuración a Menús (Enabled/Visible/Selected sin Action)
+        Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
+	    if (menuItems != null) {
+	        System.out.println("    -> Aplicando config a Menús...");
+	        menuItems.forEach((claveCompletaMenu, menuItem) -> {
+	             try {
+	                 menuItem.setEnabled(configuration.getBoolean(claveCompletaMenu + ".activado", true));
+	                 menuItem.setVisible(configuration.getBoolean(claveCompletaMenu + ".visible", true));
+	                 // Aplicar .seleccionado solo si es seleccionable Y NO tiene Action
+	                 boolean esSeleccionable = (menuItem instanceof JCheckBoxMenuItem || menuItem instanceof JRadioButtonMenuItem);
+	                 boolean tieneAction = (menuItem.getAction() != null);
+	                 if (esSeleccionable && !tieneAction) {
+	                      // System.out.println("      -> Aplicando .seleccionado (sin Action): " + claveCompletaMenu);
+	                      if (menuItem instanceof JCheckBoxMenuItem) { ((JCheckBoxMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false)); }
+	                      else if (menuItem instanceof JRadioButtonMenuItem) { ((JRadioButtonMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false)); }
+	                 }
+	             } catch (Exception e) { System.err.println("ERROR aplicando a Menú '" + claveCompletaMenu + "': " + e.getMessage()); }
 	        });
-	    } else {
-	        System.err.println("Advertencia: view.getBotonesPorNombre() es null en guardarConfiguracionActual.");
-	    }
+	         System.out.println("    -> Config Menús OK.");
+	    } else { System.err.println("WARN: Mapa de menús nulo."); }
 
-	    // Estado de Menús (MODIFICADO: Asegurarse de usar las claves COMPLETAS del mapa)
-	    if (view.getMenuItemsPorNombre() != null) 
-	    {
-	        view.getMenuItemsPorNombre().forEach( (claveCompletaMenu, menuItem) -> { // MODIFICADO: claveCompletaMenu AHORA es la clave correcta
-	             if (!(menuItem instanceof JMenu)) { // Solo guardar estado de items reales
-	                // MODIFICADO: Usar claveCompletaMenu directamente para guardar
-	                currentStateToSave.put(claveCompletaMenu + ".activado", String.valueOf(menuItem.isEnabled()));
-	                currentStateToSave.put(claveCompletaMenu + ".visible", String.valueOf(menuItem.isVisible()));
+        // 6.4. Aplicar estados iniciales específicos (manejados por Actions o lógica dedicada)
+        //    - El estado SELECTED de Actions (como Zoom Manual, Proporciones, Subcarpetas, Tema)
+        //      ya se establece al inicializar la Action (en initializeActions) leyendo la config.
+        //    - Solo necesitamos sincronizar la UI que NO depende directamente de la Action.
+        try {
+            // Sincronizar estado visual del botón/checkbox de Zoom Manual (si la Action no lo hace automát.)
+             boolean zoomManualInicial = Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY));
+             if(view != null) view.actualizarEstadoControlesZoom(zoomManualInicial, zoomManualInicial); // Habilita Reset si Zoom está activo
 
-	                if (menuItem instanceof JCheckBoxMenuItem) {
-	                    currentStateToSave.put(claveCompletaMenu + ".seleccionado",
-	                            String.valueOf(((JCheckBoxMenuItem) menuItem).isSelected()));
-	                } else if (menuItem instanceof JRadioButtonMenuItem) {
-	                    currentStateToSave.put(claveCompletaMenu + ".seleccionado",
-	                            String.valueOf(((JRadioButtonMenuItem) menuItem).isSelected()));
-	                }
-	             }
-	        });
-	    } else {
-	        System.err.println("Advertencia: view.getMenuItemsPorNombre() es null en guardarConfiguracionActual.");
-	    }
+            // Sincronizar estado visual del botón de Proporciones
+            boolean proporcionesInicial = Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY));
+            actualizarAspectoBotonToggle(toggleProporcionesAction, proporcionesInicial);
 
-	    // --- ¡IMPORTANTE! Asegurarse que el valor de tema.nombre sea el ÚLTIMO actualizado ---
-	    // Aunque ya debería estar en el mapa por iniciar con getConfigMap(),
-	    // podemos reconfirmarlo obteniéndolo directamente de configuration justo antes de guardar.
-	    
-	    //LOG -> Valor final de 'tema.nombre' a guardar (desde mapa inicial):
-	    System.out.println("  -> Valor final de 'tema.nombre' a guardar (desde mapa inicial): " + currentStateToSave.get("tema.nombre"));
-	    
-	    String temaActualParaGuardar = configuration.getTemaActual(); // Obtiene el valor más reciente en memoria
-	    currentStateToSave.put("tema.nombre", temaActualParaGuardar); // Sobrescribe o añade la clave
-	    System.out.println("  -> Valor final de 'tema.nombre' a guardar: " + temaActualParaGuardar);
-	    
-	    
-	    // --- Guardar usando ConfigurationManager ---
-	    try {
-	        // Pasamos el mapa que hemos construido con el estado actual
-	        configuration.guardarConfiguracion(currentStateToSave);
-	        System.out.println("Configuración actual guardada exitosamente.");
-	    } catch (IOException e) {
-	        System.err.println("### ERROR AL GUARDAR CONFIGURACIÓN: " + e.getMessage() + " ###");
-	        // Considera mostrar un mensaje al usuario aquí si el guardado falla
-	        // JOptionPane.showMessageDialog(view.getFrame(), "Error al guardar la configuración.", "Error", JOptionPane.ERROR_MESSAGE);
-	    }
-	}
+            // Sincronizar estado visual del botón y radios de Subcarpetas
+            boolean subcarpetasInicial = Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY));
+            actualizarAspectoBotonToggle(toggleSubfoldersAction, subcarpetasInicial);
+            restaurarSeleccionRadiosSubcarpetas(subcarpetasInicial); // Asegurar estado visual radios
+             System.out.println("    -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados a UI.");
+        } catch(Exception e) { System.err.println("ERROR aplicando estados específicos: " + e.getMessage()); }
 
 
-	/**
-	 * Carga la lista de imágenes inicial basada en la configuración.
-	 */
-	private void cargarEstadoInicial ()
-	{
-
-		if (configuration == null)
-			return;
-		String folderInit = configuration.getString("inicio.carpeta", "");
-
-		if (!folderInit.isEmpty())
-		{
-
-			cargarCarpetaInicial(folderInit);
-
-		} else
-		{
-
-			System.out.println("No hay carpeta inicial definida en la configuración.");
-			limpiarUI(); // Llama a método local que actualiza modelo y vista
-
-		}
-
-	}
-
-	/**
-	 * Carga el contenido de una carpeta específica.
-	 */
-	private void cargarCarpetaInicial (String folderPath)
-	{
-
-		if (configuration == null)
-			return;
-		File carpetaInicial = new File(folderPath);
-
-		if (carpetaInicial.exists() && carpetaInicial.isDirectory())
-		{
-
-			cargarListaImagenes(); // Carga la lista (actualiza modelo y vista)
-
-			// Selecciona la imagen inicial si está definida
-			String imageInitKey = configuration.getString("inicio.imagen", "");
-			cargarImagenInicial(imageInitKey); // Selecciona en modelo y actualiza vista
-
-			// Carga miniaturas para la imagen seleccionada (o la primera)
-			if (model.getModeloLista().getSize() > 0)
-			{
-
-				int indiceInicial = view.getListaImagenes().getSelectedIndex();
-				if (indiceInicial < 0)
-					indiceInicial = 0;
-				actualizarImagenesMiniaturaConRango(indiceInicial); // Carga miniaturas (actualiza vista)
-
-			}
-
-		} else
-		{
-
-			System.err.println("La carpeta inicial '" + folderPath + "' no existe o no es un directorio.");
-			JOptionPane.showMessageDialog(view.getFrame(),
-					"La carpeta inicial configurada\n'" + folderPath + "'\nno es válida.", "Error de Carpeta Inicial",
-					JOptionPane.WARNING_MESSAGE);
-			limpiarUI();
-
-		}
-
-	}
-
-	/**
-	 * Selecciona una imagen en la lista basada en su clave (ruta relativa).
-	 */
-	private void cargarImagenInicial (String imageKey)
-	{
-
-		if (imageKey != null && !imageKey.isEmpty())
-		{
-
-			for (int i = 0; i < model.getModeloLista().getSize(); i++)
-			{
-
-				String nombreArchivo = model.getModeloLista().getElementAt(i);
-
-				if (nombreArchivo.equals(imageKey))
-				{
-
-					// Establece la selección en la VISTA (disparará el listener)
-					view.getListaImagenes().setSelectedIndex(i);
-					break;
-
-				}
-
-			}
-
-			// Si no se encontró y la lista no está vacía, selecciona el primero
-			if (view.getListaImagenes().getSelectedIndex() < 0 && model.getModeloLista().getSize() > 0)
-			{
-
-				view.getListaImagenes().setSelectedIndex(0);
-
-			}
-
-		} else if (model.getModeloLista().getSize() > 0)
-		{
-
-			// Si no hay imagen inicial especificada, selecciona la primera
-			view.getListaImagenes().setSelectedIndex(0);
-
-		}
-
-	}
-
-	/**
-	 * Limpia el estado del modelo y actualiza la vista.
-	 */
-	private void limpiarUI ()
-	{
-
-		// Limpiar Modelo
-		model.limpiarModeloLista();
-		model.limpiarRutaCompletaMap();
-		model.setCurrentImage(null);
-		model.setSelectedImageKey(null);
-		model.resetZoomState();
-		// model.setZoomHabilitado(false); // Opcional: desactivar zoom al limpiar
-
-		// Actualizar Vista
-		// view.setListaImagenesModel(model.getModeloLista()); // El modelo ya está
-		// vacío
-		view.limpiarImagenMostrada();
-		view.setTextoRuta("");
-		view.setTituloPanelIzquierdo("Lista de Archivos");
-		view.limpiarPanelMiniaturas();
-
-		 // --- Actualizar estado de locateFileAction ---
-        if (locateFileAction instanceof LocateFileAction) {
-             ((LocateFileAction) locateFileAction).updateEnabledState(); // Se deshabilitará porque no hay imagen
-        }
-        // -------------------------------------------
-		
-		// Desactivar zoom si estaba activo
-		// if (model.isZoomHabilitado()) {
-		// setManualZoomEnabled(false);
-		// }
-	}
-	
-    // --- INICIO CÓDIGO NUEVO/MODIFICADO en VisorController (cargarListaImagenes) ---
-
-    /**
-     * Método público o de conveniencia para iniciar la carga usando la
-     * carpeta raíz actual y seleccionando la primera imagen.
-     */
-    private void cargarListaImagenes () {
-        System.out.println("  -> cargarListaImagenes() llamado (seleccionará la primera imagen por defecto).");
-        cargarListaImagenes(null); // Llama a la versión detallada sin clave específica a mantener
+        System.out.println("  [Apply Config] Finalizado.");
     }
 
 
-    // --- INICIO CÓDIGO COMPLETO Y CORREGIDO (Versión 3): cargarListaImagenes(String claveImagenAMantener) ---
- // --- Dentro de la clase VisorController ---
+    /**
+     * Carga la carpeta y la imagen iniciales definidas en la configuración.
+     * Si no hay configuración válida, limpia la interfaz.
+     * Se llama desde el constructor (en el EDT) después de aplicar la config inicial.
+     */
+    private void cargarEstadoInicial() {
+        System.out.println("  [Load Initial State] Cargando estado inicial...");
+        // Verificar dependencias
+        if (configuration == null || model == null || view == null) {
+            System.err.println("ERROR [cargarEstadoInicial]: Config, Modelo o Vista nulos.");
+            limpiarUI(); // Limpiar si faltan componentes esenciales
+            return;
+        }
 
- // --- Asegúrate de tener estos imports (o los necesarios según tu estructura) ---
-     /**
-      * Carga o recarga la lista de imágenes usando un SwingWorker para mostrar progreso.
-      * Permite especificar una imagen a mantener seleccionada y ajusta la carpeta
-      * de inicio según el modo (Subcarpetas vs Solo Carpeta).
-      *
-      * @param claveImagenAMantener La clave (ruta relativa a carpetaRaizActual)
-      *                             de la imagen que se intentará reseleccionar,
-      *                             o null para seleccionar la primera.
-      */
-     private void cargarListaImagenes(String claveImagenAMantener) { // Inicio del método
+        String folderInit = configuration.getString("inicio.carpeta", "");
+        Path folderPath = null;
+        boolean carpetaValida = false;
 
-         // --- 1. Verificaciones Previas ---
-         if (configuration == null || model == null) {
-             System.err.println("ERROR: ConfigurationManager o Modelo nulos en cargarListaImagenes.");
-             if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
-             estaCargandoLista = false; // Asegurar flag a false si salimos
-             return;
-         }
-         System.out.println("\n\n-->>> INICIO CARGAR LISTA DETALLADA (Controller) *** | Mantener Clave: " + claveImagenAMantener);
-         this.estaCargandoLista = true; // Marcar como cargando ANTES de empezar
+        // Validar la carpeta inicial
+        if (!folderInit.isEmpty()) {
+            try {
+                folderPath = Paths.get(folderInit);
+                if (Files.isDirectory(folderPath)) {
+                    carpetaValida = true;
+                    this.carpetaRaizActual = folderPath; // Establecer como raíz actual
+                } else {
+                     System.err.println("WARN [cargarEstadoInicial]: Carpeta inicial en config no es un directorio válido: " + folderInit);
+                }
+            } catch (Exception e) {
+                System.err.println("WARN [cargarEstadoInicial]: Ruta de carpeta inicial inválida en config: " + folderInit + " - " + e.getMessage());
+            }
+        }
 
-         // --- 2. Cancelar Tareas Anteriores ---
-         if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
-              System.out.println("  -> Cancelando tarea de carga de lista anterior...");
-              cargaImagenesFuture.cancel(true);
-         }
-         if (cargaMiniaturasFuture != null && !cargaMiniaturasFuture.isDone()) {
-              System.out.println("  -> Cancelando tarea de carga de miniaturas anterior...");
-              cargaMiniaturasFuture.cancel(true);
-         }
+        // Proceder a cargar solo si la carpeta es válida
+        if (carpetaValida) {
+            System.out.println("    -> Cargando lista para carpeta inicial: " + folderPath);
+            // Obtener la clave de la imagen inicial ANTES de llamar a cargarListaImagenes
+            // porque cargarListaImagenes ahora puede cambiar la selección.
+            String imagenInicialKey = configuration.getString("inicio.imagen", null);
 
-         // --- 3. Determinar Carpeta de Inicio y Profundidad ---
-         final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
-         Path pathDeInicioWalk = null;
-         int depth;
+            // Llamar a cargarListaImagenes. Esta se encargará de la carga en background
+            // y de seleccionar la imagen (la primera o la 'imagenInicialKey' si se pasa).
+            cargarListaImagenes(imagenInicialKey);
 
-         if (mostrarSoloCarpeta) {
-             System.out.println("  -> Modo: Solo Carpeta Actual.");
-             depth = 1;
-             String claveReferencia = claveImagenAMantener != null ? claveImagenAMantener : model.getSelectedImageKey();
-             Path rutaCompletaReferencia = claveReferencia != null ? model.getRutaCompleta(claveReferencia) : null;
+        } else {
+            System.out.println("    -> No hay carpeta inicial válida en config o no está definida. Limpiando UI.");
+            limpiarUI();
+        }
+        System.out.println("  [Load Initial State] Finalizado.");
+    }
+    
+    
+    /**
+     * Crea el mapa que asocia comandos cortos a instancias de Action.
+     */
+    private Map<String, Action> createActionMap() {
+        Map<String, Action> mapa = new HashMap<>();
+         System.out.println("  [Create ActionMap] Creando mapa...");
+        // ... (Tu código para llenar el mapa con put("ComandoCorto", actionInstance)) ...
+         mapa.put("Abrir_Archivo", openAction); mapa.put("Selector_de_Carpetas_48x48", openAction);
+         mapa.put("Resetear_Zoom", resetZoomAction); mapa.put("Reset_48x48", resetZoomAction);
+         mapa.put("Zoom_Automatico", zoomAutoAction); mapa.put("Zoom_Auto_48x48", zoomAutoAction);
+         mapa.put("Zoom_a_lo_Ancho", zoomAnchoAction); mapa.put("Ajustar_al_Ancho_48x48", zoomAnchoAction);
+         mapa.put("Zoom_a_lo_Alto", zoomAltoAction); mapa.put("Ajustar_al_Alto_48x48", zoomAltoAction);
+         mapa.put("Escalar_Para_Ajustar", zoomFitAction); mapa.put("Escalar_Para_Ajustar_48x48", zoomFitAction);
+         mapa.put("Zoom_Actual_Fijo", zoomFixedAction); mapa.put("Zoom_Fijo_48x48", zoomFixedAction);
+         mapa.put("Zoom_Especificado", zoomFijadoAction); mapa.put("Zoom_Especifico_48x48", zoomFijadoAction);
+         mapa.put("Activar_Zoom_Manual", toggleZoomManualAction); mapa.put("Zoom_48x48", toggleZoomManualAction);
+         mapa.put("Girar_Izquierda", rotateLeftAction); mapa.put("Rotar_Izquierda_48x48", rotateLeftAction);
+         mapa.put("Girar_Derecha", rotateRightAction); mapa.put("Rotar_Derecha_48x48", rotateRightAction);
+         mapa.put("Voltear_Horizontal", flipHorizontalAction); mapa.put("Espejo_Horizontal_48x48", flipHorizontalAction);
+         mapa.put("Voltear_Vertical", flipVerticalAction); mapa.put("Espejo_Vertical_48x48", flipVerticalAction);
+         mapa.put("Recortar_48x48", cortarAction);
+         mapa.put("Abrir_Ubicacion_del_Archivo", locateFileAction); mapa.put("Ubicacion_del_Archivo_48x48", locateFileAction);
+         mapa.put("Barra_de_Menu", toggleMenuBarAction); mapa.put("Barra_de_Botones", toggleToolBarAction);
+         mapa.put("Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction); mapa.put("Imagenes_en_Miniatura", toggleThumbnailsAction);
+         mapa.put("Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction); mapa.put("Fondo_a_Cuadros", toggleCheckeredBgAction);
+         mapa.put("Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
+         mapa.put("Menu_48x48",menuAction);
+         mapa.put("Botones_Ocultos_48x48",hiddenButtonsAction);
+         mapa.put("Subcarpetas_48x48", toggleSubfoldersAction);
+         mapa.put("Refrescar_48x48", refreshAction);
+         mapa.put("Recargar_Lista_de_Imagenes", refreshAction);
+         mapa.put("Eliminar_Permanentemente", deleteAction);
+         mapa.put("Borrar_48x48", deleteAction);
+         mapa.put("Tema_Clear", temaClearAction); mapa.put("Tema_Dark", temaDarkAction);
+         mapa.put("Tema_Blue", temaBlueAction); mapa.put("Tema_Green", temaGreenAction);
+         mapa.put("Tema_Orange", temaOrangeAction);
+         mapa.put("Mantener_Proporciones", toggleProporcionesAction); mapa.put("Mantener_Proporciones_48x48", toggleProporcionesAction);
+         System.out.println("  [Create ActionMap] Finalizado.");
+        return mapa;
+    }
 
-             if (rutaCompletaReferencia != null && Files.isRegularFile(rutaCompletaReferencia)) {
-                  pathDeInicioWalk = rutaCompletaReferencia.getParent();
-                  if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk)){
-                       System.out.println("    -> No se pudo obtener carpeta padre válida para " + rutaCompletaReferencia + ". Usando raíz actual.");
-                       pathDeInicioWalk = this.carpetaRaizActual;
-                  } else {
-                       System.out.println("    -> Iniciando búsqueda desde carpeta de imagen: " + pathDeInicioWalk);
-                  }
-             } else {
-                 System.out.println("    -> No se pudo obtener carpeta de imagen válida (Clave: " + claveReferencia + "). Usando carpeta raíz actual como fallback.");
-                 pathDeInicioWalk = this.carpetaRaizActual;
-             }
-         } else {
-             System.out.println("  -> Modo: Subcarpetas.");
-             depth = Integer.MAX_VALUE;
-             pathDeInicioWalk = this.carpetaRaizActual;
-              if (pathDeInicioWalk == null) {
-                  System.out.println("    -> Carpeta raíz actual es null. No se puede iniciar búsqueda.");
-                  if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
-                  estaCargandoLista = false;
-                  return;
-              }
-             System.out.println("    -> Iniciando búsqueda desde carpeta raíz actual: " + pathDeInicioWalk);
-         }
+    
+    /**
+     * Configura los listeners principales de la vista (Selección de listas,
+     * rueda de ratón para zoom/pan, scroll de miniaturas) y asigna las Actions
+     * a los componentes de la UI (botones y menús).
+     * Es llamado desde el constructor después de que la vista está creada y las
+     * dependencias (como listCoordinator) están asignadas.
+     */
+    private void configurarListenersVista() {
+        // --- 0. Validación Inicial ---
+        if (view == null || listCoordinator == null) {
+            System.err.println("WARN [configurarListenersVista]: Vista o ListCoordinator nulos. Abortando.");
+            return;
+        }
+        System.out.println("[Controller] Configurando Listeners (Modelo Selección Compartido)..."); // Mensaje actualizado
 
-         // --- 4. Validar pathDeInicioWalk Final y Proceder ---
-         if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk)) {
+        // --- 1. LISTENERS DE SELECCIÓN SEPARADOS ---
 
-             final Path finalStartPath = pathDeInicioWalk;
-             final int finalDepth = depth;
-             final String finalClaveImagenAMantener = claveImagenAMantener;
+        // 1.1. Listener para listaNombres
+        JList<String> listaNombres = view.getListaNombres();
+        if (listaNombres != null) {
+        	
+            // 1.1.1. Limpiar listeners previos (defensivo)
+            for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners()) {
 
-             // --- 5. Limpieza Inicial UI (EDT) ---
-             if (view != null) {
-                 SwingUtilities.invokeLater(() -> {
-                     view.limpiarPanelMiniaturas();
-                     view.limpiarImagenMostrada();
-                     view.setTextoRuta("");
-                     view.setTituloPanelIzquierdo("Iniciando escaneo...");
-                 });
-             }
-             // if (servicioMiniaturas != null) { servicioMiniaturas.limpiarCache(); } // Opcional
+            	if (lsl.getClass().getName().contains("$Lambda") || lsl.getClass().getName().contains(this.getClass().getSimpleName())) {
+                    listaNombres.removeListSelectionListener(lsl);
+                }
+            }
+            
+            // 1.1.2. Añadir el nuevo listener lambda para Nombres
+            listaNombres.addListSelectionListener(e -> { // Inicio lambda listener Nombres
+                boolean isIgnored = e.getValueIsAdjusting() ||
+                                    seleccionInicialEnCurso || // Añadido chequeo flag selección inicial
+                                    (listCoordinator != null && listCoordinator.isSincronizandoUI()); // Solo ignorar si el Coordinator está trabajando
 
-             // --- 6. Crear y Configurar el SwingWorker y el Diálogo ---
+                int indicePrincipal = listaNombres.getSelectedIndex(); // Índice directo del modelo principal
 
-             // *** PASO 1: Crear el diálogo (aún no visible) ***
-             // Pasamos null como worker inicialmente, lo asignaremos después.
-             final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view != null ? view.getFrame() : null, null);
+                System.out.println(">>> LISTENER NOMBRES: Evento. isAdjusting=" + e.getValueIsAdjusting() +
+                                   ", isInicial=" + seleccionInicialEnCurso +  // Log del flag
+                                   ", isSincronizando=" + (listCoordinator != null && listCoordinator.isSincronizandoUI()) +
+                                   ", IndicePrincipal=" + indicePrincipal +
+                                   ", Ignorado=" + isIgnored);
 
-             // *** PASO 2: Crear el Worker, pasando el diálogo ***
-             BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
-                 finalStartPath,
-                 finalDepth,
-                 this.carpetaRaizActual,
-                 this::esArchivoImagenSoportado,
-                 dialogo // Pasamos la instancia del diálogo aquí
-             );
+                if (!isIgnored) {
+                    System.out.println(">>> LISTENER NOMBRES: Procesando -> Llamando a Coordinator.seleccionarDesdeNombres(" + indicePrincipal + ")");
+                    try {
+                        if (listCoordinator != null) {
+                             listCoordinator.seleccionarDesdeNombres(indicePrincipal); // Llama al método específico del Coordinator
+                        } else { System.err.println("ERROR CRÍTICO: ListCoordinator es null en listener Nombres"); }
+                    } catch (Exception ex) {
+                         System.err.println("### EXCEPCIÓN LISTENER NOMBRES (Índice: " + indicePrincipal + ") ###");
+                         ex.printStackTrace();
+                    }
+                }
+            }); // Fin lambda listener Nombres
+            
+            System.out.println("  -> Listener SEPARADO añadido a listaNombres.");
+            
+        } else {
+        	
+            System.err.println("WARN [configurarListenersVista]: listaNombres es null.");
+        }
 
-             // *** PASO 3: Asignar el worker al diálogo para el botón Cancelar ***
-             dialogo.setWorkerAsociado(worker);
+        // 1.2. Listener para listaMiniaturas
+        JList<String> listaMiniaturas = view.getListaMiniaturas();
+        if (listaMiniaturas != null) {
+            
+        	// 1.2.1. Limpiar listeners previos (defensivo)
+            for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners()) {
+                if (lsl.getClass().getName().contains("$Lambda") || lsl.getClass().getName().contains(this.getClass().getSimpleName())) {
+                    listaMiniaturas.removeListSelectionListener(lsl);
+                }
+            }
+            
+            // 1.2.2. Añadir el nuevo listener lambda para Miniaturas
+            listaMiniaturas.addListSelectionListener(e -> { // Inicio lambda listener Miniaturas
+                 boolean isIgnored = e.getValueIsAdjusting() ||
+                                     seleccionInicialEnCurso || // Añadido chequeo flag selección inicial
+                                     (listCoordinator != null && listCoordinator.isSincronizandoUI()); // Solo ignorar si el Coordinator está trabajando
 
-             // Guardar la referencia al worker actual
-             this.cargaImagenesFuture = worker;
+                 int indiceRelativo = listaMiniaturas.getSelectedIndex(); // Índice DENTRO del modelo de miniaturas actual
 
-             // *** PASO 4: Añadir el PropertyChangeListener para manejar el estado DONE ***
-             worker.addPropertyChangeListener(evt -> {
-                 if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
-                     // Este código se ejecuta en el EDT cuando el worker termina
+                 System.out.println(">>> LISTENER MINIATURAS: Evento. isAdjusting=" + e.getValueIsAdjusting() +
+                                    ", isInicial=" + seleccionInicialEnCurso + // Log del flag
+                                    ", isSincronizando=" + (listCoordinator != null && listCoordinator.isSincronizandoUI()) +
+                                    ", IndiceRelativo=" + indiceRelativo +
+                                    ", Ignorado=" + isIgnored);
 
-                     dialogo.cerrar(); // Cerrar el diálogo primero
-
-                     if (worker.isCancelled()) {
-                         System.out.println("[Controller EDT - done] La tarea fue cancelada.");
-                         if(view != null) {
-                              limpiarUI();
-                              view.setTituloPanelIzquierdo("Carga Cancelada");
-                         }
-                         estaCargandoLista = false;
-                         return;
-                     }
-
-                     try {
-                         Map<String, Path> mapaResultado = worker.get();
-
-                         if (mapaResultado != null) {
-                             DefaultListModel<String> nuevoModeloLista = new DefaultListModel<>();
-                             List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
-                             Collections.sort(clavesOrdenadas);
-                             for (String clave : clavesOrdenadas) {
-                                 nuevoModeloLista.addElement(clave);
-                             }
-
-                             System.out.println("[Controller EDT - done] Actualizando modelo y vista con resultado ("+ nuevoModeloLista.getSize() +" elementos)...");
-
-                             model.actualizarListaCompleta(nuevoModeloLista, mapaResultado);
-                             view.setListaImagenesModel(model.getModeloLista());
-                             view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
-
-                             estaCargandoLista = false;
-                             System.out.println("-->>> estaCargandoLista = false (en done, después de actualizar UI)");
-
-                             int indiceSeleccionado = -1;
-                             DefaultListModel<String> modeloActualizado = model.getModeloLista();
-                             if (finalClaveImagenAMantener != null && modeloActualizado.getSize() > 0) {
-                                 for (int i = 0; i < modeloActualizado.getSize(); i++) {
-                                     if (finalClaveImagenAMantener.equals(modeloActualizado.getElementAt(i))) {
-                                         indiceSeleccionado = i; break;
+                 if (!isIgnored) {
+                    System.out.println(">>> LISTENER MINIATURAS: Procesando...");
+                    int indicePrincipalTraducido = -1; // Índice a encontrar en el modelo principal
+                    try {
+                        if (indiceRelativo != -1) {
+            
+                        	// TRADUCIR índice relativo a índice principal
+                            ListModel<String> modeloMinActual = listaMiniaturas.getModel();
+                             if (modeloMinActual != null && indiceRelativo < modeloMinActual.getSize()) {
+                                 String claveSeleccionada = modeloMinActual.getElementAt(indiceRelativo);
+                                 if (claveSeleccionada != null && model != null && model.getModeloLista() != null) {
+                            
+                                	 // Buscar en el modelo principal completo
+                                     indicePrincipalTraducido = model.getModeloLista().indexOf(claveSeleccionada);
+                                     if (indicePrincipalTraducido != -1) {
+                                         System.out.println("    -> Traducción OK: Índice Relativo " + indiceRelativo + " -> Clave '" + claveSeleccionada + "' -> Índice Principal " + indicePrincipalTraducido);
+                                     } else {
+                                         System.err.println("ERROR CRÍTICO: Clave '" + claveSeleccionada + "' de miniatura no encontrada en modelo principal!");
+                                     
+                                         // Si hay inconsistencia, intentar limpiar la selección
+                                         if(listCoordinator != null) listCoordinator.seleccionarDesdeMiniaturas(-1); // Informar al coordinator de la deselección
+                                         return; // Salir del listener
                                      }
-                                 }
-                                 if (indiceSeleccionado == -1){
-                                      System.out.println("    -> Imagen a mantener NO encontrada. Seleccionando índice 0.");
-                                      indiceSeleccionado = 0;
                                  } else {
-                                      System.out.println("    -> Imagen a mantener encontrada en índice: " + indiceSeleccionado);
-                                 }
-                             } else if (modeloActualizado.getSize() > 0) {
-                                  System.out.println("    -> No había imagen a mantener o lista estaba vacía. Seleccionando índice 0.");
-                                  indiceSeleccionado = 0;
-                             }
-
-                             if (indiceSeleccionado != -1) {
-                                 // Comprobar vista antes de usarla
-                                 if (view != null && view.getListaImagenes() != null) {
-                                      System.out.println("    -> Aplicando selección al índice: " + indiceSeleccionado);
-                                      view.getListaImagenes().setSelectedIndex(indiceSeleccionado);
-                                      view.getListaImagenes().ensureIndexIsVisible(indiceSeleccionado);
-                                 } else {
-                                      System.err.println("WARN [Controller EDT - done]: Vista o JList no disponible al intentar seleccionar índice.");
+                                     System.err.println("ERROR CRÍTICO: Clave o modelos nulos durante traducción de índice.");
+                                     if(listCoordinator != null) listCoordinator.seleccionarDesdeMiniaturas(-1);
+                                     return;
                                  }
                              } else {
-                                 System.out.println("    -->>> Lista vacía tras carga. Limpiando UI.");
-                                 limpiarUI();
+                                 System.err.println("WARN: No se pudo obtener clave del modelo de miniaturas o índice relativo fuera de rango: " + indiceRelativo);
+                                 if(listCoordinator != null) listCoordinator.seleccionarDesdeMiniaturas(-1);
+                                 return;
                              }
-                         } else {
-                              System.out.println("[Controller EDT - done] El resultado del worker fue null (cancelado?).");
-                              if(view != null) { limpiarUI(); view.setTituloPanelIzquierdo("Carga Incompleta/Cancelada"); }
-                              estaCargandoLista = false;
-                         }
-                     } catch (CancellationException ce) {
-                         System.out.println("[Controller EDT - done] La tarea fue cancelada (detectado en get).");
-                          if(view != null) { limpiarUI(); view.setTituloPanelIzquierdo("Carga Cancelada"); }
-                         estaCargandoLista = false;
-                     } catch (InterruptedException ie) {
-                         System.err.println("[Controller EDT - done] Hilo interrumpido mientras esperaba resultado.");
-                          if(view != null) { limpiarUI(); view.setTituloPanelIzquierdo("Carga Interrumpida"); }
-                         Thread.currentThread().interrupt();
-                         estaCargandoLista = false;
-                     } catch (ExecutionException ee) {
-                         System.err.println("[Controller EDT - done] Error durante la ejecución del worker: " + ee.getCause());
-                         Throwable causa = ee.getCause();
-                         String mensajeError = (causa != null) ? causa.getMessage() : ee.getMessage();
-                         if(view != null) {
-                             JOptionPane.showMessageDialog(view.getFrame(),
-                                                           "Error durante la carga:\n" + mensajeError,
-                                                           "Error de Carga", JOptionPane.ERROR_MESSAGE);
-                             limpiarUI();
-                             view.setTituloPanelIzquierdo("Error de Carga");
-                         }
-                         if (causa != null) causa.printStackTrace(); else ee.printStackTrace();
-                         estaCargandoLista = false;
-                     } finally {
-                         if (estaCargandoLista) {
-                              System.out.println("WARN [Controller EDT - done]: estaCargandoLista aún era true al final. Forzando a false.");
-                              estaCargandoLista = false;
-                         }
-                          if (cargaImagenesFuture == worker) {
-                              cargaImagenesFuture = null;
-                          }
-                     }
-                 } // Fin if ("state" == DONE)
-             }); // Fin addPropertyChangeListener
+                        } else {
+                        	
+                            // Si el índice relativo es -1 (deselección en miniaturas), pasamos -1 al coordinator
+                             indicePrincipalTraducido = -1;
+                             System.out.println("    -> Deselección detectada en Miniaturas.");
+                        }
 
-             // --- 7. Ejecutar Worker y Mostrar Diálogo ---
-             worker.execute(); // Iniciar la tarea en segundo plano
+                         // Llamar al Coordinator con el ÍNDICE PRINCIPAL TRADUCIDO
+                         System.out.println(">>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(" + indicePrincipalTraducido + ")");
+                         if (listCoordinator != null) {
+                              listCoordinator.seleccionarDesdeMiniaturas(indicePrincipalTraducido);
+                         } else { System.err.println("ERROR CRÍTICO: ListCoordinator es null en listener Miniaturas"); }
 
-             SwingUtilities.invokeLater(() -> {
-                 System.out.println("[Controller EDT] Mostrando diálogo de progreso...");
-                 dialogo.setVisible(true); // Mostrar el diálogo modal
-                 // La ejecución se reanuda aquí cuando el diálogo se cierra desde el listener
-                  System.out.println("[Controller EDT] Diálogo de progreso cerrado.");
-             });
+                    } catch (Exception ex) {
+                         System.err.println("### EXCEPCIÓN LISTENER MINIATURAS (Índice Relativo: " + indiceRelativo + ") ###");
+                         ex.printStackTrace();
 
-         } else { // Else (pathDeInicioWalk NO válido)
-             System.out.println("No se puede cargar la lista: Carpeta de inicio no válida o no establecida.");
-             if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
-             estaCargandoLista = false;
-         } // Fin else (pathDeInicioWalk NO válido)
-
-     } // Fin del método cargarListaImagenes(String claveImagenAMantener)
-
-
-
-
-    // Asegúrate de que el método esArchivoImagenSoportado siga existiendo en VisorController
-	/**
-	 * Verifica si un archivo tiene una extensión de imagen soportada.
-	 */
-	private boolean esArchivoImagenSoportado (Path path)
-	{
-		String fileName = path.getFileName().toString().toLowerCase();
-		return fileName.endsWith(".jpg") ||
-				fileName.endsWith(".jpeg") ||
-				fileName.endsWith(".png") ||
-				fileName.endsWith(".gif") ||
-				fileName.endsWith(".bmp");
-	}
-
-    // El método limpiarUI() sigue igual
-    // ...
-    // --- FIN CÓDIGO COMPLETO Y CORREGIDO (Versión 3): cargarListaImagenes(String claveImagenAMantener) ---
-    
-	
-	
-// --- MÉTODO: cargarListaImagenes --- 
-    /**
-     * @deprecated 
-     * 
-     * Carga o recarga la lista de imágenes desde la carpeta configurada.
-     * Funciona en segundo plano para no bloquear la interfaz de usuario.
-     * Actualiza el modelo de datos (lista de archivos y rutas) y la vista (JList, título).
-     * Después de cargar, selecciona automáticamente el primer elemento de la nueva lista.
-     */
-    private void cargarListaImagenesOLD () {
-
-        // --- 1. Verificaciones Previas ---
-        if (configuration == null) {
-            System.err.println("ERROR: ConfigurationManager nulo en cargarListaImagenes.");
-            if (view != null) {
-                JOptionPane.showMessageDialog(view.getFrame(), "Error interno de configuración.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-            return;
-        }
-        System.out.println("\n\n-->>> INICIO CARGAR LISTA (Controller) ***");
-        this.estaCargandoLista = true; // Indicar que la carga ha comenzado
-
-        // --- 2. Cancelar Tareas Anteriores Pendientes ---
-        // Evita que cargas antiguas interfieran con la nueva
-        if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
-            System.out.println("[Controller] Cancelando tarea de carga de lista anterior...");
-            cargaImagenesFuture.cancel(true);
-        }
-        if (cargaMiniaturasFuture != null && !cargaMiniaturasFuture.isDone()) {
-            System.out.println("[Controller] Cancelando tarea de carga de miniaturas anterior...");
-            cargaMiniaturasFuture.cancel(true);
-        }
-
-        // --- 3. Obtener Configuración y Validar Carpeta ---
-        final String carpetaInicial = configuration.getString("inicio.carpeta", "");
-        // Leer modo desde el MODELO (importante que el modelo ya tenga el estado correcto)
-        final boolean usarSoloCarpetaActual = model.isMostrarSoloCarpetaActual();
-        Path startPath = null;
-        if (carpetaInicial != null && !carpetaInicial.isEmpty()) {
-            try {
-                startPath = Paths.get(carpetaInicial);
-                if (!Files.isDirectory(startPath)) {
-                    System.err.println("Error: La ruta inicial no es un directorio válido: " + carpetaInicial);
-                    startPath = null;
-                }
-            } catch (java.nio.file.InvalidPathException ipe) {
-                System.err.println("Error: La ruta inicial no es válida: " + carpetaInicial + " - " + ipe.getMessage());
-                startPath = null;
-            }
-        }
-
-        // --- 4. Proceder solo si la Carpeta es Válida ---
-        if (startPath != null) {
-            final Path finalStartPath = startPath; // Necesario para usar dentro de la lambda
-
-            // --- 5. Limpieza Inicial de UI y Modelo (en el Hilo de Eventos de Swing - EDT) ---
-            // Prepara la interfaz para la nueva carga
-            SwingUtilities.invokeLater(() -> {
-                if (view != null) { // Comprobación extra por si acaso
-                    view.limpiarPanelMiniaturas();
-                    view.limpiarImagenMostrada();
-                    view.setTextoRuta("");
-                    view.setTituloPanelIzquierdo("Cargando Lista...");
-                }
-                if (model != null) { // Comprobación extra
-                    model.limpiarModeloLista();
-                    model.limpiarRutaCompletaMap();
-                }
-            });
-
-            // --- 6. Iniciar Tarea de Búsqueda de Archivos en Segundo Plano ---
-            cargaImagenesFuture = executorService.submit(() -> {
-                // Colecciones temporales SÓLO para este hilo de fondo
-                DefaultListModel<String> nuevoModeloTemp = new DefaultListModel<>();
-                Map<String, Path> nuevoRutaCompletaMapTemp = new HashMap<>();
-                Set<String> archivosAgregadosTemp = new HashSet<>(); // Evita duplicados
-
-                try {
-                    // --- 7. Recorrer Sistema de Archivos (Files.walk) ---
-                    int depth = usarSoloCarpetaActual ? 1 : Integer.MAX_VALUE; // Profundidad según modo
-                    System.out.println("[Controller BG] Iniciando Files.walk con depth: " + depth + " en " + finalStartPath);
-
-                    try (Stream<Path> stream = Files.walk(finalStartPath, depth)) {
-                        stream
-                            .filter(path -> !path.equals(finalStartPath) && Files.isRegularFile(path)) // Solo archivos, no el directorio raíz
-                            .filter(this::esArchivoImagenSoportado) // Filtrar por extensión
-                            .forEach(path -> {
-                                // Comprobar interrupción dentro del bucle
-                                if (Thread.currentThread().isInterrupted()) {
-                                    System.out.println("[Controller BG] Tarea interrumpida durante forEach.");
-                                    throw new RuntimeException("Tarea cancelada"); // Para salir del forEach
-                                }
-                                // Generar clave única (ruta relativa)
-                                Path relativePath = finalStartPath.relativize(path);
-                                String uniqueKey = relativePath.toString().replace("\\", "/");
-
-                                // Añadir a colecciones temporales si no existe ya
-                                if (archivosAgregadosTemp.add(uniqueKey)) {
-                                    nuevoModeloTemp.addElement(uniqueKey);
-                                    nuevoRutaCompletaMapTemp.put(uniqueKey, path);
-                                } else {
-                                     System.out.println("[Controller BG] Clave duplicada ignorada: " + uniqueKey);
-                                }
-                            });
-                    } catch (IOException | SecurityException ioOrSecEx) { // Captura errores de walk
-                        System.err.println("[Controller BG] Error durante Files.walk en " + finalStartPath + ": " + ioOrSecEx.getMessage());
-                        String errorType = (ioOrSecEx instanceof IOException) ? "Error al leer directorio" : "Error de permisos directorio";
-                        throw new RuntimeException(errorType, ioOrSecEx); // Re-lanzar para manejo general
+                         // Intentar limpiar selección como recuperación
+                         if(listCoordinator != null) listCoordinator.seleccionarDesdeMiniaturas(-1);
                     }
-
-                    System.out.println("[Controller BG] Files.walk terminado. Elementos encontrados: " + nuevoModeloTemp.getSize());
-
-                    // --- 8. Actualizar Modelo y Vista (Solo si la tarea no fue cancelada) ---
-                    if (!Thread.currentThread().isInterrupted()) {
-                        System.out.println("[Controller BG] Modelo temporal llenado. Tamaño: " + nuevoModeloTemp.getSize());
-
-                        // Pasar datos al Hilo de Eventos de Swing (EDT) para actualizar UI
-                        final DefaultListModel<String> finalNuevoModeloTemp = nuevoModeloTemp;
-                        final Map<String, Path> finalNuevoRutaCompletaMapTemp = nuevoRutaCompletaMapTemp;
-
-                        SwingUtilities.invokeLater(() -> { // <--- Bloque de actualización en EDT
-                            // Verificar que los componentes aún existen
-                            if (model == null || view == null || view.getListaImagenes() == null) {
-                                System.err.println("ERROR [Controller EDT]: Modelo o Vista no disponibles al actualizar tras carga.");
-                                estaCargandoLista = false;
-                                return;
-                            }
-
-                            // --- 8a. Actualizar el Modelo Principal ---
-                            DefaultListModel<String> modeloActual = model.getModeloLista();
-                            modeloActual.clear(); // Limpiar datos antiguos
-                            for (int idx = 0; idx < finalNuevoModeloTemp.getSize(); idx++) {
-                                modeloActual.addElement(finalNuevoModeloTemp.getElementAt(idx)); // Añadir nuevos
-                            }
-                            model.setRutaCompletaMap(finalNuevoRutaCompletaMapTemp); // Actualizar mapa de rutas
-                            System.out.println("[Controller EDT] Contenido del modelo principal actualizado. Tamaño: " + modeloActual.getSize());
-
-                            // --- 8b. Actualizar Título de la Vista ---
-                            view.setTituloPanelIzquierdo("Archivos: " + modeloActual.getSize());
-                            System.out.println("  -> Limpiando selectedImageKey en modelo antes de seleccionar índice...");
-                            model.setSelectedImageKey(null); // Forzará la recarga en el listener
-                            
-                            // --- 8c. Marcar Fin de Carga Lógica ---
-                            // Importante hacerlo ANTES de cambiar la selección para que los listeners sepan que no estamos cargando
-                            estaCargandoLista = false;
-                            System.out.println("-->>> estaCargandoLista = false (después de actualizar modelo)");
-
-                            // --- 8d. Seleccionar el Primer Elemento (¡LA MODIFICACIÓN CLAVE!) ---
-                            if (modeloActual.getSize() > 0) {
-                                System.out.println("[Controller EDT] Seleccionando índice 0 en la nueva lista...");
-                                view.getListaImagenes().setSelectedIndex(0); // Establece la selección
-                                // La línea anterior disparará automáticamente el ListSelectionListener,
-                                // que llamará a mostrarImagenSeleccionada() para cargar la imagen 0.
-                            } else {
-                                // Si la lista quedó vacía después de la carga
-                                System.out.println("-->>> Lista vacía tras carga. Limpiando UI.");
-                                limpiarUI(); // Limpiar imagen, ruta, miniaturas, etc.
-                            }
-                            // --- FIN MODIFICACIÓN ---
-
-                        }); // <-- FIN del invokeLater para actualizar UI
-
-                    } else {
-                        // --- 9a. Manejo si la Tarea fue Interrumpida Antes de Actualizar UI ---
-                        System.out.println("[Controller BG] Tarea interrumpida ANTES de actualizar UI.");
-                        SwingUtilities.invokeLater(() -> {
-                            if(view != null) view.setTituloPanelIzquierdo("Carga Cancelada");
-                            estaCargandoLista = false;
-                             System.out.println("-->>> estaCargandoLista = false (cancelado antes de UI update)");
-                            limpiarUI();
-                        });
-                    }
-
-                } catch (RuntimeException e) { // Captura errores generales de la tarea (walk, interrupción forEach)
-                    // --- 9b. Manejo de Errores de la Tarea Background ---
-                    final String errorMsg = e.getMessage();
-                    System.err.println("[Controller BG] Error en tarea background: " + errorMsg);
-                    SwingUtilities.invokeLater(() -> { // Actualizar UI sobre el error en EDT
-                         if(view != null) {
-                             String dialogTitle = "Error de Carga";
-                             String dialogMessage = "Error durante la carga: " + errorMsg;
-                             // ... (código para personalizar mensaje de error según causa, igual que antes) ...
-                              if ("Tarea cancelada".equals(errorMsg)) {
-                                   view.setTituloPanelIzquierdo("Carga Cancelada");
-                                   // No mostrar diálogo por cancelación
-                              } else {
-                                   JOptionPane.showMessageDialog(view.getFrame(), dialogMessage, dialogTitle, JOptionPane.ERROR_MESSAGE);
-                                   view.setTituloPanelIzquierdo("Error de Carga");
-                              }
-                         }
-                         estaCargandoLista = false;
-                         System.out.println("-->>> estaCargandoLista = false (por error/cancelación en BG)");
-                         limpiarUI(); // Limpiar en caso de error grave
-                    });
-                    if (!"Tarea cancelada".equals(errorMsg)) { e.printStackTrace(); } // Loguear error si no fue cancelación
-                } // Fin try-catch principal de la tarea background
-
-            }); // Fin del submit (inicio de la tarea background)
-
-        } else {
-            // --- 10. Caso: Carpeta Inicial Inválida ---
-            System.out.println("No se puede cargar la lista: Carpeta inicial no definida o inválida: \"" + carpetaInicial + "\"");
-            SwingUtilities.invokeLater(this::limpiarUI); // Limpiar UI en EDT
-            estaCargandoLista = false; // Marcar como no cargando
-        }
-        System.out.println("-->>> FIN MÉTODO cargarListaImagenes (Controller) ***");
-    }// --- FIN MÉTODO cargarListaImagenes ---
-	
-
-	/**
-	 * Muestra la imagen seleccionada en la lista.
-	 */
-	private void mostrarImagenSeleccionada() {
-	    // Obtener clave seleccionada de la VISTA (sin cambios)
-	    String archivoSeleccionadoKey = view.getListaImagenes().getSelectedValue();
-
-	    if (archivoSeleccionadoKey == null) return; // No hay selección
-
-	    // --- CANCELAR CARGA ANTERIOR ---
-	    if (cargaImagenPrincipalFuture != null && !cargaImagenPrincipalFuture.isDone()) {
-	        System.out.println("[Controller] Cancelando carga de imagen principal anterior...");
-	        cargaImagenPrincipalFuture.cancel(true);
-	    }
-	    // ------------------------------
-
-	    // Evitar recarga si ya es la misma clave Y la imagen ya está cargada en el modelo
-	    // (Podríamos incluso comprobar si la imagen en la VISTA es la correcta)
-	    if (archivoSeleccionadoKey.equals(model.getSelectedImageKey()) && model.getCurrentImage() != null) {
-	         System.out.println("[Controller] Imagen " + archivoSeleccionadoKey + " ya está seleccionada y cargada.");
-	         // Podríamos forzar repintado por si acaso, pero usualmente no es necesario
-	         // view.getEtiquetaImagen().repaint();
-	        return;
-	    }
-
-	    System.out.println("\n[Controller] Iniciando carga para: '" + archivoSeleccionadoKey + "'");
-
-	    
-	    // --- Actualizar estado de locateFileAction ---
-        if (locateFileAction instanceof LocateFileAction) { // Buena práctica comprobar tipo
-             ((LocateFileAction) locateFileAction).updateEnabledState();
-        }
-        // ------------------------------
-	    
-	    // --- Actualizar Modelo y UI INMEDIATAMENTE (antes de cargar) ---
-	    model.setSelectedImageKey(archivoSeleccionadoKey); // Actualizar clave seleccionada
-	    model.setCurrentImage(null); // Limpiar imagen anterior del modelo
-	    Path rutaCompleta = model.getRutaCompleta(archivoSeleccionadoKey);
-
-	    if (rutaCompleta != null) {
-	        view.setTextoRuta(rutaCompleta.toString()); // Mostrar ruta
-	        // Mostrar indicador de carga en la vista
-	        view.mostrarIndicadorCargaImagenPrincipal("Cargando: " + rutaCompleta.getFileName() + "...");
-	    } else {
-	        System.err.println("WARN: No se encontró ruta para la clave: " + archivoSeleccionadoKey);
-	        model.setSelectedImageKey(null);
-	        view.limpiarImagenMostrada();
-	        view.setTextoRuta("Error: Ruta no encontrada");
-	        return; // Salir si no hay ruta
-	    }
-	    // -------------------------------------------------------------
-
-
-	    // --- Iniciar Tarea de Carga en Background ---
-	    final String finalKey = archivoSeleccionadoKey; // Clave para usar en lambda
-	    final Path finalPath = rutaCompleta;           // Ruta para usar en lambda
-
-	    cargaImagenPrincipalFuture = executorService.submit(() -> {
-	        System.out.println("  [BG Carga Imagen] Iniciando lectura para: " + finalPath);
-	        BufferedImage img = null;
-	        String errorMsg = null;
-
-	        try {
-	            // --- Carga Real ---
-	            img = ImageIO.read(finalPath.toFile());
-	            // ---------------
-
-	            if (Thread.currentThread().isInterrupted()) {
-	            	
-	            	//LOG [BG Carga Imagen] Tarea interrumpida después de leer.
-	                 System.out.println("  [BG Carga Imagen] Tarea interrumpida después de leer.");
-	                 
-	                 return; // Salir si se canceló durante la carga
-	            }
-
-	            if (img == null) {
-	                 errorMsg = "Formato no soportado o archivo corrupto.";
-	                 System.err.println("  [BG Carga Imagen] Error: " + errorMsg + " para " + finalPath);
-	            } else {
-	                 System.out.println("  [BG Carga Imagen] Imagen leída correctamente.");
-	            }
-
-	        } catch (IOException ioEx) {
-	            errorMsg = "Error de E/S: " + ioEx.getMessage();
-	            System.err.println("  [BG Carga Imagen] " + errorMsg + " para " + finalPath);
-	        } catch (OutOfMemoryError oom) {
-	             errorMsg = "Memoria insuficiente para cargar la imagen.";
-	             System.err.println("  [BG Carga Imagen] " + errorMsg + " para " + finalPath);
-	             // Podrías intentar liberar caches aquí si tienes
-	             // System.gc(); // No recomendado generalmente, pero opción extrema
-	        } catch (Exception ex) {
-	             errorMsg = "Error inesperado: " + ex.getMessage();
-	             System.err.println("  [BG Carga Imagen] " + errorMsg + " para " + finalPath);
-	             ex.printStackTrace();
-	        }
-
-	        // --- Actualizar Modelo y Vista en EDT ---
-	        final BufferedImage finalImg = img; // Variable final para lambda
-	        final String finalErrorMsg = errorMsg;
-
-	        // Solo actualizar si la imagen que acabamos de cargar sigue siendo la seleccionada
-	        // y si la tarea no fue cancelada.
-	         if (!Thread.currentThread().isInterrupted() && finalKey.equals(model.getSelectedImageKey())) {
-	            SwingUtilities.invokeLater(() -> {
-	                if (finalImg != null) 
-	                {
-	                    // --- Éxito ---
-	                	
-	                	//LOG   [EDT Carga Imagen] Asignando imagen al modelo y vista
-	                    //System.out.println("  [EDT Carga Imagen] Asignando imagen al modelo y vista.");
-	                    model.setCurrentImage(finalImg); // Actualizar modelo
-
-	                    // Resetear zoom si no está habilitado el modo manual
-	                    if (!model.isZoomHabilitado()) {
-	                        model.resetZoomState();
-	                    }
-
-	                    // Calcular imagen reescalada (usar método existente)
-	                    Image reescalada = reescalarImagenParaAjustar(); // Puede devolver null si la vista no tiene tamaño
-
-	                    // Actualizar VISTA con la nueva imagen y estado de zoom del modelo
-	                    if (reescalada != null) {
-	                         view.setImagenMostrada(reescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-	                    } else {
-	                         // Si no se pudo reescalar (vista sin tamaño?), mostrar original o limpiar?
-	                         // Por ahora limpiamos para evitar problemas.
-	                    	
-	                    	//LOG   [EDT Carga Imagen] No se pudo reescalar, limpiando vista
-	                         //System.out.println("  [EDT Carga Imagen] No se pudo reescalar, limpiando vista.");
-	                    	
-	                         view.limpiarImagenMostrada();
-	                         // O podrías intentar un repaint posterior:
-	                         // SwingUtilities.invokeLater(this::mostrarImagenSeleccionada); // Intentar de nuevo más tarde
-	                    }
-	                } else {
-	                    // --- Error ---
-	                	//LOG   [EDT Carga Imagen] Error al cargar, limpiando modelo y vista.
-	                    System.out.println("  [EDT Carga Imagen] Error al cargar, limpiando modelo y vista.");
-	                    
-	                    model.setCurrentImage(null); // Limpiar modelo
-	                    view.limpiarImagenMostrada(); // Limpiar vista
-	                    view.setTextoRuta("Error al cargar: " + finalPath.getFileName() + (finalErrorMsg != null ? " ("+finalErrorMsg+")" : ""));
-	                    // Mostrar diálogo de error
-//	                    JOptionPane.showMessageDialog(view.getFrame(),
-//	                        "Error al cargar la imagen:\n" + finalPath.getFileName() +
-//	                        (finalErrorMsg != null ? "\n" + finalErrorMsg : ""),
-//	                        "Error de Carga", JOptionPane.ERROR_MESSAGE);
-	                     // Resetear zoom por si acaso
-	                     model.resetZoomState();
-	                     if(model.isZoomHabilitado()) setManualZoomEnabled(false);
-	                }
-	            });
-	         } else {
-	        	 
-	        	 //LOG   [BG Carga Imagen] Carga cancelada o selección cambiada. Descartando resultado para 
-	             System.out.println("  [BG Carga Imagen] Carga cancelada o selección cambiada. Descartando resultado para " + finalKey);
-	         }
-	    }); // Fin submit
-	}
-
-	
-	
-
-	/**
-	 * Calcula la imagen reescalada basada en la imagen actual del modelo y el
-	 * tamaño de la etiqueta de la vista.
-	 * 
-	 * @return La imagen reescalada o null.
-	 */
-    // --- INICIO CÓDIGO A MODIFICAR en VisorController.reescalarImagenParaAjustar ---
-    /**
-     * Calcula la imagen reescalada basada en la imagen actual del modelo,
-     * el tamaño de la etiqueta de la vista y el estado de 'mantenerProporcion' del modelo.
-     *
-     * @return La imagen reescalada o null si no hay imagen o la vista no tiene tamaño.
-     */
-    private Image reescalarImagenParaAjustar() {
-        if (model == null || view == null || view.getEtiquetaImagen() == null) return null; // Verificar todo
-
-        BufferedImage current = model.getCurrentImage();
-        if (current == null) return null;
-
-        int targetWidth = view.getEtiquetaImagen().getWidth();
-        int targetHeight = view.getEtiquetaImagen().getHeight();
-
-        if (targetWidth <= 0 || targetHeight <= 0) {
-            System.out.println("[reescalar] WARN: Etiqueta sin tamaño aún. No se puede escalar.");
-            return null; // No podemos escalar si no hay tamaño de destino
-        }
-
-        // --- NUEVA LÓGICA DE ESCALADO ---
-        int newWidth;
-        int newHeight;
-        boolean mantenerProp = model.isMantenerProporcion(); // Leer estado del modelo
-        System.out.println("[reescalar] Escalando a " + targetWidth + "x" + targetHeight + " | MantenerProporcion=" + mantenerProp);
-
-
-        if (mantenerProp) {
-            // --- LÓGICA ANTIGUA (MANTIENE PROPORCIÓN) ---
-            double imageAspectRatio = (double) current.getWidth() / current.getHeight();
-            double panelAspectRatio = (double) targetWidth / targetHeight;
-
-            if (panelAspectRatio > imageAspectRatio) { // Panel más ancho que imagen (relativamente) -> ajustar a ALTO
-                newHeight = targetHeight;
-                newWidth = (int) (targetHeight * imageAspectRatio);
-            } else { // Panel más alto que imagen (relativamente) -> ajustar a ANCHO
-                newWidth = targetWidth;
-                //newHeight = (int) (targetWidth / imageAspectRatio); // <-- ¡CORRECCIÓN! Aquí debe ser targetWidth
-                // Corrección:
-                newHeight = (int) (targetWidth / imageAspectRatio);
-            }
-             System.out.println("  -> Con proporción: newW=" + newWidth + ", newH=" + newHeight);
-            // Asegurarse de que al menos sea 1x1 si los cálculos dan 0
-            newWidth = Math.max(1, newWidth);
-            newHeight = Math.max(1, newHeight);
-            // -------------------------------------------
-
-        } else {
-            // --- NUEVA LÓGICA (NO MANTIENE PROPORCIÓN - ESTIRA/ENCOGE) ---
-            // Simplemente usar el tamaño del contenedor
-            newWidth = targetWidth;
-            newHeight = targetHeight;
-             System.out.println("  -> SIN proporción: newW=" + newWidth + ", newH=" + newHeight);
-            // ---------------------------------------------------------
-        }
-
-        // Usar SCALE_SMOOTH para mejor calidad
-        // Importante: getScaledInstance puede ser lento y asíncrono a veces.
-        // Si tienes problemas de rendimiento o parpadeo, investiga alternativas
-        // como usar AffineTransform o librerías como imgscalr.
-        try {
-             return current.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-        } catch (Exception e) {
-             System.err.println("ERROR [reescalar] Excepción en getScaledInstance: " + e.getMessage());
-             // Devolver original como fallback o null? Null es más seguro.
-             return null;
-        }
-    }
-    
-	
-	public void setManualZoomEnabled(boolean enable) 
-	{
-        //LOG [Controller] setManualZoomEnabled
-		//System.out.println("[Controller] setManualZoomEnabled llamado con: " + enable);
-
-        // 1. Actualizar Modelo
-        model.setZoomHabilitado(enable);
-
-        // 2. Actualizar Estado de Actions relacionadas
-        // La Action de Reset se habilita/deshabilita
-        if(resetZoomAction != null) resetZoomAction.setEnabled(enable);
-        // El estado SELECTED de la Action de toggle se actualiza (lo hace su propio actionPerformed)
-        
-        // Actualizar Action de Toggle (SELECTED_KEY)
-        if(toggleZoomManualAction != null) toggleZoomManualAction.putValue(Action.SELECTED_KEY, enable);
-        
-        // 3. Actualizar la VISTA (Componentes que NO usan Action directamente o necesitan UI específica)
-        if (view != null) {
-            // El botón de zoom cambia su fondo (esto no lo hace Action automáticamente)
-             view.actualizarEstadoControlesZoom(enable, enable); // Actualiza fondo botón zoom
-             // El checkbox del menú debería actualizarse automáticamente si usa setAction(toggleZoomManualAction)
-             // view.setEstadoMenuActivarZoomManual(enable); // No debería ser necesario si usa Action
-        }
-
-        // 4. Lógica adicional
-        if (enable) {
-            if (!model.isZoomHabilitado()) { // Solo resetear si realmente se activó
-            	
-            	//LOG Zoom Manual activado. Aplicando reset inicial
-                //System.out.println("Zoom Manual activado. Aplicando reset inicial...");
-                
-            	aplicarResetZoomAction(); // Llama a lógica de reseteo
-            }
-        } else {
-        	//LOG Zoom Manual desactivado. Reajustando imagen
-            //System.out.println("Zoom Manual desactivado. Reajustando imagen...");
+                 }
+            }); // Fin lambda listener Miniaturas
             
-            model.resetZoomState();
-            Image reescalada = reescalarImagenParaAjustar();
-            if (view != null) {
-                view.setImagenMostrada(reescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-            }
+            System.out.println("  -> Listener SEPARADO añadido a listaMiniaturas.");
+        } else {
+             System.err.println("WARN [configurarListenersVista]: listaMiniaturas es null.");
         }
-        //LOG [Controller] setManualZoomEnabled terminado.
-         //System.out.println("[Controller] setManualZoomEnabled terminado.");
-    }
-	
-	
-	/**
-	 * Ejecuta la acción de resetear el zoom/offset.
-	 */
-	public void aplicarResetZoomAction ()
-	{
+        
+        // --- 3. CONFIGURAR ACTIONS EN COMPONENTES UI ---
+        configurarComponentActions();
+        System.out.println("  -> Actions configuradas en componentes UI.");
 
-		System.out.println("Ejecutando acción de Reset Zoom...");
-		model.resetZoomState();
-		Image reescalada = reescalarImagenParaAjustar(); // Recalcular imagen base
-		view.setImagenMostrada(reescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-		view.aplicarAnimacionBoton("Reset_48x48");
-	}
+        // --- 4. INTERCEPTAR ACCIONES DE TECLADO DE LISTAS ---
+        interceptarAccionesTecladoListas();
+        
+        
+        // --- 5. Log Final ---
+        System.out.println("[Controller] Configuración de Listeners y Actions de Vista finalizada.");
 
-	
-    // --- INICIO MÉTODO COMPLETO Y CORREGIDO: abrirSelectorDeCarpeta ---
+    } // --- FIN configurarListenersVista ---    
+    
+
     /**
-     * Abre el selector de carpetas del sistema, permitiendo al usuario
-     * elegir una nueva carpeta raíz. Actualiza la variable interna
-     * 'carpetaRaizActual', guarda la nueva ruta en la configuración
-     * y recarga la lista de imágenes.
+     * Inicia el proceso de carga y visualización de la imagen principal.
+     * Llamado por ListCoordinator después de actualizar el índice oficial.
+     * @param indiceSeleccionado El índice de la imagen a mostrar (aunque usa model.getSelectedImageKey()).
+     *                         El índice es útil aquí principalmente para logs o lógica futura.
      */
-    public void abrirSelectorDeCarpeta() {
-        if (configuration == null) {
-             System.err.println("ERROR: ConfigurationManager nulo en abrirSelectorDeCarpeta.");
+     public void actualizarImagenPrincipal(int indiceSeleccionado) { // El índice es informativo
+         // 1. Validar dependencias críticas
+         if (view == null || model == null || executorService == null || executorService.isShutdown()) {
+             System.err.println("WARN [actualizarImagenPrincipal]: Vista, Modelo o Executor no listos. Abortando carga.");
              return;
-        }
+         }
 
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        fileChooser.setDialogTitle("Seleccionar Carpeta Raíz");
+         // 2. Obtener la CLAVE de la imagen seleccionada DESDE EL MODELO
+         String archivoSeleccionadoKey = model.getSelectedImageKey();
 
-        // Establecer directorio inicial del selector:
-        // 1. Usar la carpeta raíz actual si es válida.
-        // 2. Si no, intentar usar la de la configuración.
-        // 3. Si no, usar el directorio por defecto del JFileChooser.
-        Path currentDirToShow = null;
-        if (this.carpetaRaizActual != null && Files.isDirectory(this.carpetaRaizActual)) {
-            currentDirToShow = this.carpetaRaizActual;
-        } else {
-            String folderInitConfig = configuration.getString("inicio.carpeta", "");
-            if (!folderInitConfig.isEmpty()) {
-                try {
-                    Path configPath = Paths.get(folderInitConfig);
-                    if (Files.isDirectory(configPath)) {
-                        currentDirToShow = configPath;
-                    }
-                } catch (Exception e) { /* Ignorar ruta inválida en config */ }
-            }
-        }
-        if (currentDirToShow != null) {
-            fileChooser.setCurrentDirectory(currentDirToShow.toFile());
-            System.out.println("  -> JFileChooser iniciado en: " + currentDirToShow);
-        } else {
-             System.out.println("  -> JFileChooser iniciado en directorio por defecto.");
-        }
+         // 3. Validar la clave obtenida
+         if (archivoSeleccionadoKey == null) {
+              System.out.println("[actualizarImagenPrincipal] No hay clave seleccionada en modelo. Limpiando UI si es necesario.");
 
+              if(model.getCurrentImage() != null || !"Lista de Archivos".equals(view.getPanelIzquierdo().getBorder().toString())) { // Comprobación extra para no limpiar innecesariamente
+                   limpiarUI();
+              }
+             return;
+         }
 
-        int resultado = fileChooser.showOpenDialog(view != null ? view.getFrame() : null);
+         System.out.println("--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): '" + archivoSeleccionadoKey + "'");
 
-        if (resultado == JFileChooser.APPROVE_OPTION) {
-            File carpetaSeleccionada = fileChooser.getSelectedFile();
+         // 4. Cancelar carga de imagen principal anterior si estuviera en curso
+         if (cargaImagenPrincipalFuture != null && !cargaImagenPrincipalFuture.isDone()) {
+             System.out.println("  -> Cancelando carga imagen principal anterior...");
+             cargaImagenPrincipalFuture.cancel(true); // Intentar interrumpir la tarea anterior
+         }
 
-            if (carpetaSeleccionada != null && carpetaSeleccionada.isDirectory()) {
-                String rutaCarpeta = carpetaSeleccionada.getAbsolutePath();
-                Path nuevaCarpetaRaiz = carpetaSeleccionada.toPath();
+         // 5. Actualizar estado de Actions que dependen de la selección (Ej: Localizar)
+         if (locateFileAction instanceof LocateFileAction) {
+             ((LocateFileAction) locateFileAction).updateEnabledState();
+         }
+         // (Añadir aquí otras Actions si dependen de que haya una imagen seleccionada)
 
-                // Solo proceder si la carpeta seleccionada es diferente de la actual
-                if (!nuevaCarpetaRaiz.equals(this.carpetaRaizActual)) {
-                    System.out.println("[Controller] Nueva Carpeta Raíz seleccionada: " + nuevaCarpetaRaiz);
+         // 6. Obtener la ruta completa y actualizar la UI al estado "Cargando"
+         Path rutaCompleta = model.getRutaCompleta(archivoSeleccionadoKey);
 
-                    // Actualizar la variable de instancia
-                    this.carpetaRaizActual = nuevaCarpetaRaiz;
+         if (rutaCompleta != null) {
+        	 
+             // 6.1 Mostrar ruta en barra de estado
+             view.setTextoRuta(rutaCompleta.toString());
+             
+             // 6.2 Mostrar indicador visual de carga en el panel de imagen
+             view.mostrarIndicadorCargaImagenPrincipal("Cargando: " + rutaCompleta.getFileName() + "...");
+         } else {
+        	 
+             // 6.3 Manejar error si la clave válida no tiene ruta (inconsistencia grave)
+             System.err.println("ERROR GRAVE [actualizarImagenPrincipal]: No se encontró ruta completa para la clave válida: " + archivoSeleccionadoKey);
+             model.setSelectedImageKey(null); // Deshacer selección en modelo como medida de seguridad
+             
+             if(view != null) {
+                 view.limpiarImagenMostrada();
+                 view.setTextoRuta("Error CRÍTICO: Ruta no encontrada para " + archivoSeleccionadoKey);
+             }
+             // Podríamos incluso mostrar un JOptionPane aquí, ya que es un error inesperado.
+             return; // Salir si no hay ruta
+         }
 
-                    // Actualizar y guardar configuración
-                    configuration.setInicioCarpeta(rutaCarpeta); // Actualiza en memoria
-                    try {
-                        // Usar getConfigMap() para obtener todos los datos actuales antes de guardar
-                        configuration.guardarConfiguracion(configuration.getConfigMap());
-                        System.out.println("  -> Nueva carpeta inicial guardada en config.cfg: " + rutaCarpeta);
-                    } catch (IOException e) {
-                        System.err.println("  -> ERROR al guardar nueva carpeta inicial en config.cfg: " + e.getMessage());
-                         if(view != null) JOptionPane.showMessageDialog(view.getFrame(), "No se pudo guardar la nueva carpeta inicial.", "Error", JOptionPane.WARNING_MESSAGE);
-                    }
+         // 7. Enviar Tarea de Carga al ExecutorService
+         final String finalKey = archivoSeleccionadoKey; // Clave final para lambda
+         final Path finalPath = rutaCompleta;           // Ruta final para lambda
+         System.out.println("    Lanzando tarea de carga en background para: " + finalPath);
 
-                    // Recargar la lista desde la nueva raíz, seleccionando la primera imagen
-                    System.out.println("  -> Llamando a cargarListaImagenes(null) para la nueva raíz...");
-                    cargarListaImagenes(null); // Pasar null para seleccionar la primera imagen
+         cargaImagenPrincipalFuture = executorService.submit(() -> { // Inicio lambda tarea background
+             
+        	 // 7.1 Log inicio tarea background
+             System.out.println("      [BG Img Load] Iniciando lectura para: " + finalPath);
+             BufferedImage img = null; // Variable para la imagen cargada
+             String errorMsg = null;   // Variable para mensaje de error
 
-                } else {
-                    System.out.println("[Controller] La carpeta seleccionada es la misma que la actual. No se recarga.");
-                }
+             // 7.2 Bloque try-catch para la lectura del archivo
+             try {
+             
+            	 // 7.2.1 Comprobar existencia del archivo (defensivo)
+                  if (!Files.exists(finalPath)) {
+                      throw new IOException("El archivo no existe en la ruta especificada: " + finalPath);
+                  }
+                 
+                  // 7.2.2 Leer la imagen usando ImageIO
+                 img = ImageIO.read(finalPath.toFile());
 
-            } else if (carpetaSeleccionada != null) { // Si seleccionó un archivo o algo inválido
-                 if(view != null) JOptionPane.showMessageDialog(view.getFrame(), "Debe seleccionar una carpeta válida.", "Selección Inválida", JOptionPane.WARNING_MESSAGE);
-            }
-        } else {
-            System.out.println("[Controller] Selección de carpeta cancelada por el usuario.");
-        }
-    }
-    // --- FIN MÉTODO: abrirSelectorDeCarpeta ---
-	
+                  // 7.2.3 Comprobar si la tarea fue interrumpida DESPUÉS de leer
+                  if (Thread.currentThread().isInterrupted()) {
+                      System.out.println("      [BG Img Load] Tarea interrumpida DESPUÉS de leer.");
+                      // No procesar la imagen si fue interrumpida
+                      return; // Salir del lambda
+                  }
+
+                 // 7.2.4 Comprobar si ImageIO devolvió null (formato no soportado, error silencioso)
+                 if (img == null) {
+                      errorMsg = "Formato no soportado o archivo inválido.";
+                      System.err.println("      [BG Img Load] Error: " + errorMsg + " (" + finalPath.getFileName() + ")");
+                 } else {
+                      System.out.println("      [BG Img Load] Lectura correcta.");
+                 }
+
+             // 7.3 Capturar excepciones específicas
+             } catch (IOException ioEx) {
+                 errorMsg = "Error de E/S: " + ioEx.getMessage();
+                 System.err.println("      [BG Img Load] " + errorMsg + " (" + finalPath.getFileName() + ")");
+                 
+             } catch (OutOfMemoryError oom) {
+                  errorMsg = "Memoria insuficiente para cargar la imagen.";
+                  System.err.println("      [BG Img Load] " + errorMsg + " (" + finalPath.getFileName() + ")");
+                  if(servicioMiniaturas != null) servicioMiniaturas.limpiarCache(); // Intentar liberar memoria
+                  
+             } catch (Exception ex) { // Captura genérica para otros errores
+                  errorMsg = "Error inesperado al cargar: " + ex.getClass().getSimpleName() + " - " + ex.getMessage();
+                  System.err.println("      [BG Img Load] " + errorMsg + " (" + finalPath.getFileName() + ")");
+                  ex.printStackTrace(); // Imprimir stack trace completo para depuración
+             }
+
+             // 8. Actualizar Modelo y Vista en el EDT (después de la carga)
+             //    Solo si la tarea no fue interrumpida Y la clave seleccionada AÚN es la misma
+             final BufferedImage finalImg = img;           // Imagen final (puede ser null)
+             final String finalErrorMsg = errorMsg; // Mensaje de error final (puede ser null)
+
+             if (!Thread.currentThread().isInterrupted() && finalKey.equals(model.getSelectedImageKey())) {
+                 
+            	 // 8.1 Ejecutar actualización de UI en el Event Dispatch Thread
+                 SwingUtilities.invokeLater(() -> {
+                 
+                	 // 8.1.1 Log de entrada al invokeLater
+                     System.out.println("      [EDT Img Load] Ejecutando invokeLater para: " + finalKey);
+
+                     // 8.1.2 Re-validar dependencias dentro del EDT
+                     if (view == null || model == null) {
+                          System.err.println("      [EDT Img Load] ERROR: Vista o Modelo nulos en invokeLater!");
+                          return; // Salir si algo desapareció
+                     }
+                     
+                     // 8.1.3 Logs de depuración adicionales
+                     System.out.println("      [EDT Img Load] Imagen final (finalImg) es null? " + (finalImg == null));
+                     if(finalImg != null) System.out.println("      [EDT Img Load] Tamaño imagen original: " + finalImg.getWidth() + "x" + finalImg.getHeight());
+                     System.out.println("      [EDT Img Load] Mensaje de error (finalErrorMsg): " + finalErrorMsg);
+
+                     // 8.1.4 Comprobar si la carga fue exitosa (finalImg no es null)
+                     if (finalImg != null) {
+                         // === Caso Éxito ===
+                         System.out.println("      [EDT Img Load] => Éxito. Actualizando modelo...");
+                     
+                         // 8.1.4.a Actualizar imagen en el modelo
+                         model.setCurrentImage(finalImg);
+                         
+                         // 8.1.4.b Resetear zoom/pan si el modo manual no está activo
+                         if (!model.isZoomHabilitado()) {
+                             model.resetZoomState();
+                         }
+
+                         // 8.1.4.c Calcular imagen reescalada para mostrar en la vista
+                         System.out.println("      [EDT Img Load] => Llamando a reescalar...");
+                         Image reescalada = reescalarImagenParaAjustar();
+                         System.out.println("      [EDT Img Load] Imagen reescalada es null? " + (reescalada == null));
+
+                         // 8.1.4.d Actualizar la vista con la imagen reescalada
+                         if (reescalada != null) {
+                              System.out.println("      [EDT Img Load] => Llamando a view.setImagenMostrada...");
+                              view.setImagenMostrada(reescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+                              System.out.println("      [EDT Img Load] => FIN ÉXITO.");
+                         
+                         } else {
+                         
+                        	 // Error durante el reescalado (raro si la imagen original es válida)
+                              System.err.println("WARN [EDT Img Load]: No se pudo reescalar la imagen cargada. Limpiando vista.");
+                              view.limpiarImagenMostrada(); // Limpiar por seguridad
+                              // Podríamos mostrar un mensaje de error más específico aquí si quisiéramos
+                         }
+                         
+                     } else {
+                         
+                    	 // === Caso Error ===
+                         System.err.println("      [EDT Img Load] => Error detectado al cargar: " + finalErrorMsg);
+                         
+                         // 8.1.4.e Asegurar que no hay imagen en el modelo
+                         model.setCurrentImage(null);
+                         
+                         // 8.1.4.f Limpiar la vista
+                         view.limpiarImagenMostrada();
+                         
+                         // 8.1.4.g Mostrar mensaje de error en la barra de estado
+                         view.setTextoRuta("Error cargando: " + finalPath.getFileName() + (finalErrorMsg != null ? " ("+finalErrorMsg+")" : ""));
+                         
+                         // 8.1.4.h Resetear zoom/pan por si acaso
+                         model.resetZoomState();
+                         if(model.isZoomHabilitado()) {
+                              setManualZoomEnabled(false); // Desactivar zoom manual si hubo error
+                         }
+                     }
+                 }); // Fin invokeLater para actualizar UI
+             } else {
+            	 
+                  // 8.2 La tarea fue cancelada O la selección cambió mientras se cargaba
+                  System.out.println("      [BG Img Load] Carga cancelada o selección cambiada. Descartando resultado para: " + finalKey);
+             }
+         }); // --- FIN Tarea Background (executorService.submit) ---
+
+         // 9. Log final del método principal
+         System.out.println("--> Tarea carga IMAGEN PRINCIPAL lanzada para: " + archivoSeleccionadoKey);
+
+     } // --- FIN actualizarImagenPrincipal ---
+
+     
+     /**
+      * Asigna Actions a botones/menús y configura listeners específicos.
+      */
+     private void configurarComponentActions() {
+          System.out.println("  [Config Comp Actions] Configurando...");
+          if (view == null) { System.err.println("ERROR: Vista nula en configurarComponentActions"); return; }
+
+          // Asignar Actions a Botones
+          Map<String, JButton> botones = view.getBotonesPorNombre();
+          if (botones != null) {
+              // ... (Tu código setActionForKey para todos los botones) ...
+               setActionForKey(botones, "interfaz.boton.toggle.Subcarpetas_48x48", toggleSubfoldersAction);
+               setActionForKey(botones, "interfaz.boton.toggle.Mantener_Proporciones_48x48", toggleProporcionesAction);
+               setActionForKey(botones, "interfaz.boton.control.Ubicacion_de_Archivo_48x48" , locateFileAction);
+               setActionForKey(botones, "interfaz.boton.movimiento.Primera_48x48", firstImageAction);
+               setActionForKey(botones, "interfaz.boton.movimiento.Anterior_48x48", previousImageAction);
+               setActionForKey(botones, "interfaz.boton.movimiento.Siguiente_48x48", nextImageAction);
+               setActionForKey(botones, "interfaz.boton.movimiento.Ultima_48x48", lastImageAction);
+               setActionForKey(botones, "interfaz.boton.edicion.Rotar_Izquierda_48x48", rotateLeftAction);
+               setActionForKey(botones, "interfaz.boton.edicion.Rotar_Derecha_48x48", rotateRightAction);
+               setActionForKey(botones, "interfaz.boton.edicion.Espejo_Horizontal_48x48", flipHorizontalAction);
+               setActionForKey(botones, "interfaz.boton.edicion.Espejo_Vertical_48x48", flipVerticalAction);
+               setActionForKey(botones, "interfaz.boton.zoom.Zoom_48x48", toggleZoomManualAction);
+               setActionForKey(botones, "interfaz.boton.zoom.Zoom_Auto_48x48", zoomAutoAction);
+               setActionForKey(botones, "interfaz.boton.zoom.Ajustar_al_Ancho_48x48", zoomAnchoAction);
+               setActionForKey(botones, "interfaz.boton.zoom.Ajustar_al_Alto_48x48", zoomAltoAction);
+               setActionForKey(botones, "interfaz.boton.zoom.Escalar_Para_Ajustar_48x48", zoomFitAction);
+               setActionForKey(botones, "interfaz.boton.zoom.Zoom_Fijo_48x48", zoomFixedAction);
+               setActionForKey(botones, "interfaz.boton.zoom.Reset_48x48", resetZoomAction);
+               setActionForKey(botones, "interfaz.boton.especiales.Selector_de_Carpetas_48x48", openAction);
+               // ... etc ...
+              System.out.println("    -> Actions asignadas a Botones.");
+          } else { System.err.println("WARN: Mapa de botones nulo."); }
+
+          // Asignar Actions/Listeners a Menús
+          Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
+          if (menuItems != null) {
+               System.out.println("    -> Asignando Actions/Listeners a Menús...");
+               // ... (Tu código setActionForKey para menús que usan Action) ...
+                setActionForKey(menuItems, "interfaz.menu.archivo.Abrir_Archivo", openAction);
+                setActionForKey(menuItems, "interfaz.menu.navegacion.Primera_Imagen", firstImageAction);
+                // ... etc ...
+                setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Orange", temaOrangeAction);
+
+               // Listeners específicos para radios de subcarpetas
+               String keyMostrarSub = "interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas";
+               String keyMostrarSolo = "interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual";
+               JMenuItem radioMostrarSub = menuItems.get(keyMostrarSub);
+               JMenuItem radioMostrarSolo = menuItems.get(keyMostrarSolo);
+               
+               if (radioMostrarSub instanceof JRadioButtonMenuItem) {
+                    for(ActionListener al : radioMostrarSub.getActionListeners()) radioMostrarSub.removeActionListener(al);
+                    radioMostrarSub.addActionListener(e -> setMostrarSubcarpetasAndUpdateConfig(true));
+               }
+               
+               if (radioMostrarSolo instanceof JRadioButtonMenuItem) {
+                    for(ActionListener al : radioMostrarSolo.getActionListeners()) radioMostrarSolo.removeActionListener(al);
+                    radioMostrarSolo.addActionListener(e -> setMostrarSubcarpetasAndUpdateConfig(false));
+               }
+               
+               // Añadir ActionListener central a items sin Action
+               addFallbackListeners(menuItems);
+               System.out.println("    -> Actions/Listeners asignados a Menús.");
+               
+          } else { System.err.println("WARN: Mapa de menús nulo."); }
+
+          System.out.println("  [Config Comp Actions] Finalizado.");
+     }
+
+     
+    // --- 6. Métodos de Carga y Navegación ---
+     
 
 	/**
-	 * Abre el selector de carpetas y carga la seleccionada.
+	 * Carga o recarga la lista de imágenes desde disco para una carpeta específica,
+	 * utilizando un SwingWorker para no bloquear el EDT. Muestra un diálogo de
+	 * progreso durante la carga. Una vez cargada la lista: - Actualiza el modelo
+	 * principal de datos (`VisorModel`). - Actualiza las JList en la vista
+	 * (`VisorView`). - Inicia el precalentamiento asíncrono del caché de
+	 * miniaturas. - Selecciona una imagen específica (si se proporciona
+	 * `claveImagenAMantener`) o la primera imagen de la lista. - Maneja la
+	 * selección inicial de forma segura usando el flag `seleccionInicialEnCurso`.
+	 *
+	 * @param claveImagenAMantener La clave única (ruta relativa) de la imagen que
+	 *                             se intentará seleccionar después de que la lista
+	 *                             se cargue. Si es `null`, se seleccionará la
+	 *                             primera imagen (índice 0).
 	 */
-	public void abrirSelectorDeCarpetaOLD ()
+	private void cargarListaImagenes (String claveImagenAMantener)
 	{
 
-		if (configuration == null) 
+		// --- 1. LOG INICIO Y VALIDACIONES PREVIAS ---
+		// 1.1. Log detallado del inicio y la clave a mantener
+		System.out.println("\n-->>> INICIO cargarListaImagenes(String) | Mantener Clave: " + claveImagenAMantener);
+
+		// 1.2. Verificar dependencias críticas del sistema
+		if (configuration == null || model == null || executorService == null || executorService.isShutdown()
+				|| view == null)
 		{
-			System.err.println("ERROR: ConfigurationManager nulo en abrirSelectorDeCarpeta.");
-			return;
+			System.err.println(
+					"ERROR [cargarListaImagenes]: Dependencias nulas (Config, Modelo, Executor o Vista) o Executor apagado.");
+
+			// Intentar limpiar la UI si es posible
+			if (view != null)
+				SwingUtilities.invokeLater(this::limpiarUI);
+			estaCargandoLista = false; // Asegurar que el estado de carga sea falso
+			return; // Salir del método
 		}
-		
-		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		String folderInit = configuration.getString("inicio.carpeta", "");
 
-		if (folderInit != null && !folderInit.isEmpty())
+		// 1.3. Marcar que la carga de la lista está en curso
+		estaCargandoLista = true;
+
+		// --- 2. CANCELAR TAREAS ANTERIORES ---
+
+		// 2.1. Cancelar cualquier tarea previa de carga de lista que aún esté
+		if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone())
+		{
+			System.out.println("  -> Cancelando tarea de carga de lista anterior...");
+			cargaImagenesFuture.cancel(true); // Intentar interrumpir la tarea
+		}
+
+		// 2.2. (Si existiera lógica similar para cancelar precalentamiento de
+		// miniaturas, iría aquí)
+
+		// --- 3. DETERMINAR PARÁMETROS DE BÚSQUEDA ---
+
+		// 3.1. Determinar si se deben incluir subcarpetas (basado en el estado del
+		// modelo)
+		final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual(); // Necesita ser final para lambda/worker
+
+		// 3.2. Establecer la profundidad de búsqueda para Files.walk
+		int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE; // 1 para solo carpeta actual, MAX_VALUE para recursivo
+		System.out.println("  -> Modo búsqueda: "
+				+ (mostrarSoloCarpeta ? "Solo Carpeta Actual (depth=1)" : "Subcarpetas (depth=MAX)"));
+
+		// 3.3. Determinar la carpeta desde donde iniciar la búsqueda
+		Path pathDeInicioWalk = null;
+
+		if (mostrarSoloCarpeta)
 		{
 
-			File initDir = new File(folderInit);
+			// Si es solo carpeta actual, intentar usar la carpeta de la imagen a
+			// mantener/seleccionada
+			String claveRef = claveImagenAMantener != null ? claveImagenAMantener : model.getSelectedImageKey();
+			Path rutaRef = claveRef != null ? model.getRutaCompleta(claveRef) : null;
+			// Si tenemos una ruta válida y es un archivo, usar su carpeta padre
 
-			if (initDir.isDirectory())
+			if (rutaRef != null && Files.isRegularFile(rutaRef))
 			{
-
-				fileChooser.setCurrentDirectory(initDir);
-
+				pathDeInicioWalk = rutaRef.getParent();
 			}
 
-		}
-
-		int resultado = fileChooser.showOpenDialog(view.getFrame());
-
-		if (resultado == JFileChooser.APPROVE_OPTION)
-		{
-
-			File carpetaSeleccionada = fileChooser.getSelectedFile();
-
-			if (carpetaSeleccionada != null)
+			// Fallback: si no se pudo obtener la carpeta de la imagen, usar la raíz actual
+			if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk))
 			{
+				System.out.println("    -> No se pudo obtener carpeta de imagen actual válida. Usando carpeta raíz: "
+						+ this.carpetaRaizActual);
+				pathDeInicioWalk = this.carpetaRaizActual; // Usar la carpeta raíz guardada en el controller
 
-				String rutaCarpeta = carpetaSeleccionada.getAbsolutePath();
-				// Actualizar configuración EN MEMORIA y persistir
-				configuration.setInicioCarpeta(rutaCarpeta);
-
-				// Guardar inmediatamente la nueva carpeta inicial
-				try
-				{
-
-					Map<String, String> currentConfig = configuration.getConfigMap(); // Obtiene copia
-					currentConfig.put("inicio.carpeta", rutaCarpeta); // Actualiza la clave
-					configuration.guardarConfiguracion(currentConfig); // Guarda el mapa modificado
-					System.out.println("Nueva carpeta inicial guardada: " + rutaCarpeta);
-
-				} catch (IOException e)
-				{
-
-					System.err.println("Error al guardar nueva carpeta inicial: " + e.getMessage());
-					JOptionPane.showMessageDialog(view.getFrame(), "No se pudo guardar la nueva carpeta inicial.",
-							"Error", JOptionPane.WARNING_MESSAGE);
-
-				}
-
-				cargarListaImagenes(); // Recargar con la nueva carpeta
-
-			}
-
-		}
-
-	}
-
-	/**
-	 * Muestra un diálogo con la lista de archivos.
-	 */
-	private void mostrarDialogoListaImagenes ()
-	{
-
-		JDialog dialogoLista = new JDialog(view.getFrame(), "Lista de Imágenes", true); // Modal
-		dialogoLista.setSize(600, 400);
-		dialogoLista.setLocationRelativeTo(view.getFrame());
-
-		DefaultListModel<String> modeloListaDialogo = new DefaultListModel<>();
-		JList<String> listaImagenesDialogo = new JList<>(modeloListaDialogo);
-		JScrollPane scrollPaneListaDialogo = new JScrollPane(listaImagenesDialogo);
-		JCheckBox checkBoxMostrarRutas = new JCheckBox("Mostrar Rutas Completas");
-
-		JButton botonCopiarLista = new JButton("Copiar Lista");
-		// Pasamos el modelo del diálogo al método de copiar
-		botonCopiarLista.addActionListener(e -> copiarListaAlPortapapeles(modeloListaDialogo));
-
-		JPanel panelSuperiorDialog = new JPanel(new FlowLayout(FlowLayout.LEFT));
-		panelSuperiorDialog.add(botonCopiarLista);
-		panelSuperiorDialog.add(checkBoxMostrarRutas);
-
-		dialogoLista.add(panelSuperiorDialog, BorderLayout.NORTH);
-		dialogoLista.add(scrollPaneListaDialogo, BorderLayout.CENTER);
-
-		checkBoxMostrarRutas.addActionListener(e -> {
-
-			// Llama al método local que lee del modelo principal
-			actualizarListaEnDialogo(modeloListaDialogo, checkBoxMostrarRutas.isSelected());
-
-		});
-
-		// Carga inicial del diálogo
-		actualizarListaEnDialogo(modeloListaDialogo, checkBoxMostrarRutas.isSelected());
-		dialogoLista.setVisible(true); // Hacer visible al final
-
-	}
-
-	
-	/**
-	 * Actualiza el modelo del diálogo de lista.
-	 */
-	private void actualizarListaEnDialogo (DefaultListModel<String> modeloDialogo, boolean mostrarRutas)
-	{
-
-		modeloDialogo.clear();
-		DefaultListModel<String> modeloPrincipal = model.getModeloLista(); // Obtener modelo principal
-		Map<String, Path> mapaRutas = model.getRutaCompletaMap(); // Obtener mapa de rutas
-
-		for (int i = 0; i < modeloPrincipal.getSize(); i++)
-		{
-
-			String nombreArchivoKey = modeloPrincipal.getElementAt(i);
-			Path rutaCompleta = mapaRutas.get(nombreArchivoKey);
-			String textoAAgregar = nombreArchivoKey; // Por defecto, la clave/ruta relativa
-
-			if (mostrarRutas && rutaCompleta != null)
+			} else
 			{
-
-				textoAAgregar = rutaCompleta.toString();
-
-			} else if (mostrarRutas && rutaCompleta == null)
-			{
-
-				textoAAgregar = nombreArchivoKey + " (¡Ruta no encontrada!)";
-
-			}
-			modeloDialogo.addElement(textoAAgregar);
-
-		}
-
-	}
-
-	
-	/**
-	 * Copia el contenido de un DefaultListModel al portapapeles.
-	 */
-	private void copiarListaAlPortapapeles (DefaultListModel<String> listModel)
-	{
-
-		StringBuilder sb = new StringBuilder();
-
-		for (int i = 0; i < listModel.getSize(); i++)
-		{
-
-			sb.append(listModel.getElementAt(i)).append("\n");
-
-		}
-		StringSelection stringSelection = new StringSelection(sb.toString());
-		Toolkit.getDefaultToolkit().getSystemClipboard().setContents(stringSelection, this);
-		System.out.println("Lista copiada al portapapeles.");
-
-	}
-
-	// --- Configuración de Eventos de la Vista ---
-	/**
-	 * Añade los listeners del controlador a los componentes de la vista.
-	 */
-	
-	
-	
-	// --- Implementación de ActionListener ---
-	@Override
-	public void actionPerformed (ActionEvent e)
-	{
-		//------------------------------------------------------
-		//LOG metodo mostrar nombres de botones y menus
-		logActionInfo(e); // <-- LLAMAR AL MÉTODO DE logActionInfo PRIMERO
-		//------------------------------------------------------
-		
-		// Redirige a los métodos específicos basados en el source
-		Object source = e.getSource();
-		String command = e.getActionCommand(); // Comando CORTO
-		
-		//LOG Evento recibido de:
-        System.out.println("\n\n[ActionListener Central] Evento recibido de: "
-                           + source.getClass().getSimpleName() + ", Comando: " + command);
-        // --- IMPRIMIR EL COMANDO RECIBIDO ---
-        System.out.println(">>> Acción Recibida - Comando: [" + command + "]\n\n");
-        
-        // Ya no necesitas los métodos handleButtonAction/handleMenuAction
-        // si todo va por Actions.
-        // La lógica ahora está DENTRO del actionPerformed de cada Action.
-
-
-        
-     // Mantenemos un switch aquí para los FALLBACKS (items sin Action)
-        // o acciones muy específicas que no justificaban una clase Action.
-        switch (command) {
-            // --- Archivo (Ejemplo Fallback) ---
-             case "Guardar_Configuracion_Actual": // Si no tuvo Action
-                 guardarConfiguracionActual();
-                 break;
-
-             // --- Navegación (Manejado por Actions) ---
-
-             // --- Zoom (Manejado por Actions) ---
-
-             // --- Imagen (Ejemplo Fallback) ---
-             case "Cambiar_Nombre_de_la_Imagen": // Si no tuvo Action
-                 System.out.println("TODO: Fallback - Cambiar Nombre Imagen");
-                 break;
-
-             // --- Vista (Ejemplo Fallback) ---
-             case "Mostrar_Dialogo_Lista_de_Imagenes": // Si no tuvo Action
-                 mostrarDialogoListaImagenes();
-                 break;
-             case "Barra_de_Menu": // Checkbox de visibilidad (puede no tener Action)
-             case "Barra_de_Botones":
-             case "Mostrar/Ocultar_la_Lista_de_Archivos":
-             case "Imagenes_en_Miniatura":
-             case "Linea_de_Ubicacion_del_Archivo":
-             case "Fondo_a_Cuadros":
-             case "Mantener_Ventana_Siempre_Encima":
-                 if (source instanceof JCheckBoxMenuItem) {
-                     togglePanelVisibility(command, ((JCheckBoxMenuItem) source).isSelected());
-                 }
-                 break;
-
-
-             // --- Configuración (Ejemplo Fallback) ---
-             case "Cargar_Configuracion_Inicial": // Si no tuvo Action
-                 System.out.println("TODO: Fallback - Cargar Config Inicial");
-                 break;
-             case "Botón_Rotar_Izquierda": // Checkbox de visibilidad (puede no tener Action)
-                 // ... (Lógica para manejar visibilidad de botones si no usan Action) ...
-                  if (source instanceof JCheckBoxMenuItem) {
-                     boolean visible = ((JCheckBoxMenuItem) source).isSelected();
-                     System.out.println("TODO: Fallback - Cambiar visibilidad botón Rotar_Izquierda a " + visible);
-                     // view.getBotonesPorNombre().get("interfaz.boton.edicion.Rotar_Izquierda_48x48").setVisible(visible);
-                     // guardarVisibilidadEnConfig("interfaz.boton.edicion.Rotar_Izquierda_48x48.visible", visible);
-                 }
-                 break;
-
-            // --- Ayuda (Ejemplo Fallback) ---
-             case "Version": // Si no tuvo Action
-                 mostrarVersion();
-                 break;
-
-             default:
-                 //System.out.println("WARN: Comando no manejado en ActionListener central: " + command);
-                 //break;
-            	 if (!(source instanceof JMenuItem)) {
-                     System.out.println("WARN: Comando fallback no manejado: " + command + " de " + 
-                    		 source.getClass().getSimpleName());
-                 }
-                 break;
-        }
-		
-	}
-
-
-	// --- Métodos Auxiliares de Lógica ---
-
-	/**
-	 * Navega a la imagen anterior o siguiente.
-	 * 
-	 * @param direccion -1 para anterior, 1 para siguiente.
-	 */
-	public void navegarImagen (int direccion)
-	{
-
-		if (model.getModeloLista().isEmpty())
-			return; // No hay nada a donde navegar
-
-		int currentIndex = view.getListaImagenes().getSelectedIndex();
-		int total = model.getModeloLista().getSize();
-		int nextIndex = currentIndex + direccion;
-
-		// Lógica de bucle (wrap around) - Hacer configurable?
-		boolean wrapAround = true; // Leer de config/modelo si es necesario
-
-		if (wrapAround)
-		{
-
-			if (nextIndex < 0)
-			{
-
-				nextIndex = total - 1;
-
-			} else if (nextIndex >= total)
-			{
-
-				nextIndex = 0;
-
+				System.out.println("    -> Iniciando búsqueda desde carpeta de imagen: " + pathDeInicioWalk);
 			}
 
 		} else
 		{
-
-			// Sin bucle, simplemente limitar al rango
-			nextIndex = Math.max(0, Math.min(nextIndex, total - 1));
-
+			// Si es modo subcarpetas, siempre empezar desde la raíz actual
+			pathDeInicioWalk = this.carpetaRaizActual;
+			System.out.println("    -> Iniciando búsqueda desde carpeta raíz: " + this.carpetaRaizActual);
 		}
 
-		// Si el índice cambió, seleccionar en la vista (disparará listener)
-		if (nextIndex != currentIndex)
+		// --- 4. VALIDAR PATH DE INICIO Y PROCEDER ---
+
+		// 4.1. Comprobar si el path calculado es un directorio válido
+		if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk))
 		{
-
-			view.getListaImagenes().setSelectedIndex(nextIndex);
-			view.getListaImagenes().ensureIndexIsVisible(nextIndex); // Asegurar visibilidad
-
-		}
-
-	}
-
-	/**
-	 * Navega a un índice específico en la lista.
-	 */
-	public void navegarAIndice (int index)
-	{
-
-		if (model.getModeloLista().isEmpty() || index < 0 || index >= model.getModeloLista().getSize())
-		{
-
-			return; // Índice inválido
-
-		}
-		view.getListaImagenes().setSelectedIndex(index);
-		view.getListaImagenes().ensureIndexIsVisible(index);
-	}
-	
-	
-	/**
-	 * Devuelve el número actual de elementos en el modelo de la lista de imágenes.
-	 * @return El tamaño de la lista, o 0 si el modelo no está inicializado.
-	 */
-	public int getTamanioListaImagenes() {
-	    if (model != null && model.getModeloLista() != null) {
-	        return model.getModeloLista().getSize();
-	    }
-	    return 0; // Devuelve 0 si algo no está listo
-	}
-	
-
-	/**
-	 * Muestra u oculta paneles principales de la interfaz.
-	 */
-	private void togglePanelVisibility (String panelName, boolean visible)
-	{
-
-		System.out.println("TODO: Implementar togglePanelVisibility para " + panelName + " -> " + visible);
-
-		// Aquí iría la lógica para:
-		// 1. Obtener el componente JPanel de la VISTA (ej.
-		// view.getPanelListaArchivos())
-		// 2. Llamar a setVisible(visible) en ese panel.
-		// 3. Opcional: Ajustar divisores de JSplitPane si es necesario.
-		// 4. Guardar el estado de visibilidad en ConfigurationManager.
-		// 5. Podrías necesitar llamar a revalidate() en el contenedor principal de la
-		// vista.
-	}
-
-	/**
-	 * Muestra información de la versión.
-	 */
-	private void mostrarVersion ()
-	{
-
-		// Podrías leer la versión de un archivo de propiedades o hardcodearla
-		String version = "1.0.0-MVC"; // Ejemplo
-		JOptionPane.showMessageDialog(view.getFrame(),
-				"Visor de Imágenes V2\nVersión: " + version + "\n(c) 2024 TuNombre", "Acerca de VisorV2",
-				JOptionPane.INFORMATION_MESSAGE);
-
-	}
-
-	// --- Implementación de ClipboardOwner ---
-	@Override
-	public void lostOwnership (Clipboard clipboard, Transferable contents)
-	{
-
-		// Este método raramente necesita lógica específica
-		System.out.println("Lost Clipboard Ownership");
-
-	}
-
-	
-	// --- Dentro de la clase VisorController ---
-
-	 /**
-	  * Carga y muestra las miniaturas para el rango visible alrededor del índice seleccionado.
-	  * Muestra placeholders inmediatamente, carga/escala en background usando ThumbnailService,
-	  * y actualiza la UI.
-	  * Maneja errores específicos como IOException y OutOfMemoryError a través del servicio.
-	  *
-	  * @param indiceSeleccionado El índice de la imagen actualmente seleccionada en la lista principal.
-	  */
-	 private void actualizarImagenesMiniaturaConRango(int indiceSeleccionado) {
-	     // --- Verificar si los servicios necesarios están disponibles ---
-	     // --- INICIO CÓDIGO MODIFICADO (añadir chequeo servicioMiniaturas) ---
-	     if (executorService == null || executorService.isShutdown() || servicioMiniaturas == null) {
-	         System.err.println("[Miniaturas] No se pueden cargar: ExecutorService o ThumbnailService no está activo/inicializado.");
-	         return;
-	     }
-	     // --- FIN CÓDIGO MODIFICADO ---
-	     if (model == null) {
-	          System.err.println("[Miniaturas] No se pueden cargar: Modelo no inicializado.");
-	          return;
-	     }
-	      if (view == null) {
-	          System.err.println("[Miniaturas] No se pueden cargar: Vista no inicializada.");
-	          return;
-	      }
-	     // --- FIN Verificar ---
-
-	     // --- Cancelar tarea anterior ---
-	     if (cargaMiniaturasFuture != null && !cargaMiniaturasFuture.isDone()) {
-	         System.out.println("[Miniaturas] Cancelando tarea anterior...");
-	         cargaMiniaturasFuture.cancel(true);
-	     }
-	     // --- FIN Cancelar ---
-
-	     // --- Obtener total, validar índice ---
-	     int totalImagenes = model.getModeloLista().getSize();
-	     if (totalImagenes == 0) {
-	         System.out.println("[Miniaturas] Lista de imágenes vacía, no hay nada que cargar.");
-	          if(view != null) SwingUtilities.invokeLater(view::limpiarPanelMiniaturas); // Limpiar por si acaso
-	         return;
-	     }
-	     // Corregir índice si está fuera de rango (sin cambios)
-	     if (indiceSeleccionado < 0 || indiceSeleccionado >= totalImagenes) {
-	          System.err.println("[Miniaturas] Índice seleccionado inválido: " + indiceSeleccionado + ". Usando 0.");
-	          indiceSeleccionado = 0;
-	          final int finalIndiceValidado = indiceSeleccionado; // Usar una nueva variable final
-	          SwingUtilities.invokeLater(() -> {
-	              if (view != null && view.getListaImagenes() != null) { // Chequeos extra
-	                   // Solo seleccionar si el índice actual no es ya el corregido
-	                   if (view.getListaImagenes().getSelectedIndex() != finalIndiceValidado) {
-	                        view.getListaImagenes().setSelectedIndex(finalIndiceValidado);
-	                   }
-	              }
-	          });
-	     }
-	     // --- FIN Validar índice ---
-
-	     // --- Calcular rango y hacerlos FINAL --- (sin cambios)
-	     final int inicio = Math.max(0, indiceSeleccionado - model.getMiniaturasAntes());
-	     final int fin = Math.min(totalImagenes - 1, indiceSeleccionado + model.getMiniaturasDespues());
-	     // -------------------------------------
-
-	     System.out.println("[Miniaturas] Rango calculado: " + inicio + " a " + fin + " (Seleccionado: " + indiceSeleccionado + ")");
-
-	     final int finalIndiceSeleccionado = indiceSeleccionado; // Usar el índice potencialmente corregido
-
-	     // --- Placeholders en EDT --- (sin cambios en esta parte)
-	     final List<String> keysInRange = new ArrayList<>();
-	     for (int i = inicio; i <= fin; i++) {
-	         if (i >= 0 && i < model.getModeloLista().getSize()) {
-	              keysInRange.add(model.getModeloLista().getElementAt(i));
-	         } else {
-	              System.err.println("WARN [Miniaturas]: Índice " + i + " fuera de rango del modelo al crear lista de claves.");
-	              keysInRange.add(null); // Añadir null como marcador de error de índice
-	         }
-	     }
-
-	     SwingUtilities.invokeLater(() -> { // <-- Lambda para Placeholders
-	          if (view == null) return;
-	          view.limpiarPanelMiniaturas();
-	          for (int i = 0; i < keysInRange.size(); i++) {
-	              String currentKey = keysInRange.get(i);
-	              boolean esSel = (inicio + i == finalIndiceSeleccionado);
-
-	              // Calcular tamaño objetivo para el placeholder
-	              int phAncho = esSel ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
-	              int phAlto = esSel ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
-	              String phTooltip;
-	              if (currentKey != null) {
-	                 phTooltip = "Cargando: " + currentKey;
-	              } else {
-	                  phTooltip = "Error: Índice inválido";
-	                  phAncho = model.getMiniaturaNormAncho(); // Usar tamaño normal para error de índice
-	                  phAlto = model.getMiniaturaNormAlto();
-	                  esSel = false; // No puede ser seleccionada si el índice es inválido
-	              }
-
-	              // Llamar con los 4 argumentos
-	              view.agregarMiniatura(crearPlaceholderMiniatura(phTooltip, phAncho, phAlto, esSel));
-	          }
-	          view.refrescarPanelMiniaturas();
-	          System.out.println("[Miniaturas EDT] Placeholders mostrados para rango " + inicio + "-" + fin);
-	     }); // <-- Fin Lambda Placeholders
-
-	     // --- Tarea en Background ---
-	     cargaMiniaturasFuture = executorService.submit(() -> { // <-- Lambda Background
-	         Map<Integer, JLabel> miniaturasRealesMap = new HashMap<>();
-	         long miniTaskStart = System.currentTimeMillis();
-
-	         System.out.println("[Miniaturas BG] Tarea iniciada para rango " + inicio + "-" + fin);
-
-	         try { // <-- TRY principal de la tarea
-	             for (int i = inicio; i <= fin; i++) { // <-- Abre FOR BG
-	                  if (Thread.currentThread().isInterrupted()) {
-	                      System.out.println("[Miniaturas BG] Tarea interrumpida en bucle (índice " + i + ").");
-	                      return;
-	                  }
-
-	                  // Validar índice de nuevo por seguridad
-	                  if (i < 0 || i >= model.getModeloLista().getSize()) {
-	                      System.err.println("WARN [Miniaturas BG]: Índice " + i + " fuera de rango del modelo.");
-	                      miniaturasRealesMap.put(i, null); // Marcar como error para la UI
-	                      continue; // Saltar esta iteración
-	                  }
-	                  String uniqueKey = model.getModeloLista().getElementAt(i);
-	                  Path ruta = model.getRutaCompleta(uniqueKey);
-
-	                  if (ruta == null) { // Ya no necesitamos verificar Files.exists aquí, el servicio lo hará
-	                       System.err.println("[Miniaturas BG] Ruta es null para clave: " + uniqueKey);
-	                       miniaturasRealesMap.put(i, null); // Marcar como error para la UI
-	                       continue; // Saltar
-	                  }
-
-	                  JLabel etiquetaReal = null;
-	                  ImageIcon miniaturaIcon = null; // Para guardar el resultado del servicio
-
-	                  // --- INICIO CÓDIGO MODIFICADO ---
-	                  // Ya no hay try-catch individual aquí, el servicio maneja sus errores internos.
-	                  // Calculamos si es seleccionada y las dimensiones objetivo
-	                  final boolean esSeleccionada = (i == finalIndiceSeleccionado);
-	                  final int anchoObjetivo = esSeleccionada ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
-	                  final int altoObjetivo = esSeleccionada ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
-
-	                  // Llamamos al servicio para obtener la miniatura
-	                  // Pasamos '!esSeleccionada' como 'esTamanoNormal' porque solo queremos cachear
-	                  // las miniaturas de tamaño normal, no las seleccionadas (que son más grandes).
-	                  miniaturaIcon = servicioMiniaturas.obtenerOCrearMiniatura(ruta, uniqueKey, anchoObjetivo, altoObjetivo, !esSeleccionada);
-
-	                  // Si el servicio devolvió un icono (no hubo error grave)...
-	                  if (miniaturaIcon != null) {
-	                      // Crear JLabel real
-	                      etiquetaReal = new JLabel(miniaturaIcon);
-	                      // Calcular alto real por si se mantuvo proporción (importante si altoObjetivo era <= 0)
-	                      int altoReal = miniaturaIcon.getIconHeight(); // El icono ya tiene el alto correcto
-	                      // Asegurar que el alto no sea 0 si algo falló en el cálculo de proporción
-	                      if (altoReal <= 0) altoReal = altoObjetivo > 0 ? altoObjetivo : anchoObjetivo;
-
-	                      etiquetaReal.setPreferredSize(new Dimension(anchoObjetivo, altoReal));
-	                      etiquetaReal.setOpaque(true);
-	                      etiquetaReal.setToolTipText(ruta.getFileName().toString());
-	                      etiquetaReal.setHorizontalAlignment(SwingConstants.CENTER);
-	                      etiquetaReal.setVerticalAlignment(SwingConstants.CENTER);
-
-	                      // Aplicar estilo (borde/fondo) basado en si es seleccionada
-	                      if (esSeleccionada) {
-	                          etiquetaReal.setBorder(BorderFactory.createLineBorder(Color.BLUE, 3));
-	                          etiquetaReal.setBackground(new Color(200, 200, 255)); // Considerar usar colores del tema
-	                      } else {
-	                          etiquetaReal.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY)); // Considerar usar colores del tema
-	                          etiquetaReal.setBackground(Color.WHITE); // Considerar usar colores del tema
-	                      }
-
-	                      // Añadir Listener (sin cambios)
-	                      final int indiceListener = i; // Usar una variable final diferente para el listener
-	                      etiquetaReal.addMouseListener(new java.awt.event.MouseAdapter() {
-	                           @Override
-	                           public void mouseClicked(java.awt.event.MouseEvent e) {
-	                                if (estaCargandoLista) { return; }
-	                                if (view != null && view.getListaImagenes().getSelectedIndex() != indiceListener) {
-	                                     view.getListaImagenes().setSelectedIndex(indiceListener);
-	                                     view.getListaImagenes().ensureIndexIsVisible(indiceListener);
-	                                }
-	                           }
-	                      });
-	                  } else {
-	                       // Si servicioMiniaturas.obtenerOCrearMiniatura devolvió null,
-	                       // etiquetaReal permanecerá null, indicando un error para la UI.
-	                       System.out.println("[Miniaturas BG] ThumbnailService devolvió null para: " + uniqueKey);
-	                  }
-	                  // --- FIN CÓDIGO MODIFICADO ---
-
-
-	                  // Guardar la etiqueta (o null si hubo error) en el mapa
-	                  miniaturasRealesMap.put(i, etiquetaReal); // Guardar por índice absoluto
-
-
-	             } // <-- Cierra FOR BG
-
-	             // --- Actualizar la VISTA en el EDT --- (sin cambios en esta parte)
-	             if (!Thread.currentThread().isInterrupted()) { // <-- Abre IF (!interrupted)
-	                 // Crear copia final del mapa para la lambda
-	                 final Map<Integer, JLabel> finalMiniaturasMap = new HashMap<>(miniaturasRealesMap);
-	                 SwingUtilities.invokeLater(() -> { // <-- Abre invokeLater anidado
-	                    if (view != null) { // <-- Abre IF (view != null)
-	                        System.out.println("[Miniaturas EDT] Reemplazando placeholders con resultados.");
-	                        view.limpiarPanelMiniaturas(); // Limpiar placeholders
-	                        // Añadir en el orden correcto del rango
-	                        for (int idx = inicio; idx <= fin; idx++) { // <-- Abre FOR EDT Update
-	                             JLabel lbl = finalMiniaturasMap.get(idx); // Obtener del mapa final
-	                             if (lbl != null) {
-	                                 view.agregarMiniatura(lbl); // Añadir real
-	                             } else {
-	                                 // Si falló (era null en el mapa), añadir placeholder de error
-	                                 String keyFallida = (idx >= 0 && idx < model.getModeloLista().getSize())
-	                                                     ? model.getModeloLista().getElementAt(idx) : "Índice inválido";
-	                                 boolean esSelFallida = (idx == finalIndiceSeleccionado);
-	                                 int phAnchoErr = esSelFallida ? model.getMiniaturaSelAncho() : model.getMiniaturaNormAncho();
-	                                 int phAltoErr = esSelFallida ? model.getMiniaturaSelAlto() : model.getMiniaturaNormAlto();
-	                                 view.agregarMiniatura(crearPlaceholderMiniatura(
-	                                      "Error: " + keyFallida, phAnchoErr, phAltoErr, esSelFallida
-	                                 ));
-	                             }
-	                        } // <-- Cierra FOR EDT Update
-	                        view.refrescarPanelMiniaturas();
-	                        System.out.println("[Miniaturas EDT] Panel actualizado con miniaturas reales/errores.");
-	                    } else {
-	                         System.out.println("[Miniaturas EDT] Vista es nula, no se puede actualizar.");
-	                    } // <-- Cierra IF (view != null)
-	                 }); // <-- Cierra invokeLater anidado
-	             } else {
-	                  System.out.println("[Miniaturas BG] Tarea interrumpida ANTES de actualizar UI.");
-	             } // <-- Cierra IF (!interrupted)
-
-	         } catch (Exception e) { // <-- Catch TAREA GRAVE (inesperado fuera del servicio)
-	             System.err.println("[Miniaturas] Error GRAVE en tarea background: " + e.getMessage());
-	             e.printStackTrace();
-	         } finally { // <-- Abre FINALLY
-	             long miniTaskEnd = System.currentTimeMillis();
-	             System.out.println("[Miniaturas] Tarea Miniaturas terminada en " + (miniTaskEnd - miniTaskStart) + " ms.");
-	         } // <-- Cierra FINALLY
-
-	     }); // <-- Cierra submit lambda
-	 } // <-- Cierra MÉTODO actualizarImagenesMiniaturaConRango
-
-	
-    private JLabel crearPlaceholderMiniatura(String toolTipText, int ancho, int alto, boolean esSeleccionada) {//weno
-        JLabel placeholder = new JLabel("...", SwingConstants.CENTER);
-        placeholder.setOpaque(true);
-        placeholder.setForeground(Color.GRAY);
-        int phAncho = Math.max(10, ancho);
-        int phAlto = Math.max(10, (alto <= 0 ? ancho : alto) );
-        placeholder.setPreferredSize(new Dimension(phAncho, phAlto));
-        if (esSeleccionada) {
-            placeholder.setBorder(BorderFactory.createDashedBorder(Color.BLUE, 1, 5));
-            placeholder.setBackground(new Color(230, 230, 255));
-        } else {
-            placeholder.setBorder(BorderFactory.createDashedBorder(Color.LIGHT_GRAY, 1, 5));
-            placeholder.setBackground(Color.WHITE);
-        }
-        placeholder.setToolTipText(toolTipText);
-        return placeholder;
-   }
-
-	
-
-	// --- Hook de Cierre ---
-    // --- INICIO CÓDIGO CORREGIDO en VisorController.configurarShutdownHook ---
-    private void configurarShutdownHook () {
-        Runtime.getRuntime().addShutdownHook(new Thread( () -> {
-            System.out.println("--- Hook de Cierre Iniciado ---");
-
-            // --- GUARDAR ESTADO DE LA VENTANA ---
-            if (view != null && configuration != null) {
-                 System.out.println("  -> Guardando estado de la ventana...");
-                 try {
-                     boolean isMaximized = (view.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
-                     // --- AÑADIR ConfigurationManager. ---
-                     configuration.setString(ConfigurationManager.KEY_WINDOW_MAXIMIZED, String.valueOf(isMaximized));
-
-                     if (!isMaximized) {
-                         java.awt.Rectangle bounds = view.getBounds();
-                         configuration.setString(ConfigurationManager.KEY_WINDOW_X, String.valueOf(bounds.x));
-                         configuration.setString(ConfigurationManager.KEY_WINDOW_Y, String.valueOf(bounds.y));
-                         configuration.setString(ConfigurationManager.KEY_WINDOW_WIDTH, String.valueOf(bounds.width));
-                         configuration.setString(ConfigurationManager.KEY_WINDOW_HEIGHT, String.valueOf(bounds.height));
-                          System.out.println("    -> Bounds guardados: " + bounds);
-                     } else {
-                          System.out.println("    -> Ventana maximizada, no se guardan bounds específicos.");
-                     }
-                     // ---------------------------------
-                 } catch (Exception e) {
-                      System.err.println("  -> ERROR al guardar estado de ventana: " + e.getMessage());
-                 }
-            } else {
-                 System.out.println("  -> No se pudo guardar estado de ventana (Vista o Config null).");
-            }
-
-            // --- Guardar configuración general ---
-            System.out.println("  -> Guardando configuración general...");
-            if (configuration != null) {
-                guardarConfiguracionActual();
-            } else {
-                 System.err.println("  -> ConfigurationManager null, no se puede guardar config.");
-            }
-
-            // --- Apagar ExecutorService ---
-            System.out.println("  -> Apagando ExecutorService...");
-            if (executorService != null && !executorService.isShutdown()) {
-               // ... (lógica de apagado) ...
-               executorService.shutdown();
-               try {
-                   if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                       executorService.shutdownNow();
-                       if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                            System.err.println("  -> ExecutorService no terminó.");
-                       }
-                   }
-               } catch (InterruptedException ie) {
-                   executorService.shutdownNow();
-                   Thread.currentThread().interrupt();
-               }
-               System.out.println("     -> ExecutorService apagado.");
-            } else {
-                System.out.println("     -> ExecutorService ya apagado o nulo.");
-            }
-            System.out.println("--- Hook de Cierre Terminado ---");
-
-        }, "AppShutdownThread"));
-    }
-    // --- FIN CÓDIGO CORREGIDO en VisorController.configurarShutdownHook ---
-    
-    
-	/**
-	 * Devuelve si el zoom manual está habilitado actualmente en el modelo.
-	 * Necesario para que ToggleZoomManualAction sepa cómo alternar desde un botón.
-	 * @return true si el zoom manual está habilitado.
-	 */
-	public boolean isZoomManualCurrentlyEnabled() {
-	    return model != null && model.isZoomHabilitado();
-	}
-
-	// --- NUEVO: Método centralizado para loguear información de acción ---
-    public void logActionInfo(ActionEvent e) {
-        if (e == null) return;
-
-        Object source = e.getSource();
-        String command = e.getActionCommand(); // Comando CORTO (o largo si viene de JMenu)
-        String sourceClass = (source != null) ? source.getClass().getSimpleName() : "null";
-
-        String longConfigKey = findLongKeyForComponent(source); // Buscar clave larga
-        String iconName = findIconNameForComponent(source);     // Intentar obtener nombre icono
-
-        System.out.println("--- Acción Detectada ---");
-        System.out.println("  Fuente     : " + sourceClass);
-        System.out.println("  Comando    : " + command); // Puede ser corto (JButton/JMenuItem) o largo (JMenu)
-        System.out.println("  Clave Larga: " + (longConfigKey != null ? longConfigKey : "(No encontrada)"));
-        if (iconName != null) {
-             System.out.println("  Icono      : " + iconName);
-        }
-        System.out.println("-------------------------");
-    }
-
-    // --- Helper: Buscar Clave Larga (igual que antes) ---
-    private String findLongKeyForComponent(Object source) {
-        if (view == null || !(source instanceof Component)) return null;
-        Component comp = (Component) source;
-        // Buscar en botones
-        if (view.getBotonesPorNombre() != null) {
-            for (Map.Entry<String, JButton> entry : view.getBotonesPorNombre().entrySet()) {
-                if (entry.getValue() == comp) return entry.getKey();
-            }
-        }
-        // Buscar en menús
-        if (view.getMenuItemsPorNombre() != null) {
-            for (Map.Entry<String, JMenuItem> entry : view.getMenuItemsPorNombre().entrySet()) {
-                 if (entry.getValue() == comp) return entry.getKey();
-            }
-        }
-        return null;
-    }
-
-     // --- Helper: Intentar obtener nombre de icono (igual que antes - limitado) ---
-    private String findIconNameForComponent(Object source) {
-         if (source instanceof JButton) {
-             JButton button = (JButton) source;
-             Icon icon = button.getIcon();
-             if (icon instanceof ImageIcon) {
-                 // Intentar inferir MUY BÁSICAMENTE desde la clave larga
-                 String longKey = findLongKeyForComponent(source);
-                  if (longKey != null && longKey.startsWith("interfaz.boton.")) {
-                     String[] parts = longKey.split("\\.");
-                     if (parts.length >= 4) {
-                          // Devuelve la última parte, que es el nombre base
-                          return parts[parts.length - 1] + ".png"; // Supone extensión .png
-                     }
-                 }
-                 return "(Icono presente, nombre archivo no inferido)";
-             }
-         }
-         return null;
-    }
-
-    
- // --- Getter para ConfigurationManager (necesario para el constructor de ToggleThemeAction) ---
-    /**
-     * Devuelve la instancia del ConfigurationManager.
-     * @return la instancia de ConfigurationManager.
-     */
-    public ConfigurationManager getConfigurationManager() {
-        return configuration;
-    }
-
-    
- // Método helper para parsear Color desde String "R, G, B" ---
-    private Color parseColor(String rgbString) 
-    {
-        if (rgbString == null || rgbString.trim().isEmpty()) 
-        {
-            return Color.LIGHT_GRAY; // Default si es inválido
-        }
-        
-        String[] components = rgbString.split(",");
-        if (components.length == 3) 
-        {
-            try 
-            {
-                int r = Integer.parseInt(components[0].trim());
-                int g = Integer.parseInt(components[1].trim());
-                int b = Integer.parseInt(components[2].trim());
-                // Validar rango 0-255
-                r = Math.max(0, Math.min(255, r));
-                g = Math.max(0, Math.min(255, g));
-                b = Math.max(0, Math.min(255, b));
-                return new Color(r, g, b);
-            } catch (NumberFormatException e) {
-                System.err.println("WARN: Formato de color inválido en config: '" + rgbString + "'. Usando Gris Claro.");
-                return Color.LIGHT_GRAY;
-            }
-        } else {
-             System.err.println("WARN: Formato de color debe ser R,G,B: '" + rgbString + "'. Usando Gris Claro.");
-             return Color.LIGHT_GRAY;
-        }
-    }
-
-    
-    /**
-	 * Alterna el modo de carga (con/sin subcarpetas).
-	 */
-	private void alternarModoCarga (boolean soloCarpetaActual)
-	{
-
-		if (configuration == null)
-			return;
-		// 1. Actualizar Modelo
-		model.setMostrarSoloCarpetaActual(soloCarpetaActual);
-
-		// 2. Actualizar Vista (Radios del menú)
-		JMenuItem rbSolo = view.getMenuItemsPorNombre().get("Mostrar_Solo_Carpeta_Actual");
-		if (rbSolo instanceof JRadioButtonMenuItem)
-			((JRadioButtonMenuItem) rbSolo).setSelected(soloCarpetaActual);
-		JMenuItem rbSub = view.getMenuItemsPorNombre().get("Mostrar_Imagenes_de_Subcarpetas");
-		if (rbSub instanceof JRadioButtonMenuItem)
-			((JRadioButtonMenuItem) rbSub).setSelected(!soloCarpetaActual);
-
-		// 3. Guardar Configuración
-		try
-		{
-
-			Map<String, String> currentConfig = configuration.getConfigMap();
-			currentConfig.put("comportamiento.carpeta.cargarSubcarpetas",
-					String.valueOf(!model.isMostrarSoloCarpetaActual()));
-			configuration.guardarConfiguracion(currentConfig);
-
-		} catch (IOException ex)
-		{
-
-			System.err.println("Error al guardar modo carga: " + ex.getMessage());
-			JOptionPane.showMessageDialog(view.getFrame(), "Error al guardar config:\n" + ex.getMessage(), "Error",
-					JOptionPane.ERROR_MESSAGE);
-
-		}
-
-		// 4. Recargar Lista
-		cargarListaImagenes();
-
-		// 5. Notificar Usuario (Vista)
-		SwingUtilities.invokeLater( () -> {
-
-			String mensaje = soloCarpetaActual ? "Mostrando solo imágenes de la carpeta actual."
-					: "Mostrando imágenes de la carpeta actual y subcarpetas.";
-			JOptionPane.showMessageDialog(view.getFrame(), mensaje, "Cambio de Configuración",
-					JOptionPane.INFORMATION_MESSAGE);
-			System.out.println(mensaje);
-
-		});
-
-	}
-	
-
-	/**
-	 * Recarga la lista de imágenes actual.
-	 */
-	private void refrescarListaImagenes ()
-	{
-
-		cargarListaImagenes();
-
-	}
-
-	
-	private void configurarEventosVista ()
-	{
-
-		// Listener para selección en JList
-		view.addListaImagenesSelectionListener(e -> {
-
-			if (!e.getValueIsAdjusting() && !estaCargandoLista)
-			{ // Evitar durante ajuste y carga
-
-				int indiceSeleccionado = view.getListaImagenes().getSelectedIndex();
-
-				if (indiceSeleccionado >= 0)
-				{
-
-					String selectedKey = model.getModeloLista().getElementAt(indiceSeleccionado);
-
-					// Evitar recargar si ya es la imagen seleccionada en el modelo
-					if (!selectedKey.equals(model.getSelectedImageKey()))
+			// 4.2. Crear variables finales para usar en lambdas y worker
+			final Path finalStartPath = pathDeInicioWalk;
+			final int finalDepth = depth;
+			final String finalClaveImagenAMantener = claveImagenAMantener; // Para el listener done
+
+			// --- 5. LIMPIEZA INICIAL DE LA UI ---
+			// 5.1. Programar limpieza en el EDT
+			if (view != null)
+			{
+				SwingUtilities.invokeLater( () -> {
+
+					// 5.1.1. Limpiar imagen principal y texto de ruta
+					view.limpiarImagenMostrada();
+					view.setTextoRuta("");
+
+					// 5.1.2. Indicar que se está escaneando
+					view.setTituloPanelIzquierdo("Escaneando: " + finalStartPath.getFileName() + "...");
+
+					// 5.1.3. Limpiar visualmente la lista de miniaturas asignándole un modelo vacío
+					// nuevo
+					if (view.getListaMiniaturas() != null)
 					{
 
-						mostrarImagenSeleccionada();
-
+						// Limpiar también el modelo de instancia del controller
+						if (this.modeloMiniaturas != null)
+						{
+							this.modeloMiniaturas.clear();
+						}
+						view.getListaMiniaturas().setModel(new DefaultListModel<>());
 					}
-					// Siempre actualizar miniaturas al seleccionar
-					actualizarImagenesMiniaturaConRango(indiceSeleccionado);
-
-				}
-
+				});
 			}
 
-		});
+			// FIXME 5.2. Limpiar caché de miniaturas (opcional, pero puede liberar memoria)
+			// if (servicioMiniaturas != null) { servicioMiniaturas.limpiarCache(); }
 
-		// Listeners para Zoom/Pan en JLabel
-		view.addEtiquetaImagenMouseWheelListener(e -> {
+			// --- 6. CREAR DIÁLOGO DE PROGRESO Y SWINGWORKER ---
+			// 6.1. Log
+			System.out.println("  -> Creando diálogo y worker para: " + finalStartPath);
 
-			if (model.isZoomHabilitado())
-			{ // Usa estado del MODELO
+			// 6.2. Crear el Diálogo primero (pasando null como worker inicial)
+			final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view != null ? view.getFrame() : null, // Padre
+					null // Worker se asigna después
+			);
 
-				int notches = e.getWheelRotation();
-				double zoomIncrement = 0.1; // Hacer configurable?
-				double newZoomFactor = model.getZoomFactor() + (notches < 0 ? zoomIncrement : -zoomIncrement);
-				// Actualizar MODELO
-				model.setZoomFactor(newZoomFactor);
-				// Actualizar VISTA
-				Image currentReescaled = reescalarImagenParaAjustar();
-				view.setImagenMostrada(currentReescaled, model.getZoomFactor(), model.getImageOffsetX(),
-						model.getImageOffsetY());
+			// 6.3. Crear el Worker, pasándole el diálogo
+			System.out.println("  -> Creando Worker...");
+			final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(finalStartPath, finalDepth,
+					this.carpetaRaizActual, // Para relativizar
+					this::esArchivoImagenSoportado, // Filtro
+					dialogo // Referencia al diálogo para actualizar progreso
+			);
 
-			}
+			// 6.4. Asociar el worker al diálogo (para el botón Cancelar)
+			System.out.println("  -> Asociando worker al diálogo...");
+			dialogo.setWorkerAsociado(worker);
 
-		});
-		view.addEtiquetaImagenMouseListener(new java.awt.event.MouseAdapter()
+			// 6.5. Guardar referencia a la tarea futura
+			this.cargaImagenesFuture = worker;
+			System.out.println("  -> Diálogo y Worker creados y asociados.");
+
+			// --- 7. CONFIGURAR LISTENER PARA EL FIN DEL WORKER ('done') ---
+			System.out.println("  -> Añadiendo PropertyChangeListener al worker...");
+			worker.addPropertyChangeListener(evt -> { // Inicio lambda listener 'done'
+
+				// 7.1. Comprobar si el evento es el de finalización
+				if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue()))
+				{
+					// --- Código Ejecutado en EDT al finalizar el Worker ---
+					System.out.println(" [EDT Worker Done] Tarea finalizada. Procesando resultado...");
+
+					// 7.2. Cerrar el diálogo de progreso
+					dialogo.cerrar();
+
+					// 7.3. Comprobar si la tarea fue cancelada
+					if (worker.isCancelled())
+					{
+						System.out.println("   -> Tarea CANCELADA.");
+
+						if (view != null)
+						{
+							limpiarUI();
+							view.setTituloPanelIzquierdo("Carga Cancelada");
+						}
+						estaCargandoLista = false; // Resetear estado
+						return; // Salir del listener
+					}
+
+					// 7.4. Obtener resultado del worker (puede lanzar excepciones)
+					try
+					{
+						Map<String, Path> mapaResultado = worker.get(); // Obtiene el mapa <Clave, Path>
+
+						// 7.5. Procesar si el resultado es válido
+						if (mapaResultado != null)
+						{
+							// 7.5.1. Crear nuevo modelo de lista principal ordenado
+							DefaultListModel<String> nuevoModeloLista = new DefaultListModel<>();
+							List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
+							Collections.sort(clavesOrdenadas); // Ordenar alfabéticamente (o como se desee)
+							clavesOrdenadas.forEach(nuevoModeloLista::addElement);
+							System.out.println("   -> Resultado obtenido: " + nuevoModeloLista.getSize()
+									+ " archivos. Actualizando...");
+
+							// 7.5.2. Actualizar el Modelo principal de la aplicación
+							model.actualizarListaCompleta(nuevoModeloLista, mapaResultado);
+
+							// 7.5.3. Actualizar la Vista (asignar modelo principal a las JList)
+							if (view != null)
+							{
+								view.setListaImagenesModel(model.getModeloLista()); // Actualiza listaNombres y
+																					// listaMiniaturas (con modelo
+																					// principal)
+								view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
+							}
+
+							// 7.5.4. Marcar que la carga lógica ha finalizado
+							estaCargandoLista = false;
+							System.out.println("   -> estaCargandoLista = false");
+
+							// 7.5.5. Iniciar precalentamiento del caché de miniaturas
+							precalentarCacheMiniaturasAsync(new ArrayList<>(mapaResultado.values()));
+
+							// 7.5.6. Calcular el Índice Inicial a Seleccionar
+							int indiceSeleccionadoLocal = -1;
+							DefaultListModel<String> modeloActualizado = model.getModeloLista();
+
+							// Intentar encontrar la clave a mantener
+							if (finalClaveImagenAMantener != null && !modeloActualizado.isEmpty())
+							{
+								indiceSeleccionadoLocal = modeloActualizado.indexOf(finalClaveImagenAMantener); // Más
+																												// eficiente
+
+								if (indiceSeleccionadoLocal != -1)
+								{
+									System.out.println("     -> Clave a mantener encontrada en índice: "
+											+ indiceSeleccionadoLocal);
+								}
+							}
+
+							// Si no se encontró la clave o no había que mantener, o lista vacía,
+							// seleccionar 0 si es posible
+							if (indiceSeleccionadoLocal == -1 && !modeloActualizado.isEmpty())
+							{
+								System.out.println("     -> Seleccionando índice 0 por defecto.");
+								indiceSeleccionadoLocal = 0;
+							}
+
+							// 7.5.7. Aplicar Selección Inicial y Forzar Procesamiento Completo
+							if (indiceSeleccionadoLocal != -1)
+							{
+
+								if (view != null && view.getListaNombres() != null && listCoordinator != null)
+								{
+									System.out.println(
+											"   -> [ANTES de setSelectedIndex] Intentando aplicar selección inicial a índice: "
+													+ indiceSeleccionadoLocal);
+									final int indiceSeleccionadoFinal = indiceSeleccionadoLocal;
+
+									// Iniciar Flag
+									seleccionInicialEnCurso = true; //
+									System.out.println("   -> Flag seleccionInicialEnCurso puesto a true.");
+
+									// Establecer selección VISUAL inicial (listener será ignorado)
+									view.getListaNombres().setSelectedIndex(indiceSeleccionadoFinal);
+									System.out.println(
+											"   -> [DESPUÉS de setSelectedIndex] Selección visual inicial aplicada a índice: "
+													+ indiceSeleccionadoFinal + ". Selección JList: "
+													+ view.getListaNombres().getSelectedIndex());
+
+									// FORZAR llamada al Coordinator para cargar imagen y actualizar miniaturas
+									System.out.println(
+											"   -> Llamando MANUALMENTE a Coordinator para procesar índice inicial: "
+													+ indiceSeleccionadoFinal);
+									listCoordinator.seleccionarIndiceYActualizarUICompleta(indiceSeleccionadoFinal); // <<--
+																														// LLAMADA
+																														// EXPLÍCITA
+									System.out.println("   -> Llamada MANUAL a Coordinator completada.");
+
+									// Timer para desactivar flag y asegurar visibilidad
+									Timer timerFinSeleccionInicial = new Timer(150, (evtTimer) -> {
+										System.out.println(
+												"   -> [Timer Fin Selección Inicial] Fin espera. Flag seleccionInicialEnCurso -> false.");
+										seleccionInicialEnCurso = false; // <<-- DESACTIVAR FLAG
+										System.out.println(
+												"   -> [Timer Fin Selección Inicial] Asegurando visibilidad final para índice: "
+														+ indiceSeleccionadoFinal);
+									});
+									timerFinSeleccionInicial.setRepeats(false);
+									timerFinSeleccionInicial.start();
+
+								} else
+								{
+									System.err.println(
+											"WARN [EDT Done]: Vista, listaNombres o listCoordinator nulos al aplicar selección.");
+								}
+							} else
+							{ // Lista vacía después de carga
+
+								System.out.println("   -> Lista vacía después de carga. Limpiando UI.");
+								limpiarUI();
+							}
+
+						} else
+						{ // mapaResultado fue null
+							System.out.println("   -> Resultado del worker fue null.");
+
+							if (view != null)
+							{
+								limpiarUI();
+								view.setTituloPanelIzquierdo("Carga Incompleta");
+							}
+							estaCargandoLista = false;
+						}
+
+						// 7.6. Manejar Excepciones durante worker.get()
+					} catch (CancellationException ce)
+					{
+						System.out.println("   -> Tarea CANCELADA (detectado en get).");
+
+						if (view != null)
+						{
+							limpiarUI();
+							view.setTituloPanelIzquierdo("Carga Cancelada");
+						}
+						estaCargandoLista = false;
+
+					} catch (InterruptedException ie)
+					{
+						System.err.println("   -> Hilo INTERRUMPIDO esperando resultado.");
+
+						if (view != null)
+						{
+							limpiarUI();
+							view.setTituloPanelIzquierdo("Carga Interrumpida");
+						}
+						Thread.currentThread().interrupt(); // Re-interrumpir hilo
+						estaCargandoLista = false;
+
+					} catch (ExecutionException ee)
+					{
+						System.err.println("   -> ERROR durante ejecución del worker: " + ee.getCause());
+						Throwable causa = ee.getCause();
+						String msg = (causa != null) ? causa.getMessage() : ee.getMessage();
+
+						if (view != null)
+						{
+							JOptionPane.showMessageDialog(view.getFrame(), "Error durante la carga:\n" + msg,
+									"Error Carga", JOptionPane.ERROR_MESSAGE);
+							limpiarUI();
+							view.setTituloPanelIzquierdo("Error de Carga");
+						}
+
+						if (causa != null)
+							causa.printStackTrace();
+						else
+							ee.printStackTrace();
+						estaCargandoLista = false;
+
+					} finally
+					{
+
+						// 7.7. Asegurar que el estado de carga se resetea
+						if (estaCargandoLista)
+						{
+							System.out.println(
+									"WARN [EDT Done - finally]: estaCargandoLista aún era true. Forzando a false.");
+							estaCargandoLista = false;
+						}
+
+						// 7.8. Limpiar referencia a la tarea futura
+						if (cargaImagenesFuture == worker)
+						{
+							cargaImagenesFuture = null;
+						}
+						System.out.println(" [EDT Worker Done] Procesamiento finalizado.");
+
+					} // Fin finally
+				} // Fin if ("state" == DONE)
+			}); // ----- FIN BLOQUE listener done DEL WORKER -----
+
+			// --- 8. EJECUTAR WORKER Y MOSTRAR DIÁLOGO ---
+
+			// 8.1. Log
+			System.out.println("  -> Ejecutando worker y mostrando diálogo...");
+
+			// 8.2. Ejecutar el worker (inicia doInBackground en otro hilo)
+			worker.execute();
+
+			// 8.3. Mostrar el diálogo de progreso (en el EDT)
+			SwingUtilities.invokeLater( () -> {
+				System.out.println(" [EDT] Mostrando diálogo de progreso...");
+				dialogo.setVisible(true); // Esto bloqueará hasta que se cierre
+				System.out.println(" [EDT] Diálogo de progreso cerrado o ya no visible.");
+			});
+
+		} else
+		{ // pathDeInicioWalk no era válido
+
+			// --- 9. MANEJAR ERROR DE CARPETA INVÁLIDA ---
+			System.out.println("No se puede cargar la lista: Carpeta de inicio inválida o nula: " + pathDeInicioWalk);
+
+			// Limpiar la UI si no se puede cargar
+			if (view != null)
+				SwingUtilities.invokeLater(this::limpiarUI);
+			estaCargandoLista = false; // Resetear estado
+		}
+
+		// --- 10. LOG FINAL DEL MÉTODO ---
+		System.out.println("-->>> FIN cargarListaImagenes(String) | Mantener Clave: " + claveImagenAMantener);
+
+	} // --- FIN del método cargarListaImagenes(String claveImagenAMantener) ---    
+
+	
+	/**
+	 * Reemplaza las acciones de teclado por defecto para la navegación (flechas,
+	 * inicio, fin) en las JList de nombres y miniaturas. Las nuevas acciones
+	 * delegan la navegación directamente al ListCoordinator, asegurando un
+	 * comportamiento consistente independientemente de qué lista tenga el foco.
+	 */
+    @SuppressWarnings ("serial")
+	private void interceptarAccionesTecladoListas ()
+	{
+
+		// --- 0. Validación Inicial ---
+		if (view == null || listCoordinator == null)
 		{
-			@Override
-			public void mousePressed (java.awt.event.MouseEvent e)
-			{
+			System.err.println(
+					"WARN [interceptarAccionesTecladoListas]: Vista o ListCoordinator nulos. No se pueden interceptar acciones.");
+			return;
+		}
+		System.out.println("  -> Interceptando acciones de teclado de las JLists...");
 
-				if (model.isZoomHabilitado())
+		// --- 1. Interceptar Acciones de listaNombres (Navegación Vertical) ---
+		JList<String> listaNombres = view.getListaNombres();
+
+		if (listaNombres != null)
+		{
+			ActionMap actionMapNombres = listaNombres.getActionMap();
+			InputMap inputMapNombres = listaNombres.getInputMap(JComponent.WHEN_FOCUSED); // Reacciona cuando la lista
+																							// tiene foco
+
+			// 1.1. Mapear teclas a nombres de acción (estos nombres son estándar de JList)
+			inputMapNombres.put(KeyStroke.getKeyStroke("DOWN"), "selectNextRow");
+			inputMapNombres.put(KeyStroke.getKeyStroke("UP"), "selectPreviousRow");
+			inputMapNombres.put(KeyStroke.getKeyStroke("HOME"), "selectFirstRow");
+			inputMapNombres.put(KeyStroke.getKeyStroke("END"), "selectLastRow");
+			inputMapNombres.put(KeyStroke.getKeyStroke("PAGE_DOWN"), "scrollDown"); // Usar nombre estándar
+			inputMapNombres.put(KeyStroke.getKeyStroke("PAGE_UP"), "scrollUp"); // Usar nombre estándar
+
+			// 1.2. Reemplazar las acciones estándar con las nuestras que llaman al
+			// Coordinator
+			actionMapNombres.put("selectNextRow", new AbstractAction()
+			{
+				@Override
+				public void actionPerformed (ActionEvent e)
 				{
 
-					lastMouseX = e.getX(); // Guarda estado local del Controller
-					lastMouseY = e.getY();
+					System.out.println("-> JList Nombres: Acción Teclado ABAJO -> seleccionarSiguiente()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarSiguiente();
 
 				}
+			});
 
-			}
-		});
-		view.addEtiquetaImagenMouseMotionListener(new java.awt.event.MouseMotionAdapter()
-		{
-			@Override
-			public void mouseDragged (java.awt.event.MouseEvent e)
+			actionMapNombres.put("selectPreviousRow", new AbstractAction()
 			{
-
-				if (model.isZoomHabilitado())
+				@Override
+				public void actionPerformed (ActionEvent e)
 				{
 
-					int deltaX = e.getX() - lastMouseX;
-					int deltaY = e.getY() - lastMouseY;
-					// Actualizar MODELO
-					model.addImageOffsetX(deltaX);
-					model.addImageOffsetY(deltaY);
-					// Actualizar estado local del Controller
-					lastMouseX = e.getX();
-					lastMouseY = e.getY();
-					// Actualizar VISTA
-					Image currentReescaled = reescalarImagenParaAjustar();
-					view.setImagenMostrada(currentReescaled, model.getZoomFactor(), model.getImageOffsetX(),
-							model.getImageOffsetY());
+					System.out.println("-> JList Nombres: Acción Teclado ARRIBA -> seleccionarAnterior()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarAnterior();
 
 				}
-
-			}
-		});
-
-		// Añadir ActionListener a TODOS los botones y menús relevantes
-		// 'this' (el Controller) implementa ActionListener y redirigirá
-		if (view.getBotonesPorNombre() != null)
-		{
-
-			//view.getBotonesPorNombre().keySet().forEach(nombreBoton -> view.addButtonActionListener(nombreBoton, this));
-			view.getBotonesPorNombre().keySet().forEach(configKey -> { // configKey es la clave LARGA
-	            view.addButtonActionListener(configKey, this); // Pasa la clave LARGA para añadir listener
 			});
 			
-		}else {
-	         System.err.println("WARN: Mapa de botones en la vista es null al configurar eventos.");
-	    }
+			actionMapNombres.put("selectFirstRow", new AbstractAction()
+			{
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
 
-		if (view.getMenuItemsPorNombre() != null)
+					System.out.println("-> JList Nombres: Acción Teclado HOME -> seleccionarPrimero()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarPrimero();
+
+				}
+			});
+			
+			actionMapNombres.put("selectLastRow", new AbstractAction()
+			{
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Nombres: Acción Teclado END -> seleccionarUltimo()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarUltimo();
+
+				}
+			});
+			
+			actionMapNombres.put("scrollDown", new AbstractAction()
+			{ // Acción para PAGE_DOWN
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Nombres: Acción Teclado AV_PAG -> seleccionarBloqueSiguiente()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarBloqueSiguiente(); // Llama nuevo método
+
+				}
+			});
+			
+			actionMapNombres.put("scrollUp", new AbstractAction()
+			{ // Acción para PAGE_UP
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Nombres: Acción Teclado RE_PAG -> seleccionarBloqueAnterior()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarBloqueAnterior(); // Llama nuevo método
+
+				}
+			});
+
+			System.out.println("    -> Acciones de teclado interceptadas en listaNombres.");
+
+		} else
 		{
+			System.err.println("WARN [interceptarAccionesTecladoListas]: listaNombres es null.");
+		}
 
-			//view.getMenuItemsPorNombre().keySet().forEach(actionCommand -> view.addMenuItemActionListener(actionCommand, this));
+		// --- 2. Interceptar Acciones de listaMiniaturas (Navegación Horizontal) ---
+		JList<String> listaMiniaturas = view.getListaMiniaturas();
 
-		}else {
-	         System.err.println("WARN: Mapa de menús en la vista es null al configurar eventos.");
-	    }
+		if (listaMiniaturas != null)
+		{
+			ActionMap actionMapMiniaturas = listaMiniaturas.getActionMap();
+			InputMap inputMapMiniaturas = listaMiniaturas.getInputMap(JComponent.WHEN_FOCUSED);
+
+			// 2.1. Mapear teclas a nombres de acción (estándar para horizontal)
+			inputMapMiniaturas.put(KeyStroke.getKeyStroke("RIGHT"), "selectNextColumn");
+			inputMapMiniaturas.put(KeyStroke.getKeyStroke("LEFT"), "selectPreviousColumn");
+			inputMapMiniaturas.put(KeyStroke.getKeyStroke("HOME"), "selectFirstColumn"); // Puede ser Row o Column
+			inputMapMiniaturas.put(KeyStroke.getKeyStroke("END"), "selectLastColumn"); // Puede ser Row o Column
+			inputMapMiniaturas.put(KeyStroke.getKeyStroke("PAGE_DOWN"), "scrollDown"); // Mapear a misma acción que
+																						// Nombres
+			inputMapMiniaturas.put(KeyStroke.getKeyStroke("PAGE_UP"), "scrollUp"); // Mapear a misma acción que Nombres
+
+			// 2.2. Reemplazar las acciones estándar
+			actionMapMiniaturas.put("selectNextColumn", new AbstractAction()
+			{
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Miniaturas: Acción Teclado DERECHA -> seleccionarSiguiente()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarSiguiente();
+
+				}
+			});
+
+			actionMapMiniaturas.put("selectPreviousColumn", new AbstractAction()
+			{
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Miniaturas: Acción Teclado IZQUIERDA -> seleccionarAnterior()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarAnterior();
+
+				}
+			});
+
+			// Usar los mismos nombres de acción para HOME/END que en listaNombres por
+			// consistencia
+			actionMapMiniaturas.put("selectFirstColumn", new AbstractAction()
+			{
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Miniaturas: Acción Teclado HOME -> seleccionarPrimero()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarPrimero();
+
+				}
+			});
+
+			actionMapMiniaturas.put("selectLastColumn", new AbstractAction()
+			{
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Miniaturas: Acción Teclado END -> seleccionarUltimo()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarUltimo();
+
+				}
+			});
+			
+			actionMapMiniaturas.put("scrollDown", new AbstractAction()
+			{ // Acción para PAGE_DOWN
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Miniaturas: Acción Teclado AV_PAG -> seleccionarBloqueSiguiente()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarBloqueSiguiente(); // Llama mismo método que Nombres
+
+				}
+			});
+			
+			actionMapMiniaturas.put("scrollUp", new AbstractAction()
+			{ // Acción para PAGE_UP
+				@Override
+				public void actionPerformed (ActionEvent e)
+				{
+
+					System.out.println("-> JList Miniaturas: Acción Teclado RE_PAG -> seleccionarBloqueAnterior()");
+					if (listCoordinator != null)
+						listCoordinator.seleccionarBloqueAnterior(); // Llama mismo método que Nombres
+
+				}
+			});
+
+			System.out.println("    -> Acciones de teclado interceptadas en listaMiniaturas.");
+			
+		} else
+		{
+			System.err.println("WARN [interceptarAccionesTecladoListas]: listaMiniaturas es null.");
+		}
+
+		// --- 3. Log Final ---
+		System.out.println("  -> Intercepción de acciones de teclado de JLists completada.");
+
+	} // --- FIN interceptarAccionesTecladoListas ---
+      
+
+     /**
+      * Verifica si un archivo, dado por su Path, tiene una extensión
+      * correspondiente a los formatos de imagen que la aplicación soporta actualmente.
+      * La comparación de extensiones ignora mayúsculas/minúsculas.
+      *
+      * Formatos soportados actualmente: JPG, JPEG, PNG, GIF, BMP.
+      *
+      * @param path El objeto Path que representa la ruta del archivo a verificar.
+      *             No debe ser null.
+      * @return true si el archivo tiene una extensión de imagen soportada,
+      *         false si no la tiene, si el path es null, o si no tiene nombre de archivo.
+      */
+     private boolean esArchivoImagenSoportado(Path path) {
+         // 1. Validación de entrada: Asegurar que el Path no sea null
+         if (path == null) {
+             // No imprimir error aquí, es normal que se llame con null a veces
+             return false;
+         }
+
+         // 2. Obtener el nombre del archivo del Path
+         Path nombreArchivoPath = path.getFileName();
+         if (nombreArchivoPath == null) {
+             // Path representa un directorio raíz o algo sin nombre de archivo
+             return false;
+         }
+         String nombreArchivo = nombreArchivoPath.toString();
+
+         // 3. Evitar procesar archivos ocultos o carpetas (defensivo)
+         try {
+              if (!Files.isRegularFile(path) || Files.isHidden(path)) {
+                   return false;
+              }
+         } catch (IOException e) {
+              // Error al acceder a atributos del archivo, tratar como no soportado
+               System.err.println("WARN [esArchivoImagenSoportado]: Error al comprobar atributos de " + path + ": " + e.getMessage());
+               return false;
+         } catch (SecurityException se) {
+              // No tenemos permisos para leer atributos
+               System.err.println("WARN [esArchivoImagenSoportado]: Sin permisos para comprobar atributos de " + path);
+               return false;
+         }
+
+
+         // 4. Encontrar la posición del último punto (separador de extensión)
+         int lastDotIndex = nombreArchivo.lastIndexOf('.');
+         if (lastDotIndex <= 0 || lastDotIndex == nombreArchivo.length() - 1) {
+             // No hay punto, empieza con punto (oculto en Unix), o termina con punto (sin extensión)
+             return false;
+         }
+
+         // 5. Extraer la extensión y convertir a minúsculas
+         String extension = nombreArchivo.substring(lastDotIndex + 1).toLowerCase();
+
+         // FIXME preparar para cuando haya mas extensiones si procede 
+         // 6. Comprobar si la extensión está en la lista de soportadas
+         //    Usar un switch es legible para pocas extensiones
+         switch (extension) {
+             case "jpg":
+             case "jpeg":
+             case "png":
+             case "gif":
+             case "bmp":
+                 // TODO: Añadir más si se soportan (tiff, webp, etc.)
+                 return true; // Es una extensión soportada
+             default:
+                 return false; // No es una extensión soportada
+         }
+
+         /* Alternativa con List.of y contains (un poco más flexible si tienes muchas):
+            List<String> extensionesSoportadas = List.of("jpg", "jpeg", "png", "gif", "bmp");
+            return extensionesSoportadas.contains(extension);
+         */
+
+     } // --- FIN esArchivoImagenSoportado ---
+
+ 
+     /**
+      * Lanza tareas en segundo plano usando el ExecutorService para generar y cachear
+      * las miniaturas de tamaño normal para la lista de rutas de imágenes proporcionada.
+      * Esto ayuda a que el MiniaturaListCellRenderer encuentre las miniaturas ya listas
+      * en el caché la mayoría de las veces, mejorando la fluidez del scroll.
+      *
+      * @param rutas La lista de objetos Path correspondientes a todas las imágenes
+      *              cargadas actualmente en el modelo principal.
+      */
+     private void precalentarCacheMiniaturasAsync(List<Path> rutas) {
+         // 1. Validar dependencias y entrada
+         if (servicioMiniaturas == null) {
+              System.err.println("ERROR [Precalentar Cache]: ThumbnailService es nulo.");
+              return;
+         }
+         if (executorService == null || executorService.isShutdown()) {
+              System.err.println("ERROR [Precalentar Cache]: ExecutorService no está disponible o está apagado.");
+              return;
+         }
+         if (rutas == null || rutas.isEmpty()) {
+             System.out.println("[Precalentar Cache]: Lista de rutas vacía o nula. No hay nada que precalentar.");
+             return;
+         }
+         if (model == null) { // Necesitamos el modelo para obtener las dimensiones normales
+              System.err.println("ERROR [Precalentar Cache]: Modelo es nulo.");
+              return;
+         }
+
+         System.out.println("[Controller] Iniciando pre-calentamiento de caché para " + rutas.size() + " miniaturas...");
+
+         // 2. Obtener Dimensiones Normales del Modelo
+         //    Usamos las dimensiones configuradas para las miniaturas "no seleccionadas"
+         final int anchoNormal = model.getMiniaturaNormAncho();
+         final int altoNormal = model.getMiniaturaNormAlto();
+
+         // Verificar que las dimensiones sean válidas
+         if (anchoNormal <= 0) {
+             System.err.println("ERROR [Precalentar Cache]: Ancho normal de miniatura inválido (" + anchoNormal + "). Abortando.");
+             return;
+         }
+         // Nota: altoNormal puede ser <= 0 si se quiere mantener proporción basada en anchoNormal
+
+         // 3. Enviar una Tarea al Executor por cada Imagen
+         //    Cada tarea generará (si no existe ya) y cacheará una miniatura.
+         int tareasLanzadas = 0;
+         for (Path ruta : rutas) {
+             // Saltar si la ruta es nula (aunque no debería pasar si la carga fue correcta)
+             if (ruta == null) continue;
+
+             // Enviar la tarea al ExecutorService
+             executorService.submit(() -> { // Inicio lambda tarea individual
+                 try {
+                	 
+                     // 3.1. Generar Clave Única para el Caché
+                     //      (Debe ser consistente con cómo se genera en otros lugares)
+                     Path relativePath = null;
+                     if (this.carpetaRaizActual != null) { // Necesita acceso a carpetaRaizActual
+                          try {
+                        	  
+                              // Intentar relativizar respecto a la carpeta raíz actual
+                              relativePath = this.carpetaRaizActual.relativize(ruta);
+                              
+                          } catch (IllegalArgumentException e) {
+                               // Si no se puede relativizar (ej. están en unidades diferentes), usar nombre archivo
+                               // System.err.println("WARN [Precalentar Cache BG]: No se pudo relativizar " + ruta + ". Usando nombre.");
+                               relativePath = ruta.getFileName();
+                               
+                          } catch (Exception e) {
+                               // Otro error inesperado al relativizar
+                               System.err.println("ERROR [Precalentar Cache BG]: Relativizando " + ruta + ": " + e.getMessage());
+                               relativePath = ruta.getFileName(); // Fallback
+                          }
+                          
+                     } else {
+                          // Si no hay carpeta raíz definida, usar solo el nombre del archivo
+                          // System.err.println("WARN [Precalentar Cache BG]: Carpeta raíz actual es null. Usando nombre archivo.");
+                          relativePath = ruta.getFileName();
+                     }
+
+                     // Asegurar que relativePath no sea null y obtener clave
+                     if (relativePath == null) {
+                          System.err.println("ERROR [Precalentar Cache BG]: No se pudo obtener ruta relativa para " + ruta);
+                          return; // Salir de esta tarea lambda específica
+                     }
+                     String claveUnica = relativePath.toString().replace("\\", "/");
+
+
+                     // 3.2. Llamar al Servicio para Obtener/Crear y Cachear
+                     //      Pasamos 'true' para 'esTamanoNormal' para que se guarde en caché.
+                     //      El servicio ya comprueba internamente si existe en caché antes de crearla.
+                     servicioMiniaturas.obtenerOCrearMiniatura(
+                    		 ruta, claveUnica, anchoNormal, altoNormal, true // <- true para indicar que es tamaño normal
+                     );
+
+                     // 3.3. Log (Opcional)
+                     // if (miniaturaCacheada != null) {
+                     //     // System.out.println("  [Precalentar Cache BG] Miniatura OK para: " + claveUnica);
+                     // } else {
+                     //     // El servicio ya debería haber logueado el error específico
+                     //     // System.err.println("  [Precalentar Cache BG] Falló obtención/creación para: " + claveUnica);
+                     // }
+
+                 } catch (Exception e) {
+                     // Captura cualquier error inesperado dentro de la tarea submit
+                     System.err.println("ERROR INESPERADO [Precalentar Cache BG] Procesando " + ruta + ": " + e.getMessage());
+                     e.printStackTrace();
+                 }
+             }); // Fin lambda tarea individual
+             tareasLanzadas++;
+         } // Fin bucle for
+
+         // 4. Log Final (Informa que las tareas fueron enviadas)
+         System.out.println("[Controller] " + tareasLanzadas + " tareas de pre-calentamiento de caché lanzadas al ExecutorService.");
+
+         // 5. Repintado Inicial Opcional
+         //    Repintar la lista de miniaturas por si alguna miniatura ya estaba
+         //    en el caché de ejecuciones anteriores y el renderer puede mostrarla ya.
+         if (view != null && view.getListaMiniaturas() != null) {
+             SwingUtilities.invokeLater(() -> {
+                 if (view != null && view.getListaMiniaturas() != null) { // Doble chequeo
+                      System.out.println("  -> Solicitando repintado inicial de listaMiniaturas.");
+                      view.getListaMiniaturas().repaint();
+                 }
+             });
+         }
+
+     } // --- FIN precalentarCacheMiniaturasAsync ---
+
+
+     /**
+      * Navega a la imagen anterior o siguiente en la lista principal (listaNombres).
+      * Calcula el nuevo índice basado en la dirección y el modo 'wrapAround' (actualmente fijo a true).
+      * Si el índice calculado es diferente al actual, actualiza la selección
+      * en la JList de nombres (view.getListaNombres()), lo que a su vez
+      * disparará el ListSelectionListener para cargar la nueva imagen y sincronizar
+      * la lista de miniaturas.
+      *
+      * @param direccion Un entero que indica la dirección de navegación:
+      *                  -1 para ir a la imagen anterior.
+      *                   1 para ir a la imagen siguiente.
+      *                  (Otros valores podrían usarse para saltos mayores si se modifica la lógica).
+      */
+     public void navegarImagen(int direccion) {
+         // 1. Validar dependencias y estado
+         if (model == null || view == null || view.getListaNombres() == null || model.getModeloLista() == null) {
+             System.err.println("WARN [navegarImagen]: Modelo, Vista o ListaNombres no inicializados.");
+             return;
+         }
+
+         DefaultListModel<String> modeloActual = model.getModeloLista();
+         if (modeloActual.isEmpty()) {
+             System.out.println("[navegarImagen] Lista vacía, no se puede navegar.");
+             return; // No hay nada a donde navegar
+         }
+
+         // 2. Obtener estado actual
+         int indiceActual = view.getListaNombres().getSelectedIndex();
+         int totalImagenes = modeloActual.getSize();
+
+         // Si no hay nada seleccionado (índiceActual == -1), empezar desde el principio o final
+         if (indiceActual < 0) {
+             if (direccion > 0) { // Si vamos hacia adelante, empezar por la primera
+                 indiceActual = -1; // Para que nextIndex sea 0
+             } else if (direccion < 0) { // Si vamos hacia atrás, empezar por la última
+                 indiceActual = totalImagenes; // Para que nextIndex sea total-1
+             } else {
+                 return; // Dirección 0, no hacer nada
+             }
+         }
+
+         // 3. Calcular el próximo índice
+         int indiceSiguiente = indiceActual + direccion;
+
+         // 4. Aplicar lógica de 'Wrap Around' (dar la vuelta al llegar al final/inicio)
+         //    FIXME: Hacer 'wrapAround' configurable leyendo de 'configuration' si se desea.
+         boolean wrapAround = true; // Actualmente siempre da la vuelta
+
+         if (wrapAround) {
+             if (indiceSiguiente < 0) {
+                 // Si nos pasamos por el principio, vamos al final
+                 indiceSiguiente = totalImagenes - 1;
+             } else if (indiceSiguiente >= totalImagenes) {
+                 // Si nos pasamos por el final, vamos al principio
+                 indiceSiguiente = 0;
+             }
+             // Si estamos dentro de los límites (0 a total-1), indiceSiguiente no cambia
+             
+         } else {
+             // Sin 'Wrap Around': Limitar el índice al rango válido [0, totalImagenes - 1]
+             indiceSiguiente = Math.max(0, Math.min(indiceSiguiente, totalImagenes - 1));
+         }
+
+         // 5. Actualizar selección en la Vista si el índice ha cambiado
+         //    Comprobamos también que el índice calculado sea válido
+         if (indiceSiguiente != indiceActual && indiceSiguiente >= 0 && indiceSiguiente < totalImagenes) {
+             System.out.println("[navegarImagen] Cambiando índice de " + indiceActual + " a " + indiceSiguiente);
+             // Establecer la selección en la lista de nombres.
+             // Esto disparará el ListSelectionListener que hemos configurado,
+             // el cual se encargará de:
+             //   a) Llamar a mostrarImagenSeleccionada() para cargar la imagen grande.
+             //   b) Sincronizar la selección en listaMiniaturas.
+             //   c) Llamar a ensureIndexIsVisible en ambas listas (dentro de los listeners).
+             view.getListaNombres().setSelectedIndex(indiceSiguiente);
+
+             // Ya no necesitamos llamar a ensureIndexIsVisible aquí, los listeners lo hacen.
+             // view.getListaNombres().ensureIndexIsVisible(indiceSiguiente);
+         } else {
+             System.out.println("[navegarImagen] El índice no cambió o es inválido. Índice actual: " + indiceActual + ", Siguiente calculado: " + indiceSiguiente);
+         }
+
+     } // --- FIN navegarImagen ---
+
+
+     /**
+      * Navega directamente a un índice específico en la lista principal (listaNombres).
+      * Valida el índice proporcionado antes de intentar cambiar la selección.
+      * Si el índice es válido y diferente al actual, actualiza la selección
+      * en la JList de nombres (view.getListaNombres()), lo que a su vez
+      * disparará el ListSelectionListener para cargar la nueva imagen y sincronizar
+      * la lista de miniaturas.
+      *
+      * @param index El índice del elemento (imagen) al que se desea navegar.
+      *              Debe estar dentro del rango [0, tamañoLista - 1].
+      */
+     public void navegarAIndice(int index) {
+         // 1. Validar dependencias y estado
+         if (model == null || view == null || view.getListaNombres() == null || model.getModeloLista() == null) {
+             System.err.println("WARN [navegarAIndice]: Modelo, Vista o ListaNombres no inicializados.");
+             return;
+         }
+
+         DefaultListModel<String> modeloActual = model.getModeloLista();
+         int totalImagenes = modeloActual.getSize();
+
+         // 2. Validar el índice proporcionado
+         if (modeloActual.isEmpty()) {
+             System.out.println("[navegarAIndice] Lista vacía, no se puede navegar al índice " + index + ".");
+             return; // No hay elementos
+         }
+         if (index < 0 || index >= totalImagenes) {
+             System.err.println("WARN [navegarAIndice]: Índice solicitado (" + index + ") fuera de rango [0, " + (totalImagenes - 1) + "].");
+             return; // Índice inválido
+         }
+
+         // 3. Obtener índice actual y comparar
+         int indiceActual = view.getListaNombres().getSelectedIndex();
+
+         // 4. Actualizar selección en la Vista si el índice es diferente
+         if (index != indiceActual) {
+             System.out.println("[navegarAIndice] Navegando a índice: " + index);
+             // Establecer la selección en la lista de nombres.
+             // Esto disparará el ListSelectionListener configurado,
+             // que cargará la imagen y sincronizará las listas.
+             view.getListaNombres().setSelectedIndex(index);
+
+             // Asegurar visibilidad (el listener también lo hace, pero
+             // ponerlo aquí puede dar una respuesta visual más inmediata si
+             // la llamada viene de una acción directa como HOME/END).
+             // Asegurar visibilidad en la lista de nombres si es visible
+              JPanel pIzq = view.getPanelIzquierdo();
+              if(pIzq != null && pIzq.isVisible()) {
+                   view.getListaNombres().ensureIndexIsVisible(index);
+              }
+              // Asegurar visibilidad en la lista de miniaturas si es visible
+              JScrollPane scrollMinis = view.getScrollListaMiniaturas();
+              JList<String> listaMinis = view.getListaMiniaturas();
+              if (scrollMinis != null && scrollMinis.isVisible() && listaMinis != null) {
+                   listaMinis.ensureIndexIsVisible(index);
+              }
+
+         } else {
+             System.out.println("[navegarAIndice] El índice solicitado (" + index + ") ya es el actual. No se hace nada.");
+         }
+
+     } // --- FIN navegarAIndice ---
+     
+
+     /**
+      * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
+      * Es un método seguro que comprueba la existencia del modelo y su lista interna.
+      *
+      * @return El tamaño (número de elementos) de la lista de imágenes,
+      *         o 0 si el modelo o la lista no están inicializados o están vacíos.
+      */
+     public int getTamanioListaImagenes() {
+         // 1. Verificar que el modelo principal ('model') no sea null
+         if (model != null) {
+             // 2. Obtener el DefaultListModel interno del modelo principal
+             DefaultListModel<String> modeloLista = model.getModeloLista();
+             // 3. Verificar que el DefaultListModel obtenido no sea null
+             if (modeloLista != null) {
+                 // 4. Devolver el tamaño del modelo de lista
+                 return modeloLista.getSize();
+             } else {
+                 // Log si el modelo interno es null (inesperado si el modelo principal no es null)
+                 System.err.println("WARN [getTamanioListaImagenes]: El modelo interno (modeloLista) es null.");
+                 return 0;
+             }
+         } else {
+             // Log si el modelo principal es null
+             System.err.println("WARN [getTamanioListaImagenes]: El modelo principal (model) es null.");
+             return 0; // Devuelve 0 si el modelo principal no está listo
+         }
+     } // --- FIN getTamanioListaImagenes ---
+     
+    
+    // --- 7. Otros Métodos de Lógica y Utilidad ---
+     
+     /**
+      * Limpia el estado del modelo de datos y actualiza la interfaz de usuario
+      * a un estado vacío o por defecto. Se utiliza al iniciar sin carpeta,
+      * si la carpeta seleccionada es inválida, o al manejar ciertos errores.
+      */
+     public void limpiarUI() {
+         // 1. Log inicio
+         System.out.println("[Controller] Limpiando UI y Modelo a estado vacío...");
+
+         //FIXME limpiar todas las listas para refrescar la pantalla (seria util? mejor un metodo al que llamar desde un boton?)
+         // 2. Limpiar el Modelo de Datos Principal ('model')
+         if (model != null) {
+             // 2.1. Limpiar la lista de archivos y el mapa de rutas
+             //      Llamar a actualizarListaCompleta con listas/mapas vacíos es
+             //      la forma más consistente ahora que este método actualiza la vista.
+             model.actualizarListaCompleta(new DefaultListModel<>(), new HashMap<>());
+             // Las siguientes llamadas ya no son estrictamente necesarias porque
+             // actualizarListaCompleta ya pone selectedKey y currentImage a null,
+             // pero las dejamos por claridad o si actualizarListaCompleta cambiara.
+             model.setCurrentImage(null);
+             model.setSelectedImageKey(null);
+             // 2.2. Resetear el estado del zoom/paneo
+             model.resetZoomState();
+              System.out.println("  -> Modelo limpiado.");
+         } else {
+              System.err.println("WARN [limpiarUI]: Modelo es null. No se pudo limpiar.");
+         }
+
+         // 3. Actualizar la Vista ('view')
+         if (view != null) {
+             // 3.1. Asegurar que las JList usan el modelo ahora vacío
+             if (model != null) { // Asegurarse que modelo no es null para getModeloLista
+                 view.setListaImagenesModel(model.getModeloLista()); // Actualiza ambas listas
+             } else {
+                 // Si el modelo es null, pasar un modelo vacío directamente
+                  view.setListaImagenesModel(new DefaultListModel<>());
+             }
+
+             // 3.2. Limpiar la etiqueta de la imagen principal
+             view.limpiarImagenMostrada();
+
+             // 3.3. Limpiar la barra de estado (texto de ruta)
+             view.setTextoRuta("");
+
+             // 3.4. Establecer título por defecto en el panel de la lista
+             view.setTituloPanelIzquierdo("Lista de Archivos");
+
+             // 3.5. Repintar la lista de miniaturas (ahora vacía)
+             //      No necesitamos limpiar un panel, solo repintar la JList.
+             if (view.getListaMiniaturas() != null) {
+                  view.getListaMiniaturas().repaint();
+                  System.out.println("  -> Lista de miniaturas repintada (vacía).");
+             }
+
+             // 3.6. Actualizar estado de Actions que dependen de la selección
+             //      (Ej: Deshabilitar "Localizar Archivo", Edición, etc.)
+             if (locateFileAction instanceof LocateFileAction) {
+                  ((LocateFileAction) locateFileAction).updateEnabledState(); // Debería deshabilitarse
+             }
+             // Llamar a métodos similares o forzar reevaluación del enabled
+             // para otras actions si es necesario. Por ejemplo:
+             if (previousImageAction != null) previousImageAction.setEnabled(false);
+             if (nextImageAction != null) nextImageAction.setEnabled(false);
+             if (firstImageAction != null) firstImageAction.setEnabled(false);
+             if (lastImageAction != null) lastImageAction.setEnabled(false);
+             if (rotateLeftAction != null) rotateLeftAction.setEnabled(false);
+             //FIXME faltan metodos? rotateRightAction ... 
+             // ... etc. para otras actions relevantes ...
+
+              System.out.println("  -> Vista actualizada a estado vacío.");
+
+         } else {
+             System.err.println("WARN [limpiarUI]: Vista es null. No se pudo actualizar UI.");
+         }
+
+         // 4. Limpiar caché de miniaturas (Opcional pero recomendado al limpiar todo)
+         if (servicioMiniaturas != null) {
+             servicioMiniaturas.limpiarCache();
+             System.out.println("  -> Caché de miniaturas limpiado.");
+         }
+
+         // 5. Log fin
+         System.out.println("[Controller] Limpieza de UI y Modelo completada.");
+
+     } // --- FIN limpiarUI ---
+
+
+     /**
+      * Calcula una versión reescalada de la imagen principal actual (model.getCurrentImage())
+      * para ajustarse a las dimensiones de la etiqueta de visualización (view.getEtiquetaImagen()),
+      * respetando la configuración de 'mantener proporción' del modelo.
+      *
+      * Este método NO modifica el estado, solo calcula y devuelve la imagen escalada.
+      * La imagen devuelta es de tipo java.awt.Image (adecuada para ImageIcon/JLabel).
+      *
+      * @return Una instancia de java.awt.Image reescalada, o null si no hay imagen
+      *         original, la vista/etiqueta no están disponibles, o las dimensiones
+      *         de destino son inválidas.
+      */
+     private Image reescalarImagenParaAjustar() {
+         // 1. Validar dependencias y estado actual
+         if (model == null || view == null || view.getEtiquetaImagen() == null) {
+             System.err.println("ERROR [reescalarImagenParaAjustar]: Modelo, Vista o EtiquetaImagen nulos.");
+             return null;
+         }
+
+         BufferedImage imagenOriginal = model.getCurrentImage();
+         if (imagenOriginal == null) {
+             // No hay imagen cargada en el modelo, no hay nada que reescalar.
+             // System.out.println("[reescalarImagenParaAjustar] No hay imagen original en el modelo.");
+             return null;
+         }
+
+         // 2. Obtener dimensiones del componente de destino (la etiqueta)
+         int anchoDestino = view.getEtiquetaImagen().getWidth();
+         int altoDestino = view.getEtiquetaImagen().getHeight();
+
+         // Validar dimensiones de destino
+         if (anchoDestino <= 0 || altoDestino <= 0) {
+             System.out.println("[reescalarImagenParaAjustar] WARN: Etiqueta sin tamaño válido aún ("+anchoDestino+"x"+altoDestino+"). No se puede escalar.");
+             // Si la etiqueta aún no tiene tamaño, no podemos calcular la escala.
+             // Devolver null es lo más seguro para evitar errores.
+             return null;
+         }
+
+         // 3. Determinar dimensiones finales según 'mantener proporción'
+         int anchoFinal;
+         int altoFinal;
+         boolean mantenerProporcion = model.isMantenerProporcion(); // Leer del modelo
+
+         if (mantenerProporcion) {
+
+        	 // 3.1. Calcular manteniendo la proporción
+             int anchoOriginal = imagenOriginal.getWidth();
+             int altoOriginal = imagenOriginal.getHeight();
+
+             // Evitar división por cero si la imagen original no tiene dimensiones
+             if (anchoOriginal <= 0 || altoOriginal <= 0) {
+                  System.err.println("ERROR [reescalarImagenParaAjustar]: Imagen original con dimensiones inválidas ("+anchoOriginal+"x"+altoOriginal+").");
+                  return null;
+             }
+
+             double ratioImagen = (double) anchoOriginal / altoOriginal;
+             double ratioDestino = (double) anchoDestino / altoDestino;
+
+             if (ratioDestino > ratioImagen) {
+                 // El área de destino es más ancha (proporcionalmente) que la imagen.
+                 // Ajustar al alto del destino y calcular el ancho proporcionalmente.
+                 altoFinal = altoDestino;
+                 anchoFinal = (int) (altoDestino * ratioImagen);
+             } else {
+                 // El área de destino es más alta (o igual proporción) que la imagen.
+                 // Ajustar al ancho del destino y calcular el alto proporcionalmente.
+                 anchoFinal = anchoDestino;
+                 altoFinal = (int) (anchoDestino / ratioImagen);
+             }
+
+         } else {
+             // 3.2. No mantener proporción: usar dimensiones de destino directamente
+             anchoFinal = anchoDestino;
+             altoFinal = altoDestino;
+         }
+
+         // 4. Asegurar dimensiones mínimas (1x1)
+         anchoFinal = Math.max(1, anchoFinal);
+         altoFinal = Math.max(1, altoFinal);
+
+         // 5. Realizar el escalado usando getScaledInstance
+         //    Image.SCALE_SMOOTH ofrece mejor calidad que SCALE_DEFAULT a costa de
+         //    un poco más de tiempo de procesamiento.
+         try {
+             // System.out.println("  -> Llamando a getScaledInstance("+anchoFinal+", "+altoFinal+", SCALE_SMOOTH)");
+             Image imagenEscalada = imagenOriginal.getScaledInstance(anchoFinal, altoFinal, Image.SCALE_SMOOTH);
+
+             // Comprobar si getScaledInstance devolvió null (raro, pero posible)
+             if (imagenEscalada == null) {
+                  System.err.println("ERROR [reescalarImagenParaAjustar]: getScaledInstance devolvió null.");
+                  return null;
+             }
+
+             return imagenEscalada; // Devolver la imagen escalada
+
+         } catch (Exception e) {
+              // Capturar cualquier excepción inesperada durante el escalado
+              System.err.println("ERROR [reescalarImagenParaAjustar]: Excepción en getScaledInstance: " + e.getMessage());
+              e.printStackTrace(); // Útil para depuración
+              return null; // Devolver null si el escalado falla
+         }
+     } // --- FIN reescalarImagenParaAjustar ---
+     
+
+     /**
+      * Habilita o deshabilita el modo de zoom manual.
+      *
+      * Cuando se activa el zoom manual:
+      * - Se actualiza el estado en el Modelo.
+      * - Se actualiza el estado 'selected' de la Action 'toggleZoomManualAction'.
+      * - Se actualiza la apariencia del botón de zoom en la barra de herramientas.
+      * - Se habilita la Action 'resetZoomAction'.
+      * - Se resetea el estado de zoom/paneo en el modelo (para empezar desde 100% centrado).
+      * - Se repinta la imagen principal.
+      *
+      * Cuando se desactiva el zoom manual:
+      * - Se actualiza el estado en el Modelo.
+      * - Se actualiza el estado 'selected' de la Action 'toggleZoomManualAction'.
+      * - Se actualiza la apariencia del botón de zoom en la barra de herramientas.
+      * - Se deshabilita la Action 'resetZoomAction'.
+      * - Se resetea el estado de zoom/paneo en el modelo.
+      * - Se recalcula la imagen reescalada para ajustarse automáticamente a la vista.
+      * - Se repinta la imagen principal.
+      *
+      * @param activar true para activar el zoom manual, false para desactivarlo.
+      */
+     public void setManualZoomEnabled(boolean activar) {
+         // 1. Log inicio y validación
+         System.out.println("[Controller] setManualZoomEnabled llamado con: " + activar);
+         if (model == null) {
+             System.err.println("ERROR [setManualZoomEnabled]: Modelo es null.");
+             return;
+         }
+         
+         // Evitar acciones si el estado ya es el deseado
+         if (model.isZoomHabilitado() == activar) {
+              System.out.println("  -> El modo zoom manual ya está en el estado solicitado (" + activar + "). No se hacen cambios.");
+         
+              // Asegurarse de que la UI esté sincronizada por si acaso
+              if(toggleZoomManualAction != null) toggleZoomManualAction.putValue(Action.SELECTED_KEY, activar);
+              if(resetZoomAction != null) resetZoomAction.setEnabled(activar);
+              if(view != null) view.actualizarEstadoControlesZoom(activar, activar);
+              return;
+         }
+
+         // 2. Actualizar el Modelo
+         model.setZoomHabilitado(activar);
+         System.out.println("  -> Modelo actualizado: zoomHabilitado = " + model.isZoomHabilitado());
+
+         // 3. Actualizar Estado de Actions Relacionadas
+
+         // 3.1. Action de Toggle (actualizar su estado interno 'SELECTED_KEY')
+         if (toggleZoomManualAction != null) {
+             toggleZoomManualAction.putValue(Action.SELECTED_KEY, activar);
+              System.out.println("  -> Estado Action 'toggleZoomManualAction' (SELECTED_KEY) actualizado a: " + activar);
+         
+         } else { System.err.println("WARN [setManualZoomEnabled]: toggleZoomManualAction es null."); }
+
+         // 3.2. Action de Reset (habilitar/deshabilitar)
+         if (resetZoomAction != null) {
+             resetZoomAction.setEnabled(activar);
+             System.out.println("  -> Estado Action 'resetZoomAction' (enabled) actualizado a: " + activar);
+         
+         } else { System.err.println("WARN [setManualZoomEnabled]: resetZoomAction es null."); }
+
+         // 4. Actualizar la Apariencia de la Vista (componentes no controlados directamente por Action)
+         if (view != null) {
+             // Actualizar el fondo del botón de zoom y el estado enabled del botón/menú de reset
+             view.actualizarEstadoControlesZoom(activar, activar);
+             System.out.println("  -> Apariencia controles zoom en Vista actualizada.");
+             // El estado del JCheckBoxMenuItem del menú debería actualizarse automáticamente
+             // porque tiene asignada la 'toggleZoomManualAction' mediante setAction.
+         
+         } else { System.err.println("WARN [setManualZoomEnabled]: Vista es null, no se pudo actualizar UI."); }
+
+         // 5. Aplicar Lógica Específica según activación/desactivación
+         if (activar) {
+             
+        	 // 5.1. Al ACTIVAR el zoom manual: Resetear estado inicial
+             System.out.println("  -> Zoom Manual ACTIVADO. Reseteando estado de zoom/paneo.");
+             // Llamar al método que resetea en el modelo Y actualiza la vista
+             aplicarResetZoomAction(); // Este ya resetea modelo y repinta vista
+         
+         } else {
+         
+        	 // 5.2. Al DESACTIVAR el zoom manual: Resetear y reajustar imagen
+             System.out.println("  -> Zoom Manual DESACTIVADO. Reseteando estado y reajustando imagen.");
+             model.resetZoomState(); // Resetear zoom/offset en el modelo
+             
+             // Recalcular imagen para que se ajuste automáticamente (sin zoom/offset manual)
+             Image imagenReescalada = reescalarImagenParaAjustar();
+             // Actualizar la vista para mostrar la imagen reajustada
+             if (view != null) {
+                 view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+             }
+         }
+
+         System.out.println("[Controller] setManualZoomEnabled finalizado.");
+     } // --- FIN setManualZoomEnabled ---
+
+    
+
+     /**
+      * Ejecuta la acción de resetear el estado del zoom y el paneo (desplazamiento).
+      * 
+      * Realiza las siguientes acciones:
+      * 1. Llama a model.resetZoomState() para establecer zoomFactor a 1.0 y offsets X/Y a 0.
+      * 2. Recalcula la imagen reescalada (que ahora será sin zoom aplicado por el modelo).
+      * 3. Actualiza la vista para mostrar la imagen reescalada con los nuevos factores/offsets (1.0, 0, 0).
+      * 4. (Opcional) Aplica una animación visual al botón de reset como feedback.
+      */
+     public void aplicarResetZoomAction() {
+         // 1. Log de inicio
+         System.out.println("[Controller] Ejecutando acción de Reset Zoom/Pan...");
+
+         // 2. Validar dependencias
+         if (model == null || view == null) {
+             System.err.println("ERROR [aplicarResetZoomAction]: Modelo o Vista nulos.");
+             return;
+         }
+         
+         // 3. Resetear el estado en el Modelo
+         model.resetZoomState();
+         System.out.println("  -> Estado de zoom/pan reseteado en el Modelo (Zoom: " + model.getZoomFactor() + ", OffsetX: " + model.getImageOffsetX() + ", OffsetY: " + model.getImageOffsetY() + ")");
+
+         // 4. Recalcular la imagen base reescalada (sin el zoom/offset del modelo aplicado aquí)
+         //    El método reescalarImagenParaAjustar ya calcula el tamaño base ajustado a la ventana.
+         Image imagenReescaladaBase = reescalarImagenParaAjustar();
+
+         // 5. Actualizar la Vista
+         //    Pasamos los factores reseteados del modelo (1.0, 0, 0) para que la vista
+         //    muestre la imagen reescaladaBase sin zoom ni desplazamiento adicional.
+         if (imagenReescaladaBase != null) {
+              view.setImagenMostrada(
+                  imagenReescaladaBase, 
+                  model.getZoomFactor(), // Debería ser 1.0
+                  model.getImageOffsetX(), // Debería ser 0
+                  model.getImageOffsetY()  // Debería ser 0
+              );
+              System.out.println("  -> Vista actualizada con imagen reseteada.");
+              
+         } else {
+              // Si no se pudo reescalar (p.ej., no había imagen original), limpiar la vista
+              System.err.println("WARN [aplicarResetZoomAction]: No se pudo obtener imagen reescalada base. Limpiando vista.");
+              view.limpiarImagenMostrada();
+         }
+
+
+         // 6. Aplicar Animación al Botón (Feedback visual)
+         //    Llama al método de la vista que aplica la animación usando el nombre CORTO del ActionCommand del botón.
+         if (view != null) { // Comprobar vista de nuevo por si acaso
+              view.aplicarAnimacionBoton("Reset_48x48"); // Asume que este es el ActionCommand corto del botón
+              System.out.println("  -> Animación aplicada al botón Reset.");
+         }
+         
+         System.out.println("[Controller] Acción Reset Zoom/Pan finalizada.");
+
+     } // --- FIN aplicarResetZoomAction ---
+     
+     
+     /**
+      * Comprueba si el modo de zoom manual está actualmente habilitado
+      * según el estado almacenado en el VisorModel.
+      *
+      * Este método es útil principalmente para que las Actions (como ToggleZoomManualAction)
+      * puedan consultar el estado actual antes de decidir si deben activar o desactivar el zoom.
+      *
+      * @return true si el modelo existe y tiene el zoom manual habilitado (isZoomHabilitado() devuelve true),
+      *         false en caso contrario (modelo es null o zoom manual está deshabilitado).
+      */
+     public boolean isZoomManualCurrentlyEnabled() {
+         // 1. Verificar que la referencia al modelo no sea nula
+         if (model != null) {
+             // 2. Devolver el valor actual de la propiedad 'zoomHabilitado' del modelo
+             return model.isZoomHabilitado();
+         } else {
+             // 3. Si el modelo es nulo, asumir que el zoom no está habilitado (estado seguro)
+             System.err.println("WARN [isZoomManualCurrentlyEnabled]: Modelo es null. Devolviendo false.");
+             return false;
+         }
+     } // --- FIN isZoomManualCurrentlyEnabled ---
+     
+     	
+	/**
+	 * Abre un diálogo JFileChooser para que el usuario seleccione un directorio.
+	 * 
+	 * Pasos: 1. Valida que ConfigurationManager no sea null. 2. Crea un
+	 * JFileChooser configurado para seleccionar solo directorios. 3. Intenta
+	 * establecer el directorio inicial del JFileChooser basado en: a) La
+	 * `carpetaRaizActual` si es válida. b) La carpeta guardada en `configuration`
+	 * si la anterior no es válida. c) El directorio por defecto del sistema si
+	 * ninguna de las anteriores es válida. 4. Muestra el diálogo "Abrir". 5. Si el
+	 * usuario aprueba (selecciona una carpeta y pulsa Abrir): a) Obtiene la carpeta
+	 * seleccionada (File y Path). b) Verifica que sea un directorio válido. c)
+	 * Comprueba si es DIFERENTE de la `carpetaRaizActual`. d) Si es diferente: i.
+	 * Actualiza la variable de instancia `carpetaRaizActual`. ii. Actualiza la
+	 * configuración en memoria (`configuration.setInicioCarpeta`). iii.Guarda TODA
+	 * la configuración actual en el archivo `config.cfg`. iv. Llama a
+	 * `cargarListaImagenes(null)` para recargar el contenido desde la nueva
+	 * carpeta. e) Si es la misma carpeta, informa al usuario y no hace nada más. f)
+	 * Si la selección no es un directorio válido, muestra un mensaje de
+	 * advertencia. 6. Si el usuario cancela, simplemente se loguea la cancelación.
+	 */
+	public void abrirSelectorDeCarpeta ()
+	{
+
+		// 1. Validación inicial
+		if (configuration == null)
+		{
+			System.err.println("ERROR [abrirSelectorDeCarpeta]: ConfigurationManager es nulo.");
+			// Podríamos mostrar un JOptionPane aquí, pero quizás es mejor solo loguear
+			return;
+		}
+		System.out.println("[Controller] Abriendo selector de carpeta...");
+
+		// 2. Crear y configurar JFileChooser
+		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY); // Solo permitir seleccionar directorios
+		fileChooser.setDialogTitle("Seleccionar Carpeta de Imágenes");
+		// Opcional: Configurar otras propiedades como MultiSelection, FileFilters
+		// (aunque no aplican aquí), etc.
+		// fileChooser.setAcceptAllFileFilterUsed(false); // No mostrar "Todos los
+		// archivos"
+
+		// 3. Establecer Directorio Inicial del Selector
+		Path directorioInicial = null;
+
+		// Prioridad 1: Usar la carpeta raíz actual si es válida
+		if (this.carpetaRaizActual != null && Files.isDirectory(this.carpetaRaizActual))
+		{
+			directorioInicial = this.carpetaRaizActual;
+			System.out.println("  -> JFileChooser se iniciará en carpeta raíz actual: " + directorioInicial);
+		} else
+		{
+			
+			// Prioridad 2: Intentar usar la carpeta de la configuración
+			String folderInitConfig = configuration.getString("inicio.carpeta", "");
+
+			if (!folderInitConfig.isEmpty())
+			{
+
+				try
+				{
+					Path configPath = Paths.get(folderInitConfig);
+
+					if (Files.isDirectory(configPath))
+					{
+						directorioInicial = configPath;
+						System.out.println(
+								"  -> JFileChooser se iniciará en carpeta de config: " + directorioInicial);
+					}
+			
+				} catch (Exception e)
+				{
+					System.out.println("  -> Ruta en config inválida (" + folderInitConfig
+							+ "). Usando directorio por defecto.");
+					// No hacer nada, directorioInicial seguirá null
+				}
+			
+			} else
+			{
+				System.out.println("  -> Sin carpeta en config. Usando directorio por defecto.");
+				// directorioInicial sigue null
+			}
+		}
+
+		// Asignar el directorio inicial si se encontró uno válido
+		if (directorioInicial != null)
+		{
+			fileChooser.setCurrentDirectory(directorioInicial.toFile());
 		
-		 if (view.getMenuItemsPorNombre() != null) {
-		        // ***** RESTAURAR ESTE BUCLE *****
-		        view.getMenuItemsPorNombre().keySet().forEach(configKey -> { // Itera claves LARGAS
-		            // Llama al método PÚBLICO de la vista, pasándole la clave larga
-		            view.addMenuItemActionListener(configKey, this);
-		        });
-		        // ********************************
-		    } else {
-		        System.err.println("WARN: Mapa de menús en la vista es null al configurar eventos.");
-		    }
-		
-		System.out.println("Listeners del Controller añadidos a la Vista.");
+		} else
+		{
+			System.out.println("  -> JFileChooser se iniciará en directorio por defecto del sistema.");
+		}
 
-	}
-	
-	
-	//*********************************** METODOS DE EDICION DE IMAGENES ***************************************
-	
-    public void aplicarVolteoHorizontal() {
-        if (model == null || view == null) return;
-        BufferedImage imagenOriginal = model.getCurrentImage();
-        if (imagenOriginal == null) { /*...*/ return; }
+		// 4. Mostrar Diálogo "Abrir"
+		// Usar view.getFrame() como padre para centrar el diálogo sobre la ventana
+		// principal
+		int resultado = fileChooser.showOpenDialog(view != null ? view.getFrame() : null);
 
-        System.out.println("[Volteo H] Solicitando volteo a ImageEditor...");
-        // --- TEXTO MODIFICADO ---
-        // Llamar al método estático de ImageEditor
-        BufferedImage imagenVolteada = ImageEdition.flipHorizontal(imagenOriginal);
-        // --- FIN MODIFICACION ---
+		// 5. Procesar Resultado si el Usuario Aprobó
+		if (resultado == JFileChooser.APPROVE_OPTION)
+		{
+			File carpetaSeleccionadaFile = fileChooser.getSelectedFile();
 
-        if (imagenVolteada != null) {
-            // Actualizar Modelo
-            model.setCurrentImage(imagenVolteada);
-            // Resetear zoom?
-            // model.resetZoomState();
-            // Actualizar Vista
-            Image imagenReescalada = reescalarImagenParaAjustar();
-            if (view != null) {
-                view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-                view.aplicarAnimacionBoton("Espejo_Horizontal_48x48");
-            }
-            System.out.println("[Volteo H] Volteo aplicado y vista actualizada.");
-        } else {
-            System.err.println("ERROR [Volteo H] ImageEditor devolvió null.");
-            JOptionPane.showMessageDialog(view.getFrame(), "Error al intentar voltear la imagen.", "Error de Volteo", JOptionPane.ERROR_MESSAGE);
-        }
-    }
+			// 5.a/b: Validar selección
+			if (carpetaSeleccionadaFile != null && carpetaSeleccionadaFile.isDirectory())
+			{
+				Path nuevaCarpetaRaiz = carpetaSeleccionadaFile.toPath();
+				String rutaAbsoluta = carpetaSeleccionadaFile.getAbsolutePath();
+				System.out.println("  -> Usuario seleccionó carpeta válida: " + nuevaCarpetaRaiz);
 
-    // --- NUEVOS MÉTODOS PARA OTRAS EDICIONES ---
+				// 5.c: Comprobar si es diferente de la actual
+				if (!nuevaCarpetaRaiz.equals(this.carpetaRaizActual))
+				{
+					System.out.println("    -> La carpeta es DIFERENTE de la actual. Actualizando...");
+
+					// 5.d.i: Actualizar variable de instancia
+					this.carpetaRaizActual = nuevaCarpetaRaiz;
+
+					// 5.d.ii: Actualizar configuración en memoria
+					configuration.setInicioCarpeta(rutaAbsoluta);
+
+					// 5.d.iii: Guardar configuración completa en archivo
+					try
+					{
+						// Obtener el mapa actual completo para preservar otras configuraciones
+						configuration.guardarConfiguracion(configuration.getConfigMap());
+						System.out
+								.println("      -> Nueva carpeta inicial guardada en config.cfg: " + rutaAbsoluta);
+					} catch (IOException e)
+					{
+						System.err.println(
+								"      -> ERROR al guardar nueva carpeta inicial en config.cfg: " + e.getMessage());
+						if (view != null)
+							JOptionPane.showMessageDialog(view.getFrame(),
+									"No se pudo guardar la nueva carpeta inicial en la configuración.",
+									"Error de Guardado", JOptionPane.WARNING_MESSAGE);
+						// Continuar de todos modos, la carpeta se usará en esta sesión
+					}
+
+					// 5.d.iv: Recargar lista de imágenes (pasando null para seleccionar la primera)
+					System.out.println("    -> Recargando lista de imágenes desde la nueva carpeta...");
+					cargarListaImagenes(null);
+
+				} else
+				{
+					// 5.e: Carpeta seleccionada es la misma que la actual
+					System.out.println(
+							"    -> La carpeta seleccionada es la misma que la actual. No se requiere recarga.");
+					if (view != null)
+						JOptionPane.showMessageDialog(view.getFrame(),
+								"La carpeta seleccionada ya es la carpeta actual.", "Información",
+								JOptionPane.INFORMATION_MESSAGE);
+				}
+
+			} else if (carpetaSeleccionadaFile != null)
+			{
+				// 5.f: Selección inválida (no es directorio)
+				System.err.println("  -> Selección inválida (no es un directorio): "
+						+ carpetaSeleccionadaFile.getAbsolutePath());
+				if (view != null)
+					JOptionPane.showMessageDialog(view.getFrame(), "La selección no es una carpeta válida.",
+							"Selección Inválida", JOptionPane.WARNING_MESSAGE);
+			} else
+			{
+				// Caso raro: APPROVE_OPTION pero getSelectedFile() es null
+				System.err.println("  -> JFileChooser aprobó pero devolvió archivo nulo.");
+			}
+		} else
+		{
+			// 6. Usuario Canceló
+			System.out.println("[Controller] Selección de carpeta cancelada por el usuario.");
+		}
+
+		System.out.println("[Controller] Fin abrirSelectorDeCarpeta.");
+
+	} // --- FIN abrirSelectorDeCarpeta ---
+  
+
+
+   /**
+    * Aplica un volteo horizontal a la imagen principal actualmente mostrada.
+    * 
+    * Pasos:
+    * 1. Valida que el modelo y la vista existan.
+    * 2. Obtiene la imagen original (BufferedImage) del modelo.
+    * 3. Si no hay imagen, no hace nada.
+    * 4. Llama al método estático ImageEdition.flipHorizontal() para realizar el volteo.
+    * 5. Si el volteo es exitoso (devuelve una nueva imagen):
+    *    a) Actualiza la imagen en el modelo (model.setCurrentImage).
+    *    b) Recalcula la imagen reescalada para la vista.
+    *    c) Actualiza la vista para mostrar la imagen volteada (view.setImagenMostrada).
+    *    d) (Opcional) Aplica una animación al botón correspondiente.
+    * 6. Si el volteo falla (ImageEdition devuelve null), muestra un mensaje de error.
+    */
+	public void aplicarVolteoHorizontal() {
+	// 1. Validar dependencias
+       if (model == null || view == null) {
+           System.err.println("ERROR [aplicarVolteoHorizontal]: Modelo o Vista nulos.");
+           return; // Salir si no tenemos lo necesario
+       }
+       // 2. Obtener imagen actual del modelo
+       BufferedImage imagenOriginal = model.getCurrentImage();
+
+       // 3. Validar si hay imagen para voltear
+       if (imagenOriginal == null) {
+           System.out.println("[aplicarVolteoHorizontal] No hay imagen cargada para voltear.");
+           // Opcional: Mostrar un mensaje al usuario
+           // JOptionPane.showMessageDialog(view.getFrame(), "No hay imagen cargada para voltear.", "Acción no disponible", JOptionPane.INFORMATION_MESSAGE);
+           return;
+       }
+
+       System.out.println("[Volteo H] Solicitando volteo horizontal a ImageEdition...");
+
+       // 4. Llamar al servicio/utilidad de edición de imágenes
+       BufferedImage imagenVolteada = null;
+       try {
+           imagenVolteada = ImageEdition.flipHorizontal(imagenOriginal);
+       } catch (Exception e) {
+           // Capturar cualquier excepción inesperada durante el volteo
+           System.err.println("ERROR [aplicarVolteoHorizontal] Excepción en ImageEdition.flipHorizontal: " + e.getMessage());
+           e.printStackTrace();
+           JOptionPane.showMessageDialog(view.getFrame(),
+                                         "Ocurrió un error inesperado al intentar voltear la imagen.",
+                                         "Error de Edición", JOptionPane.ERROR_MESSAGE);
+           return; // Salir si hay error en la edición
+       }
+
+
+       // 5. Procesar el resultado del volteo
+       if (imagenVolteada != null) {
+           // 5.a. Actualizar Modelo
+           System.out.println("  -> Volteo exitoso. Actualizando modelo...");
+           model.setCurrentImage(imagenVolteada); // Reemplazar la imagen en el modelo
+
+           // 5.b. Recalcular vista reescalada
+           // Es importante recalcular porque la imagen base ha cambiado
+           System.out.println("  -> Recalculando imagen para la vista...");
+           Image imagenReescaladaParaVista = reescalarImagenParaAjustar();
+
+           // 5.c. Actualizar Vista
+           if (view != null && imagenReescaladaParaVista != null) { // Doble chequeo
+                // Mostrar la imagen volteada y reescalada, manteniendo zoom/pan actual
+               view.setImagenMostrada(imagenReescaladaParaVista,
+                                      model.getZoomFactor(),
+                                      model.getImageOffsetX(),
+                                      model.getImageOffsetY());
+                System.out.println("  -> Vista actualizada con imagen volteada.");
+
+                // 5.d. Aplicar animación al botón (feedback)
+                view.aplicarAnimacionBoton("Espejo_Horizontal_48x48"); // Usar el ActionCommand CORTO del botón
+
+           } else if (view == null) {
+               System.err.println("WARN [aplicarVolteoHorizontal]: Vista es null, no se pudo actualizar UI.");
+           } else { // imagenReescaladaParaVista es null
+                System.err.println("WARN [aplicarVolteoHorizontal]: No se pudo reescalar la imagen volteada. Limpiando vista.");
+                view.limpiarImagenMostrada();
+           }
+
+           System.out.println("[Volteo H] Volteo horizontal aplicado correctamente.");
+
+       } else {
+           // 6. Manejar fallo del volteo (si ImageEdition devolvió null)
+           System.err.println("ERROR [aplicarVolteoHorizontal]: ImageEdition.flipHorizontal devolvió null.");
+           JOptionPane.showMessageDialog(view.getFrame(),
+                                         "No se pudo realizar el volteo horizontal de la imagen.",
+                                         "Error de Volteo", JOptionPane.ERROR_MESSAGE);
+       }
+	} // --- FIN aplicarVolteoHorizontal ---
+       
+
     /**
-     * Aplica un volteo vertical llamando a ImageEditor y actualiza modelo/vista.
+     * Aplica un volteo vertical a la imagen principal actualmente mostrada.
+     * 
+     * Pasos:
+     * 1. Valida que el modelo y la vista existan.
+     * 2. Obtiene la imagen original (BufferedImage) del modelo.
+     * 3. Si no hay imagen, no hace nada.
+     * 4. Llama al método estático ImageEdition.flipVertical() para realizar el volteo.
+     * 5. Si el volteo es exitoso (devuelve una nueva imagen):
+     *    a) Actualiza la imagen en el modelo (model.setCurrentImage).
+     *    b) Recalcula la imagen reescalada para la vista.
+     *    c) Actualiza la vista para mostrar la imagen volteada (view.setImagenMostrada).
+     *    d) (Opcional) Aplica una animación al botón correspondiente.
+     * 6. Si el volteo falla (ImageEdition devuelve null), muestra un mensaje de error.
      */
     public void aplicarVolteoVertical() {
-        if (model == null || view == null) return;
+        // 1. Validar dependencias
+        if (model == null || view == null) {
+            System.err.println("ERROR [aplicarVolteoVertical]: Modelo o Vista nulos.");
+            return;
+        }
+        // 2. Obtener imagen actual del modelo
         BufferedImage imagenOriginal = model.getCurrentImage();
-        if (imagenOriginal == null) { /*...*/ return; }
-        System.out.println("[Volteo V] Solicitando volteo a ImageEditor...");
-        BufferedImage imagenVolteada = ImageEdition.flipVertical(imagenOriginal); // Llamar al método correspondiente
+
+        // 3. Validar si hay imagen para voltear
+        if (imagenOriginal == null) {
+            System.out.println("[aplicarVolteoVertical] No hay imagen cargada para voltear.");
+            return;
+        }
+
+        System.out.println("[Volteo V] Solicitando volteo vertical a ImageEdition...");
+
+        // 4. Llamar al servicio/utilidad de edición de imágenes
+        BufferedImage imagenVolteada = null;
+        try {
+            // Llamar al método específico para volteo vertical
+            imagenVolteada = ImageEdition.flipVertical(imagenOriginal); 
+        } catch (Exception e) {
+            System.err.println("ERROR [aplicarVolteoVertical] Excepción en ImageEdition.flipVertical: " + e.getMessage());
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(view.getFrame(),
+                                          "Ocurrió un error inesperado al intentar voltear la imagen verticalmente.",
+                                          "Error de Edición", JOptionPane.ERROR_MESSAGE);
+            return; 
+        }
+
+        // 5. Procesar el resultado del volteo
         if (imagenVolteada != null) {
-            model.setCurrentImage(imagenVolteada);
-            Image imagenReescalada = reescalarImagenParaAjustar();
-            if (view != null) {
-                view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-                view.aplicarAnimacionBoton("Espejo_Vertical_48x48"); // Usar nombre correcto
+        	
+            // 5.a. Actualizar Modelo
+            System.out.println("  -> Volteo vertical exitoso. Actualizando modelo...");
+            model.setCurrentImage(imagenVolteada); // Reemplazar imagen en modelo
+
+            // 5.b. Recalcular vista reescalada
+            System.out.println("  -> Recalculando imagen para la vista...");
+            Image imagenReescaladaParaVista = reescalarImagenParaAjustar();
+
+            // 5.c. Actualizar Vista
+            if (view != null && imagenReescaladaParaVista != null) { 
+                view.setImagenMostrada(imagenReescaladaParaVista,
+                                       model.getZoomFactor(),
+                                       model.getImageOffsetX(),
+                                       model.getImageOffsetY());
+                 System.out.println("  -> Vista actualizada con imagen volteada verticalmente.");
+
+                 // 5.d. Aplicar animación al botón (usar el ActionCommand corto correcto)
+                 view.aplicarAnimacionBoton("Espejo_Vertical_48x48"); 
+
+            } else if (view == null) {
+                System.err.println("WARN [aplicarVolteoVertical]: Vista es null, no se pudo actualizar UI.");
+            
+            } else { 
+                 System.err.println("WARN [aplicarVolteoVertical]: No se pudo reescalar la imagen volteada. Limpiando vista.");
+                 view.limpiarImagenMostrada();
             }
-            System.out.println("[Volteo V] Volteo aplicado y vista actualizada.");
-        } else { /*...*/ }
-    }
 
-     /**
-     * Aplica rotación izquierda llamando a ImageEditor y actualiza modelo/vista.
-     */
-    public void aplicarRotarIzquierda() {
-        if (model == null || view == null) return;
-        BufferedImage imagenOriginal = model.getCurrentImage();
-        if (imagenOriginal == null) { /*...*/ return; }
-        System.out.println("[Rotar Izq] Solicitando rotación a ImageEditor...");
-        BufferedImage imagenRotada = ImageEdition.rotateLeft(imagenOriginal); // Llamar al método correspondiente
-        if (imagenRotada != null) {
-            model.setCurrentImage(imagenRotada);
-            // ¡Importante! Resetear zoom/pan después de rotar porque las dimensiones cambian
-            model.resetZoomState();
-            Image imagenReescalada = reescalarImagenParaAjustar();
-            if (view != null) {
-                view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-                view.aplicarAnimacionBoton("Rotar_Izquierda_48x48"); // Usar nombre correcto
-            }
-            System.out.println("[Rotar Izq] Rotación aplicada y vista actualizada.");
-        } else { /*...*/ }
-    }
+            System.out.println("[Volteo V] Volteo vertical aplicado correctamente.");
 
-     /**
-     * Aplica rotación derecha llamando a ImageEditor y actualiza modelo/vista.
-     */
-    public void aplicarRotarDerecha() {
-         if (model == null || view == null) return;
-        BufferedImage imagenOriginal = model.getCurrentImage();
-        if (imagenOriginal == null) { /*...*/ return; }
-        System.out.println("[Rotar Der] Solicitando rotación a ImageEditor...");
-        BufferedImage imagenRotada = ImageEdition.rotateRight(imagenOriginal); // Llamar al método correspondiente
-        if (imagenRotada != null) {
-            model.setCurrentImage(imagenRotada);
-            model.resetZoomState(); // Resetear zoom
-            Image imagenReescalada = reescalarImagenParaAjustar();
-            if (view != null) {
-                view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-                view.aplicarAnimacionBoton("Rotar_Derecha_48x48"); // Usar nombre correcto
-            }
-            System.out.println("[Rotar Der] Rotación aplicada y vista actualizada.");
-        } else { /*...*/ }
-    }
-
-    //*********************************** METODOS DE BOTONES TOGGLE ***************************************
-
-    
-    // --- INICIO MÉTODO COMPLETO Y CORREGIDO: setMostrarSubcarpetasAndUpdateConfig ---
-    /**
-     * Actualiza el estado lógico y visual para mostrar/ocultar subcarpetas.
-     * Guarda el nuevo estado en la configuración y recarga la lista de imágenes
-     * intentando mantener la imagen seleccionada actualmente.
-     *
-     * @param mostrarSubcarpetasDeseado true si se deben mostrar subcarpetas, false si solo la carpeta actual.
-     */
-    public void setMostrarSubcarpetasAndUpdateConfig(boolean mostrarSubcarpetasDeseado) {
-        System.out.println("\n[Controller setMostrarSubcarpetas] INICIO. Deseado: " + mostrarSubcarpetasDeseado);
-
-        if (model == null || configuration == null || toggleSubfoldersAction == null || view == null) {
-            System.err.println("  -> ERROR: Componentes necesarios nulos. Saliendo.");
-            return;
-        }
-
-        // Comprobar si el cambio es necesario
-        boolean estadoLogicoActual = Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY));
-        System.out.println("  -> Estado Lógico Actual (Action.SELECTED_KEY): " + estadoLogicoActual);
-        if (mostrarSubcarpetasDeseado == estadoLogicoActual) {
-            System.out.println("  -> Estado deseado ya es el actual. No se hace nada (solo sincronizar radios).");
-            restaurarSeleccionRadiosSubcarpetas(estadoLogicoActual); // Asegurar UI visual
-             System.out.println("[Controller setMostrarSubcarpetas] FIN (Sin cambios).");
-            return;
-        }
-
-        System.out.println("  -> Aplicando cambio a estado: " + mostrarSubcarpetasDeseado);
-
-        // --- ¡Guardar la clave ANTES de cambiar nada! ---
-        final String claveAntesDelCambio = model.getSelectedImageKey();
-        System.out.println("    -> Clave a intentar mantener: " + claveAntesDelCambio);
-        // ---------------------------------------------
-
-        // 1. Actualizar Action (para el botón y estado lógico central)
-        System.out.println("    1. Actualizando Action.SELECTED_KEY...");
-        toggleSubfoldersAction.putValue(Action.SELECTED_KEY, mostrarSubcarpetasDeseado);
-         System.out.println("       -> Action.SELECTED_KEY AHORA ES: " + Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY)));
-
-        // 2. Actualizar Modelo (estado lógico de visualización)
-         System.out.println("    2. Actualizando Modelo...");
-        model.setMostrarSoloCarpetaActual(!mostrarSubcarpetasDeseado);
-         System.out.println("       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: " + model.isMostrarSoloCarpetaActual());
-
-        // 3. Actualizar Configuración en Memoria
-         System.out.println("    3. Actualizando Configuración en Memoria...");
-        configuration.setString("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(mostrarSubcarpetasDeseado));
-         System.out.println("       -> Config 'comportamiento.carpeta.cargarSubcarpetas' AHORA ES: " + configuration.getString("comportamiento.carpeta.cargarSubcarpetas"));
-
-        // 4. Sincronizar UI (Botón y Radios)
-        System.out.println("    4. Sincronizando UI (Botón y Radios)...");
-        actualizarAspectoBotonToggle(toggleSubfoldersAction, mostrarSubcarpetasDeseado); // Actualiza color/apariencia botón
-        restaurarSeleccionRadiosSubcarpetas(mostrarSubcarpetasDeseado); // Actualiza estado setSelected radios
-
-        // 5. Recargar Lista de Imágenes (Pasando la clave guardada)
-        System.out.println("    5. Programando recarga de lista en EDT (manteniendo clave)...");
-        SwingUtilities.invokeLater(() -> {
-            System.out.println("      -> [EDT] Llamando a cargarListaImagenes(\"" + claveAntesDelCambio + "\") para recargar...");
-            cargarListaImagenes(claveAntesDelCambio); // <--- PASAR LA CLAVE GUARDADA
-        });
-
-        System.out.println("[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).");
-    }
-    // --- FIN MÉTODO COMPLETO Y CORREGIDO: setMostrarSubcarpetasAndUpdateConfig ---
-    
-    
-    // --- sincronizar los Radio Buttons ---
-    /**
-     * Asegura que los JRadioButtonMenuItem de subcarpetas reflejen el estado actual.
-     * @param mostrarSubcarpetas El estado actual (true si se muestran subcarpetas).
-     */
-    public void sincronizarRadiosSubcarpetas(boolean mostrarSubcarpetas) {
-         if (view == null || view.getMenuItemsPorNombre() == null) return;
-         Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
-
-         JMenuItem radioMostrarSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas");
-         JMenuItem radioMostrarSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual");
-
-         if (radioMostrarSub instanceof JRadioButtonMenuItem) {
-              ((JRadioButtonMenuItem)radioMostrarSub).setSelected(mostrarSubcarpetas);
-         }
-         if (radioMostrarSolo instanceof JRadioButtonMenuItem) {
-              ((JRadioButtonMenuItem)radioMostrarSolo).setSelected(!mostrarSubcarpetas);
-         }
-    }
-    
-    
-    /**
-     * Asegura que los JRadioButtonMenuItem de subcarpetas reflejen el estado lógico actual.
-     * Es SEGURO llamar a setSelected aquí porque los radios ya NO usan setAction.
-     * @param mostrarSubcarpetas El estado lógico actual (true si se deben mostrar subcarpetas).
-     */
-    public void restaurarSeleccionRadiosSubcarpetas(boolean mostrarSubcarpetas) { // Renombrado para claridad
-         if (view == null || view.getMenuItemsPorNombre() == null) return;
-         Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
-         System.out.println("  -> [Controller] Sincronizando estado visual de Radios a: " + (mostrarSubcarpetas ? "Subcarpetas" : "Solo Carpeta"));
-
-         JMenuItem radioMostrarSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas");
-         JMenuItem radioMostrarSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual");
-
-         // Aplicar setSelected SIN miedo al bucle
-         if (radioMostrarSub instanceof JRadioButtonMenuItem) {
-             // Solo llamar si el estado es diferente para evitar eventos redundantes del ButtonGroup
-             if (((JRadioButtonMenuItem)radioMostrarSub).isSelected() != mostrarSubcarpetas) {
-                  ((JRadioButtonMenuItem)radioMostrarSub).setSelected(mostrarSubcarpetas);
-             }
-         }
-         if (radioMostrarSolo instanceof JRadioButtonMenuItem) {
-              if (((JRadioButtonMenuItem)radioMostrarSolo).isSelected() == mostrarSubcarpetas) { // Es la inversa
-                  ((JRadioButtonMenuItem)radioMostrarSolo).setSelected(!mostrarSubcarpetas);
-              }
-         }
-         // IMPORTANTE: Habilitar los radios de nuevo si estaban deshabilitados
-          if (radioMostrarSub != null) radioMostrarSub.setEnabled(true);
-          if (radioMostrarSolo != null) radioMostrarSolo.setEnabled(true);
-    }
-
-
-    /**
-     * Actualiza el color de fondo de un botón asociado a una Action de tipo toggle
-     * para indicar visualmente si está "pulsado" (activo/seleccionado) o no.
-     * Utiliza los colores definidos en el tema actual.
-     *
-     * @param action La instancia de la Action toggle (ej. toggleSubfoldersAction).
-     *               Se usa para obtener el estado SELECTED_KEY y potencialmente identificar el botón.
-     * @param isSelected El estado lógico actual (true si debe parecer activo, false si no).
-     *                   Se pasa explícitamente para asegurar la sincronización.
-     */
-     public void actualizarAspectoBotonToggle(Action action, boolean isSelected) {
-        // --- Validaciones Iniciales ---
-        if (action == null) {
-             System.err.println("ERROR [actualizarAspectoBotonToggle]: La Action proporcionada es null.");
-             return;
-        }
-        if (view == null || view.getBotonesPorNombre() == null) {
-             System.err.println("ERROR [actualizarAspectoBotonToggle]: Vista o mapa de botones no disponible.");
-             return;
-        }
-        if (themeManager == null || themeManager.getTemaActual() == null) {
-             System.err.println("ERROR [actualizarAspectoBotonToggle]: ThemeManager o Tema actual no disponible.");
-             return;
-        }
-
-        // --- Determinar la Clave Larga del Botón en el Mapa ---
-        // Necesitamos encontrar qué botón corresponde a esta Action.
-        // La forma más fiable es buscar en el mapa de botones qué botón
-        // tiene asignada esta Action específica.
-        String claveBoton = null;
-        for (Map.Entry<String, JButton> entry : view.getBotonesPorNombre().entrySet()) {
-            if (action.equals(entry.getValue().getAction())) { // Compara la instancia de la Action
-                claveBoton = entry.getKey();
-                break; // Encontrado
-            }
-        }
-
-        // --- Alternativa (Menos fiable): Usar ActionCommand ---
-        // Si la búsqueda anterior falla (por alguna razón la Action no está asignada
-        // directamente al botón, aunque debería), podemos intentar usar el ActionCommand.
-        if (claveBoton == null) {
-             String actionCommand = (String) action.getValue(Action.ACTION_COMMAND_KEY);
-             // Si el ActionCommand no está, intentar con el NAME
-              if (actionCommand == null) {
-                  Object name = action.getValue(Action.NAME);
-                  if (name instanceof String) actionCommand = (String)name;
-              }
-
-             if (actionCommand != null) {
-                 System.out.println("WARN [actualizarAspectoBotonToggle]: No se encontró botón por instancia de Action, intentando por comando: " + actionCommand);
-                 // Construir clave larga basada en el comando (requiere saber la categoría)
-                 // ¡AQUÍ ESTÁ EL PUNTO CLAVE DE LA CORRECCIÓN ANTERIOR!
-                 // Debes usar la categoría correcta ("toggle" en tu caso)
-                 if (action == toggleSubfoldersAction || "Subcarpetas_48x48".equals(actionCommand)) {
-                     claveBoton = "interfaz.boton.toggle.Subcarpetas_48x48";
-                 } else if (action == /* toggleMantenerProporcionesAction */ null || "Mantener_Proporciones_48x48".equals(actionCommand)) {
-                     // Descomenta y ajusta cuando tengas esta action
-                     // claveBoton = "interfaz.boton.toggle.Mantener_Proporciones_48x48";
-                 } else if (action == /* toggleMostrarFavoritosAction */ null || "Mostrar_Favoritos_48x48".equals(actionCommand)) {
-                      // Descomenta y ajusta cuando tengas esta action
-                     // claveBoton = "interfaz.boton.toggle.Mostrar_Favoritos_48x48";
-                 }
-                 // Añadir más 'else if' para otros botones toggle
-                 else {
-                      System.err.println("WARN [actualizarAspectoBotonToggle]: No se pudo determinar la clave del botón para el comando: " + actionCommand);
-                 }
-             } else {
-                 System.err.println("ERROR [actualizarAspectoBotonToggle]: No se pudo obtener ActionCommand ni Name para la Action.");
-                 return; // No podemos encontrar el botón
-             }
-        }
-
-
-        // --- Aplicar el Cambio de Aspecto ---
-        JButton button = null;
-        if (claveBoton != null) {
-            button = view.getBotonesPorNombre().get(claveBoton);
-        }
-
-        if (button != null) {
-            Tema temaActual = themeManager.getTemaActual();
-            // Obtener los colores específicos del tema actual
-            Color colorActivo = temaActual.colorBotonFondoActivado();
-            Color colorNormal = temaActual.colorBotonFondo();
-
-            // Aplicar el color correspondiente al estado 'isSelected'
-            button.setBackground(isSelected ? colorActivo : colorNormal);
-            // Opcional: Cambiar también el borde o el texto si quieres más feedback visual
-            // if (isSelected) {
-            //     button.setBorder(BorderFactory.createLoweredBevelBorder());
-            // } else {
-            //     button.setBorderPainted(false); // O el borde normal
-            // }
-            System.out.println("  -> Aspecto botón '" + claveBoton + "' actualizado a: " + (isSelected ? "Activo" : "Normal"));
         } else {
-             System.err.println("WARN [actualizarAspectoBotonToggle]: No se encontró el botón para la clave final: " + claveBoton);
+            // 6. Manejar fallo del volteo
+            System.err.println("ERROR [aplicarVolteoVertical]: ImageEdition.flipVertical devolvió null.");
+            JOptionPane.showMessageDialog(view.getFrame(),
+                                          "No se pudo realizar el volteo vertical de la imagen.",
+                                          "Error de Volteo", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-     // --- Necesitas un getter para el Model si LocateFileAction lo usa ---
-     public VisorModel getModel() {
-         return model;
-     }
-     // --- Y para la View si muestra JOptionPanes ---
-     public VisorView getView() {
-         return view;
-     }
-     // -----------------------------------------------------------------
-
+    } // --- FIN aplicarVolteoVertical ---
+        
 
      /**
-      * Actualiza el estado lógico y visual para mantener/no mantener proporciones.
-      * Guarda el nuevo estado en la configuración, actualiza la Action, el modelo
-      * y el aspecto del botón. Finalmente, repinta la imagen principal.
+      * Aplica una rotación de 90 grados hacia la izquierda a la imagen principal
+      * actualmente mostrada.
       *
-      * @param mantener True si se deben mantener las proporciones, false si no.
+      * Pasos:
+      * 1. Valida que el modelo y la vista existan.
+      * 2. Obtiene la imagen original (BufferedImage) del modelo.
+      * 3. Si no hay imagen, no hace nada.
+      * 4. Llama al método estático ImageEdition.rotateLeft() para realizar la rotación.
+      * 5. Si la rotación es exitosa (devuelve una nueva imagen):
+      *    a) Actualiza la imagen en el modelo (model.setCurrentImage).
+      *    b) **Importante:** Resetea el estado de zoom/paneo en el modelo, ya que
+      *       las dimensiones de la imagen (ancho/alto) cambian con la rotación.
+      *    c) Recalcula la imagen reescalada para la vista (se ajustará a las nuevas dimensiones).
+      *    d) Actualiza la vista para mostrar la imagen rotada (view.setImagenMostrada) con zoom/pan reseteados.
+      *    e) (Opcional) Aplica una animación al botón correspondiente.
+      * 6. Si la rotación falla (ImageEdition devuelve null), muestra un mensaje de error.
+      */
+     public void aplicarRotarIzquierda() {
+         // 1. Validar dependencias
+         if (model == null || view == null) {
+             System.err.println("ERROR [aplicarRotarIzquierda]: Modelo o Vista nulos.");
+             return;
+         }
+         
+         // 2. Obtener imagen actual del modelo
+         BufferedImage imagenOriginal = model.getCurrentImage();
+
+         // 3. Validar si hay imagen para rotar
+         if (imagenOriginal == null) {
+             System.out.println("[aplicarRotarIzquierda] No hay imagen cargada para rotar.");
+             return;
+         }
+
+         System.out.println("[Rotar Izq] Solicitando rotación izquierda a ImageEdition...");
+
+         // 4. Llamar al servicio/utilidad de edición de imágenes
+         BufferedImage imagenRotada = null;
+         try {
+             // Llamar al método específico para rotación izquierda
+             imagenRotada = ImageEdition.rotateLeft(imagenOriginal);
+         
+         } catch (Exception e) {
+             System.err.println("ERROR [aplicarRotarIzquierda] Excepción en ImageEdition.rotateLeft: " + e.getMessage());
+             e.printStackTrace();
+             JOptionPane.showMessageDialog(view.getFrame(),
+                                           "Ocurrió un error inesperado al intentar rotar la imagen.",
+                                           "Error de Edición", JOptionPane.ERROR_MESSAGE);
+             return;
+         }
+
+         // 5. Procesar el resultado de la rotación
+         if (imagenRotada != null) {
+             // 5.a. Actualizar Modelo
+             System.out.println("  -> Rotación izquierda exitosa. Actualizando modelo...");
+             model.setCurrentImage(imagenRotada); // Reemplazar imagen en modelo
+
+             // 5.b. Resetear Zoom/Pan (¡CRUCIAL por cambio de dimensiones!)
+             System.out.println("  -> Reseteando zoom/pan debido a cambio de dimensiones por rotación.");
+             model.resetZoomState();
+
+             // 5.c. Recalcular vista reescalada (se adaptará a las nuevas dimensiones)
+             System.out.println("  -> Recalculando imagen para la vista...");
+             Image imagenReescaladaParaVista = reescalarImagenParaAjustar();
+
+             // 5.d. Actualizar Vista (con zoom/pan reseteados)
+             if (view != null && imagenReescaladaParaVista != null) {
+                 view.setImagenMostrada(imagenReescaladaParaVista,
+                                        model.getZoomFactor(),  // Será 1.0
+                                        model.getImageOffsetX(), // Será 0
+                                        model.getImageOffsetY()); // Será 0
+                  System.out.println("  -> Vista actualizada con imagen rotada.");
+
+                  // 5.e. Aplicar animación al botón (usar el ActionCommand corto correcto)
+                  view.aplicarAnimacionBoton("Rotar_Izquierda_48x48");
+
+             } else if (view == null) {
+                 System.err.println("WARN [aplicarRotarIzquierda]: Vista es null, no se pudo actualizar UI.");
+             
+             } else {
+                  System.err.println("WARN [aplicarRotarIzquierda]: No se pudo reescalar la imagen rotada. Limpiando vista.");
+                  view.limpiarImagenMostrada();
+             }
+
+             System.out.println("[Rotar Izq] Rotación izquierda aplicada correctamente.");
+
+         } else {
+             // 6. Manejar fallo de la rotación
+             System.err.println("ERROR [aplicarRotarIzquierda]: ImageEdition.rotateLeft devolvió null.");
+             JOptionPane.showMessageDialog(view.getFrame(),
+                                           "No se pudo realizar la rotación izquierda de la imagen.",
+                                           "Error de Rotación", JOptionPane.ERROR_MESSAGE);
+         }
+     } // --- FIN aplicarRotarIzquierda ---
+     
+     
+     /**
+      * Aplica una rotación de 90 grados hacia la derecha a la imagen principal
+      * actualmente mostrada.
+      *
+      * Pasos:
+      * 1. Valida que el modelo y la vista existan.
+      * 2. Obtiene la imagen original (BufferedImage) del modelo.
+      * 3. Si no hay imagen, no hace nada.
+      * 4. Llama al método estático ImageEdition.rotateRight() para realizar la rotación.
+      * 5. Si la rotación es exitosa (devuelve una nueva imagen):
+      *    a) Actualiza la imagen en el modelo (model.setCurrentImage).
+      *    b) **Importante:** Resetea el estado de zoom/paneo en el modelo.
+      *    c) Recalcula la imagen reescalada para la vista.
+      *    d) Actualiza la vista para mostrar la imagen rotada (view.setImagenMostrada) con zoom/pan reseteados.
+      *    e) (Opcional) Aplica una animación al botón correspondiente.
+      * 6. Si la rotación falla (ImageEdition devuelve null), muestra un mensaje de error.
+      */
+     public void aplicarRotarDerecha() {
+         // 1. Validar dependencias
+         if (model == null || view == null) {
+             System.err.println("ERROR [aplicarRotarDerecha]: Modelo o Vista nulos.");
+             return;
+         }
+         // 2. Obtener imagen actual del modelo
+         BufferedImage imagenOriginal = model.getCurrentImage();
+
+         // 3. Validar si hay imagen para rotar
+         if (imagenOriginal == null) {
+             System.out.println("[aplicarRotarDerecha] No hay imagen cargada para rotar.");
+             return;
+         }
+
+         System.out.println("[Rotar Der] Solicitando rotación derecha a ImageEdition...");
+
+         // 4. Llamar al servicio/utilidad de edición de imágenes
+         BufferedImage imagenRotada = null;
+         try {
+             // Llamar al método específico para rotación derecha
+             imagenRotada = ImageEdition.rotateRight(imagenOriginal);
+         } catch (Exception e) {
+             System.err.println("ERROR [aplicarRotarDerecha] Excepción en ImageEdition.rotateRight: " + e.getMessage());
+             e.printStackTrace();
+             JOptionPane.showMessageDialog(view.getFrame(),
+                                           "Ocurrió un error inesperado al intentar rotar la imagen.",
+                                           "Error de Edición", JOptionPane.ERROR_MESSAGE);
+             return;
+         }
+
+         // 5. Procesar el resultado de la rotación
+         if (imagenRotada != null) {
+             
+        	 // 5.a. Actualizar Modelo
+             System.out.println("  -> Rotación derecha exitosa. Actualizando modelo...");
+             model.setCurrentImage(imagenRotada); // Reemplazar imagen en modelo
+
+             // 5.b. Resetear Zoom/Pan (¡CRUCIAL!)
+             System.out.println("  -> Reseteando zoom/pan debido a cambio de dimensiones por rotación.");
+             model.resetZoomState();
+
+             // 5.c. Recalcular vista reescalada
+             System.out.println("  -> Recalculando imagen para la vista...");
+             Image imagenReescaladaParaVista = reescalarImagenParaAjustar();
+
+             // 5.d. Actualizar Vista (con zoom/pan reseteados)
+             if (view != null && imagenReescaladaParaVista != null) {
+                 view.setImagenMostrada(imagenReescaladaParaVista,
+                                        model.getZoomFactor(),  // 1.0
+                                        model.getImageOffsetX(), // 0
+                                        model.getImageOffsetY()); // 0
+                  System.out.println("  -> Vista actualizada con imagen rotada.");
+
+                  // 5.e. Aplicar animación al botón
+                  view.aplicarAnimacionBoton("Rotar_Derecha_48x48"); // Usar ActionCommand corto
+
+             } else if (view == null) {
+                 System.err.println("WARN [aplicarRotarDerecha]: Vista es null, no se pudo actualizar UI.");
+             } else {
+                  System.err.println("WARN [aplicarRotarDerecha]: No se pudo reescalar la imagen rotada. Limpiando vista.");
+                  view.limpiarImagenMostrada();
+             }
+
+             System.out.println("[Rotar Der] Rotación derecha aplicada correctamente.");
+
+         } else {
+             
+        	 // 6. Manejar fallo de la rotación
+             System.err.println("ERROR [aplicarRotarDerecha]: ImageEdition.rotateRight devolvió null.");
+             JOptionPane.showMessageDialog(view.getFrame(),
+                                           "No se pudo realizar la rotación derecha de la imagen.",
+                                           "Error de Rotación", JOptionPane.ERROR_MESSAGE);
+         }
+     } // --- FIN aplicarRotarDerecha ---
+     
+
+     /**
+      * Actualiza el estado lógico y visual para mostrar u ocultar las imágenes de subcarpetas.
+      * Guarda el nuevo estado en la configuración ('comportamiento.carpeta.cargarSubcarpetas')
+      * y luego recarga la lista de imágenes desde la carpeta raíz actual, intentando
+      * mantener la imagen que estaba seleccionada antes del cambio de modo.
+      *
+      * @param mostrarSubcarpetasDeseado true si se deben buscar y mostrar imágenes en subcarpetas,
+      *                                  false si solo se deben mostrar las de la carpeta actual/seleccionada.
+      */
+     public void setMostrarSubcarpetasAndUpdateConfig(boolean mostrarSubcarpetasDeseado) 
+     {
+         // 1. Log inicio y validación de dependencias
+         System.out.println("\n[Controller setMostrarSubcarpetas] INICIO. Estado deseado (mostrar subcarpetas): " + mostrarSubcarpetasDeseado);
+         if (model == null || configuration == null || toggleSubfoldersAction == null || view == null) {
+             System.err.println("  -> ERROR: Dependencias nulas (Modelo, Config, Action Subfolders o Vista). Abortando.");
+             return;
+         }
+
+         // 2. Comprobar si el cambio es realmente necesario
+         //    El estado lógico lo determina la Action 'toggleSubfoldersAction'
+         boolean estadoLogicoActual = Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY));
+         System.out.println("  -> Estado lógico actual (Action): " + estadoLogicoActual);
+         if (mostrarSubcarpetasDeseado == estadoLogicoActual) {
+             System.out.println("  -> Estado deseado ya es el actual. No se realizan cambios (solo se asegura UI).");
+             // Asegurar que la UI (radios) esté sincronizada por si acaso
+             restaurarSeleccionRadiosSubcarpetas(estadoLogicoActual);
+             System.out.println("[Controller setMostrarSubcarpetas] FIN (Sin cambios necesarios).");
+             return;
+         }
+
+         System.out.println("  -> Aplicando cambio a estado (mostrar subcarpetas): " + mostrarSubcarpetasDeseado);
+
+         // 3. Guardar la clave de la imagen actual ANTES de cualquier cambio
+         //    para intentar restaurar la selección después de recargar la lista.
+         final String claveAntesDelCambio = model.getSelectedImageKey();
+         System.out.println("    -> Clave a intentar mantener: " + claveAntesDelCambio);
+
+         // 4. Actualizar el estado lógico de la Action
+         //    Esto centraliza el estado lógico del modo de carga.
+         System.out.println("    1. Actualizando Action.SELECTED_KEY...");
+         toggleSubfoldersAction.putValue(Action.SELECTED_KEY, mostrarSubcarpetasDeseado);
+         // Verificar que cambió (debug)
+         // System.out.println("       -> Action.SELECTED_KEY AHORA ES: " + Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY)));
+
+         // 5. Actualizar el estado en el Modelo
+         //    model.isMostrarSoloCarpetaActual() debe ser lo opuesto a mostrarSubcarpetasDeseado.
+         System.out.println("    2. Actualizando Modelo...");
+         model.setMostrarSoloCarpetaActual(!mostrarSubcarpetasDeseado);
+         // Verificar que cambió (debug)
+         // System.out.println("       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: " + model.isMostrarSoloCarpetaActual());
+
+         // 6. Actualizar la Configuración en Memoria
+         System.out.println("    3. Actualizando Configuración en Memoria...");
+         configuration.setString("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(mostrarSubcarpetasDeseado));
+         // Verificar que cambió (debug)
+         // System.out.println("       -> Config 'comportamiento...' AHORA ES: " + configuration.getString("comportamiento.carpeta.cargarSubcarpetas"));
+         // Nota: La configuración se guardará al archivo en el ShutdownHook.
+
+         // 7. Sincronizar la Interfaz de Usuario (Botón y Radios del Menú)
+         System.out.println("    4. Sincronizando UI...");
+         // Actualizar aspecto visual del botón toggle asociado a la acción
+         actualizarAspectoBotonToggle(toggleSubfoldersAction, mostrarSubcarpetasDeseado);
+         // Actualizar estado 'selected' de los radio buttons del menú
+         restaurarSeleccionRadiosSubcarpetas(mostrarSubcarpetasDeseado);
+
+         // 8. Recargar la Lista de Imágenes
+         //    Se llama a la versión detallada de cargarListaImagenes, pasando la clave
+         //    guardada para intentar mantener la selección. La carga ocurrirá en segundo plano.
+         System.out.println("    5. Programando recarga de lista en EDT (manteniendo clave)...");
+         SwingUtilities.invokeLater(() -> {
+             System.out.println("      -> [EDT] Llamando a cargarListaImagenes(\"" + claveAntesDelCambio + "\") para recargar...");
+             // Esta llamada iniciará el SwingWorker con la nueva configuración de profundidad
+             cargarListaImagenes(claveAntesDelCambio);
+         });
+
+         System.out.println("[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).");
+     } // --- FIN setMostrarSubcarpetasAndUpdateConfig ---
+     
+
+     /**
+      * Asegura que los JRadioButtonMenuItem del menú correspondientes a la
+      * configuración de carga de subcarpetas reflejen visualmente el estado lógico
+      * proporcionado (marcando el correcto como seleccionado).
+      *
+      * Es seguro llamar a setSelected() en los radios aquí porque estos componentes
+      * específicos usan un ActionListener personalizado en lugar de setAction() para
+      * evitar bucles de eventos.
+      *
+      * @param mostrarSubcarpetas El estado lógico actual. Si es true, se seleccionará
+      *                           el radio "Mostrar Imágenes de Subcarpetas"; si es false,
+      *                           se seleccionará "Mostrar Solo Carpeta Actual".
+      */
+     private void restaurarSeleccionRadiosSubcarpetas(boolean mostrarSubcarpetas) {
+         // 1. Validar que la vista y el mapa de menús existan
+          if (view == null || view.getMenuItemsPorNombre() == null) {
+               System.err.println("WARN [restaurarSeleccionRadiosSubcarpetas]: Vista o mapa de menús nulos.");
+               return; // No se puede hacer nada si no hay menús
+          }
+          Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
+
+          // 2. Log del estado deseado
+          System.out.println("  [Controller] Sincronizando estado visual de Radios Subcarpetas a: " + (mostrarSubcarpetas ? "Mostrar Subcarpetas" : "Mostrar Solo Carpeta"));
+
+          // 3. Obtener las referencias a los JRadioButtonMenuItems específicos
+          //    Usar las claves largas definidas en la configuración y usadas por MenuBarBuilder.
+          JMenuItem radioMostrarSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas");
+          JMenuItem radioMostrarSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual");
+
+          // 4. Aplicar el estado 'selected' al radio correcto
+          //    Se hace de forma segura llamando a setSelected directamente.
+
+          // 4.1. Configurar el radio "Mostrar Subcarpetas"
+          if (radioMostrarSub instanceof JRadioButtonMenuItem) {
+              JRadioButtonMenuItem radioSub = (JRadioButtonMenuItem) radioMostrarSub;
+              // Solo llamar a setSelected si el estado actual es diferente al deseado
+              // para evitar eventos innecesarios del ButtonGroup (aunque no debería causar problemas graves).
+              if (radioSub.isSelected() != mostrarSubcarpetas) {
+                   // System.out.println("    -> Estableciendo 'Mostrar Subcarpetas' a: " + mostrarSubcarpetas); // Log detallado opcional
+                   radioSub.setSelected(mostrarSubcarpetas);
+              }
+              // Asegurar que esté habilitado (podría haberse deshabilitado por error)
+              radioSub.setEnabled(true);
+          } else if (radioMostrarSub != null) {
+               System.err.println("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Imagenes_de_Subcarpetas' no es un JRadioButtonMenuItem.");
+          } else {
+               System.err.println("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Imagenes_de_Subcarpetas' no encontrado.");
+          }
+
+
+          // 4.2. Configurar el radio "Mostrar Solo Carpeta Actual" (estado inverso)
+          if (radioMostrarSolo instanceof JRadioButtonMenuItem) {
+              JRadioButtonMenuItem radioSolo = (JRadioButtonMenuItem) radioMostrarSolo;
+              // El estado seleccionado de este debe ser el opuesto a mostrarSubcarpetas
+              boolean estadoDeseadoSolo = !mostrarSubcarpetas;
+              if (radioSolo.isSelected() != estadoDeseadoSolo) {
+                   // System.out.println("    -> Estableciendo 'Mostrar Solo Carpeta' a: " + estadoDeseadoSolo); // Log detallado opcional
+                   radioSolo.setSelected(estadoDeseadoSolo);
+              }
+              // Asegurar que esté habilitado
+              radioSolo.setEnabled(true);
+          } else if (radioMostrarSolo != null) {
+               System.err.println("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Solo_Carpeta_Actual' no es un JRadioButtonMenuItem.");
+          } else {
+               System.err.println("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Solo_Carpeta_Actual' no encontrado.");
+          }
+
+          // 5. Log final
+          System.out.println("  [Controller] Estado visual de Radios Subcarpetas sincronizado.");
+
+     } // --- FIN restaurarSeleccionRadiosSubcarpetas ---
+     
+
+     /**
+      * Actualiza el estado lógico y visual para mantener (o no) las proporciones
+      * de la imagen al reescalarla para ajustarse a la vista.
+      * Guarda el nuevo estado en la configuración ('interfaz.menu.zoom.Mantener_Proporciones.seleccionado'),
+      * actualiza la Action 'toggleProporcionesAction', actualiza el estado en el Modelo,
+      * sincroniza la apariencia del botón toggle asociado y finalmente repinta la imagen principal
+      * para que refleje el nuevo modo de escalado.
+      *
+      * @param mantener True si se deben mantener las proporciones originales de la imagen,
+      *                 false si se debe estirar/encoger para rellenar el área de visualización.
       */
      public void setMantenerProporcionesAndUpdateConfig(boolean mantener) {
-         System.out.println("\n[Controller setMantenerProporciones] INICIO. Deseado: " + mantener);
-
+         // 1. Log inicio y validación de dependencias
+         System.out.println("\n[Controller setMantenerProporciones] INICIO. Estado deseado (mantener): " + mantener);
          if (model == null || configuration == null || toggleProporcionesAction == null || view == null) {
-             System.err.println("  -> ERROR: Componentes necesarios nulos. Saliendo.");
+             System.err.println("  -> ERROR: Dependencias nulas (Modelo, Config, Action Proporciones o Vista). Abortando.");
              return;
          }
 
-         // Comprobar si el cambio es necesario (comparando con el estado actual de la Action)
+         // 2. Comprobar si el cambio es realmente necesario
+         //    Comparamos el estado deseado con el estado actual de la Action.
          boolean estadoActualAction = Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY));
          System.out.println("  -> Estado Lógico Actual (Action.SELECTED_KEY): " + estadoActualAction);
          if (mantener == estadoActualAction) {
-             System.out.println("  -> Estado deseado ya es el actual. No se hace nada.");
-              // Podríamos llamar a actualizarAspectoBotonToggle por si acaso, pero no es estrictamente necesario
-              // actualizarAspectoBotonToggle(toggleProporcionesAction, estadoActualAction);
-              System.out.println("[Controller setMantenerProporciones] FIN (Sin cambios).");
+             System.out.println("  -> Estado deseado ya es el actual. No se realizan cambios.");
+             // Opcional: asegurar que la UI del botón esté sincronizada por si acaso
+             // actualizarAspectoBotonToggle(toggleProporcionesAction, estadoActualAction);
+             System.out.println("[Controller setMantenerProporciones] FIN (Sin cambios necesarios).");
              return;
          }
 
-         System.out.println("  -> Aplicando cambio a estado: " + mantener);
+         System.out.println("  -> Aplicando cambio a estado (mantener proporciones): " + mantener);
 
-         // 1. Actualizar estado lógico Action
+         // 3. Actualizar el estado lógico de la Action ('SELECTED_KEY')
+         //    Esto permite que los componentes asociados (JCheckBoxMenuItem) se actualicen.
          System.out.println("    1. Actualizando Action.SELECTED_KEY...");
          toggleProporcionesAction.putValue(Action.SELECTED_KEY, mantener);
-         System.out.println("       -> Action.SELECTED_KEY AHORA ES: " + Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY)));
+         // System.out.println("       -> Action.SELECTED_KEY AHORA ES: " + Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY)));
 
-         // 2. Actualizar Modelo
-          System.out.println("    2. Actualizando Modelo...");
-         model.setMantenerProporcion(mantener); // Llama al nuevo setter del modelo
-          // El log ya está dentro del setter del modelo
+         // 4. Actualizar el estado en el Modelo
+         System.out.println("    2. Actualizando Modelo...");
+         model.setMantenerProporcion(mantener); // Llama al setter específico en el modelo
+         // El modelo imprime su propio log al cambiar
 
-         // 3. Actualizar Configuración en Memoria
-          System.out.println("    3. Actualizando Configuración en Memoria...");
+         // 5. Actualizar la Configuración en Memoria
+         System.out.println("    3. Actualizando Configuración en Memoria...");
          String configKey = "interfaz.menu.zoom.Mantener_Proporciones.seleccionado";
          configuration.setString(configKey, String.valueOf(mantener));
-         System.out.println("       -> Config '" + configKey + "' AHORA ES: " + configuration.getString(configKey));
+         // System.out.println("       -> Config '" + configKey + "' AHORA ES: " + configuration.getString(configKey));
+         // Se guardará al archivo en el ShutdownHook
 
-         // 4. Sincronizar UI (Botón) - El CheckBox se actualiza solo por setAction
+         // 6. Sincronizar la Interfaz de Usuario (Botón Toggle)
+         //    El JCheckBoxMenuItem se actualiza automáticamente por la Action.
          System.out.println("    4. Sincronizando UI (Botón)...");
-         actualizarAspectoBotonToggle(toggleProporcionesAction, mantener); // Actualiza color/apariencia botón
+         actualizarAspectoBotonToggle(toggleProporcionesAction, mantener); // Actualiza color/apariencia
 
-         // 5. Repintar la Imagen Principal
-         // Como cambiar la proporción afecta directamente cómo se ve, forzamos repintado.
+         // 7. Repintar la Imagen Principal para aplicar el nuevo modo de escalado
+         //    Llamamos a reescalarImagenParaAjustar que ahora usará el nuevo valor
+         //    de model.isMantenerProporcion() y luego actualizamos la vista.
          System.out.println("    5. Programando repintado de imagen principal en EDT...");
          SwingUtilities.invokeLater(() -> {
-             System.out.println("      -> [EDT] Llamando a reescalar y mostrar imagen...");
-             Image imagenReescalada = reescalarImagenParaAjustar(); // Volver a calcular con el nuevo estado del modelo
-             if (view != null && model != null) { // Doble chequeo
-                 // Pasar el zoom/offset actual del modelo
-                 view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+             // Verificar que la vista y el modelo sigan disponibles
+             if (view == null || model == null) {
+                 System.err.println("ERROR [EDT Repintar Proporciones]: Vista o Modelo nulos.");
+                 return;
              }
+             System.out.println("      -> [EDT] Llamando a reescalar y mostrar imagen con nueva proporción...");
+             Image imagenReescalada = reescalarImagenParaAjustar(); // Recalcula la imagen
+             // Mostrar la imagen reescalada con el zoom/offset actual
+             view.setImagenMostrada(imagenReescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
          });
 
          System.out.println("[Controller setMantenerProporciones] FIN (Cambio aplicado y repintado programado).");
-     }
+     } // --- FIN setMantenerProporcionesAndUpdateConfig ---
+     
+
+     /**
+      * Actualiza la visibilidad de un componente principal de la interfaz
+      * (Barra de Menú, Barra de Botones, Lista de Archivos, Panel de Miniaturas, Barra de Estado, Fondo a Cuadros)
+      * y guarda el nuevo estado de visibilidad en la configuración en memoria.
+      * La clave de configuración se asume que termina en ".seleccionado" para guardar el estado booleano.
+      *
+      * @param nombreComponente Identificador del componente (generalmente el texto del JCheckBoxMenuItem
+      *                         o un identificador interno consistente). Debe coincidir con las claves
+      *                         usadas en el switch interno.
+      * @param visible          El nuevo estado de visibilidad deseado (true para mostrar, false para ocultar).
+      */
+     public void setComponenteVisibleAndUpdateConfig(String nombreComponente, boolean visible) {
+         // 1. Validar dependencias
+         if (view == null || configuration == null) {
+             System.err.println("ERROR [setComponenteVisible]: Vista o Configuración nulos.");
+             return;
+         }
+         // Log inicial
+         System.out.println("[Controller] Solicitud para cambiar visibilidad de '" + nombreComponente + "' a: " + visible);
+
+         // 2. Determinar la clave base de configuración y actualizar la vista
+         String configKeyBase = null; // Clave sin el sufijo ".seleccionado"
+         boolean cambioRealizado = false; // Flag para saber si la visibilidad realmente cambió
+
+         switch (nombreComponente) {
+             case "Barra_de_Menu":
+                 configKeyBase = "interfaz.menu.vista.Barra_de_Menu";
+                 // Comprobar si el estado actual es diferente antes de cambiar
+                  if (view.getJMenuBar() != null && view.getJMenuBar().isVisible() != visible) {
+                      view.setJMenuBarVisible(visible); // Método específico en VisorView
+                      cambioRealizado = true;
+                  }
+                 break;
+             case "Barra_de_Botones":
+                 configKeyBase = "interfaz.menu.vista.Barra_de_Botones";
+                  if (view.getPanelDeBotones() != null && view.getPanelDeBotones().isVisible() != visible) { // Necesita getter para panelDeBotones
+                     view.setToolBarVisible(visible); // Método específico en VisorView
+                     cambioRealizado = true;
+                  }
+                 break;
+             case "Mostrar/Ocultar_la_Lista_de_Archivos": // Clave del menú
+                 configKeyBase = "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos";
+                  if (view.getPanelIzquierdo() != null && view.getPanelIzquierdo().isVisible() != visible) { // Necesita getter para panelIzquierdo
+                     view.setFileListVisible(visible); // Método específico en VisorView
+                     cambioRealizado = true;
+                  }
+                 break;
+             case "Imagenes_en_Miniatura": // Clave del menú
+                 configKeyBase = "interfaz.menu.vista.Imagenes_en_Miniatura";
+                  if (view.getScrollListaMiniaturas() != null && view.getScrollListaMiniaturas().isVisible() != visible) { // Usa el ScrollPane
+                     view.setThumbnailsVisible(visible); // Método específico en VisorView
+                     cambioRealizado = true;
+                  }
+                 break;
+              case "Linea_de_Ubicacion_del_Archivo": // Clave del menú
+                  configKeyBase = "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo";
+                   if (view.getTextoRuta() != null && view.getTextoRuta().isVisible() != visible) { // Necesita getter para textoRuta
+                      view.setLocationBarVisible(visible); // Método específico en VisorView
+                      cambioRealizado = true;
+                   }
+                  break;
+              case "Fondo_a_Cuadros": // Clave del menú
+                  configKeyBase = "interfaz.menu.vista.Fondo_a_Cuadros";
+                   cambioRealizado = true; // Asumir que siempre se guarda el estado
+                  System.out.println("  -> Estado Fondo a Cuadros actualizado a: " + visible);
+                  break;
+              case "Mantener_Ventana_Siempre_Encima": // Clave del menú
+                   configKeyBase = "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima";
+                    if (view.isAlwaysOnTop() != visible) {
+                        view.setAlwaysOnTop(visible); // Método estándar de JFrame/Window
+                        cambioRealizado = true;
+                    }
+                   break;
+             default:
+                 System.err.println("WARN [setComponenteVisible]: Nombre de componente no reconocido: '" + nombreComponente + "'. No se cambió visibilidad ni configuración.");
+                 return; // Salir si no se reconoce el componente
+         }
+
+         // 3. Actualizar configuración en memoria SOLO si hubo un cambio o es Fondo a Cuadros
+         if (configKeyBase != null && (cambioRealizado || nombreComponente.equals("Fondo_a_Cuadros"))) {
+             String fullConfigKey = configKeyBase + ".seleccionado";
+             // Usamos el valor 'visible' que se pasó al método
+             configuration.setString(fullConfigKey, String.valueOf(visible));
+             System.out.println("  -> Configuración en memoria actualizada: " + fullConfigKey + " = " + visible);
+         } else if (configKeyBase != null) {
+              System.out.println("  -> Visibilidad no cambió para '" + nombreComponente + "'. No se actualizó configuración.");
+         }
+
+         // 4. Revalidar y Repintar el Frame Principal si hubo cambio visual
+         //    (No necesario para 'Fondo a Cuadros' si solo cambia el pintado interno,
+         //     ni para 'AlwaysOnTop' que es una propiedad de ventana).
+         if (cambioRealizado && !nombreComponente.equals("Fondo_a_Cuadros") && !nombreComponente.equals("Mantener_Ventana_Siempre_Encima")) {
+              System.out.println("  -> Revalidando y repintando el Frame...");
+              // Es más seguro hacerlo en invokeLater por si acaso
+              SwingUtilities.invokeLater(() -> {
+                   if (view != null && view.getFrame() != null) { // Chequear view y frame
+                       view.getFrame().revalidate();
+                       view.getFrame().repaint();
+                   }
+              });
+         }
+
+         System.out.println("[Controller] Fin setComponenteVisibleAndUpdateConfig para '" + nombreComponente + "'.");
+     } // --- FIN setComponenteVisibleAndUpdateConfig ---
+     
+         
+     /**
+      * Actualiza la apariencia visual (típicamente el color de fondo) de un botón
+      * que actúa como un 'toggle' (activo/inactivo) para reflejar su estado lógico.
+      * Busca el botón correspondiente a la Action dada y aplica los colores
+      * de fondo normal o activado definidos en el ThemeManager actual.
+      *
+      * @param action La instancia de la Action de tipo toggle cuyo estado se quiere reflejar
+      *               (p.ej., toggleSubfoldersAction, toggleProporcionesAction). Se usa
+      *               para obtener el estado lógico (SELECTED_KEY) y para encontrar el botón
+      *               asociado en la vista.
+      * @param isSelected El estado lógico explícito que debe reflejar el botón
+      *                   (true si debe parecer 'activo' o 'pulsado', false si 'normal').
+      *                   Se recomienda pasar el estado actual en lugar de leerlo de la action
+      *                   dentro de este método para asegurar la sincronización correcta.
+      */
+      public void actualizarAspectoBotonToggle(Action action, boolean isSelected) {
+         // 1. Validaciones Iniciales de Dependencias
+         if (action == null) {
+              System.err.println("ERROR [actualizarAspectoBotonToggle]: La Action proporcionada es null.");
+              return;
+         }
+         // Verificar Vista y su mapa de botones
+         if (view == null || view.getBotonesPorNombre() == null) {
+              System.err.println("ERROR [actualizarAspectoBotonToggle]: Vista o mapa de botones no disponible.");
+              // Si la vista no está lista, no podemos actualizarla.
+              return;
+         }
+         // Verificar Gestor de Temas y tema actual
+         if (themeManager == null || themeManager.getTemaActual() == null) {
+              System.err.println("ERROR [actualizarAspectoBotonToggle]: ThemeManager o Tema actual no disponible.");
+              // Podríamos usar colores por defecto como fallback, pero es mejor indicar el error.
+              return;
+         }
+         // Log inicial
+         // System.out.println("[actualizarAspectoBotonToggle] Actualizando aspecto para Action: " + action.getValue(Action.NAME) + " a estado: " + (isSelected ? "Activo" : "Normal"));
+
+
+         // 2. Encontrar el JButton asociado a la Action
+         String claveBoton = null;
+         JButton botonAsociado = null;
+
+         // 2.1. Método Preferido: Buscar por instancia de Action en el mapa de botones
+         for (Map.Entry<String, JButton> entry : view.getBotonesPorNombre().entrySet()) {
+             // Comparamos la instancia de la Action asignada al botón con la que recibimos
+             if (action.equals(entry.getValue().getAction())) {
+                 claveBoton = entry.getKey(); // Guardamos la clave larga (útil para logs)
+                 botonAsociado = entry.getValue(); // Guardamos la referencia al botón
+                 // System.out.println("  -> Botón encontrado por instancia de Action. Clave: " + claveBoton);
+                 break; // Salir del bucle una vez encontrado
+             }
+         }
+
+         // 2.2. Método Alternativo (Fallback): Buscar usando ActionCommand (menos fiable)
+         //      Solo se intenta si no se encontró por instancia.
+         if (botonAsociado == null) {
+              String actionCommand = (String) action.getValue(Action.ACTION_COMMAND_KEY);
+              // Si no hay ActionCommand, intentar con NAME
+              if (actionCommand == null) {
+                  Object nameValue = action.getValue(Action.NAME);
+                  if (nameValue instanceof String) actionCommand = (String) nameValue;
+              }
+
+              if (actionCommand != null) {
+                   System.out.println("WARN [actualizarAspectoBotonToggle]: No se encontró botón por instancia. Buscando por Comando/Nombre: " + actionCommand);
+                   // Intentar encontrar el botón cuya Action tenga este comando/nombre
+                   for (Map.Entry<String, JButton> entry : view.getBotonesPorNombre().entrySet()) {
+                        Action btnAction = entry.getValue().getAction();
+                        if (btnAction != null) {
+                             String btnCmd = (String) btnAction.getValue(Action.ACTION_COMMAND_KEY);
+                             String btnName = (String) btnAction.getValue(Action.NAME);
+                             if (actionCommand.equals(btnCmd) || actionCommand.equals(btnName)) {
+                                  claveBoton = entry.getKey();
+                                  botonAsociado = entry.getValue();
+                                   System.out.println("    -> Botón encontrado por Comando/Nombre. Clave: " + claveBoton);
+                                  break;
+                             }
+                        }
+                   }
+              } else {
+                  // Si no se pudo obtener ni comando ni nombre de la action, no podemos buscar por este método.
+                  System.err.println("ERROR [actualizarAspectoBotonToggle]: No se pudo obtener ActionCommand ni Name de la Action proporcionada para buscar botón alternativo.");
+              }
+         }
+
+
+         // 3. Aplicar el Cambio de Aspecto si se encontró el botón
+         if (botonAsociado != null) {
+             Tema temaActual = themeManager.getTemaActual();
+             // Obtener los colores específicos para estado normal y activado del tema
+             Color colorFondoActivo = temaActual.colorBotonFondoActivado();
+             Color colorFondoNormal = temaActual.colorBotonFondo();
+
+             // Establecer el color de fondo del botón según el estado 'isSelected'
+             botonAsociado.setBackground(isSelected ? colorFondoActivo : colorFondoNormal);
+
+             // Asegurar que el botón es opaco para que el fondo se vea
+             // (Aunque setContentAreaFilled(true) debería ser suficiente, setOpaque(true) no hace daño)
+             botonAsociado.setOpaque(true);
+
+             // Log del cambio aplicado
+             System.out.println("  -> Aspecto botón '" + (claveBoton != null ? claveBoton : "?") + "' actualizado a: " + (isSelected ? "Activo" : "Normal"));
+
+             // Opcional: Añadir más cambios visuales si se desea (borde, icono diferente, etc.)
+             // if (isSelected) {
+             //     botonAsociado.setBorder(BorderFactory.createLoweredBevelBorder()); // Ejemplo borde hundido
+             // } else {
+             //     // Restaurar borde normal (puede ser complejo si el L&F lo gestiona)
+             //     // botonAsociado.setBorder(UIManager.getBorder("Button.border"));
+             //     botonAsociado.setBorderPainted(false); // O quitar el borde pintado
+             // }
+
+         } else {
+              // Si no se encontró el botón asociado a la Action
+              System.err.println("WARN [actualizarAspectoBotonToggle]: No se encontró el botón asociado a la Action: " + action.getValue(Action.NAME));
+         }
+
+         // System.out.println("[actualizarAspectoBotonToggle] Finalizado."); // Log final opcional
+
+      } // --- FIN actualizarAspectoBotonToggle ---
+      
+    
+      /**
+       * Cambia el tema visual actual de la aplicación.
+       * 
+       * Pasos:
+       * 1. Valida las dependencias (ThemeManager) y el nombre del nuevo tema.
+       * 2. Llama a themeManager.setTemaActual() para:
+       *    a) Cambiar el objeto Tema actual en memoria.
+       *    b) Actualizar la clave 'tema.nombre' en el ConfigurationManager en memoria.
+       * 3. Si el tema realmente cambió (setTemaActual devuelve true):
+       *    a) Itera sobre la lista 'themeActions' (que contiene las Actions de los radios del menú de tema).
+       *    b) Llama a actualizarEstadoSeleccion() en cada ToggleThemeAction para que
+       *       el radio button correspondiente al nuevo tema quede marcado como seleccionado.
+       *    c) Muestra un JOptionPane informando al usuario que el cambio de tema
+       *       requiere reiniciar la aplicación para que los cambios visuales (colores, etc.)
+       *       tengan efecto completo, ya que muchos colores se aplican durante la inicialización
+       *       de la UI.
+       *
+       * Nota: Este método NO guarda la configuración en el archivo inmediatamente. El guardado
+       * ocurrirá a través del ShutdownHook al cerrar la aplicación.
+       *
+       * @param nuevoTema El nombre interno del nuevo tema a aplicar (ej. "dark", "clear", "blue").
+       */
+      public void cambiarTemaYNotificar(String nuevoTema) {
+          // 1. Validaciones iniciales
+          if (themeManager == null) {
+              System.err.println("ERROR [cambiarTema]: ThemeManager es nulo. No se puede cambiar el tema.");
+              return;
+          }
+          if (nuevoTema == null || nuevoTema.trim().isEmpty()) {
+              System.err.println("ERROR [cambiarTema]: El nombre del nuevo tema no puede ser nulo o vacío.");
+              return;
+          }
+          // Limpiar el nombre por si acaso
+          String temaLimpio = nuevoTema.trim().toLowerCase();
+          System.out.println("[Controller] Solicitud para cambiar tema a: " + temaLimpio);
+
+          // 2. Intentar establecer el nuevo tema usando ThemeManager
+          //    Este método internamente también actualiza la clave en ConfigurationManager.
+          boolean temaCambiado = themeManager.setTemaActual(temaLimpio);
+
+          // 3. Actuar solo si el tema realmente cambió
+          if (temaCambiado) {
+              System.out.println("  -> Tema cambiado exitosamente en ThemeManager (y Config en memoria).");
+
+              // 3.a. Actualizar estado visual de los Radio Buttons del Menú de Tema
+              if (themeActions != null) {
+                  // Obtener el nombre confirmado del tema actual (podría haber fallbacks en ThemeManager)
+                  String temaConfirmado = themeManager.getTemaActual().nombreInterno();
+                  System.out.println("  -> Actualizando estado de selección de Actions de tema para coincidir con: " + temaConfirmado);
+                  for (Action action : themeActions) {
+                      // Asegurarse de que es la Action correcta y llamar a su método de actualización
+                      if (action instanceof ToggleThemeAction) {
+                          ((ToggleThemeAction) action).actualizarEstadoSeleccion(temaConfirmado);
+                      }
+                  }
+              } else {
+                   System.err.println("WARN [cambiarTema]: La lista 'themeActions' es nula. No se pudo actualizar estado de radios.");
+              }
+
+              // 3.c. Notificar al Usuario sobre la necesidad de reiniciar
+              System.out.println("  -> Mostrando diálogo de reinicio necesario...");
+              
+              // Crear un nombre más legible para el diálogo
+              String nombreTemaDisplay = temaLimpio.substring(0, 1).toUpperCase() + temaLimpio.substring(1);
+              
+              // Usar invokeLater para asegurar que el diálogo se muestra correctamente en el EDT
+              SwingUtilities.invokeLater(() -> {
+                   JOptionPane.showMessageDialog(
+                       (view != null ? view.getFrame() : null), // Padre del diálogo (ventana principal si existe)
+                       "El tema se ha cambiado a '" + nombreTemaDisplay + "'.\n" +
+                       "Los cambios visuales completos se aplicarán la próxima vez\n" +
+                       "que inicie la aplicación.",
+                       "Cambio de Tema", // Título del diálogo
+                       JOptionPane.INFORMATION_MESSAGE // Tipo de mensaje
+                   );
+              });
+          } else {
+        	  
+               // Si themeManager.setTemaActual devolvió false, significa que ya era ese tema
+               // o que el nombre del tema no era válido según la lógica interna de ThemeManager.
+              System.out.println("  -> El tema solicitado ('" + temaLimpio + "') ya era el actual o no es válido. No se realizaron cambios.");
+              // Opcional: Podríamos forzar la sincronización de los radios por si acaso estaban desincronizados.
+               if (themeActions != null) {
+                    String temaConfirmado = themeManager.getTemaActual().nombreInterno();
+                    for (Action action : themeActions) {
+                        if (action instanceof ToggleThemeAction) { ((ToggleThemeAction) action).actualizarEstadoSeleccion(temaConfirmado); }
+                    }
+               }
+          }
+          System.out.println("[Controller] Fin cambiarTemaYNotificar.");
+      } // --- FIN cambiarTemaYNotificar ---
+      
+    
+      /**
+       * Muestra un diálogo modal que contiene una lista de los archivos de imagen
+       * actualmente cargados en el modelo principal. Permite al usuario ver la lista
+       * completa y, opcionalmente, copiarla al portapapeles, mostrando nombres de archivo
+       * relativos o rutas completas.
+       */
+      private void mostrarDialogoListaImagenes() {
+          // 1. Validar dependencias (Vista y Modelo necesarios)
+          if (view == null || model == null) {
+              System.err.println("ERROR [mostrarDialogoListaImagenes]: Vista o Modelo nulos. No se puede mostrar el diálogo.");
+              // Podríamos mostrar un JOptionPane de error aquí si fuera crítico
+              return;
+          }
+          System.out.println("[Controller] Abriendo diálogo de lista de imágenes...");
+
+          // 2. Crear el JDialog
+          //    - Lo hacemos modal (true) para que bloquee la ventana principal mientras está abierto.
+          //    - Usamos view.getFrame() como padre para que se centre correctamente.
+          final JDialog dialogoLista = new JDialog(view.getFrame(), "Lista de Imágenes Cargadas", true);
+          dialogoLista.setSize(600, 400); // Tamaño inicial razonable
+          dialogoLista.setLocationRelativeTo(view.getFrame()); // Centrar sobre la ventana principal
+          dialogoLista.setLayout(new BorderLayout(5, 5)); // Layout principal del diálogo
+
+          // 3. Crear componentes internos del diálogo
+          
+          // 3.1. Modelo para la JList del diálogo (será llenado dinámicamente)
+          final DefaultListModel<String> modeloListaDialogo = new DefaultListModel<>();
+          
+          // 3.2. JList que usará el modelo anterior
+          JList<String> listaImagenesDialogo = new JList<>(modeloListaDialogo);
+          
+          // 3.3. ScrollPane para la JList (indispensable si la lista es larga)
+          JScrollPane scrollPaneListaDialogo = new JScrollPane(listaImagenesDialogo);
+          
+          // 3.4. CheckBox para alternar entre nombres relativos y rutas completas
+          final JCheckBox checkBoxMostrarRutas = new JCheckBox("Mostrar Rutas Completas");
+          
+          // 3.5. Botón para copiar la lista visible al portapapeles
+          JButton botonCopiarLista = new JButton("Copiar Lista");
+
+          // 4. Configurar Panel Superior (Botón Copiar y CheckBox)
+          JPanel panelSuperiorDialog = new JPanel(new FlowLayout(FlowLayout.LEFT)); // Alineación izquierda
+          panelSuperiorDialog.add(botonCopiarLista);
+          panelSuperiorDialog.add(checkBoxMostrarRutas);
+
+          // 5. Añadir Componentes al Layout del Diálogo
+          dialogoLista.add(panelSuperiorDialog, BorderLayout.NORTH);  // Panel superior arriba
+          dialogoLista.add(scrollPaneListaDialogo, BorderLayout.CENTER); // Lista (en scroll) en el centro
+
+          // 6. Añadir ActionListeners a los controles interactivos
+          
+          // 6.1. Listener para el CheckBox (actualiza la lista cuando cambia su estado)
+          checkBoxMostrarRutas.addActionListener(e -> {
+              // Llama al método helper para refrescar el contenido de la lista del diálogo
+              // pasándole el modelo del diálogo y el estado actual del checkbox.
+              actualizarListaEnDialogo(modeloListaDialogo, checkBoxMostrarRutas.isSelected());
+          });
+
+          // 6.2. Listener para el Botón Copiar
+          botonCopiarLista.addActionListener(e -> {
+          
+        	  // Llama al método helper que copia el contenido del modelo del diálogo
+              copiarListaAlPortapapeles(modeloListaDialogo);
+              
+              // Opcional: Mostrar un feedback breve
+              // FIXME mostrar un joptionpane o un mensaje en una barra de informacion....
+              //JOptionPane.showMessageDialog(dialogoLista, "Lista copiada al portapapeles.", "Copiado", JOptionPane.INFORMATION_MESSAGE);
+          });
+
+          // 7. Cargar el contenido inicial de la lista en el diálogo
+          //    Se llama una vez antes de mostrar el diálogo, usando el estado inicial del checkbox (desmarcado).
+          System.out.println("  -> Actualizando contenido inicial del diálogo...");
+          actualizarListaEnDialogo(modeloListaDialogo, checkBoxMostrarRutas.isSelected());
+
+          // 8. Hacer visible el diálogo
+          //    Como es modal, la ejecución se detendrá aquí hasta que el usuario cierre el diálogo.
+          System.out.println("  -> Mostrando diálogo...");
+          dialogoLista.setVisible(true);
+
+          // 9. Código después de cerrar el diálogo (si es necesario)
+          //    Aquí podríamos hacer algo una vez el diálogo se cierra, pero usualmente no es necesario.
+          System.out.println("[Controller] Diálogo de lista de imágenes cerrado.");
+
+      } // --- FIN mostrarDialogoListaImagenes ---
+      
+    
+      /**
+       * Actualiza el contenido del DefaultListModel proporcionado (que pertenece
+       * al diálogo de la lista de imágenes) basándose en el modelo principal
+       * de la aplicación (model.getModeloLista()) y el mapa de rutas completas
+       * (model.getRutaCompletaMap()).
+       *
+       * Llena el modelo del diálogo con las claves relativas o las rutas absolutas
+       * de los archivos, según el valor del parámetro 'mostrarRutas'.
+       *
+       * @param modeloDialogo El DefaultListModel del JList que se encuentra en el diálogo.
+       *                      Este método modificará su contenido (lo limpia y lo vuelve a llenar).
+       * @param mostrarRutas  boolean que indica qué formato mostrar:
+       *                      - true: Muestra la ruta completa (absoluta) de cada archivo.
+       *                      - false: Muestra la clave única (ruta relativa) de cada archivo.
+       */
+      private void actualizarListaEnDialogo(DefaultListModel<String> modeloDialogo, boolean mostrarRutas) {
+          // 1. Validación de entradas
+          if (modeloDialogo == null) {
+              System.err.println("ERROR [actualizarListaEnDialogo]: El modelo del diálogo es null.");
+              return;
+          }
+          if (model == null || model.getModeloLista() == null || model.getRutaCompletaMap() == null) {
+              System.err.println("ERROR [actualizarListaEnDialogo]: El modelo principal o sus componentes internos son null.");
+              modeloDialogo.clear(); // Limpiar el diálogo si no hay datos fuente
+              modeloDialogo.addElement("Error: No se pudo acceder a los datos de la lista principal.");
+              return;
+          }
+
+          // 2. Referencias al modelo principal y al mapa de rutas
+          DefaultListModel<String> modeloPrincipal = model.getModeloLista();
+          Map<String, Path> mapaRutas = model.getRutaCompletaMap();
+
+          // 3. Log informativo
+          System.out.println("  [Dialogo Lista] Actualizando contenido. Mostrar Rutas: " + mostrarRutas + ". Elementos en modelo principal: " + modeloPrincipal.getSize());
+
+          // 4. Limpiar el modelo del diálogo antes de llenarlo
+          modeloDialogo.clear();
+
+          // 5. Iterar sobre el modelo principal y añadir elementos al modelo del diálogo
+          if (modeloPrincipal.isEmpty()) {
+              modeloDialogo.addElement("(La lista principal está vacía)");
+          } else {
+              for (int i = 0; i < modeloPrincipal.getSize(); i++) {
+                  // 5.1. Obtener la clave del modelo principal
+                  String claveArchivo = modeloPrincipal.getElementAt(i);
+                  if (claveArchivo == null) { // Seguridad extra
+                      claveArchivo = "(Clave nula en índice " + i + ")";
+                  }
+
+                  // 5.2. Determinar qué texto añadir al diálogo
+                  String textoAAgregar = claveArchivo; // Por defecto, la clave
+
+                  if (mostrarRutas) {
+                      // Si se deben mostrar rutas completas, obtenerla del mapa
+                      Path rutaCompleta = mapaRutas.get(claveArchivo);
+                      if (rutaCompleta != null) {
+                          // Usar la ruta completa si se encontró
+                          textoAAgregar = rutaCompleta.toString();
+                      } else {
+                          // Si no se encontró la ruta (inconsistencia en datos), indicarlo
+                          System.err.println("WARN [Dialogo Lista]: No se encontró ruta para la clave: " + claveArchivo);
+                          textoAAgregar = claveArchivo + " (¡Ruta no encontrada!)";
+                      }
+                  }
+                  // Si mostrarRutas es false, textoAAgregar simplemente mantiene la claveArchivo.
+
+                  // 5.3. Añadir el texto determinado al modelo del diálogo
+                  modeloDialogo.addElement(textoAAgregar);
+                  
+              } // Fin del bucle for
+          } // Fin else (modeloPrincipal no está vacío)
+
+          // 6. Log final (opcional)
+           System.out.println("  [Dialogo Lista] Contenido actualizado. Elementos añadidos al diálogo: " + modeloDialogo.getSize());
+
+          // Nota: No necesitamos repintar la JList del diálogo aquí.
+          // El DefaultListModel notifica automáticamente a la JList asociada
+          // sobre los cambios (clear y addElement disparan ListDataEvents).
+
+      } // --- FIN actualizarListaEnDialogo ---
+      
+      
 	
-} // Fin de VisorController
+      /**
+	   * Copia el contenido actual de un DefaultListModel (que se asume contiene
+	   * Strings, una por línea) al portapapeles del sistema.
+	   * Cada elemento del modelo se añade como una línea separada en el texto copiado.
+	   *
+	   * @param listModel El DefaultListModel<String> cuyo contenido se copiará.
+	   *                  Típicamente, este será el modelo de la JList del diálogo
+	   *                  (modeloListaDialogo).
+	   */
+      private void copiarListaAlPortapapeles(DefaultListModel<String> listModel) {
+      // 1. Validación de entrada
+      if (listModel == null) {
+          System.err.println("ERROR [copiarListaAlPortapapeles]: El listModel proporcionado es null.");
+          // Opcional: Mostrar mensaje al usuario si la vista está disponible
+          
+          if (view != null) {
+              JOptionPane.showMessageDialog(view.getFrame(),
+                                            "Error interno al intentar copiar la lista.",
+                                            "Error al Copiar", JOptionPane.WARNING_MESSAGE);
+          }
+          
+          return;
+      }
+
+      // 2. Construir el String a copiar
+      StringBuilder sb = new StringBuilder();
+      int numeroElementos = listModel.getSize();
+
+      System.out.println("[Portapapeles] Preparando para copiar " + numeroElementos + " elementos...");
+
+      // Iterar sobre todos los elementos del modelo
+      for (int i = 0; i < numeroElementos; i++) {
+          String elemento = listModel.getElementAt(i);
+          if (elemento != null) { // Añadir solo si no es null
+              sb.append(elemento); // Añadir el texto del elemento
+              
+              // Añadir un salto de línea después de cada elemento, excepto el último
+              if (i < numeroElementos - 1) {
+                  sb.append("\n"); // Usar salto de línea estándar del sistema
+                  // Alternativa: sb.append(System.lineSeparator());
+              }
+          }
+      }
+
+      // 3. Crear el objeto Transferable (StringSelection)
+      //    StringSelection es una implementación de Transferable para texto plano.
+      String textoCompleto = sb.toString();
+      StringSelection stringSelection = new StringSelection(textoCompleto);
+
+      // 4. Obtener el Portapapeles del Sistema
+      Clipboard clipboard = null;
+      try {
+          clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+      } catch (Exception e) {
+           System.err.println("ERROR [copiarListaAlPortapapeles]: No se pudo acceder al portapapeles del sistema: " + e.getMessage());
+            if (view != null) {
+               JOptionPane.showMessageDialog(view.getFrame(),
+                                             "Error al acceder al portapapeles del sistema.",
+                                             "Error al Copiar", JOptionPane.ERROR_MESSAGE);
+            }
+           return; // Salir si no podemos obtener el clipboard
+      }
+
+
+      // 5. Establecer el contenido en el Portapapeles
+      try {
+          // El segundo argumento 'this' indica que nuestra clase VisorController
+          // actuará como "dueño" temporal del contenido (implementa ClipboardOwner).
+          clipboard.setContents(stringSelection, this);
+          System.out.println("[Portapapeles] Lista copiada exitosamente (" + numeroElementos + " líneas).");
+          // Opcional: Mostrar mensaje de éxito
+           if (view != null) {
+               // Podríamos usar un mensaje no modal o una etiqueta temporal
+               // JOptionPane.showMessageDialog(view.getFrame(), "Lista copiada al portapapeles.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+           }
+      } catch (IllegalStateException ise) {
+          // Puede ocurrir si el clipboard no está disponible o está siendo usado
+           System.err.println("ERROR [copiarListaAlPortapapeles]: No se pudo establecer el contenido en el portapapeles: " + ise.getMessage());
+            if (view != null) {
+               JOptionPane.showMessageDialog(view.getFrame(),
+                                             "No se pudo copiar la lista al portapapeles.\n" +
+                                             "Puede que otra aplicación lo esté usando.",
+                                             "Error al Copiar", JOptionPane.WARNING_MESSAGE);
+            }
+      } catch (Exception e) {
+           // Capturar otros errores inesperados
+           System.err.println("ERROR INESPERADO [copiarListaAlPortapapeles]: " + e.getMessage());
+           e.printStackTrace();
+            if (view != null) {
+               JOptionPane.showMessageDialog(view.getFrame(),
+                                             "Ocurrió un error inesperado al copiar la lista.",
+                                             "Error al Copiar", JOptionPane.ERROR_MESSAGE);
+            }
+      }
+
+  } // --- FIN copiarListaAlPortapapeles ---
+
+
+	/**
+	 * Método requerido por la interfaz ClipboardOwner. Se llama cuando otra
+	 * aplicación toma posesión del contenido del portapapeles que esta aplicación
+	 * había puesto previamente.
+	 * 
+	 * En la mayoría de los casos, especialmente cuando solo copiamos texto simple,
+	 * no necesitamos realizar ninguna acción específica cuando perdemos la
+	 * posesión. Dejamos el método implementado pero vacío.
+	 *
+	 * @param clipboard El portapapeles que perdió la posesión.
+	 * @param contents  El contenido Transferable que estaba en el portapapeles.
+	 */
+	@Override
+	public void lostOwnership (Clipboard clipboard, Transferable contents)
+	{
+		// 1. Log (Opcional, útil para depuración o entender el flujo)
+		// System.out.println("[Clipboard] Se perdió la propiedad del contenido del
+		// portapapeles.");
+
+		// 2. Lógica Adicional (Normalmente no necesaria para copia de texto simple)
+		// - Si estuvieras manejando recursos más complejos o datos que necesitan
+		// liberarse cuando ya no están en el portapapeles, podrías hacerlo aquí.
+		// - Para StringSelection, no hay nada que liberar.
+
+		// -> Método intencionalmente vacío en este caso. <-
+
+	} // --- FIN lostOwnership ---       
+       
+    // (Asegúrate de que la clase declara 'implements ActionListener')
+
+    /**
+     * Manejador central de eventos para componentes que NO utilizan directamente
+     * el sistema de Actions de Swing (p.ej., JMenuItems a los que se les añadió
+     * 'this' como ActionListener en addFallbackListeners) o para acciones
+     * muy específicas que no justificaban una clase Action separada.
+     *
+     * Identifica el componente que originó el evento y/o el comando de acción,
+     * y delega la lógica al método apropiado.
+     *
+     * @param e El ActionEvent generado por el componente Swing.
+     */
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        // 1. Log inicial detallado (muy útil para depurar qué se está presionando)
+        logActionInfo(e); // Llama al helper para imprimir fuente, comando, etc.
+
+        // 2. Obtener información del evento
+        Object source = e.getSource();         // El componente que disparó el evento
+        String command = e.getActionCommand(); // El comando asociado (puede ser corto o largo)
+
+        // 3. Procesar el comando usando un switch
+        //    Este switch maneja principalmente casos "fallback" donde no usamos setAction().
+        //    Las Actions asignadas con setAction() ejecutan su propio actionPerformed
+        //    y normalmente no pasarán por este método central.
+        if (command == null) {
+             System.err.println("WARN [actionPerformed Central]: Comando es null para fuente: " + (source != null ? source.getClass().getSimpleName() : "null"));
+             return; // Salir si no hay comando
+        }
+
+        switch (command) {
+            // --- Comandos de Menú (Ejemplos Fallback) ---
+
+            // Configuración
+            case "Guardar_Configuracion_Actual":
+                System.out.println("-> Acción Fallback: Guardar Configuración Actual");
+                guardarConfiguracionActual(); // Llama al método que guarda
+                break;
+            case "Cargar_Configuracion_Inicial":
+                 System.out.println("-> Acción Fallback: Cargar Configuración Inicial (Recargar UI)");
+                 // Volver a aplicar toda la configuración y recargar la lista
+                 aplicarConfiguracionInicial();
+                 cargarEstadoInicial(); // Esto recargará la lista
+                 break;
+
+            // Imagen
+            case "Cambiar_Nombre_de_la_Imagen":
+                System.out.println("TODO: Acción Fallback - Implementar Cambiar Nombre Imagen");
+                // Aquí iría la lógica para mostrar un diálogo y renombrar el archivo
+                break;
+            case "Mover_a_la_Papelera":
+                 System.out.println("TODO: Acción Fallback - Implementar Mover a Papelera");
+                 // Lógica para mover archivo actual a papelera (requiere JNA o similar)
+                 break;
+            case "Establecer_Como_Fondo_de_Escritorio":
+                 System.out.println("TODO: Acción Fallback - Implementar Fondo Escritorio");
+                 // Lógica específica de SO para cambiar fondo
+                 break;
+            case "Establecer_Como_Imagen_de_Bloqueo":
+                 System.out.println("TODO: Acción Fallback - Implementar Imagen Bloqueo");
+                 // Lógica específica de SO
+                 break;
+            case "Propiedades_de_la_imagen":
+                 System.out.println("TODO: Acción Fallback - Mostrar Propiedades Imagen");
+                 // Mostrar diálogo con información EXIF/Detalles del archivo
+                 break;
+
+            // Vista
+            case "Mostrar_Dialogo_Lista_de_Imagenes":
+                System.out.println("-> Acción Fallback: Mostrar Diálogo Lista Imágenes");
+                mostrarDialogoListaImagenes(); // Llama al método que abre el diálogo
+                break;
+
+            // Ayuda
+            case "Version":
+                System.out.println("-> Acción Fallback: Mostrar Versión");
+                mostrarVersion(); // Llama al método que muestra el JOptionPane
+                break;
+
+            // --- Otros Comandos Específicos ---
+            // Añade aquí otros 'case' para ActionCommands que no estén manejados
+            // por clases Action dedicadas y a los que hayas añadido 'this' como listener.
+
+            // --- Default Case ---
+            default:
+                // Este caso se alcanza si un componente al que añadimos 'this' como listener
+                // tiene un ActionCommand que no hemos listado arriba.
+                // Podría ser un JMenuItem de visibilidad de botón si no tuviera Action.
+                 if (source instanceof JMenuItem && !(source instanceof JMenu)) { // Solo para items finales
+                     System.out.println("WARN [actionPerformed Central]: Comando fallback no manejado explícitamente: '" + command + "' de " + source.getClass().getSimpleName());
+                     // Podríamos añadir lógica genérica aquí si fuera necesario,
+                     // pero es mejor tener casos específicos o usar Actions.
+                 }
+                 // No imprimir warning para JMenu o JButton ya que estos deberían usar Actions.
+                 break;
+        } // Fin switch
+
+        // Log final (opcional)
+        // System.out.println("[ActionListener Central] Procesamiento finalizado para comando: " + command);
+
+    } // --- FIN actionPerformed ---  
+
+    
+    /**
+     * Muestra un diálogo simple (JOptionPane) con información básica
+     * sobre la versión de la aplicación.
+     * El número de versión y el autor están actualmente hardcodeados,
+     * pero podrían leerse de un archivo de propiedades o de metadatos del MANIFEST.
+     */
+    private void mostrarVersion() {
+        // 1. Definir la información a mostrar
+        //    TODO: Considerar leer estos valores de un archivo externo o MANIFEST.MF
+        String nombreApp = "Visor de Imágenes V2";
+        String version = "1.1.0-MVC-SyncLists"; // Ejemplo de número de versión
+        String autor = "(c) 2024 Javier Tortosa"; // ¡Tu nombre aquí!
+        String mensaje = nombreApp + "\nVersión: " + version + "\n" + autor;
+        String tituloDialogo = "Acerca de " + nombreApp;
+
+        // 2. Log (Opcional)
+        System.out.println("[Controller] Mostrando diálogo de versión...");
+
+        // 3. Mostrar el JOptionPane
+        //    - Usamos view.getFrame() como componente padre para centrar el diálogo.
+        //    - message: El texto a mostrar.
+        //    - title: El título de la ventana del diálogo.
+        //    - messageType: El icono a mostrar (INFORMATION_MESSAGE es un icono 'i').
+        JOptionPane.showMessageDialog(
+            (view != null ? view.getFrame() : null), // Componente padre (o null si view no existe)
+            mensaje,                                 // Mensaje a mostrar
+            tituloDialogo,                           // Título de la ventana
+            JOptionPane.INFORMATION_MESSAGE          // Tipo de icono
+        );
+
+        // 4. Log final (Opcional)
+        // System.out.println("  -> Diálogo de versión cerrado.");
+
+    } // --- FIN mostrarVersion ---
+    
+       
+    /**
+     * Imprime en la consola información detallada sobre un ActionEvent recibido.
+     * Útil para depurar y entender qué componente/acción generó un evento.
+     * Intenta obtener la clase de la fuente, el comando de acción, la clave larga
+     * de configuración asociada (si se encuentra) y el nombre del icono (si es un botón).
+     *
+     * @param e El ActionEvent a analizar.
+     */
+    public void logActionInfo(ActionEvent e) {
+        // 1. Validar el evento
+        if (e == null) {
+            System.out.println("--- Acción Detectada (Evento Nulo) ---");
+            return; // No podemos hacer nada si el evento es nulo
+        }
+
+        // 2. Obtener información básica del evento
+        Object source = e.getSource();
+        String command = e.getActionCommand(); // El comando asociado al evento
+        String sourceClass = (source != null) ? source.getClass().getSimpleName() : "null";
+
+        // 3. Intentar obtener información adicional (clave larga, icono)
+        //    Estos métodos helper buscan en los mapas de botones/menús de la vista.
+        String longConfigKey = findLongKeyForComponent(source); // Puede devolver null
+        String iconName = findIconNameForComponent(source);     // Puede devolver null
+
+        // 4. Imprimir la información formateada en la consola
+        System.out.println("--- Acción Detectada ---");
+        System.out.println("  Fuente     : " + sourceClass + (source != null ? " (ID: "+ System.identityHashCode(source) +")" : "")); // Añadir ID objeto
+        System.out.println("  Comando    : " + (command != null ? "'" + command + "'" : "null"));
+        System.out.println("  Clave Larga: " + (longConfigKey != null ? "'" + longConfigKey + "'" : "(No encontrada)"));
+        // Mostrar icono solo si se encontró
+        if (iconName != null) {
+             System.out.println("  Icono      : " + iconName);
+        }
+        // Opcional: Imprimir modificadores si son relevantes (Shift, Ctrl, etc.)
+        // String modifiers = ActionEvent.getModifiersText(e.getModifiers());
+        // if (!modifiers.isEmpty()) {
+        //      System.out.println("  Modificadores: " + modifiers);
+        // }
+        System.out.println("-------------------------");
+
+    } // --- FIN logActionInfo ---
+
+    // --- Métodos Helper (Asegúrate de que existan y sean correctos) ---
+
+    /**
+     * Busca en los mapas de botones y menús de la vista para encontrar la
+     * clave de configuración larga asociada a un componente Swing dado.
+     * @param source El componente (JButton, JMenuItem, etc.).
+     * @return La clave larga de configuración (ej. "interfaz.boton.movimiento.Siguiente_48x48")
+     *         o null si no se encuentra o la vista/mapas no están inicializados.
+     */
+    public String findLongKeyForComponent(Object source) {
+        // Validar dependencias
+        if (view == null || !(source instanceof Component)) {
+             // System.err.println("WARN [findLongKey]: Vista nula o fuente no es Componente."); // Log opcional
+            return null;
+        }
+        Component comp = (Component) source;
+
+        // Buscar en botones
+        Map<String, JButton> botones = view.getBotonesPorNombre();
+        if (botones != null) {
+            for (Map.Entry<String, JButton> entry : botones.entrySet()) {
+                if (entry.getValue() == comp) { // Comparar por referencia de objeto
+                    return entry.getKey(); // Devuelve la clave larga
+                }
+            }
+        }
+
+        // Buscar en menús
+        Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
+        if (menuItems != null) {
+            for (Map.Entry<String, JMenuItem> entry : menuItems.entrySet()) {
+                 if (entry.getValue() == comp) { // Comparar por referencia de objeto
+                     return entry.getKey(); // Devuelve la clave larga
+                 }
+            }
+        }
+
+        // Si no se encontró en ninguno de los mapas
+        // System.out.println("INFO [findLongKey]: No se encontró clave larga para: " + source.getClass().getSimpleName()); // Log opcional
+        return null;
+    }
+
+     /**
+     * Intenta inferir el nombre del archivo de icono asociado a un JButton.
+     * Es una heurística simple basada en la clave larga del componente.
+     * @param source El componente fuente (se espera que sea un JButton).
+     * @return El nombre inferido del archivo PNG del icono (ej. "Siguiente_48x48.png")
+     *         o null si no es un JButton, no tiene icono, o no se puede inferir.
+     */
+    public String findIconNameForComponent(Object source) {
+         if (source instanceof JButton) {
+             JButton button = (JButton) source;
+             Icon icon = button.getIcon(); // Obtener el icono actual del botón
+
+             // Proceder solo si el icono es un ImageIcon (no otros tipos de Icon)
+             if (icon instanceof ImageIcon) {
+                 // Intentar obtener la clave larga para inferir el nombre
+                 String longKey = findLongKeyForComponent(source);
+                  if (longKey != null && longKey.startsWith("interfaz.boton.")) {
+                      // Separar la clave por puntos
+                     String[] parts = longKey.split("\\.");
+                     // Si tenemos suficientes partes (interfaz.boton.categoria.nombreBoton)
+                     if (parts.length >= 4) {
+                          // La última parte debería ser el nombre base del icono
+                          return parts[parts.length - 1] + ".png"; // Asumir extensión .png
+                     }
+                 }
+                 // Si no se pudo inferir desde la clave, devolver un mensaje genérico
+                  // return "(Icono: " + ((ImageIcon) icon).getDescription() + ")"; // Opcional: usar descripción si la tiene
+                 return "(Icono presente, nombre no inferido)";
+             }
+             // Si no tiene icono ImageIcon
+             // else { return "(Sin ImageIcon)"; }
+         }
+         // Si no es un JButton
+         return null;
+    }// fin findIconNameForComponent
+    
+
+    /**
+     * Método auxiliar para asignar una Action a un componente (JButton, JMenuItem, etc.)
+     * buscando el componente en un mapa proporcionado usando su clave de configuración larga.
+     *
+     * Además, si el componente es un JButton y la Action tiene un icono,
+     * configura el botón para ocultar su texto y mostrar solo el icono.
+     *
+     * Imprime warnings si el componente o la Action no se encuentran.
+     *
+     * @param componentMap El mapa que contiene los componentes (JButton, JMenuItem),
+     *                     donde la clave es la String de configuración larga
+     *                     (ej. "interfaz.boton.movimiento.Siguiente_48x48").
+     * @param key La clave de configuración larga del componente al que se asignará la Action.
+     * @param action La instancia de la Action a asignar. Si es null, se imprimirá un warning.
+     * @param <T> El tipo del componente, debe extender AbstractButton (JButton, JMenuItem, etc.).
+     */
+    private <T extends AbstractButton> void setActionForKey(Map<String, T> componentMap, String key, Action action) 
+    {
+        // 1. Validación de entradas (Mapa y Clave)
+        if (componentMap == null) {
+            System.err.println("ERROR [setActionForKey]: El mapa de componentes es null (para clave: " + key + ")");
+            return;
+        }
+        if (key == null || key.trim().isEmpty()) {
+             System.err.println("ERROR [setActionForKey]: La clave proporcionada es null o vacía.");
+             return;
+        }
+
+        // 2. Buscar el componente en el mapa usando la clave
+        T component = componentMap.get(key);
+
+        // 3. Validar si el componente y la acción existen
+        if (component != null && action != null) {
+            
+        	// 3.1. Ambos existen: Asignar la Action al componente
+            //      Esto configura automáticamente texto, icono (si existen en la Action),
+            //      estado enabled, tooltip (SHORT_DESCRIPTION), y maneja el actionPerformed.
+            component.setAction(action);
+            // System.out.println("  -> Action '" + action.getValue(Action.NAME) + "' asignada a componente con clave: " + key); // Log detallado opcional
+
+            // 3.2. Opcional: Configuración específica para JButton con icono
+            //      Si es un botón y la acción le proporcionó un icono, ocultar el texto.
+             if (component instanceof JButton && action.getValue(Action.SMALL_ICON) != null) {
+                 // setHideActionText(true) es preferible a setText("") porque
+                 // permite que el Look and Feel decida si mostrar texto si NO hay icono.
+                 ((JButton) component).setHideActionText(true);
+                 // System.out.println("    -> Ocultando texto para JButton con icono."); // Log opcional
+             }
+
+        } else {
+            // 4. Manejar casos donde algo falta
+            if (component == null) {
+                // No se encontró el componente en el mapa con esa clave
+                System.err.println("WARN [setActionForKey]: Componente NO encontrado en el mapa para la clave: '" + key + "'");
+            }
+            if (action == null) {
+                // Se encontró el componente, pero la Action proporcionada era null
+                System.err.println("WARN [setActionForKey]: La Action proporcionada es NULL para la clave: '" + key + "' (Componente: " + (component != null ? component.getClass().getSimpleName() : "null") + ")");
+                // Podríamos querer deshabilitar el componente si la acción es null
+                 if (component != null) {
+                     component.setEnabled(false); // Deshabilitar si no tiene acción
+                     component.setToolTipText("Acción no disponible"); // Tooltip indicativo
+                 }
+            }
+        }
+    } // --- FIN setActionForKey ---
+    
+
+    /**
+     * Añade el ActionListener principal del controlador ('this') a aquellos
+     * JMenuItems que no tienen una clase Action dedicada asignada mediante setAction().
+     *
+     * Esto se usa como un mecanismo "fallback" para manejar clics en items de menú
+     * simples (como "Versión", "Guardar Configuración") o en radios/checkboxes
+     * que requieran lógica personalizada que no encaja bien en una Action estándar.
+     *
+     * El ActionListener central (el método actionPerformed de VisorController)
+     * deberá usar el ActionCommand del evento para determinar qué item fue presionado.
+     *
+     * @param menuItems El mapa que contiene todos los JMenuItems creados,
+     *                  donde la clave es la clave de configuración larga y el valor
+     *                  es la instancia de JMenuItem.
+     */
+     private void addFallbackListeners(Map<String, JMenuItem> menuItems) {
+         // 1. Validación de entrada
+         if (menuItems == null) {
+             System.err.println("WARN [addFallbackListeners]: El mapa de menuItems es null. No se añadieron listeners fallback.");
+             return;
+         }
+         System.out.println("    [Fallback Listeners] Añadiendo ActionListener central a items sin Action...");
+         int listenersAñadidos = 0;
+
+         // 2. Iterar sobre todos los items de menú en el mapa
+         //    La clave (key) es la clave de configuración larga, el valor (item) es el JMenuItem.
+         for (Map.Entry<String, JMenuItem> entry : menuItems.entrySet()) {
+             JMenuItem item = entry.getValue();
+             //String key = entry.getKey(); // Clave larga (útil para logs)
+
+             // 3. Comprobar condiciones para añadir el listener fallback:
+             //    a) El item debe ser un item real clickeable (no un JMenu separador o contenedor).
+             //    b) El item NO debe tener ya una Action asignada (item.getAction() == null).
+             if (item != null && !(item instanceof JMenu) && item.getAction() == null) {
+
+                 // 4. Limpiar listeners previos (buena práctica por si se llama varias veces)
+                 //    Esto evita que 'this' se añada múltiples veces al mismo item.
+                 for (ActionListener al : item.getActionListeners()) {
+                     // Podríamos ser más específicos y solo quitar instancias de VisorController,
+                     // pero quitar todos los ActionListeners antes de añadir el nuestro es más simple.
+                     item.removeActionListener(al);
+                 }
+
+                 // 5. Añadir 'this' (la instancia actual de VisorController) como ActionListener
+                 item.addActionListener(this);
+                 listenersAñadidos++;
+                 // Log detallado (opcional)
+                 // System.out.println("      -> Listener fallback añadido a: '" + key + "' (Comando: '" + item.getActionCommand() + "')");
+
+             }
+             // Si es un JMenu o ya tiene una Action, no hacemos nada.
+             // else {
+             //     System.out.println("      -> Omitiendo listener fallback para: '" + key + "' (Es JMenu o ya tiene Action)"); // Log detallado opcional
+             // }
+         } // Fin del bucle for
+
+         // 6. Log final
+         System.out.println("    [Fallback Listeners] Finalizado. Listeners fallback añadidos a " + listenersAñadidos + " items.");
+
+     } // --- FIN addFallbackListeners ---
+     
+     
+//   FIXME (Opcionalmente, podría estar en una clase de Utilidades si se usa en más sitios)
+
+  /**
+   * Convierte una cadena de texto que representa un color en formato "R, G, B"
+   * (donde R, G, B son números enteros entre 0 y 255) en un objeto java.awt.Color.
+   *
+   * Ignora espacios alrededor de los números y las comas.
+   * Valida que los componentes numéricos estén en el rango [0, 255].
+   *
+   * @param rgbString La cadena de texto a parsear (ej. "238, 238, 238", " 0, 0,0 ").
+   *                  Si es null, vacía o tiene un formato incorrecto, se devolverá
+   *                  un color por defecto (gris claro).
+   * @return El objeto Color correspondiente a la cadena RGB, o Color.LIGHT_GRAY
+   *         si la cadena no se pudo parsear correctamente.
+   */
+  private Color parseColor(String rgbString) {
+      // 1. Manejar entrada nula o vacía
+      if (rgbString == null || rgbString.trim().isEmpty()) {
+          System.err.println("WARN [parseColor]: Cadena RGB nula o vacía. Usando color por defecto (Gris Claro).");
+          return Color.LIGHT_GRAY; // Color por defecto seguro
+      }
+
+      // 2. Separar la cadena por las comas
+      String[] components = rgbString.split(",");
+
+      // 3. Validar que tengamos exactamente 3 componentes
+      if (components.length == 3) {
+          try {
+              // 3.1. Parsear cada componente a entero, quitando espacios (trim)
+              int r = Integer.parseInt(components[0].trim());
+              int g = Integer.parseInt(components[1].trim());
+              int b = Integer.parseInt(components[2].trim());
+
+              // 3.2. Validar el rango [0, 255] para cada componente
+              //      Usamos Math.max/min para asegurar que el valor quede dentro del rango.
+              r = Math.max(0, Math.min(255, r));
+              g = Math.max(0, Math.min(255, g));
+              b = Math.max(0, Math.min(255, b));
+
+              // 3.3. Crear y devolver el objeto Color
+              return new Color(r, g, b);
+
+          } catch (NumberFormatException e) {
+              // Error si alguno de los componentes no es un número entero válido
+              System.err.println("WARN [parseColor]: Formato numérico inválido en '" + rgbString + "'. Usando color por defecto (Gris Claro). Error: " + e.getMessage());
+              return Color.LIGHT_GRAY; // Devolver color por defecto
+          } catch (Exception e) {
+               // Capturar otros posibles errores inesperados durante el parseo
+               System.err.println("ERROR INESPERADO [parseColor] parseando '" + rgbString + "': " + e.getMessage());
+               e.printStackTrace();
+               return Color.LIGHT_GRAY; // Devolver color por defecto
+          }
+      	} else {
+          // Error si no se encontraron exactamente 3 componentes después de split(',')
+           System.err.println("WARN [parseColor]: Formato de color debe ser R,G,B. Recibido: '" + rgbString + "'. Usando color por defecto (Gris Claro).");
+           return Color.LIGHT_GRAY; // Devolver color por defecto
+      	}
+  	} // --- FIN parseColor ---
+  
+
+  
+  
+	/**
+	 * Crea y configura un JLabel que actúa como un marcador de posición
+	 * ('placeholder') para una miniatura que aún se está cargando o que ha fallado
+	 * al cargar.
+	 *
+	 * Configura el texto (generalmente "..."), el tamaño preferido, el color de
+	 * fondo, el color de texto, el borde (punteado, con color diferente si está
+	 * seleccionada) y el tooltip.
+	 *
+	 * @param toolTipText    El texto a mostrar cuando el usuario pase el ratón por
+	 *                       encima (ej. "Cargando: imagen.jpg" o "Error:
+	 *                       imagen_corrupta.png").
+	 * @param ancho          El ancho deseado para el placeholder (debe coincidir
+	 *                       con el tamaño de celda esperado en la lista de
+	 *                       miniaturas).
+	 * @param alto           El alto deseado para el placeholder. Si es <= 0, se
+	 *                       usará el ancho.
+	 * @param esSeleccionada true si este placeholder representa la miniatura que
+	 *                       corresponde a la imagen actualmente seleccionada en la
+	 *                       lista principal, para aplicarle un borde distintivo.
+	 * @return Un JLabel configurado como placeholder.
+	 */
+	private JLabel crearPlaceholderMiniatura (String toolTipText, int ancho, int alto, boolean esSeleccionada)
+	{
+
+		// 1. Crear el JLabel con texto inicial "..." y centrado
+		JLabel placeholder = new JLabel("...", SwingConstants.CENTER);
+
+		// 2. Hacerlo opaco para que el color de fondo sea visible
+		placeholder.setOpaque(true);
+
+		// 3. Establecer color de texto (gris para indicar que no es contenido real)
+		placeholder.setForeground(Color.GRAY);
+
+		// 4. Calcular y establecer tamaño preferido
+		// Asegurar un tamaño mínimo y manejar el caso de alto <= 0
+		int phAncho = Math.max(10, ancho); // Ancho mínimo de 10px
+		int phAlto = Math.max(10, (alto <= 0 ? phAncho : alto)); // Alto mínimo, o igual al ancho si alto<=0
+		placeholder.setPreferredSize(new Dimension(phAncho, phAlto));
+
+		// 5. Configurar borde y fondo según si está seleccionada
+		if (esSeleccionada)
+		{
+			// Borde punteado azul y fondo azul claro para placeholder seleccionado
+			// TODO: Considerar usar colores del tema (uiConfig) si están disponibles aquí
+			placeholder.setBorder(BorderFactory.createDashedBorder(Color.BLUE, 1, 5, 3, false)); // Ajustar estilo de
+																									// línea si se desea
+			placeholder.setBackground(new Color(220, 230, 255)); // Azul muy pálido
+		} else
+		{
+			// Borde punteado gris claro y fondo blanco para placeholder normal
+			placeholder.setBorder(BorderFactory.createDashedBorder(Color.LIGHT_GRAY, 1, 5, 3, false));
+			placeholder.setBackground(Color.WHITE); // O un gris muy claro
+		}
+
+		// 6. Establecer el Tooltip (mensaje informativo al pasar el ratón)
+		placeholder.setToolTipText(toolTipText != null ? toolTipText : "Cargando..."); // Tooltip por defecto si es null
+
+		// 7. Devolver el JLabel configurado
+		return placeholder;
+
+	} // --- FIN crearPlaceholderMiniatura ---
+
+     /** Getters para Actions (si se usan externamente). */
+     // public Action getFirstImageAction() { return firstImageAction; }
+     // public Action getLastImageAction() { return lastImageAction; }
+     
+     
+     /** Getters para Modelo/Vista/Config (usados por Actions). */
+     public VisorModel getModel() { return model; }
+     public VisorView getView() { return view; }
+     public ConfigurationManager getConfigurationManager() { return configuration; }
+     
+     
+     /**
+      * Configura un 'Shutdown Hook', que es un hilo que la JVM intentará ejecutar
+      * cuando la aplicación está a punto de cerrarse (ya sea normalmente o por
+      * una señal externa como Ctrl+C, pero no necesariamente en caso de crash).
+      *
+      * El propósito principal de este hook es guardar el estado actual de la
+      * aplicación (tamaño/posición de ventana, última carpeta/imagen, configuraciones UI)
+      * en el archivo config.cfg para poder restaurarlo la próxima vez que se inicie.
+      * También se encarga de apagar de forma ordenada el ExecutorService.
+      */
+     private void configurarShutdownHook() {
+         // Crear un nuevo hilo (sin nombre específico, pero se podría añadir)
+         Thread shutdownThread = new Thread(() -> { // Inicio de la lambda para el hilo
+             // Este código se ejecutará cuando la JVM inicie el proceso de cierre
+
+             System.out.println("--- Hook de Cierre Iniciado ---");
+
+             // --- 1. GUARDAR ESTADO DE LA VENTANA ---
+             //      Solo si la vista y la configuración están disponibles
+             if (view != null && configuration != null) {
+                  System.out.println("  -> Guardando estado de la ventana...");
+                  try {
+                      // Comprobar si la ventana está maximizada
+                      boolean isMaximized = (view.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
+                      // Guardar el estado de maximización en la configuración
+                      configuration.setString(ConfigurationManager.KEY_WINDOW_MAXIMIZED, String.valueOf(isMaximized));
+
+                      // Si NO está maximizada, guardar posición y tamaño (bounds)
+                      if (!isMaximized) {
+                          java.awt.Rectangle bounds = view.getBounds(); // Obtener bounds actuales
+                          configuration.setString(ConfigurationManager.KEY_WINDOW_X, String.valueOf(bounds.x));
+                          configuration.setString(ConfigurationManager.KEY_WINDOW_Y, String.valueOf(bounds.y));
+                          configuration.setString(ConfigurationManager.KEY_WINDOW_WIDTH, String.valueOf(bounds.width));
+                          configuration.setString(ConfigurationManager.KEY_WINDOW_HEIGHT, String.valueOf(bounds.height));
+                           System.out.println("    -> Bounds guardados en memoria config: " + bounds);
+                      } else {
+                           System.out.println("    -> Ventana maximizada, no se guardan bounds específicos.");
+                      }
+                  } catch (Exception e) {
+                       // Capturar cualquier error inesperado al obtener/guardar estado ventana
+                       System.err.println("  -> ERROR al guardar estado de ventana: " + e.getMessage());
+                       e.printStackTrace(); // Imprimir stack trace para depuración
+                  }
+             } else {
+                  // Informar si no se puede guardar estado (vista o config nulas)
+                  System.out.println("  -> No se pudo guardar estado de ventana (Vista=" + view + ", Config=" + configuration + ").");
+             }
+
+             // --- 2. GUARDAR CONFIGURACIÓN GENERAL ---
+             //      Llama al método que recopila todo el estado actual y lo pasa
+             //      al ConfigurationManager para escribirlo en el archivo.
+             System.out.println("  -> Llamando a guardarConfiguracionActual()...");
+             // Verificar 'configuration' de nuevo por si acaso
+             
+             if (configuration != null) {
+                 // Llamar al método que se encarga de obtener el estado y guardar
+                  guardarConfiguracionActual(); // Este método llama internamente a configuration.guardarConfiguracion()
+                  
+             } else {
+                  System.err.println("  -> ConfigurationManager null, no se puede llamar a guardarConfiguracionActual().");
+             }
+
+             // --- 3. APAGAR ExecutorService ---
+             //      Es importante cerrar el pool de hilos de forma ordenada.
+             System.out.println("  -> Apagando ExecutorService...");
+             
+             if (executorService != null && !executorService.isShutdown()) {
+                executorService.shutdown(); // Iniciar apagado: no acepta nuevas tareas, espera a las actuales
+                
+                try {
+             
+                	// Esperar un tiempo razonable para que las tareas terminen
+                    if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                        // Si no terminaron, forzar el apagado inmediato
+                        System.err.println("    -> ExecutorService no terminó en 5s. Forzando shutdownNow()...");
+                        executorService.shutdownNow(); // Intenta interrumpir tareas activas
+                        
+                        // Esperar un poco más después de forzar
+                        if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                             System.err.println("    -> ExecutorService AÚN no terminó después de shutdownNow().");
+                        } else {
+                             System.out.println("    -> ExecutorService finalmente terminado después de shutdownNow().");
+                        }
+                    } else {
+                         System.out.println("    -> ExecutorService terminado ordenadamente.");
+                    }
+
+                } catch (InterruptedException ie) {
+                    // Si el hilo del hook es interrumpido mientras espera
+                    System.err.println("    -> Hilo ShutdownHook interrumpido mientras esperaba apagado de ExecutorService.");
+                    executorService.shutdownNow(); // Forzar apagado inmediato
+                    Thread.currentThread().interrupt(); // Re-establecer estado interrumpido del hook
+                
+                } catch (Exception e) {
+                     // Capturar otros posibles errores durante el apagado
+                     System.err.println("    -> ERROR inesperado durante apagado de ExecutorService: " + e.getMessage());
+                     e.printStackTrace();
+                }
+                
+             } else if (executorService == null){
+                  System.out.println("    -> ExecutorService es null.");
+                  
+             } else { // Ya estaba shutdown
+                  System.out.println("    -> ExecutorService ya estaba apagado.");
+                  
+             }
+
+             // 4. Log final del hook
+             System.out.println("--- Hook de Cierre Terminado ---");
+
+         // Nombre opcional para el hilo del hook (útil en perfiles/debugging)
+         }, "VisorShutdownHookThread"); 
+
+         // Registrar el hilo creado como Shutdown Hook en la JVM
+         Runtime.getRuntime().addShutdownHook(shutdownThread);
+         System.out.println(" -> Shutdown Hook registrado en la JVM."); // Log confirmando registro
+
+     } // --- FIN configurarShutdownHook ---
+
+     
+     /**
+      * Recopila el estado actual relevante de la aplicación (desde el Modelo y la Vista)
+      * y lo persiste en el archivo de configuración (`config.cfg`) utilizando el
+      * servicio ConfigurationManager.
+      *
+      * Este método se llama típicamente desde el ShutdownHook para asegurar que
+      * el último estado se guarda al cerrar la aplicación.
+      *
+      * Incluye:
+      * - Última carpeta e imagen vistas.
+      * - Configuración de carga de subcarpetas.
+      * - Parámetros de la barra de miniaturas.
+      * - Estado de activación del zoom manual y mantener proporciones.
+      * - Estado de visibilidad y habilitación de botones y menús.
+      * - Nombre del tema actual.
+      * - (Implícitamente, guarda también el estado de la ventana si fue actualizado
+      *   en el ConfigurationManager antes de llamar a este método).
+      */
+     private void guardarConfiguracionActual() { //weno
+         // 1. Validar dependencias críticas (Config, Vista, Modelo)
+         if (configuration == null || view == null || model == null) {
+             System.err.println("ERROR [guardarConfiguracionActual]: Configuración, Vista o Modelo nulos. No se puede guardar.");
+             // Salir si falta algo esencial para recopilar el estado.
+             return;
+         }
+         System.out.println("  [ShutdownHook] Recopilando estado actual para guardar...");
+
+         // 2. Obtener un mapa con la configuración actual en memoria
+         //    Esto sirve como base, y actualizaremos los valores que dependen
+         //    del estado actual de la UI o el modelo.
+         Map<String, String> estadoActualParaGuardar = configuration.getConfigMap();
+
+         // 3. Actualizar el mapa con valores del Modelo
+         try {
+             
+        	 // 3.1. Última carpeta: Ya debería estar actualizada en 'configuration' si se usó el selector.
+             //      Podríamos reconfirmar: estadoActualParaGuardar.put("inicio.carpeta", configuration.getString("inicio.carpeta", ""));
+             
+        	 // 3.2. Última imagen seleccionada
+             estadoActualParaGuardar.put("inicio.imagen", model.getSelectedImageKey() != null ? model.getSelectedImageKey() : "");
+             
+             // 3.3. Modo subcarpetas
+             estadoActualParaGuardar.put("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(!model.isMostrarSoloCarpetaActual()));
+             
+             // 3.4. Configuración de miniaturas (si se pudieran cambiar)
+             estadoActualParaGuardar.put("miniaturas.cantidad.antes", String.valueOf(model.getMiniaturasAntes()));
+             estadoActualParaGuardar.put("miniaturas.cantidad.despues", String.valueOf(model.getMiniaturasDespues()));
+             estadoActualParaGuardar.put("miniaturas.tamano.seleccionada.ancho", String.valueOf(model.getMiniaturaSelAncho()));
+             estadoActualParaGuardar.put("miniaturas.tamano.seleccionada.alto", String.valueOf(model.getMiniaturaSelAlto()));
+             estadoActualParaGuardar.put("miniaturas.tamano.normal.ancho", String.valueOf(model.getMiniaturaNormAncho()));
+             estadoActualParaGuardar.put("miniaturas.tamano.normal.alto", String.valueOf(model.getMiniaturaNormAlto()));
+             
+             // 3.5. Estado de toggles (leer desde la Action asociada es más fiable que desde el modelo)
+              if (toggleZoomManualAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", String.valueOf(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY))));
+              if (toggleProporcionesAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.Mantener_Proporciones.seleccionado", String.valueOf(Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY))));
+              // Estado subcarpetas (ya se guarda arriba desde el modelo, pero reconfirmar desde Action no hace daño)
+              // if (toggleSubfoldersAction != null) estadoActualParaGuardar.put("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY))));
+
+              // System.out.println("    -> Estado del Modelo recopilado."); // Log opcional
+         } catch (Exception e) { System.err.println("ERROR recopilando estado del Modelo: " + e.getMessage()); }
+
+         // 4. Actualizar el mapa con el estado de la Vista (Enabled/Visible/Selected)
+         try {
+             
+        	 // 4.1. Estado de Botones
+             Map<String, JButton> botones = view.getBotonesPorNombre();
+             if (botones != null) {
+                 botones.forEach((claveLarga, boton) -> {
+                     estadoActualParaGuardar.put(claveLarga + ".activado", String.valueOf(boton.isEnabled()));
+                     estadoActualParaGuardar.put(claveLarga + ".visible", String.valueOf(boton.isVisible()));
+                 });
+                 // System.out.println("    -> Estado de Botones recopilado."); // Log opcional
+             } else { System.err.println("WARN [guardarConfig]: Mapa de botones nulo."); }
+
+             // 4.2. Estado de Menús (solo items finales)
+             Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
+             if (menuItems != null) {
+                 menuItems.forEach((claveLarga, item) -> {
+                     if (!(item instanceof JMenu)) { // Ignorar menús contenedores
+                         estadoActualParaGuardar.put(claveLarga + ".activado", String.valueOf(item.isEnabled()));
+                         estadoActualParaGuardar.put(claveLarga + ".visible", String.valueOf(item.isVisible()));
+                         // Guardar estado seleccionado para checkboxes y radios
+                         if (item instanceof JCheckBoxMenuItem) estadoActualParaGuardar.put(claveLarga + ".seleccionado", String.valueOf(((JCheckBoxMenuItem) item).isSelected()));
+                         else if (item instanceof JRadioButtonMenuItem) estadoActualParaGuardar.put(claveLarga + ".seleccionado", String.valueOf(((JRadioButtonMenuItem) item).isSelected()));
+                     }
+                 });
+                  // System.out.println("    -> Estado de Menús recopilado."); // Log opcional
+             } else { System.err.println("WARN [guardarConfig]: Mapa de menús nulo."); }
+         } catch (Exception e) { System.err.println("ERROR recopilando estado de la Vista: " + e.getMessage()); }
+
+         // 5. Asegurar que el nombre del tema es el correcto
+         //    Obtenerlo directamente de ConfigurationManager, que a su vez lo tiene del ThemeManager.
+         String temaActualConfirmado = configuration.getTemaActual();
+         estadoActualParaGuardar.put(ConfigurationManager.KEY_TEMA_NOMBRE, temaActualConfirmado);
+         System.out.println("    -> Estado recopilado completo. Tema a guardar: '" + temaActualConfirmado + "'");
+
+         // 6. Llamar al ConfigurationManager para guardar el mapa en el archivo
+         try {
+             System.out.println("    -> Llamando a configuration.guardarConfiguracion con " + estadoActualParaGuardar.size() + " claves...");
+             configuration.guardarConfiguracion(estadoActualParaGuardar); // Pasa el mapa completo
+             System.out.println("  [ShutdownHook] Configuración actual guardada exitosamente."); // Mensaje de éxito final
+         } catch (IOException e) {
+             // Error específico de IO durante el guardado
+             System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN EN SHUTDOWN HOOK (IOException): " + e.getMessage() + " ###");
+             e.printStackTrace();
+         } catch (Exception e) {
+              // Otros errores inesperados durante el guardado
+              System.err.println("### ERROR INESPERADO AL GUARDAR CONFIGURACIÓN EN SHUTDOWN HOOK: " + e.getMessage() + " ###");
+              e.printStackTrace();
+         }
+         System.out.println("  [ShutdownHook] Fin guardarConfiguracionActual.");
+
+     } // --- FIN guardarConfiguracionActual ---
+     
+     
+     /** Método helper para errores fatales. */
+     private void handleFatalError(String message, Throwable cause) {
+         System.err.println("FATAL: " + message);
+         if (cause != null) cause.printStackTrace();
+         JOptionPane.showMessageDialog(null, message + (cause != null ? "\n" + cause.getMessage() : ""), "Error Fatal", JOptionPane.ERROR_MESSAGE);
+         System.exit(1);
+     }
+     
+     
+     /** Método helper para establecer carpeta raíz desde config. */
+      private void establecerCarpetaRaizDesdeConfig() {
+          String folderInitPath = configuration.getString("inicio.carpeta", "");
+          if (!folderInitPath.isEmpty()) 
+          { 
+        	  try { 
+        		  Path p = Paths.get(folderInitPath); 
+        		  if(Files.isDirectory(p)) this.carpetaRaizActual=p; 
+        	  } catch (Exception e) { 
+        		  /*ignorar*/ 
+        	  } 
+          }
+      }
+
+
+	/**
+	 * Calcula el rango de miniaturas a mostrar basándose en la selección principal,
+	 * reconstruye el modelo de datos específico para la JList de miniaturas
+	 * (`this.modeloMiniaturas`), y actualiza la vista (JList) en el EDT para
+	 * reflejar el nuevo rango y seleccionar el elemento correcto. Utiliza un modelo
+	 * temporal para evitar modificar el modelo en uso por la JList directamente,
+	 * previniendo así eventos de deselección inesperados. También pre-calienta el
+	 * caché para las miniaturas del nuevo rango.
+	 *
+	 * @param indiceSeleccionadoPrincipal Índice (0-based) en el modelo PRINCIPAL
+	 *                                    (`model.getModeloLista()`).
+	 */
+      
+	public void actualizarModeloYVistaMiniaturas (int indiceSeleccionadoPrincipal)
+	{
+
+		// --- 1. VALIDACIONES INICIALES Y PREPARACIÓN ---
+		// 1.1. Log de inicio
+		System.out.println("\n--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: "
+				+ indiceSeleccionadoPrincipal);
+
+		// 1.2. Validar dependencias críticas (Modelo, Vista, Lista de Miniaturas,
+		// Coordinador)
+		if (model == null || model.getModeloLista() == null || view == null || view.getListaMiniaturas() == null
+				|| listCoordinator == null)
+		{
+			System.err.println(
+					"WARN [actualizarMiniaturas]: Dependencias nulas (Modelo, Vista, ListaMiniaturas o Coordinator). Abortando.");
+			return; // Salir si falta algo esencial
+		}
+		// 1.3. Obtener modelo principal y su tamaño
+		DefaultListModel<String> modeloPrincipal = model.getModeloLista();
+		int totalPrincipal = modeloPrincipal.getSize();
+		System.out.println("  [actualizarMiniaturas] Tamaño modeloPrincipal: " + totalPrincipal);
+
+		// 1.4. Crear un NUEVO DefaultListModel temporal para las miniaturas
+		// Esto evita modificar el modelo actualmente en uso por la JList.
+		DefaultListModel<String> nuevoModeloMiniaturasTemp = new DefaultListModel<>();
+		// 1.5. Inicializar índice relativo (al modelo temporal)
+		int indiceSeleccionadoEnModeloMiniatura = -1;
+
+		// 1.6. Manejar caso de lista principal vacía o índice inválido
+		if (totalPrincipal == 0 || indiceSeleccionadoPrincipal < 0 || indiceSeleccionadoPrincipal >= totalPrincipal)
+		{
+			System.out.println("  [actualizarMiniaturas] Índice inválido o lista principal vacía. Saliendo.");
+
+			// Asegurar que la JList de miniaturas esté vacía si no lo estaba
+			if (view.getListaMiniaturas().getModel().getSize() != 0)
+			{
+				// Programar la actualización en el EDT para asignar el modelo temporal vacío
+				final DefaultListModel<String> modeloVacio = nuevoModeloMiniaturasTemp; // Referencia final
+				SwingUtilities.invokeLater( () -> {
+
+					if (view != null && view.getListaMiniaturas() != null)
+					{
+						// Usar el flag para proteger la asignación del modelo vacío
+						listCoordinator.setSincronizandoUI(true);
+
+						try
+						{
+							System.out.println(
+									"  -> [actualizarMiniaturas] Estableciendo modelo vacío en JList Miniaturas.");
+							view.setModeloListaMiniaturas(modeloVacio);
+						} finally
+						{
+							SwingUtilities.invokeLater( () -> {
+								if (listCoordinator != null)
+									listCoordinator.setSincronizandoUI(false);
+							});
+						}
+					}
+				});
+			}
+
+			// Limpiar selección visual por si acaso
+			if (view.getListaMiniaturas().getSelectedIndex() != -1)
+			{
+				view.getListaMiniaturas().clearSelection();
+			}
+			System.out.println("--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---");
+			return; // Salir del método
+		}
+
+		// --- 2. CALCULAR RANGO DE MINIATURAS ---
+		// 2.1. Obtener configuración de cuántas mostrar antes/después
+		int miniAntes = model.getMiniaturasAntes();
+		int miniDespues = model.getMiniaturasDespues();
+		
+		//LOG dynamicLog
+		StringUtils.dynamicLog("** actualizarModeloYVistaMiniaturas **", 
+				"miniAntes", miniAntes,
+				"miniDespues", miniDespues
+				);
+		
+		System.out.println("\n  [actualizarMiniaturas] Valores para rango: miniAntes=" + miniAntes + ", miniDespues=" + miniDespues);
+		// 2.2. Calcular límites del rango [inicio..fin], ajustados a los límites del
+		// modelo principal [0..totalPrincipal-1]
+		int inicioRango = Math.max(0, indiceSeleccionadoPrincipal - miniAntes);
+		int finRango = Math.min(totalPrincipal - 1, indiceSeleccionadoPrincipal + miniDespues);
+		System.out.println("  [actualizarMiniaturas] Rango calculado: [" + inicioRango + ".." + finRango + "]\n");
+
+		// --- 3. RECONSTRUIR MODELO TEMPORAL DE MINIATURAS ---
+		// 3.1. Preparar lista de rutas para precalentamiento
+		List<Path> rutasEnRango = new ArrayList<>();
+		System.out.println("  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...");
+
+		// 3.2. Iterar sobre los índices del modelo principal que caen en el rango
+		for (int i = inicioRango; i <= finRango; i++)
+		{
+			// 3.2.1. Obtener clave del modelo principal
+			String clave = modeloPrincipal.getElementAt(i);
+			// 3.2.2. Añadir clave al modelo TEMPORAL
+			nuevoModeloMiniaturasTemp.addElement(clave);
+			// 3.2.3. Añadir ruta a la lista para precalentar (si existe)
+			Path ruta = model.getRutaCompleta(clave);
+
+			if (ruta != null)
+			{
+				rutasEnRango.add(ruta);
+			}
+
+			// 3.2.4. Calcular el índice RELATIVO si esta es la imagen seleccionada
+			// principal
+			if (i == indiceSeleccionadoPrincipal)
+			{
+				// El índice relativo es el tamaño actual del modelo temporal menos 1
+				indiceSeleccionadoEnModeloMiniatura = i- inicioRango;//nuevoModeloMiniaturasTemp.getSize() - 1;
+			}
+		}
+		// 3.3. Log del resultado del llenado
+		System.out.println("  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: "
+				+ nuevoModeloMiniaturasTemp.getSize() + ". Índice relativo calculado: "
+				+ indiceSeleccionadoEnModeloMiniatura);
+
+		// --- 4. PRE-CALENTAR CACHÉ DE MINIATURAS (ASÍNCRONO) ---
+		// 4.1. Llamar al método que envía las tareas de caché al ExecutorService
+		precalentarCacheMiniaturasAsync(rutasEnRango);
+
+		// --- 5. ACTUALIZAR LA VISTA (JLIST MINIATURAS) EN EL EVENT DISPATCH THREAD
+		
+		// (EDT) ---
+		// 5.1. Preparar variables finales para usar dentro de la lambda de invokeLater
+		final DefaultListModel<String> finalNuevoModelo = nuevoModeloMiniaturasTemp; // El modelo TEMPORAL reconstruido
+		final int finalIndiceRelativo = indiceSeleccionadoEnModeloMiniatura; // El índice relativo calculado
+		
+		// 5.2. Log antes de programar la actualización
+		System.out.println("  [actualizarMiniaturas] Programando actualización de UI en EDT...");
+
+		SwingUtilities.invokeLater( () -> { // Inicio de la lambda que se ejecuta en el EDT
+		
+			// 5.3. Log de inicio y re-validación de dependencias DENTRO del EDT
+			System.out.println("   -> [EDT Miniaturas] Ejecutando actualización UI...");
+
+			if (view == null || view.getListaMiniaturas() == null || listCoordinator == null)
+			{
+				System.err.println("ERROR [actualizarMiniaturas EDT]: Dependencias nulas en invokeLater.");
+				return; // Salir si faltan componentes esenciales
+			}
+
+			// 5.4. *** MANEJO DEL FLAG SINCRONIZANDO UI ***
+			// Activar el flag ANTES de modificar la JList (setModel o setSelectedIndex)
+			// y desactivarlo DESPUÉS en un finally con invokeLater anidado.
+			
+			// ----- INICIO BLOQUE PROTEGIDO POR FLAG -----
+			listCoordinator.setSincronizandoUI(true); // <-- ACTIVAR FLAG
+			System.out.println("   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.");
+
+			try
+			{ // Usar try-finally para garantizar la desactivación del flag
+
+				// 5.5. ASIGNAR EL NUEVO MODELO (TEMPORAL) A LA JLIST
+				// Esta operación reemplaza el modelo anterior de la JList.
+				boolean modeloCambiado = false; // Flag local para seguimiento
+				// Comprobar si el modelo que tiene la JList es diferente al nuevo
+
+				if (view.getListaMiniaturas().getModel() != finalNuevoModelo)
+				{
+					System.out.println("   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: "
+							+ finalNuevoModelo.getSize() + ")");
+					view.setModeloListaMiniaturas(finalNuevoModelo); // Asigna el modelo reconstruido
+					modeloCambiado = true;
+				} else
+				{
+					// Esto sería raro si usamos un modelo temporal nuevo cada vez
+					System.out.println("   -> [EDT Miniaturas] El modelo ya era el correcto (¿inesperado?).");
+				}
+
+				// 5.6. SELECCIONAR EL ÍNDICE RELATIVO CALCULADO EN LA JLIST
+				// Solo si el índice es válido.
+				if (finalIndiceRelativo >= 0 && finalIndiceRelativo < finalNuevoModelo.getSize())
+				{
+
+					// Comprobar si la selección actual es diferente O si acabamos de cambiar el
+					// modelo
+					if (modeloCambiado || view.getListaMiniaturas().getSelectedIndex() != finalIndiceRelativo)
+					{
+						System.out.println(
+								"   -> [EDT Miniaturas] Llamando a setSelectedIndex(" + finalIndiceRelativo + ")");
+						view.getListaMiniaturas().setSelectedIndex(finalIndiceRelativo); // Establece la selección
+																							// visual
+					} else
+					{
+						System.out.println("   -> [EDT Miniaturas] Índice relativo " + finalIndiceRelativo
+								+ " ya estaba seleccionado.");
+					}
+
+					// 5.7. ASEGURAR VISIBILIDAD DEL ÍNDICE SELECCIONADO
+					// Se hace en un invokeLater anidado para darle tiempo a la UI a procesar la
+					// selección.
+					final int indexToEnsure = finalIndiceRelativo;
+					SwingUtilities.invokeLater( () -> { // Inicio invokeLater anidado para visibilidad
+						// Re-validar componentes necesarios
+
+						if (view != null && view.getListaMiniaturas() != null && view.getScrollListaMiniaturas() != null
+								&& view.getScrollListaMiniaturas().isVisible())
+						{
+
+							// Re-validar índice contra el modelo actual de la JList
+							if (indexToEnsure >= 0 && indexToEnsure < view.getListaMiniaturas().getModel().getSize())
+							{
+								System.out
+										.println("     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible("
+												+ indexToEnsure + ")");
+
+								try
+								{
+									view.getListaMiniaturas().ensureIndexIsVisible(indexToEnsure); // Hace scroll si es
+																									// necesario
+								} catch (Exception ex)
+								{
+									System.err.println("Error ensureVis(M):" + ex.getMessage());
+								}
+							} else
+							{
+								System.out.println(
+										"WARN [EDT Visibilidad]: Índice relativo fuera de rango al asegurar visibilidad: "
+												+ indexToEnsure);
+							}
+						}
+					}); // Fin invokeLater anidado para visibilidad
+
+				} else
+				{ // El índice relativo calculado no era válido
+					// Deseleccionar si había algo seleccionado en la JList
+
+					if (view.getListaMiniaturas().getSelectedIndex() != -1)
+					{
+						view.getListaMiniaturas().clearSelection();
+					}
+					System.err.println(
+							"WARN [actualizarMiniaturas EDT]: Índice relativo inválido al intentar seleccionar: "
+									+ finalIndiceRelativo);
+				}
+
+				// 5.8. RE-PINTAR LA JLIST (Asegura actualización visual)
+				System.out.println("   -> [EDT Miniaturas] Llamando a repaint()");
+				view.getListaMiniaturas().repaint();
+
+			} finally
+			{
+				// 5.9. DESACTIVAR EL FLAG (Siempre, y en otro invokeLater para seguridad)
+				SwingUtilities.invokeLater( () -> {
+
+					if (listCoordinator != null)
+					{ // Re-chequear por si acaso
+						listCoordinator.setSincronizandoUI(false); // El setter tiene log interno
+					}
+					
+				}); // Fin invokeLater para desactivar flag
+			} // ----- FIN BLOQUE PROTEGIDO POR FLAG -----
+
+			// 5.10. Log final de la ejecución en EDT
+			System.out.println("   -> [EDT Miniaturas] FIN Ejecución actualización UI.");
+			
+		}); // Fin invokeLater principal
+
+		// --- 6. Log Final del Método ---
+		System.out.println("--- FIN actualizarModeloYVistaMiniaturas ---");
+
+	} // --- FIN actualizarModeloYVistaMiniaturas ---      
+      
+
+	  public DefaultListModel<String> getModeloMiniaturas ()
+	  {
+      
+		return modeloMiniaturas;
+      
+	  }
+
+
+	  public void setModeloMiniaturas (DefaultListModel<String> modeloMiniaturas)
+	  {
+      
+		this.modeloMiniaturas = modeloMiniaturas;
+      
+	  }
+      
+	  
+	  // Delegados de movimiento
+	  
+	// En VisorController.java
+	  public void navegarSiguienteViaCoordinador() {
+	      if (listCoordinator != null) {
+	          listCoordinator.seleccionarSiguiente();
+	      }
+	  }
+	  public void navegarAnteriorViaCoordinador() {
+	      if (listCoordinator != null) {
+	          listCoordinator.seleccionarAnterior();
+	      }
+	  }
+	  public void navegarPrimeroViaCoordinador() {
+	      if (listCoordinator != null) {
+	          listCoordinator.seleccionarPrimero();
+	      }
+	  }
+	  public void navegarUltimoViaCoordinador() {
+	      if (listCoordinator != null) {
+	          listCoordinator.seleccionarUltimo();
+	      }
+	  }
+      
+
+} // --- FIN CLASE VisorController ---
+
+/*
+NOTAS A CONSIDERAR
+
+limpiarUI y Deshabilitar Actions: En el método limpiarUI (punto 3.6), estás deshabilitando manualmente algunas acciones (previousImageAction, nextImageAction, etc.). Esto está bien, pero asegúrate de que también las vuelves a habilitar cuando la lista sí tiene elementos (probablemente después de una carga exitosa en el listener done de cargarListaImagenes). Una forma más robusta es que las propias clases Action (como NextImageAction, PreviousImageAction) implementen su lógica isEnabled() basándose en el estado actual del modelo o del coordinador (ej., listCoordinator.puedeNavegarSiguiente()), así no tienes que habilitarlas/deshabilitarlas manualmente desde tantos sitios.
+
+navegarAIndice vs. ListCoordinator: El método navegarAIndice en VisorController llama directamente a view.getListaNombres().setSelectedIndex(index). Aunque esto dispara el listener correcto que a su vez llama al ListCoordinator, podría ser conceptualmente más limpio que navegarAIndice simplemente llame a listCoordinator.seleccionarIndiceYActualizarUICompleta_Helper(index). De esta forma, toda la lógica de selección pasa siempre por el coordinador. No es un error grave como está, pero es una posible mejora de coherencia.
+
+navegarImagen: Similar a navegarAIndice, este método también manipula setSelectedIndex directamente. Podría delegar el cálculo del índice siguiente/anterior y la llamada al ListCoordinator (ej. listCoordinator.seleccionarSiguiente()). Esto haría que los métodos de navegación por botones/menú (que usan las Actions que llaman al ListCoordinator) y este método (si se usa desde otro sitio) sean más consistentes. Edición: Veo que las Actions de navegación ya llaman a los métodos del ListCoordinator, así que quizás navegarImagen ya no se usa o es un remanente. Si no se usa, podrías eliminarlo.
+
+parseColor y crearPlaceholderMiniatura: Son métodos private. Si solo se usan dentro de VisorController, está perfecto. Si alguna vez los necesitaras en otra clase (poco probable para estos), tendrías que moverlos a una clase de utilidad.
+
+Logs de Depuración: Aún quedan bastantes System.out.println detallados (como los de los listeners o dentro de actualizarModeloYVistaMiniaturas). Evalúa cuáles son realmente útiles para monitorizar el flujo normal y cuáles eran específicos de la depuración del problema anterior y podrían eliminarse o comentarse para reducir el "ruido" en la consola.
+
+*/
 
 

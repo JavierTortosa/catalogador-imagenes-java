@@ -1,65 +1,105 @@
-package controlador.actions.navegacion;
+package controlador.actions.navegacion; // Asumiendo este paquete
 
-// --- TEXTO MODIFICADO ---
-// Ya no necesitas Image aquí
-// import java.awt.Image;
 import java.awt.event.ActionEvent;
-
-import javax.swing.Action;
+import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils; // <-- Importar IconUtils
-// --- FIN MODIFICACION ---
+import controlador.ListCoordinator; // Asegúrate que el import sea correcto
+import vista.util.IconUtils;     // Asegúrate que el import sea correcto
 
-public class FirstImageAction extends BaseVisorAction
-{
+/**
+ * Acción Swing para navegar a la primera imagen de la lista.
+ * Esta acción se asocia típicamente a un botón de la barra de herramientas
+ * y/o a un elemento del menú.
+ * Al ejecutarse, delega la lógica de navegación al ListCoordinator.
+ */
+public class FirstImageAction extends AbstractAction {
 
-    private static final long serialVersionUID = 1L;
-    // Opcional: guardar iconUtils si lo necesitas fuera
-    // private IconUtils iconUtils;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 
-    // --- TEXTO MODIFICADO: Constructor CORRECTO ---
-    public FirstImageAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        // Llama al constructor de la superclase (ajusta si es diferente)
-        super("Primera Imagen", controller);
+	/** Constante para la clave del Action Command (puede usarse en ActionListener centralizado si fuera necesario). */
+    public static final String COMMAND_KEY = "Primera_Imagen"; // O "Navegar_Primero" o similar
 
-        // Guarda referencias si es necesario
-        // this.iconUtils = iconUtils;
+    /** Referencia al coordinador de listas que maneja la lógica de selección/navegación. */
+    private final ListCoordinator listCoordinator;
 
-        // Establece descripción (tooltip)
-        putValue(Action.SHORT_DESCRIPTION, "Ir a la primera imagen");
-
-        // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
-        // Llama a getScaledIcon pasando el nombre del archivo y los tamaños recibidos
-        ImageIcon icon = iconUtils.getScaledIcon("1001-Primera_48x48.png", width, height);
-
-        // Verifica si se cargó y asigna
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-             // System.out.println("  -> Icono para NextImageAction cargado y asignado vía IconUtils."); // Opcional
-        } else {
-            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '1003-Siguiente_48x48.png' usando IconUtils.");
-            // Opcional: texto de fallback
-            // putValue(Action.NAME, "->");
+    /**
+     * Constructor de la acción.
+     *
+     * @param listCoordinator La instancia del coordinador de listas. Debe ser no nula.
+     * @param iconUtils La utilidad para cargar iconos. Debe ser no nula.
+     * @param iconoAncho El ancho deseado para el icono.
+     * @param iconoAlto El alto deseado para el icono (o <= 0 para mantener proporción).
+     */
+    public FirstImageAction(ListCoordinator listCoordinator, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
+        // --- 1. VALIDACIÓN DE PARÁMETROS ---
+        if (listCoordinator == null) {
+            throw new IllegalArgumentException("ListCoordinator no puede ser null para FirstImageAction");
         }
-        // --- FIN DE LA PARTE IMPORTANTE ---
-    }
-    // --- FIN CONSTRUCTOR MODIFICADO ---
+        if (iconUtils == null) {
+            throw new IllegalArgumentException("IconUtils no puede ser null para FirstImageAction");
+        }
+        this.listCoordinator = listCoordinator;
 
+        // --- 2. CONFIGURACIÓN DE PROPIEDADES DE LA ACCIÓN ---
+        // 2.1. Nombre (Texto que podría aparecer en menús o botones si no hay icono)
+        putValue(NAME, "Primera Imagen"); // Texto descriptivo
+
+        // 2.2. Descripción Corta (Tooltip)
+        putValue(SHORT_DESCRIPTION, "Ir a la primera imagen de la lista");
+
+        // 2.3. Icono
+        //      Cargar el icono usando IconUtils y las dimensiones proporcionadas.
+        //      El nombre del archivo debe coincidir con el recurso.
+        ImageIcon icono = iconUtils.getScaledIcon("1001-Primera_48x48.png", iconoAncho, iconoAlto);
+        if (icono != null) {
+            putValue(SMALL_ICON, icono);
+        } else {
+            // Si el icono no se carga, poner un texto alternativo en el botón/menú
+             System.err.println("WARN [FirstImageAction]: No se pudo cargar el icono '1001-Primera_48x48.png'");
+             // putValue(NAME, ">|"); // Texto corto alternativo si no hay icono
+        }
+
+        // 2.4. Action Command Key (Identificador único para la acción)
+        putValue(ACTION_COMMAND_KEY, COMMAND_KEY);
+
+        // 2.5. Estado inicial (Habilitada por defecto, se podría deshabilitar si la lista está vacía inicialmente)
+        //      La lógica para habilitar/deshabilitar según el estado de la lista
+        //      generalmente se maneja fuera de la acción (en el Controller al actualizar la lista).
+        // setEnabled(false); // Ejemplo: deshabilitar inicialmente
+    }
+
+    /**
+     * Método que se ejecuta cuando se activa la acción (clic en botón o menú).
+     * Delega la llamada al método correspondiente del ListCoordinator.
+     *
+     * @param e El evento de acción generado.
+     */
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Loguear
-        if (controller != null) {
-            controller.logActionInfo(e);
-        }
+        // --- 1. LOG INICIAL ---
+        //     (Añadir logs como te sugerí en la respuesta anterior)
+        System.out.println(">>> FirstImageAction: actionPerformed INICIO");
 
-        // Acción
-        if (controller != null) {
-            controller.navegarAIndice(0);
+        // --- 2. VALIDAR COORDINADOR ---
+        //     (Aunque se valida en el constructor, una comprobación extra puede ser útil)
+        if (listCoordinator != null) {
+            // --- 3. DELEGAR AL COORDINADOR ---
+            //     Llamar al método específico para ir al primer elemento.
+            System.out.println("    -> Llamando a listCoordinator.seleccionarPrimero()...");
+            listCoordinator.seleccionarPrimero();
+            System.out.println("    -> Llamada a listCoordinator completada.");
         } else {
-             System.err.println("Error: Controller es null en FirstImageAction");
+            // --- 4. MANEJAR ERROR (COORDINADOR NULO) ---
+             System.err.println("ERROR CRÍTICO: listCoordinator es null en FirstImageAction.actionPerformed!");
+             // Aquí podrías mostrar un mensaje de error al usuario si lo consideras necesario.
+             // JOptionPane.showMessageDialog(null, "Error interno: No se puede navegar.", "Error", JOptionPane.ERROR_MESSAGE);
         }
+        // --- 5. LOG FINAL ---
+        System.out.println(">>> FirstImageAction: actionPerformed FIN");
     }
-}
+
+} // --- FIN CLASE FirstImageAction ---

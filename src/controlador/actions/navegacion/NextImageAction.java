@@ -1,63 +1,51 @@
-package controlador.actions.navegacion;
+package controlador.actions.navegacion; // Asegúrate que el paquete sea correcto
 
-// --- TEXTO MODIFICADO ---
-// Ya no necesitas Image aquí
-// import java.awt.Image;
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils; // <-- Importar IconUtils
-// --- FIN MODIFICACION ---
+// import javax.swing.KeyStroke; // Descomentar si usas atajos
+// import java.awt.event.KeyEvent; // Descomentar si usas atajos
 
-public class NextImageAction extends BaseVisorAction
-{
+import controlador.ListCoordinator; // Importar el Coordinador
+import vista.util.IconUtils;      // Importar IconUtils
 
-    private static final long serialVersionUID = 1L;
-    // Opcional: guardar iconUtils si lo necesitas fuera
-    // private IconUtils iconUtils;
+public class NextImageAction extends AbstractAction {
 
-    // --- TEXTO MODIFICADO: Constructor CORRECTO ---
-    public NextImageAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        // Llama al constructor de la superclase (ajusta si es diferente)
-        super("Siguiente", controller);
+    private static final long serialVersionUID = 1L; // Considera actualizar si cambias campos
+    private final ListCoordinator coordinator; // Referencia al Coordinador
+    private final IconUtils iconUtils;         // Para el icono
 
-        // Guarda referencias si es necesario
-        // this.iconUtils = iconUtils;
+    /**
+     * Constructor para la acción de ir a la imagen siguiente.
+     * @param coordinator El ListCoordinator que maneja la navegación.
+     * @param iconUtils La utilidad para cargar iconos.
+     * @param iconoAncho Ancho deseado para el icono.
+     * @param iconoAlto Alto deseado para el icono.
+     */
+    public NextImageAction(ListCoordinator coordinator, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
+        // Nombre visible de la acción (puede usarse en menús si no se pone texto explícito)
+        super("Imagen Siguiente");
 
-        // Establece descripción (tooltip)
-        putValue(Action.SHORT_DESCRIPTION, "Ir a la siguiente imagen");
+        // Guardar referencias (validando nulls)
+        this.coordinator = Objects.requireNonNull(coordinator, "ListCoordinator no puede ser null");
+        this.iconUtils = Objects.requireNonNull(iconUtils, "IconUtils no puede ser null");
 
-        // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
-        // Llama a getScaledIcon pasando el nombre del archivo y los tamaños recibidos
-        ImageIcon icon = iconUtils.getScaledIcon("1003-Siguiente_48x48.png", width, height);
+        // Configurar propiedades de la Action
+        putValue(Action.SHORT_DESCRIPTION, "Ir a la imagen siguiente"); // Tooltip
 
-        // Verifica si se cargó y asigna
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-             // System.out.println("  -> Icono para NextImageAction cargado y asignado vía IconUtils."); // Opcional
-        } else {
-            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '1003-Siguiente_48x48.png' usando IconUtils.");
-            // Opcional: texto de fallback
-            // putValue(Action.NAME, "->");
-        }
-        // --- FIN DE LA PARTE IMPORTANTE ---
+        // Cargar y asignar icono (usando IconUtils)
+        putValue(Action.SMALL_ICON, iconUtils.getScaledIcon("1003-Siguiente_48x48.png", iconoAncho, iconoAlto));
+
+        // Asignar atajo de teclado (opcional)
+        // putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT, 0)); // Flecha derecha
+        // putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_DOWN, 0)); // Av Pág
     }
-    // --- FIN CONSTRUCTOR MODIFICADO ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Loguear
-        if (controller != null) {
-            controller.logActionInfo(e);
-        }
-
-        // Acción
-        if (controller != null) {
-            controller.navegarImagen(1);
-        } else {
-             System.err.println("Error: Controller es null en NextImageAction");
-        }
+        System.out.println("Acción: Imagen Siguiente -> Llamando coordinator.seleccionarSiguiente()");
+        // Delegar la acción al método correspondiente del ListCoordinator
+        coordinator.seleccionarSiguiente();
     }
 }
