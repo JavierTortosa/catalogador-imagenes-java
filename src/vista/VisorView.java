@@ -133,6 +133,23 @@ public class VisorView extends JFrame
 		System.out.println("  [Constructor] Configuración básica JFrame completada.");
 
 		// 4. Obtener referencia inicial al modelo (Controller lo actualizará después)
+		
+        this.modeloLista = modelo.getModeloLista(); // Asignar PRIMERO
+        System.out.println(
+                "  [Constructor] Modelo obtenido del VisorModel (Tamaño inicial: "
+                + (this.modeloLista != null ? this.modeloLista.getSize() : "NULL") + ")");
+
+        // 4.1 Verificación REAL (opcional, pero buena práctica)
+        if (this.modeloLista == null) {
+            // Esto solo debería ocurrir si modelo.getModeloLista() devuelve null,
+            // lo cual indicaría un problema en VisorModel.
+            System.err.println(
+                    "ERROR CRÍTICO [VisorView Constructor]: VisorModel.getModeloLista() devolvió null. Creando uno vacío.");
+            this.modeloLista = new DefaultListModel<>(); // Fallback REAL
+        }
+		
+		
+/*		
 		// this.modeloLista = modelo.getModeloLista();
 
 		DefaultListModel<String> modeloNombres = modelo.getModeloLista();
@@ -147,11 +164,14 @@ public class VisorView extends JFrame
 		}
 		System.out.println(
 				"  [Constructor] Referencia inicial al modelo obtenida (Tamaño: " + this.modeloLista.getSize() + ")");
+*/
+		
 
 		// 5. Crear e Inicializar TODOS los Componentes Internos
 		// Se pasan las referencias necesarias a este método.
 		System.out.println("  [Constructor] Llamando a inicializarComponentes...");
-		inicializarComponentes(modelo, servicioThumbs, modeloNombres); // Pasar referencias necesarias
+		inicializarComponentes(modelo, servicioThumbs, this.modeloLista);
+//		inicializarComponentes(modelo, servicioThumbs, modeloNombres); // Pasar referencias necesarias
 		System.out.println("  [Constructor] Componentes internos inicializados.");
 
 		// 6. Restaurar Estado de la Ventana (Tamaño/Posición/Maximizado)

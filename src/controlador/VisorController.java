@@ -153,6 +153,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private List<Action> themeActions;
     private Action toggleSubfoldersAction, toggleProporcionesAction;
     private Map<String, Action> actionMap;
+    private Action listaDeFavoritosAction;
 
 
     /**
@@ -1370,6 +1371,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // --- SECCIÓN 2: Asignar Actions a Botones de la Barra de Herramientas ---
         // 2.1. Obtener el mapa de botones desde la vista (clave larga -> JButton).
         Map<String, JButton> botones = view.getBotonesPorNombre();
+        
         // 2.2. Comprobar si el mapa de botones existe y no está vacío.
         if (botones != null && !botones.isEmpty()) {
             System.out.println("    -> Asignando Actions a Botones...");
@@ -1383,10 +1385,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             // setActionForKey(botones, "interfaz.boton.toggle.Mostrar_Favoritos_48x48", mostrarFavoritosAction); // Ejemplo si existiera
 
             // 2.3.2. Botones de Control/Archivo
-            setActionForKey(botones, "interfaz.boton.control.Ubicacion_de_Archivo_48x48" , locateFileAction);
             setActionForKey(botones, "interfaz.boton.control.Refrescar_48x48", refreshAction); // Asumiendo que refreshAction existe
-            setActionForKey(botones, "interfaz.boton.control.lista_de_favoritos_48x48", null); // Ejemplo sin action aún
+            setActionForKey(botones, "interfaz.boton.control.lista_de_favoritos_48x48", listaDeFavoritosAction); // Ejemplo sin action aún
             setActionForKey(botones, "interfaz.boton.control.Borrar_48x48", deleteAction); // Asumiendo que deleteAction existe
+            setActionForKey(botones, "interfaz.boton.control.Ubicacion_de_Archivo_48x48" , locateFileAction);
 
             // 2.3.3. Botones de Movimiento (Ahora usan las Actions creadas en EDT)
             setActionForKey(botones, "interfaz.boton.movimiento.Primera_48x48", firstImageAction);
@@ -1445,7 +1447,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             // setActionForKey(menuItems, "interfaz.menu.archivo.Guardar", guardarAction); // Ejemplo
             // setActionForKey(menuItems, "interfaz.menu.archivo.Recargar_Lista_de_Imagenes", refreshAction); // Ejemplo
             // setActionForKey(menuItems, "interfaz.menu.archivo.Eliminar_Permanentemente", deleteAction); // Ejemplo
-            setActionForKey(menuItems, "interfaz.menu.archivo.Abrir_Ubicacion_del_Archivo", locateFileAction); // Si está aquí
+            setActionForKey(menuItems, "interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo", locateFileAction); // Si está aquí
             // ... otros items de Archivo con Actions ...
 
             // 3.3.2. Menú Navegación
@@ -5828,11 +5830,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 		int miniAntes = model.getMiniaturasAntes();
 		int miniDespues = model.getMiniaturasDespues();
 		
-		//LOG dynamicLog
-		StringUtils.dynamicLog("** actualizarModeloYVistaMiniaturas **", 
-				"miniAntes", miniAntes,
-				"miniDespues", miniDespues
-				);
+//		//LOG dynamicLog
+//		StringUtils.dynamicLog("** actualizarModeloYVistaMiniaturas **", 
+//				"miniAntes", miniAntes,
+//				"miniDespues", miniDespues
+//				);
 		
 		System.out.println("\n  [actualizarMiniaturas] Valores para rango: miniAntes=" + miniAntes + ", miniDespues=" + miniDespues);
 		// 2.2. Calcular límites del rango [inicio..fin], ajustados a los límites del

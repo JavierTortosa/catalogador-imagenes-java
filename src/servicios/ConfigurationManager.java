@@ -565,13 +565,15 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.archivo.Recargar_Lista_de_Imagenes.visible", "true");
 		defaults.put("interfaz.menu.archivo.Unload_Imagen.activado", "true");
 		defaults.put("interfaz.menu.archivo.Unload_Imagen.visible", "true");
-		defaults.put("interfaz.menu.archivo.Abrir_Ubicacion_del_Archivo.activado", "true");
-		defaults.put("interfaz.menu.archivo.Abrir_Ubicacion_del_Archivo.visible", "true");
+		
+		
 				
 		//-- Navegacion --
 		defaults.put("interfaz.menu.navegacion.Navegacion.activado", "true");
 		defaults.put("interfaz.menu.navegacion.Navegacion.visible", "true");
-
+		defaults.put("interfaz.menu.navegacion.Buscar.activado", "true");
+		defaults.put("interfaz.menu.navegacion.Buscar.visible", "true");
+				
 		defaults.put("interfaz.menu.navegacion.Imagen_Aterior.activado", "true");
 		defaults.put("interfaz.menu.navegacion.Imagen_Aterior.visible", "true");
 		defaults.put("interfaz.menu.navegacion.Imagen_Siguiente.activado", "true");
@@ -691,6 +693,9 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.imagen.Propiedades_de_la_imagen.activado", "true");
 		defaults.put("interfaz.menu.imagen.Propiedades_de_la_imagen.visible", "true");
 
+		defaults.put("interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo.activado", "true");
+		defaults.put("interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo", "true");
+		
 		//Vista
 		defaults.put("interfaz.menu.vista.Vista.activado", "true");
 		defaults.put("interfaz.menu.vista.Vista.visible", "true");

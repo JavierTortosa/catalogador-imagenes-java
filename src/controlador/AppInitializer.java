@@ -277,6 +277,24 @@ public class AppInitializer {
          try {
              view = new VisorView(panelHeight, configParaVista, model, thumbs);
              controller.setView(view); // Inyectar la vista en el controller
+             
+//             LOG [EDT] CONTENIDO REAL del mapa menuItemsPorNombre:
+//             -> KEY: 	'interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo' -> ITEM: 'Abrir Ubicacion del Archivo'
+//             			'interfaz.menu.archivo.Abrir_Ubicacion_del_Archivo'
+             
+             System.out.println("    -> [EDT] CONTENIDO REAL del mapa menuItemsPorNombre:");
+             if (view != null && view.getMenuItemsPorNombre() != null) {
+                 view.getMenuItemsPorNombre().forEach((key, item) -> {
+                     // Imprimir clave y el texto del item para identificarlo fácil
+                     String itemText = (item != null) ? item.getText() : "NULL_ITEM";
+                     System.out.println("      -> KEY: '" + key + "' -> ITEM: '" + itemText + "'");
+                 });
+             } else {
+                  System.out.println("      -> Vista o mapa de menús es null.");
+             }
+             System.out.println("    -> [EDT] FIN CONTENIDO MAPA");
+//             FIN DEL Log
+             
              System.out.println("    -> [EDT] VisorView instanciado.");
          } catch (Exception e) {
               manejarErrorFatalInicializacion("[EDT] Error creando VisorView", e);
