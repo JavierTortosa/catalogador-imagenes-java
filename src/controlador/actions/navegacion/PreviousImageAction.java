@@ -2,10 +2,9 @@ package controlador.actions.navegacion; // Asegúrate que el paquete sea correct
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-// import javax.swing.KeyStroke; // Descomentar si usas atajos
-// import java.awt.event.KeyEvent; // Descomentar si usas atajos
 
 import controlador.ListCoordinator; // Importar el Coordinador
 import vista.util.IconUtils;      // Importar IconUtils
@@ -35,7 +34,7 @@ public class PreviousImageAction extends AbstractAction {
 
         // Atajo de teclado (opcional)
         // putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_LEFT, 0)); // Flecha izquierda
-        // putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0)); // Re Pág
+        //putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_PAGE_UP, 0)); // Re Pág
     }
 
     @Override

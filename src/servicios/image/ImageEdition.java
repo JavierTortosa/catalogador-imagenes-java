@@ -3,7 +3,6 @@ package servicios.image; // O donde prefieras
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
-import java.awt.image.WritableRaster; // Para copiar canal alfa
 
 public class ImageEdition {
 

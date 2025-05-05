@@ -1,7 +1,6 @@
 package servicios.image;
 
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -10,6 +9,7 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 

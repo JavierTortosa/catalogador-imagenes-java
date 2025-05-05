@@ -495,7 +495,7 @@ public class VisorView extends JFrame
      *               y para leer la configuración de cantidad de miniaturas.
      * @param servicioThumbs El ThumbnailService, necesario para que el renderer cargue miniaturas.
      */
-    private void inicializarPanelImagenesMiniaturaNEWOLD(VisorModel modelo, ThumbnailService servicioThumbs) {
+    private void inicializarPanelImagenesMiniatura (VisorModel modelo, ThumbnailService servicioThumbs) {
         // --- SECCIÓN 1: Inicio y Log ---
         // 1.1. Imprimir log indicando el inicio de la inicialización.
         System.out.println("  [Init Comp] Inicializando Panel Miniaturas...");
@@ -503,6 +503,9 @@ public class VisorView extends JFrame
         // --- SECCIÓN 2: Creación de la JList de Miniaturas ---
         // 2.1. Crear la instancia de JList con un modelo vacío inicial.
         listaMiniaturas = new JList<>(new DefaultListModel<>());
+        
+        listaMiniaturas.setFocusable(true);
+        System.out.println("    [Init Miniaturas] listaMiniaturas setFocusable(true)");
 
         // --- SECCIÓN 3: Configuración de Propiedades Básicas de la JList ---
         // 3.1. Modo de selección único.
@@ -670,7 +673,7 @@ public class VisorView extends JFrame
      * @param servicioThumbs El ThumbnailService, necesario para pasarlo al renderer
      *                       para que pueda cargar/obtener los iconos de las miniaturas.
      */
-    private void inicializarPanelImagenesMiniatura(VisorModel modelo, ThumbnailService servicioThumbs) {
+    private void inicializarPanelImagenesMiniaturaOLD (VisorModel modelo, ThumbnailService servicioThumbs) {
          // 1. Log inicio
          System.out.println("  [Init Comp] Inicializando Panel Miniaturas...");
 

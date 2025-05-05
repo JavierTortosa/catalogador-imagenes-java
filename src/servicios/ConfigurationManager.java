@@ -436,8 +436,8 @@ public class ConfigurationManager
 		
     	//===== Barra de Miniaturas =====
     	//Cantidad de miniaturas antes/después de la seleccionada
-			defaults.put("miniaturas.cantidad.antes", "7");
-			defaults.put("miniaturas.cantidad.despues", "7");
+			defaults.put("miniaturas.cantidad.antes", "8");
+			defaults.put("miniaturas.cantidad.despues", "8");
 
     	//Tamaño (píxeles) para miniaturas seleccionadas
 			defaults.put("miniaturas.tamano.seleccionada.ancho", "60");
