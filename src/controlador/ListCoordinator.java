@@ -347,7 +347,7 @@ public class ListCoordinator {
         }
         // 1.3. Comprobar si ya hay una operación de sincronización en curso
         if (sincronizandoUI) {
-            System.out.println("    -> Ignorando (operación de sincronización ya en curso).");
+//            System.out.println("    -> Ignorando (operación de sincronización ya en curso).");
             return;
         }
 
@@ -363,7 +363,7 @@ public class ListCoordinator {
 
             // 3.2. ACTUALIZAR VISTAS (SI HUBO CAMBIO)
             if (cambio) {
-                System.out.println("      -> [UI Completa] Actualizando UI (Nombres y Miniaturas) para índice " + indice);
+//                System.out.println("      -> [UI Completa] Actualizando UI (Nombres y Miniaturas) para índice " + indice);
 
                 // 3.2.1. Sincronizar la JList de Nombres VISUALMENTE
                 //         (Llama a setSelectedIndex/ensureIndexIsVisible internamente)
@@ -391,7 +391,7 @@ public class ListCoordinator {
                           // Comprobar si el índice actual del shared model es diferente al oficial
 
                     	 if (sharedSelectionModel.getLeadSelectionIndex() != this.indiceOficialSeleccionado) {
-                              System.out.println("        -> [CORRECCIÓN] Restaurando sharedSelectionModel al índice principal oficial: " + this.indiceOficialSeleccionado);
+//                              System.out.println("        -> [CORRECCIÓN] Restaurando sharedSelectionModel al índice principal oficial: " + this.indiceOficialSeleccionado);
                               // Establecer el intervalo de selección al índice oficial correcto
                               // Esto también podría disparar el listener, pero el flag aún está activo.
                               sharedSelectionModel.setSelectionInterval(this.indiceOficialSeleccionado, this.indiceOficialSeleccionado);
@@ -399,12 +399,15 @@ public class ListCoordinator {
                               // Ya estaba correcto, no es necesario setSelectionInterval que podría disparar eventos extra
                               System.out.println("        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: " + this.indiceOficialSeleccionado);
                           }
-                     } else { System.err.println("ERROR CRÍTICO [UI Completa]: No se pudo obtener sharedSelectionModel para corrección."); }
+                     } else { 
+                    	 System.err.println("ERROR CRÍTICO [UI Completa]: No se pudo obtener sharedSelectionModel para corrección."); 
+                     }
                 } else if (indice == -1 && view != null && view.getListaNombres() != null){
                      // Si la selección fue -1 (limpiar), asegurarse de que el shared model también lo esté.
                      javax.swing.ListSelectionModel sharedSelectionModel = view.getListaNombres().getSelectionModel();
-                     if (sharedSelectionModel != null && !sharedSelectionModel.isSelectionEmpty()) {
-                          System.out.println("        -> [CORRECCIÓN] Limpiando sharedSelectionModel (-1).");
+                     if (sharedSelectionModel != null && !sharedSelectionModel.isSelectionEmpty()) 
+                     {
+//                          System.out.println("        -> [CORRECCIÓN] Limpiando sharedSelectionModel (-1).");
                           sharedSelectionModel.clearSelection();
                      }
                 }
@@ -413,7 +416,7 @@ public class ListCoordinator {
                 //        No necesitamos una llamada adicional aquí.
 
             } else {
-                 System.out.println("      -> [UI Completa] No hubo cambio interno, no se actualiza UI adicionalmente.");
+                 //System.out.println("      -> [UI Completa] No hubo cambio interno, no se actualiza UI adicionalmente.");
                  // No es necesario asegurar visibilidad aquí si no hubo cambio.
             }
         } finally {
@@ -425,10 +428,6 @@ public class ListCoordinator {
         System.out.println(">>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(" + indice + ")");
 
     } // --- FIN seleccionarIndiceYActualizarUICompleta ---    
-    
-    
-
-    
     
     
     // -------------------------------------------------------- METODOS DE NAVEGACION E IMAGENES

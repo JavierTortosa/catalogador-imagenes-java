@@ -219,7 +219,7 @@ public class ToolbarBuilder {
         button.setOpaque(true); // Asegurarse de que el fondo sea visible si no es transparente
 
         //LOG [ToolbarBuilder] Procesando botón:
-        System.out.println("  [ToolbarBuilder] Procesando botón: " + shortActionCommand + " (Icono Archivo: " + nombreIcono + ")");
+//        System.out.println("  [ToolbarBuilder] Procesando botón: " + shortActionCommand + " (Icono Archivo: " + nombreIcono + ")");
 
         // --- Intentar asignar Action ---
         Action action = this.actionMap.get(shortActionCommand); // Busca Action por comando CORTO
@@ -326,4 +326,4 @@ public class ToolbarBuilder {
     public Map<String, JButton> getBotonesPorNombreMap() {
         return this.botonesPorNombre;
     }
-}
+} //--- FIN ToolbarBuilder

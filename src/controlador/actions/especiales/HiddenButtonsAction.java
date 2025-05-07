@@ -1,4 +1,4 @@
-package controlador.actions.edicion;
+package controlador.actions.especiales;
 
 import java.awt.event.ActionEvent;
 
@@ -10,23 +10,23 @@ import controlador.actions.BaseVisorAction;
 import vista.util.IconUtils;
 
 @SuppressWarnings ("serial")
-public class CropAction extends BaseVisorAction {
+public class HiddenButtonsAction extends BaseVisorAction {
 
-	public CropAction(VisorController controller, IconUtils iconUtils, int width, int height) {
+	public HiddenButtonsAction(VisorController controller, IconUtils iconUtils, int width, int height) {
 
-		// TODO Metodo CropAction pendiente de implementar
+		// TODO Metodo HiddenButtonsAction pendiente de implementar
 	
 		// Texto para menú (si lo añades) o tooltip
-		super("Recortar Imagen", controller);
-		putValue(Action.SHORT_DESCRIPTION, "Recortar un area de la imagen actual");
+		super("Botones Ocultos", controller);
+		putValue(Action.SHORT_DESCRIPTION, "Muestra los botones ocultos");
 
 		// Cargar icono usando IconUtils
 		// Asegúrate que el nombre del archivo PNG sea correcto
-		ImageIcon icon = iconUtils.getScaledIcon("2005-recortar_48x48.png", width, height);
+		ImageIcon icon = iconUtils.getScaledIcon("6003-Botones_Ocultos_48x48.png", width, height);
 		if (icon != null) {
 			putValue(Action.SMALL_ICON, icon);
 		} else {
-			System.err.println("WARN [CropAction]: No se pudo cargar el icono 2005-recortar_48x48.png");
+			System.err.println("WARN [HiddenButtonsAction]: No se pudo cargar el icono 6003-Botones_Ocultos_48x48.png");
 			putValue(Action.NAME, "<->"); // Texto fallback
 		}
 	}	
@@ -37,12 +37,12 @@ public class CropAction extends BaseVisorAction {
 	     if (controller != null) {
 	         controller.logActionInfo(e);
 	     } else {
-	          System.err.println("Error: Controller es null en CropAction");
+	          System.err.println("Error: Controller es null en HiddenButtonsAction");
 	          return;
 	     }
 
 	     // Llamar al método del controlador que realiza la acción
 	     //controller.aplicarVolteoHorizontal(); 
-	     System.out.println("CropAction pendiente de llamar al método del controlador que realiza la acción");
+	     System.out.println("HiddenButtonsAction pendiente de llamar al método del controlador que realiza la acción");
 	 }
-} // --- FIN CropAction
+} // --- FIN HiddenButtonsAction

@@ -1,0 +1,271 @@
+
+**Esquema Detallado del Proyecto (Basado en las Capturas de Pantalla)**
+
+---
+
+**Paquete: `controlador.actions.archivo`**
+
+*   **Clase: `OpenFileAction`** (Probablemente extiende `AbstractAction` o implementa `ActionListener`)
+    *   `public OpenFileAction(...)` (Constructor): Inicializa la acción, posiblemente con referencias a controladores o al frame principal.
+    *   `public void actionPerformed(ActionEvent e)`: Se ejecuta cuando la acción es invocada. Probablemente abre un `JFileChooser` para seleccionar un archivo o carpeta, y luego actualiza el visor con el contenido.
+
+---
+
+**Paquete: `controlador.actions.edicion`**
+
+*   **Clase: `CropAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Inicia el proceso de recorte de la imagen actual.
+*   **Clase: `FlipHorizontalAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Voltea la imagen actual horizontalmente.
+*   **Clase: `FlipVerticalAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Voltea la imagen actual verticalmente.
+*   **Clase: `RotateLeftAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Rota la imagen actual 90 grados a la izquierda.
+*   **Clase: `RotateRightAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Rota la imagen actual 90 grados a la derecha.
+
+---
+
+**Paquete: `controlador.actions.navegacion`**
+
+*   **Clase: `FirstImageAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Navega a la primera imagen de la lista actual.
+*   **Clase: `LastImageAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Navega a la última imagen de la lista actual.
+*   **Clase: `NextImageAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Navega a la siguiente imagen de la lista actual.
+*   **Clase: `PreviousImageAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Navega a la imagen anterior de la lista actual.
+
+---
+
+**Paquete: `controlador.actions.tema`**
+
+*   **Clase: `ToggleThemeAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Cambia entre los temas disponibles de la aplicación (ej. claro/oscuro).
+
+---
+
+**Paquete: `controlador.actions.toggle`**
+
+*   **Clase: `ToggleProporcionesAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Activa/desactiva el mantenimiento de las proporciones de la imagen al escalar o en el visor.
+*   **Clase: `ToggleSubfoldersAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Activa/desactiva la inclusión de imágenes de subcarpetas en la vista actual.
+
+---
+
+**Paquete: `controlador.actions.vista`**
+
+*   **Clase: `ToggleAlwaysOnTopAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Activa/desactiva que la ventana principal esté siempre visible sobre otras ventanas.
+*   **Clase: `ToggleCheckeredBackgroundAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Activa/desactiva un fondo de tablero de ajedrez (para transparencias) en el visor de imagen.
+*   **Clase: `ToggleFileListAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Muestra/oculta el panel de la lista de archivos/nombres.
+*   **Clase: `ToggleLocationBarAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Muestra/oculta la barra de ubicación/ruta actual.
+*   **Clase: `ToggleMenuBarAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Muestra/oculta la barra de menú principal.
+*   **Clase: `ToggleThumbnailsAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Muestra/oculta el panel de miniaturas.
+*   **Clase: `ToggleToolBarAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Muestra/oculta la barra de herramientas.
+
+---
+
+**Paquete: `controlador.actions.zoom`**
+
+*   **Clase: `ResetZoomAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Restablece el zoom de la imagen al 100% o a su estado original.
+*   **Clase: `ToggleZoomManualAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Activa/desactiva el modo de zoom manual (quizás con slider o rueda).
+*   **Clase: `ZoomAltoAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Ajusta el zoom para que la imagen ocupe todo el alto disponible del visor.
+*   **Clase: `ZoomAnchoAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Ajusta el zoom para que la imagen ocupe todo el ancho disponible del visor.
+*   **Clase: `ZoomAutoAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Aplica un modo de zoom automático (quizás ajustar a pantalla).
+*   **Clase: `ZoomFijadoAction`** (o `ZoomFijoAction`)
+    *   `public void actionPerformed(ActionEvent e)`: Establece un nivel de zoom predefinido o fijo.
+*   **Clase: `ZoomFitAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Ajusta el zoom para que toda la imagen quepa en el visor, manteniendo proporciones.
+*   **Clase: `ZoomFixedAction`** (similar a `ZoomFijadoAction`, podría ser un alias o un valor específico)
+    *   `public void actionPerformed(ActionEvent e)`: Establece un nivel de zoom fijo específico.
+*   **Clase: `BaseVisorAction`** (Probablemente una clase base abstracta para otras acciones del visor)
+    *   `protected BaseVisorAction(...)` (Constructor): Inicializa propiedades comunes a las acciones.
+    *   Métodos para habilitar/deshabilitar la acción, etc.
+
+---
+
+**Paquete: `controlador.imagen`**
+
+*   **Clase: `LocateFileAction`**
+    *   `public void actionPerformed(ActionEvent e)`: Abre el explorador de archivos del sistema operativo en la ubicación de la imagen actual.
+
+---
+
+**Paquete: `controlador.worker`**
+
+*   **Clase: `BuscadorArchivosWorker`** (Probablemente extiende `SwingWorker`)
+    *   `public BuscadorArchivosWorker(...)` (Constructor): Inicializa el worker, posiblemente con la ruta a escanear y callbacks.
+    *   `protected List<File> doInBackground()`: Realiza la búsqueda de archivos en segundo plano.
+    *   `protected void done()`: Se ejecuta en el EDT cuando `doInBackground` termina, para actualizar la UI con los resultados.
+*   **Clase: `AppInitializer`** (Podría ser un `SwingWorker` o una clase que orquesta tareas de inicio)
+    *   `public void initialize()`: Ejecuta las tareas de inicialización de la aplicación (cargar configuración, preparar UI, etc.).
+    *   Si es `SwingWorker`: `doInBackground()` para tareas largas, `done()` para finalizar.
+
+---
+
+**Paquete: `controlador`**
+
+*   **Clase: `ListCoordinator`**
+    *   `public ListCoordinator(VisorModel model, ...)` (Constructor): Coordina la lógica de las listas de imágenes (miniaturas, nombres de archivo).
+    *   `public void updateLists(List<ImagenModelo> images)`: Actualiza las representaciones de las listas en la UI.
+    *   `public void handleSelection(ImagenModelo selectedImage)`: Maneja la selección de un elemento en una lista.
+*   **Clase: `VisorController`**
+    *   `public VisorController(VisorModel model, VisorView view)` (Constructor): Conecta el modelo y la vista, inicializa los manejadores de eventos y acciones.
+    *   `public void cargarCarpeta(File carpeta)`: Inicia la carga de imágenes de una carpeta.
+    *   `public void imagenSeleccionada(ImagenModelo imagen)`: Procesa la selección de una imagen.
+    *   `public void aplicarZoom(ZoomMode modo)`: Aplica un modo de zoom.
+    *   `public void editarImagen(EditOperation operacion)`: Delega una operación de edición.
+    *   ... (Otros métodos para responder a interacciones de la UI y coordinar componentes).
+
+---
+
+**Paquete: `modelo`**
+
+*   **Clase: `VisorModel`**
+    *   `public VisorModel()` (Constructor): Inicializa las estructuras de datos del modelo (lista de imágenes, imagen actual, estado del zoom, etc.).
+    *   `public void setListaImagenes(List<ImagenModelo> imagenes)`: Establece la lista de imágenes.
+    *   `public List<ImagenModelo> getListaImagenes()`: Obtiene la lista de imágenes.
+    *   `public void setImagenActual(ImagenModelo imagen)`: Establece la imagen seleccionada actualmente.
+    *   `public ImagenModelo getImagenActual()`: Obtiene la imagen actual.
+    *   `public void addPropertyChangeListener(PropertyChangeListener listener)`: Para notificar a la vista/controlador de cambios.
+    *   `public void removePropertyChangeListener(PropertyChangeListener listener)`
+    *   ... (Getters/setters para otros estados como zoom, filtros, etc.).
+
+---
+
+**Paquete: `principal`**
+
+*   **Clase: `NombreArchivoRenderer`** (Probablemente implementa `ListCellRenderer` o `TableCellRenderer`)
+    *   `public Component getListCellRendererComponent(...)` o `getTableCellRendererComponent(...)`: Devuelve un componente (ej. `JLabel`) configurado para mostrar el nombre de un archivo en una lista o tabla.
+*   **Clase: `VisorV2`** (Probablemente la clase principal que extiende `JFrame` y contiene el método `main`)
+    *   `public static void main(String[] args)`: Punto de entrada de la aplicación. Crea el modelo, la vista, el controlador y los enlaza. Muestra la ventana principal.
+    *   `public VisorV2()` (Constructor): Inicializa el `JFrame`, configura su layout y añade los componentes principales de la vista.
+
+---
+
+**Paquete: `servicios.image`**
+
+*   **Clase: `ImageEdition`**
+    *   `public BufferedImage crop(BufferedImage original, Rectangle rect)`: Recorta una imagen.
+    *   `public BufferedImage rotate(BufferedImage original, double angle)`: Rota una imagen.
+    *   `public BufferedImage flip(BufferedImage original, boolean horizontal)`: Voltea una imagen.
+*   **Clase: `ThumbnailService`**
+    *   `public Image createThumbnail(File imageFile, int width, int height)`: Crea una miniatura para un archivo de imagen.
+    *   `public Image createThumbnail(BufferedImage image, int width, int height)`: Crea una miniatura a partir de un `BufferedImage`.
+
+---
+
+**Paquete: `servicios.zoom`**
+
+*   **Clase: `ZoomModes`** (Podría ser una clase con métodos estáticos o un servicio)
+    *   `public double calculateFitToScreenZoom(Dimension imageSize, Dimension panelSize)`: Calcula el factor de zoom para ajustar a pantalla.
+    *   `public double calculateFitToWidthZoom(Dimension imageSize, Dimension panelSize)`: Calcula el factor de zoom para ajustar a ancho.
+    *   `public double calculateFitToHeightZoom(Dimension imageSize, Dimension panelSize)`: Calcula el factor de zoom para ajustar a alto.
+
+---
+
+**Paquete: `servicios`**
+
+*   **Clase: `ConfigurationManager`**
+    *   `public void loadConfiguration()`: Carga la configuración de la aplicación desde un archivo.
+    *   `public void saveConfiguration()`: Guarda la configuración actual.
+    *   `public String getProperty(String key)`: Obtiene un valor de configuración.
+    *   `public void setProperty(String key, String value)`: Establece un valor de configuración.
+
+---
+
+**Paquete: `utils`**
+
+*   **Clase: `StringUtils`**
+    *   `public static String getFileExtension(String fileName)`: Devuelve la extensión de un archivo.
+    *   `public static boolean isNullOrEmpty(String str)`: Comprueba si una cadena es nula o vacía.
+    *   ... (Otras utilidades para manejo de Strings).
+
+---
+
+**Paquete: `vista.builders`**
+
+*   **Clase: `MenuBarBuilder`**
+    *   `public JMenuBar buildMenuBar(Map<String, Action> actions, VisorController controller)`: Construye y devuelve la barra de menú principal, asociando acciones a los `JMenuItem`.
+*   **Clase: `ToolbarBuilder`**
+    *   `public JToolBar buildToolBar(Map<String, Action> actions, VisorController controller)`: Construye y devuelve la barra de herramientas, asociando acciones a los botones.
+
+---
+
+**Paquete: `vista.config`**
+
+*   **Clase: `ViewUIConfig`**
+    *   `public Font getDefaultFont()`: Devuelve la fuente por defecto para la UI.
+    *   `public Color getBackgroundColor()`: Devuelve el color de fondo por defecto.
+    *   `public Dimension getThumbnailSize()`: Devuelve el tamaño por defecto para las miniaturas.
+    *   ... (Otras configuraciones visuales).
+
+---
+
+**Paquete: `vista.dialogos`**
+
+*   **Clase: `ProgresoCargaDialog`** (Probablemente extiende `JDialog`)
+    *   `public ProgresoCargaDialog(Frame owner)` (Constructor): Inicializa el diálogo de progreso.
+    *   `public void setProgress(int value)`: Actualiza el valor de la barra de progreso.
+    *   `public void setMessage(String message)`: Actualiza el mensaje mostrado.
+
+---
+
+**Paquete: `vista.renderers`**
+
+*   **Clase: `MiniaturaListCellRenderer`** (Implementa `ListCellRenderer`)
+    *   `public Component getListCellRendererComponent(JList<? extends ImagenModelo> list, ImagenModelo value, int index, boolean isSelected, boolean cellHasFocus)`: Devuelve un componente (probablemente un `JPanel` personalizado) que muestra la miniatura y el nombre de `ImagenModelo`.
+
+---
+
+**Paquete: `vista.theme`**
+
+*   **Clase: `Tema`** (Podría ser una clase que define colores, fuentes para un tema específico)
+    *   Getters para colores de primer plano, fondo, fuentes, etc.
+*   **Clase: `ThemeManager`**
+    *   `public void applyTheme(Tema tema, Component rootComponent)`: Aplica un tema a la jerarquía de componentes.
+    *   `public Tema getCurrentTheme()`: Devuelve el tema actual.
+    *   `public void toggleTheme()`: Cambia al siguiente tema disponible.
+
+---
+
+**Paquete: `vista.util`**
+
+*   **Clase: `IconUtils`**
+    *   `public static ImageIcon loadIcon(String path, int width, int height)`: Carga un icono desde una ruta y lo escala.
+    *   `public static ImageIcon getActionIcon(String actionName)`: Devuelve un icono estandarizado para un nombre de acción.
+
+---
+
+**Paquete: `vista`**
+
+*   **Clase: `VisorView`** (Representa la vista principal, probablemente un `JPanel` que se añade al `JFrame` o el propio `JFrame`)
+    *   `public VisorView(VisorModel model, VisorController controller)` (Constructor): Construye la interfaz gráfica, registrando listeners y acciones con el controlador.
+    *   `public void updateImageDisplay(BufferedImage image, double zoomLevel, Point panOffset)`: Actualiza el panel principal donde se muestra la imagen.
+    *   `public void updateThumbnailList(List<ImagenModelo> thumbnails)`: Actualiza el panel de miniaturas.
+    *   `public void showErrorMessage(String message)`: Muestra un mensaje de error.
+    *   `public File showOpenFolderDialog()`: Muestra el diálogo para abrir carpeta.
+    *   ... (Métodos para interactuar con todos los componentes de la UI).
+
+---
+
+**Archivo: `module-info.java`**
+*   Define las dependencias y exportaciones del módulo Java (si estás usando el sistema de módulos de Java 9+).
+
+---
+
+Este esquema debería ser mucho más fiel a tu proyecto actual. La clave de la refactorización es que cada una de estas clases tenga una responsabilidad única y bien definida. ¡Se ve que has avanzado mucho!

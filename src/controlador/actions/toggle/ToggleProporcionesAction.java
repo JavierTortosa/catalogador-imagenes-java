@@ -2,9 +2,9 @@
 package controlador.actions.toggle;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem; // Puede ser útil si necesitas distinguir la fuente
 
 import controlador.VisorController;
 import controlador.actions.BaseVisorAction;
@@ -32,7 +32,7 @@ public class ToggleProporcionesAction extends BaseVisorAction {
             // Leer estado SELECCIONADO
             boolean initialStateSelected = controller.getConfigurationManager().getBoolean(CONFIG_KEY_SELECTED, true); // Default a TRUE
             putValue(Action.SELECTED_KEY, initialStateSelected);
-            System.out.println("[ToggleProporcionesAction1] Estado inicial SELECTED leído (" + CONFIG_KEY_SELECTED + "): " + initialStateSelected);
+            System.out.println("[ToggleProporcionesAction] Estado inicial SELECTED leído (" + CONFIG_KEY_SELECTED + "): " + initialStateSelected);
 
             // Leer estado HABILITADO (opcional, si puede deshabilitarse)
             // boolean initialStateEnabled = controller.getConfigurationManager().getBoolean(CONFIG_KEY_ENABLED, true);

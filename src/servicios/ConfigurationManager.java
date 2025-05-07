@@ -879,10 +879,6 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.configuracion.Version.activado", "true");
 		defaults.put("interfaz.menu.configuracion.Version.visible", "true");
 
-		
-
-		
-		
 		//Colores
 		
 		//# --- Tema Claro (Basado en Swing Defaults) ---
@@ -899,10 +895,6 @@ public class ConfigurationManager
 		defaults.put("colores.claro.boton.fondoActivado",  	"84, 144, 164 ");
 		defaults.put("colores.claro.boton.fondoAnimacion",  "173, 216, 230");
         
-		
-		
-		
-		
 		return defaults;
 	}
 
@@ -1083,11 +1075,11 @@ public class ConfigurationManager
 		{
 			
 			//LOG [Config Mgr setString] Actualizando clave
-			String oldValue = config.get(key); // Obtener valor anterior
-            System.out.println("[Config Mgr setString] Actualizando clave: '" + key + "' | Valor Anterior: '" + oldValue + "' | Valor Nuevo: '" + value + "'");
+//			String oldValue = config.get(key); // Obtener valor anterior
+//            System.out.println("[Config Mgr setString] Actualizando clave: '" + key + "' | Valor Anterior: '" + oldValue + "' | Valor Nuevo: '" + value + "'");
 			
 			config.put(key, value);
-			System.out.println("[Config Mgr] Valor en memoria actualizado: " + key + " = " + value); // Log
+//			System.out.println("[Config Mgr] Valor en memoria actualizado: " + key + " = " + value); // Log
 		} else
 		{
 			System.err.println(

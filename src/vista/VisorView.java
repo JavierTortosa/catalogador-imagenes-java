@@ -147,31 +147,11 @@ public class VisorView extends JFrame
                     "ERROR CRÍTICO [VisorView Constructor]: VisorModel.getModeloLista() devolvió null. Creando uno vacío.");
             this.modeloLista = new DefaultListModel<>(); // Fallback REAL
         }
-		
-		
-/*		
-		// this.modeloLista = modelo.getModeloLista();
-
-		DefaultListModel<String> modeloNombres = modelo.getModeloLista();
-		if (modeloNombres == null)
-			modeloNombres = new DefaultListModel<>();
-
-		if (this.modeloLista == null)
-		{ // Verificación extra
-			System.err.println(
-					"WARN [VisorView Constructor]: El modelo obtenido del VisorModel inicial es null. Creando uno vacío.");
-			this.modeloLista = new DefaultListModel<>();
-		}
-		System.out.println(
-				"  [Constructor] Referencia inicial al modelo obtenida (Tamaño: " + this.modeloLista.getSize() + ")");
-*/
-		
 
 		// 5. Crear e Inicializar TODOS los Componentes Internos
 		// Se pasan las referencias necesarias a este método.
 		System.out.println("  [Constructor] Llamando a inicializarComponentes...");
 		inicializarComponentes(modelo, servicioThumbs, this.modeloLista);
-//		inicializarComponentes(modelo, servicioThumbs, modeloNombres); // Pasar referencias necesarias
 		System.out.println("  [Constructor] Componentes internos inicializados.");
 
 		// 6. Restaurar Estado de la Ventana (Tamaño/Posición/Maximizado)
@@ -588,12 +568,6 @@ public class VisorView extends JFrame
              int numAntes = (modelo != null) ? modelo.getMiniaturasAntes() : 7;
              int numDespues = (modelo != null) ? modelo.getMiniaturasDespues() : 7;
              
-             //LOG dynamic Log
-             StringUtils.dynamicLog("[VisorView.inicializarPanelImagenesMiniatura]", 
-            		 "numAntes", numDespues,
-            		 "numDespues", numDespues
-            		 );
-             
              // 5.4.2. Calcular el número total de miniaturas en la ventana deslizante.
              int maxMiniaturasEsperadas = numAntes + 1 + numDespues;
              System.out.println("    [Init Miniaturas] Calculando tamaño pref. para " + maxMiniaturasEsperadas + " miniaturas ("+numAntes+"+1+"+numDespues+")");
@@ -678,102 +652,6 @@ public class VisorView extends JFrame
         // --- SECCIÓN 14: Log Final ---
         // 14.1. Indicar fin de la inicialización.
         System.out.println("  [Init Comp] Panel Miniaturas (Centrado con GridBagLayout) finalizado. Altura preferida Scroll: " + preferredSize.height);
-
-    } // --- FIN inicializarPanelImagenesMiniatura ---
-    
-    
-    /**
-     * Inicializa el JScrollPane y la JList que se usarán para mostrar las miniaturas.
-     * Configura la JList para usar el modelo principal compartido, establece el
-     * renderer de miniaturas personalizado, define el layout horizontal y el tamaño
-     * de las celdas. Finalmente, crea y configura el JScrollPane contenedor.
-     *
-     * @param modelo El VisorModel principal, necesario para pasarlo al renderer
-     *               y para obtener la referencia inicial al modelo de datos compartido.
-     * @param servicioThumbs El ThumbnailService, necesario para pasarlo al renderer
-     *                       para que pueda cargar/obtener los iconos de las miniaturas.
-     */
-    private void inicializarPanelImagenesMiniaturaOLD (VisorModel modelo, ThumbnailService servicioThumbs) {
-         // 1. Log inicio
-         System.out.println("  [Init Comp] Inicializando Panel Miniaturas...");
-
-         // 2. Crear la JList para las miniaturas (`listaMiniaturas`)
-         //    IMPORTANTE: Usa el MISMO ListModel que listaNombres para sincronización automática.
-         //listaMiniaturas = new JList<>(modelo.getModeloLista());
-         listaMiniaturas = new JList<>(new DefaultListModel<>());
-
-         // 3. Configurar propiedades básicas de la JList de Miniaturas
-         listaMiniaturas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Misma selección que nombres
-         listaMiniaturas.setBackground(this.uiConfig.colorFondoSecundario);    // Fondo detrás de las celdas
-         // El foreground lo maneja el renderer, no la lista directamente
-         // listaMiniaturas.setForeground(this.uiConfig.colorTextoPrimario);
-         listaMiniaturas.setSelectionBackground(this.uiConfig.colorSeleccionFondo); // Color cuando se selecciona una miniatura
-         listaMiniaturas.setSelectionForeground(this.uiConfig.colorSeleccionTexto); // Color texto miniatura seleccionada
-
-         // 4. Configurar el Layout para visualización horizontal con salto de línea
-         listaMiniaturas.setLayoutOrientation(JList.HORIZONTAL_WRAP); // Elementos fluyen horizontalmente y saltan de línea
-         listaMiniaturas.setVisibleRowCount(-1); // Calcular filas automáticamente basado en altura y tamaño celda
-
-         // 5. Crear y asignar el Cell Renderer personalizado para miniaturas
-         try {
-             // 5.1. Obtener dimensiones normales de la configuración para el renderer
-             int thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
-             int thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
-
-             // 5.2. Crear instancia del renderer, pasando las dependencias necesarias
-             MiniaturaListCellRenderer rendererMiniaturas = new MiniaturaListCellRenderer(
-                 servicioThumbs, // El servicio para cargar iconos
-                 modelo,       // El modelo para obtener rutas
-                 thumbWidth,   // Ancho deseado para icono en renderer
-                 thumbHeight   // Alto deseado para icono en renderer
-             );
-
-             // 5.3. Asignar el renderer a la lista de miniaturas
-             listaMiniaturas.setCellRenderer(rendererMiniaturas);
-
-             // 5.4. Establecer tamaño fijo de celda (crucial para HORIZONTAL_WRAP)
-             //      Debe ser ligeramente mayor que el tamaño de la miniatura + texto para incluir padding/márgenes.
-             int cellWidth = Math.max(30, thumbWidth + 10); // Ancho celda = ancho icono + padding H
-             int cellHeight = Math.max(30, thumbHeight + 25); // Alto celda = alto icono + espacio texto + padding V
-             listaMiniaturas.setFixedCellWidth(cellWidth);
-             listaMiniaturas.setFixedCellHeight(cellHeight);
-             System.out.println("    [Init Miniaturas] Renderer y tamaño de celda ("+cellWidth+"x"+cellHeight+") establecidos.");
-
-         } catch (Exception e) {
-             // Fallback si falla la creación/asignación del renderer
-             System.err.println("ERROR [inicializarMiniaturas] creando/asignando MiniaturaListCellRenderer: " + e.getMessage());
-             e.printStackTrace();
-             listaMiniaturas.setCellRenderer(new DefaultListCellRenderer()); // Usar renderer por defecto simple
-         }
-
-        // 6. Crear el JScrollPane que contendrá la lista de miniaturas
-        scrollListaMiniaturas = new JScrollPane(listaMiniaturas); // Añadir la lista al scrollpane
-
-        // 7. Configurar las barras de desplazamiento del ScrollPane
-        scrollListaMiniaturas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS); // Mostrar siempre barra H (o AS_NEEDED)
-        scrollListaMiniaturas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);     // Nunca mostrar barra V
-
-        // 8. Establecer el tamaño preferido del ScrollPane
-        //    El ancho se adaptará, pero la altura viene del cálculo en el Controller.
-        Dimension preferredSize = new Dimension(100, this.miniaturaScrollPaneHeight); // Ancho inicial pequeño, altura calculada
-        scrollListaMiniaturas.setPreferredSize(preferredSize);
-        // Quitar el tamaño mínimo forzado usado para depuración si aún estuviera
-        // scrollListaMiniaturas.setMinimumSize(new Dimension(100, 80));
-
-        // 9. Configurar apariencia del ScrollPane
-        scrollListaMiniaturas.getViewport().setBackground(this.uiConfig.colorFondoPrincipal); // Color detrás de la lista
-        // Quitar fondos de depuración si los hubiera
-        // scrollListaMiniaturas.setBackground(Color.CYAN);
-        // scrollListaMiniaturas.setOpaque(true);
-
-        // 10. Crear y aplicar el Borde Titulado al ScrollPane
-         Border lineaMini = BorderFactory.createLineBorder(this.uiConfig.colorBorde);
-         TitledBorder bordeTituladoMini = BorderFactory.createTitledBorder(lineaMini, "Miniaturas");
-         bordeTituladoMini.setTitleColor(this.uiConfig.colorTextoSecundario);
-         scrollListaMiniaturas.setBorder(bordeTituladoMini);
-
-        // 11. Log final
-        System.out.println("  [Init Comp] Panel Miniaturas (JScrollPane con JList) finalizado. Altura preferida Scroll: " + preferredSize.height);
 
     } // --- FIN inicializarPanelImagenesMiniatura ---
     

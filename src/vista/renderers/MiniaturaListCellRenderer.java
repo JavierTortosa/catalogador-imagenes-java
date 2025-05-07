@@ -1,11 +1,18 @@
 package vista.renderers; // O vista.list_renderers, etc.
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.nio.file.Path;
-import javax.swing.*;
+
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.ListCellRenderer;
+import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
 import modelo.VisorModel; // Para obtener la ruta completa
@@ -132,7 +139,6 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
              etiquetaIcono.setText(null); // Quitar texto si hay icono
              etiquetaIcono.setForeground(colorTextoNormal); // Restaurar color
         }
-
 
         // --- Configurar Colores y Borde según Selección ---
         if (isSelected) {

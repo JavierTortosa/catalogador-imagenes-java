@@ -44,5 +44,4 @@ public class FlipHorizontalAction extends BaseVisorAction {
         // Llamar al método del controlador que realiza la acción
         controller.aplicarVolteoHorizontal(); // Llama al método que ya tenías en el controller
     }
-}
-// --- FIN FlipHorizontalAction ---
+}// --- FIN FlipHorizontalAction ---
