@@ -1,5 +1,7 @@
 package controlador.actions;
 
+import java.util.Objects;
+
 import javax.swing.AbstractAction;
 
 import controlador.VisorController; // Importa el Controller
@@ -17,10 +19,12 @@ public abstract class BaseVisorAction extends AbstractAction
     // Constructor que recibe el nombre de la acción y el controller
     public BaseVisorAction(String name, VisorController controller) {
         super(name); // Llama al constructor de AbstractAction para el nombre
-        if (controller == null) {
-             throw new IllegalArgumentException("El controlador no puede ser nulo para BaseVisorAction");
-        }
-        this.controller = controller;
+        this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null en BaseVisorAction");
+//        if (controller == null) {
+//             throw new IllegalArgumentException("El controlador no puede ser nulo para BaseVisorAction");
+//        }
+//        this.controller = controller;
+        
     }
 
     // Constructor que solo recibe el nombre (si no todas necesitan el controller)

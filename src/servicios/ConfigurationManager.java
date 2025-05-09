@@ -422,8 +422,8 @@ public class ConfigurationManager
 	        // Usar -1 para indicar que no hay posición/tamaño guardado (usar defaults del sistema/pack)
 	        defaults.put(KEY_WINDOW_X, "-1");
 	        defaults.put(KEY_WINDOW_Y, "-1");
-	        defaults.put(KEY_WINDOW_WIDTH, "-1");  // O un tamaño default razonable si prefieres
-	        defaults.put(KEY_WINDOW_HEIGHT, "-1"); // Ej: defaults.put(KEY_WINDOW_WIDTH, "1200");
+	        defaults.put(KEY_WINDOW_WIDTH, "1550");  // O un tamaño default razonable si prefieres
+	        defaults.put(KEY_WINDOW_HEIGHT, "500"); // Ej: defaults.put(KEY_WINDOW_WIDTH, "1200");
 	        defaults.put(KEY_WINDOW_MAXIMIZED, "false"); // Por defecto no empieza maximizada
 		
 		//===== Personalizacion =====
@@ -462,9 +462,9 @@ public class ConfigurationManager
 			
 			
     	//-- Navegación --
-			defaults.put("interfaz.boton.movimiento.Primera_48x48.activado", "true");
+			defaults.put("interfaz.boton.movimiento.Primera_48x48.activado", "false");
 			defaults.put("interfaz.boton.movimiento.Primera_48x48.visible", "true");
-			defaults.put("interfaz.boton.movimiento.Anterior_48x48.activado", "true");
+			defaults.put("interfaz.boton.movimiento.Anterior_48x48.activado", "false");
 			defaults.put("interfaz.boton.movimiento.Anterior_48x48.visible", "true");
 			defaults.put("interfaz.boton.movimiento.Siguiente_48x48.activado", "true");
 			defaults.put("interfaz.boton.movimiento.Siguiente_48x48.visible", "true");

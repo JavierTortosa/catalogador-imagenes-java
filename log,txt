@@ -1,0 +1,508 @@
+Iniciando Visor de Imágenes V2...
+--- Iniciando VisorController (Constructor Simple) ---
+--- AppInitializer: Iniciando Inicialización ---
+  [Initializer Fase 1] Inicializando Componentes Base...
+    -> Modelo OK.
+Mapa de configuración por defecto inicializado con 396 claves.
+Mapa DEFAULT_GROUP_COMMENTS inicializado con 24 entradas.
+Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
+Configuración leída. Total claves: 616
+    -> ConfigurationManager OK.
+  [Initializer Fase 2] Aplicando Config al Modelo...
+    -> Config Modelo OK (Antes=8, Despues=8)
+  [Initializer Fase 3] Inicializando Servicios Esenciales...
+[ThemeManager] Tema inicial establecido a: clear
+    -> ThemeManager OK.
+    -> IconUtils OK.
+[ThumbnailService] Servicio inicializado. Caché de miniaturas creado.
+    -> ThumbnailService y ModeloMiniaturas OK.
+    -> ExecutorService OK.
+  [Initializer Fase 4] Inicializando Actions Parciales y UIConfig...
+  [Init Actions Internal] Inicializando Actions (sin navegación)...
+    -> FuncionalidadPendienteAction creada.
+[ToggleMenuBarAction] Estado inicial leído (interfaz.menu.vista.Barra_de_Menu.seleccionado): true
+[ToggleToolBarAction] Estado inicial leído (interfaz.menu.vista.Barra_de_Botones.seleccionado): true
+[ToggleFileListAction] Estado inicial leído (interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos.seleccionado): true
+[ToggleThumbnailsAction] Estado inicial leído (interfaz.menu.vista.Imagenes_en_Miniatura.seleccionado): true
+[ToggleLocationBarAction] Estado inicial leído (interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo.seleccionado): true
+[ToggleCheckeredBG] Estado inicial leído (interfaz.menu.vista.Fondo_a_Cuadros.seleccionado): false
+[ToggleAlwaysOnTopAction] Estado inicial leído (interfaz.menu.vista.Mantener_Ventana_Siempre_Encima.seleccionado): false
+[ToggleSubfoldersAction] Estado inicial leído (comportamiento.carpeta.cargarSubcarpetas): true
+[ToggleProporcionesAction] Estado inicial SELECTED leído (interfaz.menu.zoom.Mantener_Proporciones.seleccionado): true
+    -> Sincronizando estado inicial radios de Tema a: clear
+  [Init Actions Internal] Finalizado.
+    -> Actions parciales inicializadas.
+  [Create ActionMap Internal] Creando mapa parcial de actions (sin navegación)...
+  [Create ActionMap Internal] Finalizado. Mapa parcial creado con 32 entradas.
+    -> Mapa de Actions parcial creado.
+    -> Altura Panel Miniaturas calculada: 100
+[ViewUIConfig] Configuración UI creada con colores de tema.
+    -> ViewUIConfig creada.
+    -> ActionMap PARCIAL copiado a AppInitializer (Tamaño: 32)
+  [Initializer] Generando definiciones de UI...
+    -> Definiciones de UI generadas (Menú: 6 top-level, Toolbar: 32 botones)
+--- AppInitializer: Inicialización base completada. UI se creará en EDT. ---
+--- VisorController: Inicialización delegada completada con éxito ---
+VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
+  [Initializer Fase 5 - EDT] Creando UI y finalizando...
+    -> [EDT] Instanciando VisorView (con componentes UI temporales)...
+[VisorView Constructor] Iniciando...
+  [Constructor] Menú, Toolbar y Mapas recibidos.
+    -> Tamaño mapa Menús recibido: 0
+    -> Tamaño mapa Botones recibido: 0
+  [Constructor] Dependencias validadas (Config, Modelo, Thumbs).
+  [Constructor] Configuración básica JFrame completada.
+  [Constructor] Referencia a modeloLista obtenida (Tamaño inicial: 0)
+  [Constructor] Llamando a inicializarComponentes...
+--- Iniciando inicializarComponentes ---
+1. Panel Principal creado.
+2. Toolbar (pre-construida) añadida al NORTE.
+3. Barra de Menú (pre-construida) establecida.
+  [Init Comp] Inicializando Panel Izquierdo...
+    -> NombreArchivoRenderer asignado a listaNombres.
+  [Init Comp] Panel Izquierdo finalizado.
+4. Panel Izquierdo (con listaNombres) inicializado: true
+  [Init Comp] Inicializando Panel Miniaturas...
+    [Init Miniaturas] listaMiniaturas setFocusable(true)
+    [Init Miniaturas] Renderer y tamaño de celda FIJO (55x70) establecidos.
+    [Init Miniaturas] Calculando tamaño pref. para 17 miniaturas (8+1+8)
+    [Init Miniaturas] Tamaño Preferido JList establecido a: 935x70
+    [Init Miniaturas] Panel centrador con GridBagLayout creado y JList añadida.
+    [Init Miniaturas] JScrollPane creado con panelCentrador.
+  [Init Comp] Panel Miniaturas (Centrado con GridBagLayout) finalizado. Altura preferida Scroll: 100
+5. Panel Miniaturas (con listaMiniaturas) inicializado: true
+6. ListSelectionModel NO compartido. Cada lista tiene el suyo.
+  [Init Comp] Inicializando Etiqueta Imagen...
+  [Init Comp] Etiqueta Imagen finalizada.
+7. Etiqueta Imagen inicializada: true
+8. SplitPane añadido al CENTRO.
+9. ScrollPane Miniaturas añadido al SUR.
+10. Panel Principal añadido al JFrame.
+11. Barra de Estado (textoRuta) añadida al JFrame.
+--- Inicialización de Componentes Completada ---
+  [Constructor] Componentes internos inicializados.
+  [Constructor] Intentando restaurar estado de ventana...
+    -> Bounds restaurados a: java.awt.Rectangle[x=0,y=0,width=1536,height=500]
+  [Constructor] Intento de restauración de estado finalizado.
+  [Constructor] Estado restaurado. Omitiendo pack()/centrado. Validando layout...
+  [Constructor] Dimensionamiento/Posicionamiento finalizado.
+  [Constructor] Haciendo ventana visible...
+[VisorView Constructor] Finalizado.
+    -> [EDT] VisorView instanciado.
+[ListCoordinator] Instancia creada.
+    -> [EDT] ListCoordinator instanciado.
+    -> [EDT] Completando ActionMap con acciones de navegación...
+    [EDT Internal] Creando Actions de Navegación y actualizando actionMap...
+      -> Instancias de Actions de Navegación creadas.
+      -> Actions de Navegación añadidas al mapa principal. Tamaño final actionMap: 36
+    [EDT Internal] Fin createNavigationActionsAndUpdateMap.
+    -> [EDT] ActionMap en AppInitializer ahora es COMPLETO (Tamaño: 36)
+    -> [EDT] Construyendo Menú y Toolbar REALES (métodos refactorizados)...
+--- MenuBarBuilder: Construyendo menú desde estructura definida ---
+--- MenuBarBuilder: Menú construido. Total items en mapa: 101 ---
+      -> Menú REAL construido (refactorizado).
+--- ToolbarBuilder: Construyendo toolbar desde estructura definida ---
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.nav.primera' y claveIcono: '1001-Primera_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.nav.primera'? true
+    -> Action encontrada en mapa: controlador.actions.navegacion.FirstImageAction
+  -> Icono obtenido de Action para: cmd.nav.primera
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.nav.anterior' y claveIcono: '1002-Anterior_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.nav.anterior'? true
+    -> Action encontrada en mapa: controlador.actions.navegacion.PreviousImageAction
+  -> Icono obtenido de Action para: cmd.nav.anterior
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.nav.siguiente' y claveIcono: '1003-Siguiente_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.nav.siguiente'? true
+    -> Action encontrada en mapa: controlador.actions.navegacion.NextImageAction
+  -> Icono obtenido de Action para: cmd.nav.siguiente
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.nav.ultima' y claveIcono: '1004-Ultima_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.nav.ultima'? true
+    -> Action encontrada en mapa: controlador.actions.navegacion.LastImageAction
+  -> Icono obtenido de Action para: cmd.nav.ultima
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.imagen.rotar.izq' y claveIcono: '2001-Rotar_Izquierda_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.imagen.rotar.izq'? true
+    -> Action encontrada en mapa: controlador.actions.edicion.RotateLeftAction
+  -> Icono obtenido de Action para: cmd.imagen.rotar.izq
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.imagen.rotar.der' y claveIcono: '2002-Rotar_Derecha_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.imagen.rotar.der'? true
+    -> Action encontrada en mapa: controlador.actions.edicion.RotateRightAction
+  -> Icono obtenido de Action para: cmd.imagen.rotar.der
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.imagen.voltear.h' y claveIcono: '2003-Espejo_Horizontal_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.imagen.voltear.h'? true
+    -> Action encontrada en mapa: controlador.actions.edicion.FlipHorizontalAction
+  -> Icono obtenido de Action para: cmd.imagen.voltear.h
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.imagen.voltear.v' y claveIcono: '2004-Espejo_Vertical_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.imagen.voltear.v'? true
+    -> Action encontrada en mapa: controlador.actions.edicion.FlipVerticalAction
+  -> Icono obtenido de Action para: cmd.imagen.voltear.v
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.imagen.recortar' y claveIcono: '2005-Recortar_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.imagen.recortar'? true
+    -> Action encontrada en mapa: controlador.actions.edicion.CropAction
+  -> Icono obtenido de Action para: cmd.imagen.recortar
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.zoom.manual.toggle' y claveIcono: '3001-Zoom_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.zoom.manual.toggle'? true
+    -> Action encontrada en mapa: controlador.actions.zoom.ToggleZoomManualAction
+  -> Icono obtenido de Action para: cmd.zoom.manual.toggle
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.zoom.tipo.auto' y claveIcono: '3002-Zoom_Auto_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.zoom.tipo.auto'? true
+    -> Action encontrada en mapa: controlador.actions.zoom.ZoomAutoAction
+  -> Icono obtenido de Action para: cmd.zoom.tipo.auto
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.zoom.tipo.ancho' y claveIcono: '3003-Ajustar_al_Ancho_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.zoom.tipo.ancho'? true
+    -> Action encontrada en mapa: controlador.actions.zoom.ZoomAnchoAction
+  -> Icono obtenido de Action para: cmd.zoom.tipo.ancho
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.zoom.tipo.alto' y claveIcono: '3004-Ajustar_al_Alto_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.zoom.tipo.alto'? true
+    -> Action encontrada en mapa: controlador.actions.zoom.ZoomAltoAction
+  -> Icono obtenido de Action para: cmd.zoom.tipo.alto
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.zoom.tipo.ajustar' y claveIcono: '3005-Escalar_Para_Ajustar_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.zoom.tipo.ajustar'? true
+    -> Action encontrada en mapa: controlador.actions.zoom.ZoomFitAction
+  -> Icono obtenido de Action para: cmd.zoom.tipo.ajustar
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.zoom.tipo.fijo' y claveIcono: '3006-Zoom_Fijo_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.zoom.tipo.fijo'? true
+    -> Action encontrada en mapa: controlador.actions.zoom.ZoomFixedAction
+  -> Icono obtenido de Action para: cmd.zoom.tipo.fijo
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.zoom.tipo.especificado' y claveIcono: '3007-zoom_especifico_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.zoom.tipo.especificado'? true
+    -> Action encontrada en mapa: controlador.actions.zoom.ZoomFijadoAction
+  -> Icono obtenido de Action para: cmd.zoom.tipo.especificado
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.zoom.reset' y claveIcono: '3008-Reset_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.zoom.reset'? true
+    -> Action encontrada en mapa: controlador.actions.zoom.ResetZoomAction
+  -> Icono obtenido de Action para: cmd.zoom.reset
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.todo.funcionalidad_pendiente' y claveIcono: '4001-Panel-Galeria_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.todo.funcionalidad_pendiente'? true
+    -> Action encontrada en mapa: controlador.VisorController$1
+  -> WARN: Action 'cmd.todo.funcionalidad_pendiente' no tiene un ImageIcon en SMALL_ICON.
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.todo.funcionalidad_pendiente' y claveIcono: '4002-Grid_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.todo.funcionalidad_pendiente'? true
+    -> Action encontrada en mapa: controlador.VisorController$1
+  -> WARN: Action 'cmd.todo.funcionalidad_pendiente' no tiene un ImageIcon en SMALL_ICON.
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.todo.funcionalidad_pendiente' y claveIcono: '4003-Pantalla_Completa_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.todo.funcionalidad_pendiente'? true
+    -> Action encontrada en mapa: controlador.VisorController$1
+  -> WARN: Action 'cmd.todo.funcionalidad_pendiente' no tiene un ImageIcon en SMALL_ICON.
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.vista.mostrar_dialogo_lista' y claveIcono: '4004-Lista_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.vista.mostrar_dialogo_lista'? false
+WARN [ToolbarBuilder]: No se encontró Action para comando: cmd.vista.mostrar_dialogo_lista. Configurando manualmente.
+  -> Añadido ActionListener fallback a botón sin Action: cmd.vista.mostrar_dialogo_lista
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.todo.funcionalidad_pendiente' y claveIcono: '4005-Carrousel_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.todo.funcionalidad_pendiente'? true
+    -> Action encontrada en mapa: controlador.VisorController$1
+  -> WARN: Action 'cmd.todo.funcionalidad_pendiente' no tiene un ImageIcon en SMALL_ICON.
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.especial.refrescar' y claveIcono: '5001-Refrescar_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.especial.refrescar'? true
+    -> Action encontrada en mapa: controlador.actions.archivo.RefreshAction
+  -> Icono obtenido de Action para: cmd.especial.refrescar
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.favorito.mostrar' y claveIcono: '5003-lista_de_favoritos_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.favorito.mostrar'? false
+WARN [ToolbarBuilder]: No se encontró Action para comando: cmd.favorito.mostrar. Configurando manualmente.
+  -> Añadido ActionListener fallback a botón sin Action: cmd.favorito.mostrar
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.imagen.eliminar' y claveIcono: '5004-Borrar_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.imagen.eliminar'? true
+    -> Action encontrada en mapa: controlador.actions.archivo.DeleteAction
+  -> Icono obtenido de Action para: cmd.imagen.eliminar
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.imagen.localizar' y claveIcono: '7004-Ubicacion_de_Archivo_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.imagen.localizar'? true
+    -> Action encontrada en mapa: controlador.imagen.LocateFileAction
+  -> Icono obtenido de Action para: cmd.imagen.localizar
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.archivo.abrir' y claveIcono: '6001-Selector_de_Carpetas_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.archivo.abrir'? true
+    -> Action encontrada en mapa: controlador.actions.archivo.OpenFileAction
+  -> Icono obtenido de Action para: cmd.archivo.abrir
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.especial.menu' y claveIcono: '6002-Menu_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.especial.menu'? false
+WARN [ToolbarBuilder]: No se encontró Action para comando: cmd.especial.menu. Configurando manualmente.
+  -> Añadido ActionListener fallback a botón sin Action: cmd.especial.menu
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.especial.botones_ocultos' y claveIcono: '6003-Botones_Ocultos_48x48.png'
+WARN [ToolbarBuilder]: No se encontró Action para comando: cmd.especial.botones_ocultos. Configurando manualmente.
+    -> ¿ActionMap contiene clave 'cmd.especial.botones_ocultos'? false
+  -> Añadido ActionListener fallback a botón sin Action: cmd.especial.botones_ocultos
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.toggle.subcarpetas' y claveIcono: '7001-Subcarpetas_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.toggle.subcarpetas'? true
+    -> Action encontrada en mapa: controlador.actions.toggle.ToggleSubfoldersAction
+  -> Icono obtenido de Action para: cmd.toggle.subcarpetas
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.toggle.mantener_proporciones' y claveIcono: '7002-Mantener_Proporciones_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.toggle.mantener_proporciones'? true
+    -> Action encontrada en mapa: controlador.actions.toggle.ToggleProporcionesAction
+  -> Icono obtenido de Action para: cmd.toggle.mantener_proporciones
+
+
+ **************************************************************** 
+  [TB procesar] Para definición con comando: 'cmd.todo.funcionalidad_pendiente' y claveIcono: '7003-Mostrar_Favoritos_48x48.png'
+    -> ¿ActionMap contiene clave 'cmd.todo.funcionalidad_pendiente'? true
+    -> Action encontrada en mapa: controlador.VisorController$1
+  -> WARN: Action 'cmd.todo.funcionalidad_pendiente' no tiene un ImageIcon en SMALL_ICON.
+--- ToolbarBuilder: Toolbar construida. Total botones en mapa: 32 ---
+      -> Toolbar REAL construida (refactorizado).
+    -> [EDT] Fin construcción Menú/Toolbar REALES.
+  [VisorView] JMenuBar real asignada.
+  [VisorView] ToolbarPanel real asignado.
+  [VisorView] Map<String, JMenuItem> real asignado. Tamaño: 101
+  [VisorView] Map<String, JButton> real asignado. Tamaño: 32
+    -> [EDT] Menú y Toolbar reales asignados a VisorView.
+    [EDT Internal] Asignando modelo de miniaturas a la Vista...
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
+    [EDT Internal] Fin assignModeloMiniaturasToViewInternal.
+    [EDT Internal] Estableciendo carpeta raíz inicial desde config...
+      -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  [Config Comp Actions Internal] Configurando Actions en Componentes UI...
+    -> Asignando Actions a Botones...
+WARN [setActionForKey]: La Action proporcionada es NULL para la clave: 'interfaz.boton.control.lista_de_favoritos_48x48' (Componente: JButton)
+WARN [setActionForKey]: La Action proporcionada es NULL para la clave: 'interfaz.boton.especiales.Menu_48x48' (Componente: JButton)
+WARN [setActionForKey]: Componente NO encontrado en el mapa para la clave: 'interfaz.boton.especiales.botones_ocultos_48x48'
+WARN [setActionForKey]: La Action proporcionada es NULL para la clave: 'interfaz.boton.especiales.botones_ocultos_48x48' (Componente: null)
+    -> Actions asignadas a Botones.
+    -> Asignando Actions/Listeners a Menús...
+    [Fallback Listeners] Añadiendo ActionListener central a items sin Action...
+    [Fallback Listeners] Finalizado. Listeners fallback añadidos a 48 items.
+    -> Actions/Listeners asignados a Menús.
+  [Config Comp Actions Internal] Finalizado.
+  [Apply Config View Internal] Aplicando configuración a la Vista...
+    -> Aplicando config a Botones (Vista)...
+    -> Config Botones (Vista) OK.
+    -> Aplicando config a Menús (Vista)...
+    -> Config Menús (Vista) OK.
+  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
+    -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.
+  [Apply Config View Internal] Finalizado.
+  [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
+    -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    -> Cargando lista para carpeta inicial: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    -> Clave de imagen inicial a intentar seleccionar: iconos/black/1002-Anterior_48x48.png
+
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: iconos/black/1002-Anterior_48x48.png
+  -> Modo búsqueda: Subcarpetas (depth=MAX)
+    -> Iniciando búsqueda desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Creando diálogo y worker para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Creando Worker...
+  -> Asociando worker al diálogo...
+[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
+  -> Diálogo y Worker creados y asociados.
+  -> Añadiendo PropertyChangeListener al worker...
+  -> Ejecutando worker y mostrando diálogo...
+-->>> FIN cargarListaImagenes(String) | Mantener Clave: iconos/black/1002-Anterior_48x48.png
+  [Load Initial State Internal] Finalizado.
+[Controller Internal] Configurando Listeners (Modelos Selección SEPARADOS)...
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
+  -> Listener SEPARADO añadido a listaNombres.
+  -> Listener SEPARADO añadido a listaMiniaturas.
+  -> Listeners de Zoom/Pan añadidos a etiquetaImagen.
+  -> MouseWheelListener añadido a scrollListaMiniaturas para scroll horizontal.
+  -> MouseListener añadido a scrollListaMiniaturas para gestionar foco.
+[Controller Internal] Configuración de Listeners de Vista finalizada.
+  -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
+  [Worker BG] Files.walk terminado. Archivos encontrados: 165
+    [EDT Internal] Sincronizando UI Final...
+      -> Sincronizando Fondo a Cuadros a estado: false
+[VisorView setCheckeredBG] Solicitado: false, Actual: false
+    [EDT Internal] Sincronización UI Final completada.
+    [Internal] Configurando Shutdown Hook...
+    [Internal] Shutdown Hook registrado en la JVM.
+  [Initializer Fase 5 - EDT] Inicialización UI completada.
+--- AppInitializer: INICIALIZACIÓN COMPLETA ---
+  [Constructor EDT] Divisor JSplitPane establecido.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+[VisorView] Limpiando etiqueta de imagen principal...
+  -> Etiqueta de imagen limpiada.
+ [EDT] Mostrando diálogo de progreso...
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+[Worker EDT] Método done() alcanzado.
+ [EDT Worker Done] Tarea finalizada. Procesando resultado...
+[Dialogo Progreso] Solicitud de cierre.
+  -> [EDT] Cerrando diálogo...
+  -> [EDT] Diálogo cerrado y desechado.
+   -> Resultado obtenido: 165 archivos. Actualizando...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
+   -> estaCargandoLista = false
+[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
+[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+     -> Clave a mantener encontrada en índice: 3
+   -> [ANTES de setSelectedIndex] Intentando aplicar selección inicial a índice: 3
+   -> Flag seleccionInicialEnCurso puesto a true.
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=true, isSincronizando=false, IndicePrincipal=3, Ignorado=true
+   -> [DESPUÉS de setSelectedIndex] Selección visual inicial aplicada a índice: 3. Selección JList: 3
+   -> Llamando MANUALMENTE a Coordinator para procesar índice inicial: 3
+>>> Coordinator: Solicitud para procesar índice: 3 (Actual Oficial: -1)
+    [Coordinator Flag] sincronizandoUI -> true
+  [ListCoordinator Interno] Procesando índice: 3 (Oficial actual: -1)
+    -> Actualizando índice oficial a: 3
+    -> Delegando carga de imagen al Controller para índice: 3
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/1002-Anterior_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 1002-Anterior_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1002-Anterior_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/1002-Anterior_48x48.png
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1002-Anterior_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 3
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 3
+        -> Índice actual en JList 'Nombres': 3
+        -> Índice ya correcto. Asegurando solo visibilidad.
+      [BG Img Load] Lectura correcta.
+      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 3
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+
+  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
+  [actualizarMiniaturas] Rango calculado: [0..11]
+
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 12. Índice relativo calculado: 3
+[Controller] Iniciando pre-calentamiento de caché para 12 miniaturas...
+[Controller] 12 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 3
+>>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(3)
+   -> Llamada MANUAL a Coordinator completada.
+ [EDT Worker Done] Procesamiento finalizado.
+ [EDT] Diálogo de progreso cerrado o ya no visible.
+%%% [paintComponent] llamado. imagenReescaladaView es null? true
+  -> Solicitando repintado inicial de listaMiniaturas.
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/1002-Anterior_48x48.png
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 3
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 12)
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 12)
+   -> [EDT Miniaturas] Llamando a setSelectedIndex(3)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=true, isSincronizando=true, IndiceRelativo=3, Ignorado=true
+   -> [EDT Miniaturas] Llamando a repaint()
+   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+    [Coordinator Flag] sincronizandoUI -> false
+%%% [paintComponent] llamado. imagenReescaladaView es null? false
+%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
+   -> [Timer Fin Selección Inicial] Fin espera. Flag seleccionInicialEnCurso -> false.
+   -> [Timer Fin Selección Inicial] Asegurando visibilidad final para índice: 3
+     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(3)
+    [Coordinator Flag] sincronizandoUI -> false
+--- DEBUG: Acción Detectada ---
+  > Fuente        : JButton (ID: 434344967)
+  > Event Command : 'cmd.especial.botones_ocultos'
+  > Config Key    : 'interfaz.boton.especiales.Botones_Ocultos_48x48'
+  > Comando Canon.: 'cmd.especial.botones_ocultos'
+  > Action Class  : NINGUNA
+------------------------------
+--- Hook de Cierre Ejecutándose ---
+  [Hook - Ventana] Guardando estado de la ventana en config...
+    -> Bounds guardados en memoria config: java.awt.Rectangle[x=0,y=0,width=1536,height=500]
+  -> Llamando a guardarConfiguracionActual() desde hook...
+  [ShutdownHook] Recopilando estado actual para guardar...
+    -> Estado recopilado completo. Tema a guardar: 'clear'
+    -> Llamando a configuration.guardarConfiguracion con 616 claves...
+
+[ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
+[ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
+[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
+Guardando configuración (preservando estructura) en config.cfg
+Claves a guardar/actualizar: 616
+Archivo de configuración actualizado exitosamente.
+  [ShutdownHook] Configuración actual guardada exitosamente.
+  [ShutdownHook] Fin guardarConfiguracionActual.
+  [Hook - Executor] Apagando ExecutorService...
+    -> ExecutorService terminado ordenadamente.
+--- Hook de Cierre Terminado ---

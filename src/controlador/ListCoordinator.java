@@ -1,8 +1,10 @@
 package controlador; // o controlador.navegacion
 
 import java.awt.event.ActionEvent;
+import java.util.Map;
 import java.util.Objects;
 
+import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JList; // Necesario para sincronizarListaUI
 import javax.swing.JPanel;
@@ -10,6 +12,7 @@ import javax.swing.JScrollPane;
 import javax.swing.ListModel;
 import javax.swing.SwingUtilities; // Para invokeLater en sincronizarListaUI
 
+import controlador.commands.AppActionCommands;
 import modelo.VisorModel;
 import vista.VisorView;
 
@@ -430,6 +433,47 @@ public class ListCoordinator {
     } // --- FIN seleccionarIndiceYActualizarUICompleta ---    
     
     
+    /**
+     * Actualiza el estado 'enabled' de las Actions de navegación
+     * basándose en el tamaño actual de la lista y el índice seleccionado.
+     */
+    private void actualizarEstadoEnabledAccionesNavegacion() {
+        // Validar dependencias
+        if (model == null || model.getModeloLista() == null || controller == null || controller.getActionMap() == null) {
+            System.err.println("WARN [LC.actualizarEstadoEnabledAccionesNavegacion]: Modelo, Controller o ActionMap nulos. No se puede actualizar estado enabled.");
+            return;
+        }
+
+        DefaultListModel<String> modeloListaActual = model.getModeloLista();
+        boolean hayAlgunaImagen = !modeloListaActual.isEmpty();
+        int indiceActual = this.indiceOficialSeleccionado; // El índice maestro
+        int ultimoIndicePosible = hayAlgunaImagen ? modeloListaActual.getSize() - 1 : -1;
+
+        Map<String, Action> actionMap = controller.getActionMap();
+
+        Action firstAction = actionMap.get(AppActionCommands.CMD_NAV_PRIMERA);
+        Action prevAction  = actionMap.get(AppActionCommands.CMD_NAV_ANTERIOR);
+        Action nextAction  = actionMap.get(AppActionCommands.CMD_NAV_SIGUIENTE);
+        Action lastAction  = actionMap.get(AppActionCommands.CMD_NAV_ULTIMA);
+
+        // Lógica para habilitar/deshabilitar
+        if (firstAction != null) {
+            firstAction.setEnabled(hayAlgunaImagen && indiceActual > 0);
+        }
+        if (prevAction != null) {
+            prevAction.setEnabled(hayAlgunaImagen && indiceActual > 0);
+        }
+        if (nextAction != null) {
+            nextAction.setEnabled(hayAlgunaImagen && indiceActual < ultimoIndicePosible);
+        }
+        if (lastAction != null) {
+            lastAction.setEnabled(hayAlgunaImagen && indiceActual < ultimoIndicePosible);
+        }
+
+        // System.out.println("  [ListCoordinator] Estado enabled de Actions de Navegación actualizado."); // Log opcional
+    }    
+    
+    
     // -------------------------------------------------------- METODOS DE NAVEGACION E IMAGENES
     
     
@@ -473,6 +517,8 @@ public class ListCoordinator {
         // --- YA NO SINCRONIZAMOS UI AQUÍ ---
         // La sincronización se hace en los métodos públicos externos
 
+        actualizarEstadoEnabledAccionesNavegacion();
+        
         System.out.println("  [ListCoordinator Interno] Procesamiento interno finalizado para índice: " + indiceDeseado);
         return true; // Hubo cambio
     }
@@ -698,6 +744,12 @@ public class ListCoordinator {
         System.out.println("      [Sync UI Interno] Fin sincronización para lista '" + nombreLista + "', índice " + indice);
 
     } // --- FIN sincronizarListaUI ---    
+    
+    
+    public synchronized void forzarActualizacionEstadoNavegacion() {
+        System.out.println("  [ListCoordinator] Forzando actualización del estado enabled de navegación.");
+        actualizarEstadoEnabledAccionesNavegacion();
+    }    
     
     
     /**
@@ -1069,17 +1121,3 @@ public class ListCoordinator {
     
 }    
     
-/*
-  NOTAS A TENER EN CUENTA
-  
-Acceso setSincronizandoUI (Reiteración): Como mencioné, hacerlo private sería lo ideal para el encapsulamiento, ya que solo sincronizarListaUI necesita llamarlo. Pero como está ahora (package-private) funciona porque ambos métodos están en la misma clase.
- 
-Llamadas a asegurarVisibilidadAmbasListasSiVisibles:
-En los métodos de navegación (seleccionarSiguiente, etc.) y selección (seleccionarDesdeNombres, etc.), llamas a asegurarVisibilidadAmbasListasSiVisibles solo si el índice no cambió (if (indiceDeseado == this.indiceOficialSeleccionado) o if (indiceDeseado != actual) -> else).
-En el helper seleccionarIndiceYActualizarUICompleta_Helper, la llamada a asegurarVisibilidadAmbasListasSiVisibles está dentro del bloque else (cuando cambio es false).
-Consideración: ¿Debería asegurarse la visibilidad siempre al final de una operación de selección/navegación, incluso si el índice cambió? Los métodos sincronizarListaUI y actualizarModeloYVistaMiniaturas ya llaman a ensureIndexIsVisible internamente. Quizás las llamadas explícitas a asegurarVisibilidadAmbasListasSiVisibles son redundantes. Podrías probar a quitarlas y ver si el comportamiento sigue siendo correcto (el scroll debería seguir funcionando debido a las llamadas internas). Si decides mantenerlas, no hacen daño, solo añaden una capa extra de seguridad.
-
-Llamada redundante en seleccionarDesdeMiniaturas: Dentro de seleccionarDesdeMiniaturas, si cambioRealizado es true, llamas a sincronizarListaUI(view.getListaNombres(), ...) y también a controller.actualizarModeloYVistaMiniaturas(...). La segunda llamada internamente actualizará la selección y visibilidad de las miniaturas. ¿Es necesaria la segunda llamada siempre, o solo si el rango realmente necesita ajuste? Podría ser una pequeña optimización investigar si se puede evitar esa segunda llamada en algunos casos, aunque mantenerla asegura que la ventana 7+1+7 siempre esté centrada correctamente.
-
-navegarAIndice: Este método aún llama directamente a view.getListaNombres().setSelectedIndex(index) y a ensureIndexIsVisible. Para mayor consistencia, podrías refactorizarlo para que llame a seleccionarIndiceYActualizarUICompleta_Helper(index), como hacen los otros métodos de navegación.
-*/

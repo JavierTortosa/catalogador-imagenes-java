@@ -1,46 +1,39 @@
-package controlador.actions.navegacion; // Asegúrate que el paquete sea correcto
+package controlador.actions.navegacion;
 
 import java.awt.event.ActionEvent;
-import java.util.Objects;
-import javax.swing.AbstractAction;
 import javax.swing.Action;
-// import javax.swing.KeyStroke; // Descomentar si usas atajos
-// import java.awt.event.KeyEvent; // Descomentar si usas atajos
+import javax.swing.ImageIcon;
+import controlador.VisorController;
+import controlador.actions.BaseVisorAction; // Asumiendo que existe y tiene 'controller'
+import controlador.commands.AppActionCommands; // Importar comandos
+import vista.util.IconUtils;
 
-import controlador.ListCoordinator; // Importar el Coordinador
-import vista.util.IconUtils;      // Importar IconUtils
-
-public class LastImageAction extends AbstractAction {
+public class LastImageAction extends BaseVisorAction {
 
     private static final long serialVersionUID = 1L;
-    private final ListCoordinator coordinator;
-    private final IconUtils iconUtils;
+    // IconUtils podría estar en BaseVisorAction, si no, añadir campo y pasarlo
 
-    /**
-     * Constructor para la acción de ir a la última imagen.
-     * @param coordinator El ListCoordinator que maneja la navegación.
-     * @param iconUtils La utilidad para cargar iconos.
-     * @param iconoAncho Ancho deseado para el icono.
-     * @param iconoAlto Alto deseado para el icono.
-     */
-    public LastImageAction(ListCoordinator coordinator, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
-        super("Última Imagen"); // Nombre visible
+    public LastImageAction(VisorController controller, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
+        super("Ultima Imagen", controller); // Pasa controller a la superclase
 
-        this.coordinator = Objects.requireNonNull(coordinator, "ListCoordinator no puede ser null");
-        this.iconUtils = Objects.requireNonNull(iconUtils, "IconUtils no puede ser null");
+        putValue(Action.SHORT_DESCRIPTION, "Ir a la ultima imagen");
 
-        // Configurar propiedades
-        putValue(Action.SHORT_DESCRIPTION, "Ir a la última imagen de la lista"); // Tooltip
-        putValue(Action.SMALL_ICON, iconUtils.getScaledIcon("1004-Ultima_48x48.png", iconoAncho, iconoAlto)); // Icono
-
-        // Atajo de teclado (opcional)
-        // putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke(KeyEvent.VK_END, 0)); // Tecla Fin
+        ImageIcon icon = iconUtils.getScaledIcon("1004-Ultima_48x48.png", iconoAncho, iconoAlto);
+        if (icon != null) {
+            putValue(Action.SMALL_ICON, icon);
+        }
+        // ¡Asignar Comando Canónico!
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_NAV_ULTIMA);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println("Acción: Última Imagen -> Llamando coordinator.seleccionarUltimo()");
-        // Delegar al ListCoordinator
-        coordinator.seleccionarUltimo();
+        if (controller == null) return; // Chequeo por si acaso
+
+        controller.logActionInfo(e); // <-- Logging centralizado
+
+        System.out.println("Acción: Ultima Imagen -> Llamando controller.navegarUltimoViaCoordinador()");
+        controller.navegarUltimoViaCoordinador(); // <-- Delegar en Controller
     }
-}
+} //--- FIN LastImageAction
+

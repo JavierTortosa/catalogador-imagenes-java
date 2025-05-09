@@ -16,6 +16,8 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 
+import controlador.VisorController;
+import vista.config.ToolbarButtonDefinition;
 import vista.util.IconUtils;
 
 // Clase auxiliar interna para la configuración del layout de botones
@@ -50,15 +52,24 @@ public class ToolbarBuilder {
     private Map<String, Action> actionMap; // NUEVO: Mapa de acciones
     
     private final IconUtils iconUtils;
+    private final VisorController controllerRef;
     
  // --- Constructor (MODIFICADO) ---
-	public ToolbarBuilder(Map<String, Action> actionMap, Color colorBotonFondo, Color colorBotonTexto,
-			Color _colorBotonActivadoIgnorado, Color _colorBotonAnimacionIgnorado, int iconoAncho, int iconoAlto,
-			IconUtils iconUtils)
+	public ToolbarBuilder(
+			Map<String, Action> actionMap, 
+			Color colorBotonFondo, 
+			Color colorBotonTexto,
+			Color _colorBotonActivadoIgnorado, 
+			Color _colorBotonAnimacionIgnorado, 
+			int iconoAncho, int iconoAlto,
+			IconUtils iconUtils,
+			VisorController controller
+			)
 	{
 
 		this.actionMap = (actionMap != null) ? actionMap : new HashMap<>();
 		this.iconUtils = Objects.requireNonNull(iconUtils, "IconUtils no puede ser null");
+		this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null en ToolbarBuilder");
 		this.colorBotonFondoDefault = (colorBotonFondo != null) ? colorBotonFondo : new Color(238, 238, 238);
 		this.colorBotonTextoDefault = (colorBotonTexto != null) ? colorBotonTexto : Color.BLACK;
 		this.iconoAncho = (iconoAncho > 0) ? iconoAncho : 24;
@@ -105,225 +116,650 @@ public class ToolbarBuilder {
      *
      * @return El JPanel que contiene la barra de herramientas construida.
      */
-    public JPanel buildToolbar() {
-        // --- Definición de Iconos y Layout (Movido desde VisorView) ---
-    	
-        List<String> iconosMovimiento = List.of(
-        		"1001-Primera_48x48.png",	//new
-        		"1002-Anterior_48x48.png", 
-        		"1003-Siguiente_48x48.png",
-        		"1004-Ultima_48x48.png"		//new
-        		);
-        
-        List<String> iconosEdicion = List.of(
-        		"2001-Rotar_Izquierda_48x48.png", 
-        		"2002-Rotar_Derecha_48x48.png", 
-        		"2003-Espejo_Horizontal_48x48.png", 
-        		"2004-Espejo_Vertical_48x48.png", 
-        		"2005-Recortar_48x48.png"
-        		);
-        
-        List<String> iconosZoom = List.of(
-        		"3001-Zoom_48x48.png", 
-        		"3002-Zoom_Auto_48x48.png", 
-        		"3003-Ajustar_al_Ancho_48x48.png", 
-        		"3004-Ajustar_al_Alto_48x48.png", 
-        		"3005-Escalar_Para_Ajustar_48x48.png", 
-        		"3006-Zoom_Fijo_48x48.png", 
-        		"3007-zoom_especifico_48x48.png",
-        		"3008-Reset_48x48.png"
-        		);
-        
-        List<String> iconosVista = List.of(
-        		"4001-Panel-Galeria_48x48.png", 
-        		"4002-Grid_48x48.png", 
-        		"4003-Pantalla_Completa_48x48.png", 
-        		"4004-Lista_48x48.png", 
-        		"4005-Carrousel_48x48.png"
-        		);
-        
-        List<String> iconosControl = List.of(
-        		"5001-Refrescar_48x48.png", 
-        		"5003-lista_de_favoritos_48x48.png", 
-        		"5004-Borrar_48x48.png",
-        		"7004-Ubicacion_de_Archivo_48x48.png"
-        		);
-        
-        List<String> iconosEspeciales = List.of(
-        		"6001-Selector_de_Carpetas_48x48.png", 
-        		"6002-Menu_48x48.png", 
-        		"6003-Botones_Ocultos_48x48.png"
-        		);
-        
-        List<String> iconosToggle = List.of(
-        		"7001-Subcarpetas_48x48.png",
-        		"7002-Mantener_Proporciones_48x48.png",
-        		"7003-Mostrar_Favoritos_48x48.png"
-        		);
+	public JPanel buildToolbar(List<ToolbarButtonDefinition> toolbarStructure, Map<String, Action> actionMap) {
+	    // Guardar el actionMap recibido si lo necesitas en otros métodos (como procesar...)
+	    this.actionMap = Objects.requireNonNull(actionMap, "ActionMap no puede ser null en ToolbarBuilder");
 
-        List<ButtonGroupConfig> buttonLayoutConfig = List.of(
-            new ButtonGroupConfig("movimiento", FlowLayout.LEFT, iconosMovimiento),
-            new ButtonGroupConfig("edicion", FlowLayout.CENTER, iconosEdicion),
-            new ButtonGroupConfig("zoom", FlowLayout.CENTER, iconosZoom),
-            new ButtonGroupConfig("vista", FlowLayout.CENTER, iconosVista),
-            new ButtonGroupConfig("toggle", FlowLayout.CENTER, iconosToggle),
-            new ButtonGroupConfig("control", FlowLayout.CENTER, iconosControl),
-            new ButtonGroupConfig("especiales", FlowLayout.RIGHT, iconosEspeciales)
-            
-        );
-        // -------------------------------------------------------------
+	    // Reiniciar los paneles por si se reutiliza el builder
+	    panelBotonesIzquierda.removeAll();
+	    panelBotonesCentro.removeAll();
+	    panelBotonesDerecha.removeAll();
+	    this.botonesPorNombre.clear(); // Limpiar mapa interno
 
-        boolean firstGroup = true;
-        for (ButtonGroupConfig config : buttonLayoutConfig) {
-            if (!firstGroup) {
-                addSeparator(config.alignment); // Usa método interno
-            } else {
-                firstGroup = false;
-            }
+	    System.out.println("--- ToolbarBuilder: Construyendo toolbar desde estructura definida ---");
+	    if (toolbarStructure == null || toolbarStructure.isEmpty()) {
+	         System.err.println("WARN [ToolbarBuilder]: La estructura de la toolbar está vacía o es nula.");
+	         // Revalidar paneles vacíos y devolver el panel principal vacío
+	         toolbarPanel.revalidate();
+	         toolbarPanel.repaint();
+	         return this.toolbarPanel;
+	    }
 
-            for (String nombreIcono : config.iconNames) {
-                // Llama al método interno para crear y configurar el botón
-                procesarBoton(nombreIcono, config.category, config.alignment);
-            }
-        }
+	    String ultimaCategoriaProcesada = null; // Para saber cuándo añadir separador
 
-        return toolbarPanel; // Devuelve el panel construido
-    }
+	    // Iterar sobre la nueva estructura
+	    for (ToolbarButtonDefinition definition : toolbarStructure) {
+	        // Añadir separador si cambiamos de categoría (opcional, pero preserva aspecto similar)
+	        String categoriaActual = definition.categoriaLayout();
+	        if (ultimaCategoriaProcesada != null && !ultimaCategoriaProcesada.equals(categoriaActual)) {
+	            // Determinar alineación basada en la *nueva* categoría para el separador
+	            int alignment = getAlignmentForCategory(categoriaActual); // Necesitarás un helper para esto
+	            addSeparator(alignment);
+	        }
+
+	        // Procesar la definición para crear y añadir el botón
+	        procesarToolbarButtonDefinition(definition); // Llama al método refactorizado/nuevo
+
+	        ultimaCategoriaProcesada = categoriaActual; // Actualizar última categoría
+	    }
+
+	    // Revalidar y repintar los paneles al final
+	    panelBotonesIzquierda.revalidate();
+	    panelBotonesIzquierda.repaint();
+	    panelBotonesCentro.revalidate();
+	    panelBotonesCentro.repaint();
+	    panelBotonesDerecha.revalidate();
+	    panelBotonesDerecha.repaint();
+	    toolbarPanel.revalidate();
+	    toolbarPanel.repaint();
+
+	    System.out.println("--- ToolbarBuilder: Toolbar construida. Total botones en mapa: " + botonesPorNombre.size() + " ---");
+	    return toolbarPanel;
+	} //--- FIN metodo buildToolbar 
+	
+	
+//    public JPanel buildToolbar() {
+//        // --- Definición de Iconos y Layout (Movido desde VisorView) ---
+//    	
+//        List<String> iconosMovimiento = List.of(
+//        		"1001-Primera_48x48.png",	//new
+//        		"1002-Anterior_48x48.png", 
+//        		"1003-Siguiente_48x48.png",
+//        		"1004-Ultima_48x48.png"		//new
+//        		);
+//        
+//        List<String> iconosEdicion = List.of(
+//        		"2001-Rotar_Izquierda_48x48.png", 
+//        		"2002-Rotar_Derecha_48x48.png", 
+//        		"2003-Espejo_Horizontal_48x48.png", 
+//        		"2004-Espejo_Vertical_48x48.png", 
+//        		"2005-Recortar_48x48.png"
+//        		);
+//        
+//        List<String> iconosZoom = List.of(
+//        		"3001-Zoom_48x48.png", 
+//        		"3002-Zoom_Auto_48x48.png", 
+//        		"3003-Ajustar_al_Ancho_48x48.png", 
+//        		"3004-Ajustar_al_Alto_48x48.png", 
+//        		"3005-Escalar_Para_Ajustar_48x48.png", 
+//        		"3006-Zoom_Fijo_48x48.png", 
+//        		"3007-zoom_especifico_48x48.png",
+//        		"3008-Reset_48x48.png"
+//        		);
+//        
+//        List<String> iconosVista = List.of(
+//        		"4001-Panel-Galeria_48x48.png", 
+//        		"4002-Grid_48x48.png", 
+//        		"4003-Pantalla_Completa_48x48.png", 
+//        		"4004-Lista_48x48.png", 
+//        		"4005-Carrousel_48x48.png"
+//        		);
+//        
+//        List<String> iconosControl = List.of(
+//        		"5001-Refrescar_48x48.png", 
+//        		"5003-lista_de_favoritos_48x48.png", 
+//        		"5004-Borrar_48x48.png",
+//        		"7004-Ubicacion_de_Archivo_48x48.png"
+//        		);
+//        
+//        List<String> iconosEspeciales = List.of(
+//        		"6001-Selector_de_Carpetas_48x48.png", 
+//        		"6002-Menu_48x48.png", 
+//        		"6003-Botones_Ocultos_48x48.png"
+//        		);
+//        
+//        List<String> iconosToggle = List.of(
+//        		"7001-Subcarpetas_48x48.png",
+//        		"7002-Mantener_Proporciones_48x48.png",
+//        		"7003-Mostrar_Favoritos_48x48.png"
+//        		);
+//
+//        List<ButtonGroupConfig> buttonLayoutConfig = List.of(
+//            new ButtonGroupConfig("movimiento", FlowLayout.LEFT, iconosMovimiento),
+//            new ButtonGroupConfig("edicion", FlowLayout.CENTER, iconosEdicion),
+//            new ButtonGroupConfig("zoom", FlowLayout.CENTER, iconosZoom),
+//            new ButtonGroupConfig("vista", FlowLayout.CENTER, iconosVista),
+//            new ButtonGroupConfig("toggle", FlowLayout.CENTER, iconosToggle),
+//            new ButtonGroupConfig("control", FlowLayout.CENTER, iconosControl),
+//            new ButtonGroupConfig("especiales", FlowLayout.RIGHT, iconosEspeciales)
+//            
+//        );
+//        // -------------------------------------------------------------
+//
+//        boolean firstGroup = true;
+//        for (ButtonGroupConfig config : buttonLayoutConfig) {
+//            if (!firstGroup) {
+//                addSeparator(config.alignment); // Usa método interno
+//            } else {
+//                firstGroup = false;
+//            }
+//
+//            for (String nombreIcono : config.iconNames) {
+//                // Llama al método interno para crear y configurar el botón
+//                procesarBoton(nombreIcono, config.category, config.alignment);
+//            }
+//        }
+//
+//        return toolbarPanel; // Devuelve el panel construido
+//    } //--- FIN metodo buildToolbar 
+	
+	
+	private int getAlignmentForCategory(String category) {
+	    // Define aquí qué categorías van a qué alineación
+	    // Basado en tu antiguo ButtonGroupConfig:
+	    switch (category) {
+	        case "movimiento":
+	            return FlowLayout.LEFT;
+	        case "edicion":
+	        case "zoom":
+	        case "vista":
+	        case "toggle":
+	        case "control":
+	            return FlowLayout.CENTER;
+	        case "especiales":
+	            return FlowLayout.RIGHT;
+	        default:
+	            System.err.println("WARN [ToolbarBuilder]: Categoría desconocida para alineación: " + category + ". Usando CENTER por defecto.");
+	            return FlowLayout.CENTER; // O LEFT, o lanzar excepción
+	    }
+	} // FIN metodo getAlignmentForCategory
+	
+	
+	// En ToolbarBuilder.java
+
+	// En ToolbarBuilder.java
 
     /**
-     * Procesa la creación y configuración de un botón individual,
-     * usando los colores y tamaños de icono configurados.
+     * Procesa una definición de botón, crea el JButton correspondiente,
+     * lo configura (acción, icono, tooltip) y lo añade al panel y mapa correctos.
+     *
+     * @param definition La definición del botón a procesar.
      */
-    private void procesarBoton(String nombreIcono, String categoria, int flowLayoutAlignment) 
-    {
-        JButton button = new JButton(); // Crea el botón
+    private void procesarToolbarButtonDefinition(ToolbarButtonDefinition definition) {
+        // --- 0. Validación de Entrada ---
+        if (definition == null) {
+            System.err.println("WARN [ToolbarBuilder]: Se recibió una ToolbarButtonDefinition nula. Saltando botón.");
+            return;
+        }
+        if (definition.comandoCanonico() == null && definition.claveIcono() == null) {
+             System.err.println("WARN [ToolbarBuilder]: Definición de botón inválida (sin comando ni claveIcono). Tooltip: " + definition.textoTooltip());
+             return;
+        }
 
-        // --- Claves y Action Command ---
-        String nombreBotonBase = nombreIcono.replaceAll("\\d+-", "").replace(".png", "");
-        String fullConfigKey = "interfaz.boton." + categoria + "." + nombreBotonBase; // Clave Larga
-        String shortActionCommand = nombreBotonBase; // Comando Corto
-
-        // --- Configurar propiedades básicas del botón ---
-        
-        // Determinar tamaño final del botón basado en config
+        // --- 1. Creación y Configuración Básica del Botón ---
+        JButton button = new JButton();
         int anchoBoton = this.iconoAncho;
         int altoBotonCalculado = (this.iconoAlto <= 0) ? anchoBoton : this.iconoAlto;
-        
+
         button.setPreferredSize(new Dimension(anchoBoton, altoBotonCalculado));
         button.setMargin(new Insets(0, 0, 0, 0));
         button.setBorderPainted(false);
         button.setFocusPainted(false);
-        button.setContentAreaFilled(true);
+        button.setContentAreaFilled(true); // Importante para que setBackground funcione
         button.setBackground(this.colorBotonFondoDefault);
         button.setForeground(this.colorBotonTextoDefault);
-        button.setOpaque(true); // Asegurarse de que el fondo sea visible si no es transparente
+        button.setOpaque(true);
 
-        //LOG [ToolbarBuilder] Procesando botón:
-//        System.out.println("  [ToolbarBuilder] Procesando botón: " + shortActionCommand + " (Icono Archivo: " + nombreIcono + ")");
-
-        // --- Intentar asignar Action ---
-        Action action = this.actionMap.get(shortActionCommand); // Busca Action por comando CORTO
-
-        ImageIcon iconParaBoton = null; // Variable para guardar el icono final
-        String toolTipParaBoton = null; // Variable para el tooltip final
-
-        if (action != null) {
-            // --- Caso 1: Se encontró una Action ---
-        	
-        	//LOG -> Action encontrada: 
-            //System.out.println("    -> Action encontrada: " + action.getValue(Action.NAME));
-            button.setAction(action); // ASIGNAR ACTION!
-
-            // Intentar obtener icono y tooltip DESDE la Action
-            Object iconValue = action.getValue(Action.SMALL_ICON);
-            
-            if (iconValue instanceof ImageIcon) { // Comprobar que sea ImageIcon
-                iconParaBoton = (ImageIcon) iconValue;
-            } else {
-                // Si la Action no tiene icono (o es incorrecto), intentar cargarlo aquí como fallback
-                //System.out.println("    -> Icono NO válido/NULL en Action. Intentando carga fallback con IconUtils...");
-                iconParaBoton = this.iconUtils.getScaledIcon(nombreIcono, this.iconoAncho, this.iconoAlto);
-                 
-                if (iconParaBoton != null) {
-                      button.setHideActionText(true);
-                      button.setText("");
-                 } else {
-                      System.err.println("    -> ERROR: Falló carga fallback del icono: " + nombreIcono);
-                      button.setIcon(null); // Asegurar que no hay icono
-                      button.setHideActionText(false); // Mostrar texto de la Action
-                 }
-            }
-
-            Object tooltipValue = action.getValue(Action.SHORT_DESCRIPTION);
-             if (tooltipValue instanceof String) {
-                 toolTipParaBoton = (String) tooltipValue; // Guardar tooltip de la action
-             }
-
+        // --- 2. Asignar Tooltip (Usando tu lógica que es más robusta) ---
+        if (definition.textoTooltip() != null && !definition.textoTooltip().isBlank()) {
+            button.setToolTipText(definition.textoTooltip());
+        } else if (definition.comandoCanonico() != null) {
+            // Fallback si no hay tooltip definido, usar el comando canónico
+            button.setToolTipText(definition.comandoCanonico());
         } else {
-            // --- Caso 2: No se encontró Action (Fallback) ---
-            button.setActionCommand(shortActionCommand);
-
-            // Cargar icono manualmente usando IconUtils
-            
-        	//LOG     -> Sin Action asociada. Configurando manualmente.
-            //System.out.println("      -> Intentando cargar icono fallback con IconUtils: " + nombreIcono);
-            
-            iconParaBoton = this.iconUtils.getScaledIcon(nombreIcono, this.iconoAncho, this.iconoAlto);
-
-            if (iconParaBoton == null) {
-                 button.setText("?");
-            } else {
-                 button.setText(""); // Borrar texto si hay icono fallback
-            }
+            // Fallback aún más genérico si tampoco hay comando (raro)
+            button.setToolTipText(definition.claveIcono());
         }
 
-        // --- Asignar Icono y Tooltip finales ---
+        // --- 3. Conectar Acción e Icono ---
         
-        if (iconParaBoton != null) {
-            button.setIcon(iconParaBoton);
-            // Opcional: Poner icono deshabilitado si tienes uno específico
-            // button.setDisabledIcon(...);
-        }
-
-        if (toolTipParaBoton != null) {
-             button.setToolTipText(toolTipParaBoton);
+        // === INICIO BLOQUE DE LOGGING PARA DEPURACIÓN ===
+        System.out.println("\n\n **************************************************************** ");
+        System.out.println("  [TB procesar] Para definición con comando: '" + definition.comandoCanonico() +
+                           "' y claveIcono: '" + definition.claveIcono() + "'");
+        if (this.actionMap == null) {
+            System.out.println("    -> ERROR CRÍTICO: this.actionMap en ToolbarBuilder es NULL.");
         } else {
-            // Generar tooltip si no vino de la Action
-            button.setToolTipText(
-                    nombreIcono.replace(".png", "").replace("_", " ").replace("48x48", "").replaceAll("\\d+-", "").trim());
+            boolean contieneClave = this.actionMap.containsKey(definition.comandoCanonico());
+            System.out.println("    -> ¿ActionMap contiene clave '" + definition.comandoCanonico() + "'? " + contieneClave);
+            if (contieneClave) {
+                Action foundAction = this.actionMap.get(definition.comandoCanonico());
+                System.out.println("    -> Action encontrada en mapa: " +
+                                   (foundAction != null ? foundAction.getClass().getName() : "NULL (inesperado si la clave existe)"));
+            }
+        }
+        // === FIN BLOQUE DE LOGGING PARA DEPURACIÓN ===
+        
+        Action action = null;
+        ImageIcon iconoFinalParaBoton = null; // Variable para el icono que realmente se usará
+
+        // 3.1. Intentar obtener la Action desde el actionMap usando el comando canónico
+        if (definition.comandoCanonico() != null && this.actionMap != null) {
+            action = this.actionMap.get(definition.comandoCanonico());
         }
 
-        // --- Añadir al Mapa del Builder ---
-        this.botonesPorNombre.put(fullConfigKey, button); // Usa clave LARGA para el mapa
+        // 3.2. Si se encontró una Action, configurarla en el botón
+        if (action != null) {
+            button.setAction(action); // Esto establece texto, estado enabled, y el tooltip por defecto de la Action
 
-        // --- Añadir al Panel Correcto ---
-        if (flowLayoutAlignment == FlowLayout.LEFT) panelBotonesIzquierda.add(button);
-        else if (flowLayoutAlignment == FlowLayout.CENTER) panelBotonesCentro.add(button);
-        else if (flowLayoutAlignment == FlowLayout.RIGHT) panelBotonesDerecha.add(button);
-        else System.err.println("Advertencia: Alineación desconocida para botón '" + nombreIcono + "'");
+            // 3.2.1. Intentar obtener el icono DESDE la Action.
+            //        Se asume que la Action ya tiene su SMALL_ICON configurado con el tamaño correcto
+            //        (o al menos un icono base que luego podríamos escalar si fuera necesario aquí).
+            Object iconValueFromAction = action.getValue(Action.SMALL_ICON);
+            if (iconValueFromAction instanceof ImageIcon) {
+                iconoFinalParaBoton = (ImageIcon) iconValueFromAction;
+                System.out.println("  -> Icono obtenido de Action para: " + definition.comandoCanonico());
+            } else {
+                System.out.println("  -> WARN: Action '" + definition.comandoCanonico() + "' no tiene un ImageIcon en SMALL_ICON.");
+                // Fallback: Si la Action no tiene icono, intentar cargarlo desde claveIcono de la definición
+                if (definition.claveIcono() != null) {
+                    iconoFinalParaBoton = this.iconUtils.getScaledIcon(definition.claveIcono(), this.iconoAncho, this.iconoAlto);
+                    if (iconoFinalParaBoton == null) {
+                        System.err.println("    -> ERROR: Falló carga fallback del icono desde claveIcono: " + definition.claveIcono());
+                    }
+                }
+            }
 
-    } // Fin de procesarBoton
+            // 3.2.2. Sobrescribir el tooltip si el de la definición es específico y diferente al de la Action.
+            //         (Tu lógica actual para el tooltip al inicio ya es bastante buena, esto es un refinamiento)
+            String tooltipDef = definition.textoTooltip();
+            String tooltipAction = (String) action.getValue(Action.SHORT_DESCRIPTION);
+            if (tooltipDef != null && !tooltipDef.isBlank() && !tooltipDef.equals(tooltipAction)) {
+                button.setToolTipText(tooltipDef);
+            }
 
-   
+        }
+        // 3.3. Si NO se encontró una Action (o comandoCanonico era null)
+        else {
+            if (definition.comandoCanonico() != null) { // Solo si se esperaba una Action
+                 System.err.println("WARN [ToolbarBuilder]: No se encontró Action para comando: " + definition.comandoCanonico() + ". Configurando manualmente.");
+            }
+            // 3.3.1. Asignar el comando canónico (si existe) como ActionCommand.
+            //          Esto es útil para botones que no tienen Action funcional pero necesitan ser identificados
+            //          (ej. botones de configuración de UI que son manejados por el actionPerformed central).
+            if (definition.comandoCanonico() != null) {
+                button.setActionCommand(definition.comandoCanonico());
+            }
 
-    /**
-     * Añade un separador visual al panel correspondiente.
-     * (Lógica movida desde VisorView.separadorVisualParaBotones)
-     */
-    private void addSeparator(int alignment) {
-        if (alignment == FlowLayout.LEFT) panelBotonesIzquierda.add(Box.createHorizontalStrut(10));
-        else if (alignment == FlowLayout.CENTER) panelBotonesCentro.add(Box.createHorizontalStrut(10));
-        else if (alignment == FlowLayout.RIGHT) panelBotonesDerecha.add(Box.createHorizontalStrut(10));
-    }
+            // 3.3.2. Cargar el icono directamente desde la claveIcono de la definición.
+            if (definition.claveIcono() != null) {
+                iconoFinalParaBoton = this.iconUtils.getScaledIcon(definition.claveIcono(), this.iconoAncho, this.iconoAlto);
+                if (iconoFinalParaBoton == null) {
+                    System.err.println("    -> ERROR: Falló carga del icono desde claveIcono: " + definition.claveIcono());
+                }
+            }
 
-    
+            // 3.3.3. Añadir ActionListener fallback si este botón no tiene Action funcional
+            //          (para que al menos el log se active si se hace clic).
+            if (this.controllerRef != null) {
+                 button.addActionListener(this.controllerRef); // VisorController implementa ActionListener
+                 System.out.println("  -> Añadido ActionListener fallback a botón sin Action: " + (definition.comandoCanonico() != null ? definition.comandoCanonico() : definition.claveIcono()));
+            } else {
+                 // Fallback si controllerRef no está disponible (no debería pasar si el constructor se actualizó)
+                 button.addActionListener(event -> {
+                     System.out.println("--- BOTÓN SIN ACTION CLICADO (Fallback genérico) ---");
+                     System.out.println("  > Comando: " + event.getActionCommand());
+                     System.out.println("----------------------------------------------");
+                 });
+            }
+        }
+
+        // --- 4. Establecer Icono Final y Manejar Texto del Botón ---
+        if (iconoFinalParaBoton != null) {
+            button.setIcon(iconoFinalParaBoton);
+            button.setHideActionText(true); // Si hay icono, generalmente no queremos texto.
+            button.setText("");             // Asegurar que no haya texto.
+        } else {
+            // Si no hay icono, decidimos qué texto mostrar.
+            if (action != null && action.getValue(Action.NAME) != null) {
+                // Si hay Action y tiene nombre, usarlo (setAction ya lo hizo, pero setHideActionText lo controla).
+                button.setHideActionText(false);
+            } else if (definition.comandoCanonico() != null){
+                // Si no hay Action pero sí comando, mostrar una parte del comando o un placeholder.
+                button.setText("?"); // O una abreviatura del comando
+                button.setHideActionText(false);
+            } else {
+                 button.setText("Err"); // Error, sin icono ni info de texto
+                 button.setHideActionText(false);
+            }
+            System.err.println("WARN [ToolbarBuilder]: No se pudo establecer icono para botón: " + (definition.comandoCanonico() != null ? definition.comandoCanonico() : definition.claveIcono()));
+        }
+        // Opcional: configurar button.setDisabledIcon(...) si tienes iconos específicos para estado deshabilitado.
+
+
+        // --- 5. Generar Clave Larga de Configuración y Añadir al Mapa del Builder ---
+        //    Usamos la 'claveIcono' para generar el nombre base para mantener compatibilidad
+        //    con tu `config.cfg` actual.
+        String nombreBaseBoton;
+        if (definition.claveIcono() != null && !definition.claveIcono().isBlank()) {
+            nombreBaseBoton = definition.claveIcono().replace(".png", "").replaceAll("^\\d+-", "");
+        } else if (definition.comandoCanonico() != null) {
+            // Fallback si no hay claveIcono, intentar generar desde comando canónico
+            nombreBaseBoton = definition.comandoCanonico().replace("cmd.", "").replace(".", "_");
+        } else {
+            nombreBaseBoton = "unknown_button_" + definition.hashCode(); // Fallback muy genérico
+        }
+
+        String fullConfigKey = "interfaz.boton." + definition.categoriaLayout() + "." + nombreBaseBoton;
+        this.botonesPorNombre.put(fullConfigKey, button);
+
+        // --- 6. Añadir Botón al Panel Correcto ---
+        int alignment = getAlignmentForCategory(definition.categoriaLayout());
+        if (alignment == FlowLayout.LEFT) panelBotonesIzquierda.add(button);
+        else if (alignment == FlowLayout.CENTER) panelBotonesCentro.add(button);
+        else if (alignment == FlowLayout.RIGHT) panelBotonesDerecha.add(button);
+        else {
+            System.err.println("WARN [ToolbarBuilder]: Alineación desconocida para categoría '" + definition.categoriaLayout() + "'. Usando panel central.");
+            panelBotonesCentro.add(button); // Fallback
+        }
+
+    } // --- Fin procesarToolbarButtonDefinition ---	
+	
+//    /**
+//     * Procesa una definición de botón, crea el JButton correspondiente,
+//     * lo configura (acción, icono, tooltip) y lo añade al panel y mapa correctos.
+//     * @param definition La definición del botón a procesar.
+//     */
+//    private void procesarToolbarButtonDefinitionOLD(ToolbarButtonDefinition definition) {
+//        if (definition == null) {
+//            System.err.println("WARN [ToolbarBuilder]: Se recibió una ToolbarButtonDefinition nula.");
+//            return;
+//        }
+//
+//        JButton button = new JButton(); // Crear botón
+//
+//        // --- 1. Configurar Propiedades Básicas del Botón (Tamaño, Borde, Foco, Colores) ---
+//        // (Toma esta lógica de tu 'procesarBoton' actual)
+//        int anchoBoton = this.iconoAncho;
+//        int altoBotonCalculado = (this.iconoAlto <= 0) ? anchoBoton : this.iconoAlto;
+//        button.setPreferredSize(new Dimension(anchoBoton, altoBotonCalculado));
+//        button.setMargin(new Insets(0, 0, 0, 0));
+//        button.setBorderPainted(false);
+//        button.setFocusPainted(false);
+//        button.setContentAreaFilled(true); // Importante para que setBackground funcione
+//        button.setBackground(this.colorBotonFondoDefault);
+//        button.setForeground(this.colorBotonTextoDefault);
+//        button.setOpaque(true); // Asegura visibilidad del fondo
+//
+//        // --- 2. Asignar Tooltip ---
+//        if (definition.textoTooltip() != null && !definition.textoTooltip().isBlank()) {
+//            button.setToolTipText(definition.textoTooltip());
+//        } else {
+//            // Fallback si no hay tooltip definido
+//            button.setToolTipText(definition.comandoCanonico()); // Mostrar comando como fallback
+//        }
+//
+//        // --- 3. Conectar Acción e Icono ---
+//        Action action = null;
+//        if (definition.comandoCanonico() != null) {
+//             action = this.actionMap.get(definition.comandoCanonico());
+//        }
+//
+//        ImageIcon iconoFinal = null;
+//
+//        if (action != null) {
+//            // --- Caso 3a: Se encontró Action ---
+//            button.setAction(action); // Asignar Action (esto pone texto, tooltip, estado enabled...)
+//
+//            // Intentar obtener icono DESDE la Action (ya debería estar escalado por VisorController/ActionFactory)
+//            Object iconValue = action.getValue(Action.SMALL_ICON);
+//            if (iconValue instanceof ImageIcon) {
+//                iconoFinal = (ImageIcon) iconValue;
+//                // System.out.println("  -> Usando icono de Action para: " + definition.comandoCanonico());
+//            } else {
+//                 System.out.println("  -> WARN: Action '" + definition.comandoCanonico() + "' no tiene ImageIcon en SMALL_ICON.");
+//                 // Como fallback, intentar cargar desde la claveIcono de la definición
+//                 if (definition.claveIcono() != null) {
+//                      iconoFinal = this.iconUtils.getScaledIcon(definition.claveIcono(), this.iconoAncho, this.iconoAlto);
+//                      if (iconoFinal == null) {
+//                           System.err.println("    -> ERROR: Falló carga fallback del icono: " + definition.claveIcono());
+//                      }
+//                 }
+//            }
+//             // Sobrescribir tooltip si la definición tiene uno específico y diferente al de la Action
+//             if (definition.textoTooltip() != null && !definition.textoTooltip().isBlank() &&
+//                 !definition.textoTooltip().equals(action.getValue(Action.SHORT_DESCRIPTION))) {
+//                 button.setToolTipText(definition.textoTooltip());
+//             }
+//
+//        } else {
+//            // --- Caso 3b: No se encontró Action ---
+//            System.err.println("WARN [ToolbarBuilder]: No se encontró Action para comando: " + definition.comandoCanonico());
+//            
+//            // Asignar comando canónico como ActionCommand para identificación/debug
+//            button.setActionCommand(definition.comandoCanonico());
+//            
+//            // --- AÑADIR LISTENER FALLBACK PARA LOGGING ---
+//            // Necesitarías pasar la instancia de VisorController al ToolbarBuilder
+//            // o tener una forma de obtenerla/inyectarla. Asumamos que la tienes:
+//            if (this.controllerRef != null) { // Necesitarías un campo controllerRef en ToolbarBuilder
+//                 button.addActionListener(this.controllerRef); // Añadir VisorController como listener
+//            } else {
+//                 // O un listener genérico que solo loguee si no puedes pasar el controller
+//                 button.addActionListener(fallbackEvent -> {
+//                     System.out.println("--- DEBUG: Acción Botón SIN ACTION ---");
+//                     System.out.println("  > Fuente        : " + fallbackEvent.getSource().getClass().getSimpleName());
+//                     System.out.println("  > Event Command : " + fallbackEvent.getActionCommand());
+//                     // No podemos llamar a findLongKeyForComponent fácilmente aquí sin referencia
+//                     System.out.println("------------------------------------");
+//                 });
+//            }
+//            
+//            // Cargar icono directamente desde la definición
+//            if (definition.claveIcono() != null) {
+//                iconoFinal = this.iconUtils.getScaledIcon(definition.claveIcono(), this.iconoAncho, this.iconoAlto);
+//                 if (iconoFinal == null) {
+//                      System.err.println("    -> ERROR: Falló carga del icono: " + definition.claveIcono());
+//                 }
+//            }
+//        }
+//
+//        // --- 4. Establecer Icono Final y Ocultar Texto ---
+//        if (iconoFinal != null) {
+//            button.setIcon(iconoFinal);
+//            button.setHideActionText(true); // Ocultar texto si hay icono
+//            button.setText(""); // Doble seguridad para quitar texto
+//        } else {
+//            // Si no hay icono (ni de Action ni de definición), mostrar "?" o el texto de la Action (si existe)
+//            if (action == null) {
+//                button.setText("?");
+//            }
+//            // Si hay action pero no icono, setAction ya puso el texto de la Action
+//            button.setHideActionText(false);
+//        }
+//        // Configurar icono deshabilitado (opcional)
+//        // button.setDisabledIcon(...);
+//
+//        // --- 5. Generar Clave Larga y Añadir al Mapa del Builder ---
+//        //    Necesitamos recrear la clave larga para la configuración.
+//        //    Podemos basarla en la categoría y el nombre del icono o el comando.
+//        //    Usaremos la clave del icono para mantener compatibilidad con tu config.cfg actual.
+//        String nombreBaseBoton = definition.claveIcono().replace(".png", ""); // Ej: "1001-Primera_48x48" o "Rotar_Izquierda_48x48"
+//        // Quitar prefijo numérico si existe (como en tu lógica anterior)
+//        nombreBaseBoton = nombreBaseBoton.replaceAll("^\\d+-", ""); // Ej: "Primera_48x48" o "Rotar_Izquierda_48x48"
+//
+//        String fullConfigKey = "interfaz.boton." + definition.categoriaLayout() + "." + nombreBaseBoton;
+//        this.botonesPorNombre.put(fullConfigKey, button); // Usa clave LARGA para el mapa
+//
+//        // --- 6. Añadir Botón al Panel Correcto ---
+//        int alignment = getAlignmentForCategory(definition.categoriaLayout());
+//        if (alignment == FlowLayout.LEFT) panelBotonesIzquierda.add(button);
+//        else if (alignment == FlowLayout.CENTER) panelBotonesCentro.add(button);
+//        else if (alignment == FlowLayout.RIGHT) panelBotonesDerecha.add(button);
+//        else System.err.println("Advertencia: Alineación desconocida para botón con comando '" + definition.comandoCanonico() + "'");
+//
+//    } // Fin de procesarToolbarButtonDefinition
+
+
+	/**
+	 * Añade un separador visual al panel correspondiente. (Lógica movida desde
+	 * VisorView.separadorVisualParaBotones)
+	 */
+	private void addSeparator (int alignment)
+	{
+		if (alignment == FlowLayout.LEFT)
+			panelBotonesIzquierda.add(Box.createHorizontalStrut(10));
+		else if (alignment == FlowLayout.CENTER)
+			panelBotonesCentro.add(Box.createHorizontalStrut(10));
+		else if (alignment == FlowLayout.RIGHT)
+			panelBotonesDerecha.add(Box.createHorizontalStrut(10));
+	}
+	
+	
     /**
      * Devuelve el mapa que asocia las claves de configuración LARGAS
      * con las instancias de JButton creadas.
      *
      * @return El mapa de botones por nombre (clave larga).
      */
-    public Map<String, JButton> getBotonesPorNombreMap() {
+    public Map<String, JButton> getBotonesPorNombre() { // Sin "Map" al final del nombre
         return this.botonesPorNombre;
     }
+	
+	
+//} //--- FIN ToolbarBuilder    
+    
+// ************************************************************************************************************
+// *************************************** DESDE AQUI HACIA ABAJO SOBRA ***************************************    
+// ************************************************************************************************************
+
+    
+//    /**
+//     * Procesa la creación y configuración de un botón individual,
+//     * usando los colores y tamaños de icono configurados.
+//     */
+//    private void procesarBoton(String nombreIcono, String categoria, int flowLayoutAlignment) 
+//    {
+//        JButton button = new JButton(); // Crea el botón
+//
+//        // --- Claves y Action Command ---
+//        String nombreBotonBase = nombreIcono.replaceAll("\\d+-", "").replace(".png", "");
+//        String fullConfigKey = "interfaz.boton." + categoria + "." + nombreBotonBase; // Clave Larga
+//        String shortActionCommand = nombreBotonBase; // Comando Corto
+//
+//        // --- Configurar propiedades básicas del botón ---
+//        
+//        // Determinar tamaño final del botón basado en config
+//        int anchoBoton = this.iconoAncho;
+//        int altoBotonCalculado = (this.iconoAlto <= 0) ? anchoBoton : this.iconoAlto;
+//        
+//        button.setPreferredSize(new Dimension(anchoBoton, altoBotonCalculado));
+//        button.setMargin(new Insets(0, 0, 0, 0));
+//        button.setBorderPainted(false);
+//        button.setFocusPainted(false);
+//        button.setContentAreaFilled(true);
+//        button.setBackground(this.colorBotonFondoDefault);
+//        button.setForeground(this.colorBotonTextoDefault);
+//        button.setOpaque(true); // Asegurarse de que el fondo sea visible si no es transparente
+//
+//        //LOG [ToolbarBuilder] Procesando botón:
+////        System.out.println("  [ToolbarBuilder] Procesando botón: " + shortActionCommand + " (Icono Archivo: " + nombreIcono + ")");
+//
+//        // --- Intentar asignar Action ---
+//        Action action = this.actionMap.get(shortActionCommand); // Busca Action por comando CORTO
+//
+//        ImageIcon iconParaBoton = null; // Variable para guardar el icono final
+//        String toolTipParaBoton = null; // Variable para el tooltip final
+//
+//        if (action != null) {
+//            // --- Caso 1: Se encontró una Action ---
+//        	
+//        	//LOG -> Action encontrada: 
+//            //System.out.println("    -> Action encontrada: " + action.getValue(Action.NAME));
+//            button.setAction(action); // ASIGNAR ACTION!
+//
+//            // Intentar obtener icono y tooltip DESDE la Action
+//            Object iconValue = action.getValue(Action.SMALL_ICON);
+//            
+//            if (iconValue instanceof ImageIcon) { // Comprobar que sea ImageIcon
+//                iconParaBoton = (ImageIcon) iconValue;
+//            } else {
+//                // Si la Action no tiene icono (o es incorrecto), intentar cargarlo aquí como fallback
+//                //System.out.println("    -> Icono NO válido/NULL en Action. Intentando carga fallback con IconUtils...");
+//                iconParaBoton = this.iconUtils.getScaledIcon(nombreIcono, this.iconoAncho, this.iconoAlto);
+//                 
+//                if (iconParaBoton != null) {
+//                      button.setHideActionText(true);
+//                      button.setText("");
+//                 } else {
+//                      System.err.println("    -> ERROR: Falló carga fallback del icono: " + nombreIcono);
+//                      button.setIcon(null); // Asegurar que no hay icono
+//                      button.setHideActionText(false); // Mostrar texto de la Action
+//                 }
+//            }
+//
+//            Object tooltipValue = action.getValue(Action.SHORT_DESCRIPTION);
+//             if (tooltipValue instanceof String) {
+//                 toolTipParaBoton = (String) tooltipValue; // Guardar tooltip de la action
+//             }
+//
+//        } else {
+//            // --- Caso 2: No se encontró Action (Fallback) ---
+//            button.setActionCommand(shortActionCommand);
+//
+//            // Cargar icono manualmente usando IconUtils
+//            
+//        	//LOG     -> Sin Action asociada. Configurando manualmente.
+//            //System.out.println("      -> Intentando cargar icono fallback con IconUtils: " + nombreIcono);
+//            
+//            iconParaBoton = this.iconUtils.getScaledIcon(nombreIcono, this.iconoAncho, this.iconoAlto);
+//
+//            if (iconParaBoton == null) {
+//                 button.setText("?");
+//            } else {
+//                 button.setText(""); // Borrar texto si hay icono fallback
+//            }
+//        }
+//
+//        // --- Asignar Icono y Tooltip finales ---
+//        
+//        if (iconParaBoton != null) {
+//            button.setIcon(iconParaBoton);
+//            // Opcional: Poner icono deshabilitado si tienes uno específico
+//            // button.setDisabledIcon(...);
+//        }
+//
+//        if (toolTipParaBoton != null) {
+//             button.setToolTipText(toolTipParaBoton);
+//        } else {
+//            // Generar tooltip si no vino de la Action
+//            button.setToolTipText(
+//                    nombreIcono.replace(".png", "").replace("_", " ").replace("48x48", "").replaceAll("\\d+-", "").trim());
+//        }
+//
+//        // --- Añadir al Mapa del Builder ---
+//        this.botonesPorNombre.put(fullConfigKey, button); // Usa clave LARGA para el mapa
+//
+//        // --- Añadir al Panel Correcto ---
+//        if (flowLayoutAlignment == FlowLayout.LEFT) panelBotonesIzquierda.add(button);
+//        else if (flowLayoutAlignment == FlowLayout.CENTER) panelBotonesCentro.add(button);
+//        else if (flowLayoutAlignment == FlowLayout.RIGHT) panelBotonesDerecha.add(button);
+//        else System.err.println("Advertencia: Alineación desconocida para botón '" + nombreIcono + "'");
+//
+//    } // Fin de procesarBoton
+//
+//   
+//
+
+//
+//    
+//    /**
+//     * Devuelve el mapa que asocia las claves de configuración LARGAS
+//     * con las instancias de JButton creadas.
+//     *
+//     * @return El mapa de botones por nombre (clave larga).
+//     */
+//    public Map<String, JButton> getBotonesPorNombreMap() {
+//        return this.botonesPorNombre;
+//    }
 } //--- FIN ToolbarBuilder

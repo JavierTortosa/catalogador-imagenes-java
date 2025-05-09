@@ -1,17 +1,15 @@
 package controlador.actions.zoom;
 
-// --- TEXTO MODIFICADO ---
-// Ya no necesitas Image
-// import java.awt.Image;
 import java.awt.event.ActionEvent;
+
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+
 import controlador.VisorController;
 import controlador.actions.BaseVisorAction;
 import vista.util.IconUtils; // <-- Importar
-// --- FIN MODIFICACION ---
 
 public class ToggleZoomManualAction extends BaseVisorAction {
 
@@ -40,12 +38,13 @@ public class ToggleZoomManualAction extends BaseVisorAction {
             // Opcional: putValue(Action.NAME, "Zoom");
         }
         // --- FIN DE LA PARTE IMPORTANTE ---
-    }
-    // --- FIN CONSTRUCTOR MODIFICADO ---
+    } // --- FIN CONSTRUCTOR ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller == null) {
+        if (controller == null) { // Buena práctica chequear controller
+//            controller.logActionInfo(e);
+//        } else {
              System.err.println("Error: Controller es null en ToggleZoomManualAction");
              return;
         }
@@ -54,28 +53,41 @@ public class ToggleZoomManualAction extends BaseVisorAction {
         controller.logActionInfo(e);
 
         // Determinar el nuevo estado deseado basándose en la fuente del evento
-        boolean newState = false;
+        boolean newState;// = false;
         Object source = e.getSource();
+        
         if (source instanceof JCheckBoxMenuItem) {
             newState = ((JCheckBoxMenuItem) source).isSelected();
+            System.out.println("  [ToggleZoomManualAction] Evento desde JCheckBoxMenuItem. Nuevo estado (isSelected): " + newState);
         } else if (source instanceof JButton) {
             // Si viene del botón, togglea el estado actual del modelo
             newState = !controller.isZoomManualCurrentlyEnabled();
+            System.out.println("  [ToggleZoomManualAction] Evento desde JButton. Estado actual del modelo: "
+                    + controller.isZoomManualCurrentlyEnabled() + ". Nuevo estado deseado: " + newState);
         } else {
              // Otro tipo de componente? Togglear estado actual Action
              Object selectedValue = getValue(Action.SELECTED_KEY);
-             newState = !(selectedValue instanceof Boolean && (Boolean)selectedValue);
-             System.out.println("WARN [ToggleZoomManualAction]: Evento de fuente desconocida, toggleando estado actual.");
+             boolean currentState = (selectedValue instanceof Boolean && (Boolean)selectedValue);
+             newState = !currentState;
+             //newState = !(selectedValue instanceof Boolean && (Boolean)selectedValue);
+             System.out.println("WARN [ToggleZoomManualAction]: Evento de fuente desconocida ("
+                     + (source != null ? source.getClass().getName() : "null")
+                     + "). Toggleando estado actual de la Action. Nuevo estado: " + newState);
         }
 
+        // --- 3. Llamar al Método del Controller ---
         // Llama al método del controller que maneja la lógica
         controller.setManualZoomEnabled(newState);
 
-        // Actualiza el estado SELECTED de esta propia Action
-        // Es importante hacerlo DESPUÉS de llamar a setManualZoomEnabled por si esa
-        // lógica también actualiza este valor (aunque en este caso no debería).
-        // Asegura que el estado visual (checkbox/botón) se actualice si la lógica
-        // del controlador no lo hizo explícitamente para el componente fuente.
+        
+        // --- 4. Actualizar Estado SELECTED_KEY de Esta Action ---
+        // Esto asegura que los componentes Swing vinculados (checkbox y botón toggle)
+        // reflejen visualmente el 'newState' que acabamos de procesar.
+        // setManualZoomEnabled en el controller también podría actualizar el SELECTED_KEY
+        // de esta Action (lo cual es bueno para centralizar), pero hacerlo aquí
+        // también como una "sincronización final" es seguro.
         putValue(Action.SELECTED_KEY, newState);
+        System.out.println("  [ToggleZoomManualAction] Estado Action.SELECTED_KEY actualizado a: " + getValue(Action.SELECTED_KEY));
     }
+    
 }

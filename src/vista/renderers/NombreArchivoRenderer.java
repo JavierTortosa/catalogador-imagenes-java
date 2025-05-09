@@ -1,5 +1,5 @@
 // --- Archivo Completo: principal/NombreArchivoRenderer.java ---
-package principal; // O el paquete donde realmente esté
+package vista.renderers; // O el paquete donde realmente esté
 
 import java.awt.Component;
 import java.awt.Color; // Importar Color

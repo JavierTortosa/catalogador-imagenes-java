@@ -68,16 +68,13 @@ import javax.swing.Timer;
 
 // --- Imports de Actions ---
 import controlador.actions.archivo.OpenFileAction;
-import controlador.actions.edicion.CropAction;
+import controlador.actions.archivo.DeleteAction;
+import controlador.actions.archivo.RefreshAction;
 import controlador.actions.edicion.FlipHorizontalAction;
 import controlador.actions.edicion.FlipVerticalAction;
 import controlador.actions.edicion.RotateLeftAction;
 import controlador.actions.edicion.RotateRightAction;
-import controlador.actions.especiales.DeleteAction;
-import controlador.actions.especiales.HiddenButtonsAction;
-import controlador.actions.especiales.MenuAction;
-import controlador.actions.especiales.RefreshAction;
-import controlador.actions.favoritos.ListaDeFavoritosAction;
+import controlador.actions.edicion.CropAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
@@ -100,6 +97,7 @@ import controlador.actions.zoom.ZoomAutoAction;
 import controlador.actions.zoom.ZoomFijadoAction;
 import controlador.actions.zoom.ZoomFitAction;
 import controlador.actions.zoom.ZoomFixedAction;
+import controlador.commands.AppActionCommands;
 import controlador.imagen.LocateFileAction;
 import controlador.worker.BuscadorArchivosWorker;
 // --- Imports de Modelo, Servicios y Vista ---
@@ -150,18 +148,18 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     
     // --- 3. Instancias de Actions ---
     private Action firstImageAction, previousImageAction, nextImageAction, lastImageAction;
-    private Action openAction, deleteAction;
+    private Action openAction, deleteAction, refreshAction;
     private Action rotateLeftAction, rotateRightAction, flipHorizontalAction, flipVerticalAction, cropAction;
     private Action toggleZoomManualAction, zoomAutoAction, resetZoomAction, zoomAnchoAction, zoomAltoAction, zoomFitAction, zoomFixedAction, zoomFijadoAction;
     private Action locateFileAction;
     private Action toggleMenuBarAction, toggleToolBarAction, toggleFileListAction, toggleThumbnailsAction, toggleLocationBarAction, toggleCheckeredBgAction, toggleAlwaysOnTopAction;
-    private Action refreshAction, menuAction, hiddenButtonsAction;
+    private Action menuAction, hiddenButtonsAction;
     private Action temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction;
     private List<Action> themeActions;
     private Action toggleSubfoldersAction, toggleProporcionesAction;
     private Map<String, Action> actionMap;
     private Action listaDeFavoritosAction;
-
+    private Action funcionalidadPendienteAction;
 
     /**
      * Constructor principal (AHORA SIMPLIFICADO).
@@ -218,53 +216,167 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         }
 
         // --- SECCIÓN 2: Inicialización de Actions (Archivo, Edición, Zoom, Vista, Tema, Toggles) ---
+         
+        // 2.0. Action funcionalidadPendienteAction
+         final VisorController self = this; // Crear una referencia final a la instancia actual de VisorController
+
+         this.funcionalidadPendienteAction = new AbstractAction("Funcionalidad Pendiente") {
+             private static final long serialVersionUID = 1L;
+
+             @Override
+             public void actionPerformed(ActionEvent e) {
+                 // Ahora 'self' es la referencia a VisorController
+                 if (self == null || self.getView() == null) { // Usar self para acceder a getView()
+                     System.err.println("Error: Controller o Vista son null en FuncionalidadPendienteAction");
+                     // Si self.getView() es null, mostrar en consola
+                     String mensajeFallback = "Funcionalidad para el componente que disparó este evento aún no implementada.";
+                     Object sourceEvent = e.getSource();
+                     if (sourceEvent instanceof AbstractButton) {
+                         AbstractButton btn = (AbstractButton) sourceEvent;
+                         String texto = btn.getText();
+                         if (texto == null || texto.isEmpty()) texto = (String) btn.getAction().getValue(Action.NAME);
+                         if (texto == null || texto.isEmpty()) texto = btn.getToolTipText();
+                         mensajeFallback = "Funcionalidad para '" + (texto != null ? texto : e.getActionCommand()) + "' aún no implementada.";
+                     }
+                     System.out.println(mensajeFallback);
+                     return;
+                 }
+
+                 self.logActionInfo(e); // Loguear qué se pulsó usando 'self'
+
+                 Object source = e.getSource();
+                 String textoComponente = "";
+                 // String comandoOriginalDelComponente = e.getActionCommand(); // Esto será CMD_FUNCIONALIDAD_PENDIENTE
+
+                 if (source instanceof AbstractButton) {
+                     AbstractButton comp = (AbstractButton) source;
+                     textoComponente = comp.getText(); // Texto visible del botón/menú
+                     if (textoComponente == null || textoComponente.isEmpty()) {
+                         Action sourceAction = comp.getAction(); // Debería ser this.funcionalidadPendienteAction
+                         if (sourceAction != null && sourceAction.getValue(Action.NAME) != null) {
+                             // El Action.NAME de funcionalidadPendienteAction es "Funcionalidad Pendiente"
+                             // Sería mejor usar el tooltip o el comando original del componente si lo tuviéramos aquí.
+                             // Para el tooltip:
+                              textoComponente = comp.getToolTipText();
+                         }
+                         if (textoComponente == null || textoComponente.isEmpty()) {
+                              // Como último recurso, si el componente no tiene ActionCommand propio visible aquí
+                              // (porque está usando la Action genérica), y no tiene texto ni tooltip,
+                              // podemos usar la clave larga del componente si la podemos obtener.
+                              String configKey = self.findLongKeyForComponent(source);
+                              textoComponente = (configKey != null) ? configKey : "(Componente no identificado)";
+                         }
+                     }
+                 }
+                 String mensaje = "Funcionalidad para '" + textoComponente + "' aún no implementada.";
+                 JOptionPane.showMessageDialog(self.getView().getFrame(), mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
+             }
+         };
+         
+       	this.funcionalidadPendienteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE); 
+       	// No es estrictamente necesario ponerle icono a esta Action genérica,
+       	// ya que el ToolbarButtonDefinition especificará el icono del botón.
+       	System.out.println("    -> FuncionalidadPendienteAction creada.");
+        	
         // 2.1. Actions de Archivo
         openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        // deleteAction = new DeleteAction(...); // Si la tienes
-        // refreshAction = new RefreshAction(...); // Si la tienes
+        openAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ARCHIVO_ABRIR);
+        
+        deleteAction = new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        if (deleteAction != null) deleteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ELIMINAR);
+        
+        refreshAction = new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        if (refreshAction != null) refreshAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ESPECIAL_REFRESCAR);
+        
         // ... otras actions de archivo ...
 
         // 2.2. Actions de Edición
         rotateLeftAction 		= new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        rotateLeftAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
+        
         rotateRightAction 		= new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        rotateRightAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_DER);
+        
         flipHorizontalAction 	= new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        flipHorizontalAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_H);
+        
         flipVerticalAction 		= new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        // cortarAction = new CutAction(...); // Si la tienes
+        flipVerticalAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_V);
+        
+         cropAction = new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);
+         if (cropAction != null) cropAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_RECORTAR);
 
         // 2.3. Actions de Zoom (Todas excepto navegación)
         toggleZoomManualAction 	= new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+        
         zoomAutoAction 			= new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomAutoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_AUTO);
+        
         zoomAnchoAction 		= new ZoomAnchoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomAnchoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
+        
         zoomAltoAction 			= new ZoomAltoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomAltoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ALTO);
+        
         zoomFitAction 			= new ZoomFitAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomFitAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
+        
         zoomFixedAction 		= new ZoomFixedAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomFixedAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_FIJO);
+        
         zoomFijadoAction 		= new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        zoomFijadoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
+        
         resetZoomAction 		= new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        resetZoomAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_RESET);
 
         // 2.4. Actions de Imagen (Localizar, etc.)
         locateFileAction 		= new LocateFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        locateFileAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_LOCALIZAR);
 
         // 2.5. Actions de Vista (Toggles de visibilidad)
         toggleMenuBarAction 	= new ToggleMenuBarAction(this);
+        toggleMenuBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
+        
         toggleToolBarAction 	= new ToggleToolBarAction(this);
+        toggleToolBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
+        
         toggleFileListAction 	= new ToggleFileListAction(this);
+        toggleFileListAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+        
         toggleThumbnailsAction 	= new ToggleThumbnailsAction(this);
+        toggleThumbnailsAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
+        
         toggleLocationBarAction = new ToggleLocationBarAction(this);
+        toggleLocationBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR);
+        
         toggleCheckeredBgAction = new ToggleCheckeredBackgroundAction(this);
+        toggleCheckeredBgAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
+        
         toggleAlwaysOnTopAction = new ToggleAlwaysOnTopAction(this);
+        toggleAlwaysOnTopAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
 
         // 2.6. Actions de Tema
         temaClearAction 		= new ToggleThemeAction(this, "clear", "Tema Clear");
+        temaClearAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_CLEAR);
         temaDarkAction 			= new ToggleThemeAction(this, "dark", "Tema Dark");
+        temaDarkAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_DARK);
         temaBlueAction 			= new ToggleThemeAction(this, "blue", "Tema Blue");
+        temaBlueAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_BLUE);
         temaGreenAction 		= new ToggleThemeAction(this, "green", "Tema Green");
+        temaGreenAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_GREEN);
         temaOrangeAction 		= new ToggleThemeAction(this, "orange", "Tema Orange");
+        temaOrangeAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_ORANGE);
         // Agruparlas para facilitar la actualización de selección
         themeActions = List.of(temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction);
 
         // 2.7. Actions de Toggle Generales (Subcarpetas, Proporciones)
         toggleSubfoldersAction 	= new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
+        toggleSubfoldersAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+        
         toggleProporcionesAction = new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
+        toggleProporcionesAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
 
         // 2.8 Actions Favoritos 
 //        listaDeFavoritosAction 	= new ListaDeFavoritosAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
@@ -278,6 +390,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 //        	//actions.edicion
 //        cropAction				= new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
 
+        
+        
         // --- SECCIÓN 3: Configuración del Estado Inicial de Actions Específicas ---
         // 3.1. Leer estado inicial de config para Toggles que lo necesiten.
         try {
@@ -285,7 +399,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         	 // 3.1.1. Estado inicial de Zoom Manual
              if (toggleZoomManualAction != null) {
                  boolean zoomManualInicial = configuration.getBoolean("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", false);
+                 toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+                 //toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
                  toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
+                 
 //                 System.out.println("    -> Estado inicial Action 'toggleZoomManual' (SELECTED_KEY) puesto a: " + zoomManualInicial);
              }
              
@@ -364,134 +481,203 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      * @return Un Map<String, Action> que contiene las actions no relacionadas con la navegación.
      */
     /*package-private*/ Map<String, Action> createActionMapInternal() {
-        // --- SECCIÓN 1: Creación e Inicialización del Mapa ---
-        // 1.1. Crear una nueva instancia de HashMap para almacenar las actions.
         Map<String, Action> mapaParcial = new HashMap<>();
-        // 1.2. Log indicando el inicio de la creación del mapa parcial.
         System.out.println("  [Create ActionMap Internal] Creando mapa parcial de actions (sin navegación)...");
 
         // --- SECCIÓN 2: Poblado del Mapa (Action por Action) ---
-        // 2.1. Añadir Actions de Archivo/Control (usando comando CORTO como clave).
-        //      Asegurarse de que las variables de Action (openAction, etc.) ya han sido inicializadas
-        //      en `initializeActionsInternal`. Se añade una comprobación `!= null` por seguridad.
-        if (openAction != null) {
-             mapaParcial.put("Abrir_Archivo", openAction); // Clave de Menú
-             mapaParcial.put("Selector_de_Carpetas_48x48", openAction); // Clave de Botón Toolbar
-        }
-        if (locateFileAction != null) {
-             mapaParcial.put("Abrir_Ubicacion_del_Archivo", locateFileAction); // Clave de Menú
-             mapaParcial.put("Ubicacion_del_Archivo_48x48", locateFileAction); // Clave de Botón Toolbar
-        }
-        if (refreshAction != null) { // Asumiendo que refreshAction existe
-             mapaParcial.put("Refrescar_48x48", refreshAction); // Clave de Botón Toolbar
-             mapaParcial.put("Recargar_Lista_de_Imagenes", refreshAction); // Clave de Menú
-             // mapaParcial.put("Refrescar_Imagen", refreshAction); // ¿Otra clave de menú?
-             // mapaParcial.put("Volver_a_Cargar", refreshAction); // ¿Otra clave de menú?
-        }
-         if (deleteAction != null) { // Asumiendo que deleteAction existe
-             mapaParcial.put("Eliminar_Permanentemente", deleteAction); // Clave de Menú
-             mapaParcial.put("Borrar_48x48", deleteAction); // Clave de Botón Toolbar
-         }
-        // ... añadir otras actions de archivo/control si existen ...
+        // --- Usar AppActionCommands como CLAVE ---
 
-        // 2.2. Añadir Actions de Edición
-        if (rotateLeftAction != null) {
-             mapaParcial.put("Girar_Izquierda", rotateLeftAction);
-             mapaParcial.put("Rotar_Izquierda_48x48", rotateLeftAction);
-        }
-        if (rotateRightAction != null) {
-             mapaParcial.put("Girar_Derecha", rotateRightAction);
-             mapaParcial.put("Rotar_Derecha_48x48", rotateRightAction);
-        }
-        if (flipHorizontalAction != null) {
-             mapaParcial.put("Voltear_Horizontal", flipHorizontalAction);
-             mapaParcial.put("Espejo_Horizontal_48x48", flipHorizontalAction);
-        }
-        if (flipVerticalAction != null) {
-             mapaParcial.put("Voltear_Vertical", flipVerticalAction);
-             mapaParcial.put("Espejo_Vertical_48x48", flipVerticalAction);
-        }
-        if (cropAction != null) { // Asumiendo que cortarAction existe
-             mapaParcial.put("Recortar_48x48", cropAction);
-             // mapaParcial.put("Recortar", cortarAction); // Si hay un menú item
-        }
+        // 2.1. Archivo/Control
+        if (openAction != null) mapaParcial.put(AppActionCommands.CMD_ARCHIVO_ABRIR, openAction);
+        if (locateFileAction != null) mapaParcial.put(AppActionCommands.CMD_IMAGEN_LOCALIZAR, locateFileAction);
+        if (refreshAction != null) mapaParcial.put(AppActionCommands.CMD_ESPECIAL_REFRESCAR, refreshAction);
+        if (deleteAction != null) mapaParcial.put(AppActionCommands.CMD_IMAGEN_ELIMINAR, deleteAction);
 
-        // 2.3. Añadir Actions de Zoom
-        if (toggleZoomManualAction != null) {
-            mapaParcial.put("Activar_Zoom_Manual", toggleZoomManualAction);
-            mapaParcial.put("Zoom_48x48", toggleZoomManualAction);
-        }
-        if (resetZoomAction != null) {
-            mapaParcial.put("Resetear_Zoom", resetZoomAction);
-            mapaParcial.put("Reset_48x48", resetZoomAction);
-        }
-        if (zoomAutoAction != null) {
-             mapaParcial.put("Zoom_Automatico", zoomAutoAction);
-             mapaParcial.put("Zoom_Auto_48x48", zoomAutoAction);
-        }
-        if (zoomAnchoAction != null) {
-             mapaParcial.put("Zoom_a_lo_Ancho", zoomAnchoAction);
-             mapaParcial.put("Ajustar_al_Ancho_48x48", zoomAnchoAction);
-        }
-        if (zoomAltoAction != null) {
-             mapaParcial.put("Zoom_a_lo_Alto", zoomAltoAction);
-             mapaParcial.put("Ajustar_al_Alto_48x48", zoomAltoAction);
-        }
-        if (zoomFitAction != null) {
-             mapaParcial.put("Escalar_Para_Ajustar", zoomFitAction);
-             mapaParcial.put("Escalar_Para_Ajustar_48x48", zoomFitAction);
-        }
-        if (zoomFixedAction != null) {
-             mapaParcial.put("Zoom_Actual_Fijo", zoomFixedAction);
-             mapaParcial.put("Zoom_Fijo_48x48", zoomFixedAction);
-        }
-        if (zoomFijadoAction != null) {
-             mapaParcial.put("Zoom_Especificado", zoomFijadoAction);
-             mapaParcial.put("Zoom_Especifico_48x48", zoomFijadoAction);
-        }
-        // ... otras actions de zoom ...
+        // 2.2. Edición
+        if (rotateLeftAction != null) mapaParcial.put(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ, rotateLeftAction);
+        if (rotateRightAction != null) mapaParcial.put(AppActionCommands.CMD_IMAGEN_ROTAR_DER, rotateRightAction);
+        if (flipHorizontalAction != null) mapaParcial.put(AppActionCommands.CMD_IMAGEN_VOLTEAR_H, flipHorizontalAction);
+        if (flipVerticalAction != null) mapaParcial.put(AppActionCommands.CMD_IMAGEN_VOLTEAR_V, flipVerticalAction);
+        if (cropAction != null) mapaParcial.put(AppActionCommands.CMD_IMAGEN_RECORTAR, cropAction);
 
-        // 2.4. Añadir Actions de Vista (Toggles Visibilidad)
-        if (toggleMenuBarAction != null) mapaParcial.put("Barra_de_Menu", toggleMenuBarAction);
-        if (toggleToolBarAction != null) mapaParcial.put("Barra_de_Botones", toggleToolBarAction);
-        if (toggleFileListAction != null) mapaParcial.put("Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction);
-        if (toggleThumbnailsAction != null) mapaParcial.put("Imagenes_en_Miniatura", toggleThumbnailsAction);
-        if (toggleLocationBarAction != null) mapaParcial.put("Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction);
-        if (toggleCheckeredBgAction != null) mapaParcial.put("Fondo_a_Cuadros", toggleCheckeredBgAction);
-        if (toggleAlwaysOnTopAction != null) mapaParcial.put("Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
-        // ... otras actions de vista ...
+        // 2.3. Zoom
+        if (toggleZoomManualAction != null) mapaParcial.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, toggleZoomManualAction);
+        if (resetZoomAction != null) mapaParcial.put(AppActionCommands.CMD_ZOOM_RESET, resetZoomAction);
+        if (zoomAutoAction != null) mapaParcial.put(AppActionCommands.CMD_ZOOM_TIPO_AUTO, zoomAutoAction);
+        if (zoomAnchoAction != null) mapaParcial.put(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, zoomAnchoAction);
+        if (zoomAltoAction != null) mapaParcial.put(AppActionCommands.CMD_ZOOM_TIPO_ALTO, zoomAltoAction);
+        if (zoomFitAction != null) mapaParcial.put(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, zoomFitAction);
+        if (zoomFixedAction != null) mapaParcial.put(AppActionCommands.CMD_ZOOM_TIPO_FIJO, zoomFixedAction);
+        if (zoomFijadoAction != null) mapaParcial.put(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, zoomFijadoAction);
 
-        // 2.5. Añadir Actions de Tema
-        if (temaClearAction != null) mapaParcial.put("Tema_Clear", temaClearAction);
-        if (temaDarkAction != null) mapaParcial.put("Tema_Dark", temaDarkAction);
-        if (temaBlueAction != null) mapaParcial.put("Tema_Blue", temaBlueAction);
-        if (temaGreenAction != null) mapaParcial.put("Tema_Green", temaGreenAction);
-        if (temaOrangeAction != null) mapaParcial.put("Tema_Orange", temaOrangeAction);
+        // 2.4. Vista (Toggles Visibilidad)
+        if (toggleMenuBarAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR, toggleMenuBarAction);
+        if (toggleToolBarAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR, toggleToolBarAction);
+        if (toggleFileListAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST, toggleFileListAction);
+        if (toggleThumbnailsAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, toggleThumbnailsAction);
+        if (toggleLocationBarAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, toggleLocationBarAction);
+        if (toggleCheckeredBgAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, toggleCheckeredBgAction);
+        if (toggleAlwaysOnTopAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, toggleAlwaysOnTopAction);
 
-        // 2.6. Añadir Actions de Toggle Generales
-        if (toggleSubfoldersAction != null) {
-            // Puede que solo tenga botón, o también menú item
-            mapaParcial.put("Subcarpetas_48x48", toggleSubfoldersAction);
-            // mapaParcial.put("Mostrar_Imagenes_de_Subcarpetas", toggleSubfoldersAction); // Si hay menú item CheckBox
-        }
-        if (toggleProporcionesAction != null) {
-             mapaParcial.put("Mantener_Proporciones", toggleProporcionesAction); // Menú
-             mapaParcial.put("Mantener_Proporciones_48x48", toggleProporcionesAction); // Botón
+        // 2.5. Tema
+        if (temaClearAction != null) mapaParcial.put(AppActionCommands.CMD_TEMA_CLEAR, temaClearAction);
+        if (temaDarkAction != null) mapaParcial.put(AppActionCommands.CMD_TEMA_DARK, temaDarkAction);
+        if (temaBlueAction != null) mapaParcial.put(AppActionCommands.CMD_TEMA_BLUE, temaBlueAction);
+        if (temaGreenAction != null) mapaParcial.put(AppActionCommands.CMD_TEMA_GREEN, temaGreenAction);
+        if (temaOrangeAction != null) mapaParcial.put(AppActionCommands.CMD_TEMA_ORANGE, temaOrangeAction);
+
+        // 2.6. Toggles Generales
+        if (toggleSubfoldersAction != null) mapaParcial.put(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, toggleSubfoldersAction);
+        if (toggleProporcionesAction != null) mapaParcial.put(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, toggleProporcionesAction);
+
+        // 2.7. Especiales / Otros
+        if (menuAction != null) mapaParcial.put(AppActionCommands.CMD_ESPECIAL_MENU, menuAction);
+        if (hiddenButtonsAction != null) mapaParcial.put(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, hiddenButtonsAction);
+
+        // 2.8. Funcionalidad Pendiente (Action Genérica)
+        if (this.funcionalidadPendienteAction != null) { // 'this' para referirse al campo de instancia
+            mapaParcial.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
         }
 
-        // 2.7. Añadir Actions Misceláneas / Especiales
-        if (menuAction != null) mapaParcial.put("Menu_48x48", menuAction);
-        if (hiddenButtonsAction != null) mapaParcial.put("Botones_Ocultos_48x48", hiddenButtonsAction);
-        // ... otras ...
-
-
-        // --- SECCIÓN 3: Log Final y Retorno ---
-        // 3.1. Imprimir log indicando la finalización y el tamaño del mapa creado.
         System.out.println("  [Create ActionMap Internal] Finalizado. Mapa parcial creado con " + mapaParcial.size() + " entradas.");
-        // 3.2. Devolver el mapa parcial creado.
         return mapaParcial;
-
-    } // --- FIN createActionMapInternal ---   
+    }
+    
+//    /*package-private*/ Map<String, Action> createActionMapInternal() {
+//        // --- SECCIÓN 1: Creación e Inicialización del Mapa ---
+//        // 1.1. Crear una nueva instancia de HashMap para almacenar las actions.
+//        Map<String, Action> mapaParcial = new HashMap<>();
+//        // 1.2. Log indicando el inicio de la creación del mapa parcial.
+//        System.out.println("  [Create ActionMap Internal] Creando mapa parcial de actions (sin navegación)...");
+//
+//        // --- SECCIÓN 2: Poblado del Mapa (Action por Action) ---
+//        // 2.0. Accion de funcionalidadPendienteAction 
+//        if (this.funcionalidadPendienteAction != null) {
+//            mapaParcial.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
+//        }
+//        
+//        // 2.1. Añadir Actions de Archivo/Control (usando comando CORTO como clave).
+//        //      Asegurarse de que las variables de Action (openAction, etc.) ya han sido inicializadas
+//        //      en `initializeActionsInternal`. Se añade una comprobación `!= null` por seguridad.
+//        if (openAction != null) {
+//             mapaParcial.put("Abrir_Archivo", openAction); // Clave de Menú
+//             mapaParcial.put("Selector_de_Carpetas_48x48", openAction); // Clave de Botón Toolbar
+//        }
+//        if (locateFileAction != null) {
+//             mapaParcial.put("Abrir_Ubicacion_del_Archivo", locateFileAction); // Clave de Menú
+//             mapaParcial.put("Ubicacion_del_Archivo_48x48", locateFileAction); // Clave de Botón Toolbar
+//        }
+//        if (refreshAction != null) { // Asumiendo que refreshAction existe
+//             mapaParcial.put("Refrescar_48x48", refreshAction); // Clave de Botón Toolbar
+//             mapaParcial.put("Recargar_Lista_de_Imagenes", refreshAction); // Clave de Menú
+//             // mapaParcial.put("Refrescar_Imagen", refreshAction); // ¿Otra clave de menú?
+//             // mapaParcial.put("Volver_a_Cargar", refreshAction); // ¿Otra clave de menú?
+//        }
+//         if (deleteAction != null) { // Asumiendo que deleteAction existe
+//             mapaParcial.put("Eliminar_Permanentemente", deleteAction); // Clave de Menú
+//             mapaParcial.put("Borrar_48x48", deleteAction); // Clave de Botón Toolbar
+//         }
+//        // ... añadir otras actions de archivo/control si existen ...
+//
+//        // 2.2. Añadir Actions de Edición
+//        if (rotateLeftAction != null) {
+//             mapaParcial.put("Girar_Izquierda", rotateLeftAction);
+//             mapaParcial.put("Rotar_Izquierda_48x48", rotateLeftAction);
+//        }
+//        if (rotateRightAction != null) {
+//             mapaParcial.put("Girar_Derecha", rotateRightAction);
+//             mapaParcial.put("Rotar_Derecha_48x48", rotateRightAction);
+//        }
+//        if (flipHorizontalAction != null) {
+//             mapaParcial.put("Voltear_Horizontal", flipHorizontalAction);
+//             mapaParcial.put("Espejo_Horizontal_48x48", flipHorizontalAction);
+//        }
+//        if (flipVerticalAction != null) {
+//             mapaParcial.put("Voltear_Vertical", flipVerticalAction);
+//             mapaParcial.put("Espejo_Vertical_48x48", flipVerticalAction);
+//        }
+//        if (cropAction != null) { // Asumiendo que cortarAction existe
+//             mapaParcial.put("Recortar_48x48", cropAction);
+//             // mapaParcial.put("Recortar", cortarAction); // Si hay un menú item
+//        }
+//
+//        // 2.3. Añadir Actions de Zoom
+//        if (toggleZoomManualAction != null) {
+//        	mapaParcial.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, toggleZoomManualAction);
+//            //mapaParcial.put("Activar_Zoom_Manual", toggleZoomManualAction);
+//            mapaParcial.put("Zoom_48x48", toggleZoomManualAction);
+//        }
+//        if (resetZoomAction != null) {
+//            mapaParcial.put("Resetear_Zoom", resetZoomAction);
+//            mapaParcial.put("Reset_48x48", resetZoomAction);
+//        }
+//        if (zoomAutoAction != null) {
+//             mapaParcial.put("Zoom_Automatico", zoomAutoAction);
+//             mapaParcial.put("Zoom_Auto_48x48", zoomAutoAction);
+//        }
+//        if (zoomAnchoAction != null) {
+//             mapaParcial.put("Zoom_a_lo_Ancho", zoomAnchoAction);
+//             mapaParcial.put("Ajustar_al_Ancho_48x48", zoomAnchoAction);
+//        }
+//        if (zoomAltoAction != null) {
+//             mapaParcial.put("Zoom_a_lo_Alto", zoomAltoAction);
+//             mapaParcial.put("Ajustar_al_Alto_48x48", zoomAltoAction);
+//        }
+//        if (zoomFitAction != null) {
+//             mapaParcial.put("Escalar_Para_Ajustar", zoomFitAction);
+//             mapaParcial.put("Escalar_Para_Ajustar_48x48", zoomFitAction);
+//        }
+//        if (zoomFixedAction != null) {
+//             mapaParcial.put("Zoom_Actual_Fijo", zoomFixedAction);
+//             mapaParcial.put("Zoom_Fijo_48x48", zoomFixedAction);
+//        }
+//        if (zoomFijadoAction != null) {
+//             mapaParcial.put("Zoom_Especificado", zoomFijadoAction);
+//             mapaParcial.put("Zoom_Especifico_48x48", zoomFijadoAction);
+//        }
+//        // ... otras actions de zoom ...
+//
+//        // 2.4. Añadir Actions de Vista (Toggles Visibilidad)
+//        if (toggleMenuBarAction != null) mapaParcial.put("Barra_de_Menu", toggleMenuBarAction);
+//        if (toggleToolBarAction != null) mapaParcial.put("Barra_de_Botones", toggleToolBarAction);
+//        if (toggleFileListAction != null) mapaParcial.put("Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction);
+//        if (toggleThumbnailsAction != null) mapaParcial.put("Imagenes_en_Miniatura", toggleThumbnailsAction);
+//        if (toggleLocationBarAction != null) mapaParcial.put("Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction);
+//        if (toggleCheckeredBgAction != null) mapaParcial.put("Fondo_a_Cuadros", toggleCheckeredBgAction);
+//        if (toggleAlwaysOnTopAction != null) mapaParcial.put("Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
+//        // ... otras actions de vista ...
+//
+//        // 2.5. Añadir Actions de Tema
+//        if (temaClearAction != null) mapaParcial.put("Tema_Clear", temaClearAction);
+//        if (temaDarkAction != null) mapaParcial.put("Tema_Dark", temaDarkAction);
+//        if (temaBlueAction != null) mapaParcial.put("Tema_Blue", temaBlueAction);
+//        if (temaGreenAction != null) mapaParcial.put("Tema_Green", temaGreenAction);
+//        if (temaOrangeAction != null) mapaParcial.put("Tema_Orange", temaOrangeAction);
+//
+//        // 2.6. Añadir Actions de Toggle Generales
+//        if (toggleSubfoldersAction != null) {
+//            // Puede que solo tenga botón, o también menú item
+//            mapaParcial.put("Subcarpetas_48x48", toggleSubfoldersAction);
+//            // mapaParcial.put("Mostrar_Imagenes_de_Subcarpetas", toggleSubfoldersAction); // Si hay menú item CheckBox
+//        }
+//        if (toggleProporcionesAction != null) {
+//             mapaParcial.put("Mantener_Proporciones", toggleProporcionesAction); // Menú
+//             mapaParcial.put("Mantener_Proporciones_48x48", toggleProporcionesAction); // Botón
+//        }
+//
+//        // 2.7. Añadir Actions Misceláneas / Especiales
+//        if (menuAction != null) mapaParcial.put("Menu_48x48", menuAction);
+//        if (hiddenButtonsAction != null) mapaParcial.put("Botones_Ocultos_48x48", hiddenButtonsAction);
+//        // ... otras ...
+//
+//
+//        // --- SECCIÓN 3: Log Final y Retorno ---
+//        // 3.1. Imprimir log indicando la finalización y el tamaño del mapa creado.
+//        System.out.println("  [Create ActionMap Internal] Finalizado. Mapa parcial creado con " + mapaParcial.size() + " entradas.");
+//        // 3.2. Devolver el mapa parcial creado.
+//        return mapaParcial;
+//
+//    } // --- FIN createActionMapInternal ---   
     
 
     /**
@@ -534,16 +720,17 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             // 2.1.1. Crear Action para "Siguiente Imagen".
             //        Se pasa el listCoordinator (para ejecutar la lógica de navegación),
             //        iconUtils (para el icono) y las dimensiones.
-            nextImageAction = new NextImageAction(listCoordinator, iconUtils, anchoIcono, altoIcono);
+            nextImageAction = new NextImageAction(this, iconUtils, anchoIcono, altoIcono);
 
             // 2.1.2. Crear Action para "Imagen Anterior".
-            previousImageAction = new PreviousImageAction(listCoordinator, iconUtils, anchoIcono, altoIcono);
+            previousImageAction = new PreviousImageAction(this, iconUtils, anchoIcono, altoIcono);
 
             // 2.1.3. Crear Action para "Primera Imagen".
-            firstImageAction = new FirstImageAction(listCoordinator, iconUtils, anchoIcono, altoIcono);
+            firstImageAction = new FirstImageAction(this, iconUtils, anchoIcono, altoIcono);
 
             // 2.1.4. Crear Action para "Última Imagen".
-            lastImageAction = new LastImageAction(listCoordinator, iconUtils, anchoIcono, altoIcono);
+            lastImageAction = new LastImageAction(this, iconUtils, anchoIcono, altoIcono);            
+            
 
             // 2.1.5. Log de éxito en la creación.
             System.out.println("      -> Instancias de Actions de Navegación creadas.");
@@ -563,23 +750,19 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         try {
             // 3.1.1. Añadir NextImageAction con sus claves (Menú y Botón).
             if (nextImageAction != null) {
-                actionMap.put("Imagen_Siguiente", nextImageAction); // Clave usada por MenuBarBuilder
-                actionMap.put("Siguiente_48x48", nextImageAction);   // Clave usada por ToolbarBuilder
+                actionMap.put(AppActionCommands.CMD_NAV_SIGUIENTE, nextImageAction);
             }
             // 3.1.2. Añadir PreviousImageAction.
             if (previousImageAction != null) {
-                actionMap.put("Imagen_Aterior", previousImageAction); // Clave usada por MenuBarBuilder
-                actionMap.put("Anterior_48x48", previousImageAction); // Clave usada por ToolbarBuilder
+                actionMap.put(AppActionCommands.CMD_NAV_ANTERIOR, previousImageAction);
             }
             // 3.1.3. Añadir FirstImageAction.
             if (firstImageAction != null) {
-                actionMap.put("Primera_Imagen", firstImageAction); // Clave usada por MenuBarBuilder
-                actionMap.put("Primera_48x48", firstImageAction);  // Clave usada por ToolbarBuilder
+            	actionMap.put(AppActionCommands.CMD_NAV_PRIMERA, firstImageAction);
             }
             // 3.1.4. Añadir LastImageAction.
             if (lastImageAction != null) {
-                actionMap.put("Ultima_Imagen", lastImageAction); // Clave usada por MenuBarBuilder
-                actionMap.put("Ultima_48x48", lastImageAction);  // Clave usada por ToolbarBuilder
+            	actionMap.put(AppActionCommands.CMD_NAV_ULTIMA, lastImageAction); 
             }
             // 3.1.5. Log confirmando la actualización del mapa y su tamaño final.
             System.out.println("      -> Actions de Navegación añadidas al mapa principal. Tamaño final actionMap: " + actionMap.size());
@@ -732,9 +915,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      * y sincroniza el estado visual de controles específicos (como los de Zoom).
      */
     /*package-private*/ void aplicarConfigAlaVistaInternal() {
-        // --- SECCIÓN 1: Log de Inicio y Validaciones ---
+        
+    	// --- SECCIÓN 1: Log de Inicio y Validaciones ---
         // 1.1. Indicar el inicio de la aplicación de configuración a la vista.
         System.out.println("  [Apply Config View Internal] Aplicando configuración a la Vista...");
+        
         // 1.2. Validar dependencias críticas: configuration y view deben existir.
         //      Model también se incluye por si alguna lógica futura lo necesita aquí.
         if (configuration == null || view == null || model == null) {
@@ -745,24 +930,31 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // --- SECCIÓN 2: Aplicar Configuración a Botones (Visibilidad y Estado Enabled) ---
         // 2.1. Obtener el mapa de botones desde la vista.
         Map<String, JButton> botones = view.getBotonesPorNombre();
+        
         // 2.2. Comprobar si el mapa de botones existe.
         if (botones != null) {
             System.out.println("    -> Aplicando config a Botones (Vista)...");
+        
             // 2.3. Iterar sobre cada entrada del mapa (clave larga -> botón).
             botones.forEach((claveCompletaBoton, button) -> {
-                // 2.4. Bloque try-catch para manejar errores al leer config para un botón específico.
+            
+            	// 2.4. Bloque try-catch para manejar errores al leer config para un botón específico.
                 try {
-                    // 2.4.1. Leer el estado 'activado' (enabled) desde la configuración.
+                
+                	// 2.4.1. Leer el estado 'activado' (enabled) desde la configuración.
                     //        Usa la clave larga del botón + ".activado". Proporciona 'true' como valor por defecto.
                     boolean activado = configuration.getBoolean(claveCompletaBoton + ".activado", true);
+                   
                     // 2.4.2. Establecer el estado 'enabled' del botón.
                     button.setEnabled(activado);
 
                     // 2.4.3. Leer el estado 'visible' desde la configuración.
                     //        Usa la clave larga del botón + ".visible". Proporciona 'true' como valor por defecto.
                     boolean visible = configuration.getBoolean(claveCompletaBoton + ".visible", true);
+                    
                     // 2.4.4. Establecer la visibilidad del botón.
                     button.setVisible(visible);
+                    
                     // 2.4.5. Log opcional para depuración.
                     // System.out.println("      -> Botón '" + claveCompletaBoton + "': enabled=" + activado + ", visible=" + visible);
 
@@ -772,6 +964,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                     // Continuar con el siguiente botón si uno falla.
                 }
             });
+            
             // 2.6. Log indicando fin de configuración de botones.
             System.out.println("    -> Config Botones (Vista) OK.");
         // 2.7. Log de advertencia si el mapa de botones no se encontró en la vista.
@@ -782,15 +975,20 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // --- SECCIÓN 3: Aplicar Configuración a Menús (Visibilidad, Enabled y Selección sin Action) ---
         // 3.1. Obtener el mapa de items de menú desde la vista.
         Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
+
         // 3.2. Comprobar si el mapa de menús existe.
 	    if (menuItems != null) {
 	        System.out.println("    -> Aplicando config a Menús (Vista)...");
+	    
 	        // 3.3. Iterar sobre cada entrada del mapa (clave larga -> item de menú).
 	        menuItems.forEach((claveCompletaMenu, menuItem) -> {
-	             // 3.4. Bloque try-catch para manejar errores para un item específico.
+	        
+	        	// 3.4. Bloque try-catch para manejar errores para un item específico.
 	             try {
-	                 // 3.4.1. Leer y aplicar el estado 'activado' (enabled). Default: true.
+	            
+	            	 // 3.4.1. Leer y aplicar el estado 'activado' (enabled). Default: true.
 	                 menuItem.setEnabled(configuration.getBoolean(claveCompletaMenu + ".activado", true));
+	                 
 	                 // 3.4.2. Leer y aplicar el estado 'visible'. Default: true.
 	                 menuItem.setVisible(configuration.getBoolean(claveCompletaMenu + ".visible", true));
 
@@ -822,6 +1020,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	                 // Continuar con el siguiente item si uno falla.
 	             }
 	        });
+	        
 	        // 3.6. Log indicando fin de configuración de menús.
 	        System.out.println("    -> Config Menús (Vista) OK.");
 	    // 3.7. Log de advertencia si el mapa de menús no se encontró.
@@ -833,31 +1032,23 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // 4.1. Iniciar bloque try-catch para esta sección.
         try {
             // 4.1.1. Sincronizar controles de Zoom Manual y Reset.
-            //        Obtener el estado lógico actual de la Action 'toggleZoomManualAction'.
             boolean zoomManualInicial = (toggleZoomManualAction != null) && Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY));
-            // Llamar al método de la vista para actualizar la apariencia de los botones/menús de zoom.
-            view.actualizarEstadoControlesZoom(zoomManualInicial, zoomManualInicial); // El segundo parámetro habilita Reset si Zoom está activo.
+            if (view != null) { // Chequeo de view
+                 view.actualizarEstadoControlesZoom(zoomManualInicial, zoomManualInicial);
+            } else { System.err.println("WARN [aplicarConfigAlaVistaInternal]: Vista nula al actualizar controles zoom.");}
+
 
             // 4.1.2. Sincronizar estado visual del botón de Mantener Proporciones.
-            //        Obtener estado lógico de la Action.
             boolean proporcionesInicial = (toggleProporcionesAction != null) && Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY));
-            // Llamar al helper para actualizar la apariencia del botón asociado.
-            actualizarAspectoBotonToggle(toggleProporcionesAction, proporcionesInicial);
+            actualizarAspectoBotonToggle(toggleProporcionesAction, proporcionesInicial); // Este método ya chequea si action es null
 
             // 4.1.3. Sincronizar estado visual del botón y radios de Cargar Subcarpetas.
-            //        Obtener estado lógico de la Action.
             boolean subcarpetasInicial = (toggleSubfoldersAction != null) && Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY));
-            // Actualizar apariencia del botón asociado.
             actualizarAspectoBotonToggle(toggleSubfoldersAction, subcarpetasInicial);
-            // Asegurar que los RadioButtons del menú reflejen el estado lógico.
-            restaurarSeleccionRadiosSubcarpetas(subcarpetasInicial);
+            // ¡MOVER LA LLAMADA AQUÍ DENTRO DEL TRY!
+            sincronizarRadiosSubcarpetasVisualmente(subcarpetasInicial); // Asegurar que los radios del menú se marquen correctamente
 
-            // 4.1.4. Sincronizar estado visual de otros toggles si fuera necesario.
-            //        Por ejemplo, si los JCheckBoxMenuItems para visibilidad de barras
-            //        NO usaran Actions (aunque sí las usan), tendrías que llamar a
-            //        view.setJMenuBarVisible(), view.setToolBarVisible(), etc., aquí,
-            //        leyendo el estado desde `configuration` o desde la `Action` correspondiente.
-            //        Como usan Actions, su estado visual se maneja automáticamente.
+            // 4.1.4. (Comentario sin cambios)
 
             // 4.1.5. Log confirmando la sincronización visual.
             System.out.println("    -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.");
@@ -867,7 +1058,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             System.err.println("ERROR aplicando estados visuales específicos a la Vista: " + e.getMessage());
             e.printStackTrace();
         }
-
+        
         // --- SECCIÓN 5: Log Final ---
         // 5.1. Indicar que la configuración visual ha terminado.
         System.out.println("  [Apply Config View Internal] Finalizado.");
@@ -1456,58 +1647,58 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             //      Nuevamente, se usa la clave LARGA para buscar el JMenuItem en el mapa `menuItems`.
 
             // 3.3.1. Menú Archivo
-            setActionForKey(menuItems, "interfaz.menu.archivo.Abrir_Archivo", openAction);
+            setActionForKey(menuItems, "interfaz.menu.archivo.abrir_archivo", openAction);
             // setActionForKey(menuItems, "interfaz.menu.archivo.Guardar", guardarAction); // Ejemplo
             // setActionForKey(menuItems, "interfaz.menu.archivo.Recargar_Lista_de_Imagenes", refreshAction); // Ejemplo
             // setActionForKey(menuItems, "interfaz.menu.archivo.Eliminar_Permanentemente", deleteAction); // Ejemplo
-            setActionForKey(menuItems, "interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo", locateFileAction); // Si está aquí
+            setActionForKey(menuItems, "interfaz.menu.imagen.abrir_ubicacion_del_archivo", locateFileAction); // Si está aquí
             // ... otros items de Archivo con Actions ...
 
             // 3.3.2. Menú Navegación
-            setActionForKey(menuItems, "interfaz.menu.navegacion.Primera_Imagen", firstImageAction);
-            setActionForKey(menuItems, "interfaz.menu.navegacion.Imagen_Aterior", previousImageAction);
-            setActionForKey(menuItems, "interfaz.menu.navegacion.Imagen_Siguiente", nextImageAction);
-            setActionForKey(menuItems, "interfaz.menu.navegacion.Ultima_Imagen", lastImageAction);
+            setActionForKey(menuItems, "interfaz.menu.navegacion.primera_imagen", firstImageAction);
+            setActionForKey(menuItems, "interfaz.menu.navegacion.imagen_anterior", previousImageAction);
+            setActionForKey(menuItems, "interfaz.menu.navegacion.imagen_siguiente", nextImageAction);
+            setActionForKey(menuItems, "interfaz.menu.navegacion.ultima_imagen", lastImageAction);
             // ... otros items de Navegación con Actions ...
 
             // 3.3.3. Menú Zoom
             // setActionForKey(menuItems, "interfaz.menu.zoom.Acercar", zoomInAction); // Ejemplo
             // setActionForKey(menuItems, "interfaz.menu.zoom.Alejar", zoomOutAction); // Ejemplo
-            setActionForKey(menuItems, "interfaz.menu.zoom.Mantener_Proporciones", toggleProporcionesAction); // Checkbox
-            setActionForKey(menuItems, "interfaz.menu.zoom.Activar_Zoom_Manual", toggleZoomManualAction); // Checkbox
-            setActionForKey(menuItems, "interfaz.menu.zoom.Resetear_Zoom", resetZoomAction);
+            setActionForKey(menuItems, "interfaz.menu.zoom.mantener_proporciones", toggleProporcionesAction); // Checkbox
+            setActionForKey(menuItems, "interfaz.menu.zoom.activar_zoom_manual", toggleZoomManualAction); // Checkbox
+            setActionForKey(menuItems, "interfaz.menu.zoom.resetear_zoom", resetZoomAction);
             // Radios de Tipos de Zoom (manejados por sus Actions respectivas)
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Automatico", zoomAutoAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_a_lo_Ancho", zoomAnchoAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_a_lo_Alto", zoomAltoAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Ajustar", zoomFitAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Actual_Fijo", zoomFixedAction);
-            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Zoom_Especificado", zoomFijadoAction);
-            // setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.Escalar_Para_Rellenar", zoomFillAction); // Ejemplo
+            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.zoom_automatico", zoomAutoAction);
+            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.zoom_a_lo_ancho", zoomAnchoAction);
+            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.zoom_a_lo_alto", zoomAltoAction);
+            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.escalar_para_ajustar", zoomFitAction);
+            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.zoom_actual_fijo", zoomFixedAction);
+            setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.zoom_especificado", zoomFijadoAction);
+            //setActionForKey(menuItems, "interfaz.menu.zoom.tipos_de_zoom.escalar_para_rellenar", zoomFillAction); // Ejemplo
 
             // 3.3.4. Menú Imagen
-            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.Girar_Izquierda", rotateLeftAction);
-            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.Girar_Derecha", rotateRightAction);
-            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.Voltear_Horizontal", flipHorizontalAction);
-            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.Voltear_Vertical", flipVerticalAction);
+            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.girar_izquierda", rotateLeftAction);
+            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.girar_derecha", rotateRightAction);
+            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.voltear_horizontal", flipHorizontalAction);
+            setActionForKey(menuItems, "interfaz.menu.imagen.edicion.voltear_vertical", flipVerticalAction);
             // setActionForKey(menuItems, "interfaz.menu.imagen.Eliminar_Permanentemente", deleteAction); // Si está aquí
 
             // 3.3.5. Menú Vista (Toggles de visibilidad)
-            setActionForKey(menuItems, "interfaz.menu.vista.Barra_de_Menu", toggleMenuBarAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Barra_de_Botones", toggleToolBarAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Imagenes_en_Miniatura", toggleThumbnailsAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Fondo_a_Cuadros", toggleCheckeredBgAction);
-            setActionForKey(menuItems, "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.barra_de_menu", toggleMenuBarAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.barra_de_botones", toggleToolBarAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos", toggleFileListAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.imagenes_en_miniatura", toggleThumbnailsAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.linea_de_ubicacion_del_archivo", toggleLocationBarAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.fondo_a_cuadros", toggleCheckeredBgAction);
+            setActionForKey(menuItems, "interfaz.menu.vista.mantener_ventana_siempre_encima", toggleAlwaysOnTopAction);
 
             // 3.3.6. Menú Configuración
             // Radios de Tema (manejados por ToggleThemeAction)
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Clear", temaClearAction);
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Dark", temaDarkAction);
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Blue", temaBlueAction);
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Green", temaGreenAction);
-            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.Tema_Orange", temaOrangeAction);
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.tema_clear", temaClearAction);
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.tema_dark", temaDarkAction);
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.tema_blue", temaBlueAction);
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.tema_green", temaGreenAction);
+            setActionForKey(menuItems, "interfaz.menu.configuracion.tema.tema_orange", temaOrangeAction);
             // Radios de Carga de Imágenes (NO usan Action, manejados por ActionListener específico) -> No usar setActionForKey
 
             // 3.4. Añadir Listener Fallback a items SIN Action.
@@ -2407,6 +2598,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 								System.out.println("   -> Lista vacía después de carga. Limpiando UI.");
 								limpiarUI();
+								
+								if (listCoordinator != null) {
+								    listCoordinator.forzarActualizacionEstadoNavegacion();
+								}
 							}
 
 						} else
@@ -2568,12 +2763,12 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             inputMapNombres.put(KeyStroke.getKeyStroke("PAGE_UP"), actPrevBlock);
             inputMapNombres.put(KeyStroke.getKeyStroke("PAGE_DOWN"), actNextBlock);
 
-            actionMapNombres.put(actPrev, new AbstractAction(actPrev) { @Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "UP/LEFT"); 		*/if (listCoordinator != null) listCoordinator.seleccionarAnterior(); }});
-            actionMapNombres.put(actNext, new AbstractAction(actNext) { @Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "DOWN/RIGHT"); 	*/if (listCoordinator != null) listCoordinator.seleccionarSiguiente(); }});
-            actionMapNombres.put(actFirst, new AbstractAction(actFirst) { @Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "HOME"); 		*/if(listCoordinator != null) listCoordinator.seleccionarPrimero(); }});
-            actionMapNombres.put(actLast, new AbstractAction(actLast) { @Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "END"); 			*/if(listCoordinator != null) listCoordinator.seleccionarUltimo(); }});
-            actionMapNombres.put(actPrevBlock, new AbstractAction(actPrevBlock) { @Override public void actionPerformed(ActionEvent e) { /*logActionOrigin("Nombres", "PAGE_UP"); 	*/if (listCoordinator != null) listCoordinator.seleccionarBloqueAnterior(); }});
-            actionMapNombres.put(actNextBlock, new AbstractAction(actNextBlock) { @Override public void actionPerformed(ActionEvent e) { /*logActionOrigin("Nombres", "PAGE_DOWN"); */if (listCoordinator != null) listCoordinator.seleccionarBloqueSiguiente(); }});
+            actionMapNombres.put(actPrev, new AbstractAction(actPrev) { 			@Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "UP/LEFT"); 		*/if (listCoordinator != null) listCoordinator.seleccionarAnterior(); }});
+            actionMapNombres.put(actNext, new AbstractAction(actNext) { 			@Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "DOWN/RIGHT"); 	*/if (listCoordinator != null) listCoordinator.seleccionarSiguiente(); }});
+            actionMapNombres.put(actFirst, new AbstractAction(actFirst) { 			@Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "HOME"); 		*/if(listCoordinator != null) listCoordinator.seleccionarPrimero(); }});
+            actionMapNombres.put(actLast, new AbstractAction(actLast) { 			@Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "END"); 			*/if(listCoordinator != null) listCoordinator.seleccionarUltimo(); }});
+            actionMapNombres.put(actPrevBlock, new AbstractAction(actPrevBlock) { 	@Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "PAGE_UP"); 	*/if (listCoordinator != null) listCoordinator.seleccionarBloqueAnterior(); }});
+            actionMapNombres.put(actNextBlock, new AbstractAction(actNextBlock) { 	@Override public void actionPerformed(ActionEvent e) 	{ /*logActionOrigin("Nombres", "PAGE_DOWN"); */if (listCoordinator != null) listCoordinator.seleccionarBloqueSiguiente(); }});
 //            System.out.println("    -> Acciones de teclado configuradas en listaNombres.");
         } else {
         	System.err.println("WARN [interceptarAccionesTecladoListas]: listaNombres es null.");
@@ -3189,6 +3384,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          }
 
          // 5. Log fin
+         if (listCoordinator != null) {
+             listCoordinator.forzarActualizacionEstadoNavegacion();
+         }
+         
          System.out.println("[Controller] Limpieza de UI y Modelo completada.");
 
      } // --- FIN limpiarUI ---
@@ -4109,8 +4308,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
          // 3. Obtener las referencias a los JRadioButtonMenuItems específicos
          //    Usar las claves largas definidas en la configuración y usadas por MenuBarBuilder.
-         JMenuItem radioMostrarSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Imagenes_de_Subcarpetas");
-         JMenuItem radioMostrarSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.Mostrar_Solo_Carpeta_Actual");
+         JMenuItem radioMostrarSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas");
+         JMenuItem radioMostrarSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual");
 
          // 4. Aplicar el estado 'selected' al radio correcto
          //    Se hace de forma segura llamando a setSelected directamente.
@@ -5149,7 +5348,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // Asumimos que los JCheckBoxMenuItems que controlan botones tienen una clave larga
         // que empieza con "interfaz.menu.configuracion.visualizar_botones."
         // Y que su ActionCommand es la clave del BOTÓN que controlan.
-        if (source instanceof JCheckBoxMenuItem && checkBoxConfigKey != null && checkBoxConfigKey.startsWith("interfaz.menu.configuracion.visualizar_botones.")) {
+        if (source instanceof JCheckBoxMenuItem && checkBoxConfigKey != null && checkBoxConfigKey.startsWith("interfaz.menu.configuracion.visualizar_botones.")) 
+        {
             JCheckBoxMenuItem checkBox = (JCheckBoxMenuItem) source;
             boolean isSelected = checkBox.isSelected(); // Nuevo estado del checkbox (marcado o no)
             
@@ -5167,20 +5367,29 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             }
 
             // Aplicar el cambio al botón objetivo
-            if (view != null && view.getBotonesPorNombre() != null) {
+            if (view != null && view.getBotonesPorNombre() != null) 
+            {
                 JButton targetButton = view.getBotonesPorNombre().get(targetButtonKey);
-                if (targetButton != null) {
+                if (targetButton != null) 
+                {
                     // De momento, controlamos setEnabled():
                     targetButton.setEnabled(isSelected);
                     System.out.println("  -> Botón '" + targetButtonKey + "' setEnabled(" + isSelected + ")");
 
-                    // Si más tarde quieres controlar setVisible():
-                    // targetButton.setVisible(isSelected);
-                    // System.out.println("  -> Botón '" + targetButtonKey + "' setVisible(" + isSelected + ")");
-                    // if (targetButton.getParent() != null) {
-                    //     targetButton.getParent().revalidate();
-                    //     targetButton.getParent().repaint();
-                    // }
+                    if (configuration != null) 
+                    {
+                        // Guarda el estado 'activado' (enabled) del botón usando SU clave larga
+                        configuration.setString(targetButtonKey + ".activado", String.valueOf(isSelected));
+                        System.out.println("  -> Configuración guardada para Botón '" + targetButtonKey + ".activado': " + isSelected);
+
+	                    // Si más tarde quieres controlar setVisible():
+	                    // targetButton.setVisible(isSelected);
+	                    // System.out.println("  -> Botón '" + targetButtonKey + "' setVisible(" + isSelected + ")");
+	                    // if (targetButton.getParent() != null) {
+	                    //     targetButton.getParent().revalidate();
+	                    //     targetButton.getParent().repaint();
+	                    // }
+                	}
                 } else {
                     System.err.println("ERROR: Botón objetivo '" + targetButtonKey + "' (controlado por '" + checkBoxConfigKey + "') no encontrado en el mapa de botones de la vista.");
                 }
@@ -5194,47 +5403,63 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             // --- Comandos de Menú (Ejemplos Fallback) ---
 
             // Configuración
-            case "Guardar_Configuracion_Actual":
+            case AppActionCommands.CMD_CONFIG_GUARDAR://"Guardar_Configuracion_Actual":
                 System.out.println("-> Acción Fallback: Guardar Configuración Actual");
                 guardarConfiguracionActual(); // Llama al método que guarda
                 break;
-            case "Cargar_Configuracion_Inicial":
+            case AppActionCommands.CMD_CONFIG_CARGAR_INICIAL: //"Cargar_Configuracion_Inicial":
                  System.out.println("-> Acción Fallback: Cargar Configuración Inicial (Recargar UI)");
                  // Volver a aplicar toda la configuración y recargar la lista
                  aplicarConfiguracionInicial();
                  cargarEstadoInicial(); // Esto recargará la lista
                  break;
 
+            // Edicion
+//            case AppActionCommands
+                 
             // Imagen
-            case "Cambiar_Nombre_de_la_Imagen":
+            case AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA:
+                System.out.println("-> Radio: Mostrar Solo Carpeta Actual seleccionado");
+                setMostrarSubcarpetasAndUpdateConfig(false); // Llama a tu método existente
+                // Asegurar que los radios se actualicen visualmente (si ButtonGroup no lo hace automáticamente)
+                sincronizarRadiosSubcarpetasVisualmente(false);
+                break;
+            case AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS:
+                System.out.println("-> Radio: Mostrar Imagenes de Subcarpetas seleccionado");
+                setMostrarSubcarpetasAndUpdateConfig(true); // Llama a tu método existente
+                sincronizarRadiosSubcarpetasVisualmente(true);
+                break;
+                 
+            case AppActionCommands.CMD_IMAGEN_RENOMBRAR: //"Cambiar_Nombre_de_la_Imagen":
                 System.out.println("TODO: Acción Fallback - Implementar Cambiar Nombre Imagen");
                 // Aquí iría la lógica para mostrar un diálogo y renombrar el archivo
                 break;
-            case "Mover_a_la_Papelera":
+            case AppActionCommands.CMD_IMAGEN_ELIMINAR : //"Mover_a_la_Papelera":
                  System.out.println("TODO: Acción Fallback - Implementar Mover a Papelera");
                  // Lógica para mover archivo actual a papelera (requiere JNA o similar)
                  break;
-            case "Establecer_Como_Fondo_de_Escritorio":
+            case AppActionCommands.CMD_IMAGEN_FONDO_ESCRITORIO: //"Establecer_Como_Fondo_de_Escritorio":
                  System.out.println("TODO: Acción Fallback - Implementar Fondo Escritorio");
                  // Lógica específica de SO para cambiar fondo
                  break;
-            case "Establecer_Como_Imagen_de_Bloqueo":
+            case AppActionCommands.CMD_IMAGEN_FONDO_BLOQUEO: //"Establecer_Como_Imagen_de_Bloqueo":
                  System.out.println("TODO: Acción Fallback - Implementar Imagen Bloqueo");
                  // Lógica específica de SO
                  break;
-            case "Propiedades_de_la_imagen":
+            case AppActionCommands.CMD_IMAGEN_PROPIEDADES: //"Propiedades_de_la_imagen":
                  System.out.println("TODO: Acción Fallback - Mostrar Propiedades Imagen");
                  // Mostrar diálogo con información EXIF/Detalles del archivo
                  break;
 
+
             // Vista
-            case "Mostrar_Dialogo_Lista_de_Imagenes":
+            case AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA: //"Mostrar_Dialogo_Lista_de_Imagenes":
                 System.out.println("-> Acción Fallback: Mostrar Diálogo Lista Imágenes");
                 mostrarDialogoListaImagenes(); // Llama al método que abre el diálogo
                 break;
 
             // Ayuda
-            case "Version":
+            case AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION: //"Version":
                 System.out.println("-> Acción Fallback: Mostrar Versión");
                 mostrarVersion(); // Llama al método que muestra el JOptionPane
                 break;
@@ -5267,6 +5492,27 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
     } // --- FIN actionPerformed ---  
 
+    /**
+     * Este método se encargaría de marcar el radio correcto en el menú para mostrar carpeta o subcarpetas.
+     * 
+     * @param mostrarSubcarpetas
+     */
+    private void sincronizarRadiosSubcarpetasVisualmente(boolean mostrarSubcarpetas) {
+        if (view == null || view.getMenuItemsPorNombre() == null) return;
+        Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
+
+        // Claves generadas por MenuBarBuilder (probablemente minúsculas)
+        JMenuItem radioSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual");
+        JMenuItem radioConSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas");
+
+        if (radioSolo instanceof JRadioButtonMenuItem) {
+            ((JRadioButtonMenuItem) radioSolo).setSelected(!mostrarSubcarpetas);
+        }
+        if (radioConSub instanceof JRadioButtonMenuItem) {
+            ((JRadioButtonMenuItem) radioConSub).setSelected(mostrarSubcarpetas);
+        }
+    }    
+    
     
     /**
      * Muestra un diálogo simple (JOptionPane) con información básica
@@ -5313,39 +5559,86 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      * @param e El ActionEvent a analizar.
      */
     public void logActionInfo(ActionEvent e) {
-        // 1. Validar el evento
         if (e == null) {
             System.out.println("--- Acción Detectada (Evento Nulo) ---");
-            return; // No podemos hacer nada si el evento es nulo
+            return;
         }
 
-        // 2. Obtener información básica del evento
         Object source = e.getSource();
-        String command = e.getActionCommand(); // El comando asociado al evento
+        String commandFromEvent = e.getActionCommand(); // Comando del evento
         String sourceClass = (source != null) ? source.getClass().getSimpleName() : "null";
+        String sourceId = (source != null) ? " (ID: " + System.identityHashCode(source) + ")" : "";
 
-        // 3. Intentar obtener información adicional (clave larga, icono)
-        //    Estos métodos helper buscan en los mapas de botones/menús de la vista.
-        String longConfigKey = findLongKeyForComponent(source); // Puede devolver null
-        String iconName = findIconNameForComponent(source);     // Puede devolver null
+        // Información adicional a obtener
+        String longConfigKey = findLongKeyForComponent(source);
+        String assignedActionClass = "NINGUNA";
+        String canonicalCommand = "(No aplicable o no encontrado)";
 
-        // 4. Imprimir la información formateada en la consola
-        System.out.println("--- Acción Detectada ---");
-        System.out.println("  Fuente     : " + sourceClass + (source != null ? " (ID: "+ System.identityHashCode(source) +")" : "")); // Añadir ID objeto
-        System.out.println("  Comando    : " + (command != null ? "'" + command + "'" : "null"));
-        System.out.println("  Clave Larga: " + (longConfigKey != null ? "'" + longConfigKey + "'" : "(No encontrada)"));
-        // Mostrar icono solo si se encontró
-        if (iconName != null) {
-             System.out.println("  Icono      : " + iconName);
+        if (source instanceof AbstractButton) {
+            AbstractButton comp = (AbstractButton) source;
+            Action assignedAction = comp.getAction(); // Obtener Action asignada
+
+            if (assignedAction != null) {
+                assignedActionClass = assignedAction.getClass().getName();
+                Object cmdValue = assignedAction.getValue(Action.ACTION_COMMAND_KEY);
+                if (cmdValue instanceof String) {
+                    canonicalCommand = (String) cmdValue;
+                } else {
+                    canonicalCommand = "(Action sin ACTION_COMMAND_KEY)";
+                }
+            } else {
+                 // Si no hay Action, el comando canónico "esperado" sería el ActionCommand del componente
+                 canonicalCommand = commandFromEvent;
+            }
+        } else {
+             // Si no es un AbstractButton, el comando canónico podría ser el del evento
+             canonicalCommand = commandFromEvent;
         }
-        // Opcional: Imprimir modificadores si son relevantes (Shift, Ctrl, etc.)
-        // String modifiers = ActionEvent.getModifiersText(e.getModifiers());
-        // if (!modifiers.isEmpty()) {
-        //      System.out.println("  Modificadores: " + modifiers);
-        // }
-        System.out.println("-------------------------");
 
-    } // --- FIN logActionInfo ---
+        // Imprimir log formateado
+        System.out.println("--- DEBUG: Acción Detectada ---");
+        System.out.println("  > Fuente        : " + sourceClass + sourceId);
+        System.out.println("  > Event Command : " + (commandFromEvent != null ? "'" + commandFromEvent + "'" : "null"));
+        System.out.println("  > Config Key    : " + (longConfigKey != null ? "'" + longConfigKey + "'" : "(No encontrada)"));
+        System.out.println("  > Comando Canon.: " + (canonicalCommand != null ? "'" + canonicalCommand + "'" : "(null)"));
+        System.out.println("  > Action Class  : " + assignedActionClass);
+        System.out.println("------------------------------");
+    }// ---FIN logActionInfo
+    
+//    public void logActionInfoOLD(ActionEvent e) {
+//        // 1. Validar el evento
+//        if (e == null) {
+//            System.out.println("--- Acción Detectada (Evento Nulo) ---");
+//            return; // No podemos hacer nada si el evento es nulo
+//        }
+//
+//        // 2. Obtener información básica del evento
+//        Object source = e.getSource();
+//        String command = e.getActionCommand(); // El comando asociado al evento
+//        String sourceClass = (source != null) ? source.getClass().getSimpleName() : "null";
+//
+//        // 3. Intentar obtener información adicional (clave larga, icono)
+//        //    Estos métodos helper buscan en los mapas de botones/menús de la vista.
+//        String longConfigKey = findLongKeyForComponent(source); // Puede devolver null
+//        String iconName = findIconNameForComponent(source);     // Puede devolver null
+//
+//        // 4. Imprimir la información formateada en la consola
+//        System.out.println("--- Acción Detectada ---");
+//        System.out.println("  Fuente     : " + sourceClass + (source != null ? " (ID: "+ System.identityHashCode(source) +")" : "")); // Añadir ID objeto
+//        System.out.println("  Comando    : " + (command != null ? "'" + command + "'" : "null"));
+//        System.out.println("  Clave Larga: " + (longConfigKey != null ? "'" + longConfigKey + "'" : "(No encontrada)"));
+//        // Mostrar icono solo si se encontró
+//        if (iconName != null) {
+//             System.out.println("  Icono      : " + iconName);
+//        }
+//        // Opcional: Imprimir modificadores si son relevantes (Shift, Ctrl, etc.)
+//        // String modifiers = ActionEvent.getModifiersText(e.getModifiers());
+//        // if (!modifiers.isEmpty()) {
+//        //      System.out.println("  Modificadores: " + modifiers);
+//        // }
+//        System.out.println("-------------------------");
+//
+//    } // --- FIN logActionInfo ---
 
     // --- Métodos Helper (Asegúrate de que existan y sean correctos) ---
 
@@ -6091,33 +6384,87 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	} // --- FIN actualizarModeloYVistaMiniaturas ---      
       
 	  
-	  // Delegados de movimiento
+// ********************************************************************************* METODOS DE MOVIMIENTO CON LISTCOORDINATOR
+// ***************************************************************************************************************************
 	  
+//	  public void navegarSiguienteViaCoordinador() {
+//	      if (listCoordinator != null) {
+//	          listCoordinator.seleccionarSiguiente();
+//	      }
+//	  }
+//	  public void navegarAnteriorViaCoordinador() {
+//	      if (listCoordinator != null) {
+//	          listCoordinator.seleccionarAnterior();
+//	      }
+//	  }
+//	  public void navegarPrimeroViaCoordinador() {
+//	      if (listCoordinator != null) {
+//	          listCoordinator.seleccionarPrimero();
+//	      }
+//	  }
+//	  public void navegarUltimoViaCoordinador() {
+//	      if (listCoordinator != null) {
+//	          listCoordinator.seleccionarUltimo();
+//	      }
+//	  }
+
+	// En VisorController.java
+
 	  public void navegarSiguienteViaCoordinador() {
 	      if (listCoordinator != null) {
 	          listCoordinator.seleccionarSiguiente();
+	      } else {
+	          System.err.println("Error: ListCoordinator es null al intentar navegar siguiente.");
 	      }
 	  }
+
 	  public void navegarAnteriorViaCoordinador() {
 	      if (listCoordinator != null) {
 	          listCoordinator.seleccionarAnterior();
+	      } else {
+	          System.err.println("Error: ListCoordinator es null al intentar navegar anterior.");
 	      }
 	  }
+
 	  public void navegarPrimeroViaCoordinador() {
 	      if (listCoordinator != null) {
 	          listCoordinator.seleccionarPrimero();
+	      } else {
+	          System.err.println("Error: ListCoordinator es null al intentar navegar primero.");
 	      }
 	  }
+
 	  public void navegarUltimoViaCoordinador() {
 	      if (listCoordinator != null) {
 	          listCoordinator.seleccionarUltimo();
+	      } else {
+	          System.err.println("Error: ListCoordinator es null al intentar navegar último.");
 	      }
 	  }
+
+	  // Si también tienes actions para PageUp/PageDown que llaman a ListCoordinator:
+	  public void navegarBloqueSiguienteViaCoordinador() {
+	      if (listCoordinator != null) {
+	          listCoordinator.seleccionarBloqueSiguiente();
+	      } else {
+	           System.err.println("Error: ListCoordinator es null al intentar navegar bloque siguiente.");
+	      }
+	  }
+
+	  public void navegarBloqueAnteriorViaCoordinador() {
+	      if (listCoordinator != null) {
+	          listCoordinator.seleccionarBloqueAnterior();
+	      } else {
+	           System.err.println("Error: ListCoordinator es null al intentar navegar bloque anterior.");
+	      }
+	  }	  
+
+// ***************************************************************************** FIN METODOS DE MOVIMIENTO CON LISTCOORDINATOR
+// ***************************************************************************************************************************
 
 	  
 // ********************************************************************************************************* GETTERS Y SETTERS
 // ***************************************************************************************************************************
-
 	  
 	// --- NUEVO: Setters para Inyección de Dependencias desde AppInitializer ---
 	public void setModel(VisorModel model) { this.model = model; }
@@ -6133,6 +6480,18 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	public void setListCoordinator(ListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
 	public void setModeloMiniaturas(DefaultListModel<String> modeloMiniaturas) { this.modeloMiniaturas = modeloMiniaturas;}
 
+    /**
+     * Devuelve el mapa completo de Actions (incluyendo navegación).
+     * Usado por AppInitializer para pasarlo a los builders durante la creación de la UI.
+     * Es package-private para limitar su visibilidad.
+     *
+     * @return El mapa de acciones (comando canónico -> Action).
+     */
+    Map<String, Action> getActionMap() { // Sin modificador de acceso = package-private
+        return this.actionMap;
+    }
+	
+    
 	// Setters
 	
 	// --- NUEVO: Getters para que AppInitializer obtenga datos ---
@@ -6175,56 +6534,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
+
     
     
 } // --- FIN CLASE VisorController ---
 
-/*
 
-Prompt 1
---------
-Quiero que analices mi proyecto Java en https://github.com/JavierTortosa/catalogador-imagenes-java.git. Es un proyecto Java estándar configurado para Eclipse, no usa Maven, ni javafx ni bases de datos. Por favor, analiza su estructura y código 
- 
-Prompt 2
---------
-me dedico a la impresion/edicion 3d y tengo una biblioteca de unas 26000 imagenes que corresponden al contenido de un archivo comprimido con el archivo .stl que necesito para imprimir. 
-
-un ejemplo:
-estoy trabajando en un proyecto 3d en el que me solicitan hacer unos trofeos en 3d. necesito localizar dentro de las 26000 imagenes que figuras me pueden servir para poner en el trofeo basandome en un tema, necesito un pedestal y una base. 
-entre tantas imagenes me resulta dificil ir, con el navegador de windows, carpeta por carpeta buscando la imagen que me pueda servir para el proyecto que tengo que imprimir.
-
-estructura de carpetas:
-lo principal suele ser el tema (que es sobre lo que estoy buscando figuras) un tema puede estar distribuido en varias carpetas que pueden no tener nada que ver una con otra. las carpetas estan distribuidas por temas, (star wars, warhammer, mario bross....) hay fabricantes que cada mes sacan sus propias figuras que pueden tener muchos temas diferentes y esos fabricantes tienen sus archivos agrupados por fabricante (sanix 3d, ugni miniatures, punga...) hay carpetas dedicadas a juegos de mesa, hay carpetas de escenografia, herramientas, etc.
-
-a veces encuentro una figura que me sirve pero en el ejemplo de los trofeos, si tengo que hacer varios, muchas veces me interesa que tengan el mismo estilo, suelo usar el mismo fabricante para hacer los trofeos diferentes para que tengan el mismo estilo... no se si me explico
-
-te cuento lo que pretendo con este proyecto:
-este proyecto es un visualizador/catalogador de imagenes como ya te he comentado. y lo que quiero es que me ayude a navegar por el mar de imagenes buscando las figuras que me interesen para el proyecto 3d. 
-
-como pretendo que funcione:
-la idea final es que haciendo doble click en una imagen, se abra el programa en la carpeta donde he pulsado la imagen y a parti de ahi me permira ir navegando y buscando.
-otra opcion(que es la que estoy implementando) es poder abrir un selector de carpetas y poder ir buscando a partir de esa localizacion.
-
-una vez dentro del programa tengo una lista de nombres que me permite a traves de filtros (aun no tengo muy claro como) poder filtrar las imagenes por tipos, o por temas o simplemente sin filtrar para ir viendo imagen a imagen si me interesa. tambien tengo una lista de miniaturas que nos permite de un vistazo ver si me pueden interesar las siguientes imagenes o no
-
-quiero añadir diferentes formas de visualizacion de las listas (diferente orden - por nombre, por carpetas, sin ordena, etc)
-
-hay imagenes que son grupos de figuras (sobre todo en los fabricantes, tengo una imagen que viene a representar varias figuras que se encuentran en la entrega de ese mes por ej. un equipo de blood Bowl) y para apartar la figura que me interesa quiero poder recortar esa figura que esta en una imagen junto a otras figuras y poder aislarla recordando que imagen era por si al final me decido por usar esa figura poder encontrar el archivo comprimido que la contiene. 
-
-ya que tengo esta opcion de recortar, quiero añadir un par de acciones de edicion basicas (rotar, voltear, etc) y poder guardar esa imagen recortada como nueva o modificar el recorte y guardarlo en la imagen original....  
-
-para ayudar con el tema de las imagenes multi-figura tenemos el tema del zoom que ya he implementado que me permite agrandar o encojer la imagen y moverme por ella libremente para buscar en la propia imagen
-
-para mejorar la interfaz y la facilidad de visualizacion quiero implementar una serie de "modos de zoom" que muestren las imagenes ajustadas al maximo espacio de visualizacion, ajustal a alto, ancho... etc...
-
-cuando se trata de buscar entre muchas imagenes, quiero implementar un carrusel de imagenes que vayan pasando e ir mirando a ver si interesa o no .... con una velocidad variable establecida por el usuario por ej... 
-
-esto es la parte de la navegacion del visualizador de imagenes.... la potencia real que me puede ayudar son varias, de momento se me ha ocurrido unos botones (de momento):
-
--un boton que me permite profundizar en un fabricante (a traves de mostrar carpeta actual o mostrar subcarpetas) (ya implementado mas o menos.... hay que testear el sistema)
--crear una seleccion de las imagenes que me van interesando y agruparlas en una lista de "favoritas" para ir filtrando
--tener una base de datos (creo que es la mejor opcion) que me diga se esa imagen es de un elfo, de un personaje de star wars o de disne o marvel..... hay muchos temas y tipos diferentes (por eso no tengo muy claro como puedo hacer el catalogador)
-
-entiendes que pretendo hacer con este proyecto? viendo como va el codigo de github (de momento estoy con el visualizador de imagenes y una vez que funcione de forma optima meterme con el catalogador), se te ocurren posibles mejoras/opciones? que añadirias/quitarias? 
-
-*/

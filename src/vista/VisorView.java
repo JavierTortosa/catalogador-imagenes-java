@@ -15,6 +15,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
@@ -39,14 +40,13 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 import modelo.VisorModel;
-import principal.NombreArchivoRenderer;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
-import utils.StringUtils;
 import vista.builders.MenuBarBuilder;
 import vista.builders.ToolbarBuilder;
 import vista.config.ViewUIConfig;
 import vista.renderers.MiniaturaListCellRenderer;
+import vista.renderers.NombreArchivoRenderer;
 
 /**
  * Clase Vista principal (JFrame) del Visor de Imágenes. Responsable de
@@ -56,7 +56,49 @@ import vista.renderers.MiniaturaListCellRenderer;
  * manejada por defecto por la JList que tenga el foco.
  */
 public class VisorView extends JFrame
-{ // Ya NO implementa KeyListener
+{ 
+
+	private static final long serialVersionUID = 2L; // Incrementar SUID por cambios
+
+	// --- Componentes UI ---
+	private JList<String> listaNombres;
+	private JList<String> listaMiniaturas;
+	private JScrollPane scrollListaMiniaturas;
+	private JLabel etiquetaImagen;
+	private JSplitPane splitPane;
+	private JTextField textoRuta;
+	private JPanel panelPrincipal;
+	private JPanel panelIzquierdo;
+	private JPanel panelDeBotones; // Referencia al panel de la toolbar recibido
+
+    // --- Mapas para acceder a componentes por nombre ---
+    // ¡Ahora se inicializan y se asignan en el constructor!
+    private Map<String, JButton> botonesPorNombre;
+    private Map<String, JMenuItem> menuItemsPorNombre;
+
+	// --- Referencias Externas y Configuración UI ---
+	private final ViewUIConfig uiConfig;
+	private final VisorModel model; // Guardar referencia al modelo si otros métodos lo usan
+    private final ThumbnailService servicioThumbs; // Guardar referencia si otros métodos lo usan
+    private final JMenuBar mainMenuBar; // <-- Campo para guardar la menubar recibida
+    private final JPanel mainToolbarPanel; // <-- Campo para guardar la toolbar recibida
+
+	private int miniaturaScrollPaneHeight;
+	private DefaultListModel<String> modeloLista; // Referencia al modelo compartido
+
+	// --- Estado de Dibujo Imagen Principal ---
+	private Image imagenReescaladaView;
+	private double zoomFactorView = 1.0;
+	private int imageOffsetXView = 0;
+	private int imageOffsetYView = 0;
+
+	// --- Estado Fondo a Cuadros ---
+	private boolean fondoACuadrosActivado = false;
+	private Color colorCuadroClaro = new Color(204, 204, 204);
+	private Color colorCuadroOscuro = new Color(255, 255, 255);
+	private final int TAMANO_CUADRO = 16;
+	
+/*	
 	private static final long serialVersionUID = 2L; // Actualizar SUID por cambios
 
 	// --- Componentes UI ---
@@ -71,14 +113,18 @@ public class VisorView extends JFrame
 	private JPanel panelDeBotones; // La Toolbar generada
 
 	// --- Mapas para acceder a componentes por nombre ---
-	private Map<String, JButton> botonesPorNombre = new HashMap<>();
-	private Map<String, JMenuItem> menuItemsPorNombre = new HashMap<>();
+	private Map<String, JButton> botonesPorNombre;// = new HashMap<>();
+	private Map<String, JMenuItem> menuItemsPorNombre;// = new HashMap<>();
 
 	// --- Configuración y Estado UI ---
 	private final ViewUIConfig uiConfig; // Configuración de apariencia (colores, etc.)
+	private final VisorModel model; // Guardar referencia al modelo si otros métodos lo usan
 	private int miniaturaScrollPaneHeight; // Altura deseada para el scroll de miniaturas
 	private DefaultListModel<String> modeloLista; // Referencia al modelo compartido (se establece vía
 													// setListaImagenesModel)
+	private final ThumbnailService servicioThumbs; // Guardar referencia si otros métodos lo usan
+    private final JMenuBar mainMenuBar; // <-- Campo para guardar la menubar recibida
+    private final JPanel mainToolbarPanel; // <-- Campo para guardar la toolbar recibida
 
 	// --- Estado de Dibujo Imagen Principal ---
 	private Image imagenReescaladaView;
@@ -91,70 +137,116 @@ public class VisorView extends JFrame
 	private Color colorCuadroClaro = new Color(204, 204, 204);
 	private Color colorCuadroOscuro = new Color(255, 255, 255);
 	private final int TAMANO_CUADRO = 16;
+*/
 
-	// --- Constructor MODIFICADO ---
+//	/**
+//	 * Constructor de la ventana principal. Recibe configuración, modelo y servicio
+//	 * de miniaturas para configurar la UI y los renderers.
+//	 *
+//	 * @param miniaturaPanelHeight Altura deseada para el scrollpane de miniaturas.
+//	 * @param config               Objeto ViewUIConfig con parámetros de apariencia
+//	 *                             y referencias.
+//	 * @param modelo               El VisorModel principal (contiene el ListModel a
+//	 *                             compartir).
+//	 * @param servicioThumbs       El ThumbnailService para que lo usen los
+//	 *                             renderers.
+//	 */
+//	public VisorView(int miniaturaPanelHeight, ViewUIConfig config, VisorModel modelo, ThumbnailService servicioThumbs)
+//	{
+
 	/**
-	 * Constructor de la ventana principal. Recibe configuración, modelo y servicio
-	 * de miniaturas para configurar la UI y los renderers.
-	 *
-	 * @param miniaturaPanelHeight Altura deseada para el scrollpane de miniaturas.
-	 * @param config               Objeto ViewUIConfig con parámetros de apariencia
-	 *                             y referencias.
-	 * @param modelo               El VisorModel principal (contiene el ListModel a
-	 *                             compartir).
-	 * @param servicioThumbs       El ThumbnailService para que lo usen los
-	 *                             renderers.
-	 */
-	public VisorView(int miniaturaPanelHeight, ViewUIConfig config, VisorModel modelo, ThumbnailService servicioThumbs)
-	{
-
+     * Constructor MODIFICADO de la ventana principal.
+     * Recibe configuración, modelo, servicio de miniaturas y los componentes
+     * de menú y toolbar ya construidos.
+     *
+     * @param miniaturaPanelHeight Altura deseada para el scrollpane de miniaturas.
+     * @param config               Objeto ViewUIConfig con parámetros de apariencia y referencias.
+     * @param modelo               El VisorModel principal.
+     * @param servicioThumbs       El ThumbnailService para renderers.
+     * @param menuBar              La JMenuBar ya construida por MenuBarBuilder.
+     * @param toolbarPanel         El JPanel de la toolbar ya construido por ToolbarBuilder.
+     * @param menuItems            El mapa de JMenuItems (clave larga -> item) generado por MenuBarBuilder.
+     * @param botones              El mapa de JButtons (clave larga -> botón) generado por ToolbarBuilder.
+     */
+	public VisorView(
+            int miniaturaPanelHeight,
+            ViewUIConfig config,
+            VisorModel modelo,
+            ThumbnailService servicioThumbs,
+            // --- Nuevos Parámetros ---
+            JMenuBar menuBar,
+            JPanel toolbarPanel,
+            Map<String, JMenuItem> menuItems,
+            Map<String, JButton> botones
+    ) {	
+	
 		// 1. Llamada al constructor de JFrame
 		super("Visor de Imágenes");
 		System.out.println("[VisorView Constructor] Iniciando...");
 
 		// 2. Validación y Almacenamiento de Dependencias y Config
-		if (config == null)
-			throw new IllegalArgumentException("ViewUIConfig no puede ser null");
-		if (modelo == null)
-			throw new IllegalArgumentException("VisorModel no puede ser null");
-		if (servicioThumbs == null)
-			throw new IllegalArgumentException("ThumbnailService no puede ser null");
-
-		this.uiConfig = config;
-		this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100; // Asegurar altura
+		this.uiConfig = Objects.requireNonNull(config, "ViewUIConfig no puede ser null");
+		this.model = Objects.requireNonNull(modelo, "VisorModel no puede ser null");
+        this.servicioThumbs = Objects.requireNonNull(servicioThumbs, "ThumbnailService no puede ser null");
+		this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100;
+		
+//		if (config == null)
+//			throw new IllegalArgumentException("ViewUIConfig no puede ser null");
+//		if (modelo == null)
+//			throw new IllegalArgumentException("VisorModel no puede ser null");
+//		if (servicioThumbs == null)
+//			throw new IllegalArgumentException("ThumbnailService no puede ser null");
+//
+//		this.uiConfig = config;
+//		this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100; // Asegurar altura
 																								// mínima
+		// --- 3. Almacenar Menú, Toolbar y Mapas Recibidos ---
+        this.mainMenuBar = menuBar; // Guardar referencia
+        this.mainToolbarPanel = toolbarPanel; // Guardar referencia
+        this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>(); // Asignar mapa recibido
+        this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();   // Asignar mapa recibido
+        System.out.println("  [Constructor] Menú, Toolbar y Mapas recibidos.");
+        System.out.println("    -> Tamaño mapa Menús recibido: " + this.menuItemsPorNombre.size());
+        System.out.println("    -> Tamaño mapa Botones recibido: " + this.botonesPorNombre.size());
+		
 
 		System.out.println("  [Constructor] Dependencias validadas (Config, Modelo, Thumbs).");
 
-		// 3. Configuración Básica del JFrame
+		// 4. Configuración Básica del JFrame
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setLayout(new BorderLayout());
 		getContentPane().setBackground(this.uiConfig.colorFondoPrincipal);
 		System.out.println("  [Constructor] Configuración básica JFrame completada.");
 
-		// 4. Obtener referencia inicial al modelo (Controller lo actualizará después)
-		
+		// 5. Obtener referencia inicial al modelo de la lista
         this.modeloLista = modelo.getModeloLista(); // Asignar PRIMERO
-        System.out.println(
-                "  [Constructor] Modelo obtenido del VisorModel (Tamaño inicial: "
-                + (this.modeloLista != null ? this.modeloLista.getSize() : "NULL") + ")");
-
-        // 4.1 Verificación REAL (opcional, pero buena práctica)
+        
         if (this.modeloLista == null) {
-            // Esto solo debería ocurrir si modelo.getModeloLista() devuelve null,
-            // lo cual indicaría un problema en VisorModel.
-            System.err.println(
-                    "ERROR CRÍTICO [VisorView Constructor]: VisorModel.getModeloLista() devolvió null. Creando uno vacío.");
-            this.modeloLista = new DefaultListModel<>(); // Fallback REAL
+            System.err.println("ERROR CRÍTICO [VisorView Constructor]: VisorModel.getModeloLista() devolvió null. Creando uno vacío.");
+            this.modeloLista = new DefaultListModel<>();
         }
+        
+        System.out.println("  [Constructor] Referencia a modeloLista obtenida (Tamaño inicial: " + this.modeloLista.getSize() + ")");
 
-		// 5. Crear e Inicializar TODOS los Componentes Internos
+//        // 4.1 Verificación REAL (opcional, pero buena práctica)
+//        if (this.modeloLista == null) {
+//            // Esto solo debería ocurrir si modelo.getModeloLista() devuelve null,
+//            // lo cual indicaría un problema en VisorModel.
+//            System.err.println(
+//                    "ERROR CRÍTICO [VisorView Constructor]: VisorModel.getModeloLista() devolvió null. Creando uno vacío.");
+//            this.modeloLista = new DefaultListModel<>(); // Fallback REAL
+//        }
+
+		// 6. Crear e Inicializar TODOS los Componentes Internos
 		// Se pasan las referencias necesarias a este método.
 		System.out.println("  [Constructor] Llamando a inicializarComponentes...");
-		inicializarComponentes(modelo, servicioThumbs, this.modeloLista);
+		
+		inicializarComponentes(this.modeloLista); // Pasar solo el modelo de lista
+//		inicializarComponentes(modelo, servicioThumbs, this.modeloLista);
+		
 		System.out.println("  [Constructor] Componentes internos inicializados.");
 
-		// 6. Restaurar Estado de la Ventana (Tamaño/Posición/Maximizado)
+		// 7. Restaurar Estado de la Ventana (Tamaño/Posición/Maximizado)
 		boolean restoredState = false;
 		ConfigurationManager cfg = this.uiConfig.configurationManager; // Obtener de uiConfig
 
@@ -203,7 +295,7 @@ public class VisorView extends JFrame
 		}
 		System.out.println("  [Constructor] Intento de restauración de estado finalizado.");
 
-		// 7. Dimensionamiento y Posicionamiento Final
+		// 8. Dimensionamiento y Posicionamiento Final
 		if (!restoredState)
 		{
 			System.out.println("  [Constructor] No se restauró estado. Usando pack() y centrando.");
@@ -216,7 +308,7 @@ public class VisorView extends JFrame
 		}
 		System.out.println("  [Constructor] Dimensionamiento/Posicionamiento finalizado.");
 
-		// 8. Establecer Posición Inicial del Divisor (en EDT)
+		// 9. Establecer Posición Inicial del Divisor (en EDT)
 		SwingUtilities.invokeLater( () -> {
 
 			if (splitPane != null)
@@ -229,7 +321,7 @@ public class VisorView extends JFrame
 			}
 		});
 
-		// 9. Hacer Visible la Ventana
+		// 10. Hacer Visible la Ventana
 		System.out.println("  [Constructor] Haciendo ventana visible...");
 		setVisible(true);
 		System.out.println("[VisorView Constructor] Finalizado.");
@@ -237,18 +329,26 @@ public class VisorView extends JFrame
 	} // --- FIN DEL CONSTRUCTOR ---
 
 	
-	// En la clase VisorView.java
-
-	/**
-	 * Crea y ensambla los principales componentes de la interfaz. Es llamado desde
-	 * el constructor.
-	 *
-	 * @param modelo         El VisorModel (para renderers y modelo de listas).
-	 * @param servicioThumbs El ThumbnailService (para renderer de miniaturas).
-	 * @param modeloNombres El DefaultListModel<String> que usarán las listas.
-	 */
-	private void inicializarComponentes (
-			VisorModel modelo, ThumbnailService servicioThumbs, DefaultListModel<String> modeloNombres) 
+//	/**
+//	 * Crea y ensambla los principales componentes de la interfaz. Es llamado desde
+//	 * el constructor.
+//	 *
+//	 * @param modelo         El VisorModel (para renderers y modelo de listas).
+//	 * @param servicioThumbs El ThumbnailService (para renderer de miniaturas).
+//	 * @param modeloNombres El DefaultListModel<String> que usarán las listas.
+//	 */
+//	private void inicializarComponentes (
+//			VisorModel modelo, ThumbnailService servicioThumbs, DefaultListModel<String> modeloNombres) 
+//	{
+	
+    /**
+     * MODIFICADO: Crea y ensambla los principales componentes de la interfaz,
+     * EXCEPTO la barra de menú y la barra de herramientas, que se reciben
+     * pre-construidas.
+     *
+     * @param modeloNombres El DefaultListModel<String> que usarán las listas.
+     */
+	private void inicializarComponentes (DefaultListModel<String> modeloNombres) 
 	{
 	    // --- 0. INICIO MÉTODO ---
 	    System.out.println("--- Iniciando inicializarComponentes ---");
@@ -259,46 +359,65 @@ public class VisorView extends JFrame
 	    System.out.println("1. Panel Principal creado.");
 
 	    // --- 2. CREAR Y AÑADIR TOOLBAR ---
-	    try {
-	        ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.uiConfig.actionMap, this.uiConfig.colorBotonFondo,
-	                this.uiConfig.colorBotonTexto, this.uiConfig.colorBotonActivado, this.uiConfig.colorBotonAnimacion,
-	                this.uiConfig.iconoAncho, this.uiConfig.iconoAlto, this.uiConfig.iconUtils);
-	        this.panelDeBotones = toolbarBuilder.buildToolbar();
-	        this.botonesPorNombre = toolbarBuilder.getBotonesPorNombreMap();
-
-	        if (this.panelDeBotones != null) {
-	            panelPrincipal.add(this.panelDeBotones, BorderLayout.NORTH);
-	            System.out.println("2. Toolbar añadida al NORTE.");
-	        } else {
-	            throw new NullPointerException("ToolbarBuilder devolvió null");
-	        }
-	    } catch (Exception e) {
-	        System.err.println("ERROR creando/añadiendo Toolbar: " + e.getMessage());
-	        e.printStackTrace();
-	        panelPrincipal.add(new JLabel("Error Toolbar"), BorderLayout.NORTH);
-	    }
+	    if (this.mainToolbarPanel != null) {
+            this.panelDeBotones = this.mainToolbarPanel; // panelDeBotones apunta al panel recibido
+            panelPrincipal.add(this.mainToolbarPanel, BorderLayout.NORTH);
+            System.out.println("2. Toolbar (pre-construida) añadida al NORTE.");
+        } else {
+             System.err.println("WARN [VisorView]: No se recibió JPanel de Toolbar pre-construido.");
+             panelPrincipal.add(new JLabel("Toolbar no disponible"), BorderLayout.NORTH);
+        }
+	    
+//	    try {
+//	        ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.uiConfig.actionMap, this.uiConfig.colorBotonFondo,
+//	                this.uiConfig.colorBotonTexto, this.uiConfig.colorBotonActivado, this.uiConfig.colorBotonAnimacion,
+//	                this.uiConfig.iconoAncho, this.uiConfig.iconoAlto, this.uiConfig.iconUtils);
+//	        this.panelDeBotones = toolbarBuilder.buildToolbar();
+//	        this.botonesPorNombre = toolbarBuilder.getBotonesPorNombreMap();
+//
+//	        if (this.panelDeBotones != null) {
+//	            panelPrincipal.add(this.panelDeBotones, BorderLayout.NORTH);
+//	            System.out.println("2. Toolbar añadida al NORTE.");
+//	        } else {
+//	            throw new NullPointerException("ToolbarBuilder devolvió null");
+//	        }
+//	    } catch (Exception e) {
+//	        System.err.println("ERROR creando/añadiendo Toolbar: " + e.getMessage());
+//	        e.printStackTrace();
+//	        panelPrincipal.add(new JLabel("Error Toolbar"), BorderLayout.NORTH);
+//	    }
+	    
+	    
 
 	    // --- 3. CREAR Y ESTABLECER MENÚ ---
-	    try {
-	        MenuBarBuilder menuBuilder = new MenuBarBuilder(this.uiConfig.actionMap); // Asume constructor que toma solo actionMap
-	        JMenuBar laBarraMenu = menuBuilder.buildMenuBar();
-	        this.menuItemsPorNombre = menuBuilder.getMenuItemsMap();
-
-	        if (laBarraMenu != null) {
-	            setJMenuBar(laBarraMenu);
-	            System.out.println("3. Barra de Menú establecida.");
-	        } else {
-	            throw new NullPointerException("MenuBarBuilder devolvió null");
-	        }
-	    } catch (Exception e) {
-	        System.err.println("ERROR creando/estableciendo Menú: " + e.getMessage());
-	        e.printStackTrace();
-	    }
+        if (this.mainMenuBar != null) {
+            setJMenuBar(this.mainMenuBar); // Establece la JMenuBar recibida
+            System.out.println("3. Barra de Menú (pre-construida) establecida.");
+        } else {
+            System.err.println("WARN [VisorView]: No se recibió JMenuBar pre-construida.");
+        }
+	    
+//	    try {
+//	        MenuBarBuilder menuBuilder = new MenuBarBuilder(this.uiConfig.actionMap); // Asume constructor que toma solo actionMap
+//	        JMenuBar laBarraMenu = menuBuilder.buildMenuBar();
+//	        this.menuItemsPorNombre = menuBuilder.getMenuItemsMap();
+//
+//	        if (laBarraMenu != null) {
+//	            setJMenuBar(laBarraMenu);
+//	            System.out.println("3. Barra de Menú establecida.");
+//	        } else {
+//	            throw new NullPointerException("MenuBarBuilder devolvió null");
+//	        }
+//	    } catch (Exception e) {
+//	        System.err.println("ERROR creando/estableciendo Menú: " + e.getMessage());
+//	        e.printStackTrace();
+//	    }
 
 	    // --- 4. INICIALIZAR PANEL IZQUIERDO (CON LISTA DE NOMBRES) ---
 	    //      Este método interno CREARÁ la instancia de `listaNombres`.
 	    try {
-	        inicializarPanelIzquierdo(modelo, modeloNombres); // Debe instanciar listaNombres
+	    	inicializarPanelIzquierdo(this.model, this.modeloLista);
+	        //inicializarPanelIzquierdo(modelo, modeloNombres); // Debe instanciar listaNombres
 	        System.out.println("4. Panel Izquierdo (con listaNombres) inicializado: " + (panelIzquierdo != null && listaNombres != null));
 	    } catch (Exception e) {
 	        System.err.println("ERROR inicializando Panel Izquierdo: " + e.getMessage());
@@ -310,7 +429,8 @@ public class VisorView extends JFrame
 	    // --- 5. INICIALIZAR PANEL DE MINIATURAS (CON LISTA DE MINIATURAS) ---
 	    //      Este método interno CREARÁ la instancia de `listaMiniaturas`.
 	    try {
-	        inicializarPanelImagenesMiniatura(modelo, servicioThumbs); // Debe instanciar listaMiniaturas
+	    	inicializarPanelImagenesMiniatura(this.model, this.servicioThumbs);
+//	        inicializarPanelImagenesMiniatura(modelo, servicioThumbs); // Debe instanciar listaMiniaturas
 	        System.out.println("5. Panel Miniaturas (con listaMiniaturas) inicializado: " + (scrollListaMiniaturas != null && listaMiniaturas != null));
 	    
 	    } catch (Exception e) {
@@ -338,7 +458,6 @@ public class VisorView extends JFrame
 	    }
 
 	    // --- 8. CREAR Y AÑADIR SPLITPANE ---
-	    //      Usa `panelIzquierdo` y `etiquetaImagen`.
 	    splitPane = null; // Resetear por si acaso
 	    
 	    if (panelIzquierdo != null && etiquetaImagen != null) {
@@ -1306,8 +1425,9 @@ public class VisorView extends JFrame
         }
 
         // 5. Actualizar Estado 'Enabled' del Menú Item de Reset Zoom
-        String resetMenuKey = "interfaz.menu.zoom.Resetear_Zoom";
+        String resetMenuKey = "interfaz.menu.zoom.resetear_zoom";
         JMenuItem resetMenuItem = this.menuItemsPorNombre.get(resetMenuKey);
+        
         if (resetMenuItem != null) {
             // Habilitar o deshabilitar el item de menú según 'resetHabilitado'
             if (resetMenuItem.isEnabled() != resetHabilitado) { // Cambiar solo si es necesario
@@ -1837,5 +1957,40 @@ public class VisorView extends JFrame
         this.etiquetaImagen.repaint();
 
     } // --- FIN mostrarIndicadorCargaImagenPrincipal ---
-	
+
+    
+    public void setActualJMenuBar(JMenuBar menuBar) { // Nombre diferente al setJMenuBar() de JFrame
+        if (menuBar != null) {
+            this.setJMenuBar(menuBar); // Llama al método de JFrame
+            // this.mainMenuBar = menuBar; // Si tenías un campo para guardarlo
+            System.out.println("  [VisorView] JMenuBar real asignada.");
+        }
+    }
+
+    public void setActualToolbarPanel(JPanel toolbarPanel) {
+        if (toolbarPanel != null) {
+            if (this.panelDeBotones != null && this.panelPrincipal != null) { // Si el panel antiguo existe
+                this.panelPrincipal.remove(this.panelDeBotones); // Quitar el temporal
+            }
+            this.panelDeBotones = toolbarPanel; // Guardar referencia al nuevo
+            if (this.panelPrincipal != null) {
+                this.panelPrincipal.add(this.panelDeBotones, BorderLayout.NORTH); // Añadir el nuevo
+                this.panelPrincipal.revalidate();
+                this.panelPrincipal.repaint();
+            }
+            System.out.println("  [VisorView] ToolbarPanel real asignado.");
+        }
+    }
+
+    // Métodos para actualizar los mapas si es necesario
+    public void setActualMenuItemsMap(Map<String, JMenuItem> menuItems) {
+        this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();
+         System.out.println("  [VisorView] Map<String, JMenuItem> real asignado. Tamaño: " + this.menuItemsPorNombre.size());
+    }
+
+    public void setActualBotonesMap(Map<String, JButton> botones) {
+        this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();
+         System.out.println("  [VisorView] Map<String, JButton> real asignado. Tamaño: " + this.botonesPorNombre.size());
+    }    
+    
 } // Fin VisorView
