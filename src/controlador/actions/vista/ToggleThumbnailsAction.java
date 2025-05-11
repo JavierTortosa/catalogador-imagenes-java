@@ -14,7 +14,7 @@ public class ToggleThumbnailsAction extends BaseVisorAction {
 
     private static final long serialVersionUID = 1L;
     // Clave de configuración para el estado de este toggle
-    private static final String CONFIG_KEY = "interfaz.menu.vista.Imagenes_en_Miniatura.seleccionado";
+    private static final String CONFIG_KEY = "interfaz.menu.vista.imagenes_en_miniatura.seleccionado";
 
     public ToggleThumbnailsAction(VisorController controller) {
         // --- TEXTO NUEVO ---
@@ -53,7 +53,7 @@ public class ToggleThumbnailsAction extends BaseVisorAction {
         }
 
         // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("Imagenes_en_Miniatura", newState);
+        controller.setComponenteVisibleAndUpdateConfig("imagenes_en_miniatura", newState);
 
         // Actualizar el estado de esta Action para sincronizar
         putValue(Action.SELECTED_KEY, newState);

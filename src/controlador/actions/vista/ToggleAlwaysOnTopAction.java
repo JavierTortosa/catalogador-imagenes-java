@@ -18,7 +18,7 @@ public class ToggleAlwaysOnTopAction extends BaseVisorAction {
 
     public ToggleAlwaysOnTopAction(VisorController controller) {
         // --- TEXTO NUEVO ---
-        super("Mantener_Ventana_Siempre_Encima", controller); // Texto del menú
+        super("mantener_ventana_siempre_encima", controller); // Texto del menú
         putValue(Action.SHORT_DESCRIPTION, "Mantiene la Ventana Siempre Encima");
 
         // --- Estado Inicial Seleccionado ---
@@ -53,7 +53,7 @@ public class ToggleAlwaysOnTopAction extends BaseVisorAction {
         }
 
         // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("Mantener_Ventana_Siempre_Encima", newState);
+        controller.setComponenteVisibleAndUpdateConfig("mantener_ventana_siempre_encima", newState);
 
         // Actualizar el estado de esta Action para sincronizar
         putValue(Action.SELECTED_KEY, newState);

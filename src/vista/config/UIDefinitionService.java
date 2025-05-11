@@ -187,14 +187,44 @@ public class UIDefinitionService {
         );
         // Visualizar Botones (¡Usando clave de botón como comando!)
         List<MenuItemDefinition> visBtnSubItems = List.of(
-             new MenuItemDefinition("interfaz.boton.edicion.Rotar_Izquierda_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Rotar Izquierda", null),
-             new MenuItemDefinition("interfaz.boton.edicion.Rotar_Derecha_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Rotar Derecha", null),
-             // ... Añade TODOS los demás checkboxes de visualizar botones aquí ...
-             // ... usando la clave larga del BOTÓN como primer argumento (comandoOClave) ...
-             new MenuItemDefinition("interfaz.boton.zoom.Zoom_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Zoom", null),
-             new MenuItemDefinition("interfaz.boton.zoom.Reset_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Reset Zoom", null)
-             // ... etc ...
-         );
+                // Edición
+                new MenuItemDefinition("interfaz.boton.edicion.Rotar_Izquierda_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Rotar Izquierda", null),
+                new MenuItemDefinition("interfaz.boton.edicion.Rotar_Derecha_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Rotar Derecha", null),
+                new MenuItemDefinition("interfaz.boton.edicion.Espejo_Horizontal_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Espejo Horizontal", null),
+                new MenuItemDefinition("interfaz.boton.edicion.Espejo_Vertical_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Espejo Vertical", null),
+                new MenuItemDefinition("interfaz.boton.edicion.Recortar_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Recortar", null),
+                new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
+
+                // Zoom
+                new MenuItemDefinition("interfaz.boton.zoom.Zoom_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Zoom", null),
+                new MenuItemDefinition("interfaz.boton.zoom.Zoom_Auto_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Zoom Automatico", null),
+                new MenuItemDefinition("interfaz.boton.zoom.Ajustar_al_Ancho_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Ajustar al Ancho", null),
+                new MenuItemDefinition("interfaz.boton.zoom.Ajustar_al_Alto_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Ajustar al Alto", null),
+                new MenuItemDefinition("interfaz.boton.zoom.Escalar_Para_Ajustar_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Escalar para Ajustar", null),
+                new MenuItemDefinition("interfaz.boton.zoom.Zoom_Fijo_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Zoom Fijo", null),
+                new MenuItemDefinition("interfaz.boton.zoom.Reset_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Reset Zoom", null), // Nota: tu config tenía "botn_reset_zoom", asegúrate que el texto sea "Botón Reset Zoom" para generar "botón_reset_zoom" o ajusta.
+                new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
+
+                // Vista
+                new MenuItemDefinition("interfaz.boton.vista.Panel-Galeria_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Panel-Galeria", null),
+                new MenuItemDefinition("interfaz.boton.vista.Grid_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Grid", null),
+                new MenuItemDefinition("interfaz.boton.vista.Pantalla_Completa_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Pantalla Completa", null),
+                new MenuItemDefinition("interfaz.boton.vista.Lista_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Lista", null),
+                new MenuItemDefinition("interfaz.boton.vista.Carrousel_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Carrousel", null),
+                new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
+
+                // Control y Toggles (algunos de estos podrían ser los mismos botones)
+                new MenuItemDefinition("interfaz.boton.control.Refrescar_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Refrescar", null),
+                new MenuItemDefinition("interfaz.boton.toggle.Subcarpetas_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Subcarpetas", null), // Tu config tenía "botn_subcarpetas"
+                new MenuItemDefinition("interfaz.boton.control.lista_de_favoritos_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Lista de Favoritos", null),
+                new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
+
+                // Especiales
+                new MenuItemDefinition("interfaz.boton.control.Borrar_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Borrar", null), // El botón de borrar de la toolbar
+                new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
+                new MenuItemDefinition("interfaz.boton.especiales.Menu_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Menu", null),
+                new MenuItemDefinition("interfaz.boton.especiales.Botones_Ocultos_48x48", MenuItemType.CHECKBOX_ITEM, "Mostrar Boton de Botones Ocultos", null)
+            );
         // Barra de Información
         List<MenuItemDefinition> barraInfoSubItems = List.of(
             new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null),

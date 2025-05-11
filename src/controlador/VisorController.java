@@ -74,6 +74,9 @@ import controlador.actions.edicion.FlipHorizontalAction;
 import controlador.actions.edicion.FlipVerticalAction;
 import controlador.actions.edicion.RotateLeftAction;
 import controlador.actions.edicion.RotateRightAction;
+import controlador.actions.especiales.HiddenButtonsAction;
+import controlador.actions.especiales.MenuAction;
+import controlador.actions.favoritos.ListaDeFavoritosAction;
 import controlador.actions.edicion.CropAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
@@ -379,16 +382,16 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         toggleProporcionesAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
 
         // 2.8 Actions Favoritos 
-//        listaDeFavoritosAction 	= new ListaDeFavoritosAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        
-//        // 2.9 Actions Misceláneas (si las hubiera, ej. botones especiales sin categoría clara)
-//        refreshAction 			= new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        menuAction 				= new MenuAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        hiddenButtonsAction 	= new HiddenButtonsAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        deleteAction 			= new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        
-//        	//actions.edicion
-//        cropAction				= new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+        listaDeFavoritosAction 	= new ListaDeFavoritosAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+        
+        // 2.9 Actions Misceláneas (si las hubiera, ej. botones especiales sin categoría clara)
+        refreshAction 			= new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+        menuAction 				= new MenuAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+        hiddenButtonsAction 	= new HiddenButtonsAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+        deleteAction 			= new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+        
+        	//actions.edicion
+        cropAction				= new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
 
         
         
@@ -398,7 +401,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     
         	 // 3.1.1. Estado inicial de Zoom Manual
              if (toggleZoomManualAction != null) {
-                 boolean zoomManualInicial = configuration.getBoolean("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", false);
+                 boolean zoomManualInicial = configuration.getBoolean("interfaz.menu.zoom.activar_zoom_manual.seleccionado", false);
                  toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
                  //toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
                  toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
@@ -415,7 +418,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              
              // 3.1.3. Estado inicial de Mantener Proporciones
              if (toggleProporcionesAction != null) {
-                 boolean propInicial = configuration.getBoolean("interfaz.menu.zoom.Mantener_Proporciones.seleccionado", true);
+                 boolean propInicial = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true);
                  toggleProporcionesAction.putValue(Action.SELECTED_KEY, propInicial);
 //                  System.out.println("    -> Estado inicial Action 'toggleProporciones' (SELECTED_KEY) puesto a: " + propInicial);
              }
@@ -428,13 +431,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              }
               // 3.1.5. Estado inicial de Fondo a Cuadros
              if (toggleCheckeredBgAction != null) {
-                 boolean checkInicial = configuration.getBoolean("interfaz.menu.vista.Fondo_a_Cuadros.seleccionado", false);
+                 boolean checkInicial = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false);
                  toggleCheckeredBgAction.putValue(Action.SELECTED_KEY, checkInicial);
 //                  System.out.println("    -> Estado inicial Action 'toggleCheckeredBg' (SELECTED_KEY) puesto a: " + checkInicial);
              }
              // 3.1.6. Estado inicial de Siempre Encima
              if (toggleAlwaysOnTopAction != null) {
-                 boolean topInicial = configuration.getBoolean("interfaz.menu.vista.Mantener_Ventana_Siempre_Encima.seleccionado", false);
+                 boolean topInicial = configuration.getBoolean("interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", false);
                  toggleAlwaysOnTopAction.putValue(Action.SELECTED_KEY, topInicial);
 //                 System.out.println("    -> Estado inicial Action 'toggleAlwaysOnTop' (SELECTED_KEY) puesto a: " + topInicial);
              }
@@ -542,142 +545,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         System.out.println("  [Create ActionMap Internal] Finalizado. Mapa parcial creado con " + mapaParcial.size() + " entradas.");
         return mapaParcial;
     }
-    
-//    /*package-private*/ Map<String, Action> createActionMapInternal() {
-//        // --- SECCIÓN 1: Creación e Inicialización del Mapa ---
-//        // 1.1. Crear una nueva instancia de HashMap para almacenar las actions.
-//        Map<String, Action> mapaParcial = new HashMap<>();
-//        // 1.2. Log indicando el inicio de la creación del mapa parcial.
-//        System.out.println("  [Create ActionMap Internal] Creando mapa parcial de actions (sin navegación)...");
-//
-//        // --- SECCIÓN 2: Poblado del Mapa (Action por Action) ---
-//        // 2.0. Accion de funcionalidadPendienteAction 
-//        if (this.funcionalidadPendienteAction != null) {
-//            mapaParcial.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
-//        }
-//        
-//        // 2.1. Añadir Actions de Archivo/Control (usando comando CORTO como clave).
-//        //      Asegurarse de que las variables de Action (openAction, etc.) ya han sido inicializadas
-//        //      en `initializeActionsInternal`. Se añade una comprobación `!= null` por seguridad.
-//        if (openAction != null) {
-//             mapaParcial.put("Abrir_Archivo", openAction); // Clave de Menú
-//             mapaParcial.put("Selector_de_Carpetas_48x48", openAction); // Clave de Botón Toolbar
-//        }
-//        if (locateFileAction != null) {
-//             mapaParcial.put("Abrir_Ubicacion_del_Archivo", locateFileAction); // Clave de Menú
-//             mapaParcial.put("Ubicacion_del_Archivo_48x48", locateFileAction); // Clave de Botón Toolbar
-//        }
-//        if (refreshAction != null) { // Asumiendo que refreshAction existe
-//             mapaParcial.put("Refrescar_48x48", refreshAction); // Clave de Botón Toolbar
-//             mapaParcial.put("Recargar_Lista_de_Imagenes", refreshAction); // Clave de Menú
-//             // mapaParcial.put("Refrescar_Imagen", refreshAction); // ¿Otra clave de menú?
-//             // mapaParcial.put("Volver_a_Cargar", refreshAction); // ¿Otra clave de menú?
-//        }
-//         if (deleteAction != null) { // Asumiendo que deleteAction existe
-//             mapaParcial.put("Eliminar_Permanentemente", deleteAction); // Clave de Menú
-//             mapaParcial.put("Borrar_48x48", deleteAction); // Clave de Botón Toolbar
-//         }
-//        // ... añadir otras actions de archivo/control si existen ...
-//
-//        // 2.2. Añadir Actions de Edición
-//        if (rotateLeftAction != null) {
-//             mapaParcial.put("Girar_Izquierda", rotateLeftAction);
-//             mapaParcial.put("Rotar_Izquierda_48x48", rotateLeftAction);
-//        }
-//        if (rotateRightAction != null) {
-//             mapaParcial.put("Girar_Derecha", rotateRightAction);
-//             mapaParcial.put("Rotar_Derecha_48x48", rotateRightAction);
-//        }
-//        if (flipHorizontalAction != null) {
-//             mapaParcial.put("Voltear_Horizontal", flipHorizontalAction);
-//             mapaParcial.put("Espejo_Horizontal_48x48", flipHorizontalAction);
-//        }
-//        if (flipVerticalAction != null) {
-//             mapaParcial.put("Voltear_Vertical", flipVerticalAction);
-//             mapaParcial.put("Espejo_Vertical_48x48", flipVerticalAction);
-//        }
-//        if (cropAction != null) { // Asumiendo que cortarAction existe
-//             mapaParcial.put("Recortar_48x48", cropAction);
-//             // mapaParcial.put("Recortar", cortarAction); // Si hay un menú item
-//        }
-//
-//        // 2.3. Añadir Actions de Zoom
-//        if (toggleZoomManualAction != null) {
-//        	mapaParcial.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, toggleZoomManualAction);
-//            //mapaParcial.put("Activar_Zoom_Manual", toggleZoomManualAction);
-//            mapaParcial.put("Zoom_48x48", toggleZoomManualAction);
-//        }
-//        if (resetZoomAction != null) {
-//            mapaParcial.put("Resetear_Zoom", resetZoomAction);
-//            mapaParcial.put("Reset_48x48", resetZoomAction);
-//        }
-//        if (zoomAutoAction != null) {
-//             mapaParcial.put("Zoom_Automatico", zoomAutoAction);
-//             mapaParcial.put("Zoom_Auto_48x48", zoomAutoAction);
-//        }
-//        if (zoomAnchoAction != null) {
-//             mapaParcial.put("Zoom_a_lo_Ancho", zoomAnchoAction);
-//             mapaParcial.put("Ajustar_al_Ancho_48x48", zoomAnchoAction);
-//        }
-//        if (zoomAltoAction != null) {
-//             mapaParcial.put("Zoom_a_lo_Alto", zoomAltoAction);
-//             mapaParcial.put("Ajustar_al_Alto_48x48", zoomAltoAction);
-//        }
-//        if (zoomFitAction != null) {
-//             mapaParcial.put("Escalar_Para_Ajustar", zoomFitAction);
-//             mapaParcial.put("Escalar_Para_Ajustar_48x48", zoomFitAction);
-//        }
-//        if (zoomFixedAction != null) {
-//             mapaParcial.put("Zoom_Actual_Fijo", zoomFixedAction);
-//             mapaParcial.put("Zoom_Fijo_48x48", zoomFixedAction);
-//        }
-//        if (zoomFijadoAction != null) {
-//             mapaParcial.put("Zoom_Especificado", zoomFijadoAction);
-//             mapaParcial.put("Zoom_Especifico_48x48", zoomFijadoAction);
-//        }
-//        // ... otras actions de zoom ...
-//
-//        // 2.4. Añadir Actions de Vista (Toggles Visibilidad)
-//        if (toggleMenuBarAction != null) mapaParcial.put("Barra_de_Menu", toggleMenuBarAction);
-//        if (toggleToolBarAction != null) mapaParcial.put("Barra_de_Botones", toggleToolBarAction);
-//        if (toggleFileListAction != null) mapaParcial.put("Mostrar/Ocultar_la_Lista_de_Archivos", toggleFileListAction);
-//        if (toggleThumbnailsAction != null) mapaParcial.put("Imagenes_en_Miniatura", toggleThumbnailsAction);
-//        if (toggleLocationBarAction != null) mapaParcial.put("Linea_de_Ubicacion_del_Archivo", toggleLocationBarAction);
-//        if (toggleCheckeredBgAction != null) mapaParcial.put("Fondo_a_Cuadros", toggleCheckeredBgAction);
-//        if (toggleAlwaysOnTopAction != null) mapaParcial.put("Mantener_Ventana_Siempre_Encima", toggleAlwaysOnTopAction);
-//        // ... otras actions de vista ...
-//
-//        // 2.5. Añadir Actions de Tema
-//        if (temaClearAction != null) mapaParcial.put("Tema_Clear", temaClearAction);
-//        if (temaDarkAction != null) mapaParcial.put("Tema_Dark", temaDarkAction);
-//        if (temaBlueAction != null) mapaParcial.put("Tema_Blue", temaBlueAction);
-//        if (temaGreenAction != null) mapaParcial.put("Tema_Green", temaGreenAction);
-//        if (temaOrangeAction != null) mapaParcial.put("Tema_Orange", temaOrangeAction);
-//
-//        // 2.6. Añadir Actions de Toggle Generales
-//        if (toggleSubfoldersAction != null) {
-//            // Puede que solo tenga botón, o también menú item
-//            mapaParcial.put("Subcarpetas_48x48", toggleSubfoldersAction);
-//            // mapaParcial.put("Mostrar_Imagenes_de_Subcarpetas", toggleSubfoldersAction); // Si hay menú item CheckBox
-//        }
-//        if (toggleProporcionesAction != null) {
-//             mapaParcial.put("Mantener_Proporciones", toggleProporcionesAction); // Menú
-//             mapaParcial.put("Mantener_Proporciones_48x48", toggleProporcionesAction); // Botón
-//        }
-//
-//        // 2.7. Añadir Actions Misceláneas / Especiales
-//        if (menuAction != null) mapaParcial.put("Menu_48x48", menuAction);
-//        if (hiddenButtonsAction != null) mapaParcial.put("Botones_Ocultos_48x48", hiddenButtonsAction);
-//        // ... otras ...
-//
-//
-//        // --- SECCIÓN 3: Log Final y Retorno ---
-//        // 3.1. Imprimir log indicando la finalización y el tamaño del mapa creado.
-//        System.out.println("  [Create ActionMap Internal] Finalizado. Mapa parcial creado con " + mapaParcial.size() + " entradas.");
-//        // 3.2. Devolver el mapa parcial creado.
-//        return mapaParcial;
-//
-//    } // --- FIN createActionMapInternal ---   
     
 
     /**
@@ -4839,7 +4706,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
          switch (nombreComponente) {
              case "Barra_de_Menu":
-                 configKeyBase = "interfaz.menu.vista.Barra_de_Menu";
+                 configKeyBase = "interfaz.menu.vista.barra_de_menu";
                  // Comprobar si el estado actual es diferente antes de cambiar
                   if (view.getJMenuBar() != null && view.getJMenuBar().isVisible() != visible) {
                       view.setJMenuBarVisible(visible); // Método específico en VisorView
@@ -4847,40 +4714,56 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                   }
                  break;
              case "Barra_de_Botones":
-                 configKeyBase = "interfaz.menu.vista.Barra_de_Botones";
+                 configKeyBase = "interfaz.menu.vista.barra_de_botones";
                   if (view.getPanelDeBotones() != null && view.getPanelDeBotones().isVisible() != visible) { // Necesita getter para panelDeBotones
                      view.setToolBarVisible(visible); // Método específico en VisorView
                      cambioRealizado = true;
                   }
                  break;
-             case "Mostrar/Ocultar_la_Lista_de_Archivos": // Clave del menú
-                 configKeyBase = "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos";
+             case "mostrar_ocultar_la_lista_de_archivos": // Clave del menú
+                 configKeyBase = "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos";
                   if (view.getPanelIzquierdo() != null && view.getPanelIzquierdo().isVisible() != visible) { // Necesita getter para panelIzquierdo
                      view.setFileListVisible(visible); // Método específico en VisorView
                      cambioRealizado = true;
                   }
                  break;
-             case "Imagenes_en_Miniatura": // Clave del menú
-                 configKeyBase = "interfaz.menu.vista.Imagenes_en_Miniatura";
+             case "imagenes_en_miniatura": // Clave del menú
+                 configKeyBase = "interfaz.menu.vista.imagenes_en_miniatura";
                   if (view.getScrollListaMiniaturas() != null && view.getScrollListaMiniaturas().isVisible() != visible) { // Usa el ScrollPane
                      view.setThumbnailsVisible(visible); // Método específico en VisorView
                      cambioRealizado = true;
                   }
                  break;
-              case "Linea_de_Ubicacion_del_Archivo": // Clave del menú
-                  configKeyBase = "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo";
+              case "linea_de_ubicacion_del_archivo": // Clave del menú
+                  configKeyBase = "interfaz.menu.vista.linea_de_ubicacion_del_archivo";
                    if (view.getTextoRuta() != null && view.getTextoRuta().isVisible() != visible) { // Necesita getter para textoRuta
                       view.setLocationBarVisible(visible); // Método específico en VisorView
                       cambioRealizado = true;
                    }
                   break;
-              case "Fondo_a_Cuadros": // Clave del menú
-                  configKeyBase = "interfaz.menu.vista.Fondo_a_Cuadros";
-                   cambioRealizado = true; // Asumir que siempre se guarda el estado
-                  System.out.println("  -> Estado Fondo a Cuadros actualizado a: " + visible);
+                  
+              case "fondo_a_cuadros": // Clave del menú
+            	  System.out.println("													-----> ESTOY EN EL CASE DE fondo_a_cuadros");
+//                  configKeyBase = "interfaz.menu.vista.fondo_a_cuadros";
+//                   cambioRealizado = true; // Asumir que siempre se guarda el estado
+//                  System.out.println("  -> Estado Fondo a Cuadros actualizado a: " + visible);
+//                  break;
+            	  
+            	  configKeyBase = "interfaz.menu.vista.fondo_a_cuadros";
+                  if (view != null) { // Asegurarse que la vista exista
+                      // Llamar directamente al método de la vista
+                      // Necesitamos saber si el estado visual realmente cambió en la vista
+                      boolean estadoAnteriorVista = view.isFondoACuadrosActivado(); // Necesitarás un getter en VisorView
+                      view.setCheckeredBackgroundEnabled(visible);
+                      if (estadoAnteriorVista != view.isFondoACuadrosActivado()) {
+                          cambioRealizado = true;
+                      }
+                  }
+                  System.out.println("  -> Estado Fondo a Cuadros (lógica) actualizado a: " + visible);
                   break;
-              case "Mantener_Ventana_Siempre_Encima": // Clave del menú
-                   configKeyBase = "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima";
+                  
+              case "mantener_ventana_siempre_encima": // Clave del menú
+                   configKeyBase = "interfaz.menu.vista.mantener_ventana_siempre_encima";
                     if (view.isAlwaysOnTop() != visible) {
                         view.setAlwaysOnTop(visible); // Método estándar de JFrame/Window
                         cambioRealizado = true;
@@ -4892,7 +4775,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          }
 
          // 3. Actualizar configuración en memoria SOLO si hubo un cambio o es Fondo a Cuadros
-         if (configKeyBase != null && (cambioRealizado || nombreComponente.equals("Fondo_a_Cuadros"))) {
+         if (configKeyBase != null && (cambioRealizado || nombreComponente.equals("fondo_a_cuadros"))) {
              String fullConfigKey = configKeyBase + ".seleccionado";
              // Usamos el valor 'visible' que se pasó al método
              configuration.setString(fullConfigKey, String.valueOf(visible));
@@ -4904,7 +4787,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          // 4. Revalidar y Repintar el Frame Principal si hubo cambio visual
          //    (No necesario para 'Fondo a Cuadros' si solo cambia el pintado interno,
          //     ni para 'AlwaysOnTop' que es una propiedad de ventana).
-         if (cambioRealizado && !nombreComponente.equals("Fondo_a_Cuadros") && !nombreComponente.equals("Mantener_Ventana_Siempre_Encima")) {
+         if (cambioRealizado && !nombreComponente.equals("fondo_a_cuadros") && 
+        		 !nombreComponente.equals("mantener_ventana_siempre_encima")) {
               System.out.println("  -> Revalidando y repintando el Frame...");
               // Es más seguro hacerlo en invokeLater por si acaso
               SwingUtilities.invokeLater(() -> {
@@ -6030,8 +5914,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              estadoActualParaGuardar.put("miniaturas.tamano.normal.alto", String.valueOf(model.getMiniaturaNormAlto()));
              
              // 3.5. Estado de toggles (leer desde la Action asociada es más fiable que desde el modelo)
-              if (toggleZoomManualAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.Activar_Zoom_Manual.seleccionado", String.valueOf(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY))));
-              if (toggleProporcionesAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.Mantener_Proporciones.seleccionado", String.valueOf(Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY))));
+              if (toggleZoomManualAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.activar_zoom_manual.seleccionado", String.valueOf(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY))));
+              if (toggleProporcionesAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.mantener_proporciones.seleccionado", String.valueOf(Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY))));
               // Estado subcarpetas (ya se guarda arriba desde el modelo, pero reconfirmar desde Action no hace daño)
               // if (toggleSubfoldersAction != null) estadoActualParaGuardar.put("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY))));
 

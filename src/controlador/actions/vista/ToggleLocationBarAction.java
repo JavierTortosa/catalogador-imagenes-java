@@ -14,7 +14,7 @@ public class ToggleLocationBarAction extends BaseVisorAction {
 
     private static final long serialVersionUID = 1L;
     // Clave de configuración para el estado de este toggle
-    private static final String CONFIG_KEY = "interfaz.menu.vista.Linea_de_Ubicacion_del_Archivo.seleccionado";
+    private static final String CONFIG_KEY = "interfaz.menu.vista.linea_de_ubicacion_del_archivo.seleccionado";
 
     public ToggleLocationBarAction(VisorController controller) {
         // --- TEXTO NUEVO ---
@@ -53,7 +53,7 @@ public class ToggleLocationBarAction extends BaseVisorAction {
         }
 
         // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("Linea_de_Ubicacion_del_Archivo", newState);
+        controller.setComponenteVisibleAndUpdateConfig("linea_de_ubicacion_del_archivo", newState);
 
         // Actualizar el estado de esta Action para sincronizar
         putValue(Action.SELECTED_KEY, newState);

@@ -1991,6 +1991,15 @@ public class VisorView extends JFrame
     public void setActualBotonesMap(Map<String, JButton> botones) {
         this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();
          System.out.println("  [VisorView] Map<String, JButton> real asignado. Tamaño: " + this.botonesPorNombre.size());
-    }    
+    }
+
+
+	public boolean isFondoACuadrosActivado ()
+	{
+
+		// TODO Auto-generated method stub
+		return false;
+
+	}    
     
 } // Fin VisorView

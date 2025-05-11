@@ -14,7 +14,7 @@ public class ToggleFileListAction extends BaseVisorAction {
 
     private static final long serialVersionUID = 1L;
     // Clave de configuración para el estado de este toggle
-    private static final String CONFIG_KEY = "interfaz.menu.vista.Mostrar/Ocultar_la_Lista_de_Archivos.seleccionado";
+    private static final String CONFIG_KEY = "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado";
 
     public ToggleFileListAction(VisorController controller) {
         // --- TEXTO NUEVO ---
@@ -53,7 +53,7 @@ public class ToggleFileListAction extends BaseVisorAction {
         }
 
         // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("Mostrar/Ocultar_la_Lista_de_Archivos", newState);
+        controller.setComponenteVisibleAndUpdateConfig("mostrar_ocultar_la_lista_de_archivos", newState);
 
         // Actualizar el estado de esta Action para sincronizar
         putValue(Action.SELECTED_KEY, newState);
