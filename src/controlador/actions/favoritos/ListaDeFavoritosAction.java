@@ -22,11 +22,11 @@ public class ListaDeFavoritosAction extends BaseVisorAction {
 
 		// Cargar icono usando IconUtils
 		// Asegúrate que el nombre del archivo PNG sea correcto
-		ImageIcon icon = iconUtils.getScaledIcon("5003-lista_de_favoritos_48x48.png", width, height);
+		ImageIcon icon = iconUtils.getScaledIcon("5003-marcar_imagen_48x48.png", width, height);
 		if (icon != null) {
 			putValue(Action.SMALL_ICON, icon);
 		} else {
-			System.err.println("WARN [ListaDeFavoritosAction]: No se pudo cargar el icono 5003-lista_de_favoritos_48x48.png");
+			System.err.println("WARN [ListaDeFavoritosAction]: No se pudo cargar el icono 5003-marcar_imagen_48x48.png");
 			putValue(Action.NAME, "<->"); // Texto fallback
 		}
 	}	

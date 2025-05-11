@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -66,25 +67,27 @@ import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
+import controlador.actions.archivo.DeleteAction;
 // --- Imports de Actions ---
 import controlador.actions.archivo.OpenFileAction;
-import controlador.actions.archivo.DeleteAction;
 import controlador.actions.archivo.RefreshAction;
+import controlador.actions.edicion.CropAction;
 import controlador.actions.edicion.FlipHorizontalAction;
 import controlador.actions.edicion.FlipVerticalAction;
 import controlador.actions.edicion.RotateLeftAction;
 import controlador.actions.edicion.RotateRightAction;
 import controlador.actions.especiales.HiddenButtonsAction;
 import controlador.actions.especiales.MenuAction;
-import controlador.actions.favoritos.ListaDeFavoritosAction;
-import controlador.actions.edicion.CropAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
+import controlador.actions.projects.GestionarProyectoAction;
+import controlador.actions.projects.ToggleMarkImageAction;
 import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
+import controlador.actions.vista.MostrarDialogoListaAction;
 import controlador.actions.vista.ToggleAlwaysOnTopAction;
 import controlador.actions.vista.ToggleCheckeredBackgroundAction;
 import controlador.actions.vista.ToggleFileListAction;
@@ -106,6 +109,7 @@ import controlador.worker.BuscadorArchivosWorker;
 // --- Imports de Modelo, Servicios y Vista ---
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
+import servicios.ProjectManager;
 import servicios.image.ImageEdition;
 import servicios.image.ThumbnailService;
 import utils.StringUtils;
@@ -123,14 +127,17 @@ import vista.util.IconUtils;
 public class VisorController implements ActionListener, ClipboardOwner, KeyEventDispatcher {
 
     // --- 1. Referencias a Componentes del Sistema ---
-    private VisorModel model;						// El modelo de datos principal de la aplicación
+	private StringUtils stringUtils;				// Utilidades de Strings y log dinamico con dynamicLogç
+
+	private VisorModel model;						// El modelo de datos principal de la aplicación
     private VisorView view;							// Clase principal de la Interfaz Grafica
     private ConfigurationManager configuration;		// Gestor del archivo de configuracion
     private IconUtils iconUtils;					// utilidad para cargar y gestionar iconos de la aplicación
     private ThemeManager themeManager;				// Gestor de tema visual de la interfaz
     private ThumbnailService servicioMiniaturas;	// Servicio para gestionar las miniaturas
     private ListCoordinator listCoordinator;		// El coordinador para la selección y navegación en las listas
-    private StringUtils stringUtils;				// Utilidades de Strings y log dinamico con dynamicLogç
+    private ProjectManager projectManager;			// Gestor de proyectos (imagenes favoritas)
+
     
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			//
@@ -156,6 +163,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private Action toggleZoomManualAction, zoomAutoAction, resetZoomAction, zoomAnchoAction, zoomAltoAction, zoomFitAction, zoomFixedAction, zoomFijadoAction;
     private Action locateFileAction;
     private Action toggleMenuBarAction, toggleToolBarAction, toggleFileListAction, toggleThumbnailsAction, toggleLocationBarAction, toggleCheckeredBgAction, toggleAlwaysOnTopAction;
+    private Action mostrarDialogoListaAction;
     private Action menuAction, hiddenButtonsAction;
     private Action temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction;
     private List<Action> themeActions;
@@ -163,6 +171,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private Map<String, Action> actionMap;
     private Action listaDeFavoritosAction;
     private Action funcionalidadPendienteAction;
+    
+    // Action para el botón/menú de marcar/desmarcar (será un toggle)
+    private Action toggleMarkImageAction;
+    // Action para el botón/menú que abre la "gestión" (el JOptionPane por ahora)
+    private Action gestionarProyectoAction;
 
     /**
      * Constructor principal (AHORA SIMPLIFICADO).
@@ -203,272 +216,549 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      * @param iconoAlto El alto deseado para los iconos de las actions (-1 para mantener proporción).
      */
     /*package-private*/ void initializeActionsInternal(int iconoAncho, int iconoAlto) {
-        // --- SECCIÓN 1: Log de Inicio y Validación ---
-        // 1.1. Imprimir log indicando el inicio de esta fase.
+        // --- SECCIÓN 1: Log de Inicio y Validación de Dependencias ---
+        // 1.1. Log de inicio de esta fase.
         System.out.println("  [Init Actions Internal] Inicializando Actions (sin navegación)...");
-        // 1.2. Validar dependencias necesarias (iconUtils y configuration ya deberían estar inyectadas).
+
+        // 1.2. Validar dependencias críticas (iconUtils y configuration).
         if (this.iconUtils == null) {
-            // Usar handleFatalError si iconUtils es absolutamente crítico aquí.
-            handleFatalError("IconUtils nulo en initializeActionsInternal", null);
-            return; // Salir si falta una dependencia crítica.
+            handleFatalError("IconUtils nulo en initializeActionsInternal. La aplicación no puede continuar.", null);
+            return; // Salir si iconUtils es absolutamente crítico aquí.
         }
-         if (this.configuration == null) {
-            // Podría ser menos crítico, quizás continuar con defaults, pero mejor fallar pronto.
-            handleFatalError("ConfigurationManager nulo en initializeActionsInternal", null);
-            return;
+        if (this.configuration == null) {
+            handleFatalError("ConfigurationManager nulo en initializeActionsInternal. La aplicación no puede continuar.", null);
+            return; // Salir si la configuración es crítica.
         }
 
-        // --- SECCIÓN 2: Inicialización de Actions (Archivo, Edición, Zoom, Vista, Tema, Toggles) ---
-         
-        // 2.0. Action funcionalidadPendienteAction
-         final VisorController self = this; // Crear una referencia final a la instancia actual de VisorController
+        // --- SECCIÓN 2: Creación de Instancias de Action ---
 
-         this.funcionalidadPendienteAction = new AbstractAction("Funcionalidad Pendiente") {
-             private static final long serialVersionUID = 1L;
+        // 2.0. Action Genérica para Funcionalidades Pendientes
+        //      Se crea primero para usarla como fallback si otras actions fallan.
+        final VisorController selfRefController = this; // Referencia final a 'this' para usar en la clase anónima
+        try {
+            this.funcionalidadPendienteAction = new AbstractAction("Funcionalidad Pendiente") {
+                private static final long serialVersionUID = 1L; // Considera un SUID único
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (selfRefController == null || selfRefController.getView() == null) {
+                        System.err.println("Error: Controller o Vista son null en FuncionalidadPendienteAction");
+                        String mensajeFallback = "Funcionalidad para el componente que disparó este evento aún no implementada.";
+                        Object sourceEvent = e.getSource();
+                        if (sourceEvent instanceof AbstractButton) {
+                            AbstractButton btn = (AbstractButton) sourceEvent;
+                            String texto = btn.getText();
+                            if (texto == null || texto.isEmpty()) texto = (String) btn.getAction().getValue(Action.NAME);
+                            if (texto == null || texto.isEmpty()) texto = btn.getToolTipText();
+                            mensajeFallback = "Funcionalidad para '" + (texto != null ? texto : e.getActionCommand()) + "' aún no implementada.";
+                        }
+                        System.out.println(mensajeFallback); // Log a consola si no hay UI
+                        return;
+                    }
+                    selfRefController.logActionInfo(e);
+                    Object source = e.getSource();
+                    String textoComponente = "";
+                    if (source instanceof AbstractButton) {
+                        AbstractButton comp = (AbstractButton) source;
+                        textoComponente = comp.getText();
+                        if (textoComponente == null || textoComponente.isEmpty()) textoComponente = comp.getToolTipText();
+                        if (textoComponente == null || textoComponente.isEmpty()) {
+                            String configKey = selfRefController.findLongKeyForComponent(source);
+                            textoComponente = (configKey != null) ? configKey : "(Componente no identificado)";
+                        }
+                    }
+                    String mensaje = "Funcionalidad para '" + textoComponente + "' aún no implementada.";
+                    JOptionPane.showMessageDialog(selfRefController.getView().getFrame(), mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
+                }
+            };
+            this.funcionalidadPendienteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE);
+            System.out.println("    -> FuncionalidadPendienteAction creada.");
+        } catch (Exception e) {
+            System.err.println("ERROR CRÍTICO creando funcionalidadPendienteAction: " + e.getMessage());
+            // Si esta action falla, es un problema, pero intentamos continuar
+        }
 
-             @Override
-             public void actionPerformed(ActionEvent e) {
-                 // Ahora 'self' es la referencia a VisorController
-                 if (self == null || self.getView() == null) { // Usar self para acceder a getView()
-                     System.err.println("Error: Controller o Vista son null en FuncionalidadPendienteAction");
-                     // Si self.getView() es null, mostrar en consola
-                     String mensajeFallback = "Funcionalidad para el componente que disparó este evento aún no implementada.";
-                     Object sourceEvent = e.getSource();
-                     if (sourceEvent instanceof AbstractButton) {
-                         AbstractButton btn = (AbstractButton) sourceEvent;
-                         String texto = btn.getText();
-                         if (texto == null || texto.isEmpty()) texto = (String) btn.getAction().getValue(Action.NAME);
-                         if (texto == null || texto.isEmpty()) texto = btn.getToolTipText();
-                         mensajeFallback = "Funcionalidad para '" + (texto != null ? texto : e.getActionCommand()) + "' aún no implementada.";
-                     }
-                     System.out.println(mensajeFallback);
-                     return;
-                 }
-
-                 self.logActionInfo(e); // Loguear qué se pulsó usando 'self'
-
-                 Object source = e.getSource();
-                 String textoComponente = "";
-                 // String comandoOriginalDelComponente = e.getActionCommand(); // Esto será CMD_FUNCIONALIDAD_PENDIENTE
-
-                 if (source instanceof AbstractButton) {
-                     AbstractButton comp = (AbstractButton) source;
-                     textoComponente = comp.getText(); // Texto visible del botón/menú
-                     if (textoComponente == null || textoComponente.isEmpty()) {
-                         Action sourceAction = comp.getAction(); // Debería ser this.funcionalidadPendienteAction
-                         if (sourceAction != null && sourceAction.getValue(Action.NAME) != null) {
-                             // El Action.NAME de funcionalidadPendienteAction es "Funcionalidad Pendiente"
-                             // Sería mejor usar el tooltip o el comando original del componente si lo tuviéramos aquí.
-                             // Para el tooltip:
-                              textoComponente = comp.getToolTipText();
-                         }
-                         if (textoComponente == null || textoComponente.isEmpty()) {
-                              // Como último recurso, si el componente no tiene ActionCommand propio visible aquí
-                              // (porque está usando la Action genérica), y no tiene texto ni tooltip,
-                              // podemos usar la clave larga del componente si la podemos obtener.
-                              String configKey = self.findLongKeyForComponent(source);
-                              textoComponente = (configKey != null) ? configKey : "(Componente no identificado)";
-                         }
-                     }
-                 }
-                 String mensaje = "Funcionalidad para '" + textoComponente + "' aún no implementada.";
-                 JOptionPane.showMessageDialog(self.getView().getFrame(), mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
-             }
-         };
-         
-       	this.funcionalidadPendienteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE); 
-       	// No es estrictamente necesario ponerle icono a esta Action genérica,
-       	// ya que el ToolbarButtonDefinition especificará el icono del botón.
-       	System.out.println("    -> FuncionalidadPendienteAction creada.");
-        	
         // 2.1. Actions de Archivo
-        openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        openAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ARCHIVO_ABRIR);
-        
-        deleteAction = new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        if (deleteAction != null) deleteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ELIMINAR);
-        
-        refreshAction = new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        if (refreshAction != null) refreshAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ESPECIAL_REFRESCAR);
-        
-        // ... otras actions de archivo ...
+        try {
+            openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            // El ACTION_COMMAND_KEY ya se establece dentro de OpenFileAction
+        } catch (Exception e) { System.err.println("ERROR creando OpenFileAction: " + e.getMessage()); openAction = funcionalidadPendienteAction; }
+
+        try {
+            deleteAction = new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        } catch (Exception e) { System.err.println("ERROR creando DeleteAction: " + e.getMessage()); deleteAction = funcionalidadPendienteAction; }
+
+        try {
+            refreshAction = new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        } catch (Exception e) { System.err.println("ERROR creando RefreshAction: " + e.getMessage()); refreshAction = funcionalidadPendienteAction; }
+        System.out.println("    -> Actions de Archivo creadas.");
 
         // 2.2. Actions de Edición
-        rotateLeftAction 		= new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        rotateLeftAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
-        
-        rotateRightAction 		= new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        rotateRightAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_DER);
-        
-        flipHorizontalAction 	= new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        flipHorizontalAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_H);
-        
-        flipVerticalAction 		= new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        flipVerticalAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_V);
-        
-         cropAction = new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);
-         if (cropAction != null) cropAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_RECORTAR);
+        try {
+            rotateLeftAction = new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            rotateRightAction = new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            flipHorizontalAction = new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            flipVerticalAction = new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            cropAction = new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        } catch (Exception e) {
+            System.err.println("ERROR creando una o más Actions de Edición: " + e.getMessage());
+            // Asignar fallback a las que pudieron fallar (o a todas por simplicidad aquí)
+            if (rotateLeftAction == null) rotateLeftAction = funcionalidadPendienteAction;
+            if (rotateRightAction == null) rotateRightAction = funcionalidadPendienteAction;
+            if (flipHorizontalAction == null) flipHorizontalAction = funcionalidadPendienteAction;
+            if (flipVerticalAction == null) flipVerticalAction = funcionalidadPendienteAction;
+            if (cropAction == null) cropAction = funcionalidadPendienteAction;
+        }
+        System.out.println("    -> Actions de Edición creadas.");
 
-        // 2.3. Actions de Zoom (Todas excepto navegación)
-        toggleZoomManualAction 	= new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-        
-        zoomAutoAction 			= new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        zoomAutoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_AUTO);
-        
-        zoomAnchoAction 		= new ZoomAnchoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        zoomAnchoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
-        
-        zoomAltoAction 			= new ZoomAltoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        zoomAltoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ALTO);
-        
-        zoomFitAction 			= new ZoomFitAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        zoomFitAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
-        
-        zoomFixedAction 		= new ZoomFixedAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        zoomFixedAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_FIJO);
-        
-        zoomFijadoAction 		= new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        zoomFijadoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-        
-        resetZoomAction 		= new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        resetZoomAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_RESET);
+        // 2.3. Actions de Zoom
+        try {
+            toggleZoomManualAction = new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            zoomAutoAction = new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            zoomAnchoAction = new ZoomAnchoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            zoomAltoAction = new ZoomAltoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            zoomFitAction = new ZoomFitAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            zoomFixedAction = new ZoomFixedAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            zoomFijadoAction = new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            resetZoomAction = new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        } catch (Exception e) {
+            System.err.println("ERROR creando una o más Actions de Zoom: " + e.getMessage());
+            // Fallbacks
+            if (toggleZoomManualAction == null) toggleZoomManualAction = funcionalidadPendienteAction;
+            // ... (y así para las demás de zoom)
+        }
+        System.out.println("    -> Actions de Zoom creadas.");
 
-        // 2.4. Actions de Imagen (Localizar, etc.)
-        locateFileAction 		= new LocateFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
-        locateFileAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_LOCALIZAR);
+        // 2.4. Actions de Imagen (Localizar)
+        try {
+            locateFileAction = new LocateFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        } catch (Exception e) { System.err.println("ERROR creando LocateFileAction: " + e.getMessage()); locateFileAction = funcionalidadPendienteAction; }
+        System.out.println("    -> Actions de Imagen creadas.");
 
-        // 2.5. Actions de Vista (Toggles de visibilidad)
-        toggleMenuBarAction 	= new ToggleMenuBarAction(this);
-        toggleMenuBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
-        
-        toggleToolBarAction 	= new ToggleToolBarAction(this);
-        toggleToolBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
-        
-        toggleFileListAction 	= new ToggleFileListAction(this);
-        toggleFileListAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-        
-        toggleThumbnailsAction 	= new ToggleThumbnailsAction(this);
-        toggleThumbnailsAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
-        
-        toggleLocationBarAction = new ToggleLocationBarAction(this);
-        toggleLocationBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR);
-        
-        toggleCheckeredBgAction = new ToggleCheckeredBackgroundAction(this);
-        toggleCheckeredBgAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
-        
-        toggleAlwaysOnTopAction = new ToggleAlwaysOnTopAction(this);
-        toggleAlwaysOnTopAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
+        // 2.5. Actions de Vista (Toggles de Visibilidad y otras)
+        try {
+            mostrarDialogoListaAction = new MostrarDialogoListaAction(this, this.iconUtils, iconoAncho, iconoAlto); // No necesita icono en la Action si el botón lo define
+            toggleMenuBarAction = new ToggleMenuBarAction(this);
+            toggleToolBarAction = new ToggleToolBarAction(this);
+            toggleFileListAction = new ToggleFileListAction(this);
+            toggleThumbnailsAction = new ToggleThumbnailsAction(this);
+            toggleLocationBarAction = new ToggleLocationBarAction(this);
+            toggleCheckeredBgAction = new ToggleCheckeredBackgroundAction(this);
+            toggleAlwaysOnTopAction = new ToggleAlwaysOnTopAction(this);
+        } catch (Exception e) {
+            System.err.println("ERROR creando una o más Actions de Vista: " + e.getMessage());
+            // Fallbacks
+            if (mostrarDialogoListaAction == null) mostrarDialogoListaAction = funcionalidadPendienteAction;
+            // ... (y así para las demás de vista)
+        }
+        System.out.println("    -> Actions de Vista creadas.");
 
         // 2.6. Actions de Tema
-        temaClearAction 		= new ToggleThemeAction(this, "clear", "Tema Clear");
-        temaClearAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_CLEAR);
-        temaDarkAction 			= new ToggleThemeAction(this, "dark", "Tema Dark");
-        temaDarkAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_DARK);
-        temaBlueAction 			= new ToggleThemeAction(this, "blue", "Tema Blue");
-        temaBlueAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_BLUE);
-        temaGreenAction 		= new ToggleThemeAction(this, "green", "Tema Green");
-        temaGreenAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_GREEN);
-        temaOrangeAction 		= new ToggleThemeAction(this, "orange", "Tema Orange");
-        temaOrangeAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_ORANGE);
-        // Agruparlas para facilitar la actualización de selección
-        themeActions = List.of(temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction);
+        try {
+            temaClearAction = new ToggleThemeAction(this, "clear", "Tema Clear");
+            temaDarkAction = new ToggleThemeAction(this, "dark", "Tema Dark");
+            temaBlueAction = new ToggleThemeAction(this, "blue", "Tema Blue");
+            temaGreenAction = new ToggleThemeAction(this, "green", "Tema Green");
+            temaOrangeAction = new ToggleThemeAction(this, "orange", "Tema Orange");
+            themeActions = List.of(temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction);
+        } catch (Exception e) {
+            System.err.println("ERROR creando Actions de Tema: " + e.getMessage());
+            // Considerar cómo manejar este fallo, quizás un tema por defecto si todo falla
+        }
+        System.out.println("    -> Actions de Tema creadas.");
 
         // 2.7. Actions de Toggle Generales (Subcarpetas, Proporciones)
-        toggleSubfoldersAction 	= new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
-        toggleSubfoldersAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        
-        toggleProporcionesAction = new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
-        toggleProporcionesAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
-
-        // 2.8 Actions Favoritos 
-        listaDeFavoritosAction 	= new ListaDeFavoritosAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-        
-        // 2.9 Actions Misceláneas (si las hubiera, ej. botones especiales sin categoría clara)
-        refreshAction 			= new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-        menuAction 				= new MenuAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-        hiddenButtonsAction 	= new HiddenButtonsAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-        deleteAction 			= new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-        
-        	//actions.edicion
-        cropAction				= new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-
-        
-        
-        // --- SECCIÓN 3: Configuración del Estado Inicial de Actions Específicas ---
-        // 3.1. Leer estado inicial de config para Toggles que lo necesiten.
         try {
-    
-        	 // 3.1.1. Estado inicial de Zoom Manual
-             if (toggleZoomManualAction != null) {
-                 boolean zoomManualInicial = configuration.getBoolean("interfaz.menu.zoom.activar_zoom_manual.seleccionado", false);
-                 toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-                 //toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
-                 toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
-                 
-//                 System.out.println("    -> Estado inicial Action 'toggleZoomManual' (SELECTED_KEY) puesto a: " + zoomManualInicial);
-             }
-             
-             // 3.1.2. Estado inicial de Reset Zoom (depende de Zoom Manual)
-             if (resetZoomAction != null) {
-                  // Se habilita solo si el zoom manual está activo inicialmente.
-                 resetZoomAction.setEnabled(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY)));
-//                 System.out.println("    -> Estado inicial Action 'resetZoom' (enabled) puesto a: " + resetZoomAction.isEnabled());
-             }
-             
-             // 3.1.3. Estado inicial de Mantener Proporciones
-             if (toggleProporcionesAction != null) {
-                 boolean propInicial = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true);
-                 toggleProporcionesAction.putValue(Action.SELECTED_KEY, propInicial);
-//                  System.out.println("    -> Estado inicial Action 'toggleProporciones' (SELECTED_KEY) puesto a: " + propInicial);
-             }
-             
-              // 3.1.4. Estado inicial de Cargar Subcarpetas
-             if (toggleSubfoldersAction != null) {
-                  boolean subInicial = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
-                  toggleSubfoldersAction.putValue(Action.SELECTED_KEY, subInicial);
-//                   System.out.println("    -> Estado inicial Action 'toggleSubfolders' (SELECTED_KEY) puesto a: " + subInicial);
-             }
-              // 3.1.5. Estado inicial de Fondo a Cuadros
-             if (toggleCheckeredBgAction != null) {
-                 boolean checkInicial = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false);
-                 toggleCheckeredBgAction.putValue(Action.SELECTED_KEY, checkInicial);
-//                  System.out.println("    -> Estado inicial Action 'toggleCheckeredBg' (SELECTED_KEY) puesto a: " + checkInicial);
-             }
-             // 3.1.6. Estado inicial de Siempre Encima
-             if (toggleAlwaysOnTopAction != null) {
-                 boolean topInicial = configuration.getBoolean("interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", false);
-                 toggleAlwaysOnTopAction.putValue(Action.SELECTED_KEY, topInicial);
-//                 System.out.println("    -> Estado inicial Action 'toggleAlwaysOnTop' (SELECTED_KEY) puesto a: " + topInicial);
-             }
-             // 3.1.7. Estado inicial de visibilidad de componentes (MenuBar, ToolBar, etc.)
-             //        Las Actions ToggleMenuBarAction, etc., leen su estado inicial
-             //        internamente desde ConfigurationManager cuando se crean o se usan.
-             //        No es estrictamente necesario ponerles SELECTED_KEY aquí, pero
-             //        podría hacerse por consistencia si se quisiera. Ejemplo:
+            toggleSubfoldersAction = new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
+            toggleProporcionesAction = new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
+        } catch (Exception e) {
+            System.err.println("ERROR creando Actions de Toggle Generales: " + e.getMessage());
+            if (toggleSubfoldersAction == null) toggleSubfoldersAction = funcionalidadPendienteAction;
+            if (toggleProporcionesAction == null) toggleProporcionesAction = funcionalidadPendienteAction;
+        }
+        System.out.println("    -> Actions de Toggle Generales creadas.");
 
-             // 3.1.8. Sincronizar estado inicial de selección de Tema (marca el radio correcto)
-             if (themeActions != null && themeManager != null) {
-                 String temaInicialConfig = themeManager.getTemaActual().nombreInterno();
-                  System.out.println("    -> Sincronizando estado inicial radios de Tema a: " + temaInicialConfig);
-                 for(Action themeAction : themeActions) {
-                     if (themeAction instanceof ToggleThemeAction) {
-                         ((ToggleThemeAction)themeAction).actualizarEstadoSeleccion(temaInicialConfig);
-                     }
-                 }
-             }
+        // 2.8. Actions de Proyecto/Selección (Placeholder por ahora)
+        try {
+            toggleMarkImageAction = new ToggleMarkImageAction(this, iconUtils, iconoAncho, iconoAlto);
+            System.out.println("      -> ToggleMarkImageAction creada en Controller (ID: " + System.identityHashCode(toggleMarkImageAction) + ")");
+            gestionarProyectoAction = new GestionarProyectoAction(this, iconUtils, iconoAncho, iconoAlto);
+        } catch (Exception e) {
+            System.err.println("ERROR creando Actions de Proyecto: " + e.getMessage());
+            if (toggleMarkImageAction == null) toggleMarkImageAction = funcionalidadPendienteAction;
+            if (gestionarProyectoAction == null) gestionarProyectoAction = funcionalidadPendienteAction;
+        }
+        System.out.println("    -> Actions de Proyecto (Placeholder) creadas.");
 
+        // 2.9. Actions Misceláneas (Botones especiales)
+        //      RefreshAction y DeleteAction ya están en 2.1.
+        //      CropAction ya está en 2.2.
+        try {
+            menuAction = new MenuAction(this, this.iconUtils, iconoAncho, iconoAlto);
+            hiddenButtonsAction = new HiddenButtonsAction(this, this.iconUtils, iconoAncho, iconoAlto);
+        } catch (Exception e) {
+            System.err.println("ERROR creando Actions Misceláneas: " + e.getMessage());
+            if (menuAction == null) menuAction = funcionalidadPendienteAction;
+            if (hiddenButtonsAction == null) hiddenButtonsAction = funcionalidadPendienteAction;
+        }
+        System.out.println("    -> Actions Misceláneas creadas.");
+
+
+        // --- SECCIÓN 3: Configuración del Estado Inicial de Actions (SELECTED_KEY, enabled) ---
+        //      Esto se hace DESPUÉS de crear todas las instancias.
+        System.out.println("    -> Configurando estado inicial de Actions específicas...");
+        try {
+            // 3.1. Estado inicial de Zoom Manual y Reset Zoom
+            if (toggleZoomManualAction != null) {
+                boolean zoomManualInicial = configuration.getBoolean("interfaz.menu.zoom.activar_zoom_manual.seleccionado", false);
+                // El ACTION_COMMAND_KEY ya se puso en el constructor de ToggleZoomManualAction
+                toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
+                if (resetZoomAction != null) { // resetZoomAction depende de toggleZoomManualAction
+                    resetZoomAction.setEnabled(zoomManualInicial);
+                }
+            }
+
+            // 3.2. Estado inicial de Mantener Proporciones
+            if (toggleProporcionesAction != null) {
+                boolean propInicial = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true);
+                toggleProporcionesAction.putValue(Action.SELECTED_KEY, propInicial);
+            }
+
+            // 3.3. Estado inicial de Cargar Subcarpetas
+            if (toggleSubfoldersAction != null) {
+                boolean subInicial = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
+                toggleSubfoldersAction.putValue(Action.SELECTED_KEY, subInicial);
+            }
+
+            // 3.4. Estado inicial de Fondo a Cuadros
+            if (toggleCheckeredBgAction != null) {
+                boolean checkInicial = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false);
+                toggleCheckeredBgAction.putValue(Action.SELECTED_KEY, checkInicial);
+            }
+
+            // 3.5. Estado inicial de Siempre Encima
+            if (toggleAlwaysOnTopAction != null) {
+                boolean topInicial = configuration.getBoolean("interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", false);
+                toggleAlwaysOnTopAction.putValue(Action.SELECTED_KEY, topInicial);
+            }
+
+            // 3.6. Sincronizar estado inicial de selección de Tema (marca el radio correcto)
+            if (themeActions != null && !themeActions.isEmpty() && themeManager != null) {
+                String temaInicialConfig = themeManager.getTemaActual().nombreInterno();
+                System.out.println("      -> Sincronizando estado inicial radios de Tema a: " + temaInicialConfig);
+                for(Action themeAction : themeActions) {
+                    if (themeAction instanceof ToggleThemeAction) {
+                        ((ToggleThemeAction)themeAction).actualizarEstadoSeleccion(temaInicialConfig);
+                    }
+                }
+            }
+
+            // 3.7. Estado inicial para ToggleMarkImageAction (se basa en la imagen actual, se hará más tarde)
+            if (toggleMarkImageAction != null) {
+                toggleMarkImageAction.putValue(Action.SELECTED_KEY, Boolean.FALSE); // Por defecto, no marcada
+            }
+
+            // 3.8. Habilitar/Deshabilitar actions que dependen de si hay imagen seleccionada
+            //      (Se llamará a actualizarEstadoEnabledAccionesNavegacion y similares más tarde,
+            //       cuando se cargue la primera imagen o se limpie la UI).
+            //      Por ahora, podemos deshabilitarlas si son sensibles al contexto.
+            if (deleteAction != null) deleteAction.setEnabled(false);
+            if (rotateLeftAction != null) rotateLeftAction.setEnabled(false);
+            // ... y así para otras como rotateRight, flips, crop, locateFile ...
+
+            System.out.println("    -> Estado inicial de Actions configurado.");
 
         } catch (Exception e) {
             System.err.println("ERROR configurando estado inicial de Actions: " + e.getMessage());
-            // Considerar si continuar o tratar como fatal
+            // Considerar si continuar o tratar como fatal. Por ahora, continuamos.
         }
 
-        // --- SECCIÓN 4: Log Final ---
-        // 4.1. Imprimir log indicando la finalización de esta fase.
+        // --- SECCIÓN 4: Log Final de la Fase ---
         System.out.println("  [Init Actions Internal] Finalizado.");
-
-    } // --- FIN initializeActionsInternal ---    
+    }    
+    
+//    /*package-private*/ void initializeActionsInternal(int iconoAncho, int iconoAlto) {
+//        // --- SECCIÓN 1: Log de Inicio y Validación ---
+//        // 1.1. Imprimir log indicando el inicio de esta fase.
+//        System.out.println("  [Init Actions Internal] Inicializando Actions (sin navegación)...");
+//        // 1.2. Validar dependencias necesarias (iconUtils y configuration ya deberían estar inyectadas).
+//        if (this.iconUtils == null) {
+//            // Usar handleFatalError si iconUtils es absolutamente crítico aquí.
+//            handleFatalError("IconUtils nulo en initializeActionsInternal", null);
+//            return; // Salir si falta una dependencia crítica.
+//        }
+//         if (this.configuration == null) {
+//            // Podría ser menos crítico, quizás continuar con defaults, pero mejor fallar pronto.
+//            handleFatalError("ConfigurationManager nulo en initializeActionsInternal", null);
+//            return;
+//        }
+//
+//        // --- SECCIÓN 2: Inicialización de Actions (Archivo, Edición, Zoom, Vista, Tema, Toggles) ---
+//         
+//        // 2.0. Action funcionalidadPendienteAction
+//         final VisorController self = this; // Crear una referencia final a la instancia actual de VisorController
+//
+//         this.funcionalidadPendienteAction = new AbstractAction("Funcionalidad Pendiente") {
+//             private static final long serialVersionUID = 1L;
+//
+//             @Override
+//             public void actionPerformed(ActionEvent e) {
+//                 // Ahora 'self' es la referencia a VisorController
+//                 if (self == null || self.getView() == null) { // Usar self para acceder a getView()
+//                     System.err.println("Error: Controller o Vista son null en FuncionalidadPendienteAction");
+//                     // Si self.getView() es null, mostrar en consola
+//                     String mensajeFallback = "Funcionalidad para el componente que disparó este evento aún no implementada.";
+//                     Object sourceEvent = e.getSource();
+//                     if (sourceEvent instanceof AbstractButton) {
+//                         AbstractButton btn = (AbstractButton) sourceEvent;
+//                         String texto = btn.getText();
+//                         if (texto == null || texto.isEmpty()) texto = (String) btn.getAction().getValue(Action.NAME);
+//                         if (texto == null || texto.isEmpty()) texto = btn.getToolTipText();
+//                         mensajeFallback = "Funcionalidad para '" + (texto != null ? texto : e.getActionCommand()) + "' aún no implementada.";
+//                     }
+//                     System.out.println(mensajeFallback);
+//                     return;
+//                 }
+//
+//                 self.logActionInfo(e); // Loguear qué se pulsó usando 'self'
+//
+//                 Object source = e.getSource();
+//                 String textoComponente = "";
+//                 // String comandoOriginalDelComponente = e.getActionCommand(); // Esto será CMD_FUNCIONALIDAD_PENDIENTE
+//
+//                 if (source instanceof AbstractButton) {
+//                     AbstractButton comp = (AbstractButton) source;
+//                     textoComponente = comp.getText(); // Texto visible del botón/menú
+//                     if (textoComponente == null || textoComponente.isEmpty()) {
+//                         Action sourceAction = comp.getAction(); // Debería ser this.funcionalidadPendienteAction
+//                         if (sourceAction != null && sourceAction.getValue(Action.NAME) != null) {
+//                             // El Action.NAME de funcionalidadPendienteAction es "Funcionalidad Pendiente"
+//                             // Sería mejor usar el tooltip o el comando original del componente si lo tuviéramos aquí.
+//                             // Para el tooltip:
+//                              textoComponente = comp.getToolTipText();
+//                         }
+//                         if (textoComponente == null || textoComponente.isEmpty()) {
+//                              // Como último recurso, si el componente no tiene ActionCommand propio visible aquí
+//                              // (porque está usando la Action genérica), y no tiene texto ni tooltip,
+//                              // podemos usar la clave larga del componente si la podemos obtener.
+//                              String configKey = self.findLongKeyForComponent(source);
+//                              textoComponente = (configKey != null) ? configKey : "(Componente no identificado)";
+//                         }
+//                     }
+//                 }
+//                 String mensaje = "Funcionalidad para '" + textoComponente + "' aún no implementada.";
+//                 JOptionPane.showMessageDialog(self.getView().getFrame(), mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
+//             }
+//         };
+//         
+//       	this.funcionalidadPendienteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE); 
+//       	// No es estrictamente necesario ponerle icono a esta Action genérica,
+//       	// ya que el ToolbarButtonDefinition especificará el icono del botón.
+//       	System.out.println("    -> FuncionalidadPendienteAction creada.");
+//        	
+//        // 2.1. Actions de Archivo
+//        openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        openAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ARCHIVO_ABRIR);
+//        
+//        deleteAction = new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        if (deleteAction != null) deleteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ELIMINAR);
+//        
+//        refreshAction = new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        if (refreshAction != null) refreshAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ESPECIAL_REFRESCAR);
+//        
+//        // ... otras actions de archivo ...
+//
+//        // 2.2. Actions de Edición
+//        rotateLeftAction 		= new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        rotateLeftAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
+//        
+//        rotateRightAction 		= new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        rotateRightAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_DER);
+//        
+//        flipHorizontalAction 	= new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        flipHorizontalAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_H);
+//        
+//        flipVerticalAction 		= new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        flipVerticalAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_V);
+//        
+//         cropAction = new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//         if (cropAction != null) cropAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_RECORTAR);
+//
+//        // 2.3. Actions de Zoom (Todas excepto navegación)
+//        toggleZoomManualAction 	= new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+//        
+//        zoomAutoAction 			= new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        zoomAutoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_AUTO);
+//        
+//        zoomAnchoAction 		= new ZoomAnchoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        zoomAnchoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
+//        
+//        zoomAltoAction 			= new ZoomAltoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        zoomAltoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ALTO);
+//        
+//        zoomFitAction 			= new ZoomFitAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        zoomFitAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
+//        
+//        zoomFixedAction 		= new ZoomFixedAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        zoomFixedAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_FIJO);
+//        
+//        zoomFijadoAction 		= new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        zoomFijadoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
+//        
+//        resetZoomAction 		= new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        resetZoomAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_RESET);
+//
+//        // 2.4. Actions de Imagen (Localizar, etc.)
+//        locateFileAction 		= new LocateFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
+//        locateFileAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_LOCALIZAR);
+//
+//        // 2.5. Actions de Vista (Toggles de visibilidad)
+//        mostrarDialogoListaAction = new MostrarDialogoListaAction(this);
+//        
+//        
+//        toggleMenuBarAction 	= new ToggleMenuBarAction(this);
+//        toggleMenuBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
+//        
+//        toggleToolBarAction 	= new ToggleToolBarAction(this);
+//        toggleToolBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
+//        
+//        toggleFileListAction 	= new ToggleFileListAction(this);
+//        toggleFileListAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+//        
+//        toggleThumbnailsAction 	= new ToggleThumbnailsAction(this);
+//        toggleThumbnailsAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
+//        
+//        toggleLocationBarAction = new ToggleLocationBarAction(this);
+//        toggleLocationBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR);
+//        
+//        toggleCheckeredBgAction = new ToggleCheckeredBackgroundAction(this);
+//        toggleCheckeredBgAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
+//        
+//        toggleAlwaysOnTopAction = new ToggleAlwaysOnTopAction(this);
+//        toggleAlwaysOnTopAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
+//
+//        // 2.6. Actions de Tema
+//        temaClearAction 		= new ToggleThemeAction(this, "clear", "Tema Clear");
+//        temaClearAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_CLEAR);
+//        temaDarkAction 			= new ToggleThemeAction(this, "dark", "Tema Dark");
+//        temaDarkAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_DARK);
+//        temaBlueAction 			= new ToggleThemeAction(this, "blue", "Tema Blue");
+//        temaBlueAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_BLUE);
+//        temaGreenAction 		= new ToggleThemeAction(this, "green", "Tema Green");
+//        temaGreenAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_GREEN);
+//        temaOrangeAction 		= new ToggleThemeAction(this, "orange", "Tema Orange");
+//        temaOrangeAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_ORANGE);
+//        // Agruparlas para facilitar la actualización de selección
+//        themeActions = List.of(temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction);
+//
+//        // 2.7. Actions de Toggle Generales (Subcarpetas, Proporciones)
+//        toggleSubfoldersAction 	= new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
+//        toggleSubfoldersAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+//        
+//        toggleProporcionesAction = new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
+//        toggleProporcionesAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
+//
+//        // 2.8 Actions Favoritos 
+//        listaDeFavoritosAction 	= new ListaDeFavoritosAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+//        toggleMarkImageAction.putValue(Action.SHORT_DESCRIPTION, "Marcar o desmarcar la imagen actual para el proyecto");
+//        toggleMarkImageAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
+//        // Asignar icono si la ToolbarButtonDefinition no lo hace o si el menú lo necesita
+//        // toggleMarkImageAction.putValue(Action.SMALL_ICON, iconUtils.getScaledIcon("5003-marcar_imagen_48x48.png", anchoIcono, altoIcono));
+//
+//        gestionarProyectoAction = new GestionarProyectoAction(this, iconUtils, iconoAncho, iconoAlto);
+//        
+//        gestionarProyectoAction.putValue(Action.SHORT_DESCRIPTION, "Gestionar la selección de imágenes del proyecto");
+//        gestionarProyectoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_GESTIONAR);
+//        // Asignar icono si es necesario
+//        // gestionarProyectoAction.putValue(Action.SMALL_ICON, iconUtils.getScaledIcon("7003-Mostrar_Favoritos_48x48.png", anchoIcono, altoIcono));
+//        
+//        
+//        
+//        // 2.9 Actions Misceláneas (si las hubiera, ej. botones especiales sin categoría clara)
+//        refreshAction 			= new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+//        menuAction 				= new MenuAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+//        hiddenButtonsAction 	= new HiddenButtonsAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+//        deleteAction 			= new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+//        
+//        	//actions.edicion
+//        cropAction				= new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
+//
+//        
+//        
+//        // --- SECCIÓN 3: Configuración del Estado Inicial de Actions Específicas ---
+//        // 3.1. Leer estado inicial de config para Toggles que lo necesiten.
+//        try {
+//    
+//        	 // 3.1.1. Estado inicial de Zoom Manual
+//             if (toggleZoomManualAction != null) {
+//                 boolean zoomManualInicial = configuration.getBoolean("interfaz.menu.zoom.activar_zoom_manual.seleccionado", false);
+//                 toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+//                 //toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
+//                 toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
+//                 
+////                 System.out.println("    -> Estado inicial Action 'toggleZoomManual' (SELECTED_KEY) puesto a: " + zoomManualInicial);
+//             }
+//             
+//             // 3.1.2. Estado inicial de Reset Zoom (depende de Zoom Manual)
+//             if (resetZoomAction != null) {
+//                  // Se habilita solo si el zoom manual está activo inicialmente.
+//                 resetZoomAction.setEnabled(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY)));
+////                 System.out.println("    -> Estado inicial Action 'resetZoom' (enabled) puesto a: " + resetZoomAction.isEnabled());
+//             }
+//             
+//             // 3.1.3. Estado inicial de Mantener Proporciones
+//             if (toggleProporcionesAction != null) {
+//                 boolean propInicial = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true);
+//                 toggleProporcionesAction.putValue(Action.SELECTED_KEY, propInicial);
+////                  System.out.println("    -> Estado inicial Action 'toggleProporciones' (SELECTED_KEY) puesto a: " + propInicial);
+//             }
+//             
+//              // 3.1.4. Estado inicial de Cargar Subcarpetas
+//             if (toggleSubfoldersAction != null) {
+//                  boolean subInicial = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
+//                  toggleSubfoldersAction.putValue(Action.SELECTED_KEY, subInicial);
+////                   System.out.println("    -> Estado inicial Action 'toggleSubfolders' (SELECTED_KEY) puesto a: " + subInicial);
+//             }
+//              // 3.1.5. Estado inicial de Fondo a Cuadros
+//             if (toggleCheckeredBgAction != null) {
+//                 boolean checkInicial = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false);
+//                 toggleCheckeredBgAction.putValue(Action.SELECTED_KEY, checkInicial);
+////                  System.out.println("    -> Estado inicial Action 'toggleCheckeredBg' (SELECTED_KEY) puesto a: " + checkInicial);
+//             }
+//             // 3.1.6. Estado inicial de Siempre Encima
+//             if (toggleAlwaysOnTopAction != null) {
+//                 boolean topInicial = configuration.getBoolean("interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", false);
+//                 toggleAlwaysOnTopAction.putValue(Action.SELECTED_KEY, topInicial);
+////                 System.out.println("    -> Estado inicial Action 'toggleAlwaysOnTop' (SELECTED_KEY) puesto a: " + topInicial);
+//             }
+//             // 3.1.7. Estado inicial de visibilidad de componentes (MenuBar, ToolBar, etc.)
+//             //        Las Actions ToggleMenuBarAction, etc., leen su estado inicial
+//             //        internamente desde ConfigurationManager cuando se crean o se usan.
+//             //        No es estrictamente necesario ponerles SELECTED_KEY aquí, pero
+//             //        podría hacerse por consistencia si se quisiera. Ejemplo:
+//
+//             // 3.1.8. Sincronizar estado inicial de selección de Tema (marca el radio correcto)
+//             if (themeActions != null && themeManager != null) {
+//                 String temaInicialConfig = themeManager.getTemaActual().nombreInterno();
+//                  System.out.println("    -> Sincronizando estado inicial radios de Tema a: " + temaInicialConfig);
+//                 for(Action themeAction : themeActions) {
+//                     if (themeAction instanceof ToggleThemeAction) {
+//                         ((ToggleThemeAction)themeAction).actualizarEstadoSeleccion(temaInicialConfig);
+//                     }
+//                 }
+//             }
+//
+//
+//        } catch (Exception e) {
+//            System.err.println("ERROR configurando estado inicial de Actions: " + e.getMessage());
+//            // Considerar si continuar o tratar como fatal
+//        }
+//
+//        // --- SECCIÓN 4: Log Final ---
+//        // 4.1. Imprimir log indicando la finalización de esta fase.
+//        System.out.println("  [Init Actions Internal] Finalizado.");
+//
+//    } // --- FIN initializeActionsInternal ---    
     
 
     /**
@@ -521,7 +811,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         if (toggleLocationBarAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, toggleLocationBarAction);
         if (toggleCheckeredBgAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, toggleCheckeredBgAction);
         if (toggleAlwaysOnTopAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, toggleAlwaysOnTopAction);
-
+        if (mostrarDialogoListaAction != null) { mapaParcial.put(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, mostrarDialogoListaAction);}
+        
         // 2.5. Tema
         if (temaClearAction != null) mapaParcial.put(AppActionCommands.CMD_TEMA_CLEAR, temaClearAction);
         if (temaDarkAction != null) mapaParcial.put(AppActionCommands.CMD_TEMA_DARK, temaDarkAction);
@@ -537,10 +828,16 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         if (menuAction != null) mapaParcial.put(AppActionCommands.CMD_ESPECIAL_MENU, menuAction);
         if (hiddenButtonsAction != null) mapaParcial.put(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, hiddenButtonsAction);
 
-        // 2.8. Funcionalidad Pendiente (Action Genérica)
+        // 2.8. Gestion de Proyectos
+        if (toggleMarkImageAction != null) {mapaParcial.put(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, toggleMarkImageAction);}
+        if (gestionarProyectoAction != null) {mapaParcial.put(AppActionCommands.CMD_PROYECTO_GESTIONAR, gestionarProyectoAction);}
+        
+        // 2.9. Funcionalidad Pendiente (Action Genérica)
         if (this.funcionalidadPendienteAction != null) { // 'this' para referirse al campo de instancia
             mapaParcial.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
         }
+        
+         
 
         System.out.println("  [Create ActionMap Internal] Finalizado. Mapa parcial creado con " + mapaParcial.size() + " entradas.");
         return mapaParcial;
@@ -1456,7 +1753,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
             // 2.3.2. Botones de Control/Archivo
             setActionForKey(botones, "interfaz.boton.control.Refrescar_48x48", refreshAction); // Asumiendo que refreshAction existe
-            setActionForKey(botones, "interfaz.boton.control.lista_de_favoritos_48x48", listaDeFavoritosAction); // Ejemplo sin action aún
+//            setActionForKey(botones, "interfaz.boton.control.lista_de_favoritos_48x48", listaDeFavoritosAction); // Ejemplo sin action aún
             setActionForKey(botones, "interfaz.boton.control.Borrar_48x48", deleteAction); // Asumiendo que deleteAction existe
             setActionForKey(botones, "interfaz.boton.control.Ubicacion_de_Archivo_48x48" , locateFileAction);
 
@@ -3100,11 +3397,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                      
                      // 8.1.3 Logs de depuración adicionales
 //                     System.out.println("      [EDT Img Load] Imagen final (finalImg) es null? " + (finalImg == null));
-                     if(finalImg != null) System.out.println("      [EDT Img Load] Tamaño imagen original: " + finalImg.getWidth() + "x" + finalImg.getHeight());
+                     if(finalImg != null) {
+                    	 System.out.println("      [EDT Img Load] Tamaño imagen original: " + finalImg.getWidth() + "x" + finalImg.getHeight());
+                     
 //                     System.out.println("      [EDT Img Load] Mensaje de error (finalErrorMsg): " + finalErrorMsg);
 
-                     // 8.1.4 Comprobar si la carga fue exitosa (finalImg no es null)
-                     if (finalImg != null) {
+//                      8.1.4 Comprobar si la carga fue exitosa (finalImg no es null)
+//                     if (finalImg != null) {
                          // === Caso Éxito ===
                          System.out.println("      [EDT Img Load] => Éxito. Actualizando modelo...");
                      
@@ -3127,6 +3426,43 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                               view.setImagenMostrada(reescalada, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
                               System.out.println("      [EDT Img Load] => FIN ÉXITO.");
                          
+// <--- PUNTO CRUCIAL DE ACTUALIZACIÓN DEL ESTADO DE MARCA --->
+                              // 2. Actualizar la UI del botón de marcar y la barra de estado
+                                  
+//                              Path rutaMostrada = model.getRutaCompleta(model.getSelectedImageKey()); 
+//                              if (projectManager != null && toggleMarkImageAction != null && model.getSelectedImageKey() != null) {
+//                            	    String currentKey = model.getSelectedImageKey();
+//                            	    boolean marcada = projectManager.estaMarcada(currentKey);
+//                            	    // Solo actualiza si el estado lógico es diferente al de la Action, para evitar bucles
+//                            	    if (!Objects.equals(toggleMarkImageAction.getValue(Action.SELECTED_KEY), marcada)) {
+//                            	        toggleMarkImageAction.putValue(Action.SELECTED_KEY, marcada);
+//                            	        System.out.println("    [Controller - actualizarImagenPrincipal] Actualizado toggleMarkImageAction.SELECTED_KEY (ID: " +
+//                            	                           System.identityHashCode(toggleMarkImageAction) + ") a: " + marcada + " para imagen " + currentKey);
+//                            	    } else {
+//                            	         System.out.println("    [Controller - actualizarImagenPrincipal] toggleMarkImageAction.SELECTED_KEY ya estaba en " + marcada + " para imagen " + currentKey);
+//                            	    }
+//                              
+//                              actualizarEstadoVisualBotonMarcarYBarraEstado(marcada);
+//                                   El JCheckBoxMenuItem "Marcar para Proyecto" debería actualizarse automáticamente
+//                                   porque su Action (toggleMarkImageAction) ha cambiado su propiedad SELECTED_KEY.
+//                              }
+                              
+                              Path rutaMostrada = model.getRutaCompleta(model.getSelectedImageKey()); // Obtener el Path
+
+                              if (projectManager != null && toggleMarkImageAction != null && rutaMostrada != null) {
+                                  //System.out.println("    [Controller - actualizarImagenPrincipal] Sincronizando estado de marca para: " + rutaMostrada);
+                                  boolean marcada = projectManager.estaMarcada(rutaMostrada); // Pasar Path
+                                  //System.out.println("      -> projectManager.estaMarcada(\"" + rutaMostrada + "\") devolvió: " + marcada);
+
+                                  toggleMarkImageAction.putValue(Action.SELECTED_KEY, marcada);
+                                  //System.out.println("      -> toggleMarkImageAction.SELECTED_KEY puesto a: " + marcada);
+                                  actualizarEstadoVisualBotonMarcarYBarraEstado(marcada, rutaMostrada); // Pasar Path
+                              } else if (rutaMostrada == null && toggleMarkImageAction != null) { // Si no hay ruta válida
+                                   toggleMarkImageAction.putValue(Action.SELECTED_KEY, Boolean.FALSE);
+                                   actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
+                              }
+// <--- FIN DEL BLOQUE DE ACTUALIZACIÓN DE MARCA --->
+                              
                          } else {
                          
                         	 // Error durante el reescalado (raro si la imagen original es válida)
@@ -3134,6 +3470,16 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                               view.limpiarImagenMostrada(); // Limpiar por seguridad
                               // Podríamos mostrar un mensaje de error más específico aquí si quisiéramos
                          }
+                         
+//                         // Estado de la marca para la imagen del proyecto
+//                         if (projectManager != null && toggleMarkImageAction != null && model.getSelectedImageKey() != null) {
+//                             System.out.println("    [Controller - actualizarImagenPrincipal] Actualizando estado de marca para: " + model.getSelectedImageKey());
+//                             boolean marcada = projectManager.estaMarcada(model.getSelectedImageKey());
+//                             // Actualizar el estado SELECTED_KEY de la action para que refleje la imagen actual
+//                             toggleMarkImageAction.putValue(Action.SELECTED_KEY, marcada);
+//                             // Y actualizar la UI del botón y la barra de estado
+//                             actualizarEstadoVisualBotonMarcarYBarraEstado(marcada);
+//                         }
                          
                      } else {
                          
@@ -3250,7 +3596,15 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              System.out.println("  -> Caché de miniaturas limpiado.");
          }
 
-         // 5. Log fin
+         // 5. Actualizar imagenes de proyectos marcadas   
+         if (toggleMarkImageAction != null) {
+        	    toggleMarkImageAction.setEnabled(false); // Deshabilitar si no hay imagen
+        	    toggleMarkImageAction.putValue(Action.SELECTED_KEY, Boolean.FALSE);
+        	    // Actualizar la UI para reflejar que no hay nada marcado
+        	    actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
+        	}
+         
+         // 6. Log fin
          if (listCoordinator != null) {
              listCoordinator.forzarActualizacionEstadoNavegacion();
          }
@@ -3259,7 +3613,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
      } // --- FIN limpiarUI ---
 
-     
     
 // *********************************************************************************************************** FIN DE UTILIDAD  
 // ***************************************************************************************************************************    
@@ -4904,7 +5257,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
        * completa y, opcionalmente, copiarla al portapapeles, mostrando nombres de archivo
        * relativos o rutas completas.
        */
-      private void mostrarDialogoListaImagenes() {
+      public void mostrarDialogoListaImagenes() {
           // 1. Validar dependencias (Vista y Modelo necesarios)
           if (view == null || model == null) {
               System.err.println("ERROR [mostrarDialogoListaImagenes]: Vista o Modelo nulos. No se puede mostrar el diálogo.");
@@ -5337,10 +5690,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 
             // Vista
-            case AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA: //"Mostrar_Dialogo_Lista_de_Imagenes":
-                System.out.println("-> Acción Fallback: Mostrar Diálogo Lista Imágenes");
-                mostrarDialogoListaImagenes(); // Llama al método que abre el diálogo
-                break;
+//            case AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA: //"Mostrar_Dialogo_Lista_de_Imagenes":
+//                System.out.println("-> Acción Fallback: Mostrar Diálogo Lista Imágenes");
+//                mostrarDialogoListaImagenes(); // Llama al método que abre el diálogo
+//                break;
 
             // Ayuda
             case AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION: //"Version":
@@ -6346,6 +6699,144 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ***************************************************************************** FIN METODOS DE MOVIMIENTO CON LISTCOORDINATOR
 // ***************************************************************************************************************************
 
+// ****************************************************************************************************** GESTION DE PROYECTOS
+// ***************************************************************************************************************************	  
+	  
+	  
+	public void actualizarEstadoVisualBotonMarcarYBarraEstado (boolean estaMarcada)
+	{
+
+		if (view == null || model == null)
+			return;
+
+		// 1. Actualizar el aspecto del botón toggle en la toolbar
+		if (toggleMarkImageAction != null)
+		{ // toggleMarkImageAction es el campo de la Action en VisorController
+			// Asegurarse que el SELECTED_KEY de la action está sincronizado (aunque ya
+			// debería estarlo
+			// si la llamada vino de la propia action).
+			toggleMarkImageAction.putValue(Action.SELECTED_KEY, estaMarcada);
+			actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);
+		}
+
+		// 2. Actualizar la barra de estado
+		String rutaActual = model.getRutaCompleta(model.getSelectedImageKey()) != null
+				? model.getRutaCompleta(model.getSelectedImageKey()).toString()
+				: (model.getSelectedImageKey() != null ? model.getSelectedImageKey() : "");
+
+		if (estaMarcada)
+		{
+			view.setTextoRuta(rutaActual + " [MARCADA]");
+		} else
+		{
+			view.setTextoRuta(rutaActual);
+		}
+		System.out.println("  [Controller] Barra de estado y botón 'Marcar' actualizados. Marcada: " + estaMarcada);
+
+	}
+
+	public void toggleMarcaImagenActual (boolean marcarDeseado)
+	{ // 'marcarDeseado' es el estado final que queremos
+
+		if (model == null || projectManager == null || toggleMarkImageAction == null)
+		{
+			System.err.println("ERROR [toggleMarcaImagenActual]: Modelo, ProjectManager o Action nulos.");
+			return;
+		}
+		String claveActualVisor = model.getSelectedImageKey();
+
+		if (claveActualVisor == null || claveActualVisor.isEmpty())
+		{
+			System.out.println("[Controller toggleMarca] No hay imagen seleccionada.");
+			// Si no hay imagen, el estado de marca debe ser 'false'
+			toggleMarkImageAction.putValue(Action.SELECTED_KEY, Boolean.FALSE);
+			actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
+			return;
+		}
+
+		Path rutaAbsolutaImagen = model.getRutaCompleta(claveActualVisor);
+
+		if (rutaAbsolutaImagen == null)
+		{
+			System.err.println(
+					"ERROR [toggleMarcaImagenActual]: No se pudo obtener ruta absoluta para " + claveActualVisor);
+			toggleMarkImageAction.putValue(Action.SELECTED_KEY, Boolean.FALSE);
+			actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
+			return;
+		}
+
+		// La lógica de alternar ahora está en ProjectManager si se quiere,
+		// pero la Action ya nos dice el estado final deseado.
+		// Así que simplemente le decimos al ProjectManager que marque o desmarque.
+		if (marcarDeseado)
+		{
+			projectManager.marcarImagenInterno(rutaAbsolutaImagen);
+		} else
+		{
+			projectManager.desmarcarImagenInterno(rutaAbsolutaImagen);
+		}
+
+		// Sincronizar el SELECTED_KEY de la Action con el estado real (que debería ser
+		// marcarDeseado)
+		toggleMarkImageAction.putValue(Action.SELECTED_KEY, marcarDeseado);
+		actualizarEstadoVisualBotonMarcarYBarraEstado(marcarDeseado, rutaAbsolutaImagen);
+		System.out.println("  [Controller] Estado de marca procesado para: " + rutaAbsolutaImagen + ". Marcada: "
+				+ marcarDeseado);
+
+	}
+
+	// En VisorController.java
+	public void actualizarEstadoVisualBotonMarcarYBarraEstado (boolean estaMarcada, Path rutaParaBarraEstado)
+	{
+
+		if (view == null)
+			return;
+
+		if (toggleMarkImageAction != null)
+		{
+
+			// Reafirmar el SELECTED_KEY por si la llamada vino de otro sitio que no sea la
+			// propia action
+			if (!Objects.equals(toggleMarkImageAction.getValue(Action.SELECTED_KEY), estaMarcada))
+			{
+				toggleMarkImageAction.putValue(Action.SELECTED_KEY, estaMarcada);
+			}
+			actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);
+		}
+
+		String textoRuta = "";
+
+		if (rutaParaBarraEstado != null)
+		{
+			textoRuta = rutaParaBarraEstado.toString();
+		} else if (model != null && model.getSelectedImageKey() != null)
+		{ // Fallback si no se pasó ruta
+			Path p = model.getRutaCompleta(model.getSelectedImageKey());
+			if (p != null)
+				textoRuta = p.toString();
+			else
+				textoRuta = model.getSelectedImageKey();
+		}
+
+		if (estaMarcada)
+		{
+			view.setTextoRuta(textoRuta + " [MARCADA]");
+		} else
+		{
+			view.setTextoRuta(textoRuta);
+		}
+
+		// System.out.println(" [Controller] Barra de estado y botón 'Marcar'
+		// actualizados. Marcada: " + estaMarcada);
+	}	  
+	
+	
+
+	
+	  
+// ************************************************************************************************** FIN GESTION DE PROYECTOS
+// ***************************************************************************************************************************
+	  
 	  
 // ********************************************************************************************************* GETTERS Y SETTERS
 // ***************************************************************************************************************************
@@ -6384,6 +6875,12 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	public int getCalculatedMiniaturePanelHeight() { return calculatedMiniaturePanelHeight; }
 	public IconUtils getIconUtils() { return iconUtils; } // Necesario para createNavigationActions...	  
 	  
+    public void setProjectManager(ProjectManager projectManager) {
+        this.projectManager = projectManager;
+    }
+    
+    
+	
 	// Getters
 	public DefaultListModel<String> getModeloMiniaturas () { return modeloMiniaturas; }
 
@@ -6414,6 +6911,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             return 0; // Devuelve 0 si el modelo principal no está listo
         }
     } // --- FIN getTamanioListaImagenes ---	
+    
+    
+    public ProjectManager getProjectManager() {
+        return this.projectManager;
+    }
 
 
 // ***************************************************************************************************** FIN GETTERS Y SETTERS

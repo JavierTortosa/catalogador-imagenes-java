@@ -207,7 +207,7 @@ public class ToolbarBuilder {
 //        
 //        List<String> iconosControl = List.of(
 //        		"5001-Refrescar_48x48.png", 
-//        		"5003-lista_de_favoritos_48x48.png", 
+//        		"5003-marcar_imagen_48x48.png", 
 //        		"5004-Borrar_48x48.png",
 //        		"7004-Ubicacion_de_Archivo_48x48.png"
 //        		);
@@ -265,6 +265,7 @@ public class ToolbarBuilder {
 	        case "vista":
 	        case "toggle":
 	        case "control":
+	        case "proyecto":
 	            return FlowLayout.CENTER;
 	        case "especiales":
 	            return FlowLayout.RIGHT;

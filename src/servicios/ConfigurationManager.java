@@ -35,6 +35,13 @@ public class ConfigurationManager
     public static final String KEY_WINDOW_HEIGHT = "window.height";
     public static final String KEY_WINDOW_MAXIMIZED = "window.maximized";
 	
+    // --- CONSTANTES PARA PROYECTOS
+    public static final String KEY_PROYECTOS_CARPETA_BASE = "proyectos.carpeta_base";
+    public static final String KEY_PROYECTOS_ARCHIVO_TEMPORAL = "proyectos.archivo_temporal_nombre";
+    // Para el futuro:
+    // public static final String KEY_PROYECTOS_ULTIMO_ABIERTO = "proyectos.ultimo_abierto_ruta_completa";
+    // public static final String KEY_PROYECTOS_INICIO_ACCION = "proyectos.inicio.accion"; // ej. "cargar_ultimo", "nuevo_temporal"
+    
 	
 	static
 	{
@@ -52,7 +59,8 @@ public class ConfigurationManager
 	        "comportamiento",
 	        "inicio",
 	        "miniaturas",
-	        "interfaz" // Ahora "interfaz" es la sección principal
+	        "interfaz",
+	        "proyecto"// Ahora "interfaz" es la sección principal
 	);
 	
 	public ConfigurationManager() throws IOException
@@ -407,12 +415,18 @@ public class ConfigurationManager
 		// ===== Inicio =====
 		Map<String, String> defaults = new HashMap<>();
 
-		String inicioCarpetaDefault = "D:\\Programacion\\Eclipse\\Workspace 2024-12R\\VisorImagenes\\resources";
-		String inicioImagenDefault = "";//"pandoras pedestals sagas.png";
-
 		//Inicio
-			defaults.put("inicio.carpeta", inicioCarpetaDefault);
+		String inicioCarpetaDefault = "D:\\Programacion\\Eclipse\\Workspace 2024-12R\\VisorImagenes";
+		String inicioImagenDefault = "";//"pandoras pedestals sagas.png";
+		
+			defaults.put("inicio.carpeta", inicioCarpetaDefault+ "\\resources");
 			defaults.put("inicio.imagen", inicioImagenDefault);
+			
+		//carpeta inicial de proyectos
+			defaults.put(KEY_PROYECTOS_CARPETA_BASE, inicioCarpetaDefault + "\\.proyectos");
+			defaults.put(KEY_PROYECTOS_ARCHIVO_TEMPORAL, "seleccion_actual.txt");
+			// defaults.put(KEY_PROYECTOS_ULTIMO_ABIERTO, ""); // Vacío por defecto
+			// defaults.put(KEY_PROYECTOS_INICIO_ACCION, "nuevo_temporal");
 		
 		// Comportamiento
 			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
@@ -517,8 +531,8 @@ public class ConfigurationManager
     	//-- Control --
 			defaults.put("interfaz.boton.control.Refrescar_48x48.activado", "true");
 			defaults.put("interfaz.boton.control.Refrescar_48x48.visible", "true");
-			defaults.put("interfaz.boton.control.lista_de_favoritos_48x48.activado", "true");
-			defaults.put("interfaz.boton.control.lista_de_favoritos_48x48.visible", "true");
+//			defaults.put("interfaz.boton.control.lista_de_favoritos_48x48.activado", "true");
+//			defaults.put("interfaz.boton.control.lista_de_favoritos_48x48.visible", "true");
 			defaults.put("interfaz.boton.control.Borrar_48x48.activado", "true");
 			defaults.put("interfaz.boton.control.Borrar_48x48.visible", "true");
 			
@@ -533,6 +547,11 @@ public class ConfigurationManager
 			defaults.put("interfaz.boton.control.Ubicacion_de_Archivo_48x48.activado", "true");
 			defaults.put("interfaz.boton.control.Ubicacion_de_Archivo_48x48.visible", "true");
 		
+		//-- Proyecto
+			defaults.put("interfaz.boton.proyecto.marcar_imagen_48x48.activado", "true");
+			defaults.put("interfaz.boton.proyecto.marcar_imagen_48x48.visible", "true");
+			
+			
     	//--- Menú ---\n");
     	//Formato: interfaz.menu.<ActionCommand>.{activado|visible|seleccionado} = {true|false}\n");
     	//Nota: .seleccionado solo aplica a CheckBox y RadioButton\n\n");
@@ -879,6 +898,14 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.configuracion.version.activado", "true");
 		defaults.put("interfaz.menu.configuracion.version.visible", "true");
 
+		//Proyecto
+		defaults.put("interfaz.menu.proyecto.gestionar_seleccin_actual.activado", "true");
+		defaults.put("interfaz.menu.proyecto.gestionar_seleccin_actual.visible", "true");
+		defaults.put("interfaz.menu.proyecto.marcar_para_proyecto.activado", "true");
+		defaults.put("interfaz.menu.proyecto.marcar_para_proyecto.seleccionado", "true");
+		defaults.put("interfaz.menu.proyecto.marcar_para_proyecto.visible", "true");
+		
+		
 		//Colores
 		
 		//# --- Tema Claro (Basado en Swing Defaults) ---
@@ -895,6 +922,8 @@ public class ConfigurationManager
 		defaults.put("colores.claro.boton.fondoActivado",  	"84, 144, 164 ");
 		defaults.put("colores.claro.boton.fondoAnimacion",  "173, 216, 230");
         
+		
+		
 		return defaults;
 	}
 
@@ -916,6 +945,7 @@ public class ConfigurationManager
 //        comments.put("colores", 	   	"# ===== Colores UI =====");
         comments.put("iconos",         	"# ===== Configuración General Iconos ====="); // Para 'iconos.alto', 'iconos.ancho'
         comments.put("tema",			"# ===== Tema Visual=====");
+        comments.put("proyectos",		"# ===== Gestión de Proyectos/Selecciones =====");
         
 //        comments.put("tema.nombre", 	"# Nombre del tema (dark, clear, blue, orange, green");
 //        comments.put("interfaz.menu.configuracion.tema", "# ===== Tema Visual=====");

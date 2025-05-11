@@ -65,6 +65,15 @@ public interface AppActionCommands {
     String CMD_IMAGEN_FONDO_BLOQUEO = "cmd.imagen.fondo_bloqueo"; // (Asumiendo Action futura)
     String CMD_IMAGEN_PROPIEDADES = "cmd.imagen.propiedades"; // (Asumiendo Action futura)
 
+    
+    // --- Gestor de proyectos ---
+    String CMD_PROYECTO_TOGGLE_MARCA = "cmd.proyecto.toggle_marca"; // Para Marcar/Desmarcar imagen actual
+    String CMD_PROYECTO_GESTIONAR = "cmd.proyecto.gestionar";     // Para abrir el diálogo/funcionalidad de gestión de proyectos (el JOptionPane por ahora)
+    String CMD_PROYECTO_TOGGLE_VISTA = "cmd.proyecto.toggle_vista_seleccion"; // (Opcional por ahora, si quieres un botón/menú para alternar vista)
+
+//    // Mantén CMD_FUNCIONALIDAD_PENDIENTE si lo usas para otros botones/menús aún no listos
+//    String CMD_FUNCIONALIDAD_PENDIENTE = "cmd.todo.funcionalidad_pendiente";
+    
 
     // --- Vista (Toggles de UI) ---
     String CMD_VISTA_TOGGLE_MENU_BAR = "cmd.vista.toggle.menu_bar";         // Para ToggleMenuBarAction

@@ -17,16 +17,17 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import controlador.commands.AppActionCommands;
 // Importa todas las clases necesarias de otros paquetes
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
+import servicios.ProjectManager;
 import servicios.image.ThumbnailService;
 import vista.VisorView;
 import vista.builders.MenuBarBuilder;
 import vista.builders.ToolbarBuilder;
 import vista.config.MenuItemDefinition;
 import vista.config.ToolbarButtonDefinition;
-import vista.config.UIDefinitionService;
 import vista.config.ViewUIConfig;
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
@@ -49,6 +50,7 @@ public class AppInitializer {
     private ViewUIConfig uiConfig; // Configuración para la vista
     private VisorView view;
     private ListCoordinator listCoordinator;
+    private ProjectManager projectManagerService;
     
     private Map<String, Action> actionMap; // Mapa parcial y luego completo
     private List<MenuItemDefinition> menuStructure;
@@ -106,7 +108,9 @@ public class AppInitializer {
                     + (this.menuStructure != null ? this.menuStructure.size() : "null") + " top-level, Toolbar: "
                     + (this.toolbarStructure != null ? this.toolbarStructure.size() : "null") + " botones)");
 
-
+            // --- FASE 5: Gestor de Proyectos
+            controller.setProjectManager(new ProjectManager(this.configuration));
+            
             // --- FASE 5: Creación de UI y Finalización (en EDT) ---
             SwingUtilities.invokeLater(this::crearUICompletarInicializacion);
 
@@ -337,8 +341,19 @@ public class AppInitializer {
      * y los listeners.
      */
     private void crearUICompletarInicializacion() {
+    	
         System.out.println("  [Initializer Fase 5 - EDT] Creando UI y finalizando...");
 
+        // --- 0. Project Manager --- 
+        try {
+            ProjectManager pm = new ProjectManager(this.configuration);
+            controller.setProjectManager(pm); // Inyectar en el controller
+            System.out.println("    -> [EDT] ProjectManager (Placeholder) instanciado e inyectado.");
+        } catch (Exception e) {
+            manejarErrorFatalInicializacion("[EDT] Error creando ProjectManager Placeholder", e);
+            return;
+        }
+        
         // --- 1. Obtener Dependencias Iniciales ---
         // (Estas se obtienen de los campos de AppInitializer o del Controller,
         //  y ya fueron configuradas en las fases 1-4 del método initialize())
@@ -413,7 +428,7 @@ public class AppInitializer {
             manejarErrorFatalInicializacion("[EDT] Estructuras de UI o ActionMap COMPLETO no disponibles para builders.", null);
             return;
         }
-
+        
         try {
              MenuBarBuilder menuBuilder = new MenuBarBuilder();
              finalMenuBar = menuBuilder.buildMenuBar(this.menuStructure, this.actionMap);
@@ -467,227 +482,6 @@ public class AppInitializer {
     } //--- FIn metodo crearUICompletarInicializacion
     
     
-//    private void crearUICompletarInicializacion() {
-//         System.out.println("  [Initializer Fase 5 - EDT] Creando UI y finalizando...");
-//
-//         // 5.1. Obtener dependencias necesarias desde el VisorController
-//         ViewUIConfig configParaVista = controller.getUiConfigForView();
-//         int panelHeight = controller.getCalculatedMiniaturePanelHeight();
-//         ThumbnailService thumbs = controller.getServicioMiniaturas();
-//         IconUtils icons = controller.getIconUtils(); // Necesario para actions de nav
-//        
-//         int anchoIcono = configuration.getInt("iconos.ancho", 24); // Releer o pasar desde Fase 4
-//         int altoIcono = configuration.getInt("iconos.alto", 24);
-////         Map<String, Action> actionMapCompleto = controller.getActionMap(); // Obtener el actionMap COMPLETO del controller
-//
-//         // 5.2. Re-validar dependencias críticas dentro del EDT
-//         if (model == null || thumbs == null || configParaVista == null || icons == null || controller == null) {
-//             manejarErrorFatalInicializacion("[EDT] Dependencias nulas antes de crear Vista/Coordinator", null);
-//             return;
-//        }
-//         
-//         
-//         // -------------------------------------------------------------------
-//         // ---  NUEVO BLOQUE: Construcción REAL de Menú y Toolbar          ---
-//         // ---  (Usando builders refactorizados y List<...Definition>)   ---
-//         // -------------------------------------------------------------------
-//         System.out.println("    -> [EDT] Construyendo Menú y Toolbar (métodos refactorizados)...");
-//         JMenuBar finalMenuBar = null;
-//         JPanel finalToolbarPanel = null;
-//         Map<String, JMenuItem> finalMenuItemsMap = Collections.emptyMap();
-//         Map<String, JButton> finalBotonesMap = Collections.emptyMap();
-//
-//         // Validar que las estructuras y el actionMap existan (ya deberían por fases previas)
-//         if (this.menuStructure == null || this.toolbarStructure == null || this.actionMap == null) {
-//             manejarErrorFatalInicializacion("[EDT] Estructuras de UI (menu/toolbar) o ActionMap no disponibles para los builders.", null);
-//             return; // Salir si falta algo fundamental
-//         }
-//
-//         try {
-//              MenuBarBuilder menuBuilder = new MenuBarBuilder();
-//              // ¡Llamada al método NUEVO, pasando la estructura y el actionMap!
-//              finalMenuBar = menuBuilder.buildMenuBar(this.menuStructure, this.actionMap);
-//              finalMenuItemsMap = menuBuilder.getMenuItemsMap();
-//              System.out.println("      -> Menú construido (refactorizado).");
-//         } catch (Exception e) {
-//              System.err.println("      -> ERROR [EDT] creando Menú (refactorizado): " + e.getMessage());
-//              e.printStackTrace();
-//              finalMenuBar = new JMenuBar(); // Fallback a menú vacío si falla
-//              finalMenuItemsMap = Collections.emptyMap();
-//         }
-//
-//         try {
-//              // Pasar el actionMap y otras configs necesarias
-//              ToolbarBuilder toolbarBuilder = new ToolbarBuilder(
-//                  this.actionMap, // El actionMap completo de AppInitializer
-//                  configParaVista.colorBotonFondo,
-//                  configParaVista.colorBotonTexto,
-//                  configParaVista.colorBotonActivado, // Este y el siguiente son ignorados en el constructor actual
-//                  configParaVista.colorBotonAnimacion,
-//                  configParaVista.iconoAncho,
-//                  configParaVista.iconoAlto,
-//                  configParaVista.iconUtils,
-//                  this.controller // Pasar la referencia al controller
-//              );
-//              // ¡Llamada al método NUEVO, pasando la estructura y el actionMap!
-//              finalToolbarPanel = toolbarBuilder.buildToolbar(this.toolbarStructure, this.actionMap);
-//              finalBotonesMap = toolbarBuilder.getBotonesPorNombre();
-//              System.out.println("      -> Toolbar construida (refactorizado).");
-//         } catch (Exception e) {
-//               System.err.println("      -> ERROR [EDT] creando Toolbar (refactorizado): " + e.getMessage());
-//               e.printStackTrace();
-//               finalToolbarPanel = new JPanel(); // Fallback a panel vacío si falla
-//               finalBotonesMap = Collections.emptyMap();
-//         }
-//         System.out.println("    -> [EDT] Fin construcción Menú/Toolbar (refactorizado).");
-//         // --- FIN BLOQUE ---
-//         // -------------------------------------------------------------------
-//         
-//
-//         // 5.4. Crear la instancia de VisorView (¡Llamada MODIFICADA!)
-//         System.out.println("    -> [EDT] Instanciando VisorView...");
-//         try {
-//             // Pasar los componentes y mapas FINALES al constructor
-//             view = new VisorView(
-//                 panelHeight,
-//                 configParaVista,
-//                 model,
-//                 thumbs,
-//                 finalMenuBar,         // <-- Pasar Menú REAL
-//                 finalToolbarPanel,    // <-- Pasar Toolbar REAL
-//                 finalMenuItemsMap,    // <-- Pasar Mapa Menús REAL
-//                 finalBotonesMap       // <-- Pasar Mapa Botones REAL
-//             );
-//             controller.setView(view);
-//             System.out.println("    -> [EDT] VisorView instanciado (recibió Menú/Toolbar finales).");
-//         } catch (Exception e) {
-//               manejarErrorFatalInicializacion("[EDT] Error creando VisorView", e);
-//               return;
-//          }
-//
-//         // 5.4. Crear la instancia de ListCoordinator (sin cambios aquí)
-//         try {
-//             listCoordinator = new ListCoordinator(model, view, controller);
-//             controller.setListCoordinator(listCoordinator);
-//             System.out.println("    -> [EDT] ListCoordinator instanciado.");
-//         } catch (Exception e) {
-//              manejarErrorFatalInicializacion("[EDT] Error creando ListCoordinator", e);
-//              return;
-//         }
-//
-//         // 5.5. Crear Actions de Navegación y actualizar mapa (sin cambios aquí, ya usa AppActionCommands)
-//         try {
-//             // Necesitamos leer ancho/alto icono de config o uiConfig
-//             int anchoIconoNav = configParaVista.iconoAncho; // O leer de configuration
-//             int altoIconoNav = configParaVista.iconoAlto;
-//             controller.createNavigationActionsAndUpdateMap(anchoIconoNav, altoIconoNav);
-//             System.out.println("    -> [EDT] Actions Navegación creadas y mapa actualizado.");
-//             
-//             this.actionMap = controller.getActionMap(); // <-- Obtener el mapa COMPLETO del controller
-//             System.out.println("    -> [EDT] Referencia actionMap en AppInitializer actualizada (Tamaño: " + this.actionMap.size() + ")");
-//             
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR creando Actions de Navegación: " + e.getMessage());
-//              e.printStackTrace(); // Continuar pero loguear error
-//         }
-//
-//         // 5.6. Asignar modelo de miniaturas a la JList correspondiente en la vista
-//         try {
-//            controller.assignModeloMiniaturasToViewInternal(); // Llama a método refactorizado
-//            System.out.println("    -> [EDT] Modelo Miniaturas asignado a la Vista.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR asignando modelo de miniaturas: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.7. Establecer la carpeta raíz inicial desde la configuración
-//         try {
-//             controller.establecerCarpetaRaizDesdeConfigInternal(); // Llama a método refactorizado
-//             System.out.println("    -> [EDT] Carpeta raíz inicial establecida.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR estableciendo carpeta raíz: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.8. Aplicar configuración inicial a los componentes de la VISTA
-//         try {
-//             controller.aplicarConfigAlaVistaInternal(); // Llama a método refactorizado
-//             System.out.println("    -> [EDT] Configuración aplicada a los componentes de la Vista.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR aplicando configuración a la Vista: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.9. Cargar el estado inicial (lista de imágenes y selección inicial)
-//         try {
-//             controller.cargarEstadoInicialInternal(); // Llama a método refactorizado
-//             System.out.println("    -> [EDT] Carga del estado inicial iniciada.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR iniciando carga de estado inicial: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.10. Configurar los listeners de la vista
-//         try {
-//             controller.configurarListenersVistaInternal(); // Llama a método refactorizado
-//             System.out.println("    -> [EDT] Listeners de la Vista configurados.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR configurando listeners: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//         
-//         // 5.10.bis. Interceptar acciones de teclado de las listas
-//         try {
-//             controller.interceptarAccionesTecladoListas(); // Configura los bindings restantes
-//             System.out.println("    -> [EDT] Acciones de teclado de listas interceptadas.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR interceptando acciones teclado listas: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.10.ter. Registrar el KeyEventDispatcher (DEBE ir DESPUÉS de que la UI esté creada)
-//         try {
-//             KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(controller);
-//             System.out.println("    -> [EDT] KeyEventDispatcher registrado.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR registrando KeyEventDispatcher: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.11. Configurar las Actions en los componentes de la UI (botones, menús)
-//         try {
-//             controller.configurarComponentActionsInternal(); // Llama a método refactorizado
-//             System.out.println("    -> [EDT] Actions asignadas a Componentes UI.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR configurando Actions en componentes: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.12. Sincronizar el estado visual final (ej. fondo a cuadros)
-//         try {
-//             controller.sincronizarUIFinalInternal(); // Llama a método refactorizado
-//             System.out.println("    -> [EDT] UI Final sincronizada.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR sincronizando UI final: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.13. Configurar el Hook de Cierre
-//         try {
-//             controller.configurarShutdownHookInternal(); // Llama a método refactorizado
-//             System.out.println("    -> [EDT] Shutdown Hook configurado.");
-//         } catch (Exception e) {
-//              System.err.println("[EDT] ERROR configurando Shutdown Hook: " + e.getMessage());
-//              e.printStackTrace();
-//         }
-//
-//         // 5.14. Log final
-//         System.out.println("  [Initializer Fase 5 - EDT] Inicialización UI completada.");
-//         System.out.println("--- AppInitializer: INICIALIZACIÓN COMPLETA ---");
-//         // A partir de aquí, la aplicación está lista y la ventana principal (view) es visible.
-//    }
-
-
     /**
      * Manejador de errores fatales ocurridos durante la inicialización.
      * Muestra un mensaje al usuario y termina la aplicación.
@@ -717,4 +511,6 @@ public class AppInitializer {
         // O lanzar una RuntimeException si prefieres que el hilo principal la capture
         // throw new RuntimeException("Fallo en la inicialización: " + message, cause);
     }
+    
+
 }
