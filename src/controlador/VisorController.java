@@ -2206,411 +2206,253 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	 *                             se cargue. Si es `null`, se seleccionará la
 	 *                             primera imagen (índice 0).
 	 */
-	private void cargarListaImagenes (String claveImagenAMantener)
-	{
-
-		// --- 1. LOG INICIO Y VALIDACIONES PREVIAS ---
-		// 1.1. Log detallado del inicio y la clave a mantener
-		System.out.println("\n-->>> INICIO cargarListaImagenes(String) | Mantener Clave: " + claveImagenAMantener);
-
-		// 1.2. Verificar dependencias críticas del sistema
-		if (configuration == null || model == null || executorService == null || executorService.isShutdown()
-				|| view == null)
-		{
-			System.err.println(
-					"ERROR [cargarListaImagenes]: Dependencias nulas (Config, Modelo, Executor o Vista) o Executor apagado.");
-
-			// Intentar limpiar la UI si es posible
-			if (view != null)
-				SwingUtilities.invokeLater(this::limpiarUI);
-			estaCargandoLista = false; // Asegurar que el estado de carga sea falso
-			return; // Salir del método
-		}
-
-		// 1.3. Marcar que la carga de la lista está en curso
-		estaCargandoLista = true;
-
-		// --- 2. CANCELAR TAREAS ANTERIORES ---
-
-		// 2.1. Cancelar cualquier tarea previa de carga de lista que aún esté
-		if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone())
-		{
-			System.out.println("  -> Cancelando tarea de carga de lista anterior...");
-			cargaImagenesFuture.cancel(true); // Intentar interrumpir la tarea
-		}
-
-		// 2.2. (Si existiera lógica similar para cancelar precalentamiento de
-		// miniaturas, iría aquí)
-
-		// --- 3. DETERMINAR PARÁMETROS DE BÚSQUEDA ---
-
-		// 3.1. Determinar si se deben incluir subcarpetas (basado en el estado del
-		// modelo)
-		final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual(); // Necesita ser final para lambda/worker
-
-		// 3.2. Establecer la profundidad de búsqueda para Files.walk
-		int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE; // 1 para solo carpeta actual, MAX_VALUE para recursivo
-		System.out.println("  -> Modo búsqueda: "
-				+ (mostrarSoloCarpeta ? "Solo Carpeta Actual (depth=1)" : "Subcarpetas (depth=MAX)"));
-
-		// 3.3. Determinar la carpeta desde donde iniciar la búsqueda
-		Path pathDeInicioWalk = null;
-
-		if (mostrarSoloCarpeta)
-		{
-
-			// Si es solo carpeta actual, intentar usar la carpeta de la imagen a
-			// mantener/seleccionada
-			String claveRef = claveImagenAMantener != null ? claveImagenAMantener : model.getSelectedImageKey();
-			Path rutaRef = claveRef != null ? model.getRutaCompleta(claveRef) : null;
-			// Si tenemos una ruta válida y es un archivo, usar su carpeta padre
-
-			if (rutaRef != null && Files.isRegularFile(rutaRef))
-			{
-				pathDeInicioWalk = rutaRef.getParent();
-			}
-
-			// Fallback: si no se pudo obtener la carpeta de la imagen, usar la raíz actual
-			if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk))
-			{
-				System.out.println("    -> No se pudo obtener carpeta de imagen actual válida. Usando carpeta raíz: "
-						+ this.carpetaRaizActual);
-				pathDeInicioWalk = this.carpetaRaizActual; // Usar la carpeta raíz guardada en el controller
-
-			} else
-			{
-				System.out.println("    -> Iniciando búsqueda desde carpeta de imagen: " + pathDeInicioWalk);
-			}
-
-		} else
-		{
-			// Si es modo subcarpetas, siempre empezar desde la raíz actual
-			pathDeInicioWalk = this.carpetaRaizActual;
-			System.out.println("    -> Iniciando búsqueda desde carpeta raíz: " + this.carpetaRaizActual);
-		}
-
-		// --- 4. VALIDAR PATH DE INICIO Y PROCEDER ---
-
-		// 4.1. Comprobar si el path calculado es un directorio válido
-		if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk))
-		{
-			// 4.2. Crear variables finales para usar en lambdas y worker
-			final Path finalStartPath = pathDeInicioWalk;
-			final int finalDepth = depth;
-			final String finalClaveImagenAMantener = claveImagenAMantener; // Para el listener done
-
-			// --- 5. LIMPIEZA INICIAL DE LA UI ---
-			// 5.1. Programar limpieza en el EDT
-			if (view != null)
-			{
-				SwingUtilities.invokeLater( () -> {
-
-					// 5.1.1. Limpiar imagen principal y texto de ruta
-					view.limpiarImagenMostrada();
-					view.setTextoRuta("");
-
-					// 5.1.2. Indicar que se está escaneando
-					view.setTituloPanelIzquierdo("Escaneando: " + finalStartPath.getFileName() + "...");
-
-					// 5.1.3. Limpiar visualmente la lista de miniaturas asignándole un modelo vacío
-					// nuevo
-					if (view.getListaMiniaturas() != null)
-					{
-
-						// Limpiar también el modelo de instancia del controller
-						if (this.modeloMiniaturas != null)
-						{
-							this.modeloMiniaturas.clear();
-						}
-						view.getListaMiniaturas().setModel(new DefaultListModel<>());
-					}
-				});
-			}
-
-			// FIXME 5.2. Limpiar caché de miniaturas (opcional, pero puede liberar memoria)
-			// if (servicioMiniaturas != null) { servicioMiniaturas.limpiarCache(); }
-
-			// --- 6. CREAR DIÁLOGO DE PROGRESO Y SWINGWORKER ---
-			// 6.1. Log
-			System.out.println("  -> Creando diálogo y worker para: " + finalStartPath);
-
-			// 6.2. Crear el Diálogo primero (pasando null como worker inicial)
-			final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view != null ? view.getFrame() : null, // Padre
-					null // Worker se asigna después
-			);
-
-			// 6.3. Crear el Worker, pasándole el diálogo
-			System.out.println("  -> Creando Worker...");
-			final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(finalStartPath, finalDepth,
-					this.carpetaRaizActual, // Para relativizar
-					this::esArchivoImagenSoportado, // Filtro
-					dialogo // Referencia al diálogo para actualizar progreso
-			);
-
-			// 6.4. Asociar el worker al diálogo (para el botón Cancelar)
-			System.out.println("  -> Asociando worker al diálogo...");
-			dialogo.setWorkerAsociado(worker);
-
-			// 6.5. Guardar referencia a la tarea futura
-			this.cargaImagenesFuture = worker;
-			System.out.println("  -> Diálogo y Worker creados y asociados.");
-
-			// --- 7. CONFIGURAR LISTENER PARA EL FIN DEL WORKER ('done') ---
-			System.out.println("  -> Añadiendo PropertyChangeListener al worker...");
-			worker.addPropertyChangeListener(evt -> { // Inicio lambda listener 'done'
-
-				// 7.1. Comprobar si el evento es el de finalización
-				if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue()))
-				{
-					// --- Código Ejecutado en EDT al finalizar el Worker ---
-					System.out.println(" [EDT Worker Done] Tarea finalizada. Procesando resultado...");
-
-					// 7.2. Cerrar el diálogo de progreso
-					dialogo.cerrar();
-
-					// 7.3. Comprobar si la tarea fue cancelada
-					if (worker.isCancelled())
-					{
-						System.out.println("   -> Tarea CANCELADA.");
-
-						if (view != null)
-						{
-							limpiarUI();
-							view.setTituloPanelIzquierdo("Carga Cancelada");
-						}
-						estaCargandoLista = false; // Resetear estado
-						return; // Salir del listener
-					}
-
-					// 7.4. Obtener resultado del worker (puede lanzar excepciones)
-					try
-					{
-						Map<String, Path> mapaResultado = worker.get(); // Obtiene el mapa <Clave, Path>
-
-						// 7.5. Procesar si el resultado es válido
-						if (mapaResultado != null)
-						{
-							// 7.5.1. Crear nuevo modelo de lista principal ordenado
-							DefaultListModel<String> nuevoModeloLista = new DefaultListModel<>();
-							List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
-							Collections.sort(clavesOrdenadas); // Ordenar alfabéticamente (o como se desee)
-							clavesOrdenadas.forEach(nuevoModeloLista::addElement);
-							System.out.println("   -> Resultado obtenido: " + nuevoModeloLista.getSize()
-									+ " archivos. Actualizando...");
-
-							// 7.5.2. Actualizar el Modelo principal de la aplicación
-							model.actualizarListaCompleta(nuevoModeloLista, mapaResultado);
-
-							// 7.5.3. Actualizar la Vista (asignar modelo principal a las JList)
-							if (view != null)
-							{
-								view.setListaImagenesModel(model.getModeloLista()); // Actualiza listaNombres y
-																					// listaMiniaturas (con modelo
-																					// principal)
-								view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
-							}
-
-							// 7.5.4. Marcar que la carga lógica ha finalizado
-							estaCargandoLista = false;
-							System.out.println("   -> estaCargandoLista = false");
-
-							// 7.5.5. Iniciar precalentamiento del caché de miniaturas
-							precalentarCacheMiniaturasAsync(new ArrayList<>(mapaResultado.values()));
-
-							// 7.5.6. Calcular el Índice Inicial a Seleccionar
-							int indiceSeleccionadoLocal = -1;
-							DefaultListModel<String> modeloActualizado = model.getModeloLista();
-
-							// Intentar encontrar la clave a mantener
-							if (finalClaveImagenAMantener != null && !modeloActualizado.isEmpty())
-							{
-								indiceSeleccionadoLocal = modeloActualizado.indexOf(finalClaveImagenAMantener); // Más
-																												// eficiente
-
-								if (indiceSeleccionadoLocal != -1)
-								{
-									System.out.println("     -> Clave a mantener encontrada en índice: "
-											+ indiceSeleccionadoLocal);
-								}
-							}
-
-							// Si no se encontró la clave o no había que mantener, o lista vacía,
-							// seleccionar 0 si es posible
-							if (indiceSeleccionadoLocal == -1 && !modeloActualizado.isEmpty())
-							{
-								System.out.println("     -> Seleccionando índice 0 por defecto.");
-								indiceSeleccionadoLocal = 0;
-							}
-
-							// 7.5.7. Aplicar Selección Inicial y Forzar Procesamiento Completo
-							if (indiceSeleccionadoLocal != -1)
-							{
-
-								if (view != null && view.getListaNombres() != null && listCoordinator != null)
-								{
-									System.out.println(
-											"   -> [ANTES de setSelectedIndex] Intentando aplicar selección inicial a índice: "
-													+ indiceSeleccionadoLocal);
-									final int indiceSeleccionadoFinal = indiceSeleccionadoLocal;
-
-									// Iniciar Flag
-									seleccionInicialEnCurso = true; //
-									System.out.println("   -> Flag seleccionInicialEnCurso puesto a true.");
-
-									// Establecer selección VISUAL inicial (listener será ignorado)
-									view.getListaNombres().setSelectedIndex(indiceSeleccionadoFinal);
-									System.out.println(
-											"   -> [DESPUÉS de setSelectedIndex] Selección visual inicial aplicada a índice: "
-													+ indiceSeleccionadoFinal + ". Selección JList: "
-													+ view.getListaNombres().getSelectedIndex());
-
-									// FORZAR llamada al Coordinator para cargar imagen y actualizar miniaturas
-									System.out.println(
-											"   -> Llamando MANUALMENTE a Coordinator para procesar índice inicial: "
-													+ indiceSeleccionadoFinal);
-									listCoordinator.seleccionarIndiceYActualizarUICompleta(indiceSeleccionadoFinal); // <<--
-																														// LLAMADA
-																														// EXPLÍCITA
-									System.out.println("   -> Llamada MANUAL a Coordinator completada.");
-
-									// Timer para desactivar flag y asegurar visibilidad
-									Timer timerFinSeleccionInicial = new Timer(150, (evtTimer) -> {
-										System.out.println(
-												"   -> [Timer Fin Selección Inicial] Fin espera. Flag seleccionInicialEnCurso -> false.");
-										seleccionInicialEnCurso = false; // <<-- DESACTIVAR FLAG
-										System.out.println(
-												"   -> [Timer Fin Selección Inicial] Asegurando visibilidad final para índice: "
-														+ indiceSeleccionadoFinal);
-									});
-									timerFinSeleccionInicial.setRepeats(false);
-									timerFinSeleccionInicial.start();
-
-								} else
-								{
-									System.err.println(
-											"WARN [EDT Done]: Vista, listaNombres o listCoordinator nulos al aplicar selección.");
-								}
-							} else
-							{ // Lista vacía después de carga
-
-								System.out.println("   -> Lista vacía después de carga. Limpiando UI.");
-								limpiarUI();
-								
-								if (listCoordinator != null) {
-								    listCoordinator.forzarActualizacionEstadoNavegacion();
-								}
-							}
-
-						} else
-						{ // mapaResultado fue null
-							System.out.println("   -> Resultado del worker fue null.");
-
-							if (view != null)
-							{
-								limpiarUI();
-								view.setTituloPanelIzquierdo("Carga Incompleta");
-							}
-							estaCargandoLista = false;
-						}
-
-						// 7.6. Manejar Excepciones durante worker.get()
-					} catch (CancellationException ce)
-					{
-						System.out.println("   -> Tarea CANCELADA (detectado en get).");
-
-						if (view != null)
-						{
-							limpiarUI();
-							view.setTituloPanelIzquierdo("Carga Cancelada");
-						}
-						estaCargandoLista = false;
-
-					} catch (InterruptedException ie)
-					{
-						System.err.println("   -> Hilo INTERRUMPIDO esperando resultado.");
-
-						if (view != null)
-						{
-							limpiarUI();
-							view.setTituloPanelIzquierdo("Carga Interrumpida");
-						}
-						Thread.currentThread().interrupt(); // Re-interrumpir hilo
-						estaCargandoLista = false;
-
-					} catch (ExecutionException ee)
-					{
-						System.err.println("   -> ERROR durante ejecución del worker: " + ee.getCause());
-						Throwable causa = ee.getCause();
-						String msg = (causa != null) ? causa.getMessage() : ee.getMessage();
-
-						if (view != null)
-						{
-							JOptionPane.showMessageDialog(view.getFrame(), "Error durante la carga:\n" + msg,
-									"Error Carga", JOptionPane.ERROR_MESSAGE);
-							limpiarUI();
-							view.setTituloPanelIzquierdo("Error de Carga");
-						}
-
-						if (causa != null)
-							causa.printStackTrace();
-						else
-							ee.printStackTrace();
-						estaCargandoLista = false;
-
-					} finally
-					{
-
-						// 7.7. Asegurar que el estado de carga se resetea
-						if (estaCargandoLista)
-						{
-							System.out.println(
-									"WARN [EDT Done - finally]: estaCargandoLista aún era true. Forzando a false.");
-							estaCargandoLista = false;
-						}
-
-						// 7.8. Limpiar referencia a la tarea futura
-						if (cargaImagenesFuture == worker)
-						{
-							cargaImagenesFuture = null;
-						}
-						System.out.println(" [EDT Worker Done] Procesamiento finalizado.");
-
-					} // Fin finally
-				} // Fin if ("state" == DONE)
-			}); // ----- FIN BLOQUE listener done DEL WORKER -----
-
-			// --- 8. EJECUTAR WORKER Y MOSTRAR DIÁLOGO ---
-
-			// 8.1. Log
-			System.out.println("  -> Ejecutando worker y mostrando diálogo...");
-
-			// 8.2. Ejecutar el worker (inicia doInBackground en otro hilo)
-			worker.execute();
-
-			// 8.3. Mostrar el diálogo de progreso (en el EDT)
-			SwingUtilities.invokeLater( () -> {
-				System.out.println(" [EDT] Mostrando diálogo de progreso...");
-				dialogo.setVisible(true); // Esto bloqueará hasta que se cierre
-				System.out.println(" [EDT] Diálogo de progreso cerrado o ya no visible.");
-			});
-
-		} else
-		{ // pathDeInicioWalk no era válido
-
-			// --- 9. MANEJAR ERROR DE CARPETA INVÁLIDA ---
-			System.out.println("No se puede cargar la lista: Carpeta de inicio inválida o nula: " + pathDeInicioWalk);
-
-			// Limpiar la UI si no se puede cargar
-			if (view != null)
-				SwingUtilities.invokeLater(this::limpiarUI);
-			estaCargandoLista = false; // Resetear estado
-		}
-
-		// --- 10. LOG FINAL DEL MÉTODO ---
-		System.out.println("-->>> FIN cargarListaImagenes(String) | Mantener Clave: " + claveImagenAMantener);
-
-	} // --- FIN del método cargarListaImagenes(String claveImagenAMantener) ---    
-    
+    private void cargarListaImagenes(String claveImagenAMantener) {
+
+        // --- 1. LOG INICIO Y VALIDACIONES PREVIAS ---
+        // 1.1. Log detallado del inicio y la clave a mantener.
+        System.out.println("\n-->>> INICIO cargarListaImagenes(String) | Mantener Clave: " + claveImagenAMantener);
+
+        // 1.2. Verificar dependencias críticas del sistema.
+        if (configuration == null || model == null || executorService == null || executorService.isShutdown() || view == null) {
+            System.err.println("ERROR [cargarListaImagenes]: Dependencias nulas (Config, Modelo, Executor o Vista) o Executor apagado.");
+            if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
+            estaCargandoLista = false;
+            return;
+        }
+
+        // 1.3. Marcar que la carga de la lista está en curso.
+        estaCargandoLista = true;
+
+        // --- 2. CANCELAR TAREAS ANTERIORES ---
+        // 2.1. Cancelar cualquier tarea previa de carga de lista que aún esté activa.
+        if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
+            System.out.println("  -> Cancelando tarea de carga de lista anterior...");
+            cargaImagenesFuture.cancel(true); // Intentar interrumpir la tarea.
+        }
+        // 2.2. (Opcional) Lógica similar para cancelar precalentamiento de miniaturas si fuera necesario.
+
+        // --- 3. DETERMINAR PARÁMETROS DE BÚSQUEDA DE ARCHIVOS ---
+        // 3.1. Determinar si se deben incluir subcarpetas.
+        final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
+
+        // 3.2. Establecer la profundidad de búsqueda para Files.walk.
+        int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
+        System.out.println("  -> Modo búsqueda: " + (mostrarSoloCarpeta ? "Solo Carpeta Actual (depth=1)" : "Subcarpetas (depth=MAX)"));
+
+        // 3.3. Determinar la carpeta desde donde iniciar la búsqueda.
+        Path pathDeInicioWalk = null;
+        if (mostrarSoloCarpeta) {
+            String claveRef = claveImagenAMantener != null ? claveImagenAMantener : model.getSelectedImageKey();
+            Path rutaRef = claveRef != null ? model.getRutaCompleta(claveRef) : null;
+            if (rutaRef != null && Files.isRegularFile(rutaRef)) {
+                pathDeInicioWalk = rutaRef.getParent();
+            }
+            if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk)) {
+                System.out.println("    -> No se pudo obtener carpeta de imagen actual válida para 'solo carpeta'. Usando carpeta raíz actual: " + this.carpetaRaizActual);
+                pathDeInicioWalk = this.carpetaRaizActual;
+            } else {
+                System.out.println("    -> Iniciando búsqueda (solo carpeta) desde carpeta de imagen: " + pathDeInicioWalk);
+            }
+        } else {
+            pathDeInicioWalk = this.carpetaRaizActual;
+            System.out.println("    -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: " + this.carpetaRaizActual);
+        }
+
+        // --- 4. VALIDAR PATH DE INICIO Y PROCEDER CON LA CARGA ---
+        // 4.1. Comprobar si el path calculado es un directorio válido.
+        if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk)) {
+            // 4.2. Crear variables finales para usar en lambdas y el SwingWorker.
+            final Path finalStartPath = pathDeInicioWalk;
+            final int finalDepth = depth;
+            final String finalClaveImagenAMantenerWorker = claveImagenAMantener; // Renombrada para evitar confusión en lambda
+
+            // --- 5. LIMPIEZA INICIAL DE LA INTERFAZ DE USUARIO (UI) ---
+            // 5.1. Programar limpieza en el Event Dispatch Thread (EDT).
+            if (view != null) {
+                SwingUtilities.invokeLater(() -> {
+                    view.limpiarImagenMostrada();
+                    view.setTextoRuta("");
+                    view.setTituloPanelIzquierdo("Escaneando: " + finalStartPath.getFileName() + "...");
+                    if (view.getListaMiniaturas() != null) {
+                        if (this.modeloMiniaturas != null) this.modeloMiniaturas.clear();
+                        view.getListaMiniaturas().setModel(new DefaultListModel<>());
+                    }
+                });
+            }
+            // 5.2. (FIXME Opcional) Limpiar caché de miniaturas si se considera necesario.
+            // if (servicioMiniaturas != null) { servicioMiniaturas.limpiarCache(); }
+
+            // --- 6. CREAR DIÁLOGO DE PROGRESO Y EL SWINGWORKER ---
+            System.out.println("  -> Creando diálogo y worker para búsqueda en: " + finalStartPath);
+            final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view != null ? view.getFrame() : null, null);
+            final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
+                finalStartPath, finalDepth, this.carpetaRaizActual,
+                this::esArchivoImagenSoportado, dialogo
+            );
+            dialogo.setWorkerAsociado(worker);
+            this.cargaImagenesFuture = worker;
+            System.out.println("  -> Diálogo y Worker creados y asociados.");
+
+            // --- 7. CONFIGURAR EL LISTENER PARA CUANDO EL WORKER TERMINE ('done') ---
+            System.out.println("  -> Añadiendo PropertyChangeListener al worker...");
+            worker.addPropertyChangeListener(evt -> {
+                // 7.1. Comprobar si el evento es el de finalización del worker.
+                if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
+                    System.out.println(" [EDT Worker Done] Tarea de búsqueda finalizada. Procesando resultado...");
+                    dialogo.cerrar();
+
+                    // 7.2. Comprobar si la tarea fue cancelada por el usuario.
+                    if (worker.isCancelled()) {
+                        System.out.println("   -> Tarea CANCELADA por el usuario.");
+                        if (view != null) {
+                            limpiarUI();
+                            view.setTituloPanelIzquierdo("Carga Cancelada");
+                        }
+                        estaCargandoLista = false;
+                        return;
+                    }
+
+                    // 7.3. Obtener el resultado del worker.
+                    try {
+                        Map<String, Path> mapaResultado = worker.get();
+
+                        // 7.4. Procesar el resultado si es válido.
+                        if (mapaResultado != null) {
+                            // 7.4.1. Crear el nuevo modelo de lista principal.
+                            DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
+                            List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
+                            Collections.sort(clavesOrdenadas);
+                            clavesOrdenadas.forEach(nuevoModeloListaPrincipal::addElement);
+                            System.out.println("   -> Resultado obtenido: " + nuevoModeloListaPrincipal.getSize() + " archivos. Actualizando modelo y vista...");
+
+                            // 7.4.2. Actualizar el VisorModel.
+                            model.actualizarListaCompleta(nuevoModeloListaPrincipal, mapaResultado);
+
+                            // 7.4.3. Actualizar las JList en la VisorView.
+                            if (view != null) {
+                                view.setListaImagenesModel(model.getModeloLista());
+                                view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
+                            }
+
+                            // 7.4.4. Indicar que la carga lógica ha finalizado.
+                            estaCargandoLista = false;
+                            System.out.println("   -> estaCargandoLista = false.");
+
+                            // 7.4.5. Iniciar precalentamiento del caché de miniaturas.
+                            precalentarCacheMiniaturasAsync(new ArrayList<>(mapaResultado.values()));
+
+                            // 7.4.6. Calcular el índice inicial a seleccionar.
+                            int indiceCalculadoParaSeleccion = -1; // Renombrada para claridad
+                            DefaultListModel<String> modeloPrincipalActualizado = model.getModeloLista();
+                            if (finalClaveImagenAMantenerWorker != null && !modeloPrincipalActualizado.isEmpty()) {
+                                indiceCalculadoParaSeleccion = modeloPrincipalActualizado.indexOf(finalClaveImagenAMantenerWorker);
+                            }
+                            if (indiceCalculadoParaSeleccion == -1 && !modeloPrincipalActualizado.isEmpty()) {
+                                indiceCalculadoParaSeleccion = 0;
+                            }
+                            System.out.println("     -> Índice final a seleccionar después de carga: " + indiceCalculadoParaSeleccion +
+                                               (finalClaveImagenAMantenerWorker != null ? " (intentando mantener: " + finalClaveImagenAMantenerWorker + ")" : " (default 0)"));
+
+                            // 7.4.7. Aplicar la selección inicial.
+                            //         Hacer la variable final para que sea accesible por las lambdas.
+                            final int indiceFinalParaLambdas = indiceCalculadoParaSeleccion;
+
+                            if (indiceFinalParaLambdas != -1) {
+                                if (view != null && view.getListaNombres() != null && listCoordinator != null) {
+                                    System.out.println("   -> Aplicando selección inicial al índice: " + indiceFinalParaLambdas);
+                                    seleccionInicialEnCurso = true;
+                                    System.out.println("   -> Flag seleccionInicialEnCurso puesto a TRUE.");
+                                    view.getListaNombres().setSelectedIndex(indiceFinalParaLambdas);
+
+                                    // Llamada al ListCoordinator con doble invokeLater
+                                    SwingUtilities.invokeLater(() -> {
+                                        SwingUtilities.invokeLater(() -> {
+                                            if (listCoordinator != null) {
+                                                System.out.println("   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: " + indiceFinalParaLambdas);
+                                                listCoordinator.seleccionarIndiceYActualizarUICompleta(indiceFinalParaLambdas);
+                                            } else {
+                                                System.err.println("ERROR [WorkerDone Doble InvokeLater]: ListCoordinator es null.");
+                                            }
+                                            System.out.println("   -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.");
+                                        });
+                                    });
+
+                                    // Timer para desactivar el flag de selección inicial
+                                    Timer timerFinSeleccion = new Timer(150, (evtTimer) -> {
+                                        seleccionInicialEnCurso = false;
+                                        System.out.println("   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: " + indiceFinalParaLambdas);
+                                    });
+                                    timerFinSeleccion.setRepeats(false);
+                                    timerFinSeleccion.start();
+                                } else {
+                                    System.err.println("WARN [EDT WorkerDone]: Vista, listaNombres o listCoordinator nulos al aplicar selección inicial.");
+                                }
+                            } else {
+                                System.out.println("   -> Lista vacía después de la carga/filtro. Limpiando UI.");
+                                limpiarUI();
+                                if (listCoordinator != null) listCoordinator.forzarActualizacionEstadoNavegacion();
+                            }
+                        } else {
+                            System.out.println("   -> Resultado del worker fue null. Carga fallida.");
+                            if (view != null) {
+                                limpiarUI();
+                                view.setTituloPanelIzquierdo("Carga Incompleta (resultado nulo)");
+                            }
+                            estaCargandoLista = false;
+                        }
+                    // 7.5. Manejar excepciones que pudieron ocurrir durante worker.get().
+                    } catch (CancellationException ce) {
+                        System.out.println("   -> Tarea CANCELADA (detectado en worker.get()).");
+                        if (view != null) { limpiarUI(); view.setTituloPanelIzquierdo("Carga Cancelada"); }
+                        estaCargandoLista = false;
+                    } catch (InterruptedException ie) {
+                        System.err.println("   -> Hilo INTERRUMPIDO esperando resultado del worker.");
+                        if (view != null) { limpiarUI(); view.setTituloPanelIzquierdo("Carga Interrumpida"); }
+                        Thread.currentThread().interrupt();
+                        estaCargandoLista = false;
+                    } catch (ExecutionException ee) {
+                        System.err.println("   -> ERROR durante la ejecución del worker: " + ee.getCause());
+                        Throwable causa = ee.getCause();
+                        String msg = (causa != null) ? causa.getMessage() : ee.getMessage();
+                        if (view != null) {
+                            JOptionPane.showMessageDialog(view.getFrame(), "Error durante la carga de archivos:\n" + msg, "Error de Carga", JOptionPane.ERROR_MESSAGE);
+                            limpiarUI(); view.setTituloPanelIzquierdo("Error de Carga");
+                        }
+                        if (causa != null) causa.printStackTrace(); else ee.printStackTrace();
+                        estaCargandoLista = false;
+                    } finally {
+                        // 7.6. Asegurar que el estado de carga se resetea y la referencia a la tarea se limpia.
+                        if (estaCargandoLista) {
+                            System.out.println("WARN [EDT WorkerDone - finally]: estaCargandoLista aún era true. Forzando a false.");
+                            estaCargandoLista = false;
+                        }
+                        if (cargaImagenesFuture == worker) {
+                            cargaImagenesFuture = null;
+                        }
+                        System.out.println(" [EDT Worker Done] Procesamiento del resultado finalizado.");
+                    }
+                }
+            });
+
+            // --- 8. EJECUTAR EL SWINGWORKER Y MOSTRAR EL DIÁLOGO DE PROGRESO ---
+            System.out.println("  -> Ejecutando worker y programando muestra de diálogo...");
+            worker.execute();
+            SwingUtilities.invokeLater(() -> {
+                System.out.println("   [EDT] Mostrando diálogo de progreso...");
+                dialogo.setVisible(true);
+                System.out.println("   [EDT] Diálogo de progreso cerrado o ya no visible.");
+            });
+
+        } else {
+            // --- 9. MANEJAR ERROR DE CARPETA DE INICIO INVÁLIDA ---
+            System.out.println("No se puede cargar la lista: Carpeta de inicio inválida o nula: " + pathDeInicioWalk);
+            if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
+            estaCargandoLista = false;
+        }
+
+        // --- 10. LOG FINAL DEL MÉTODO ---
+        System.out.println("-->>> FIN cargarListaImagenes(String) | Clave mantenida: " + claveImagenAMantener);
+    }// --- FIN del metodo cargarListaImagenes
     
     
 // ************************************************************************************************************ FIN DE CARGA    
@@ -6514,7 +6356,106 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
       *
       * @return Un objeto RangoMiniaturasCalculado con los valores 'antes' y 'despues'.
       */
+  // En VisorController.java
+  // En VisorController.java
+
      public RangoMiniaturasCalculado calcularNumMiniaturasDinamicas() {
+         // --- 1. OBTENER LÍMITES SUPERIORES DE CONFIGURACIÓN/MODELO ---
+         //    Estos son los valores máximos de 'antes' y 'después' que el usuario ha configurado
+         //    o los defaults de la aplicación.
+         int cfgMiniaturasAntes, cfgMiniaturasDespues;
+         if (model != null) {
+             cfgMiniaturasAntes = model.getMiniaturasAntes();
+             cfgMiniaturasDespues = model.getMiniaturasDespues();
+         } else if (configuration != null) {
+             cfgMiniaturasAntes = configuration.getInt("miniaturas.cantidad.antes", DEFAULT_MINIATURAS_ANTES_FALLBACK);
+             cfgMiniaturasDespues = configuration.getInt("miniaturas.cantidad.despues", DEFAULT_MINIATURAS_DESPUES_FALLBACK);
+             System.out.println("  [CalcularMiniaturas] WARN: Modelo nulo, usando valores de config/fallback para antes/después.");
+         } else {
+             cfgMiniaturasAntes = DEFAULT_MINIATURAS_ANTES_FALLBACK;
+             cfgMiniaturasDespues = DEFAULT_MINIATURAS_DESPUES_FALLBACK;
+             System.err.println("  [CalcularMiniaturas] ERROR: Modelo y Config nulos, usando hardcoded fallbacks.");
+         }
+
+         // --- 2. VALIDAR DISPONIBILIDAD DE COMPONENTES DE LA VISTA ---
+         //    Si la vista o sus componentes clave no están listos, no podemos calcular dinámicamente.
+         if (view == null || view.getScrollListaMiniaturas() == null || view.getListaMiniaturas() == null) {
+             System.out.println("  [CalcularMiniaturas] WARN: Vista o componentes de miniaturas nulos. Devolviendo máximos configurados.");
+             return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+         }
+
+         // --- 3. OBTENER DIMENSIONES ACTUALES DE LA UI ---
+         JScrollPane scrollPane = view.getScrollListaMiniaturas();
+         JList<String> listaMin = view.getListaMiniaturas(); // Referencia a la JList de miniaturas
+
+         // Es crucial obtener el ancho del viewport del JScrollPane, ya que es el área visible.
+         int viewportWidth = scrollPane.getViewport().getWidth();
+         // El ancho de cada celda, que debería estar fijado en la JList.
+         int cellWidth = listaMin.getFixedCellWidth();
+
+         // Log de depuración para ver el estado de las dimensiones y visibilidad
+         System.out.println("  [CalcularMiniaturas DEBUG] ViewportWidth: " + viewportWidth +
+                            ", ViewportHeight: " + scrollPane.getViewport().getHeight() +
+                            ", CellWidth: " + cellWidth +
+                            ", ScrollPane Showing: " + scrollPane.isShowing() +
+                            ", ListaMiniaturas Showing: " + listaMin.isShowing());
+
+         // --- 4. LÓGICA DE FALLBACK MEJORADA ---
+         //    Si el viewport aún no tiene un ancho válido (ej. 0, o el JScrollPane no se muestra aún),
+         //    o si el ancho de celda no es válido, no podemos calcular de forma fiable.
+         //    En este caso, devolvemos los máximos configurados para intentar mostrar "algo"
+         //    y confiamos en que una futura llamada (ej. por redimensionamiento) lo corrija.
+         if (viewportWidth <= 0 || cellWidth <= 0 || !scrollPane.isShowing()) {
+             System.out.println("  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.");
+             return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+         }
+
+         // --- 5. CALCULAR EL NÚMERO TOTAL DE MINIATURAS QUE CABEN ---
+         int totalMiniaturasQueCaben = viewportWidth / cellWidth;
+         // No es necesario loguear de nuevo, el DEBUG ya lo hace.
+
+         int numAntesCalculado;
+         int numDespuesCalculado;
+
+         // --- 6. DISTRIBUIR EL ESPACIO DISPONIBLE, RESPETANDO LOS MÁXIMOS CONFIGURADOS ---
+         int maxTotalConfigurado = cfgMiniaturasAntes + 1 + cfgMiniaturasDespues; // +1 por la miniatura central
+
+         if (totalMiniaturasQueCaben >= maxTotalConfigurado) {
+             // 6.1. Si caben todas las miniaturas configuradas (o más), usamos los máximos configurados.
+             numAntesCalculado = cfgMiniaturasAntes;
+             numDespuesCalculado = cfgMiniaturasDespues;
+         } else if (totalMiniaturasQueCaben <= 1) {
+             // 6.2. Si solo cabe una miniatura o ninguna (ej. viewport muy estrecho).
+             //      Mostramos solo la central (0 antes, 0 después).
+             numAntesCalculado = 0;
+             numDespuesCalculado = 0;
+         } else {
+             // 6.3. Si caben algunas, pero no todas las configuradas.
+             //      Distribuimos las miniaturas laterales disponibles.
+             int miniaturasLateralesDisponibles = totalMiniaturasQueCaben - 1; // Espacio para las de antes y después
+
+             // Intentar mantener la proporción de 'antes' vs 'después' de la configuración.
+             double ratioAntesOriginal = 0.5; // Default: distribuir equitativamente
+             if ((cfgMiniaturasAntes + cfgMiniaturasDespues) > 0) { // Evitar división por cero
+                 ratioAntesOriginal = (double) cfgMiniaturasAntes / (cfgMiniaturasAntes + cfgMiniaturasDespues);
+             }
+
+             numAntesCalculado = (int) Math.round(miniaturasLateralesDisponibles * ratioAntesOriginal);
+             numDespuesCalculado = miniaturasLateralesDisponibles - numAntesCalculado;
+
+             // Como chequeo final, nos aseguramos de no exceder los máximos individuales configurados
+             // (aunque la lógica con totalMiniaturasQueCaben ya debería haber manejado esto implícitamente).
+             numAntesCalculado = Math.min(numAntesCalculado, cfgMiniaturasAntes);
+             numDespuesCalculado = Math.min(numDespuesCalculado, cfgMiniaturasDespues);
+         }
+
+         // --- 7. DEVOLVER EL RESULTADO CALCULADO ---
+         System.out.println("  [CalcularMiniaturas] Rango dinámico calculado -> Antes: " + numAntesCalculado + ", Despues: " + numDespuesCalculado);
+         return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
+     }
+     
+     
+     public RangoMiniaturasCalculado calcularNumMiniaturasDinamicasOLD() {
          int cfgMiniaturasAntes, cfgMiniaturasDespues;
 
          // 1. Obtener los máximos configurados de 'antes' y 'después'
@@ -6541,14 +6482,40 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          int viewportWidth = scrollPane.getViewport().getWidth();
          int cellWidth = view.getListaMiniaturas().getFixedCellWidth(); // Obtener de la JList
 
+         int totalMiniaturasQueCaben = viewportWidth / cellWidth;
+         
+         //LOG CalcularMiniaturas DEBUG
+         System.out.println("  [CalcularMiniaturas DEBUG] ViewportWidth: " + viewportWidth +
+                 ", ViewportHeight: " + scrollPane.getViewport().getHeight() + // Añade altura por si acaso
+                 ", CellWidth: " + cellWidth +
+                 ", ScrollPane Visible: " + scrollPane.isShowing() +
+                 ", ListaMiniaturas Visible: " + view.getListaMiniaturas().isShowing());
+         
          // Si aún no hay dimensiones válidas, usar los valores configurados
-         if (viewportWidth <= 0 || cellWidth <= 0) {
-             System.out.println("  [CalcularMiniaturas] WARN: ViewportWidth o CellWidth inválidos (" + viewportWidth + ", " + cellWidth + "). Devolviendo configurados.");
-             return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
-         }
+         
+//         LOG comprobacion de miniaturas a centrar (desmarcar el if del log del bloque siguiente
+         if (viewportWidth <= (cellWidth * 3) && viewportWidth > 0 && cellWidth > 0) { // Si cabe menos de 3 (y no es error de 0)
+        	    System.out.println("  [CalcularMiniaturas] WARN: ViewportWidth (" + viewportWidth +
+        	                       ") muy pequeño. Forzando a mostrar solo la imagen central si es posible.");
+        	    // Para mostrar solo la central si cabe al menos una.
+        	    if (totalMiniaturasQueCaben >=1) {
+        	        return new RangoMiniaturasCalculado(0,0);
+        	    } else { // Si ni siquiera cabe una, usar los defaults de config
+        	        return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+        	    }
+        	} else if (viewportWidth <= 0 || cellWidth <= 0) {
+        	    System.out.println("  [CalcularMiniaturas] WARN: ViewportWidth o CellWidth inválidos. Usando configurados.");
+        	    return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+        	}
+         
+         // LOG desmarcar si el log del bloque anterior esta bien
+//         if (viewportWidth <= 0 || cellWidth <= 0) {
+//             System.out.println("  [CalcularMiniaturas] WARN: ViewportWidth o CellWidth inválidos (" + viewportWidth + ", " + cellWidth + "). Devolviendo configurados.");
+//             return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+//         }
 
          // 3. Calcular cuántas miniaturas caben en total
-         int totalMiniaturasQueCaben = viewportWidth / cellWidth;
+//         int totalMiniaturasQueCaben = viewportWidth / cellWidth;
          System.out.println("  [CalcularMiniaturas] ViewportWidth: " + viewportWidth + ", CellWidth: " + cellWidth + ", Total que caben: " + totalMiniaturasQueCaben);
 
          int numAntesCalculado;
@@ -6588,32 +6555,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
      }
      
-     
-// ********************************************************************************* METODOS DE MOVIMIENTO CON LISTCOORDINATOR
-// ***************************************************************************************************************************
-	  
-//	  public void navegarSiguienteViaCoordinador() {
-//	      if (listCoordinator != null) {
-//	          listCoordinator.seleccionarSiguiente();
-//	      }
-//	  }
-//	  public void navegarAnteriorViaCoordinador() {
-//	      if (listCoordinator != null) {
-//	          listCoordinator.seleccionarAnterior();
-//	      }
-//	  }
-//	  public void navegarPrimeroViaCoordinador() {
-//	      if (listCoordinator != null) {
-//	          listCoordinator.seleccionarPrimero();
-//	      }
-//	  }
-//	  public void navegarUltimoViaCoordinador() {
-//	      if (listCoordinator != null) {
-//	          listCoordinator.seleccionarUltimo();
-//	      }
-//	  }
-
-	// En VisorController.java
 
 	  public void navegarSiguienteViaCoordinador() {
 	      if (listCoordinator != null) {
@@ -7019,6 +6960,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
 
+// *************************************************************************** CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
+// ***************************************************************************************************************************    
+    
     
     public static class RangoMiniaturasCalculado { // Puede ser public o package-private
         public final int antes;
@@ -7029,6 +6973,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             this.despues = despues;
         }
     }    
+    
+// *************************************************************************** CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
+// ***************************************************************************************************************************
     
 } // --- FIN CLASE VisorController ---
 
