@@ -93,6 +93,7 @@ import controlador.actions.vista.ToggleCheckeredBackgroundAction;
 import controlador.actions.vista.ToggleFileListAction;
 import controlador.actions.vista.ToggleLocationBarAction;
 import controlador.actions.vista.ToggleMenuBarAction;
+import controlador.actions.vista.ToggleMiniatureTextAction;
 import controlador.actions.vista.ToggleThumbnailsAction;
 import controlador.actions.vista.ToggleToolBarAction;
 import controlador.actions.zoom.ResetZoomAction;
@@ -116,6 +117,7 @@ import utils.StringUtils;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
 import vista.dialogos.ProgresoCargaDialog;
+import vista.renderers.MiniaturaListCellRenderer;
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
@@ -140,7 +142,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
     
     // --- Comunicación con AppInitializer ---
-    private ViewUIConfig uiConfigForView;			//
+    private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
     private int calculatedMiniaturePanelHeight;		//
 
     private ExecutorService executorService;		 
@@ -171,12 +173,17 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private Map<String, Action> actionMap;
     private Action listaDeFavoritosAction;
     private Action funcionalidadPendienteAction;
+    private Action toggleMiniatureTextAction;
     
     // Action para el botón/menú de marcar/desmarcar (será un toggle)
     private Action toggleMarkImageAction;
     // Action para el botón/menú que abre la "gestión" (el JOptionPane por ahora)
     private Action gestionarProyectoAction;
 
+    // Constantes de seguridad de imagenes antes y despues de la seleccionada
+    public static final int DEFAULT_MINIATURAS_ANTES_FALLBACK = 8;
+    public static final int DEFAULT_MINIATURAS_DESPUES_FALLBACK = 8;
+    
     /**
      * Constructor principal (AHORA SIMPLIFICADO).
      * Delega toda la inicialización a AppInitializer.
@@ -336,30 +343,37 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
         // 2.5. Actions de Vista (Toggles de Visibilidad y otras)
         try {
-            mostrarDialogoListaAction = new MostrarDialogoListaAction(this, this.iconUtils, iconoAncho, iconoAlto); // No necesita icono en la Action si el botón lo define
-            toggleMenuBarAction = new ToggleMenuBarAction(this);
-            toggleToolBarAction = new ToggleToolBarAction(this);
-            toggleFileListAction = new ToggleFileListAction(this);
-            toggleThumbnailsAction = new ToggleThumbnailsAction(this);
-            toggleLocationBarAction = new ToggleLocationBarAction(this);
-            toggleCheckeredBgAction = new ToggleCheckeredBackgroundAction(this);
-            toggleAlwaysOnTopAction = new ToggleAlwaysOnTopAction(this);
+            mostrarDialogoListaAction 	= new MostrarDialogoListaAction(this, this.iconUtils, iconoAncho, iconoAlto); 
+            toggleMenuBarAction 		= new ToggleMenuBarAction(this);
+            toggleToolBarAction 		= new ToggleToolBarAction(this);
+            toggleFileListAction 		= new ToggleFileListAction(this);
+            toggleThumbnailsAction 		= new ToggleThumbnailsAction(this);
+            toggleLocationBarAction 	= new ToggleLocationBarAction(this);
+            toggleCheckeredBgAction 	= new ToggleCheckeredBackgroundAction(this);
+            toggleAlwaysOnTopAction 	= new ToggleAlwaysOnTopAction(this);
+            toggleMiniatureTextAction 	= new ToggleMiniatureTextAction(this);
+            
         } catch (Exception e) {
             System.err.println("ERROR creando una o más Actions de Vista: " + e.getMessage());
             // Fallbacks
             if (mostrarDialogoListaAction == null) mostrarDialogoListaAction = funcionalidadPendienteAction;
+            if (toggleMenuBarAction == null) toggleMenuBarAction = funcionalidadPendienteAction;
+            if (toggleMiniatureTextAction == null) toggleMiniatureTextAction = funcionalidadPendienteAction;
             // ... (y así para las demás de vista)
         }
+
         System.out.println("    -> Actions de Vista creadas.");
 
         // 2.6. Actions de Tema
         try {
-            temaClearAction = new ToggleThemeAction(this, "clear", "Tema Clear");
-            temaDarkAction = new ToggleThemeAction(this, "dark", "Tema Dark");
-            temaBlueAction = new ToggleThemeAction(this, "blue", "Tema Blue");
-            temaGreenAction = new ToggleThemeAction(this, "green", "Tema Green");
-            temaOrangeAction = new ToggleThemeAction(this, "orange", "Tema Orange");
+            temaClearAction 	= new ToggleThemeAction(this, "clear", "Tema Clear");
+            temaDarkAction 		= new ToggleThemeAction(this, "dark", "Tema Dark");
+            temaBlueAction 		= new ToggleThemeAction(this, "blue", "Tema Blue");
+            temaGreenAction 	= new ToggleThemeAction(this, "green", "Tema Green");
+            temaOrangeAction 	= new ToggleThemeAction(this, "orange", "Tema Orange");
+            
             themeActions = List.of(temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction);
+            
         } catch (Exception e) {
             System.err.println("ERROR creando Actions de Tema: " + e.getMessage());
             // Considerar cómo manejar este fallo, quizás un tema por defecto si todo falla
@@ -368,8 +382,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
         // 2.7. Actions de Toggle Generales (Subcarpetas, Proporciones)
         try {
-            toggleSubfoldersAction = new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
-            toggleProporcionesAction = new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
+            toggleSubfoldersAction 		= new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
+            toggleProporcionesAction 	= new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
         } catch (Exception e) {
             System.err.println("ERROR creando Actions de Toggle Generales: " + e.getMessage());
             if (toggleSubfoldersAction == null) toggleSubfoldersAction = funcionalidadPendienteAction;
@@ -474,291 +488,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
         // --- SECCIÓN 4: Log Final de la Fase ---
         System.out.println("  [Init Actions Internal] Finalizado.");
-    }    
-    
-//    /*package-private*/ void initializeActionsInternal(int iconoAncho, int iconoAlto) {
-//        // --- SECCIÓN 1: Log de Inicio y Validación ---
-//        // 1.1. Imprimir log indicando el inicio de esta fase.
-//        System.out.println("  [Init Actions Internal] Inicializando Actions (sin navegación)...");
-//        // 1.2. Validar dependencias necesarias (iconUtils y configuration ya deberían estar inyectadas).
-//        if (this.iconUtils == null) {
-//            // Usar handleFatalError si iconUtils es absolutamente crítico aquí.
-//            handleFatalError("IconUtils nulo en initializeActionsInternal", null);
-//            return; // Salir si falta una dependencia crítica.
-//        }
-//         if (this.configuration == null) {
-//            // Podría ser menos crítico, quizás continuar con defaults, pero mejor fallar pronto.
-//            handleFatalError("ConfigurationManager nulo en initializeActionsInternal", null);
-//            return;
-//        }
-//
-//        // --- SECCIÓN 2: Inicialización de Actions (Archivo, Edición, Zoom, Vista, Tema, Toggles) ---
-//         
-//        // 2.0. Action funcionalidadPendienteAction
-//         final VisorController self = this; // Crear una referencia final a la instancia actual de VisorController
-//
-//         this.funcionalidadPendienteAction = new AbstractAction("Funcionalidad Pendiente") {
-//             private static final long serialVersionUID = 1L;
-//
-//             @Override
-//             public void actionPerformed(ActionEvent e) {
-//                 // Ahora 'self' es la referencia a VisorController
-//                 if (self == null || self.getView() == null) { // Usar self para acceder a getView()
-//                     System.err.println("Error: Controller o Vista son null en FuncionalidadPendienteAction");
-//                     // Si self.getView() es null, mostrar en consola
-//                     String mensajeFallback = "Funcionalidad para el componente que disparó este evento aún no implementada.";
-//                     Object sourceEvent = e.getSource();
-//                     if (sourceEvent instanceof AbstractButton) {
-//                         AbstractButton btn = (AbstractButton) sourceEvent;
-//                         String texto = btn.getText();
-//                         if (texto == null || texto.isEmpty()) texto = (String) btn.getAction().getValue(Action.NAME);
-//                         if (texto == null || texto.isEmpty()) texto = btn.getToolTipText();
-//                         mensajeFallback = "Funcionalidad para '" + (texto != null ? texto : e.getActionCommand()) + "' aún no implementada.";
-//                     }
-//                     System.out.println(mensajeFallback);
-//                     return;
-//                 }
-//
-//                 self.logActionInfo(e); // Loguear qué se pulsó usando 'self'
-//
-//                 Object source = e.getSource();
-//                 String textoComponente = "";
-//                 // String comandoOriginalDelComponente = e.getActionCommand(); // Esto será CMD_FUNCIONALIDAD_PENDIENTE
-//
-//                 if (source instanceof AbstractButton) {
-//                     AbstractButton comp = (AbstractButton) source;
-//                     textoComponente = comp.getText(); // Texto visible del botón/menú
-//                     if (textoComponente == null || textoComponente.isEmpty()) {
-//                         Action sourceAction = comp.getAction(); // Debería ser this.funcionalidadPendienteAction
-//                         if (sourceAction != null && sourceAction.getValue(Action.NAME) != null) {
-//                             // El Action.NAME de funcionalidadPendienteAction es "Funcionalidad Pendiente"
-//                             // Sería mejor usar el tooltip o el comando original del componente si lo tuviéramos aquí.
-//                             // Para el tooltip:
-//                              textoComponente = comp.getToolTipText();
-//                         }
-//                         if (textoComponente == null || textoComponente.isEmpty()) {
-//                              // Como último recurso, si el componente no tiene ActionCommand propio visible aquí
-//                              // (porque está usando la Action genérica), y no tiene texto ni tooltip,
-//                              // podemos usar la clave larga del componente si la podemos obtener.
-//                              String configKey = self.findLongKeyForComponent(source);
-//                              textoComponente = (configKey != null) ? configKey : "(Componente no identificado)";
-//                         }
-//                     }
-//                 }
-//                 String mensaje = "Funcionalidad para '" + textoComponente + "' aún no implementada.";
-//                 JOptionPane.showMessageDialog(self.getView().getFrame(), mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
-//             }
-//         };
-//         
-//       	this.funcionalidadPendienteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE); 
-//       	// No es estrictamente necesario ponerle icono a esta Action genérica,
-//       	// ya que el ToolbarButtonDefinition especificará el icono del botón.
-//       	System.out.println("    -> FuncionalidadPendienteAction creada.");
-//        	
-//        // 2.1. Actions de Archivo
-//        openAction = new OpenFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        openAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ARCHIVO_ABRIR);
-//        
-//        deleteAction = new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        if (deleteAction != null) deleteAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ELIMINAR);
-//        
-//        refreshAction = new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        if (refreshAction != null) refreshAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ESPECIAL_REFRESCAR);
-//        
-//        // ... otras actions de archivo ...
-//
-//        // 2.2. Actions de Edición
-//        rotateLeftAction 		= new RotateLeftAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        rotateLeftAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
-//        
-//        rotateRightAction 		= new RotateRightAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        rotateRightAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_DER);
-//        
-//        flipHorizontalAction 	= new FlipHorizontalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        flipHorizontalAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_H);
-//        
-//        flipVerticalAction 		= new FlipVerticalAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        flipVerticalAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_V);
-//        
-//         cropAction = new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//         if (cropAction != null) cropAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_RECORTAR);
-//
-//        // 2.3. Actions de Zoom (Todas excepto navegación)
-//        toggleZoomManualAction 	= new ToggleZoomManualAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-//        
-//        zoomAutoAction 			= new ZoomAutoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        zoomAutoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_AUTO);
-//        
-//        zoomAnchoAction 		= new ZoomAnchoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        zoomAnchoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
-//        
-//        zoomAltoAction 			= new ZoomAltoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        zoomAltoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ALTO);
-//        
-//        zoomFitAction 			= new ZoomFitAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        zoomFitAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
-//        
-//        zoomFixedAction 		= new ZoomFixedAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        zoomFixedAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_FIJO);
-//        
-//        zoomFijadoAction 		= new ZoomFijadoAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        zoomFijadoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-//        
-//        resetZoomAction 		= new ResetZoomAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        resetZoomAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_RESET);
-//
-//        // 2.4. Actions de Imagen (Localizar, etc.)
-//        locateFileAction 		= new LocateFileAction(this, this.iconUtils, iconoAncho, iconoAlto);
-//        locateFileAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_LOCALIZAR);
-//
-//        // 2.5. Actions de Vista (Toggles de visibilidad)
-//        mostrarDialogoListaAction = new MostrarDialogoListaAction(this);
-//        
-//        
-//        toggleMenuBarAction 	= new ToggleMenuBarAction(this);
-//        toggleMenuBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
-//        
-//        toggleToolBarAction 	= new ToggleToolBarAction(this);
-//        toggleToolBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
-//        
-//        toggleFileListAction 	= new ToggleFileListAction(this);
-//        toggleFileListAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-//        
-//        toggleThumbnailsAction 	= new ToggleThumbnailsAction(this);
-//        toggleThumbnailsAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
-//        
-//        toggleLocationBarAction = new ToggleLocationBarAction(this);
-//        toggleLocationBarAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR);
-//        
-//        toggleCheckeredBgAction = new ToggleCheckeredBackgroundAction(this);
-//        toggleCheckeredBgAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
-//        
-//        toggleAlwaysOnTopAction = new ToggleAlwaysOnTopAction(this);
-//        toggleAlwaysOnTopAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
-//
-//        // 2.6. Actions de Tema
-//        temaClearAction 		= new ToggleThemeAction(this, "clear", "Tema Clear");
-//        temaClearAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_CLEAR);
-//        temaDarkAction 			= new ToggleThemeAction(this, "dark", "Tema Dark");
-//        temaDarkAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_DARK);
-//        temaBlueAction 			= new ToggleThemeAction(this, "blue", "Tema Blue");
-//        temaBlueAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_BLUE);
-//        temaGreenAction 		= new ToggleThemeAction(this, "green", "Tema Green");
-//        temaGreenAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_GREEN);
-//        temaOrangeAction 		= new ToggleThemeAction(this, "orange", "Tema Orange");
-//        temaOrangeAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TEMA_ORANGE);
-//        // Agruparlas para facilitar la actualización de selección
-//        themeActions = List.of(temaClearAction, temaDarkAction, temaBlueAction, temaGreenAction, temaOrangeAction);
-//
-//        // 2.7. Actions de Toggle Generales (Subcarpetas, Proporciones)
-//        toggleSubfoldersAction 	= new ToggleSubfoldersAction (this, this.iconUtils, iconoAncho, iconoAlto);
-//        toggleSubfoldersAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-//        
-//        toggleProporcionesAction = new ToggleProporcionesAction (this, this.iconUtils, iconoAncho, iconoAlto);
-//        toggleProporcionesAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
-//
-//        // 2.8 Actions Favoritos 
-//        listaDeFavoritosAction 	= new ListaDeFavoritosAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        toggleMarkImageAction.putValue(Action.SHORT_DESCRIPTION, "Marcar o desmarcar la imagen actual para el proyecto");
-//        toggleMarkImageAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-//        // Asignar icono si la ToolbarButtonDefinition no lo hace o si el menú lo necesita
-//        // toggleMarkImageAction.putValue(Action.SMALL_ICON, iconUtils.getScaledIcon("5003-marcar_imagen_48x48.png", anchoIcono, altoIcono));
-//
-//        gestionarProyectoAction = new GestionarProyectoAction(this, iconUtils, iconoAncho, iconoAlto);
-//        
-//        gestionarProyectoAction.putValue(Action.SHORT_DESCRIPTION, "Gestionar la selección de imágenes del proyecto");
-//        gestionarProyectoAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_GESTIONAR);
-//        // Asignar icono si es necesario
-//        // gestionarProyectoAction.putValue(Action.SMALL_ICON, iconUtils.getScaledIcon("7003-Mostrar_Favoritos_48x48.png", anchoIcono, altoIcono));
-//        
-//        
-//        
-//        // 2.9 Actions Misceláneas (si las hubiera, ej. botones especiales sin categoría clara)
-//        refreshAction 			= new RefreshAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        menuAction 				= new MenuAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        hiddenButtonsAction 	= new HiddenButtonsAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        deleteAction 			= new DeleteAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//        
-//        	//actions.edicion
-//        cropAction				= new CropAction(this, this.iconUtils, iconoAncho, iconoAlto);//TODO Action pendiente
-//
-//        
-//        
-//        // --- SECCIÓN 3: Configuración del Estado Inicial de Actions Específicas ---
-//        // 3.1. Leer estado inicial de config para Toggles que lo necesiten.
-//        try {
-//    
-//        	 // 3.1.1. Estado inicial de Zoom Manual
-//             if (toggleZoomManualAction != null) {
-//                 boolean zoomManualInicial = configuration.getBoolean("interfaz.menu.zoom.activar_zoom_manual.seleccionado", false);
-//                 toggleZoomManualAction.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-//                 //toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
-//                 toggleZoomManualAction.putValue(Action.SELECTED_KEY, zoomManualInicial);
-//                 
-////                 System.out.println("    -> Estado inicial Action 'toggleZoomManual' (SELECTED_KEY) puesto a: " + zoomManualInicial);
-//             }
-//             
-//             // 3.1.2. Estado inicial de Reset Zoom (depende de Zoom Manual)
-//             if (resetZoomAction != null) {
-//                  // Se habilita solo si el zoom manual está activo inicialmente.
-//                 resetZoomAction.setEnabled(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY)));
-////                 System.out.println("    -> Estado inicial Action 'resetZoom' (enabled) puesto a: " + resetZoomAction.isEnabled());
-//             }
-//             
-//             // 3.1.3. Estado inicial de Mantener Proporciones
-//             if (toggleProporcionesAction != null) {
-//                 boolean propInicial = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true);
-//                 toggleProporcionesAction.putValue(Action.SELECTED_KEY, propInicial);
-////                  System.out.println("    -> Estado inicial Action 'toggleProporciones' (SELECTED_KEY) puesto a: " + propInicial);
-//             }
-//             
-//              // 3.1.4. Estado inicial de Cargar Subcarpetas
-//             if (toggleSubfoldersAction != null) {
-//                  boolean subInicial = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
-//                  toggleSubfoldersAction.putValue(Action.SELECTED_KEY, subInicial);
-////                   System.out.println("    -> Estado inicial Action 'toggleSubfolders' (SELECTED_KEY) puesto a: " + subInicial);
-//             }
-//              // 3.1.5. Estado inicial de Fondo a Cuadros
-//             if (toggleCheckeredBgAction != null) {
-//                 boolean checkInicial = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false);
-//                 toggleCheckeredBgAction.putValue(Action.SELECTED_KEY, checkInicial);
-////                  System.out.println("    -> Estado inicial Action 'toggleCheckeredBg' (SELECTED_KEY) puesto a: " + checkInicial);
-//             }
-//             // 3.1.6. Estado inicial de Siempre Encima
-//             if (toggleAlwaysOnTopAction != null) {
-//                 boolean topInicial = configuration.getBoolean("interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", false);
-//                 toggleAlwaysOnTopAction.putValue(Action.SELECTED_KEY, topInicial);
-////                 System.out.println("    -> Estado inicial Action 'toggleAlwaysOnTop' (SELECTED_KEY) puesto a: " + topInicial);
-//             }
-//             // 3.1.7. Estado inicial de visibilidad de componentes (MenuBar, ToolBar, etc.)
-//             //        Las Actions ToggleMenuBarAction, etc., leen su estado inicial
-//             //        internamente desde ConfigurationManager cuando se crean o se usan.
-//             //        No es estrictamente necesario ponerles SELECTED_KEY aquí, pero
-//             //        podría hacerse por consistencia si se quisiera. Ejemplo:
-//
-//             // 3.1.8. Sincronizar estado inicial de selección de Tema (marca el radio correcto)
-//             if (themeActions != null && themeManager != null) {
-//                 String temaInicialConfig = themeManager.getTemaActual().nombreInterno();
-//                  System.out.println("    -> Sincronizando estado inicial radios de Tema a: " + temaInicialConfig);
-//                 for(Action themeAction : themeActions) {
-//                     if (themeAction instanceof ToggleThemeAction) {
-//                         ((ToggleThemeAction)themeAction).actualizarEstadoSeleccion(temaInicialConfig);
-//                     }
-//                 }
-//             }
-//
-//
-//        } catch (Exception e) {
-//            System.err.println("ERROR configurando estado inicial de Actions: " + e.getMessage());
-//            // Considerar si continuar o tratar como fatal
-//        }
-//
-//        // --- SECCIÓN 4: Log Final ---
-//        // 4.1. Imprimir log indicando la finalización de esta fase.
-//        System.out.println("  [Init Actions Internal] Finalizado.");
-//
-//    } // --- FIN initializeActionsInternal ---    
+    } // --- Fin metodo initializeActionsInternal    
     
 
     /**
@@ -812,6 +542,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         if (toggleCheckeredBgAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, toggleCheckeredBgAction);
         if (toggleAlwaysOnTopAction != null) mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, toggleAlwaysOnTopAction);
         if (mostrarDialogoListaAction != null) { mapaParcial.put(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, mostrarDialogoListaAction);}
+
+        if (toggleMiniatureTextAction != null) { mapaParcial.put(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, toggleMiniatureTextAction);}
+        
         
         // 2.5. Tema
         if (temaClearAction != null) mapaParcial.put(AppActionCommands.CMD_TEMA_CLEAR, temaClearAction);
@@ -6351,276 +6084,511 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	 * @param indiceSeleccionadoPrincipal Índice (0-based) en el modelo PRINCIPAL
 	 *                                    (`model.getModeloLista()`).
 	 */
+  // En VisorController.java
+
+     public void actualizarModeloYVistaMiniaturas(int indiceSeleccionadoPrincipal) {
+
+         // --- 1. VALIDACIONES INICIALES Y PREPARACIÓN ---
+         // 1.1. Log de inicio
+         System.out.println("\n--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: " + indiceSeleccionadoPrincipal);
+
+         // 1.2. Validar dependencias críticas
+         if (model == null || model.getModeloLista() == null || view == null || view.getListaMiniaturas() == null || listCoordinator == null) {
+             System.err.println("WARN [actualizarMiniaturas]: Dependencias nulas (Modelo, Vista, ListaMiniaturas o Coordinator). Abortando.");
+             return;
+         }
+         // 1.3. Obtener modelo principal y su tamaño
+         DefaultListModel<String> modeloPrincipal = model.getModeloLista();
+         int totalPrincipal = modeloPrincipal.getSize();
+         System.out.println("  [actualizarMiniaturas] Tamaño modeloPrincipal: " + totalPrincipal);
+
+         // 1.4. Crear un NUEVO DefaultListModel temporal para las miniaturas
+         DefaultListModel<String> nuevoModeloMiniaturasTemp = new DefaultListModel<>();
+         // 1.5. Inicializar índice relativo (al modelo temporal)
+         int indiceSeleccionadoEnModeloMiniatura = -1;
+
+         // 1.6. Manejar caso de lista principal vacía o índice inválido
+         if (totalPrincipal == 0 || indiceSeleccionadoPrincipal < 0 || indiceSeleccionadoPrincipal >= totalPrincipal) {
+             System.out.println("  [actualizarMiniaturas] Índice inválido o lista principal vacía. Limpiando y saliendo.");
+             final DefaultListModel<String> modeloVacioParaVista = new DefaultListModel<>(); // Modelo vacío final
+             SwingUtilities.invokeLater(() -> {
+                 if (view != null && view.getListaMiniaturas() != null && listCoordinator != null) {
+                     listCoordinator.setSincronizandoUI(true);
+                     try {
+                         JList<String> lMini = view.getListaMiniaturas();
+                         lMini.setPreferredSize(new Dimension(lMini.getFixedCellWidth() > 0 ? lMini.getFixedCellWidth() : 50,
+                                                              lMini.getFixedCellHeight() > 0 ? lMini.getFixedCellHeight() : 50));
+                         view.setModeloListaMiniaturas(modeloVacioParaVista);
+                         if (lMini.getParent() != null) lMini.getParent().revalidate();
+                         lMini.clearSelection(); // Asegurar que no haya selección
+                         lMini.repaint();
+                     } finally {
+                         SwingUtilities.invokeLater(() -> listCoordinator.setSincronizandoUI(false));
+                     }
+                 }
+             });
+             System.out.println("--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---");
+             return;
+         }
+
+         // --- 2. CALCULAR RANGO DE MINIATURAS A MOSTRAR ---
+         // 2.1. Obtener configuración dinámica de cuántas mostrar antes/después
+         RangoMiniaturasCalculado rangoDinamico = calcularNumMiniaturasDinamicas();
+         int miniAntes = rangoDinamico.antes;
+         int miniDespues = rangoDinamico.despues;
+         System.out.println("  [actualizarMiniaturas] Usando rango dinámico -> Antes: " + miniAntes + ", Despues: " + miniDespues);
+
+         // 2.2. Calcular límites del rango [inicio..fin] en el modelo principal
+         int inicioRango = Math.max(0, indiceSeleccionadoPrincipal - miniAntes);
+         int finRango = Math.min(totalPrincipal - 1, indiceSeleccionadoPrincipal + miniDespues);
+         System.out.println("  [actualizarMiniaturas] Rango calculado en modelo principal: [" + inicioRango + ".." + finRango + "]");
+
+         // --- 3. RECONSTRUIR MODELO TEMPORAL DE MINIATURAS ---
+         List<Path> rutasEnRango = new ArrayList<>(); // Para precalentamiento
+         System.out.println("  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...");
+
+         for (int i = inicioRango; i <= finRango; i++) {
+             String clave = modeloPrincipal.getElementAt(i);
+             nuevoModeloMiniaturasTemp.addElement(clave);
+             Path ruta = model.getRutaCompleta(clave);
+             if (ruta != null) rutasEnRango.add(ruta);
+             if (i == indiceSeleccionadoPrincipal) {
+                 indiceSeleccionadoEnModeloMiniatura = nuevoModeloMiniaturasTemp.getSize() - 1; // Índice en el nuevo modelo temporal
+             }
+         }
+         System.out.println("  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: "
+                 + nuevoModeloMiniaturasTemp.getSize() + ". Índice relativo seleccionado: " + indiceSeleccionadoEnModeloMiniatura);
+
+         // --- 4. PRE-CALENTAR CACHÉ DE MINIATURAS (ASÍNCRONO) ---
+         precalentarCacheMiniaturasAsync(rutasEnRango);
+
+         // --- 5. ACTUALIZAR LA VISTA (JLIST MINIATURAS) EN EL EVENT DISPATCH THREAD (EDT) ---
+         final DefaultListModel<String> finalNuevoModeloParaVista = nuevoModeloMiniaturasTemp;
+         final int finalIndiceRelativoParaSeleccion = indiceSeleccionadoEnModeloMiniatura;
+         System.out.println("  [actualizarMiniaturas] Programando actualización de UI en EDT...");
+
+         SwingUtilities.invokeLater(() -> {
+             System.out.println("   -> [EDT Miniaturas Update] Ejecutando actualización UI...");
+             if (view == null || view.getListaMiniaturas() == null || listCoordinator == null) {
+                 System.err.println("ERROR [actualizarMiniaturas EDT]: Dependencias nulas en invokeLater.");
+                 return;
+             }
+
+             listCoordinator.setSincronizandoUI(true);
+             System.out.println("   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a true.");
+             try {
+                 JList<String> listaMinEnVista = view.getListaMiniaturas();
+
+                 // 5.1. Actualizar PreferredSize de JList ANTES de cambiar el modelo
+                 //      para que el FlowLayout del wrapper pueda centrar correctamente.
+                 int currentCellWidth = listaMinEnVista.getFixedCellWidth();
+                 int currentCellHeight = listaMinEnVista.getFixedCellHeight();
+
+                 if (currentCellWidth > 0 && currentCellHeight > 0) {
+                     int numItemsEnNuevoModelo = finalNuevoModeloParaVista.getSize();
+                     int newPreferredWidth = numItemsEnNuevoModelo * currentCellWidth;
+                     if (numItemsEnNuevoModelo == 0) newPreferredWidth = currentCellWidth; // Ancho mínimo
+
+                     Dimension newPrefSize = new Dimension(newPreferredWidth, currentCellHeight);
+                     if (!newPrefSize.equals(listaMinEnVista.getPreferredSize())) {
+                         listaMinEnVista.setPreferredSize(newPrefSize);
+                         System.out.println("   -> [EDT Miniaturas Update] PreferredSize de JList actualizado a: " + newPrefSize);
+                         if (listaMinEnVista.getParent() != null) { // El padre es wrapperListaMiniaturas
+                             listaMinEnVista.getParent().revalidate();
+                         }
+                     }
+                 }
+
+                 // 5.2. Asignar el nuevo modelo a la JList
+                 if (listaMinEnVista.getModel() != finalNuevoModeloParaVista) {
+                     view.setModeloListaMiniaturas(finalNuevoModeloParaVista); // setModeloListaMiniaturas tiene su propio log
+                 }
+
+                 // 5.3. Seleccionar el índice relativo calculado en la JList
+                 if (finalIndiceRelativoParaSeleccion >= 0 && finalIndiceRelativoParaSeleccion < finalNuevoModeloParaVista.getSize()) {
+                     if (listaMinEnVista.getSelectedIndex() != finalIndiceRelativoParaSeleccion) {
+                         listaMinEnVista.setSelectedIndex(finalIndiceRelativoParaSeleccion);
+                          System.out.println("   -> [EDT Miniaturas Update] setSelectedIndex(" + finalIndiceRelativoParaSeleccion + ") llamado.");
+                     }
+                     // No llamar a ensureIndexIsVisible aquí todavía para permitir que el centrado del FlowLayout actúe primero.
+                     // Se podría llamar en un invokeLater anidado si es estrictamente necesario y solo si la lista es más ancha que el viewport.
+                 } else {
+                     if (listaMinEnVista.getSelectedIndex() != -1) listaMinEnVista.clearSelection();
+                     System.err.println("WARN [actualizarMiniaturas EDT]: Índice relativo inválido para selección: " + finalIndiceRelativoParaSeleccion);
+                 }
+
+                 // 5.4. Repintar la JList
+                 //listaMinEnVista.repaint(); // setModel y setSelectedIndex suelen disparar repaints, pero uno explícito no hace daño.
+                                           // Si revalidate() se llamó en el padre, eso también debería cubrirlo.
+
+             } finally {
+                 SwingUtilities.invokeLater(() -> {
+                     if (listCoordinator != null) {
+                         listCoordinator.setSincronizandoUI(false);
+                     }
+                 });
+             }
+             System.out.println("   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.");
+         });
+
+         // --- 6. Log Final del Método ---
+         System.out.println("--- FIN actualizarModeloYVistaMiniaturas ---");
+         
+     } // --- Fin del metodo actualizarModeloYVistaMiniaturas
+     
+     
+//	public void actualizarModeloYVistaMiniaturas (int indiceSeleccionadoPrincipal)
+//	{
+//
+//		// --- 1. VALIDACIONES INICIALES Y PREPARACIÓN ---
+//		// 1.1. Log de inicio
+//		System.out.println("\n--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: "
+//				+ indiceSeleccionadoPrincipal);
+//
+//		// 1.2. Validar dependencias críticas (Modelo, Vista, Lista de Miniaturas,
+//		// Coordinador)
+//		if (model == null || model.getModeloLista() == null || view == null || view.getListaMiniaturas() == null
+//				|| listCoordinator == null)
+//		{
+//			System.err.println(
+//					"WARN [actualizarMiniaturas]: Dependencias nulas (Modelo, Vista, ListaMiniaturas o Coordinator). Abortando.");
+//			return; // Salir si falta algo esencial
+//		}
+//		// 1.3. Obtener modelo principal y su tamaño
+//		DefaultListModel<String> modeloPrincipal = model.getModeloLista();
+//		int totalPrincipal = modeloPrincipal.getSize();
+//		System.out.println("  [actualizarMiniaturas] Tamaño modeloPrincipal: " + totalPrincipal);
+//
+//		// 1.4. Crear un NUEVO DefaultListModel temporal para las miniaturas
+//		// Esto evita modificar el modelo actualmente en uso por la JList.
+//		DefaultListModel<String> nuevoModeloMiniaturasTemp = new DefaultListModel<>();
+//		// 1.5. Inicializar índice relativo (al modelo temporal)
+//		int indiceSeleccionadoEnModeloMiniatura = -1;
+//
+//		// 1.6. Manejar caso de lista principal vacía o índice inválido
+//		if (totalPrincipal == 0 || indiceSeleccionadoPrincipal < 0 || indiceSeleccionadoPrincipal >= totalPrincipal)
+//		{
+//			System.out.println("  [actualizarMiniaturas] Índice inválido o lista principal vacía. Saliendo.");
+//
+//			// Asegurar que la JList de miniaturas esté vacía si no lo estaba
+//			if (view.getListaMiniaturas().getModel().getSize() != 0)
+//			{
+//				// Programar la actualización en el EDT para asignar el modelo temporal vacío
+//				final DefaultListModel<String> modeloVacio = nuevoModeloMiniaturasTemp; // Referencia final
+//				SwingUtilities.invokeLater( () -> {
+//
+//					if (view != null && view.getListaMiniaturas() != null)
+//					{
+//						// Usar el flag para proteger la asignación del modelo vacío
+//						listCoordinator.setSincronizandoUI(true);
+//
+//						try
+//						{
+//							System.out.println(
+//									"  -> [actualizarMiniaturas] Estableciendo modelo vacío en JList Miniaturas.");
+//							view.setModeloListaMiniaturas(modeloVacio);
+//						} finally
+//						{
+//							SwingUtilities.invokeLater( () -> {
+//								if (listCoordinator != null)
+//									listCoordinator.setSincronizandoUI(false);
+//							});
+//						}
+//					}
+//				});
+//			}
+//
+//			// Limpiar selección visual por si acaso
+//			if (view.getListaMiniaturas().getSelectedIndex() != -1)
+//			{
+//				view.getListaMiniaturas().clearSelection();
+//			}
+//			System.out.println("--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---");
+//			return; // Salir del método
+//		}
+//
+//		// --- 2. CALCULAR RANGO DE MINIATURAS ---
+//		// 2.1. Obtener configuración de cuántas mostrar antes/después
+//		int miniAntes = model.getMiniaturasAntes();
+//		int miniDespues = model.getMiniaturasDespues();
+//		
+////		//LOG dynamicLog
+////		StringUtils.dynamicLog("** actualizarModeloYVistaMiniaturas **", 
+////				"miniAntes", miniAntes,
+////				"miniDespues", miniDespues
+////				);
+//		
+//		System.out.println("\n  [actualizarMiniaturas] Valores para rango: miniAntes=" + miniAntes + ", miniDespues=" + miniDespues);
+//		// 2.2. Calcular límites del rango [inicio..fin], ajustados a los límites del
+//		// modelo principal [0..totalPrincipal-1]
+//		int inicioRango = Math.max(0, indiceSeleccionadoPrincipal - miniAntes);
+//		int finRango = Math.min(totalPrincipal - 1, indiceSeleccionadoPrincipal + miniDespues);
+//		System.out.println("  [actualizarMiniaturas] Rango calculado: [" + inicioRango + ".." + finRango + "]\n");
+//
+//		// --- 3. RECONSTRUIR MODELO TEMPORAL DE MINIATURAS ---
+//		// 3.1. Preparar lista de rutas para precalentamiento
+//		List<Path> rutasEnRango = new ArrayList<>();
+//		System.out.println("  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...");
+//
+//		// 3.2. Iterar sobre los índices del modelo principal que caen en el rango
+//		for (int i = inicioRango; i <= finRango; i++)
+//		{
+//			// 3.2.1. Obtener clave del modelo principal
+//			String clave = modeloPrincipal.getElementAt(i);
+//			// 3.2.2. Añadir clave al modelo TEMPORAL
+//			nuevoModeloMiniaturasTemp.addElement(clave);
+//			// 3.2.3. Añadir ruta a la lista para precalentar (si existe)
+//			Path ruta = model.getRutaCompleta(clave);
+//
+//			if (ruta != null)
+//			{
+//				rutasEnRango.add(ruta);
+//			}
+//
+//			// 3.2.4. Calcular el índice RELATIVO si esta es la imagen seleccionada
+//			// principal
+//			if (i == indiceSeleccionadoPrincipal)
+//			{
+//				// El índice relativo es el tamaño actual del modelo temporal menos 1
+//				indiceSeleccionadoEnModeloMiniatura = i- inicioRango;//nuevoModeloMiniaturasTemp.getSize() - 1;
+//			}
+//		}
+//		// 3.3. Log del resultado del llenado
+//		System.out.println("  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: "
+//				+ nuevoModeloMiniaturasTemp.getSize() + ". Índice relativo calculado: "
+//				+ indiceSeleccionadoEnModeloMiniatura);
+//
+//		// --- 4. PRE-CALENTAR CACHÉ DE MINIATURAS (ASÍNCRONO) ---
+//		// 4.1. Llamar al método que envía las tareas de caché al ExecutorService
+//		precalentarCacheMiniaturasAsync(rutasEnRango);
+//
+//		// --- 5. ACTUALIZAR LA VISTA (JLIST MINIATURAS) EN EL EVENT DISPATCH THREAD
+//		
+//		// (EDT) ---
+//		// 5.1. Preparar variables finales para usar dentro de la lambda de invokeLater
+//		final DefaultListModel<String> finalNuevoModelo = nuevoModeloMiniaturasTemp; // El modelo TEMPORAL reconstruido
+//		final int finalIndiceRelativo = indiceSeleccionadoEnModeloMiniatura; // El índice relativo calculado
+//		
+//		// 5.2. Log antes de programar la actualización
+//		System.out.println("  [actualizarMiniaturas] Programando actualización de UI en EDT...");
+//
+//		SwingUtilities.invokeLater( () -> { // Inicio de la lambda que se ejecuta en el EDT
+//		
+//			// 5.3. Log de inicio y re-validación de dependencias DENTRO del EDT
+//			System.out.println("   -> [EDT Miniaturas] Ejecutando actualización UI...");
+//
+//			if (view == null || view.getListaMiniaturas() == null || listCoordinator == null)
+//			{
+//				System.err.println("ERROR [actualizarMiniaturas EDT]: Dependencias nulas en invokeLater.");
+//				return; // Salir si faltan componentes esenciales
+//			}
+//
+//			// 5.4. *** MANEJO DEL FLAG SINCRONIZANDO UI ***
+//			// Activar el flag ANTES de modificar la JList (setModel o setSelectedIndex)
+//			// y desactivarlo DESPUÉS en un finally con invokeLater anidado.
+//			
+//			// ----- INICIO BLOQUE PROTEGIDO POR FLAG -----
+//			listCoordinator.setSincronizandoUI(true); // <-- ACTIVAR FLAG
+//			System.out.println("   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.");
+//
+//			try
+//			{ // Usar try-finally para garantizar la desactivación del flag
+//
+//				// 5.5. ASIGNAR EL NUEVO MODELO (TEMPORAL) A LA JLIST
+//				// Esta operación reemplaza el modelo anterior de la JList.
+//				boolean modeloCambiado = false; // Flag local para seguimiento
+//				// Comprobar si el modelo que tiene la JList es diferente al nuevo
+//
+//				if (view.getListaMiniaturas().getModel() != finalNuevoModelo)
+//				{
+//					System.out.println("   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: "
+//							+ finalNuevoModelo.getSize() + ")");
+//					view.setModeloListaMiniaturas(finalNuevoModelo); // Asigna el modelo reconstruido
+//					modeloCambiado = true;
+//				} else
+//				{
+//					// Esto sería raro si usamos un modelo temporal nuevo cada vez
+//					System.out.println("   -> [EDT Miniaturas] El modelo ya era el correcto (¿inesperado?).");
+//				}
+//
+//				// 5.6. SELECCIONAR EL ÍNDICE RELATIVO CALCULADO EN LA JLIST
+//				// Solo si el índice es válido.
+//				if (finalIndiceRelativo >= 0 && finalIndiceRelativo < finalNuevoModelo.getSize())
+//				{
+//
+//					// Comprobar si la selección actual es diferente O si acabamos de cambiar el
+//					// modelo
+//					if (modeloCambiado || view.getListaMiniaturas().getSelectedIndex() != finalIndiceRelativo)
+//					{
+//						System.out.println(
+//								"   -> [EDT Miniaturas] Llamando a setSelectedIndex(" + finalIndiceRelativo + ")");
+//						view.getListaMiniaturas().setSelectedIndex(finalIndiceRelativo); // Establece la selección
+//																							// visual
+//					} else
+//					{
+//						System.out.println("   -> [EDT Miniaturas] Índice relativo " + finalIndiceRelativo
+//								+ " ya estaba seleccionado.");
+//					}
+//
+//					// 5.7. ASEGURAR VISIBILIDAD DEL ÍNDICE SELECCIONADO
+//					// Se hace en un invokeLater anidado para darle tiempo a la UI a procesar la
+//					// selección.
+//					final int indexToEnsure = finalIndiceRelativo;
+//					SwingUtilities.invokeLater( () -> { // Inicio invokeLater anidado para visibilidad
+//						// Re-validar componentes necesarios
+//
+//						if (view != null && view.getListaMiniaturas() != null && view.getScrollListaMiniaturas() != null
+//								&& view.getScrollListaMiniaturas().isVisible())
+//						{
+//
+//							// Re-validar índice contra el modelo actual de la JList
+//							if (indexToEnsure >= 0 && indexToEnsure < view.getListaMiniaturas().getModel().getSize())
+//							{
+//								System.out
+//										.println("     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible("
+//												+ indexToEnsure + ")");
+//
+//								try
+//								{
+//									view.getListaMiniaturas().ensureIndexIsVisible(indexToEnsure); // Hace scroll si es
+//																									// necesario
+//								} catch (Exception ex)
+//								{
+//									System.err.println("Error ensureVis(M):" + ex.getMessage());
+//								}
+//							} else
+//							{
+//								System.out.println(
+//										"WARN [EDT Visibilidad]: Índice relativo fuera de rango al asegurar visibilidad: "
+//												+ indexToEnsure);
+//							}
+//						}
+//					}); // Fin invokeLater anidado para visibilidad
+//
+//				} else
+//				{ // El índice relativo calculado no era válido
+//					// Deseleccionar si había algo seleccionado en la JList
+//
+//					if (view.getListaMiniaturas().getSelectedIndex() != -1)
+//					{
+//						view.getListaMiniaturas().clearSelection();
+//					}
+//					System.err.println(
+//							"WARN [actualizarMiniaturas EDT]: Índice relativo inválido al intentar seleccionar: "
+//									+ finalIndiceRelativo);
+//				}
+//
+//				// 5.8. RE-PINTAR LA JLIST (Asegura actualización visual)
+//				System.out.println("   -> [EDT Miniaturas] Llamando a repaint()");
+//				view.getListaMiniaturas().repaint();
+//
+//			} finally
+//			{
+//				// 5.9. DESACTIVAR EL FLAG (Siempre, y en otro invokeLater para seguridad)
+//				SwingUtilities.invokeLater( () -> {
+//
+//					if (listCoordinator != null)
+//					{ // Re-chequear por si acaso
+//						listCoordinator.setSincronizandoUI(false); // El setter tiene log interno
+//					}
+//					
+//				}); // Fin invokeLater para desactivar flag
+//			} // ----- FIN BLOQUE PROTEGIDO POR FLAG -----
+//
+//			// 5.10. Log final de la ejecución en EDT
+//			System.out.println("   -> [EDT Miniaturas] FIN Ejecución actualización UI.");
+//			
+//		}); // Fin invokeLater principal
+//
+//		// --- 6. Log Final del Método ---
+//		System.out.println("--- FIN actualizarModeloYVistaMiniaturas ---");
+//
+//	} // --- FIN actualizarModeloYVistaMiniaturas ---      
       
-	public void actualizarModeloYVistaMiniaturas (int indiceSeleccionadoPrincipal)
-	{
 
-		// --- 1. VALIDACIONES INICIALES Y PREPARACIÓN ---
-		// 1.1. Log de inicio
-		System.out.println("\n--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: "
-				+ indiceSeleccionadoPrincipal);
+     /**
+      * Calcula dinámicamente el número de miniaturas a mostrar antes y después de la
+      * miniatura central, basándose en el ancho disponible del viewport del JScrollPane
+      * de miniaturas y el ancho de cada celda de miniatura.
+      * Respeta los máximos configurados por el usuario.
+      *
+      * @return Un objeto RangoMiniaturasCalculado con los valores 'antes' y 'despues'.
+      */
+     public RangoMiniaturasCalculado calcularNumMiniaturasDinamicas() {
+         int cfgMiniaturasAntes, cfgMiniaturasDespues;
 
-		// 1.2. Validar dependencias críticas (Modelo, Vista, Lista de Miniaturas,
-		// Coordinador)
-		if (model == null || model.getModeloLista() == null || view == null || view.getListaMiniaturas() == null
-				|| listCoordinator == null)
-		{
-			System.err.println(
-					"WARN [actualizarMiniaturas]: Dependencias nulas (Modelo, Vista, ListaMiniaturas o Coordinator). Abortando.");
-			return; // Salir si falta algo esencial
-		}
-		// 1.3. Obtener modelo principal y su tamaño
-		DefaultListModel<String> modeloPrincipal = model.getModeloLista();
-		int totalPrincipal = modeloPrincipal.getSize();
-		System.out.println("  [actualizarMiniaturas] Tamaño modeloPrincipal: " + totalPrincipal);
+         // 1. Obtener los máximos configurados de 'antes' y 'después'
+         if (model != null) {
+             cfgMiniaturasAntes = model.getMiniaturasAntes();
+             cfgMiniaturasDespues = model.getMiniaturasDespues();
+         } else if (configuration != null) {
+             cfgMiniaturasAntes = configuration.getInt("miniaturas.cantidad.antes", DEFAULT_MINIATURAS_ANTES_FALLBACK);
+             cfgMiniaturasDespues = configuration.getInt("miniaturas.cantidad.despues", DEFAULT_MINIATURAS_DESPUES_FALLBACK);
+             System.out.println("  [CalcularMiniaturas] WARN: Modelo nulo, usando valores de config/fallback para antes/después.");
+         } else {
+             cfgMiniaturasAntes = DEFAULT_MINIATURAS_ANTES_FALLBACK;
+             cfgMiniaturasDespues = DEFAULT_MINIATURAS_DESPUES_FALLBACK;
+             System.err.println("  [CalcularMiniaturas] ERROR: Modelo y Config nulos, usando hardcoded fallbacks.");
+         }
 
-		// 1.4. Crear un NUEVO DefaultListModel temporal para las miniaturas
-		// Esto evita modificar el modelo actualmente en uso por la JList.
-		DefaultListModel<String> nuevoModeloMiniaturasTemp = new DefaultListModel<>();
-		// 1.5. Inicializar índice relativo (al modelo temporal)
-		int indiceSeleccionadoEnModeloMiniatura = -1;
+         // 2. Validar si la vista y sus componentes están listos para el cálculo
+         if (view == null || view.getScrollListaMiniaturas() == null || view.getListaMiniaturas() == null) {
+             System.out.println("  [CalcularMiniaturas] WARN: Vista o componentes de miniaturas nulos. Devolviendo configurados.");
+             return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+         }
 
-		// 1.6. Manejar caso de lista principal vacía o índice inválido
-		if (totalPrincipal == 0 || indiceSeleccionadoPrincipal < 0 || indiceSeleccionadoPrincipal >= totalPrincipal)
-		{
-			System.out.println("  [actualizarMiniaturas] Índice inválido o lista principal vacía. Saliendo.");
+         JScrollPane scrollPane = view.getScrollListaMiniaturas();
+         int viewportWidth = scrollPane.getViewport().getWidth();
+         int cellWidth = view.getListaMiniaturas().getFixedCellWidth(); // Obtener de la JList
 
-			// Asegurar que la JList de miniaturas esté vacía si no lo estaba
-			if (view.getListaMiniaturas().getModel().getSize() != 0)
-			{
-				// Programar la actualización en el EDT para asignar el modelo temporal vacío
-				final DefaultListModel<String> modeloVacio = nuevoModeloMiniaturasTemp; // Referencia final
-				SwingUtilities.invokeLater( () -> {
+         // Si aún no hay dimensiones válidas, usar los valores configurados
+         if (viewportWidth <= 0 || cellWidth <= 0) {
+             System.out.println("  [CalcularMiniaturas] WARN: ViewportWidth o CellWidth inválidos (" + viewportWidth + ", " + cellWidth + "). Devolviendo configurados.");
+             return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+         }
 
-					if (view != null && view.getListaMiniaturas() != null)
-					{
-						// Usar el flag para proteger la asignación del modelo vacío
-						listCoordinator.setSincronizandoUI(true);
+         // 3. Calcular cuántas miniaturas caben en total
+         int totalMiniaturasQueCaben = viewportWidth / cellWidth;
+         System.out.println("  [CalcularMiniaturas] ViewportWidth: " + viewportWidth + ", CellWidth: " + cellWidth + ", Total que caben: " + totalMiniaturasQueCaben);
 
-						try
-						{
-							System.out.println(
-									"  -> [actualizarMiniaturas] Estableciendo modelo vacío en JList Miniaturas.");
-							view.setModeloListaMiniaturas(modeloVacio);
-						} finally
-						{
-							SwingUtilities.invokeLater( () -> {
-								if (listCoordinator != null)
-									listCoordinator.setSincronizandoUI(false);
-							});
-						}
-					}
-				});
-			}
+         int numAntesCalculado;
+         int numDespuesCalculado;
 
-			// Limpiar selección visual por si acaso
-			if (view.getListaMiniaturas().getSelectedIndex() != -1)
-			{
-				view.getListaMiniaturas().clearSelection();
-			}
-			System.out.println("--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---");
-			return; // Salir del método
-		}
+         // 4. Distribuir el espacio disponible, respetando los máximos configurados
+         int maxTotalConfigurado = cfgMiniaturasAntes + 1 + cfgMiniaturasDespues;
 
-		// --- 2. CALCULAR RANGO DE MINIATURAS ---
-		// 2.1. Obtener configuración de cuántas mostrar antes/después
-		int miniAntes = model.getMiniaturasAntes();
-		int miniDespues = model.getMiniaturasDespues();
-		
-//		//LOG dynamicLog
-//		StringUtils.dynamicLog("** actualizarModeloYVistaMiniaturas **", 
-//				"miniAntes", miniAntes,
-//				"miniDespues", miniDespues
-//				);
-		
-		System.out.println("\n  [actualizarMiniaturas] Valores para rango: miniAntes=" + miniAntes + ", miniDespues=" + miniDespues);
-		// 2.2. Calcular límites del rango [inicio..fin], ajustados a los límites del
-		// modelo principal [0..totalPrincipal-1]
-		int inicioRango = Math.max(0, indiceSeleccionadoPrincipal - miniAntes);
-		int finRango = Math.min(totalPrincipal - 1, indiceSeleccionadoPrincipal + miniDespues);
-		System.out.println("  [actualizarMiniaturas] Rango calculado: [" + inicioRango + ".." + finRango + "]\n");
+         if (totalMiniaturasQueCaben >= maxTotalConfigurado) {
+             // Cabe todo lo configurado (o más), usar los máximos de configuración
+             numAntesCalculado = cfgMiniaturasAntes;
+             numDespuesCalculado = cfgMiniaturasDespues;
+         } else if (totalMiniaturasQueCaben <= 1) {
+             // Solo cabe la miniatura central (o ninguna más)
+             numAntesCalculado = 0;
+             numDespuesCalculado = 0;
+         } else {
+             // Caben menos de lo configurado, pero más que solo la central. Distribuir.
+             int miniaturasLateralesDisponibles = totalMiniaturasQueCaben - 1; // Restar la central
 
-		// --- 3. RECONSTRUIR MODELO TEMPORAL DE MINIATURAS ---
-		// 3.1. Preparar lista de rutas para precalentamiento
-		List<Path> rutasEnRango = new ArrayList<>();
-		System.out.println("  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...");
+             // Intentar mantener la proporción de la configuración si es posible
+             double ratioAntesOriginal = 0.5; // Default si no hay preferencia (cfgMiniaturasAntes + cfgMiniaturasDespues == 0)
+             if ((cfgMiniaturasAntes + cfgMiniaturasDespues) > 0) {
+                 ratioAntesOriginal = (double) cfgMiniaturasAntes / (cfgMiniaturasAntes + cfgMiniaturasDespues);
+             }
 
-		// 3.2. Iterar sobre los índices del modelo principal que caen en el rango
-		for (int i = inicioRango; i <= finRango; i++)
-		{
-			// 3.2.1. Obtener clave del modelo principal
-			String clave = modeloPrincipal.getElementAt(i);
-			// 3.2.2. Añadir clave al modelo TEMPORAL
-			nuevoModeloMiniaturasTemp.addElement(clave);
-			// 3.2.3. Añadir ruta a la lista para precalentar (si existe)
-			Path ruta = model.getRutaCompleta(clave);
+             numAntesCalculado = (int) Math.round(miniaturasLateralesDisponibles * ratioAntesOriginal);
+             numDespuesCalculado = miniaturasLateralesDisponibles - numAntesCalculado;
 
-			if (ruta != null)
-			{
-				rutasEnRango.add(ruta);
-			}
+             // Asegurarse de no exceder los máximos individuales (aunque esto ya debería
+             // estar cubierto por la condición totalMiniaturasQueCaben < maxTotalConfigurado)
+             numAntesCalculado = Math.min(numAntesCalculado, cfgMiniaturasAntes);
+             numDespuesCalculado = Math.min(numDespuesCalculado, cfgMiniaturasDespues);
+         }
 
-			// 3.2.4. Calcular el índice RELATIVO si esta es la imagen seleccionada
-			// principal
-			if (i == indiceSeleccionadoPrincipal)
-			{
-				// El índice relativo es el tamaño actual del modelo temporal menos 1
-				indiceSeleccionadoEnModeloMiniatura = i- inicioRango;//nuevoModeloMiniaturasTemp.getSize() - 1;
-			}
-		}
-		// 3.3. Log del resultado del llenado
-		System.out.println("  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: "
-				+ nuevoModeloMiniaturasTemp.getSize() + ". Índice relativo calculado: "
-				+ indiceSeleccionadoEnModeloMiniatura);
-
-		// --- 4. PRE-CALENTAR CACHÉ DE MINIATURAS (ASÍNCRONO) ---
-		// 4.1. Llamar al método que envía las tareas de caché al ExecutorService
-		precalentarCacheMiniaturasAsync(rutasEnRango);
-
-		// --- 5. ACTUALIZAR LA VISTA (JLIST MINIATURAS) EN EL EVENT DISPATCH THREAD
-		
-		// (EDT) ---
-		// 5.1. Preparar variables finales para usar dentro de la lambda de invokeLater
-		final DefaultListModel<String> finalNuevoModelo = nuevoModeloMiniaturasTemp; // El modelo TEMPORAL reconstruido
-		final int finalIndiceRelativo = indiceSeleccionadoEnModeloMiniatura; // El índice relativo calculado
-		
-		// 5.2. Log antes de programar la actualización
-		System.out.println("  [actualizarMiniaturas] Programando actualización de UI en EDT...");
-
-		SwingUtilities.invokeLater( () -> { // Inicio de la lambda que se ejecuta en el EDT
-		
-			// 5.3. Log de inicio y re-validación de dependencias DENTRO del EDT
-			System.out.println("   -> [EDT Miniaturas] Ejecutando actualización UI...");
-
-			if (view == null || view.getListaMiniaturas() == null || listCoordinator == null)
-			{
-				System.err.println("ERROR [actualizarMiniaturas EDT]: Dependencias nulas en invokeLater.");
-				return; // Salir si faltan componentes esenciales
-			}
-
-			// 5.4. *** MANEJO DEL FLAG SINCRONIZANDO UI ***
-			// Activar el flag ANTES de modificar la JList (setModel o setSelectedIndex)
-			// y desactivarlo DESPUÉS en un finally con invokeLater anidado.
-			
-			// ----- INICIO BLOQUE PROTEGIDO POR FLAG -----
-			listCoordinator.setSincronizandoUI(true); // <-- ACTIVAR FLAG
-			System.out.println("   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.");
-
-			try
-			{ // Usar try-finally para garantizar la desactivación del flag
-
-				// 5.5. ASIGNAR EL NUEVO MODELO (TEMPORAL) A LA JLIST
-				// Esta operación reemplaza el modelo anterior de la JList.
-				boolean modeloCambiado = false; // Flag local para seguimiento
-				// Comprobar si el modelo que tiene la JList es diferente al nuevo
-
-				if (view.getListaMiniaturas().getModel() != finalNuevoModelo)
-				{
-					System.out.println("   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: "
-							+ finalNuevoModelo.getSize() + ")");
-					view.setModeloListaMiniaturas(finalNuevoModelo); // Asigna el modelo reconstruido
-					modeloCambiado = true;
-				} else
-				{
-					// Esto sería raro si usamos un modelo temporal nuevo cada vez
-					System.out.println("   -> [EDT Miniaturas] El modelo ya era el correcto (¿inesperado?).");
-				}
-
-				// 5.6. SELECCIONAR EL ÍNDICE RELATIVO CALCULADO EN LA JLIST
-				// Solo si el índice es válido.
-				if (finalIndiceRelativo >= 0 && finalIndiceRelativo < finalNuevoModelo.getSize())
-				{
-
-					// Comprobar si la selección actual es diferente O si acabamos de cambiar el
-					// modelo
-					if (modeloCambiado || view.getListaMiniaturas().getSelectedIndex() != finalIndiceRelativo)
-					{
-						System.out.println(
-								"   -> [EDT Miniaturas] Llamando a setSelectedIndex(" + finalIndiceRelativo + ")");
-						view.getListaMiniaturas().setSelectedIndex(finalIndiceRelativo); // Establece la selección
-																							// visual
-					} else
-					{
-						System.out.println("   -> [EDT Miniaturas] Índice relativo " + finalIndiceRelativo
-								+ " ya estaba seleccionado.");
-					}
-
-					// 5.7. ASEGURAR VISIBILIDAD DEL ÍNDICE SELECCIONADO
-					// Se hace en un invokeLater anidado para darle tiempo a la UI a procesar la
-					// selección.
-					final int indexToEnsure = finalIndiceRelativo;
-					SwingUtilities.invokeLater( () -> { // Inicio invokeLater anidado para visibilidad
-						// Re-validar componentes necesarios
-
-						if (view != null && view.getListaMiniaturas() != null && view.getScrollListaMiniaturas() != null
-								&& view.getScrollListaMiniaturas().isVisible())
-						{
-
-							// Re-validar índice contra el modelo actual de la JList
-							if (indexToEnsure >= 0 && indexToEnsure < view.getListaMiniaturas().getModel().getSize())
-							{
-								System.out
-										.println("     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible("
-												+ indexToEnsure + ")");
-
-								try
-								{
-									view.getListaMiniaturas().ensureIndexIsVisible(indexToEnsure); // Hace scroll si es
-																									// necesario
-								} catch (Exception ex)
-								{
-									System.err.println("Error ensureVis(M):" + ex.getMessage());
-								}
-							} else
-							{
-								System.out.println(
-										"WARN [EDT Visibilidad]: Índice relativo fuera de rango al asegurar visibilidad: "
-												+ indexToEnsure);
-							}
-						}
-					}); // Fin invokeLater anidado para visibilidad
-
-				} else
-				{ // El índice relativo calculado no era válido
-					// Deseleccionar si había algo seleccionado en la JList
-
-					if (view.getListaMiniaturas().getSelectedIndex() != -1)
-					{
-						view.getListaMiniaturas().clearSelection();
-					}
-					System.err.println(
-							"WARN [actualizarMiniaturas EDT]: Índice relativo inválido al intentar seleccionar: "
-									+ finalIndiceRelativo);
-				}
-
-				// 5.8. RE-PINTAR LA JLIST (Asegura actualización visual)
-				System.out.println("   -> [EDT Miniaturas] Llamando a repaint()");
-				view.getListaMiniaturas().repaint();
-
-			} finally
-			{
-				// 5.9. DESACTIVAR EL FLAG (Siempre, y en otro invokeLater para seguridad)
-				SwingUtilities.invokeLater( () -> {
-
-					if (listCoordinator != null)
-					{ // Re-chequear por si acaso
-						listCoordinator.setSincronizandoUI(false); // El setter tiene log interno
-					}
-					
-				}); // Fin invokeLater para desactivar flag
-			} // ----- FIN BLOQUE PROTEGIDO POR FLAG -----
-
-			// 5.10. Log final de la ejecución en EDT
-			System.out.println("   -> [EDT Miniaturas] FIN Ejecución actualización UI.");
-			
-		}); // Fin invokeLater principal
-
-		// --- 6. Log Final del Método ---
-		System.out.println("--- FIN actualizarModeloYVistaMiniaturas ---");
-
-	} // --- FIN actualizarModeloYVistaMiniaturas ---      
-      
-	  
+         System.out.println("  [CalcularMiniaturas] Rango dinámico calculado -> Antes: " + numAntesCalculado + ", Despues: " + numDespuesCalculado);
+         return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
+     }
+     
+     
 // ********************************************************************************* METODOS DE MOVIMIENTO CON LISTCOORDINATOR
 // ***************************************************************************************************************************
 	  
@@ -6880,6 +6848,136 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     }
     
     
+//    /**
+//     * Establece si se deben mostrar los nombres en las miniaturas,
+//     * guarda la configuración y refresca la UI de las miniaturas.
+//     * @param mostrar true para mostrar nombres, false para ocultarlos.
+//     */
+//    public void setMostrarNombresMiniaturas(boolean mostrar) {
+//        System.out.println("[Controller] setMostrarNombresMiniaturas: " + mostrar);
+//        if (configuration != null) {
+//            configuration.setString("ui.miniaturas.mostrar_nombres", String.valueOf(mostrar));
+//        }
+//        // No necesitamos actualizar el modelo aquí, el renderer leerá la config.
+//        // Solo necesitamos que la JList de miniaturas se repinte.
+//        solicitarRefrescoRenderersMiniaturas();
+//    }
+    
+    
+    /**
+     * Solicita que la JList de miniaturas se repinte.
+     * Esto hará que MiniaturaListCellRenderer se ejecute para las celdas visibles
+     * y pueda leer el nuevo estado de configuración para mostrar/ocultar nombres.
+     */
+    public void solicitarRefrescoRenderersMiniaturas() {
+        if (view != null && view.getListaMiniaturas() != null) {
+            System.out.println("  [Controller] Solicitando repintado de listaMiniaturas.");
+            view.getListaMiniaturas().repaint();
+
+            // Si ocultar/mostrar nombres cambia la ALTURA de las celdas,
+            // podrías necesitar más que un simple repaint().
+            // Por ahora, asumamos que la altura de la celda es fija y solo cambia
+            // la visibilidad del JLabel del nombre.
+            // Si la altura cambia, necesitarías:
+            // 1. Que MiniaturaListCellRenderer devuelva una nueva PreferredSize.
+            // 2. Invalidar el layout de la JList:
+            //    view.getListaMiniaturas().revalidate();
+            //    view.getListaMiniaturas().repaint();
+            // 3. Posiblemente recalcular el número de miniaturas visibles si la altura de celda cambió.
+            //    Esto haría que el `ComponentListener` de redimensionamiento sea más complejo
+            //    o que necesites llamar a actualizarModeloYVistaMiniaturas aquí también.
+            // ¡POR AHORA, MANTENGAMOSLO SIMPLE CON SOLO REPAINT!
+        }
+    } // --- FIN metodo solicitarRefrescoRenderersMiniaturas 
+    
+    
+    /**
+     * Establece si se deben mostrar los nombres en las miniaturas de la barra inferior,
+     * guarda esta preferencia en la configuración y actualiza la JList de miniaturas
+     * para que refleje el cambio.
+     *
+     * @param mostrar true para mostrar los nombres debajo de las miniaturas, false para ocultarlos.
+     */
+    public void setMostrarNombresMiniaturas (boolean mostrar) { //WENO
+        System.out.println("[VisorController] Estableciendo mostrarNombresMiniaturas a: " + mostrar);
+
+        // 1. Validar dependencias
+        if (configuration == null) {
+            System.err.println("ERROR [setMostrarNombresMiniaturas]: ConfigurationManager es null. No se puede guardar el estado.");
+            // Podrías decidir continuar sin guardar si es un error no crítico,
+            // o retornar si la configuración es esencial.
+        } else {
+            // 2. Actualizar la configuración en memoria
+            configuration.setString("ui.miniaturas.mostrar_nombres", String.valueOf(mostrar));
+            System.out.println("  -> Configuración 'ui.miniaturas.mostrar_nombres' actualizada a: " + mostrar);
+            // La configuración se guardará al archivo al cerrar la aplicación (vía ShutdownHook).
+        }
+
+        // 3. Actualizar la JList de miniaturas en la Vista
+        // Esto implica crear un nuevo renderer con la nueva configuración y asignarlo.
+        if (view != null 
+        		&& view.getListaMiniaturas() != null 
+        		&& this.model != null 
+        		&& this.servicioMiniaturas != null 
+        		&& this.uiConfigForView != null 
+        		&& this.uiConfigForView.configurationManager != null) 
+        {
+
+            System.out.println("  -> Recreando y asignando nuevo MiniaturaListCellRenderer. Mostrar Nombres: " + mostrar);
+
+            // Obtener las dimensiones necesarias para el renderer desde la configuración actual
+            // (estos son los tamaños de la IMAGEN dentro de la miniatura, no de la celda completa)
+            int thumbWidth = this.uiConfigForView.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
+            int thumbHeight = this.uiConfigForView.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
+
+            // Obtener los colores del tema actual para el renderer
+            // Asumiendo que uiConfigForView tiene los colores actualizados del tema
+            Color colorFondoMiniatura = uiConfigForView.colorFondoSecundario; // O el que uses para fondo de miniaturas
+            Color colorFondoSeleccionMiniatura = uiConfigForView.colorSeleccionFondo; // O el específico para miniaturas
+            Color colorTextoMiniatura = uiConfigForView.colorTextoPrimario;
+            Color colorTextoSeleccionMiniatura = uiConfigForView.colorSeleccionTexto;
+            Color colorBordeSeleccionMiniatura = Color.ORANGE; // O un color de uiConfigForView.colorBordeSeleccionActiva o similar
+
+            // Crear la nueva instancia del renderer
+            MiniaturaListCellRenderer newRenderer = new MiniaturaListCellRenderer(
+                this.servicioMiniaturas,
+                this.model,
+                thumbWidth,
+                thumbHeight,
+                mostrar, 
+                colorFondoMiniatura,
+                colorFondoSeleccionMiniatura,
+                colorTextoMiniatura,
+                colorTextoSeleccionMiniatura,
+                colorBordeSeleccionMiniatura
+            );
+
+            // Asignar el nuevo renderer a la JList
+            view.getListaMiniaturas().setCellRenderer(newRenderer);
+
+            // MUY IMPORTANTE: Actualizar la altura (y ancho) fija de las celdas en la JList
+            // para que coincida con lo que el nuevo renderer espera.
+            view.getListaMiniaturas().setFixedCellHeight(newRenderer.getAlturaCalculadaDeCelda());
+            view.getListaMiniaturas().setFixedCellWidth(newRenderer.getAnchoCalculadaDeCelda());
+            
+            // Forzar a la JList a revalidar su layout y repintarse completamente
+            view.getListaMiniaturas().revalidate(); // Importante si el tamaño de celda cambió
+            view.getListaMiniaturas().repaint();
+
+            // Opcional: Si el cambio de altura de celda afecta cuántas miniaturas caben
+            // en el ancho actual del JScrollPane, podrías necesitar recalcular la ventana deslizante.
+            // Esto es más avanzado. Por ahora, revalidate/repaint podría ser suficiente
+            // si el ancho de celda no cambia.
+            // if (listCoordinator != null && listCoordinator.getIndiceOficialSeleccionado() != -1) {
+            //     actualizarModeloYVistaMiniaturas(listCoordinator.getIndiceOficialSeleccionado());
+            // }
+
+        } else {
+            System.err.println("WARN [setMostrarNombresMiniaturas]: No se pudo recrear y asignar el renderer de miniaturas debido a dependencias nulas (vista, lista, modelo, servicios, o uiConfig).");
+        }
+    }
+
+
 	
 	// Getters
 	public DefaultListModel<String> getModeloMiniaturas () { return modeloMiniaturas; }
@@ -6922,7 +7020,18 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ***************************************************************************************************************************    
 
     
+    public static class RangoMiniaturasCalculado { // Puede ser public o package-private
+        public final int antes;
+        public final int despues;
+
+        public RangoMiniaturasCalculado(int antes, int despues) {
+            this.antes = antes;
+            this.despues = despues;
+        }
+    }    
     
 } // --- FIN CLASE VisorController ---
+
+
 
 

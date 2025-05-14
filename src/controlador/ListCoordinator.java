@@ -29,7 +29,7 @@ public class ListCoordinator {
 
     //TODO se podria especificar en el config.cfg
     // Define el tamaño del salto para Page Up/Down (ajustable)
-    private static final int TAMANO_SALTO_BLOQUE = 10; // Salta 10 ítems, por ejemplo
+    private static final int PAGE_SCROLL_INCREMENT = 10; // Salta 10 ítems, por ejemplo
     
     /**
      * Constructor.
@@ -943,7 +943,7 @@ public class ListCoordinator {
         // --- 2. CALCULAR ÍNDICE DEL BLOQUE SIGUIENTE ---
         int actual = this.indiceOficialSeleccionado;
         // Si no hay selección, empezar desde el principio + salto
-        int indiceDeseado = (actual == -1) ? TAMANO_SALTO_BLOQUE : actual + TAMANO_SALTO_BLOQUE;
+        int indiceDeseado = (actual == -1) ? PAGE_SCROLL_INCREMENT : actual + PAGE_SCROLL_INCREMENT;
 
         // 3. CLAMP (Limitar) al último índice válido. No hacer wrap around.
         int ultimoIndice = total - 1;
@@ -987,7 +987,7 @@ public class ListCoordinator {
         // Si no hay selección, ir al índice 0
         // Si está en el 0, el bloque anterior es 0
         // Si está en otro, restar el salto
-        int indiceDeseado = (actual == -1) ? 0 : actual - TAMANO_SALTO_BLOQUE;
+        int indiceDeseado = (actual == -1) ? 0 : actual - PAGE_SCROLL_INCREMENT;
 
         // 3. CLAMP (Limitar) al primer índice válido (0). No hacer wrap around.
         indiceDeseado = Math.max(0, indiceDeseado); // No pasar de 0
@@ -1118,6 +1118,12 @@ public class ListCoordinator {
         System.out.println("-------------------------");
     
     } // --- FIN logActionInfo ---
+
+
+
+    public synchronized int getIndiceOficialSeleccionado() {
+        return this.indiceOficialSeleccionado;
+    }
     
 }    
     

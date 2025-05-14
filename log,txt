@@ -3,13 +3,10 @@ Iniciando Visor de Imágenes V2...
 --- AppInitializer: Iniciando Inicialización ---
   [Initializer Fase 1] Inicializando Componentes Base...
     -> Modelo OK.
-Mapa de configuración por defecto inicializado con 404 claves.
-Mapa DEFAULT_GROUP_COMMENTS inicializado con 25 entradas.
-Config no encontrado. Creando por defecto...
-Creando config por defecto (estructura jerárquica v2.1)...
-Archivo de configuración por defecto creado en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
+Mapa de configuración por defecto inicializado con 407 claves.
+Mapa DEFAULT_GROUP_COMMENTS inicializado con 26 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 404
+Configuración leída. Total claves: 409
     -> ConfigurationManager OK.
   [Initializer Fase 2] Aplicando Config al Modelo...
     -> Config Modelo OK (Antes=8, Despues=8)
@@ -38,7 +35,7 @@ Configuración leída. Total claves: 404
 [ToggleSubfoldersAction] Estado inicial leído (comportamiento.carpeta.cargarSubcarpetas): true
 [ToggleProporcionesAction] Estado inicial SELECTED leído (interfaz.menu.zoom.Mantener_Proporciones.seleccionado): true
     -> Actions de Toggle Generales creadas.
-      -> ToggleMarkImageAction creada en Controller (ID: 33524623)
+      -> ToggleMarkImageAction creada en Controller (ID: 581374081)
     -> Actions de Proyecto (Placeholder) creadas.
     -> Actions Misceláneas creadas.
     -> Configurando estado inicial de Actions específicas...
@@ -47,15 +44,14 @@ Configuración leída. Total claves: 404
   [Init Actions Internal] Finalizado.
     -> Actions parciales inicializadas.
   [Create ActionMap Internal] Creando mapa parcial de actions (sin navegación)...
-  [Create ActionMap Internal] Finalizado. Mapa parcial creado con 37 entradas.
+  [Create ActionMap Internal] Finalizado. Mapa parcial creado con 38 entradas.
     -> Mapa de Actions parcial creado.
     -> Altura Panel Miniaturas calculada: 100
 [ViewUIConfig] Configuración UI creada con colores de tema.
     -> ViewUIConfig creada.
-    -> ActionMap PARCIAL copiado a AppInitializer (Tamaño: 37)
+    -> ActionMap PARCIAL copiado a AppInitializer (Tamaño: 38)
   [Initializer] Generando definiciones de UI...
     -> Definiciones de UI generadas (Menú: 7 top-level, Toolbar: 32 botones)
-  [ProjectManager] Directorio base de proyectos creado: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos
   [ProjectManager] Archivo de selección no encontrado o no legible: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Se iniciará con selección vacía.
 [ProjectManager] Instancia creada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
   -> Imágenes marcadas inicialmente: 0
@@ -70,9 +66,6 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     -> [EDT] Instanciando VisorView (con componentes UI temporales)...
 [VisorView Constructor] Iniciando...
   [Constructor] Menú, Toolbar y Mapas recibidos.
-    -> Tamaño mapa Menús recibido: 0
-    -> Tamaño mapa Botones recibido: 0
-  [Constructor] Dependencias validadas (Config, Modelo, Thumbs).
   [Constructor] Configuración básica JFrame completada.
   [Constructor] Referencia a modeloLista obtenida (Tamaño inicial: 0)
   [Constructor] Llamando a inicializarComponentes...
@@ -86,12 +79,12 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
 4. Panel Izquierdo (con listaNombres) inicializado: true
   [Init Comp] Inicializando Panel Miniaturas...
     [Init Miniaturas] listaMiniaturas setFocusable(true)
-    [Init Miniaturas] Renderer y tamaño de celda FIJO (55x70) establecidos.
-    [Init Miniaturas] Calculando tamaño pref. para 17 miniaturas (8+1+8)
-    [Init Miniaturas] Tamaño Preferido JList establecido a: 935x70
-    [Init Miniaturas] Panel centrador con GridBagLayout creado y JList añadida.
+    [Init Miniaturas] Renderer asignado. Tamaño de celda FIJO: 50x66
+    [Init Miniaturas] Tamaño Preferido JList (para max items) establecido a: 850x66
+    [Init Miniaturas] Panel wrapper para JList creado con FlowLayout.CENTER.
+    [Init Miniaturas] Wrapper de JList añadido a panelCentrador (GridBagLayout).
     [Init Miniaturas] JScrollPane creado con panelCentrador.
-  [Init Comp] Panel Miniaturas (Centrado con GridBagLayout) finalizado. Altura preferida Scroll: 100
+  [Init Comp] Panel Miniaturas (Wrapper + GridBagLayout) finalizado. Altura scrollPaneHint: 100
 5. Panel Miniaturas (con listaMiniaturas) inicializado: true
 6. ListSelectionModel NO compartido. Cada lista tiene el suyo.
   [Init Comp] Inicializando Etiqueta Imagen...
@@ -116,13 +109,13 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     -> [EDT] Completando ActionMap con acciones de navegación...
     [EDT Internal] Creando Actions de Navegación y actualizando actionMap...
       -> Instancias de Actions de Navegación creadas.
-      -> Actions de Navegación añadidas al mapa principal. Tamaño final actionMap: 41
+      -> Actions de Navegación añadidas al mapa principal. Tamaño final actionMap: 42
     [EDT Internal] Fin createNavigationActionsAndUpdateMap.
-    -> [EDT] ActionMap en AppInitializer ahora es COMPLETO (Tamaño: 41)
+    -> [EDT] ActionMap en AppInitializer ahora es COMPLETO (Tamaño: 42)
     -> [EDT] Construyendo Menú y Toolbar REALES (métodos refactorizados)...
 --- MenuBarBuilder: Construyendo menú desde estructura definida ---
-DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
---- MenuBarBuilder: Menú construido. Total items en mapa: 123 ---
+DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 581374081) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
+--- MenuBarBuilder: Menú construido. Total items en mapa: 124 ---
       -> Menú REAL construido (refactorizado).
 --- ToolbarBuilder: Construyendo toolbar desde estructura definida ---
 
@@ -354,7 +347,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
     -> [EDT] Fin construcción Menú/Toolbar REALES.
   [VisorView] JMenuBar real asignada.
   [VisorView] ToolbarPanel real asignado.
-  [VisorView] Map<String, JMenuItem> real asignado. Tamaño: 123
+  [VisorView] Map<String, JMenuItem> real asignado. Tamaño: 124
   [VisorView] Map<String, JButton> real asignado. Tamaño: 32
     -> [EDT] Menú y Toolbar reales asignados a VisorView.
     [EDT Internal] Asignando modelo de miniaturas a la Vista...
@@ -383,9 +376,9 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
   [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
     -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     -> Cargando lista para carpeta inicial: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    -> Clave de imagen inicial a intentar seleccionar: 
+    -> Clave de imagen inicial a intentar seleccionar: cyberpunk-city-anime-girl-5k-0e-1.png
 
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: 
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
   -> Modo búsqueda: Subcarpetas (depth=MAX)
     -> Iniciando búsqueda desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
   -> Creando diálogo y worker para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
@@ -395,7 +388,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
   -> Diálogo y Worker creados y asociados.
   -> Añadiendo PropertyChangeListener al worker...
   -> Ejecutando worker y mostrando diálogo...
--->>> FIN cargarListaImagenes(String) | Mantener Clave: 
+-->>> FIN cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
   [Load Initial State Internal] Finalizado.
 [Controller Internal] Configurando Listeners (Modelos Selección SEPARADOS)...
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
@@ -406,7 +399,8 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
   -> MouseListener añadido a scrollListaMiniaturas para gestionar foco.
 [Controller Internal] Configuración de Listeners de Vista finalizada.
   -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 165
+    -> [EDT - AppInitializer] Configurando ComponentListener para miniaturas dinámicas...
+    -> [EDT - AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.
     [EDT Internal] Sincronizando UI Final...
       -> Sincronizando Fondo a Cuadros a estado: false
 [VisorView setCheckeredBG] Solicitado: false, Actual: false
@@ -415,12 +409,11 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
     [Internal] Shutdown Hook registrado en la JVM.
   [Initializer Fase 5 - EDT] Inicialización UI completada.
 --- AppInitializer: INICIALIZACIÓN COMPLETA ---
+  [Worker BG] Files.walk terminado. Archivos encontrados: 165
   [Constructor EDT] Divisor JSplitPane establecido.
-%%% [paintComponent] llamado. imagenReescaladaView es null? true
 [VisorView] Limpiando etiqueta de imagen principal...
   -> Etiqueta de imagen limpiada.
  [EDT] Mostrando diálogo de progreso...
-%%% [paintComponent] llamado. imagenReescaladaView es null? true
 [Worker EDT] Método done() alcanzado.
  [EDT Worker Done] Tarea finalizada. Procesando resultado...
 [Dialogo Progreso] Solicitud de cierre.
@@ -432,7 +425,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
    -> estaCargandoLista = false
 [Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
 [Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-     -> Seleccionando índice 0 por defecto.
+     -> Clave a mantener encontrada en índice: 0
    -> [ANTES de setSelectedIndex] Intentando aplicar selección inicial a índice: 0
    -> Flag seleccionInicialEnCurso puesto a true.
 >>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=true, isSincronizando=false, IndicePrincipal=0, Ignorado=true
@@ -449,19 +442,19 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
 --> Tarea carga IMAGEN PRINCIPAL lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
         -> Índice actual en JList 'Nombres': 0
         -> Índice ya correcto. Asegurando solo visibilidad.
-      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
       [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
 
 --- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
   [actualizarMiniaturas] Tamaño modeloPrincipal: 165
-
-  [actualizarMiniaturas] Valores para rango: miniAntes=8, miniDespues=8
-  [actualizarMiniaturas] Rango calculado: [0..8]
-
+  [CalcularMiniaturas] ViewportWidth: 1512, CellWidth: 50, Total que caben: 30
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+  [actualizarMiniaturas] Usando rango dinámico -> Antes: 8, Despues: 8
+  [actualizarMiniaturas] Rango calculado en modelo principal: [0..8]
   [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
-  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 9. Índice relativo calculado: 0
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
 [Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
 [Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [actualizarMiniaturas] Programando actualización de UI en EDT...
@@ -472,19 +465,31 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
  [EDT Worker Done] Procesamiento finalizado.
  [EDT] Diálogo de progreso cerrado o ya no visible.
       [BG Img Load] Lectura correcta.
-%%% [paintComponent] llamado. imagenReescaladaView es null? true
+      [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+  [CalcularMiniaturas] ViewportWidth: 1512, CellWidth: 50, Total que caben: 30
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+  [actualizarMiniaturas] Usando rango dinámico -> Antes: 8, Despues: 8
+  [actualizarMiniaturas] Rango calculado en modelo principal: [0..8]
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
+[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
+[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
   -> Solicitando repintado inicial de listaMiniaturas.
           -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
   -> Solicitando repintado inicial de listaMiniaturas.
-   -> [EDT Miniaturas] Ejecutando actualización UI...
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
     [Coordinator Flag] sincronizandoUI -> true
-   -> [EDT Miniaturas] Flag sincronizandoUI puesto a true.
-   -> [EDT Miniaturas] Llamando a view.setModeloListaMiniaturas (Tamaño: 9)
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas Update] PreferredSize de JList actualizado a: java.awt.Dimension[width=450,height=66]
 [VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
-   -> [EDT Miniaturas] Llamando a setSelectedIndex(0)
 >>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=true, isSincronizando=true, IndiceRelativo=0, Ignorado=true
-   -> [EDT Miniaturas] Llamando a repaint()
-   -> [EDT Miniaturas] FIN Ejecución actualización UI.
+   -> [EDT Miniaturas Update] setSelectedIndex(0) llamado.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
     [Coordinator Flag] sincronizandoUI -> false
       [EDT Img Load] Ejecutando invokeLater para: cyberpunk-city-anime-girl-5k-0e-1.png
       [EDT Img Load] Tamaño imagen original: 709x571
@@ -494,11 +499,324 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
       [EDT Img Load] => Llamando a view.setImagenMostrada...
       [EDT Img Load] => FIN ÉXITO.
   -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-%%% [paintComponent] llamado. imagenReescaladaView es null? false
-%%% [paintComponent] Dibujando imagen. Zoom: 1.0 Offset: 0,0
    -> [Timer Fin Selección Inicial] Fin espera. Flag seleccionInicialEnCurso -> false.
    -> [Timer Fin Selección Inicial] Asegurando visibilidad final para índice: 0
-     -> [EDT Miniaturas Visibilidad] Llamando a ensureIndexIsVisible(0)
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a true.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=-1, Ignorado=true
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=0, Ignorado=true
+   -> [EDT Miniaturas Update] setSelectedIndex(0) llamado.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> false
+--- DEBUG: Acción Detectada ---
+  > Fuente        : JButton (ID: 1051868543)
+  > Event Command : ''
+  > Config Key    : 'interfaz.boton.toggle.Subcarpetas_48x48'
+  > Comando Canon.: '(Action sin ACTION_COMMAND_KEY)'
+  > Action Class  : controlador.actions.toggle.ToggleSubfoldersAction
+------------------------------
+[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: false
+
+[Controller setMostrarSubcarpetas] INICIO. Estado deseado (mostrar subcarpetas): false
+  -> Estado lógico actual (Action): true
+  -> Aplicando cambio a estado (mostrar subcarpetas): false
+    -> Clave a intentar mantener: cyberpunk-city-anime-girl-5k-0e-1.png
+    1. Actualizando Action.SELECTED_KEY...
+    2. Actualizando Modelo...
+    3. Actualizando Configuración en Memoria...
+    4. Sincronizando UI...
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Normal
+  [Controller] Sincronizando estado visual de Radios Subcarpetas a: Mostrar Solo Carpeta
+  [Controller] Estado visual de Radios Subcarpetas sincronizado.
+    5. Programando recarga de lista en EDT (manteniendo clave)...
+[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
+      -> [EDT] Llamando a cargarListaImagenes("cyberpunk-city-anime-girl-5k-0e-1.png") para recargar...
+
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
+  -> Modo búsqueda: Solo Carpeta Actual (depth=1)
+    -> Iniciando búsqueda desde carpeta de imagen: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Creando diálogo y worker para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Creando Worker...
+  -> Asociando worker al diálogo...
+[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
+  -> Diálogo y Worker creados y asociados.
+  -> Añadiendo PropertyChangeListener al worker...
+  -> Ejecutando worker y mostrando diálogo...
+-->>> FIN cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
+[VisorView] Limpiando etiqueta de imagen principal...
+  -> Etiqueta de imagen limpiada.
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 1
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=-1, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Deselección detectada en Miniaturas.
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(-1)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: -1 (Actual Oficial: 0)
+  [ListCoordinator Interno] Procesando índice: -1 (Oficial actual: 0)
+    -> Actualizando índice oficial a: -1
+    -> Delegando limpieza de UI al Controller (índice -1)
+[Controller] Limpiando UI y Modelo a estado vacío...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
+  -> Modelo limpiado.
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndicePrincipal=-1, Ignorado=false
+>>> LISTENER NOMBRES: Procesando -> Llamando a Coordinator.seleccionarDesdeNombres(-1)
+>>> Coordinator: Recibido de Nombres -> Índice: -1 (Actual Oficial: -1)
+    -> Ignorando (mismo índice ya seleccionado oficialmente).
+    [Asegurar Visibilidad] Índice -1, no se hace nada.
+  [Worker BG] Files.walk terminado. Archivos encontrados: 3
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 0
+[VisorView] Limpiando etiqueta de imagen principal...
+  -> Etiqueta de imagen limpiada.
+  -> Lista de miniaturas repintada (vacía).
+  -> Vista actualizada a estado vacío.
+[ThumbnailService] Caché de miniaturas limpiado.
+  -> Caché de miniaturas limpiado.
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
+  [ListCoordinator] Forzando actualización del estado enabled de navegación.
+[Controller] Limpieza de UI y Modelo completada.
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
+    -> Llamando a sincronizarListaUI(Nombres, -1)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: -1
+        -> Índice actual en JList 'Nombres': -1
+        -> Índice ya correcto. Asegurando solo visibilidad.
+      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(-1) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: -1
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 0
+  [actualizarMiniaturas] Índice inválido o lista principal vacía. Limpiando y saliendo.
+--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(-1)
+ [EDT] Mostrando diálogo de progreso...
+    [Coordinator Flag] sincronizandoUI -> true
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
+[Worker EDT] Método done() alcanzado.
+ [EDT Worker Done] Tarea finalizada. Procesando resultado...
+[Dialogo Progreso] Solicitud de cierre.
+  -> [EDT] Cerrando diálogo...
+  -> [EDT] Diálogo cerrado y desechado.
+   -> Resultado obtenido: 3 archivos. Actualizando...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 3
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 3
+   -> estaCargandoLista = false
+[Controller] Iniciando pre-calentamiento de caché para 3 miniaturas...
+[Controller] 3 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+     -> Clave a mantener encontrada en índice: 0
+   -> [ANTES de setSelectedIndex] Intentando aplicar selección inicial a índice: 0
+   -> Flag seleccionInicialEnCurso puesto a true.
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=true, isSincronizando=true, IndicePrincipal=0, Ignorado=true
+   -> [DESPUÉS de setSelectedIndex] Selección visual inicial aplicada a índice: 0. Selección JList: 0
+   -> Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
+>>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
+   -> Llamada MANUAL a Coordinator completada.
+ [EDT Worker Done] Procesamiento finalizado.
+ [EDT] Diálogo de progreso cerrado o ya no visible.
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [Timer Fin Selección Inicial] Fin espera. Flag seleccionInicialEnCurso -> false.
+   -> [Timer Fin Selección Inicial] Asegurando visibilidad final para índice: 0
+>>> LISTENER NOMBRES: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndicePrincipal=1, Ignorado=true
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndicePrincipal=1, Ignorado=false
+>>> LISTENER NOMBRES: Procesando -> Llamando a Coordinator.seleccionarDesdeNombres(1)
+>>> Coordinator: Recibido de Nombres -> Índice: 1 (Actual Oficial: -1)
+  [ListCoordinator Interno] Procesando índice: 1 (Oficial actual: -1)
+    -> Actualizando índice oficial a: 1
+    -> Delegando carga de imagen al Controller para índice: 1
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'cyberpunk-city-anime-girl-5k-0e.jpg'
+[VisorView] Mostrando indicador de carga: 'Cargando: cyberpunk-city-anime-girl-5k-0e.jpg...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e.jpg
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: cyberpunk-city-anime-girl-5k-0e.jpg
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 1
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(1)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 1
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 3
+  [CalcularMiniaturas] ViewportWidth: 1512, CellWidth: 50, Total que caben: 30
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+  [actualizarMiniaturas] Usando rango dinámico -> Antes: 8, Despues: 8
+  [actualizarMiniaturas] Rango calculado en modelo principal: [0..2]
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 3. Índice relativo seleccionado: 1
+[Controller] Iniciando pre-calentamiento de caché para 3 miniaturas...
+[Controller] 3 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(1)
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas Update] PreferredSize de JList actualizado a: java.awt.Dimension[width=150,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 3)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=1, Ignorado=true
+   -> [EDT Miniaturas Update] setSelectedIndex(1) llamado.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+    [Coordinator Flag] sincronizandoUI -> false
+      [BG Img Load] Lectura correcta.
+      [EDT Img Load] Ejecutando invokeLater para: cyberpunk-city-anime-girl-5k-0e.jpg
+      [EDT Img Load] Tamaño imagen original: 5000x2084
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
+--- DEBUG: Acción Detectada ---
+  > Fuente        : JButton (ID: 1051868543)
+  > Event Command : ''
+  > Config Key    : 'interfaz.boton.toggle.Subcarpetas_48x48'
+  > Comando Canon.: '(Action sin ACTION_COMMAND_KEY)'
+  > Action Class  : controlador.actions.toggle.ToggleSubfoldersAction
+------------------------------
+[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: true
+
+[Controller setMostrarSubcarpetas] INICIO. Estado deseado (mostrar subcarpetas): true
+  -> Estado lógico actual (Action): false
+  -> Aplicando cambio a estado (mostrar subcarpetas): true
+    -> Clave a intentar mantener: cyberpunk-city-anime-girl-5k-0e.jpg
+    1. Actualizando Action.SELECTED_KEY...
+    2. Actualizando Modelo...
+    3. Actualizando Configuración en Memoria...
+    4. Sincronizando UI...
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
+  [Controller] Sincronizando estado visual de Radios Subcarpetas a: Mostrar Subcarpetas
+  [Controller] Estado visual de Radios Subcarpetas sincronizado.
+    5. Programando recarga de lista en EDT (manteniendo clave)...
+[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).
+      -> [EDT] Llamando a cargarListaImagenes("cyberpunk-city-anime-girl-5k-0e.jpg") para recargar...
+
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e.jpg
+  -> Modo búsqueda: Subcarpetas (depth=MAX)
+    -> Iniciando búsqueda desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Creando diálogo y worker para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Creando Worker...
+  -> Asociando worker al diálogo...
+[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
+  -> Diálogo y Worker creados y asociados.
+  -> Añadiendo PropertyChangeListener al worker...
+  -> Ejecutando worker y mostrando diálogo...
+-->>> FIN cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e.jpg
+[VisorView] Limpiando etiqueta de imagen principal...
+  -> Etiqueta de imagen limpiada.
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndiceRelativo=-1, Ignorado=false
+>>> LISTENER MINIATURAS: Procesando...
+    -> Deselección detectada en Miniaturas.
+>>> LISTENER MINIATURAS: Procesando -> Llamando a Coordinator.seleccionarDesdeMiniaturas(-1)
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: -1 (Actual Oficial: 1)
+  [ListCoordinator Interno] Procesando índice: -1 (Oficial actual: 1)
+    -> Actualizando índice oficial a: -1
+    -> Delegando limpieza de UI al Controller (índice -1)
+[Controller] Limpiando UI y Modelo a estado vacío...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
+  -> Modelo limpiado.
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndicePrincipal=-1, Ignorado=false
+>>> LISTENER NOMBRES: Procesando -> Llamando a Coordinator.seleccionarDesdeNombres(-1)
+>>> Coordinator: Recibido de Nombres -> Índice: -1 (Actual Oficial: -1)
+    -> Ignorando (mismo índice ya seleccionado oficialmente).
+    [Asegurar Visibilidad] Índice -1, no se hace nada.
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 0
+[VisorView] Limpiando etiqueta de imagen principal...
+  -> Etiqueta de imagen limpiada.
+  -> Lista de miniaturas repintada (vacía).
+  -> Vista actualizada a estado vacío.
+[ThumbnailService] Caché de miniaturas limpiado.
+  -> Caché de miniaturas limpiado.
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
+  [ListCoordinator] Forzando actualización del estado enabled de navegación.
+[Controller] Limpieza de UI y Modelo completada.
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
+    -> Llamando a sincronizarListaUI(Nombres, -1)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: -1
+        -> Índice actual en JList 'Nombres': -1
+        -> Índice ya correcto. Asegurando solo visibilidad.
+      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(-1) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: -1
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 0
+  [actualizarMiniaturas] Índice inválido o lista principal vacía. Limpiando y saliendo.
+--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(-1)
+  [Worker BG] Files.walk terminado. Archivos encontrados: 165
+ [EDT] Mostrando diálogo de progreso...
+    [Coordinator Flag] sincronizandoUI -> true
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
+[Worker EDT] Método done() alcanzado.
+ [EDT Worker Done] Tarea finalizada. Procesando resultado...
+[Dialogo Progreso] Solicitud de cierre.
+  -> [EDT] Cerrando diálogo...
+  -> [EDT] Diálogo cerrado y desechado.
+   -> Resultado obtenido: 165 archivos. Actualizando...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
+   -> estaCargandoLista = false
+[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
+[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+     -> Clave a mantener encontrada en índice: 1
+   -> [ANTES de setSelectedIndex] Intentando aplicar selección inicial a índice: 1
+   -> Flag seleccionInicialEnCurso puesto a true.
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=true, isSincronizando=true, IndicePrincipal=1, Ignorado=true
+   -> [DESPUÉS de setSelectedIndex] Selección visual inicial aplicada a índice: 1. Selección JList: 1
+   -> Llamando MANUALMENTE a Coordinator para procesar índice inicial: 1
+>>> Coordinator: Solicitud para procesar índice: 1 (Actual Oficial: -1)
+   -> Llamada MANUAL a Coordinator completada.
+ [EDT Worker Done] Procesamiento finalizado.
+ [EDT] Diálogo de progreso cerrado o ya no visible.
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [Timer Fin Selección Inicial] Fin espera. Flag seleccionInicialEnCurso -> false.
+   -> [Timer Fin Selección Inicial] Asegurando visibilidad final para índice: 1
+>>> LISTENER NOMBRES: Evento. isAdjusting=true, isInicial=false, isSincronizando=false, IndicePrincipal=6, Ignorado=true
+>>> LISTENER NOMBRES: Evento. isAdjusting=false, isInicial=false, isSincronizando=false, IndicePrincipal=6, Ignorado=false
+>>> LISTENER NOMBRES: Procesando -> Llamando a Coordinator.seleccionarDesdeNombres(6)
+>>> Coordinator: Recibido de Nombres -> Índice: 6 (Actual Oficial: -1)
+  [ListCoordinator Interno] Procesando índice: 6 (Oficial actual: -1)
+    -> Actualizando índice oficial a: 6
+    -> Delegando carga de imagen al Controller para índice: 6
+--> [Controller] Iniciando carga IMAGEN PRINCIPAL para (delegado por Coordinator): 'iconos/black/2001-rotar_izquierda_48x48.png'
+[VisorView] Mostrando indicador de carga: 'Cargando: 2001-rotar_izquierda_48x48.png...'
+    Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2001-rotar_izquierda_48x48.png
+--> Tarea carga IMAGEN PRINCIPAL lanzada para: iconos/black/2001-rotar_izquierda_48x48.png
+      [BG Img Load] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2001-rotar_izquierda_48x48.png
+      [BG Img Load] Lectura correcta.
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 6
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(6)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 6
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+  [CalcularMiniaturas] ViewportWidth: 1512, CellWidth: 50, Total que caben: 30
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+  [actualizarMiniaturas] Usando rango dinámico -> Antes: 8, Despues: 8
+  [actualizarMiniaturas] Rango calculado en modelo principal: [0..14]
+  [actualizarMiniaturas] Llenando modelo TEMPORAL de miniaturas...
+  [actualizarMiniaturas] Modelo TEMPORAL miniaturas llenado. Tamaño: 15. Índice relativo seleccionado: 6
+[Controller] Iniciando pre-calentamiento de caché para 15 miniaturas...
+[Controller] 15 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [actualizarMiniaturas] Programando actualización de UI en EDT...
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(6)
+      [EDT Img Load] Ejecutando invokeLater para: iconos/black/2001-rotar_izquierda_48x48.png
+      [EDT Img Load] Tamaño imagen original: 48x48
+      [EDT Img Load] => Éxito. Actualizando modelo...
+      [EDT Img Load] => Llamando a reescalar...
+      [EDT Img Load] Imagen reescalada es null? false
+      [EDT Img Load] => Llamando a view.setImagenMostrada...
+      [EDT Img Load] => FIN ÉXITO.
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a true.
+   -> [EDT Miniaturas Update] PreferredSize de JList actualizado a: java.awt.Dimension[width=750,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 15)
+>>> LISTENER MINIATURAS: Evento. isAdjusting=false, isInicial=false, isSincronizando=true, IndiceRelativo=6, Ignorado=true
+   -> [EDT Miniaturas Update] setSelectedIndex(6) llamado.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
     [Coordinator Flag] sincronizandoUI -> false
 --- Hook de Cierre Ejecutándose ---
   [Hook - Ventana] Guardando estado de la ventana en config...
@@ -506,13 +824,13 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 33524623) asignada a J
   -> Llamando a guardarConfiguracionActual() desde hook...
   [ShutdownHook] Recopilando estado actual para guardar...
     -> Estado recopilado completo. Tema a guardar: 'clear'
-    -> Llamando a configuration.guardarConfiguracion con 404 claves...
+    -> Llamando a configuration.guardarConfiguracion con 409 claves...
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 404
+Claves a guardar/actualizar: 409
 Archivo de configuración actualizado exitosamente.
   [ShutdownHook] Configuración actual guardada exitosamente.
   [ShutdownHook] Fin guardarConfiguracionActual.

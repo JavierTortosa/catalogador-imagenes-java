@@ -76,9 +76,9 @@ public final class StringUtils { // 'final' para evitar herencia
     	System.out.println("\n************************************** DYNAMIC LOG **************************************");
     	System.out.println(timestamp + ": " + titulo != null ? titulo : "Sin Título" + "\n");
     	
-//    	System.out.println("----- [" + timestamp + "] LOG: " + (titulo != null ? titulo : "Sin Título") + " -----");
+//    	System.out.println("----- [" + timestamp + "] Log: " + (titulo != null ? titulo : "Sin Título") + " -----");
     	
-//        System.out.println("----- DYNAMIC LOG [" + timestamp + "] -----");
+//        System.out.println("----- D Y N A M I C   L O G   [" + timestamp + "] -----");
 
         if (argsPares == null || argsPares.length == 0) {
             System.out.println("  (No se proporcionaron argumentos)");

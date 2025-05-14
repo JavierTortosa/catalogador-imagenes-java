@@ -29,10 +29,6 @@ public class MenuBarBuilder {
     private Map<String, JMenuItem> menuItemsPorNombre; // Mapa Clave Larga -> Item
 
     // --- Estado Interno del Builder ---
-//    private JMenu currentMenu = null;
-//    private JMenu subMenu = null;
-//    private final String menuOptionsString;
-//    private String menuDefinition;
     private Map<String, Action> actionMap; // Mapa Comando CORTO -> Action
     private ButtonGroup currentButtonGroup = null;
     
@@ -49,31 +45,6 @@ public class MenuBarBuilder {
         // actionMap se recibirá en buildMenuBar
         // currentButtonGroup se inicializa a null
     }
-    
-//    /**
-//     * Constructor que recibe la definición del menú y el mapa de Actions.
-//     */
-//    public MenuBarBuilder(String menuDefinition, Map<String, Action> actionMap) {
-//        if (menuDefinition == null || menuDefinition.trim().isEmpty()) {
-//            throw new IllegalArgumentException("La definición del menú no puede ser nula o vacía.");
-//        }
-//        this.menuOptionsString = menuDefinition;
-//        this.actionMap = actionMap != null ? actionMap : new HashMap<>(); // Evitar NullPointer
-//        this.menuItemsPorNombre = new HashMap<>();
-//        this.menuBar = new JMenuBar();
-//    }
-//
-//    
-//    public MenuBarBuilder(Map<String, Action> actionMap) {
-//    	menuDefinition = getMenuDefinitionString();
-//        if (menuDefinition == null || menuDefinition.trim().isEmpty()) {
-//            throw new IllegalArgumentException("La definición del menú no puede ser nula o vacía.");
-//        }
-//        this.menuOptionsString = menuDefinition;
-//        this.actionMap = actionMap != null ? actionMap : new HashMap<>(); // Evitar NullPointer
-//        this.menuItemsPorNombre = new HashMap<>();
-//        this.menuBar = new JMenuBar();
-//    }
     
 
     /**

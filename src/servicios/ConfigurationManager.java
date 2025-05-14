@@ -448,6 +448,9 @@ public class ConfigurationManager
 			defaults.put("iconos.alto" , "24");
 			defaults.put("iconos.ancho" , "24");
 		
+		//Tamaño del salto con pgup y pgdown
+			defaults.put("navegacion.tamano_salto_bloque", "10");
+			
     	//===== Barra de Miniaturas =====
     	//Cantidad de miniaturas antes/después de la seleccionada
 			defaults.put("miniaturas.cantidad.antes", "8");
@@ -461,6 +464,9 @@ public class ConfigurationManager
 			defaults.put("miniaturas.tamano.normal.ancho", "40");
 			defaults.put("miniaturas.tamano.normal.alto", "40");
 
+		//Mostrar Texto de las miniaturas on off			
+			defaults.put("miniaturas.ui.mostrar_nombres", "true");
+			
     	//===== Estados Interfaz Usuario =====
 		
     	//--- Botones ---
@@ -527,7 +533,7 @@ public class ConfigurationManager
 			defaults.put("interfaz.boton.vista.Lista_48x48.visible", "true");
 			defaults.put("interfaz.boton.vista.Carrousel_48x48.activado", "true");
 			defaults.put("interfaz.boton.vista.Carrousel_48x48.visible", "true");
-
+			
     	//-- Control --
 			defaults.put("interfaz.boton.control.Refrescar_48x48.activado", "true");
 			defaults.put("interfaz.boton.control.Refrescar_48x48.visible", "true");
@@ -589,7 +595,7 @@ public class ConfigurationManager
 				
 		//-- Navegacion --
 		defaults.put("interfaz.menu.navegacion.Navegacion.activado", "true");
-		defaults.put("interfaz.menu.navegacion.Navegacion.visible", "true");
+		defaults.put("interfaz.menu.navegacion.Navegacion.visible", "false");
 		defaults.put("interfaz.menu.navegacion.buscar.activado", "true");
 		defaults.put("interfaz.menu.navegacion.buscar.visible", "true");
 				
@@ -712,8 +718,8 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.imagen.propiedades_de_la_imagen.activado", "true");
 		defaults.put("interfaz.menu.imagen.propiedades_de_la_imagen.visible", "true");
 
-		defaults.put("interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo.activado", "true");
-		defaults.put("interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo", "true");
+//		defaults.put("interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo.activado", "true");
+//		defaults.put("interfaz.menu.imagen.Abrir_Ubicacion_del_Archivo", "true");
 		
 		//Vista
 		defaults.put("interfaz.menu.vista.Vista.activado", "true");
@@ -743,6 +749,10 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.vista.mostrar_dialogo_lista_de_imagenes.activado", "true");
 		defaults.put("interfaz.menu.vista.mostrar_dialogo_lista_de_imagenes.visible", "true");
 
+		defaults.put("interfaz.menu.vista.mostrar_nombres_en_miniaturas.activado", "true");
+		defaults.put("interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado", "true");
+		defaults.put("interfaz.menu.vista.mostrar_nombres_en_miniaturas.visible", "true");
+		
     	//Configuracion
 		defaults.put("interfaz.menu.configuracion.Configuracion.activado", "true");
 		defaults.put("interfaz.menu.configuracion.Configuracion.visible", "true");
@@ -974,10 +984,10 @@ public class ConfigurationManager
         // ... etc para otros grupos de menús
 
         // --- Subgrupos Nivel 1 (Dentro de miniaturas) ---
-        comments.put("miniaturas.cantidad",          "# == Cantidad Antes/Después ==");
-        comments.put("miniaturas.tamano.normal",     "# == Tamaño Normal ==");
-        comments.put("miniaturas.tamano.seleccionada", "# == Tamaño Seleccionada ==");
-
+        comments.put("miniaturas.cantidad",          	"# == Cantidad de miniaturas Antes/Después ==");
+        comments.put("miniaturas.tamano.normal",     	"# == Tamaño Normal ==");
+        comments.put("miniaturas.tamano.seleccionada", 	"# == Tamaño Seleccionada ==");
+        comments.put("miniaturas.ui", 					"# == Configuración de Miniaturas en la UI ==");
         // ... Añadir más según sea necesario ...
         
         return comments;

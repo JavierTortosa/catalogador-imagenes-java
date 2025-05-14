@@ -1,0 +1,72 @@
+¡Entendido! Es fácil perderse en el flujo cuando hay varias clases colaborando. Vamos a simplificarlo.
+
+Aquí tienes una tabla que resume el flujo desde la definición hasta la ejecución de una acción para menús y botones, con una frase corta para cada método/clase clave:
+
+| Clase Principal         	| Método/Componente Clave                                     	| Función Principal (en una frase)                                                                                                |
+| :---------------------- 	| :---------------------------------------------------------- 	| :------------------------------------------------------------------------------------------------------------------------------ |
+
+
+**1. Definición**
+				
+| `AppActionCommands`     	| (Interfaz con constantes `String`)                          	| Define los **nombres canónicos** (comandos) para cada acción lógica de la aplicación.                                             |
+| `UIDefinitionService`   	| `generateMenuStructure()`                                   	| Crea una **lista de `MenuItemDefinition`s** que describe jerárquicamente qué ítems de menú existen y qué comando ejecutan.    |
+| `MenuItemDefinition`    	| (`record` con `comandoOClave`, 								|
+|							|	`tipo`, `texto`, `subItems`) 								| Describe **un único elemento del menú** (ej. "Archivo", "Abrir", un separador) y el `AppActionCommand` que debe invocar.    |
+| `UIDefinitionService`   	| `generateToolbarStructure()`                                	| Crea una **lista de `ToolbarButtonDefinition`s** que describe qué botones existen en la toolbar y qué comando ejecutan. |
+| `ToolbarButtonDefinition`	| (`record` con `comandoCanonico`, `claveIcono`, etc.)      	| Describe **un único botón de la toolbar** (icono, tooltip) y el `AppActionCommand` que debe invocar.                        |
+
+
+**2. Creación de Acciones Lógicas**
+
+| `VisorController`       	| `initializeActionsInternal()`                               	| Crea **instancias de clases `Action`** (ej. `OpenFileAction`, `ToggleMarkImageAction`) para cada funcionalidad.                 |
+| `(TuClaseDeAction)` (ej.	|																|
+| `OpenFileAction`) 		| Constructor y `actionPerformed()`          					| Encapsula la **lógica de una acción específica** (qué hace) y sus propiedades (nombre, icono, comando canónico).          |
+| `VisorController`       	| `createActionMapInternal()` & 								|
+|							| `createNavigationActionsAndUpdateMap()` 						| Crea un **mapa (`actionMap`)** que asocia los `AppActionCommands` (Strings) con las **instancias de `Action`** creadas.  |
+
+
+**3. Construcción de UI**
+
+| `AppInitializer`        	| `crearUICompletarInicializacion()`                          	| Orquesta la creación de la UI, pasando las definiciones y el `actionMap` a los builders.                                      |
+| `MenuBarBuilder`        	| `buildMenuBar(List<MenuItemDefinition> defs, Map actions)` 	| Recorre las `MenuItemDefinition`s y, usando el `actionMap`, **crea los `JMenuItem`s y les asigna la `Action`** correcta. |
+| `ToolbarBuilder`        	| `buildToolbar(List<ToolbarButtonDefinition> defs, Map actions)| Recorre las `ToolbarButtonDefinition`s y, usando el `actionMap`, **crea los `JButton`s y les asigna la `Action`** correcta. |
+
+
+**4. Ejecución**
+
+| `JMenuItem` / `JButton` 	| (Interacción del usuario: clic)                             	| Al hacer clic, el componente Swing (si tiene una `Action` asignada con `setAction()`) **dispara el `actionPerformed()` de esa `Action`**. |
+| `(TuClaseDeAction)` (ej. 	|																|
+|`OpenFileAction`) 			| `actionPerformed(ActionEvent e)`           					|
+|							| **Ejecuta la lógica de la acción**, usualmente llamando a 	|
+|							|un método en `VisorController` para hacer el trabajo real.     |
+| `VisorController`       	| (Método llamado por la Action, ej. `abrirSelectorDeCarpeta()`)| Realiza la **operación de negocio o actualización de UI** correspondiente a la acción invocada.                                  |
+
+
+**Flujo Simplificado:**
+
+1.  **Defines QUÉ hay:**
+    *   `UIDefinitionService` dice: "Necesito un menú 'Archivo' con un ítem 'Abrir' que debe ejecutar la acción `CMD_ARCHIVO_ABRIR`".
+    *   `UIDefinitionService` dice: "Necesito un botón en la toolbar con el icono de 'abrir' que también debe ejecutar la acción `CMD_ARCHIVO_ABRIR`".
+
+2.  **Defines CÓMO se hace:**
+    *   `VisorController` crea una `OpenFileAction`. Esta `Action` sabe que su comando es `CMD_ARCHIVO_ABRIR` y que su lógica es llamar a `controller.abrirSelectorDeCarpeta()`.
+    *   `VisorController` pone esta `OpenFileAction` en un `actionMap` con la clave `CMD_ARCHIVO_ABRIR`.
+
+3.  **Construyes la UI:**
+    *   `MenuBarBuilder` ve la definición "Ítem 'Abrir' -> `CMD_ARCHIVO_ABRIR`". Busca `CMD_ARCHIVO_ABRIR` en el `actionMap`, encuentra la `OpenFileAction`, y hace `menuItemAbrir.setAction(openFileActionInstance)`.
+    *   `ToolbarBuilder` ve la definición "Botón 'abrir' -> `CMD_ARCHIVO_ABRIR`". Busca `CMD_ARCHIVO_ABRIR` en el `actionMap`, encuentra la `OpenFileAction`, y hace `botonAbrir.setAction(openFileActionInstance)`.
+
+4.  **Usuario Interactúa:**
+    *   Usuario hace clic en el menú "Abrir" (o en el botón "abrir" de la toolbar).
+    *   Como ambos tienen la misma `OpenFileAction` asignada, se ejecuta `OpenFileAction.actionPerformed()`.
+    *   `OpenFileAction.actionPerformed()` llama a `controller.abrirSelectorDeCarpeta()`.
+    *   Se muestra el diálogo para abrir carpeta.
+
+**Caso de `JCheckBoxMenuItem` y `Action.SELECTED_KEY`:**
+
+*   El `JCheckBoxMenuItem` para "Marcar para Proyecto" tiene asignada la `ToggleMarkImageAction`.
+*   Cuando haces clic en el `JCheckBoxMenuItem`, su estado visual cambia. Luego se llama a `ToggleMarkImageAction.actionPerformed()`.
+*   `ToggleMarkImageAction.actionPerformed()` lee el nuevo estado del `JCheckBoxMenuItem` (`isSelected()`) y actualiza su propia propiedad `Action.SELECTED_KEY` con `putValue(Action.SELECTED_KEY, nuevoEstado)`. Esto mantiene la `Action` sincronizada con el `JCheckBoxMenuItem` para esta interacción directa.
+*   Cuando se carga una nueva imagen, `VisorController.actualizarImagenPrincipal()` determina si la nueva imagen está marcada y llama a `toggleMarkImageAction.putValue(Action.SELECTED_KEY, estadoDeMarcaDeNuevaImagen)`. Como el `JCheckBoxMenuItem` está escuchando los cambios de `SELECTED_KEY` de su `Action`, se actualiza visualmente (se marca o desmarca solo).
+
+Espero que esta tabla y el flujo simplificado te ayuden a visualizar mejor cómo se conectan todas las piezas para la creación y ejecución de los menús y botones. Si alguna parte sigue confusa, ¡no dudes en preguntar!

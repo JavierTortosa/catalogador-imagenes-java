@@ -156,11 +156,23 @@ public class UIDefinitionService {
              new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
              new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, MenuItemType.CHECKBOX_ITEM, "Fondo a Cuadros", null),
              new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, MenuItemType.CHECKBOX_ITEM, "Mantener Ventana Siempre Encima", null),
+             new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null), // Separador si lo ves necesario 
+             new MenuItemDefinition(AppActionCommands.	CMD_VISTA_TOGGLE_MINIATURE_TEXT, MenuItemType.CHECKBOX_ITEM, "Mostrar Nombres en Miniaturas", null),
              new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
              new MenuItemDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, MenuItemType.ITEM, "Mostrar Dialogo Lista de Imagenes", null)
-         );
+             
+
+        );
         menuBarStructure.add(new MenuItemDefinition(null, MenuItemType.MAIN_MENU, "Vista", vistaSubItems));
 
+        // --- Nuevo Menú Proyecto ---
+        List<MenuItemDefinition> proyectoSubItems = List.of(
+            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, MenuItemType.ITEM, "Gestionar Selección Actual...", null),
+            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, MenuItemType.CHECKBOX_ITEM, "Marcar para Proyecto", null)
+            // Aquí irían "Nuevo Proyecto", "Abrir Proyecto", "Guardar Como..." en Iteración 2
+        );
+        menuBarStructure.add(new MenuItemDefinition(null, MenuItemType.MAIN_MENU, "Proyecto", proyectoSubItems));
+        
         // --- Menú Configuración ---
         // Carga de Imagenes
         List<MenuItemDefinition> cargaImgSubItems = List.of(
@@ -266,13 +278,7 @@ public class UIDefinitionService {
         );
         menuBarStructure.add(new MenuItemDefinition(null, MenuItemType.MAIN_MENU, "Configuracion", configSubItems));
 
-        // --- Nuevo Menú Proyecto ---
-        List<MenuItemDefinition> proyectoSubItems = List.of(
-            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, MenuItemType.ITEM, "Gestionar Selección Actual...", null),
-            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, MenuItemType.CHECKBOX_ITEM, "Marcar para Proyecto", null)
-            // Aquí irían "Nuevo Proyecto", "Abrir Proyecto", "Guardar Como..." en Iteración 2
-        );
-        menuBarStructure.add(new MenuItemDefinition(null, MenuItemType.MAIN_MENU, "Proyecto", proyectoSubItems));
+
         
         // --- FIN de Definición de Menús ---
         return menuBarStructure;

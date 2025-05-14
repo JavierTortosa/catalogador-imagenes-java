@@ -16,8 +16,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
-import controlador.commands.AppActionCommands;
 // Importa todas las clases necesarias de otros paquetes
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
@@ -39,7 +39,10 @@ import vista.util.IconUtils;
  */
 public class AppInitializer {
 
-    // --- Referencias a Componentes Creados/Configurados ---
+    // --- Constante para delay de la redimension de la ventana de la aplicacion
+	private static final int WINDOW_RESIZE_UPDATE_DELAY_MS = 250;
+    
+	// --- Referencias a Componentes Creados/Configurados ---
 	
     private ConfigurationManager configuration;
     private VisorModel model;
@@ -58,6 +61,7 @@ public class AppInitializer {
 
     // --- Referencia al Controlador Principal ---
     private final VisorController controller; // El controller que usa este inicializador
+    
     
     
     /**
@@ -457,10 +461,10 @@ public class AppInitializer {
 
         // --- 7. ACTUALIZAR la UI de VisorView con el Menú y Toolbar REALES ---
         if (view != null) {
-            view.setActualJMenuBar(finalMenuBar); // Necesitas este setter en VisorView
-            view.setActualToolbarPanel(finalToolbarPanel); // Necesitas este setter en VisorView
-            view.setActualMenuItemsMap(finalMenuItemsMap); // Necesitas este setter en VisorView
-            view.setActualBotonesMap(finalBotonesMap);     // Necesitas este setter en VisorView
+            view.setActualJMenuBar(finalMenuBar); 			
+            view.setActualToolbarPanel(finalToolbarPanel); 
+            view.setActualMenuItemsMap(finalMenuItemsMap); 
+            view.setActualBotonesMap(finalBotonesMap);     
             System.out.println("    -> [EDT] Menú y Toolbar reales asignados a VisorView.");
         }
 
@@ -473,6 +477,19 @@ public class AppInitializer {
         try { controller.configurarListenersVistaInternal(); } catch (Exception e) { System.err.println("[EDT] ERROR configurarListenersVista: " + e.getMessage()); e.printStackTrace(); }
         try { controller.interceptarAccionesTecladoListas(); } catch (Exception e) { System.err.println("[EDT] ERROR interceptarAccionesTecladoListas: " + e.getMessage()); e.printStackTrace(); }
         try { KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(controller); } catch (Exception e) { System.err.println("[EDT] ERROR registrando KeyEventDispatcher: " + e.getMessage()); e.printStackTrace(); }
+        
+        // --- 9. CONFIGURAR LISTENER DE REDIMENSIONAMIENTO DE VENTANA ---
+        //     Se hace después de que la UI básica y los listeners principales estén listos,
+        //     pero antes de la sincronización final de UI y el hook de cierre.
+        try {
+            configurarListenerRedimensionVentana(); 
+        } catch (Exception e) {
+            System.err.println("[EDT] ERROR configurando listener de redimensionamiento: " + e.getMessage());
+            e.printStackTrace();
+            // No necesariamente fatal, la app podría funcionar sin miniaturas dinámicas.
+        }
+        
+        // --- 10. Sincronización Final y Hook de Cierre 
         try { controller.sincronizarUIFinalInternal(); } catch (Exception e) { System.err.println("[EDT] ERROR sincronizarUIFinal: " + e.getMessage()); e.printStackTrace(); }
         try { controller.configurarShutdownHookInternal(); } catch (Exception e) { System.err.println("[EDT] ERROR configurarShutdownHook: " + e.getMessage()); e.printStackTrace(); }
 
@@ -480,6 +497,49 @@ public class AppInitializer {
         System.out.println("--- AppInitializer: INICIALIZACIÓN COMPLETA ---");
 
     } //--- FIn metodo crearUICompletarInicializacion
+    
+    
+    /**
+     * (NUEVO MÉTODO PRIVADO)
+     * Configura un ComponentListener en la ventana principal (VisorView)
+     * para detectar cambios de tamaño y recalcular dinámicamente la cantidad
+     * de miniaturas visibles en la barra de miniaturas.
+     * Utiliza un Timer para "debouncing" y evitar recálculos excesivos.
+     */
+    private void configurarListenerRedimensionVentana() {
+        if (view != null && controller != null && listCoordinator != null) { // Asegúrate que todos existan
+            System.out.println("    -> [EDT - AppInitializer] Configurando ComponentListener para miniaturas dinámicas...");
+
+            view.getFrame().addComponentListener(new java.awt.event.ComponentAdapter() {
+                private Timer resizeTimer;
+
+                @Override
+                public void componentResized(java.awt.event.ComponentEvent e) {
+                    if (resizeTimer != null && resizeTimer.isRunning()) {
+                        resizeTimer.restart();
+                    } else {
+                        resizeTimer = new Timer(WINDOW_RESIZE_UPDATE_DELAY_MS, ae -> {
+                            System.out.println("      [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...");
+
+                            // Validar que el modelo y el listCoordinator estén listos
+                            // y que haya una selección válida (índice != -1)
+                            if (controller.getModel() != null && listCoordinator != null && listCoordinator.getIndiceOficialSeleccionado() != -1) {
+                                int indiceActual = listCoordinator.getIndiceOficialSeleccionado(); 
+                                controller.actualizarModeloYVistaMiniaturas(indiceActual);
+                            } else {
+                                System.out.println("      [WindowResized Timer - AppInitializer] Modelo no listo, ListCoordinator no listo o sin selección, no se actualizan miniaturas.");
+                            }
+                        });
+                        resizeTimer.setRepeats(false);
+                        resizeTimer.start();
+                    }
+                }
+            });
+            System.out.println("    -> [EDT - AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.");
+        } else {
+            System.err.println("ERROR [AppInit EDT - configurarListenerRedimensionVentana]: No se pudo añadir ComponentListener (vista, controller o listCoordinator nulos).");
+        }
+    }
     
     
     /**

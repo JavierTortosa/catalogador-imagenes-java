@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component; // Import faltante para getParent
 import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
@@ -39,11 +40,10 @@ import javax.swing.Timer;
 import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
+import controlador.VisorController;
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
-import vista.builders.MenuBarBuilder;
-import vista.builders.ToolbarBuilder;
 import vista.config.ViewUIConfig;
 import vista.renderers.MiniaturaListCellRenderer;
 import vista.renderers.NombreArchivoRenderer;
@@ -83,9 +83,18 @@ public class VisorView extends JFrame
     private final JMenuBar mainMenuBar; // <-- Campo para guardar la menubar recibida
     private final JPanel mainToolbarPanel; // <-- Campo para guardar la toolbar recibida
 
-	private int miniaturaScrollPaneHeight;
-	private DefaultListModel<String> modeloLista; // Referencia al modelo compartido
+    private int miniaturaScrollPaneHeight;
+    private DefaultListModel<String> modeloLista; // Referencia al modelo compartido
 
+    // --- Constantes para represenracion de las miniaturas ---
+    private static final int MINIMUM_THUMBNAIL_CELL_DIMENSION 			= 30; //tamaño de la celda
+    private static final int THUMBNAIL_CELL_HORIZONTAL_PADDING 			= 15; //espacio entre miniaturas
+    private static final int THUMBNAIL_CELL_VERTICAL_PADDING_WITH_TEXT 	= 30; //espacio vertical con texto
+    private static final int THUMBNAIL_CELL_VERTICAL_PADDING_NO_TEXT 	= 10; //espacio vertical sin texto
+    
+    // --- Constante Animacion de Botones
+    private static final int BUTTON_CLICK_ANIMATION_DURATION_MS = 200;
+	
 	// --- Estado de Dibujo Imagen Principal ---
 	private Image imagenReescaladaView;
 	private double zoomFactorView = 1.0;
@@ -98,62 +107,8 @@ public class VisorView extends JFrame
 	private Color colorCuadroOscuro = new Color(255, 255, 255);
 	private final int TAMANO_CUADRO = 16;
 	
-/*	
-	private static final long serialVersionUID = 2L; // Actualizar SUID por cambios
 
-	// --- Componentes UI ---
-	private JList<String> listaNombres; // Lista de nombres de archivo
-	private JList<String> listaMiniaturas; // Lista para mostrar miniaturas
-	private JScrollPane scrollListaMiniaturas; // ScrollPane para las miniaturas
-	private JLabel etiquetaImagen; // Para mostrar la imagen principal
-	private JSplitPane splitPane; // Divide listaNombres de etiquetaImagen
-	private JTextField textoRuta; // Barra de estado inferior
-	private JPanel panelPrincipal; // Contenedor principal (Toolbar, SplitPane, Miniaturas)
-	private JPanel panelIzquierdo; // Contiene la lista de nombres
-	private JPanel panelDeBotones; // La Toolbar generada
-
-	// --- Mapas para acceder a componentes por nombre ---
-	private Map<String, JButton> botonesPorNombre;// = new HashMap<>();
-	private Map<String, JMenuItem> menuItemsPorNombre;// = new HashMap<>();
-
-	// --- Configuración y Estado UI ---
-	private final ViewUIConfig uiConfig; // Configuración de apariencia (colores, etc.)
-	private final VisorModel model; // Guardar referencia al modelo si otros métodos lo usan
-	private int miniaturaScrollPaneHeight; // Altura deseada para el scroll de miniaturas
-	private DefaultListModel<String> modeloLista; // Referencia al modelo compartido (se establece vía
-													// setListaImagenesModel)
-	private final ThumbnailService servicioThumbs; // Guardar referencia si otros métodos lo usan
-    private final JMenuBar mainMenuBar; // <-- Campo para guardar la menubar recibida
-    private final JPanel mainToolbarPanel; // <-- Campo para guardar la toolbar recibida
-
-	// --- Estado de Dibujo Imagen Principal ---
-	private Image imagenReescaladaView;
-	private double zoomFactorView = 1.0;
-	private int imageOffsetXView = 0;
-	private int imageOffsetYView = 0;
-
-	// --- Estado Fondo a Cuadros ---
-	private boolean fondoACuadrosActivado = false;
-	private Color colorCuadroClaro = new Color(204, 204, 204);
-	private Color colorCuadroOscuro = new Color(255, 255, 255);
-	private final int TAMANO_CUADRO = 16;
-*/
-
-//	/**
-//	 * Constructor de la ventana principal. Recibe configuración, modelo y servicio
-//	 * de miniaturas para configurar la UI y los renderers.
-//	 *
-//	 * @param miniaturaPanelHeight Altura deseada para el scrollpane de miniaturas.
-//	 * @param config               Objeto ViewUIConfig con parámetros de apariencia
-//	 *                             y referencias.
-//	 * @param modelo               El VisorModel principal (contiene el ListModel a
-//	 *                             compartir).
-//	 * @param servicioThumbs       El ThumbnailService para que lo usen los
-//	 *                             renderers.
-//	 */
-//	public VisorView(int miniaturaPanelHeight, ViewUIConfig config, VisorModel modelo, ThumbnailService servicioThumbs)
-//	{
-
+  
 	/**
      * Constructor MODIFICADO de la ventana principal.
      * Recibe configuración, modelo, servicio de miniaturas y los componentes
@@ -190,27 +145,16 @@ public class VisorView extends JFrame
         this.servicioThumbs = Objects.requireNonNull(servicioThumbs, "ThumbnailService no puede ser null");
 		this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100;
 		
-//		if (config == null)
-//			throw new IllegalArgumentException("ViewUIConfig no puede ser null");
-//		if (modelo == null)
-//			throw new IllegalArgumentException("VisorModel no puede ser null");
-//		if (servicioThumbs == null)
-//			throw new IllegalArgumentException("ThumbnailService no puede ser null");
-//
-//		this.uiConfig = config;
-//		this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100; // Asegurar altura
-																								// mínima
 		// --- 3. Almacenar Menú, Toolbar y Mapas Recibidos ---
         this.mainMenuBar = menuBar; // Guardar referencia
         this.mainToolbarPanel = toolbarPanel; // Guardar referencia
         this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>(); // Asignar mapa recibido
         this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();   // Asignar mapa recibido
         System.out.println("  [Constructor] Menú, Toolbar y Mapas recibidos.");
-        System.out.println("    -> Tamaño mapa Menús recibido: " + this.menuItemsPorNombre.size());
-        System.out.println("    -> Tamaño mapa Botones recibido: " + this.botonesPorNombre.size());
-		
-
-		System.out.println("  [Constructor] Dependencias validadas (Config, Modelo, Thumbs).");
+//        System.out.println("    -> Tamaño mapa Menús recibido: " + this.menuItemsPorNombre.size());
+//        System.out.println("    -> Tamaño mapa Botones recibido: " + this.botonesPorNombre.size());
+//		
+//		System.out.println("  [Constructor] Dependencias validadas (Config, Modelo, Thumbs).");
 
 		// 4. Configuración Básica del JFrame
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -228,21 +172,11 @@ public class VisorView extends JFrame
         
         System.out.println("  [Constructor] Referencia a modeloLista obtenida (Tamaño inicial: " + this.modeloLista.getSize() + ")");
 
-//        // 4.1 Verificación REAL (opcional, pero buena práctica)
-//        if (this.modeloLista == null) {
-//            // Esto solo debería ocurrir si modelo.getModeloLista() devuelve null,
-//            // lo cual indicaría un problema en VisorModel.
-//            System.err.println(
-//                    "ERROR CRÍTICO [VisorView Constructor]: VisorModel.getModeloLista() devolvió null. Creando uno vacío.");
-//            this.modeloLista = new DefaultListModel<>(); // Fallback REAL
-//        }
-
 		// 6. Crear e Inicializar TODOS los Componentes Internos
 		// Se pasan las referencias necesarias a este método.
 		System.out.println("  [Constructor] Llamando a inicializarComponentes...");
 		
 		inicializarComponentes(this.modeloLista); // Pasar solo el modelo de lista
-//		inicializarComponentes(modelo, servicioThumbs, this.modeloLista);
 		
 		System.out.println("  [Constructor] Componentes internos inicializados.");
 
@@ -329,20 +263,8 @@ public class VisorView extends JFrame
 	} // --- FIN DEL CONSTRUCTOR ---
 
 	
-//	/**
-//	 * Crea y ensambla los principales componentes de la interfaz. Es llamado desde
-//	 * el constructor.
-//	 *
-//	 * @param modelo         El VisorModel (para renderers y modelo de listas).
-//	 * @param servicioThumbs El ThumbnailService (para renderer de miniaturas).
-//	 * @param modeloNombres El DefaultListModel<String> que usarán las listas.
-//	 */
-//	private void inicializarComponentes (
-//			VisorModel modelo, ThumbnailService servicioThumbs, DefaultListModel<String> modeloNombres) 
-//	{
-	
     /**
-     * MODIFICADO: Crea y ensambla los principales componentes de la interfaz,
+     * Crea y ensambla los principales componentes de la interfaz,
      * EXCEPTO la barra de menú y la barra de herramientas, que se reciben
      * pre-construidas.
      *
@@ -368,27 +290,6 @@ public class VisorView extends JFrame
              panelPrincipal.add(new JLabel("Toolbar no disponible"), BorderLayout.NORTH);
         }
 	    
-//	    try {
-//	        ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.uiConfig.actionMap, this.uiConfig.colorBotonFondo,
-//	                this.uiConfig.colorBotonTexto, this.uiConfig.colorBotonActivado, this.uiConfig.colorBotonAnimacion,
-//	                this.uiConfig.iconoAncho, this.uiConfig.iconoAlto, this.uiConfig.iconUtils);
-//	        this.panelDeBotones = toolbarBuilder.buildToolbar();
-//	        this.botonesPorNombre = toolbarBuilder.getBotonesPorNombreMap();
-//
-//	        if (this.panelDeBotones != null) {
-//	            panelPrincipal.add(this.panelDeBotones, BorderLayout.NORTH);
-//	            System.out.println("2. Toolbar añadida al NORTE.");
-//	        } else {
-//	            throw new NullPointerException("ToolbarBuilder devolvió null");
-//	        }
-//	    } catch (Exception e) {
-//	        System.err.println("ERROR creando/añadiendo Toolbar: " + e.getMessage());
-//	        e.printStackTrace();
-//	        panelPrincipal.add(new JLabel("Error Toolbar"), BorderLayout.NORTH);
-//	    }
-	    
-	    
-
 	    // --- 3. CREAR Y ESTABLECER MENÚ ---
         if (this.mainMenuBar != null) {
             setJMenuBar(this.mainMenuBar); // Establece la JMenuBar recibida
@@ -397,27 +298,11 @@ public class VisorView extends JFrame
             System.err.println("WARN [VisorView]: No se recibió JMenuBar pre-construida.");
         }
 	    
-//	    try {
-//	        MenuBarBuilder menuBuilder = new MenuBarBuilder(this.uiConfig.actionMap); // Asume constructor que toma solo actionMap
-//	        JMenuBar laBarraMenu = menuBuilder.buildMenuBar();
-//	        this.menuItemsPorNombre = menuBuilder.getMenuItemsMap();
-//
-//	        if (laBarraMenu != null) {
-//	            setJMenuBar(laBarraMenu);
-//	            System.out.println("3. Barra de Menú establecida.");
-//	        } else {
-//	            throw new NullPointerException("MenuBarBuilder devolvió null");
-//	        }
-//	    } catch (Exception e) {
-//	        System.err.println("ERROR creando/estableciendo Menú: " + e.getMessage());
-//	        e.printStackTrace();
-//	    }
 
 	    // --- 4. INICIALIZAR PANEL IZQUIERDO (CON LISTA DE NOMBRES) ---
 	    //      Este método interno CREARÁ la instancia de `listaNombres`.
 	    try {
 	    	inicializarPanelIzquierdo(this.model, this.modeloLista);
-	        //inicializarPanelIzquierdo(modelo, modeloNombres); // Debe instanciar listaNombres
 	        System.out.println("4. Panel Izquierdo (con listaNombres) inicializado: " + (panelIzquierdo != null && listaNombres != null));
 	    } catch (Exception e) {
 	        System.err.println("ERROR inicializando Panel Izquierdo: " + e.getMessage());
@@ -430,7 +315,6 @@ public class VisorView extends JFrame
 	    //      Este método interno CREARÁ la instancia de `listaMiniaturas`.
 	    try {
 	    	inicializarPanelImagenesMiniatura(this.model, this.servicioThumbs);
-//	        inicializarPanelImagenesMiniatura(modelo, servicioThumbs); // Debe instanciar listaMiniaturas
 	        System.out.println("5. Panel Miniaturas (con listaMiniaturas) inicializado: " + (scrollListaMiniaturas != null && listaMiniaturas != null));
 	    
 	    } catch (Exception e) {
@@ -441,9 +325,6 @@ public class VisorView extends JFrame
 	    }
 
 	    // --- 6. COMPARTIR LISTSELECTIONMODEL ---
-	    //      Hacer esto DESPUÉS de que ambas JList (listaNombres y listaMiniaturas)
-	    //      hayan sido creadas en los pasos 4 y 5.
-
 	    System.out.println("6. ListSelectionModel NO compartido. Cada lista tiene el suyo.");
 	    
 	    // --- 7. INICIALIZAR ETIQUETA IMAGEN PRINCIPAL ---
@@ -561,9 +442,6 @@ public class VisorView extends JFrame
         // 4. Establecer el Cell Renderer personalizado para los nombres
         //    Este renderer se encarga de cómo se dibuja cada celda (cada nombre).
         try {
-             // Se asume que NombreArchivoRenderer solo necesita uiConfig.
-             // Si necesitara también el modelo completo (modeloApp), se pasaría:
-             // listaNombres.setCellRenderer(new NombreArchivoRenderer(this.uiConfig, modeloApp));
              listaNombres.setCellRenderer(new NombreArchivoRenderer(this.uiConfig));
              System.out.println("    -> NombreArchivoRenderer asignado a listaNombres.");
         } catch (Exception e) {
@@ -600,180 +478,347 @@ public class VisorView extends JFrame
     } // --- FIN inicializarPanelIzquierdo ---
 	
 	
- 
-
- // --- Dentro de la clase VisorView.java ---
-
     /**
      * Inicializa el JScrollPane y la JList que se usarán para mostrar las miniaturas.
      * Configura la JList, establece el renderer, define el layout y tamaño de celdas.
      * Usa un panel intermediario con GridBagLayout para centrar la JList horizontalmente.
      * Calcula el tamaño preferido de la JList basado en la configuración del modelo.
      *
-     * @param modelo El VisorModel principal, necesario para que el renderer obtenga rutas
+     * @param modeloParam El VisorModel principal, necesario para que el renderer obtenga rutas
      *               y para leer la configuración de cantidad de miniaturas.
-     * @param servicioThumbs El ThumbnailService, necesario para que el renderer cargue miniaturas.
+     * @param servicioThumbsLocal El ThumbnailService, necesario para que el renderer cargue miniaturas.
      */
-    private void inicializarPanelImagenesMiniatura (VisorModel modelo, ThumbnailService servicioThumbs) {
-        // --- SECCIÓN 1: Inicio y Log ---
-        // 1.1. Imprimir log indicando el inicio de la inicialización.
+    private void inicializarPanelImagenesMiniatura(VisorModel modeloParam, ThumbnailService servicioThumbsParam) {
+        // --- SECCIÓN 1: Log de Inicio (Sin cambios) ---
         System.out.println("  [Init Comp] Inicializando Panel Miniaturas...");
 
-        // --- SECCIÓN 2: Creación de la JList de Miniaturas ---
-        // 2.1. Crear la instancia de JList con un modelo vacío inicial.
-        listaMiniaturas = new JList<>(new DefaultListModel<>());
-        
+        // --- SECCIÓN 2: Creación de la JList de Miniaturas (Sin cambios) ---
+        listaMiniaturas = new JList<>(new DefaultListModel<>()); // Modelo inicial vacío
         listaMiniaturas.setFocusable(true);
         System.out.println("    [Init Miniaturas] listaMiniaturas setFocusable(true)");
 
-        // --- SECCIÓN 3: Configuración de Propiedades Básicas de la JList ---
-        // 3.1. Modo de selección único.
+        // --- SECCIÓN 3: Configuración de Propiedades Básicas de la JList (Sin cambios) ---
         listaMiniaturas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        // 3.2. Color de fondo detrás de las celdas.
-        listaMiniaturas.setBackground(this.uiConfig.colorFondoSecundario);
-        // 3.3. Color de fondo para la celda seleccionada.
+        listaMiniaturas.setBackground(this.uiConfig.colorFondoSecundario); // Color DETRÁS de las celdas
         listaMiniaturas.setSelectionBackground(this.uiConfig.colorSeleccionFondo);
-        // 3.4. Color de texto para la celda seleccionada.
         listaMiniaturas.setSelectionForeground(this.uiConfig.colorSeleccionTexto);
-        // 3.5. Hacer la JList NO opaca para que se vea el fondo del panel centrador.
-        listaMiniaturas.setOpaque(false);
+        listaMiniaturas.setOpaque(false); // Para que se vea el fondo del panel wrapper/centrador
 
-        // --- SECCIÓN 4: Configuración del Layout de la JList ---
-        // 4.1. Orientación horizontal con salto de línea.
+        // --- SECCIÓN 4: Configuración del Layout de la JList (Sin cambios) ---
         listaMiniaturas.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-        // 4.2. Indicar que calcule las filas visibles (resulta en una sola fila horizontal con celda fija).
-        listaMiniaturas.setVisibleRowCount(-1);
+        listaMiniaturas.setVisibleRowCount(-1); // Importante para que sea una sola fila horizontal
 
-        // --- SECCIÓN 5: Configuración del Renderer, Tamaño Fijo de Celda y Tamaño Preferido de JList ---
-        // 5.1. Variables para almacenar tamaño de celda calculado (necesarias fuera del try).
-        int cellWidth = 60;  // Valor por defecto si falla la configuración
-        int cellHeight = 60; // Valor por defecto si falla la configuración
-        // 5.2. Iniciar bloque try-catch para configuración del renderer.
+        // --- SECCIÓN 5: Configuración del Renderer y Tamaño Fijo de Celda ---
+        int cellWidth = 60;  // Fallback si todo falla
+        int cellHeight = 60; // Fallback
+
         try {
-            // 5.2.1. Obtener dimensiones del icono desde configuración.
-            int thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
-            int thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
+            // 5.2.1. Obtener dimensiones del icono desde config
+            int thumbWidth = 40;
+            int thumbHeight = 40;
+            if (this.uiConfig != null && this.uiConfig.configurationManager != null) {
+                thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
+                thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
+            }
 
-            // 5.2.2. Crear y asignar el renderer.
+            // 5.2.2. Saber si tenemos que mostrar nombres
+            boolean mostrarNombresEnThumbs = true;
+            if (this.uiConfig != null && this.uiConfig.configurationManager != null) {
+                mostrarNombresEnThumbs = this.uiConfig.configurationManager.getBoolean("ui.miniaturas.mostrar_nombres", true);
+            }
+
+            // 5.2.3. Crear y asignar el renderer
+            Color colorFondoDef = (this.uiConfig != null) ? this.uiConfig.colorFondoSecundario : Color.WHITE;
+            Color colorFondoSelDef = (this.uiConfig != null) ? this.uiConfig.colorSeleccionFondo : new Color(57, 105, 138);
+            Color colorTextoDef = (this.uiConfig != null) ? this.uiConfig.colorTextoPrimario : Color.BLACK;
+            Color colorTextoSelDef = (this.uiConfig != null) ? this.uiConfig.colorSeleccionTexto : Color.WHITE;
+            Color colorBordeSel = Color.ORANGE; // O desde uiConfig
+
             MiniaturaListCellRenderer rendererMiniaturas = new MiniaturaListCellRenderer(
-                servicioThumbs, modelo, thumbWidth, thumbHeight
+                servicioThumbsParam, modeloParam,
+                thumbWidth, thumbHeight, mostrarNombresEnThumbs,
+                colorFondoDef, colorFondoSelDef, colorTextoDef, colorTextoSelDef, colorBordeSel
             );
             listaMiniaturas.setCellRenderer(rendererMiniaturas);
 
-            // 5.2.3. Calcular y establecer tamaño fijo de celda (sobreescribe defaults).
-            cellWidth = Math.max(30, thumbWidth + 15); // Ancho icono + padding H
-            cellHeight = Math.max(30, thumbHeight + 30); // Alto icono + texto + padding V
+            // Obtener dimensiones de celda DESDE el renderer
+            cellWidth = rendererMiniaturas.getAnchoCalculadaDeCelda();
+            cellHeight = rendererMiniaturas.getAlturaCalculadaDeCelda();
+
             listaMiniaturas.setFixedCellWidth(cellWidth);
             listaMiniaturas.setFixedCellHeight(cellHeight);
-            System.out.println("    [Init Miniaturas] Renderer y tamaño de celda FIJO ("+cellWidth+"x"+cellHeight+") establecidos.");
+            System.out.println("    [Init Miniaturas] Renderer asignado. Tamaño de celda FIJO: " + cellWidth + "x" + cellHeight);
 
-        // 5.3. Bloque catch para manejar excepciones.
         } catch (Exception e) {
-            System.err.println("ERROR [inicializarMiniaturas] creando/asignando Renderer: " + e.getMessage());
+            System.err.println("ERROR [inicializarMiniaturas] creando/asignando Renderer o calculando tamaño celda: " + e.getMessage());
             e.printStackTrace();
             listaMiniaturas.setCellRenderer(new DefaultListCellRenderer());
-            // Mantenemos los cellWidth/cellHeight por defecto definidos al inicio de la sección 5.
-            System.out.println("    [Init Miniaturas] Usando tamaño de celda por defecto debido a error: " + cellWidth + "x" + cellHeight);
-            listaMiniaturas.setFixedCellWidth(cellWidth);
-            listaMiniaturas.setFixedCellHeight(cellHeight);
+            listaMiniaturas.setFixedCellWidth(cellWidth); // Usa el fallback 60
+            listaMiniaturas.setFixedCellHeight(cellHeight);// Usa el fallback 60
         }
 
-        // 5.4. Calcular y establecer tamaño preferido de la JList.
-        //      Se hace fuera del try-catch para asegurar que se ejecute incluso si el renderer falla,
-        //      usando los valores de cellWidth/cellHeight (ya sean los calculados o los por defecto).
+        // --- SECCIÓN 5.4 (MODIFICADA): Calcular Tamaño Preferido de la JList ---
+        // Este tamaño preferido es para la JList en sí misma, basado en el MÁXIMO de ítems
+        // que podría mostrar según la configuración, para que el JScrollPane tenga una idea
+        // de cuán grande *podría* llegar a ser la lista.
         try {
-             // 5.4.1. Obtener el número MÁXIMO de miniaturas esperado DESDE EL MODELO.
-             //        Se usan valores por defecto (7) si el modelo es nulo en este punto (raro).
-             int numAntes = (modelo != null) ? modelo.getMiniaturasAntes() : 7;
-             int numDespues = (modelo != null) ? modelo.getMiniaturasDespues() : 7;
-             
-             // 5.4.2. Calcular el número total de miniaturas en la ventana deslizante.
-             int maxMiniaturasEsperadas = numAntes + 1 + numDespues;
-             System.out.println("    [Init Miniaturas] Calculando tamaño pref. para " + maxMiniaturasEsperadas + " miniaturas ("+numAntes+"+1+"+numDespues+")");
+            int maxNumAntes = (modeloParam != null) ? modeloParam.getMiniaturasAntes() : VisorController.DEFAULT_MINIATURAS_ANTES_FALLBACK;
+            int maxNumDespues = (modeloParam != null) ? modeloParam.getMiniaturasDespues() : VisorController.DEFAULT_MINIATURAS_DESPUES_FALLBACK;
+            int maxTotalMiniaturas = maxNumAntes + 1 + maxNumDespues;
 
-             // 5.4.3. Calcular el ancho total preferido.
-             int preferredListWidth = maxMiniaturasEsperadas * cellWidth;
-             // 5.4.4. Calcular el alto total preferido (solo una fila).
-             int preferredListHeight = cellHeight;
-             // 5.4.5. Establecer el tamaño preferido calculado en la JList.
-             //        Esto es crucial para que JScrollPane y GridBagLayout sepan cuánto espacio reservar.
-             listaMiniaturas.setPreferredSize(new Dimension(preferredListWidth, preferredListHeight));
-             System.out.println("    [Init Miniaturas] Tamaño Preferido JList establecido a: " + preferredListWidth + "x" + preferredListHeight);
+            int preferredListWidth = maxTotalMiniaturas * cellWidth;
+            int preferredListHeight = cellHeight; // Solo una fila de alto
+
+            listaMiniaturas.setPreferredSize(new Dimension(preferredListWidth, preferredListHeight));
+            System.out.println("    [Init Miniaturas] Tamaño Preferido JList (para max items) establecido a: " + preferredListWidth + "x" + preferredListHeight);
         } catch (Exception e) {
             System.err.println("ERROR [inicializarMiniaturas] calculando/estableciendo tamaño preferido JList: " + e.getMessage());
-            // Si falla, la JList podría no tener tamaño preferido explícito, lo cual podría causar problemas.
-            // Podríamos establecer un tamaño por defecto aquí como fallback.
-             listaMiniaturas.setPreferredSize(new Dimension(15 * cellWidth, cellHeight)); // Fallback a 15 items
-            System.out.println("    [Init Miniaturas] Usando tamaño preferido JList de fallback (15 items).");
+            e.printStackTrace();
+            if (cellWidth <= 0) cellWidth = 60; if (cellHeight <= 0) cellHeight = 60; // Asegurar defaults
+            listaMiniaturas.setPreferredSize(new Dimension(15 * cellWidth, cellHeight));
         }
 
-        // --- SECCIÓN 6: Creación del Panel Intermediario para Centrado ---
-        // 6.1. Crear el panel con GridBagLayout.
-        JPanel panelCentrador = new JPanel(new GridBagLayout());
-        // 6.2. Configurar opacidad y color de fondo.
-        panelCentrador.setOpaque(true);
-        panelCentrador.setBackground(this.uiConfig.colorFondoPrincipal);
+        // --- SECCIÓN 6 (NUEVA): Creación del Panel Wrapper para Centrado Interno de la JList ---
+        // Este panel usará FlowLayout.CENTER para centrar la JList si esta es más estrecha que el wrapper.
+        JPanel wrapperListaMiniaturas = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)); // Centrado, sin gaps h/v
+        wrapperListaMiniaturas.setOpaque(false); // Hacerlo transparente para que se vea el fondo del panelCentrador
+        wrapperListaMiniaturas.add(listaMiniaturas); // Añadir la JList a este wrapper
+        System.out.println("    [Init Miniaturas] Panel wrapper para JList creado con FlowLayout.CENTER.");
 
-        // --- SECCIÓN 7: Configuración de GridBagConstraints para Centrar la JList ---
-        // 7.1. Crear objeto de restricciones.
+
+        // --- SECCIÓN 7 (MODIFICADA): Creación del Panel Intermediario (`panelCentrador`) ---
+        // Este panel usa GridBagLayout para centrar el 'wrapperListaMiniaturas'.
+        JPanel panelCentrador = new JPanel(new GridBagLayout());
+        panelCentrador.setOpaque(true);
+        panelCentrador.setBackground(this.uiConfig.colorFondoPrincipal); // El fondo que se ve detrás de las miniaturas
+
+        // --- SECCIÓN 8 (MODIFICADA): Configuración de GridBagConstraints para Centrar el WRAPPER ---
         GridBagConstraints gbc = new GridBagConstraints();
-        // 7.2. Celda única.
         gbc.gridx = 0;
         gbc.gridy = 0;
-        // 7.3. Permitir que la celda absorba espacio extra.
-        gbc.weightx = 1.0;
-        gbc.weighty = 1.0;
-        // 7.4. Anclar la JList al centro.
-        gbc.anchor = GridBagConstraints.CENTER;
-        // 7.5. No expandir la JList.
-        gbc.fill = GridBagConstraints.NONE;
-        // 7.6. Márgenes opcionales.
-        // gbc.insets = new Insets(2, 2, 2, 2);
+        gbc.weightx = 1.0; // Permite que la celda del GBL (y por ende el wrapper) se expanda horizontalmente
+        gbc.weighty = 1.0; // Permite que la celda del GBL (y por ende el wrapper) se expanda verticalmente
+        gbc.anchor = GridBagConstraints.CENTER; // ANCLA el wrapper al centro de la celda del GBL
+        gbc.fill = GridBagConstraints.HORIZONTAL;//.BOTH;   // HACE QUE EL WRAPPER LLENE la celda del GBL (horizontal y verticalmente)
 
-        // --- SECCIÓN 8: Añadir la JList al Panel Intermediario ---
-        // 8.1. Añadir la lista al panel con las restricciones.
-        panelCentrador.add(listaMiniaturas, gbc);
-        // 8.2. Log.
-        System.out.println("    [Init Miniaturas] Panel centrador con GridBagLayout creado y JList añadida.");
+        // --- SECCIÓN 9 (MODIFICADA): Añadir el WRAPPER (que contiene la JList) al Panel Intermediario ---
+        panelCentrador.add(wrapperListaMiniaturas, gbc); // Añadir el wrapper, no la JList directamente
+        System.out.println("    [Init Miniaturas] Wrapper de JList añadido a panelCentrador (GridBagLayout).");
 
-        // --- SECCIÓN 9: Creación del JScrollPane ---
-        // 9.1. Crear el scrollpane usando el panelCentrador.
-        scrollListaMiniaturas = new JScrollPane(panelCentrador);
-        // 9.2. Log.
+        // --- SECCIÓN 10 (MODIFICADA): Creación del JScrollPane ---
+        scrollListaMiniaturas = new JScrollPane(panelCentrador); // El scrollpane ahora ve el panelCentrador
         System.out.println("    [Init Miniaturas] JScrollPane creado con panelCentrador.");
 
-        // --- SECCIÓN 10: Configuración de las Barras de Scroll del ScrollPane ---
-        // 10.1. Barra horizontal siempre (o AS_NEEDED).
-        scrollListaMiniaturas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-        // 10.2. Barra vertical nunca.
+        // --- SECCIÓN 11 (MODIFICADA): Configuración de las Barras de Scroll del ScrollPane ---
+        scrollListaMiniaturas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // Como lo querías
         scrollListaMiniaturas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
-        // --- SECCIÓN 11: Establecimiento del Tamaño Preferido del ScrollPane ---
-        // 11.1. Usar la altura calculada y un ancho inicial pequeño.
-        Dimension preferredSize = new Dimension(100, this.miniaturaScrollPaneHeight);
-        // 11.2. Aplicar tamaño preferido al scrollpane.
-        scrollListaMiniaturas.setPreferredSize(preferredSize);
+        // --- SECCIÓN 12 (MODIFICADA): Establecimiento del Tamaño Preferido del ScrollPane ---
+        // Ya no establecemos un preferredSize muy pequeño y fijo para el scrollPane.
+        // Dejamos que su tamaño preferido se derive de su contenido (panelCentrador -> wrapper -> listaMiniaturas)
+        // y de la altura que calculamos para las celdas + TitledBorder.
+        // Sin embargo, this.miniaturaScrollPaneHeight (calculado en AppInitializer) sigue siendo relevante
+        // para el BorderLayout en el panelPrincipal.
+        // Para asegurar que el JScrollPane tenga al menos la altura deseada:
+        Dimension scrollPrefSize = new Dimension(100, this.miniaturaScrollPaneHeight); // Ancho mínimo, alto deseado
+        scrollListaMiniaturas.setPreferredSize(scrollPrefSize);
+        scrollListaMiniaturas.setMinimumSize(new Dimension(50, this.miniaturaScrollPaneHeight / 2)); // Un mínimo razonable
 
-        // --- SECCIÓN 12: Configuración Visual del Viewport del ScrollPane ---
-        // 12.1. Establecer color de fondo del área de visualización.
+        // --- SECCIÓN 13 (MODIFICADA): Configuración Visual del Viewport y Borde ---
         scrollListaMiniaturas.getViewport().setBackground(this.uiConfig.colorFondoPrincipal);
-
-        // --- SECCIÓN 13: Creación y Aplicación del Borde Titulado ---
-        // 13.1. Crear borde de línea.
         Border lineaMini = BorderFactory.createLineBorder(this.uiConfig.colorBorde);
-        // 13.2. Crear borde titulado.
         TitledBorder bordeTituladoMini = BorderFactory.createTitledBorder(lineaMini, "Miniaturas");
-        // 13.3. Establecer color del título.
         bordeTituladoMini.setTitleColor(this.uiConfig.colorTextoSecundario);
-        // 13.4. Aplicar borde al scrollpane.
         scrollListaMiniaturas.setBorder(bordeTituladoMini);
 
-        // --- SECCIÓN 14: Log Final ---
-        // 14.1. Indicar fin de la inicialización.
-        System.out.println("  [Init Comp] Panel Miniaturas (Centrado con GridBagLayout) finalizado. Altura preferida Scroll: " + preferredSize.height);
+        // --- SECCIÓN 14: Log Final (Sin cambios) ---
+        System.out.println("  [Init Comp] Panel Miniaturas (Wrapper + GridBagLayout) finalizado. Altura scrollPaneHint: " + this.miniaturaScrollPaneHeight);
 
-    } // --- FIN inicializarPanelImagenesMiniatura ---
+    } // --- FIN del metodo inicializarPanelImagenesMiniatura
     
+    
+//    private void inicializarPanelImagenesMiniatura (VisorModel modeloParam, ThumbnailService servicioThumbsLocal) {
+//        // --- SECCIÓN 1: Inicio y Log ---
+//        // 1.1. Imprimir log indicando el inicio de la inicialización.
+//        System.out.println("  [Init Comp] Inicializando Panel Miniaturas...");
+//
+//        // --- SECCIÓN 2: Creación de la JList de Miniaturas ---
+//        // 2.1. Crear la instancia de JList con un modelo vacío inicial.
+//        listaMiniaturas = new JList<>(new DefaultListModel<>());
+//        
+//        listaMiniaturas.setFocusable(true);
+//        System.out.println("    [Init Miniaturas] listaMiniaturas setFocusable(true)");
+//
+//        // --- SECCIÓN 3: Configuración de Propiedades Básicas de la JList ---
+//        // 3.1. Modo de selección único.
+//        listaMiniaturas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//        // 3.2. Color de fondo detrás de las celdas.
+//        listaMiniaturas.setBackground(this.uiConfig.colorFondoSecundario);
+//        // 3.3. Color de fondo para la celda seleccionada.
+//        listaMiniaturas.setSelectionBackground(this.uiConfig.colorSeleccionFondo);
+//        // 3.4. Color de texto para la celda seleccionada.
+//        listaMiniaturas.setSelectionForeground(this.uiConfig.colorSeleccionTexto);
+//        // 3.5. Hacer la JList NO opaca para que se vea el fondo del panel centrador.
+//        listaMiniaturas.setOpaque(false);
+//
+//        // --- SECCIÓN 4: Configuración del Layout de la JList ---
+//        // 4.1. Orientación horizontal con salto de línea.
+//        listaMiniaturas.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+//        // 4.2. Indicar que calcule las filas visibles (resulta en una sola fila horizontal con celda fija).
+//        listaMiniaturas.setVisibleRowCount(-1);
+//
+//        // --- SECCIÓN 5: Configuración del Renderer, Tamaño Fijo de Celda y Tamaño Preferido de JList ---
+//        int cellWidth = 60;  // Fallback si todo falla
+//        int cellHeight = 60; // Fallback si todo falla
+//
+//        try {
+//            // 5.2.1. Obtener dimensiones del icono desde configuración.
+//            int thumbWidth = 40;  // Default si uiConfig o su configManager son null
+//            int thumbHeight = 40; // Default
+//            if (this.uiConfig != null && this.uiConfig.configurationManager != null) {
+//                thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
+//                thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
+//            } else {
+//                System.err.println("WARN [VisorView InitThumbs]: uiConfig o su ConfigurationManager es null. Usando defaults para tamaño de thumbs.");
+//            }
+//
+//            // 5.2.2 Saber si tenemos que mostrar el nombre de la miniatura o no
+//            boolean mostrarNombresEnThumbs = true; // Default
+//            if (this.uiConfig != null && this.uiConfig.configurationManager != null) {
+//                mostrarNombresEnThumbs = this.uiConfig.configurationManager.getBoolean("ui.miniaturas.mostrar_nombres", true);
+//            } else {
+//                System.err.println("WARN [VisorView InitThumbs]: uiConfig o su ConfigurationManager es null. Usando default para mostrar_nombres.");
+//            }
+//            System.out.println("    [Init Miniaturas] Estado inicial para mostrar nombres: " + mostrarNombresEnThumbs);
+//
+//            // 5.2.3. Crear y asignar el renderer.
+//            // ¡AQUÍ PASAMOS TODOS LOS PARÁMETROS NECESARIOS!
+//            Color colorFondoDef = (this.uiConfig != null) ? this.uiConfig.colorFondoSecundario : Color.WHITE;
+//            Color colorFondoSelDef = (this.uiConfig != null) ? this.uiConfig.colorSeleccionFondo : new Color(57, 105, 138);
+//            Color colorTextoDef = (this.uiConfig != null) ? this.uiConfig.colorTextoPrimario : Color.BLACK;
+//            Color colorTextoSelDef = (this.uiConfig != null) ? this.uiConfig.colorSeleccionTexto : Color.WHITE;
+//            Color colorBordeSel = Color.ORANGE; // O un color de this.uiConfig si lo tienes
+//
+//            MiniaturaListCellRenderer rendererMiniaturas = new MiniaturaListCellRenderer(
+//                servicioThumbsLocal,    // Parámetro 1
+//                modeloParam,            // Parámetro 2 (usa la variable local del método)
+//                thumbWidth,             // Parámetro 3
+//                thumbHeight,            // Parámetro 4
+//                mostrarNombresEnThumbs, // Parámetro 5
+//                colorFondoDef,          // Parámetro 6
+//                colorFondoSelDef,       // Parámetro 7
+//                colorTextoDef,          // Parámetro 8
+//                colorTextoSelDef,       // Parámetro 9
+//                colorBordeSel           // Parámetro 10
+//            );
+//            listaMiniaturas.setCellRenderer(rendererMiniaturas);
+//
+//            // Ahora obtenemos las dimensiones de celda DESDE el renderer
+//            cellWidth = rendererMiniaturas.getAnchoCalculadaDeCelda();
+//            cellHeight = rendererMiniaturas.getAlturaCalculadaDeCelda();
+//
+//            listaMiniaturas.setFixedCellWidth(cellWidth);
+//            listaMiniaturas.setFixedCellHeight(cellHeight);
+//            System.out.println("    [Init Miniaturas] Renderer asignado. Tamaño de celda FIJO calculado por renderer: "+cellWidth+"x"+cellHeight);
+//
+//        } catch (Exception e) {
+//            System.err.println("ERROR [inicializarMiniaturas] creando/asignando Renderer o calculando tamaño celda: " + e.getMessage());
+//            e.printStackTrace();
+//            listaMiniaturas.setCellRenderer(new DefaultListCellRenderer());
+//            // Usar los fallbacks de cellWidth/Height definidos al inicio de la sección 5
+//            listaMiniaturas.setFixedCellWidth(60); // Fallback duro si todo falla
+//            listaMiniaturas.setFixedCellHeight(60);// Fallback duro
+//            System.out.println("    [Init Miniaturas] Usando tamaño de celda de fallback (60x60) debido a error.");
+//        }
+//
+//        // 5.4. Calcular y establecer tamaño preferido de la JList.
+//        try {
+//            // Usar los MÁXIMOS del modelo (leídos de config) para el tamaño preferido inicial de la JList
+//            int maxNumAntes = (modeloParam != null) ? modeloParam.getMiniaturasAntes() : 8; // Usa el modelo local del método
+//            int maxNumDespues = (modeloParam != null) ? modeloParam.getMiniaturasDespues() : 8;
+//            int maxTotalMiniaturas = maxNumAntes + 1 + maxNumDespues;
+//
+//            System.out.println("    [Init Miniaturas] Calculando tamaño pref. JList para MÁXIMO de " + maxTotalMiniaturas + " miniaturas (CellWidth: " + cellWidth + ")");
+//            int preferredListWidth = maxTotalMiniaturas * cellWidth; // cellWidth es el calculado por el renderer o el fallback
+//            int preferredListHeight = cellHeight; // cellHeight es el calculado por el renderer o el fallback
+//
+//            listaMiniaturas.setPreferredSize(new Dimension(preferredListWidth, preferredListHeight));
+//            System.out.println("    [Init Miniaturas] Tamaño Preferido JList establecido a: " + preferredListWidth + "x" + preferredListHeight);
+//        } catch (Exception e) {
+//            System.err.println("ERROR [inicializarMiniaturas] calculando/estableciendo tamaño preferido JList: " + e.getMessage());
+//            e.printStackTrace();
+//            // Fallback para el tamaño preferido de la JList
+//            listaMiniaturas.setPreferredSize(new Dimension(15 * cellWidth, cellHeight)); // Fallback a 15 items
+//            System.out.println("    [Init Miniaturas] Usando tamaño preferido JList de fallback (15 items).");
+//        }        
+//        
+//        // --- SECCIÓN 6: Creación del Panel Intermediario para Centrado ---
+//        // 6.1. Crear el panel con GridBagLayout.
+//        JPanel panelCentrador = new JPanel(new GridBagLayout());
+//        // 6.2. Configurar opacidad y color de fondo.
+//        panelCentrador.setOpaque(true);
+//        panelCentrador.setBackground(this.uiConfig.colorFondoPrincipal);
+//
+//        // --- SECCIÓN 7: Configuración de GridBagConstraints para Centrar la JList ---
+//        // 7.1. Crear objeto de restricciones.
+//        GridBagConstraints gbc = new GridBagConstraints();
+//        // 7.2. Celda única.
+//        gbc.gridx = 0;
+//        gbc.gridy = 0;
+//        // 7.3. Permitir que la celda absorba espacio extra.
+//        gbc.weightx = 1.0;
+//        gbc.weighty = 1.0;
+//        // 7.4. Anclar la JList al centro.
+//        gbc.anchor = GridBagConstraints.CENTER;
+//        // 7.5. No expandir la JList.
+//        gbc.fill = GridBagConstraints.NONE;
+//        // 7.6. Márgenes opcionales.
+//        // gbc.insets = new Insets(2, 2, 2, 2);
+//
+//        // --- SECCIÓN 8: Añadir la JList al Panel Intermediario ---
+//        // 8.1. Añadir la lista al panel con las restricciones.
+//        panelCentrador.add(listaMiniaturas, gbc);
+//        // 8.2. Log.
+//        System.out.println("    [Init Miniaturas] Panel centrador con GridBagLayout creado y JList añadida.");
+//
+//        // --- SECCIÓN 9: Creación del JScrollPane ---
+//        // 9.1. Crear el scrollpane usando el panelCentrador.
+//        scrollListaMiniaturas = new JScrollPane(panelCentrador);
+//        // 9.2. Log.
+//        System.out.println("    [Init Miniaturas] JScrollPane creado con panelCentrador.");
+//
+//        // --- SECCIÓN 10: Configuración de las Barras de Scroll del ScrollPane ---
+//        // 10.1. Barra horizontal siempre (o AS_NEEDED).
+//        scrollListaMiniaturas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+//        // 10.2. Barra vertical nunca.
+//        scrollListaMiniaturas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+//
+//        // --- SECCIÓN 11: Establecimiento del Tamaño Preferido del ScrollPane ---
+//        // 11.1. Usar la altura calculada y un ancho inicial pequeño.
+//        Dimension preferredSize = new Dimension(100, this.miniaturaScrollPaneHeight);
+//        // 11.2. Aplicar tamaño preferido al scrollpane.
+//        scrollListaMiniaturas.setPreferredSize(preferredSize);
+//
+//        // --- SECCIÓN 12: Configuración Visual del Viewport del ScrollPane ---
+//        // 12.1. Establecer color de fondo del área de visualización.
+//        scrollListaMiniaturas.getViewport().setBackground(this.uiConfig.colorFondoPrincipal);
+//
+//        // --- SECCIÓN 13: Creación y Aplicación del Borde Titulado ---
+//        // 13.1. Crear borde de línea.
+//        Border lineaMini = BorderFactory.createLineBorder(this.uiConfig.colorBorde);
+//        // 13.2. Crear borde titulado.
+//        TitledBorder bordeTituladoMini = BorderFactory.createTitledBorder(lineaMini, "Miniaturas");
+//        // 13.3. Establecer color del título.
+//        bordeTituladoMini.setTitleColor(this.uiConfig.colorTextoSecundario);
+//        // 13.4. Aplicar borde al scrollpane.
+//        scrollListaMiniaturas.setBorder(bordeTituladoMini);
+//
+//        // --- SECCIÓN 14: Log Final ---
+//        // 14.1. Indicar fin de la inicialización.
+//        System.out.println("  [Init Comp] Panel Miniaturas (Centrado con GridBagLayout) finalizado. Altura preferida Scroll: " + preferredSize.height);
+//
+//    } // --- FIN inicializarPanelImagenesMiniatura ---
+//    
     
 	// --- Método para inicializar Etiqueta Imagen ---
 	private void inicializarEtiquetaMostrarImagen ()
@@ -788,9 +833,9 @@ public class VisorView extends JFrame
 			protected void paintComponent (Graphics g)
 			{
 
-				System.out.println("%%% [paintComponent] llamado. imagenReescaladaView es null? " + (imagenReescaladaView == null));
+//				System.out.println("%%% [paintComponent] llamado. imagenReescaladaView es null? " + (imagenReescaladaView == null));
 				if (imagenReescaladaView != null) {
-		            System.out.println("%%% [paintComponent] Dibujando imagen. Zoom: " + zoomFactorView + " Offset: " + imageOffsetXView + "," + imageOffsetYView);
+//		            System.out.println("%%% [paintComponent] Dibujando imagen. Zoom: " + zoomFactorView + " Offset: " + imageOffsetXView + "," + imageOffsetYView);
 				}
 				
 		        int width = getWidth();
@@ -1567,7 +1612,7 @@ public class VisorView extends JFrame
              // 5.3. Crear y empezar un Timer para restaurar el color original
              //      Usamos una variable final para el botón dentro de la lambda del Timer.
              final JButton botonFinalParaTimer = botonEncontrado;
-             Timer timer = new Timer(200, (ActionEvent evt) -> { // Duración de la animación (200ms)
+             Timer timer = new Timer(BUTTON_CLICK_ANIMATION_DURATION_MS, (ActionEvent evt) -> { // Duración de la animación (200ms)
                  // Este código se ejecuta en el EDT después del delay
                  if (botonFinalParaTimer != null) { // Chequeo extra
                     // Restaurar el color de fondo original
