@@ -1,48 +1,101 @@
 package controlador.actions.especiales;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
-
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JPopupMenu;
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
+import controlador.commands.AppActionCommands;
+// No necesita VisorView si solo usa e.getSource()
+import vista.config.MenuItemDefinition; // Para la estructura del menú
+import vista.config.MenuItemType;     // Para definir los items del popup
+import vista.builders.PopupMenuBuilder;   // Para construir el JPopupMenu
+import vista.config.ViewUIConfig;       // Para pasar al PopupMenuBuilder
 
-@SuppressWarnings ("serial")
-public class HiddenButtonsAction extends BaseVisorAction {
+public class HiddenButtonsAction extends AbstractAction {
 
-	public HiddenButtonsAction(VisorController controller, IconUtils iconUtils, int width, int height) {
+    private static final long serialVersionUID = 1L;
 
-		// TODO Metodo HiddenButtonsAction pendiente de implementar
-	
-		// Texto para menú (si lo añades) o tooltip
-		super("Botones Ocultos", controller);
-		putValue(Action.SHORT_DESCRIPTION, "Muestra los botones ocultos");
+    // private VisorView viewRef; // No es estrictamente necesario si solo usamos e.getSource()
+    private Map<String, Action> actionMapRef; // Para obtener las Actions de los botones ocultos
+    private ViewUIConfig uiConfigRef;         // Para el PopupMenuBuilder
+    // Podríamos tener una lista de los COMANDOS de los botones que podrían ir aquí
+    // private List<String> overflowButtonCommands; 
 
-		// Cargar icono usando IconUtils
-		// Asegúrate que el nombre del archivo PNG sea correcto
-		ImageIcon icon = iconUtils.getScaledIcon("6003-Botones_Ocultos_48x48.png", width, height);
-		if (icon != null) {
-			putValue(Action.SMALL_ICON, icon);
-		} else {
-			System.err.println("WARN [HiddenButtonsAction]: No se pudo cargar el icono 6003-Botones_Ocultos_48x48.png");
-			putValue(Action.NAME, "<->"); // Texto fallback
-		}
-	}	
-	
-	 @Override
-	 public void actionPerformed(ActionEvent e) {
-	     // Loguear
-	     if (controller != null) {
-	         controller.logActionInfo(e);
-	     } else {
-	          System.err.println("Error: Controller es null en HiddenButtonsAction");
-	          return;
-	     }
+    // Constructor REFACTORIZADO
+    public HiddenButtonsAction(
+            // VisorView view, // Opcional
+            String name,
+            ImageIcon icon,
+            Map<String, Action> actionMap, // Para obtener las actions de los botones
+            ViewUIConfig uiConfig         // Para el builder
+            // List<String> overflowButtonCommands // Opcional: lista de comandos a mostrar
+    ) {
+        super(name, icon);
+        // this.viewRef = view;
+        this.actionMapRef = Objects.requireNonNull(actionMap, "ActionMap no puede ser nulo");
+        this.uiConfigRef = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo");
+        // this.overflowButtonCommands = overflowButtonCommands != null ? overflowButtonCommands : new ArrayList<>();
 
-	     // Llamar al método del controlador que realiza la acción
-	     //controller.aplicarVolteoHorizontal(); 
-	     System.out.println("HiddenButtonsAction pendiente de llamar al método del controlador que realiza la acción");
-	 }
-} // --- FIN HiddenButtonsAction
+        putValue(Action.SHORT_DESCRIPTION, "Mostrar acciones adicionales o botones que no caben");
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (actionMapRef == null || uiConfigRef == null) {
+            System.err.println("ERROR CRÍTICO [HiddenButtonsAction]: Dependencias nulas.");
+            return;
+        }
+
+        Object source = e.getSource();
+        if (!(source instanceof Component)) {
+            System.err.println("[HiddenButtonsAction] La fuente del evento no es un Component.");
+            return;
+        }
+        Component invokerComponent = (Component) source;
+
+        System.out.println("[HiddenButtonsAction actionPerformed] Mostrando menú de botones ocultos/adicionales...");
+
+        // --- Lógica para determinar qué botones mostrar ---
+        // ESTA ES LA PARTE COMPLEJA QUE DEJAREMOS COMO TODO O SIMPLIFICADA
+        List<MenuItemDefinition> itemsParaPopup = new ArrayList<>();
+
+        // TODO: Implementar la lógica para determinar qué botones están "ocultos"
+        // y necesitan mostrarse en este menú.
+        // Por ahora, podemos poner unos placeholders o una lista fija.
+
+        // Ejemplo con placeholders/lista fija:
+        // (Usa los AppActionCommands de los botones que quieras que aparezcan aquí)
+        String[] comandosBotonesOcultosEjemplo = {
+            AppActionCommands.CMD_ARCHIVO_IMPRIMIR, // Suponiendo que Imprimir podría estar oculto
+            AppActionCommands.CMD_IMAGEN_PROPIEDADES,
+            // ... añade más comandos de acciones que quieras en este menú de desbordamiento
+        };
+
+        for (String comando : comandosBotonesOcultosEjemplo) {
+            Action action = actionMapRef.get(comando);
+            if (action != null) {
+                String actionName = (String) action.getValue(Action.NAME);
+                // Usamos el nombre de la Action como texto del ítem de menú
+                itemsParaPopup.add(new MenuItemDefinition(comando, MenuItemType.ITEM, actionName != null ? actionName : comando, null));
+            }
+        }
+        
+        if (itemsParaPopup.isEmpty()) {
+            itemsParaPopup.add(new MenuItemDefinition(null, MenuItemType.ITEM, "(No hay acciones adicionales)", null));
+        }
+
+        // --- Construir y mostrar el JPopupMenu ---
+        PopupMenuBuilder popupBuilder = new PopupMenuBuilder(this.uiConfigRef);
+        JPopupMenu popupMenu = popupBuilder.buildPopupMenuWithNestedMenus(itemsParaPopup, this.actionMapRef);
+
+        popupMenu.show(invokerComponent, 0, invokerComponent.getHeight());
+    }
+}

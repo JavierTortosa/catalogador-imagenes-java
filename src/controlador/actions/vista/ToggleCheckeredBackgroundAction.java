@@ -1,87 +1,68 @@
-package controlador.actions.vista; // O el paquete donde la tengas
+// En src/controlador/actions/vista/ToggleCheckeredBackgroundAction.java
+package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JCheckBoxMenuItem; // Para determinar el estado si la fuente es un checkbox
-// No necesitas importar JButton aquí si la lógica de toggle es la misma
+import javax.swing.ImageIcon;
+import servicios.ConfigurationManager;
+import vista.VisorView; // Dependencia directa para esta Action
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import controlador.commands.AppActionCommands; // Asegúrate de tener los comandos
+public class ToggleCheckeredBackgroundAction extends AbstractAction {
 
-// No necesita IconUtils si no tiene icono propio en la Action
+    private static final long serialVersionUID = 1L;
 
-public class ToggleCheckeredBackgroundAction extends BaseVisorAction {
+    private VisorView viewRef;
+    private ConfigurationManager configManagerRef; 
+    private String configKeyForState; // Ej: "interfaz.menu.vista.fondo_a_cuadros.seleccionado"
+    // No necesitamos componentIdForViewManager aquí
 
-    private static final long serialVersionUID = 1L; // Actualiza si cambias la clase
+    public ToggleCheckeredBackgroundAction(String name, 
+                                       ImageIcon icon, 
+                                       VisorView view, // Dependencia directa
+                                       ConfigurationManager configManager, 
+                                       String configKeyForSelectedState,
+                                       String actionCommandKey) {
+        super(name, icon); 
+        
+        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null en ToggleCheckeredBackgroundAction");
+        this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
+        this.configKeyForState = Objects.requireNonNull(configKeyForSelectedState, "configKeyForState no puede ser null");
 
-    /**
-     * Constructor para la acción de activar/desactivar el fondo a cuadros.
-     *
-     * @param controller La instancia del VisorController.
-     */
-    public ToggleCheckeredBackgroundAction(VisorController controller) {
-        // 1. Llamar al constructor de la superclase (BaseVisorAction)
-        super("fondo_a_cuadros", controller);
+        putValue(Action.SHORT_DESCRIPTION, "Activar o desactivar el fondo a cuadros de la imagen");
+        putValue(Action.ACTION_COMMAND_KEY, Objects.requireNonNull(actionCommandKey, "actionCommandKey no puede ser null"));
 
-        // 2. Establecer propiedades de la Action
-        // 2.1. Descripción corta (Tooltip)
-        putValue(Action.SHORT_DESCRIPTION, "Mostrar/Ocultar fondo a cuadros detrás de la imagen");
-
-        // 2.2. Comando Canónico (ACTION_COMMAND_KEY)
-        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
+        // Leer el estado inicial de la configuración
+        // El default es 'false' (fondo a cuadros desactivado inicialmente)
+        boolean initialState = this.configManagerRef.getBoolean(this.configKeyForState, false); 
+        putValue(Action.SELECTED_KEY, initialState);
+        
+        // Aplicar el estado inicial a la vista (importante si no se hace en otro lado)
+        // Esto asegura que la vista refleje la configuración al arrancar.
+        if (this.viewRef != null) {
+            this.viewRef.setCheckeredBackgroundEnabled(initialState);
+        }
     }
 
-    /**
-     * Se ejecuta cuando el usuario interactúa con un componente UI asociado a esta Action
-     * (ej. JCheckBoxMenuItem "Fondo a Cuadros").
-     *
-     * @param e El ActionEvent.
-     */
     @Override
     public void actionPerformed(ActionEvent e) {
-        // --- 1. Validar Controller y Loguear ---
-        if (controller == null) {
-            System.err.println("Error: Controller es null en ToggleCheckeredBackgroundAction. No se puede ejecutar la acción.");
+        if (viewRef == null || configManagerRef == null) {
+            System.err.println("ERROR CRÍTICO [ToggleCheckeredBackgroundAction]: View o ConfigManager nulos.");
             return;
         }
-        controller.logActionInfo(e); // Loguear la acción
 
-        // --- 2. Determinar el Nuevo Estado Deseado ---
-        //    Para una Action de tipo toggle (como esta, que se usa con JCheckBoxMenuItem),
-        //    el nuevo estado es simplemente la inversión del estado actual de SELECTED_KEY.
-        //    Si la fuente fuera un JCheckBoxMenuItem, también podríamos leer su estado,
-        //    pero invertir el SELECTED_KEY de la Action es más genérico y robusto.
+        // El nuevo estado 'seleccionado' ya está en la propiedad SELECTED_KEY de la Action
+        // porque JCheckBoxMenuItem lo actualiza antes de llamar a actionPerformed.
+        boolean nuevoEstadoActivado = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
+        System.out.println("[ToggleCheckeredBackgroundAction actionPerformed] Nuevo estado: " + nuevoEstadoActivado);
 
-        boolean nuevoEstado;
-        Object source = e.getSource();
-
-        if (source instanceof JCheckBoxMenuItem) {
-            // Si la fuente es un JCheckBoxMenuItem, su estado 'selected' ES el nuevo estado.
-            nuevoEstado = ((JCheckBoxMenuItem) source).isSelected();
-            System.out.println("  [ToggleCheckeredBGAction] Evento desde JCheckBoxMenuItem. Nuevo estado (isSelected): " + nuevoEstado);
-        } else {
-            // Si la fuente es otra (ej. un botón de toggle que no actualiza SELECTED_KEY antes de llamar),
-            // o para un comportamiento de toggle general, invertimos el estado actual de la Action.
-            Object valorSeleccionadoActual = getValue(Action.SELECTED_KEY);
-            boolean estadoActual = (valorSeleccionadoActual instanceof Boolean && (Boolean) valorSeleccionadoActual);
-            nuevoEstado = !estadoActual;
-            System.out.println("  [ToggleCheckeredBGAction] Evento desde fuente desconocida o botón. Estado Action actual: "
-                               + estadoActual + ". Nuevo estado deseado: " + nuevoEstado);
-        }
-
-        // --- 3. Llamar al Método del Controller para Aplicar el Cambio ---
-        controller.setComponenteVisibleAndUpdateConfig("fondo_a_cuadros", nuevoEstado);
-        // Nota: "Fondo_a_Cuadros" es la clave que tu método setComponenteVisibleAndUpdateConfig espera.
-        // Este método en el controller también debería actualizar la configuración.
-
-        // --- 4. Actualizar el Estado SELECTED_KEY de Esta Action ---
-        //    Esto asegura que cualquier otro componente vinculado a esta Action refleje el nuevo estado.
-        //    Si setComponenteVisibleAndUpdateConfig ya actualiza la config y esta Action
-        //    lee su estado inicial de la config, esta línea podría ser redundante en el
-        //    siguiente arranque, pero es buena para la consistencia inmediata de la UI.
-        putValue(Action.SELECTED_KEY, nuevoEstado);
-        System.out.println("  [ToggleCheckeredBGAction] Estado Action.SELECTED_KEY actualizado a: " + getValue(Action.SELECTED_KEY));
+        // 1. Actualizar la configuración en memoria
+        configManagerRef.setString(this.configKeyForState, String.valueOf(nuevoEstadoActivado));
+        System.out.println("  -> Configuración '" + this.configKeyForState + "' actualizada a: " + nuevoEstadoActivado);
+        
+        // 2. Llamar al método de VisorView para cambiar el estado del fondo a cuadros
+        viewRef.setCheckeredBackgroundEnabled(nuevoEstadoActivado); 
+        // VisorView.setCheckeredBackgroundEnabled internamente llama a repaint() en la etiquetaImagen.
     }
 }
-

@@ -1,37 +1,59 @@
+// En controlador.actions.edicion.FlipVerticalAction.java
 package controlador.actions.edicion;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
 
-public class FlipVerticalAction extends BaseVisorAction {
+import controlador.commands.AppActionCommands;
+import controlador.interfaces.ContextSensitiveAction;
+import controlador.managers.EditionManager;
+import modelo.VisorModel;
 
-    private static final long serialVersionUID = 1L;
+public class FlipVerticalAction extends AbstractAction implements ContextSensitiveAction {
 
-    public FlipVerticalAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        super("Voltear Vertical", controller); // Texto para menú
+    private static final long serialVersionUID = 1L; // Considera generar uno nuevo
+
+    private EditionManager editionManagerRef;
+    private VisorModel modelRef;
+
+    public FlipVerticalAction(
+            EditionManager editionManager,
+            VisorModel model,
+            String name,
+            ImageIcon icon) {
+        super(name, icon);
+        this.editionManagerRef = Objects.requireNonNull(editionManager, "EditionManager no puede ser null en FlipVerticalAction");
+        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null en FlipVerticalAction");
+
         putValue(Action.SHORT_DESCRIPTION, "Voltear la imagen verticalmente");
+        // Asegúrate que AppActionCommands.CMD_IMAGEN_VOLTEAR_V exista y sea la clave correcta
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_V); 
 
-        // Cargar icono
-        ImageIcon icon = iconUtils.getScaledIcon("2004-Espejo_Vertical_48x48.png", width, height);
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-        } else {
-            System.err.println("WARN [FlipVerticalAction]: No se pudo cargar el icono 2004-Espejo_Vertical_48x48.png");
-            // putValue(Action.NAME, "VFlip"); // Fallback
-        }
+        updateEnabledState(this.modelRef); // Estado inicial
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller != null) {
-            controller.logActionInfo(e);
-            controller.aplicarVolteoVertical(); // Llama al método correcto del controller
+        if (editionManagerRef == null) {
+            System.err.println("ERROR CRÍTICO [FlipVerticalAction]: EditionManager es nulo.");
+            return;
+        }
+        // System.out.println("[FlipVerticalAction actionPerformed] Comando: " + e.getActionCommand());
+        
+        editionManagerRef.aplicarVolteoVertical();
+    }
+
+    @Override
+    public void updateEnabledState(VisorModel currentModel) {
+        if (currentModel != null) {
+            // Habilitar solo si hay una imagen cargada en el modelo
+            setEnabled(currentModel.getCurrentImage() != null);
         } else {
-             System.err.println("Error: Controller es null en FlipVerticalAction");
+            setEnabled(false);
         }
     }
 }

@@ -1,0 +1,210 @@
+	este es un proyecto de un visualilzador/catalogador en java/swing. 
+	el github es: https://github.com/JavierTortosa/catalogador-imagenes-java.git
+	
+	Idea general:
+	Soy aprendiz de programador y me dedico bastante a menudo a hacer proyectos en 3d. 
+	
+	Este proyecto nace de la ncesidad de buscar entre cerca de 26000 imagenes.
+	Cada una de estas imagenes corresponde a un archivo comprimido que es quien contiene los modelos a imprimir
+	
+	Los archivos estan separados por carpetas tematicas, las cuales pueden contener varios temas diferentes y de varias formas diferentes
+	Para aclararnos, las carpetas pueden ser de cine, herramientes, escenografia, etc., y dentro de cada carpeta puede contener mas carpetas refinando el catalogo de archivos
+	El problema es que puede ser por una tematica, cine, o puede ser por un diseñador, punga, o simplemente ser archivos stl con su imagen
+	las carpetas tematicas no tienen demasiado problema, pero las de diseñadores pueden contener varios temas, ademas las imagenes pueden ser de 1 modelo o varios
+	
+	Los proyectos en 3d suelen ser tematicos por ej trofeos para toneo de blood bowl. para este proyecto necesitare buscar: bases, pedestales, una base superior y un modelo que represente el campeon por ej...
+	Todo lo referente a trofeos esta en la carpeta trofeos, dentro hay otras carpetas de bases, pedestales, etc... 
+	Luego tengo que ir buscando la figura que ira encima del toreo en funcion de la tematica del torneo, pongamos skaven. 
+	El kit de la cuestion es buscar entre las 26000 imagenes, algun modelo que sea de la tematica que busco y que me sirva para el trofeo... 
+	
+	Lo que pretendo con este proyecto es poder agilizar dicha busqueda.
+
+
+El programa:
+
+El programa tiene 3 partes:
+	Visualizador
+	Gestor de proyectos
+	catalogador de imagenes
+	
+Este es el orden en el que pretendo abordar el proyecto, ya que primero necesito un programa agil y rapido que me permita visualizar las imagenes rapidamente
+En este punto tenemos varias herramientas:
+
+
+-- El Visualizador --
+
+	La interfaz:
+		En la parte superior tiene un menu con la totalidad de opciones disponibles en el programa y una opcion de configuracion que en un futuro sera mucho mas completa
+		A continuacion la barra de botones, que iran distribuidos en varias barras de herramientas y que segun donde estemos se mostraran unas herramientas u otras
+			(no tiene ningun sentido que se visualicen los botones de movimiento en el carrousel si estamos editando una imagen) 
+		En el centro de la aplicacion tenemos 3 partes:
+			1. la lista de nombres de archivos (por si sabemos el nobmre de lo que buscamos y ordenacion de los archivos (nombre, carpeta, fecha...)
+			2. la lista de miniaturas es la misma lista de nombres pero mostrando una pequeña lista de imagenes para navegacion rapida 
+			3. vista de la imagen seleccionada. es la vista principal de la imagen seleccionada
+		
+	Formas de visualizar la interfaz 
+		
+		1. Navegador por carpetas, un selector de carpetas donde empezar la visualizacion de las imagenes
+		2. Una opcion para que Se puede visualizar la carpeta actual o con las subcarpetas. muy util por la distribucion de las carpetas que tenemos
+		3. Zoom. Hay 2 tipos:
+			1. Zoom Manual que me permite acercar o alejar la imagen o moverla (muy practico en las imgaenes multiples)
+			2. Tipos de zoom: son varias formas de ver las imagenes (sin restriccciones, ajutas al espacion maximo, ajustar al alto/ancho....)
+				Este segundo tipo tiene una opcion para mantener o no las proporciones de la imagen
+		2. Modos de visualizacion: 1 imagen, grid de imagenes, etc....
+		3. Complemento al Modo de visualizacion: pantalla compeleta y carrousel
+		4. Tanto el menu, como las diferentes listas, botones, etc se pueden hacer visibles o no... para ganar espacio de visualizacion
+	
+	Edicion
+	
+		1. la funciones basicas, rotar izq. y der., espejo horizonta y vertical
+		2. Un modo de recortar (para las imagenes multiples) pero que sera capaz de de poder modificar la imagen actual 
+			(tendra una serie de opciones para pegar el recorte en la imagen original, separar el recorte de la imagen original....)
+		3. Varias formas de guardado tanto de la imagen nueva como la original como la modificacion.... 
+		
+
+-- Gestor de Proyectos --
+					
+	Se distribuye en varias fases: 
+		1. una opcion de marcar las imagenes que nos interesa y añadir el archivo con su ruta en un txt temporal 
+		2. Un visualizador de las imagenes marcadas (cambiando el foco entre las carpetas del disco o el contenido del txt)
+		3. El archivo temporal se puede guardar con un nombre concreto y se pueden gestionar los diferentes proyectos
+		
+		
+-- Catalogador de Imagenes --
+
+	Es el grueso de la aplicacion, gestionando una base de datos o metadatos o algo similar en donde poder catalogar las imagenes, de tal forma que pueda buscar elfos, enanos, etc.
+	Con la base de datos podremos implementar un gestor de proyectos que pueda ser mas refinado, el uso de tags, pero el trabajo de introducir los de 26000 imagenes puede ser duro.
+	La complicacion mas grande de catalogar las imagenes es el tema de que la cantidad de archivos que tengo ahora y que va creciendo y por lo tanto se van refinando las carpetas
+		(una carpeta que empezo siendo cine, ahora tiene star wars, señor de los anillos.... y dentro de star wars esta la carpeta de naves, personajes, droides... y asi hasta el infinito....
+
+		 
+		 
+		 
+-- Por donde vamos --
+
+Prompt General de Refactorización para el Asistente (Mañana):
+"Hola. Hoy vamos a continuar con la refactorización de la aplicación Visor de Imágenes. El objetivo principal es reducir la complejidad de la clase controlador.VisorController.java extrayendo la lógica de manejo de acciones específicas a nuevas clases Manager ubicadas en el paquete controlador.managers.
+Las clases Manager que planeamos crear/utilizar y la lógica que contendrán son:
+ZoomManager: Manejará toda la lógica relacionada con el zoom de la imagen principal (activación de zoom manual, aplicación de diferentes modos de zoom/ajuste, reseteo de zoom, y la lógica de paneo asociada al zoom manual). Utilizará modelo.VisorModel para el estado y vista.VisorView y vista.util.ImageDisplayUtils para la visualización y el reescalado base.
+EditionManager: Manejará las operaciones de edición de la imagen principal (rotar izquierda/derecha, voltear horizontal/vertical, y eventualmente recortar). Utilizará servicios.image.ImageEdition para las transformaciones de píxeles, modelo.VisorModel para la imagen actual, y controlador.managers.ZoomManager (o un mecanismo similar) para refrescar la vista después de una edición.
+(Opcional/Futuro) FileOperationsManager: Lógica de abrir directorios, borrar archivos, refrescar lista.
+(Opcional/Futuro) ViewUIManager: Lógica para mostrar/ocultar paneles de la UI, cambiar temas.
+(Opcional/Futuro) ProjectActionsManager: Lógica para marcar imágenes y gestionar proyectos.
+Las clases javax.swing.Action correspondientes (ubicadas en controlador.actions.*) serán refactorizadas para que, en lugar de depender directamente de VisorController para ejecutar su lógica, reciban una instancia del Manager apropiado a través de su constructor y deleguen la ejecución a dicho Manager.
+La clase controlador.factory.ActionFactory.java será la responsable de instanciar todas las Actions y de inyectarles sus dependencias (Managers, VisorView, VisorModel, IconUtils, ConfigurationManager, según necesite cada Action). ActionFactory también construirá el actionMap central.
+La clase controlador.AppInitializer.java orquestará la creación de todas las dependencias: VisorModel, VisorView, servicios (ConfigurationManager, IconUtils, etc.), los nuevos Managers, y ActionFactory. Luego, ensamblará la aplicación, inyectando las dependencias necesarias en cada componente.
+Hoy, te iré pasando el código de las clases específicas (VisorController.java, ZoomManager.java, EditionManager.java, ActionFactory.java, AppInitializer.java, y las clases Action individuales) una por una, o por métodos específicos, según lo necesitemos. Para cada clase o método, te pediré que me indiques los cambios necesarios para lograr esta refactorización, centrándonos en un solo bloque de funcionalidad a la vez (primero todo lo relacionado con Zoom, luego todo lo relacionado con Edición, etc.).
+Por favor, cíñete estrictamente a la clase/método que te indique en cada momento y proporciona solo el código o las modificaciones para esa parte específica. No te adelantes a otras clases o funcionalidades hasta que yo te lo pida y te confirme que el paso anterior está completado y funcionando (o al menos compilando sin errores relevantes para ese paso).
+
+		 
+		 
+
+Aquí tienes un prompt que puedes usar cuando vuelvas, describiendo nuestro progreso y las clases clave involucradas.
+
+---
+
+**Prompt para Continuar la Refactorización del Visor de Imágenes Java/Swing**
+
+**Contexto del Proyecto:**
+Estamos refactorizando una aplicación de visualización y catalogación de imágenes en Java/Swing. El objetivo principal actual es reducir la complejidad de la clase `controlador.VisorController` extrayendo la lógica de manejo de acciones específicas a nuevas clases `Manager` ubicadas en el paquete `controlador.managers`. Además, estamos asegurando que las clases `javax.swing.Action` (ubicadas en `controlador.actions.*`) dependan de estos `Managers` o de las dependencias mínimas necesarias (`VisorModel`, `VisorView`, `ConfigurationManager`, `ImageIcon`), en lugar de depender directamente de `VisorController`.
+
+**Estado Actual de la Refactorización (Puntos Clave Alcanzados/En Proceso):**
+
+1.  **`AppInitializer` Reestructurado:**
+    *   Orquesta la creación de componentes en fases, separando la lógica pre-UI de la lógica de UI (que se ejecuta en el EDT).
+    *   Es responsable de crear e inyectar dependencias como `VisorModel`, `ConfigurationManager`, `ThemeManager`, `IconUtils`, `VisorView`, `ZoomManager`, `FileOperationsManager`, `ViewManager`, `ListCoordinator`, `ProjectManager` (servicio), y `ActionFactory`.
+    *   Crea un `Map<String, String> comandoToIconKeyMap` a partir de las `ToolbarButtonDefinition` (de `UIDefinitionService`) y lo pasa a `ActionFactory` para la obtención de iconos.
+
+2.  **`ActionFactory` Modificada:**
+    *   Su constructor ahora acepta todas las dependencias necesarias (modelo, vista, todos los managers relevantes, servicios, y el `comandoToIconKeyMap`).
+    *   Tiene un método `initializeAllActions()` que es responsable de crear **todas** las instancias de `Action`.
+    *   Utiliza un método helper `getIconForCommand(String appCommand)` para obtener `ImageIcon`s usando el `comandoToIconKeyMap` y `IconUtils`.
+    *   Los métodos `create...Action()` dentro de `ActionFactory` están siendo actualizados para instanciar las `Action`s con sus nuevos constructores (que no dependen de `VisorController`).
+
+3.  **Refactorización de Clases `Action` Individuales (En Proceso):**
+    *   **Actions de Zoom:**
+        *   `ResetZoomAction`: Refactorizada para usar `ZoomManager`.
+        *   `ToggleZoomManualAction`: Refactorizada para usar `ZoomManager`, `VisorModel`, `VisorView` y una referencia a `ResetZoomAction`.
+        *   `AplicarModoZoomAction`: Nueva clase genérica creada para manejar los diferentes modos de zoom (Auto, Ancho, Alto, etc.), dependiendo de `ZoomManager` y `VisorModel`. `ActionFactory` crea múltiples instancias de esta clase.
+    *   **Actions de Archivo:**
+        *   `OpenFileAction`: Refactorizada para usar `FileOperationsManager`.
+        *   `DeleteAction`: En proceso de refactorización para usar `FileOperationsManager` y `VisorModel`.
+        *   `RefreshAction`: Unificada (eliminada la duplicada) y en proceso de refactorización (dependerá de `VisorModel` y, a futuro, de un `Manager` para recargar la lista).
+    *   **Actions de Vista (Toggles de UI):**
+        *   `ToggleMenuBarAction`, `ToggleToolBarAction`, `ToggleFileListAction`, `ToggleThumbnailsAction`, `ToggleLocationBarAction`: Refactorizadas/en proceso para usar `ViewManager` y `ConfigurationManager`.
+        *   `ToggleCheckeredBackgroundAction`, `ToggleAlwaysOnTopAction`: Refactorizadas/en proceso para usar `VisorView` y `ConfigurationManager`.
+        *   `MostrarDialogoListaAction`: Refactorizada/en proceso para usar `VisorView`, `VisorModel` (y temporalmente `VisorController` para `ClipboardOwner` hasta mover esa lógica).
+        *   `ToggleMiniatureTextAction`: Refactorizada/en proceso para usar `ConfigurationManager` y `VisorView` (para llamar a `solicitarRefrescoRenderersMiniaturas`).
+    *   **Actions de Tema:**
+        *   `ToggleThemeAction`: Refactorizada para usar `ThemeManager` y `VisorView`. Se ha establecido un mecanismo de notificación desde `ThemeManager` (vía `VisorController`) para sincronizar el estado `SELECTED_KEY` de estas actions.
+
+4.  **Managers Implementados/En Proceso:**
+    *   `ZoomManager`: Lógica de zoom y paneo.
+    *   `ThemeManager`: Gestión de temas visuales.
+    *   `FileOperationsManager`: Lógica para abrir carpetas (borrar y refrescar son funcionalidades futuras para este manager).
+    *   `ViewManager`: Lógica para mostrar/ocultar componentes principales de la UI y actualizar su configuración.
+
+5.  **Sincronización de UI:**
+    *   Se está trabajando en asegurar que el estado `Action.SELECTED_KEY` se actualice correctamente para grupos de acciones mutuamente excluyentes (como los modos de zoom y los temas), involucrando a `VisorController` para orquestar esta sincronización.
+    *   El método `VisorView.actualizarAspectoBotonToggle()` se usa para cambiar la apariencia de `JButton`s que actúan como toggles.
+
+**Último Punto Abordado / Error Pendiente (antes de la pausa):**
+Estábamos trabajando en la refactorización de `ToggleThemeAction` y asegurando que `ThemeManager` pudiera notificar a `VisorController` para sincronizar las `Action`s de tema. El último error era `themeManager cannot be resolved or is not a field` en `ActionFactory.createToggleThemeAction()`, lo cual se solucionó añadiendo `ThemeManager` como dependencia a `ActionFactory`.
+
+**Siguiente Objetivo Inmediato:**
+Continuar refactorizando las clases `Action` restantes (las que aún causan errores de compilación en `ActionFactory` debido a constructores no definidos o incorrectos) para que no dependan de `VisorController` y usen los `Managers` o dependencias apropiadas.
+
+**Clases Clave Involucradas en la Refactorización Actual y Futura Inmediata:**
+*(Necesitarás tener estas clases a mano o poder consultarlas)*
+
+1.  **Controlador Principal:**
+    *   `controlador.VisorController` (el que estamos intentando adelgazar)
+
+2.  **Inicialización y Fábricas:**
+    *   `controlador.AppInitializer`
+    *   `controlador.factory.ActionFactory`
+
+3.  **Definiciones de Comandos y UI:**
+    *   `controlador.commands.AppActionCommands`
+    *   `vista.config.UIDefinitionService`
+    *   `vista.config.MenuItemDefinition`
+    *   `vista.config.ToolbarButtonDefinition`
+    *   `vista.config.ViewUIConfig`
+
+4.  **Managers:**
+    *   `controlador.managers.ZoomManager`
+    *   `controlador.managers.FileOperationsManager`
+    *   `controlador.managers.ViewManager`
+    *   `controlador.managers.EditionManager` (aún por refactorizar/crear en detalle)
+
+5.  **Modelo y Vista Principal:**
+    *   `modelo.VisorModel`
+    *   `vista.VisorView`
+
+6.  **Clases `Action` Individuales (principalmente en `controlador.actions.*`):**
+    *   Las de `controlador.actions.zoom.*` (ej. `AplicarModoZoomAction`, `ResetZoomAction`, `ToggleZoomManualAction`)
+    *   Las de `controlador.actions.vista.*` (ej. `ToggleMenuBarAction`, `ToggleCheckeredBackgroundAction`, `ToggleMiniatureTextAction`, `MostrarDialogoListaAction`)
+    *   Las de `controlador.actions.archivo.*` (ej. `OpenFileAction`, `DeleteAction`, `RefreshAction`)
+    *   Las de `controlador.actions.tema.*` (ej. `ToggleThemeAction`)
+    *   Las de `controlador.actions.toggle.*` (ej. `ToggleProporcionesAction`, `ToggleSubfoldersAction`)
+    *   Las de `controlador.actions.projects.*` (ej. `ToggleMarkImageAction`, `GestionarProyectoAction`)
+    *   Las de `controlador.actions.especiales.*` (ej. `MenuAction`, `HiddenButtonsAction`)
+    *   `controlador.imagen.LocateFileAction`
+
+7.  **Servicios y Utilidades:**
+    *   `servicios.ConfigurationManager`
+    *   `servicios.ProjectManager`
+    *   `servicios.image.ThumbnailService`
+    *   `servicios.image.ImageEdition` (para cuando lleguemos a `EditionManager`)
+    *   `servicios.zoom.ZoomModeEnum`
+    *   `vista.theme.ThemeManager`
+    *   `vista.theme.Tema` (el record/clase)
+    *   `vista.util.IconUtils`
+    *   `vista.util.ImageDisplayUtils`
+
+8.  **Coordinador de Listas:**
+    *   `controlador.ListCoordinator`
+
+---
+
+Cuando estés listo, dime con qué clase `Action` (o con qué error de compilación específico en `ActionFactory`) quieres continuar. ¡Buen descanso!

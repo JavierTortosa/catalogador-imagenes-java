@@ -1,58 +1,136 @@
-// Paquete: controlador.actions.vista (o similar)
+// En src/controlador/actions/vista/MostrarDialogoListaAction.java
 package controlador.actions.vista;
 
+import java.awt.BorderLayout; // Para el layout del diálogo
+import java.awt.FlowLayout;  // Para el panel superior del diálogo
 import java.awt.event.ActionEvent;
-
+import java.nio.file.Path; // Para el mapa de rutas
+import java.util.Map;      // Para el mapa de rutas
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
-// Quita la importación de ImageIcon si no vas a ponerle un icono a esta Action directamente
-// import javax.swing.ImageIcon;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JDialog;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
+import controlador.VisorController; // Para ClipboardOwner y los métodos de ayuda
 import controlador.commands.AppActionCommands;
-import vista.util.IconUtils;
-// Quita IconUtils si no se usa aquí
-// import vista.util.IconUtils;
+import modelo.VisorModel;
+import vista.VisorView;
 
-public class MostrarDialogoListaAction extends BaseVisorAction {
+public class MostrarDialogoListaAction extends AbstractAction {
 
-    private static final long serialVersionUID = 1L; // Genera uno si es necesario
+    private static final long serialVersionUID = 1L;
 
-    public MostrarDialogoListaAction(VisorController controller, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
-        // 1. Llama al constructor de BaseVisorAction.
-        //    El texto "Mostrar Lista de Imágenes" podría usarse si un JMenuItem
-        //    se crea directamente desde esta Action sin un texto explícito en MenuItemDefinition.
-        //    Si MenuItemDefinition siempre provee el texto, este nombre es menos crítico.
-        super("Mostrar Lista de Imágenes", controller); // O el texto que prefieras para Action.NAME
+    private VisorView viewRef;
+    private VisorModel modelRef;
+    // Si copiarListaAlPortapapeles y actualizarListaEnDialogo se quedan en VisorController,
+    // necesitaríamos una referencia a él o mover esos métodos.
+    // Por ahora, para simplificar, y dado que VisorController implementa ClipboardOwner,
+    // vamos a asumir que esta Action puede necesitar una referencia al controller para eso.
+    // ¡PERO esto es un punto a refactorizar más adelante!
+    // Lo ideal sería que la lógica de copiar y actualizar el diálogo estuviera aquí o en una clase de diálogo.
+    private VisorController controllerRef; // TEMPORAL para copiarListaAlPortapapeles
 
-        // 2. Establecer propiedades de la Action
-        putValue(Action.SHORT_DESCRIPTION, "Muestra un diálogo con la lista de todas las imágenes cargadas");
+    public MostrarDialogoListaAction(String name, 
+                                     ImageIcon icon, 
+                                     VisorView view, 
+                                     VisorModel model,
+                                     VisorController controller) { 
+        super(name, icon);
+        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null");
+        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null");
+        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null para ClipboardOwner"); 
+
+        putValue(Action.SHORT_DESCRIPTION, "Mostrar un diálogo con la lista de imágenes cargadas");
         putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA);
-
-        // 3. Icono (Opcional para esta Action)
-        //    Si este comando SOLO va a estar en el menú, probablemente no necesite un icono aquí.
-        //    Si también lo usas en un botón de la toolbar que NO tiene un icono definido en
-        //    ToolbarButtonDefinition, entonces podrías añadirlo.
-        //    Por ahora, lo dejaremos sin icono en la Action, ya que el ToolbarButtonDefinition
-        //    para "4004-Lista_48x48.png" ya especifica el icono.
-        
-        if (iconUtils != null) { // Asumiendo que pasas iconUtils y las dimensiones
-            ImageIcon icon = iconUtils.getScaledIcon("4004-Lista_48x48.png", iconoAncho, iconoAlto);
-            if (icon != null) {
-                putValue(Action.SMALL_ICON, icon);
-            }
-        }
-        
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller != null) {
-            controller.logActionInfo(e); // Buena práctica
-            controller.mostrarDialogoListaImagenes(); // Llama al método existente en el controller
+        System.out.println("[MostrarDialogoListaAction actionPerformed]");
+
+        if (viewRef == null || modelRef == null || controllerRef == null) { // TEMPORAL: controllerRef
+            System.err.println("ERROR CRÍTICO [MostrarDialogoListaAction]: View, Model o Controller (temporal) nulos.");
+            return;
+        }
+
+        // --- Lógica copiada y adaptada de VisorController.mostrarDialogoListaImagenes ---
+        final JDialog dialogoLista = new JDialog(viewRef.getFrame(), "Lista de Imágenes Cargadas", true);
+        dialogoLista.setSize(600, 400);
+        dialogoLista.setLocationRelativeTo(viewRef.getFrame());
+        dialogoLista.setLayout(new BorderLayout(5, 5));
+
+        final DefaultListModel<String> modeloListaDialogo = new DefaultListModel<>();
+        JList<String> listaImagenesDialogo = new JList<>(modeloListaDialogo);
+        JScrollPane scrollPaneListaDialogo = new JScrollPane(listaImagenesDialogo);
+        final JCheckBox checkBoxMostrarRutas = new JCheckBox("Mostrar Rutas Completas");
+        JButton botonCopiarLista = new JButton("Copiar Lista");
+
+        JPanel panelSuperiorDialog = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelSuperiorDialog.add(botonCopiarLista);
+        panelSuperiorDialog.add(checkBoxMostrarRutas);
+
+        dialogoLista.add(panelSuperiorDialog, BorderLayout.NORTH);
+        dialogoLista.add(scrollPaneListaDialogo, BorderLayout.CENTER);
+
+        // Listener para el CheckBox
+        checkBoxMostrarRutas.addActionListener(evt -> {
+            actualizarListaEnDialogoInterno(modeloListaDialogo, checkBoxMostrarRutas.isSelected(), modelRef);
+        });
+
+        // Listener para el Botón Copiar
+        botonCopiarLista.addActionListener(evt -> {
+            // Usamos el controllerRef TEMPORALMENTE porque implementa ClipboardOwner
+            // y tiene el método copiarListaAlPortapapeles.
+            controllerRef.copiarListaAlPortapapeles(modeloListaDialogo); 
+        });
+
+        actualizarListaEnDialogoInterno(modeloListaDialogo, checkBoxMostrarRutas.isSelected(), modelRef);
+        dialogoLista.setVisible(true);
+        // --- Fin lógica copiada ---
+    }
+
+    // Método helper PRIVADO para actualizar el contenido del diálogo (antes en VisorController)
+    private void actualizarListaEnDialogoInterno(DefaultListModel<String> modeloDialogo, boolean mostrarRutas, VisorModel modelFuente) {
+        if (modeloDialogo == null || modelFuente == null || modelFuente.getModeloLista() == null || modelFuente.getRutaCompletaMap() == null) {
+            System.err.println("ERROR [actualizarListaEnDialogoInterno]: Modelo del diálogo o modelo fuente/mapa nulos.");
+            if(modeloDialogo != null) {
+                modeloDialogo.clear();
+                modeloDialogo.addElement("Error: Datos no disponibles.");
+            }
+            return;
+        }
+
+        DefaultListModel<String> modeloPrincipal = modelFuente.getModeloLista();
+        Map<String, Path> mapaRutas = modelFuente.getRutaCompletaMap();
+        modeloDialogo.clear();
+
+        if (modeloPrincipal.isEmpty()) {
+            modeloDialogo.addElement("(La lista principal está vacía)");
         } else {
-            System.err.println("Error: Controller es null en MostrarDialogoListaAction.");
+            for (int i = 0; i < modeloPrincipal.getSize(); i++) {
+                String claveArchivo = modeloPrincipal.getElementAt(i);
+                String textoAAgregar = claveArchivo;
+                if (mostrarRutas) {
+                    Path rutaCompleta = mapaRutas.get(claveArchivo);
+                    if (rutaCompleta != null) {
+                        textoAAgregar = rutaCompleta.toString();
+                    } else {
+                        textoAAgregar = claveArchivo + " (¡Ruta no encontrada!)";
+                    }
+                }
+                modeloDialogo.addElement(textoAAgregar);
+            }
         }
     }
+    
+    // NOTA: Si mueves copiarListaAlPortapapeles aquí, necesitarías que MostrarDialogoListaAction
+    // implemente ClipboardOwner. Por ahora, lo dejamos en VisorController y lo llamamos
+    // a través de controllerRef (temporal).
 }

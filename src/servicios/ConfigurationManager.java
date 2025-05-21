@@ -26,7 +26,8 @@ public class ConfigurationManager
 	private static final Map<String, String> DEFAULT_GROUP_COMMENTS;
 	private static final Map<String, String> DEFAULT_CONFIG;
 	
-	public static final String KEY_TEMA_NOMBRE = "tema.nombre";
+	// --- CONSTANTES INICIALES
+	public static final String KEY_INICIO_CARPETA = "inicio.carpeta";
 	
 	// --- CONSTANTES PARA ESTADO VENTANA ---
     public static final String KEY_WINDOW_X = "window.x";
@@ -38,11 +39,15 @@ public class ConfigurationManager
     // --- CONSTANTES PARA PROYECTOS
     public static final String KEY_PROYECTOS_CARPETA_BASE = "proyectos.carpeta_base";
     public static final String KEY_PROYECTOS_ARCHIVO_TEMPORAL = "proyectos.archivo_temporal_nombre";
+    public static final String KEY_TEMA_NOMBRE = "tema.nombre";
     // Para el futuro:
     // public static final String KEY_PROYECTOS_ULTIMO_ABIERTO = "proyectos.ultimo_abierto_ruta_completa";
     // public static final String KEY_PROYECTOS_INICIO_ACCION = "proyectos.inicio.accion"; // ej. "cargar_ultimo", "nuevo_temporal"
+
+    // --- 	CONSTANTES PARA COMPORTAMIENTO ---
+    public static final String KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE = "comportamiento.display.zoom.initial_mode";
     
-	
+    
 	static
 	{
 		// Usar un método estático para inicializar el mapa de defaults
@@ -419,7 +424,8 @@ public class ConfigurationManager
 		String inicioCarpetaDefault = "D:\\Programacion\\Eclipse\\Workspace 2024-12R\\VisorImagenes";
 		String inicioImagenDefault = "";//"pandoras pedestals sagas.png";
 		
-			defaults.put("inicio.carpeta", inicioCarpetaDefault+ "\\resources");
+//			defaults.put("inicio.carpeta", inicioCarpetaDefault+ "\\resources");
+			defaults.put(KEY_INICIO_CARPETA, inicioCarpetaDefault + "\\resources");
 			defaults.put("inicio.imagen", inicioImagenDefault);
 			
 		//carpeta inicial de proyectos
@@ -431,6 +437,7 @@ public class ConfigurationManager
 		// Comportamiento
 			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
 			defaults.put("comportamiento.carga.conRutas", "false");
+			defaults.put("comportamiento.display.zoom.initial_mode", "FIT_TO_SCREEN");
 			
 		// Ventana de la aplicacion
 	        // Usar -1 para indicar que no hay posición/tamaño guardado (usar defaults del sistema/pack)
@@ -475,8 +482,6 @@ public class ConfigurationManager
 		//toggle
 			defaults.put("interfaz.boton.toggle.Mantener_Proporciones_48x48.activado", "true");
 			defaults.put("interfaz.boton.toggle.Mantener_Proporciones_48x48.visible", "true");
-			defaults.put("interfaz.boton.toggle.Mostrar_Favoritos_48x48.activado", "true");
-			defaults.put("interfaz.boton.toggle.Mostrar_Favoritos_48x48.visible", "true");
 			defaults.put("interfaz.boton.toggle.Subcarpetas_48x48.activado", "true");
 			defaults.put("interfaz.boton.toggle.Subcarpetas_48x48.visible", "true");
 			
@@ -556,7 +561,8 @@ public class ConfigurationManager
 		//-- Proyecto
 			defaults.put("interfaz.boton.proyecto.marcar_imagen_48x48.activado", "true");
 			defaults.put("interfaz.boton.proyecto.marcar_imagen_48x48.visible", "true");
-			
+			defaults.put("interfaz.boton.proyecto.Mostrar_Favoritos_48x48.activado", "true");
+			defaults.put("interfaz.boton.proyecto.Mostrar_Favoritos_48x48.visible", "true");
 			
     	//--- Menú ---\n");
     	//Formato: interfaz.menu.<ActionCommand>.{activado|visible|seleccionado} = {true|false}\n");
@@ -942,13 +948,13 @@ public class ConfigurationManager
         Map<String, String> comments = new HashMap<>();
 
         // --- Secciones Principales ---
-        comments.put("comportamiento", 	"# ===== Comportamiento =====");
         comments.put("inicio",         	"# ===== Inicio =====");
         comments.put("miniaturas",     	"# ===== Barra de Imagenes en Miniatura =====");
         comments.put("interfaz",       	"# ===== Interfaz =====");
 
         // --- Ventana de la aplicacion
-        comments.put("window", "# ===== Estado de la Ventana de la aplicacion=====");
+        comments.put("window", 			"# ===== Estado de la Ventana de la aplicacion=====");
+        comments.put("comportamiento", 	"# ===== Comportamiento =====");
        // --------------------------------------------
         
         // --- Personalizacion
@@ -964,6 +970,7 @@ public class ConfigurationManager
         // --- Subgrupos Nivel 1 (Dentro de interfaz) ---
         comments.put("interfaz.boton", 	"# == Botones =="); // Subgrupo para TODOS los botones
         comments.put("interfaz.menu",  	"# == Menús ==");  // Subgrupo para TODOS los menús
+        comments.put("comportamiento.display", "# === Comportamiento de Visualización ===");
 
         // --- Subgrupos Nivel 2 (Dentro de interfaz.boton) ---
         comments.put("interfaz.boton.movimiento", "# === Botones de Movimiento ==="); // Nota: Uso "===" para diferenciar nivel
@@ -1237,6 +1244,31 @@ public class ConfigurationManager
             // Considera notificar al usuario o revertir el cambio en 'config' si el guardado falla.
         }
     }
+    
+    
+    /**
+     * Obtiene un valor de configuración como un double.
+     * Si la clave no existe o el valor no puede ser convertido a double,
+     * devuelve el valor por defecto proporcionado.
+     *
+     * @param key La clave de configuración.
+     * @param defaultValue El valor a devolver si la clave no se encuentra o hay error de parseo.
+     * @return El valor double de la configuración o el defaultValue.
+     */
+    public double getDouble(String key, double defaultValue) {
+        String valueString = getString(key, null); // Usa tu método getString existente
+
+        if (valueString != null) {
+            try {
+                return Double.parseDouble(valueString.trim().replace(',', '.')); // Reemplaza coma por punto para parseo
+            } catch (NumberFormatException e) {
+                System.err.println("WARN [ConfigurationManager]: No se pudo parsear el valor '" + valueString + "' para la clave '" + key + "' como double. Usando default: " + defaultValue);
+                // Opcional: loguear e.getMessage()
+            }
+        }
+        return defaultValue;
+    }
+    
         
 } //Fin configurationManager
 

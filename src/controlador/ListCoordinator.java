@@ -1,6 +1,8 @@
 package controlador; // o controlador.navegacion
 
 import java.awt.event.ActionEvent;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -13,6 +15,7 @@ import javax.swing.ListModel;
 import javax.swing.SwingUtilities; // Para invokeLater en sincronizarListaUI
 
 import controlador.commands.AppActionCommands;
+import controlador.interfaces.ContextSensitiveAction;
 import modelo.VisorModel;
 import vista.VisorView;
 
@@ -22,7 +25,8 @@ public class ListCoordinator {
     private final VisorModel model;
     private final VisorView view;
     private final VisorController controller; // Para delegar carga de imagen
-   
+    private List<ContextSensitiveAction> contextSensitiveActions = Collections.emptyList();
+    
     // --- Estado Interno ---
     private int indiceOficialSeleccionado = -1; // Índice "maestro" gestionado aquí
     private boolean sincronizandoUI = false; // Flag para evitar bucles al sincronizar
@@ -512,12 +516,24 @@ public class ListCoordinator {
              model.setSelectedImageKey(null);
              System.out.println("    -> Delegando limpieza de UI al Controller (índice -1)");
              controller.limpiarUI();
+             actualizarEstadoDeTodasLasAccionesContextuales();
         }
 
         // --- YA NO SINCRONIZAMOS UI AQUÍ ---
         // La sincronización se hace en los métodos públicos externos
 
         actualizarEstadoEnabledAccionesNavegacion();
+        actualizarEstadoDeTodasLasAccionesContextuales();
+        
+//        Action locateAction = controller.getActionMap().get(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
+//        if (locateAction instanceof LocateFileAction) {
+//            ((LocateFileAction) locateAction).updateEnabledState();
+//        }
+//
+//        Action deleteAction = controller.getActionMap().get(AppActionCommands.CMD_IMAGEN_ELIMINAR);
+//        if (deleteAction instanceof DeleteAction) { // Suponiendo que DeleteAction tiene un método similar
+//            ((DeleteAction) deleteAction).actualizarEstadoEnabled();
+//        }
         
         System.out.println("  [ListCoordinator Interno] Procesamiento interno finalizado para índice: " + indiceDeseado);
         return true; // Hubo cambio
@@ -749,6 +765,7 @@ public class ListCoordinator {
     public synchronized void forzarActualizacionEstadoNavegacion() {
         System.out.println("  [ListCoordinator] Forzando actualización del estado enabled de navegación.");
         actualizarEstadoEnabledAccionesNavegacion();
+        actualizarEstadoDeTodasLasAccionesContextuales();
     }    
     
     
@@ -1124,6 +1141,36 @@ public class ListCoordinator {
     public synchronized int getIndiceOficialSeleccionado() {
         return this.indiceOficialSeleccionado;
     }
+
+    
+ // <<< NUEVO SETTER para ser llamado por AppInitializer
+    public void setContextSensitiveActions(List<ContextSensitiveAction> actions) {
+        this.contextSensitiveActions = (actions != null) ? actions : Collections.emptyList();
+    }
+    
+    // NUEVO MÉTODO PRIVADO para actualizar todas las acciones contextuales
+    private void actualizarEstadoDeTodasLasAccionesContextuales() {
+        if (this.contextSensitiveActions != null && !this.contextSensitiveActions.isEmpty() && this.model != null) {
+            // System.out.println("  [ListCoordinator] Actualizando estado de " + this.contextSensitiveActions.size() + " acciones contextuales...");
+            for (ContextSensitiveAction action : this.contextSensitiveActions) {
+                try {
+                    action.updateEnabledState(this.model); // Pasa el modelo del ListCoordinator
+                } catch (Exception ex) {
+                    System.err.println("ERROR actualizando estado de Action " + action.getClass().getSimpleName() + ": " + ex.getMessage());
+                    // Considera no detener el bucle por una acción fallida
+                }
+            }
+        }
+    }
+    
+    
+    public synchronized void forzarActualizacionEstadoAcciones() {
+        System.out.println("  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...");
+        actualizarEstadoEnabledAccionesNavegacion();
+        actualizarEstadoDeTodasLasAccionesContextuales();
+        System.out.println("  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.");
+    }
+    
     
 }    
     

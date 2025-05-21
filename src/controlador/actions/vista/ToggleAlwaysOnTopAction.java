@@ -1,62 +1,70 @@
-// --- Archivo: controlador/actions/vista/ToggleMenuBarAction.java ---
-package controlador.actions.vista; // O el paquete donde la tengas
+// En src/controlador/actions/vista/ToggleAlwaysOnTopAction.java
+package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JCheckBoxMenuItem; // Importar
+import javax.swing.ImageIcon;
+import servicios.ConfigurationManager;
+import vista.VisorView; // Dependencia directa
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-// No suele necesitar IconUtils para menú
-// import vista.util.IconUtils;
-
-public class ToggleAlwaysOnTopAction extends BaseVisorAction {
+public class ToggleAlwaysOnTopAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
-    // Clave de configuración para el estado de este toggle
-    private static final String CONFIG_KEY = "interfaz.menu.vista.Mantener_Ventana_Siempre_Encima.seleccionado";
 
-    public ToggleAlwaysOnTopAction(VisorController controller) {
-        // --- TEXTO NUEVO ---
-        super("mantener_ventana_siempre_encima", controller); // Texto del menú
-        putValue(Action.SHORT_DESCRIPTION, "Mantiene la Ventana Siempre Encima");
+    private VisorView viewRef;
+    private ConfigurationManager configManagerRef; 
+    private String configKeyForState; // Ej: "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado"
 
-        // --- Estado Inicial Seleccionado ---
-        if (controller != null && controller.getConfigurationManager() != null) {
-            boolean initialState = controller.getConfigurationManager().getBoolean(CONFIG_KEY, true); // Default a true (visible)
-            putValue(Action.SELECTED_KEY, initialState);
-            System.out.println("[ToggleAlwaysOnTopAction] Estado inicial leído (" + CONFIG_KEY + "): " + initialState);
-        } else {
-             System.err.println("WARN [ToggleAlwaysOnTopAction]: Controller o ConfigMgr nulos en constructor. Estado inicial no establecido.");
-             putValue(Action.SELECTED_KEY, true); // Asumir visible por defecto si hay error
+    public ToggleAlwaysOnTopAction(String name, 
+                                   ImageIcon icon, // Probablemente null
+                                   VisorView view, 
+                                   ConfigurationManager configManager, 
+                                   String configKeyForSelectedState,
+                                   String actionCommandKey) {
+        super(name, icon); 
+        
+        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null en ToggleAlwaysOnTopAction");
+        this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
+        this.configKeyForState = Objects.requireNonNull(configKeyForSelectedState, "configKeyForState no puede ser null");
+
+        putValue(Action.SHORT_DESCRIPTION, "Mantener la ventana siempre visible encima de otras");
+        putValue(Action.ACTION_COMMAND_KEY, Objects.requireNonNull(actionCommandKey, "actionCommandKey no puede ser null"));
+
+        // Leer el estado inicial de la configuración
+        // El default es 'false' (no siempre encima)
+        boolean initialState = this.configManagerRef.getBoolean(this.configKeyForState, false); 
+        putValue(Action.SELECTED_KEY, initialState);
+        
+        // Aplicar el estado inicial a la ventana (JFrame)
+        if (this.viewRef != null) {
+            // Comprobar si el estado actual es diferente para evitar llamadas innecesarias
+            if (this.viewRef.isAlwaysOnTop() != initialState) {
+                this.viewRef.setAlwaysOnTop(initialState);
+            }
         }
-        // --- FIN TEXTO NUEVO ---
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
-    	if (controller == null) { /*...*/ return; }
-        controller.logActionInfo(e);
-
-        // Determinar el nuevo estado deseado
-        boolean newState = false;
-        Object source = e.getSource();
-        if (source instanceof JCheckBoxMenuItem) {
-            // El estado deseado es el estado actual del checkbox después del clic
-            newState = ((JCheckBoxMenuItem) source).isSelected();
-        } else {
-             // Si se llama de otra forma (ej. atajo teclado), invertir estado actual de la Action
-             Object selectedValue = getValue(Action.SELECTED_KEY);
-             newState = !(selectedValue instanceof Boolean && (Boolean)selectedValue);
-             System.out.println("WARN [ToggleAlwaysOnTopAction]: Evento no es de JCheckBoxMenuItem, toggleando estado: " + newState);
+        if (viewRef == null || configManagerRef == null) {
+            System.err.println("ERROR CRÍTICO [ToggleAlwaysOnTopAction]: View o ConfigManager nulos.");
+            return;
         }
 
-        // Llamar al método del controlador para aplicar el cambio y actualizar config
-        controller.setComponenteVisibleAndUpdateConfig("mantener_ventana_siempre_encima", newState);
+        boolean nuevoEstadoAlwaysOnTop = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
+        System.out.println("[ToggleAlwaysOnTopAction actionPerformed] Nuevo estado: " + nuevoEstadoAlwaysOnTop);
 
-        // Actualizar el estado de esta Action para sincronizar
-        putValue(Action.SELECTED_KEY, newState);
-        // --- FIN TEXTO NUEVO ---
+        // 1. Actualizar la configuración en memoria
+        configManagerRef.setString(this.configKeyForState, String.valueOf(nuevoEstadoAlwaysOnTop));
+        System.out.println("  -> Configuración '" + this.configKeyForState + "' actualizada a: " + nuevoEstadoAlwaysOnTop);
+            
+        // 2. Llamar al método de VisorView (que es un JFrame) para cambiar el estado "AlwaysOnTop"
+        //    Comprobar si el estado actual es diferente para evitar llamadas innecesarias
+        if (viewRef.isAlwaysOnTop() != nuevoEstadoAlwaysOnTop) {
+            viewRef.setAlwaysOnTop(nuevoEstadoAlwaysOnTop);
+        }
+        // No se necesita revalidate/repaint para setAlwaysOnTop, el sistema operativo lo maneja.
     }
 }

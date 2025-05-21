@@ -1,48 +1,76 @@
 package controlador.actions.especiales;
 
+import java.awt.Component;
 import java.awt.event.ActionEvent;
-
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JPopupMenu;
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
+import controlador.commands.AppActionCommands;
+import vista.VisorView; // Para obtener el componente fuente
+import vista.config.MenuItemDefinition; // Para la estructura del menú
+import vista.builders.PopupMenuBuilder;   // Para construir el JPopupMenu
+import vista.config.ViewUIConfig;       // Para pasar al PopupMenuBuilder
 
-@SuppressWarnings ("serial")
-public class MenuAction extends BaseVisorAction {
+public class MenuAction extends AbstractAction {
 
-	public MenuAction(VisorController controller, IconUtils iconUtils, int width, int height) {
+    private static final long serialVersionUID = 1L;
 
-		// TODO Metodo MenuAction pendiente de implementar
-	
-		// Texto para menú (si lo añades) o tooltip
-		super("Menu", controller);
-		putValue(Action.SHORT_DESCRIPTION, "Muestra el Menu");
+    // NO necesitamos VisorView directamente aquí si el PopupMenuBuilder se encarga
+    // de la apariencia y solo necesitamos el componente fuente del evento.
+    // private VisorView viewRef; 
+    
+    private List<MenuItemDefinition> menuStructureToDisplay; // La estructura COMPLETA del menú principal
+    private Map<String, Action> actionMapRef;              // El actionMap completo
+    private ViewUIConfig uiConfigRef;                      // Para el PopupMenuBuilder
 
-		// Cargar icono usando IconUtils
-		// Asegúrate que el nombre del archivo PNG sea correcto
-		ImageIcon icon = iconUtils.getScaledIcon("6002-menu_48x48.png", width, height);
-		if (icon != null) {
-			putValue(Action.SMALL_ICON, icon);
-		} else {
-			System.err.println("WARN [MenuAction]: No se pudo cargar el icono 6002-menu_48x48.png");
-			putValue(Action.NAME, "<->"); // Texto fallback
-		}
-	}	
-	
-	 @Override
-	 public void actionPerformed(ActionEvent e) {
-	     // Loguear
-	     if (controller != null) {
-	         controller.logActionInfo(e);
-	     } else {
-	          System.err.println("Error: Controller es null en MenuAction");
-	          return;
-	     }
+    // Constructor REFACTORIZADO
+    public MenuAction(
+            // VisorView view, // Eliminado si no se usa directamente
+            String name,
+            ImageIcon icon,
+            List<MenuItemDefinition> fullMenuStructure, // La estructura de la JMenuBar
+            Map<String, Action> actionMap,
+            ViewUIConfig uiConfig
+    ) {
+        super(name, icon);
+        // this.viewRef = view; // Ya no es necesario si solo usamos e.getSource()
+        this.menuStructureToDisplay = Objects.requireNonNull(fullMenuStructure, "La estructura del menú no puede ser nula");
+        this.actionMapRef = Objects.requireNonNull(actionMap, "ActionMap no puede ser nulo");
+        this.uiConfigRef = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo");
 
-	     // Llamar al método del controlador que realiza la acción
-	     //controller.aplicarVolteoHorizontal(); 
-	     System.out.println("MenuAction pendiente de llamar al método del controlador que realiza la acción");
-	 }
-} // --- FIN MenuAction
+        putValue(Action.SHORT_DESCRIPTION, "Mostrar el menú principal de la aplicación");
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ESPECIAL_MENU);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (menuStructureToDisplay == null || actionMapRef == null || uiConfigRef == null) {
+            System.err.println("ERROR CRÍTICO [MenuAction]: Dependencias para construir el menú nulas.");
+            return;
+        }
+
+        Object source = e.getSource();
+        if (!(source instanceof Component)) {
+            System.err.println("[MenuAction] La fuente del evento no es un Component. No se puede mostrar el menú emergente.");
+            return;
+        }
+        Component invokerComponent = (Component) source;
+
+        System.out.println("[MenuAction actionPerformed] Mostrando menú emergente replicando la JMenuBar...");
+
+        // Crear el JPopupMenu usando el PopupMenuBuilder
+        // El PopupMenuBuilder necesita poder manejar la estructura jerárquica completa
+        // tal como lo hace MenuBarBuilder.
+        PopupMenuBuilder popupBuilder = new PopupMenuBuilder(this.uiConfigRef);
+        JPopupMenu popupMenu = popupBuilder.buildPopupMenuWithNestedMenus(this.menuStructureToDisplay, this.actionMapRef);
+
+        // Mostrar el menú emergente en la posición del botón que invocó la acción
+        // Se muestra debajo del botón.
+        popupMenu.show(invokerComponent, 0, invokerComponent.getHeight());
+    }
+}

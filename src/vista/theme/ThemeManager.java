@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap; // Para seguridad en hilos si fuera necesario
 
+import controlador.VisorController;
 import servicios.ConfigurationManager; // Necesita leer/guardar el nombre
 
 public class ThemeManager {
@@ -15,6 +16,8 @@ public class ThemeManager {
     private final Map<String, Tema> temasDisponibles;
     private Tema temaActual;
 
+    private VisorController controllerRefParaNotificacion;
+    
     public ThemeManager(ConfigurationManager configManager) 
     {
         this.configManager = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
@@ -40,7 +43,8 @@ public class ThemeManager {
             new Color(184, 207, 229), new Color(0, 0, 0),        // borde color, titulo
             new Color(57, 105, 138), new Color(255, 255, 255),  // seleccion fondo, texto
             new Color(238, 238, 238), new Color(0, 0, 0),        // boton fondo, texto
-            new Color(84, 144, 164), new Color(173, 216, 230)    // boton activado, animacion
+            new Color(84, 144, 164), new Color(173, 216, 230),    // boton activado, animacion
+            new Color(255, 140, 0)
         );
         temasDisponibles.put(temaClaro.nombreInterno(), temaClaro);
 
@@ -52,7 +56,8 @@ public class ThemeManager {
              new Color(80, 80, 80), new Color(180, 180, 180),   // borde color, titulo
              new Color(0, 80, 150), new Color(255, 255, 255),   // seleccion fondo, texto
              new Color(55, 55, 55), new Color(210, 210, 210),   // boton fondo, texto
-             new Color(74, 134, 154), new Color(100, 100, 100) // boton activado, animacion
+             new Color(74, 134, 154), new Color(100, 100, 100), // boton activado, animacion
+             new Color(0, 128, 255)
         );
          temasDisponibles.put(temaOscuro.nombreInterno(), temaOscuro);
 
@@ -64,7 +69,8 @@ public class ThemeManager {
              new Color(153, 209, 255), new Color(0, 0, 0),        // borde color, titulo
              new Color(0, 120, 215), new Color(255, 255, 255),  // seleccion fondo, texto
              new Color(229, 241, 251), new Color(0, 0, 0),        // boton fondo, texto
-             new Color(84, 144, 164), new Color(173, 216, 230)    // boton activado, animacion (igual que claro?)
+             new Color(84, 144, 164), new Color(173, 216, 230),    // boton activado, animacion (igual que claro?)
+             new Color(0, 100, 200)
          );
          temasDisponibles.put(temaAzul.nombreInterno(), temaAzul);
 
@@ -84,7 +90,8 @@ public class ThemeManager {
                  new Color(20, 40, 30),       // colorBotonFondo (igual que fondo secundario)
                  new Color(0, 255, 100),      // colorBotonTexto (igual que texto primario)
                  new Color(0, 150, 70),       // colorBotonFondoActivado (verde más intenso)
-                 new Color(0, 100, 50)        // colorBotonFondoAnimacion (igual que selección)
+                 new Color(0, 100, 50),        // colorBotonFondoAnimacion (igual que selección)
+                 new Color(0, 200, 0)
             );
             temasDisponibles.put(temaVerde.nombreInterno(), temaVerde);
 
@@ -104,7 +111,8 @@ public class ThemeManager {
                  new Color(55, 45, 40),       // colorBotonFondo (igual que fondo secundario)
                  new Color(255, 150, 0),      // colorBotonTexto (igual que texto primario)
                  new Color(255, 120, 0),      // colorBotonFondoActivado (naranja más vivo)
-                 new Color(180, 90, 0)        // colorBotonFondoAnimacion (igual que selección)
+                 new Color(180, 90, 0),       // colorBotonFondoAnimacion (igual que selección)
+                 new Color(255, 90, 0)
             );
             temasDisponibles.put(temaNaranja.nombreInterno(), temaNaranja);
     }
@@ -133,21 +141,64 @@ public class ThemeManager {
         Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
         if (nuevoTema != null) {
             if (!nuevoTema.equals(this.temaActual)) { // Cambiar solo si es diferente
+                Tema temaAnterior = this.temaActual;
                 this.temaActual = nuevoTema;
-                // Guardar SOLO el nombre en ConfigurationManager
-                configManager.setString("tema.nombre", this.temaActual.nombreInterno());
-                // NO llamar a guardarConfiguracion aquí, eso lo hace el Controller/ShutdownHook
+                configManager.setString(ConfigurationManager.KEY_TEMA_NOMBRE, this.temaActual.nombreInterno()); // Usar la constante
                 System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
-                // Aquí NO se notifica al usuario ni se refresca la UI, eso es responsabilidad del Controller/Vista
+                notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
+                return true; // <--- Tema realmente cambiado
             } else {
-                 System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
+                System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
+                return false; // <--- No hubo cambio, pero el tema solicitado es el actual
             }
-            return true;
         } else {
             System.err.println("WARN [ThemeManager]: No se encontró el tema con nombre: " + nombreTemaInterno);
-            return false;
+            return false; // <--- Tema no válido
         }
     }
+    
+//    public boolean setTemaActual(String nombreTemaInterno) {
+//        Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
+//        if (nuevoTema != null) {
+//            if (!nuevoTema.equals(this.temaActual)) { // Cambiar solo si es diferente
+//            	Tema temaAnterior = this.temaActual;
+//                this.temaActual = nuevoTema;
+//                // Guardar SOLO el nombre en ConfigurationManager
+//                configManager.setString("tema.nombre", this.temaActual.nombreInterno());
+//                // NO llamar a guardarConfiguracion aquí, eso lo hace el Controller/ShutdownHook
+//                System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
+//                // Aquí NO se notifica al usuario ni se refresca la UI, eso es responsabilidad del Controller/Vista
+//                notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
+//            } else {
+//                 System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
+//            }
+//            return true;
+//        } else {
+//            System.err.println("WARN [ThemeManager]: No se encontró el tema con nombre: " + nombreTemaInterno);
+//            return false;
+//        }
+//    }
+    
+    
+    // --- NUEVO MÉTODO para notificar al VisorController ---
+    private void notificarCambioDeTemaAlControlador(Tema temaAnterior, Tema temaNuevo) {
+        if (this.controllerRefParaNotificacion != null) {
+            // Llamar a un método en VisorController para que actualice las Actions de tema
+            // y cualquier otra cosa que dependa del tema.
+            this.controllerRefParaNotificacion.sincronizarEstadoDeTodasLasToggleThemeActions();
+            // Podrías pasar temaAnterior y temaNuevo si el controller los necesita
+            // this.controllerRefParaNotificacion.temaHaCambiado(temaAnterior, temaNuevo);
+        } else {
+            System.err.println("WARN [ThemeManager]: controllerRefParaNotificacion es null. No se pudo notificar cambio de tema para actualizar Actions de UI.");
+        }
+    }
+    
+    
+    public void setControllerParaNotificacion(VisorController controller) {
+        this.controllerRefParaNotificacion = controller; // No es necesario Objects.requireNonNull aquí si se permite null inicialmente
+                                                        // pero AppInitializer debería pasarlo no nulo.
+    }
+    
 
     /**
      * Obtiene una lista de los nombres internos de los temas disponibles.

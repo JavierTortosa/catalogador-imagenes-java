@@ -1,4 +1,4 @@
-package vista.util; // O el paquete que prefieras para utilidades de vista
+package vista.util; 
 
 import java.net.URL;
 import java.util.Objects;

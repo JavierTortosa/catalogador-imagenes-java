@@ -1,12 +1,19 @@
 package servicios.zoom;
 
-public class ZoomModes
-{
+//public class ZoomModesEnum
 
-	/*
-	 
-ya esta todo solucionado. necesito, basandote en el codigo que acabo de pasarte, crear una clase para los metodos de los diferentes tipos de zoom:
-- zoomAutoAction = no aplica zoom. solo muestra la imagen original sin tener en cuenta si "Mantener Proporciones" esta activada o no
+public enum ZoomModeEnum {
+    DISPLAY_ORIGINAL,      // zoomAutoAction
+    FIT_TO_WIDTH,          // zoomAnchoAction
+    FIT_TO_HEIGHT,         // zoomAltoAction
+    FIT_TO_SCREEN,         // zoomFitAction
+    MAINTAIN_CURRENT_ZOOM, // zoomFixedAction
+    USER_SPECIFIED_PERCENTAGE // zoomFijadoAction
+    // Podrías añadir: ACTUAL_PIXELS (100%)
+    
+/*
+necesito crear una clase para los metodos de los diferentes tipos de zoom:
+-zoomAutoAction = no aplica zoom. solo muestra la imagen original sin tener en cuenta si "Mantener Proporciones" esta activada o no
 -zoomAnchoAction = ajusta la imagen al ancho maximo teniendo en cuenta "Mantener Proporciones"
 -zoomAltoAction = ajusta la imagen al alto maximo teniendo en cuenta "Mantener Proporciones"
 -zoomFitAction = ajusta la imagen al alto y ancho maximo teniendo en cuenta "Mantener Proporciones"

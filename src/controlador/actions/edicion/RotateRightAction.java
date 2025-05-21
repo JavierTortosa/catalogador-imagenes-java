@@ -1,37 +1,63 @@
+// En controlador.actions.edicion.RotateRightAction.java
 package controlador.actions.edicion;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
 
-public class RotateRightAction extends BaseVisorAction {
+import controlador.commands.AppActionCommands;      // <<< IMPORTAR
+import controlador.interfaces.ContextSensitiveAction;
+import controlador.managers.EditionManager;       // <<< IMPORTAR
+import modelo.VisorModel;                       // <<< IMPORTAR
 
-    private static final long serialVersionUID = 1L;
+public class RotateRightAction extends AbstractAction implements ContextSensitiveAction { // <<< CAMBIAR HERENCIA E IMPLEMENTAR
 
-    public RotateRightAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        super("Girar Derecha", controller); // Texto para menú
+    private static final long serialVersionUID = 1L; // Considera generar uno nuevo
+
+    private EditionManager editionManagerRef;
+    private VisorModel modelRef; // Para updateEnabledState
+
+    // Constructor REFACTORIZADO
+    public RotateRightAction(
+            EditionManager editionManager,
+            VisorModel model, // Para gestionar su estado enabled
+            String name,
+            ImageIcon icon) {
+        super(name, icon);
+        this.editionManagerRef = Objects.requireNonNull(editionManager, "EditionManager no puede ser null en RotateRightAction");
+        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null en RotateRightAction");
+
         putValue(Action.SHORT_DESCRIPTION, "Girar la imagen 90 grados a la derecha");
+        // Asegúrate que AppActionCommands.CMD_IMAGEN_ROTAR_DER exista y sea la clave correcta
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_DER); 
 
-        // Cargar icono
-        ImageIcon icon = iconUtils.getScaledIcon("2002-Rotar_Derecha_48x48.png", width, height);
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-        } else {
-            System.err.println("WARN [RotateRightAction]: No se pudo cargar el icono 2002-Rotar_Derecha_48x48.png");
-            // putValue(Action.NAME, "RotR"); // Fallback
-        }
+        // El estado inicial se establecerá la primera vez que se llame a updateEnabledState
+        updateEnabledState(this.modelRef);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller != null) {
-            controller.logActionInfo(e);
-            controller.aplicarRotarDerecha(); // Llama al método correcto del controller
+        if (editionManagerRef == null) {
+            System.err.println("ERROR CRÍTICO [RotateRightAction]: EditionManager es nulo.");
+            return;
+        }
+        // System.out.println("[RotateRightAction actionPerformed] Comando: " + e.getActionCommand());
+        
+        // Delegar la acción al EditionManager
+        editionManagerRef.aplicarRotarDerecha();
+    }
+
+    // Implementación del método de la interfaz ContextSensitiveAction
+    @Override
+    public void updateEnabledState(VisorModel currentModel) {
+        if (currentModel != null) {
+            // Habilitar solo si hay una imagen cargada en el modelo
+            setEnabled(currentModel.getCurrentImage() != null);
         } else {
-             System.err.println("Error: Controller es null en RotateRightAction");
+            setEnabled(false);
         }
     }
 }

@@ -22,7 +22,8 @@ public record Tema(
  Color colorBotonFondo,
  Color colorBotonTexto,
  Color colorBotonFondoActivado,
- Color colorBotonFondoAnimacion
+ Color colorBotonFondoAnimacion,
+ Color colorBordeSeleccionActiva
  // ... otros colores que definas ...
 ) {
  // Los Records generan automáticamente constructor, getters, equals, hashCode, toString.

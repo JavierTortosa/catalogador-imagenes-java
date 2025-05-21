@@ -18,6 +18,7 @@ public interface AppActionCommands {
     String CMD_ARCHIVO_GUARDAR_COMO 		= "cmd.archivo.guardar_como"; // (Asumiendo Action futura)
     String CMD_ARCHIVO_IMPRIMIR 			= "cmd.archivo.imprimir"; // (Asumiendo Action futura)
     String CMD_ARCHIVO_SALIR 				= "cmd.archivo.salir"; // (Necesario si tienes item "Salir")
+    
 
     // --- Navegación ---
     String CMD_NAV_PRIMERA 					= "cmd.nav.primera";
@@ -124,5 +125,9 @@ public interface AppActionCommands {
     // String CMD_ORDEN_CRITERIO_TAMANO = "cmd.orden.criterio.tamano";
     // String CMD_ORDEN_DIRECCION_ASC = "cmd.orden.direccion.asc";
     // String CMD_ORDEN_DIRECCION_DESC = "cmd.orden.direccion.desc";
+    
+    
+
+    
 
 }

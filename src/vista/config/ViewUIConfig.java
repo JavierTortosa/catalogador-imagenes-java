@@ -42,6 +42,7 @@ public class ViewUIConfig {
     public Color colorBordeTitulo;
     public Color colorSeleccionFondo;
     public Color colorSeleccionTexto;
+    public final Color colorBordeSeleccionActiva;
     
     public final ConfigurationManager configurationManager; // <-- AÑADIR CAMPO
 
@@ -78,7 +79,8 @@ public class ViewUIConfig {
             Color colorBotonFondo,              // 16 Color
             Color colorBotonTexto,              // 17 Color
             Color colorBotonFondoActivado,      // 18 Color
-            Color colorBotonFondoAnimacion,       // 19 Color
+            Color colorBotonFondoAnimacion,     // 19 Color
+            Color colorBordeSeleccionActiva,	// 20 Color
             ConfigurationManager configurationManager
         ) {
 
@@ -99,7 +101,9 @@ public class ViewUIConfig {
         this.colorSeleccionTexto = Objects.requireNonNull(colorSeleccionTexto, "colorSeleccionTexto nulo");
         this.colorBotonFondo = Objects.requireNonNull(colorBotonFondo, "colorBotonFondo nulo");
         this.colorBotonTexto = Objects.requireNonNull(colorBotonTexto, "colorBotonTexto nulo");
-
+        
+        this.colorBordeSeleccionActiva = Objects.requireNonNull(colorBordeSeleccionActiva, "colorBordeSeleccionActiva no puede ser nulo");
+        
         // Asignar a campos "obsoletos" (o puedes renombrar/eliminar estos campos)
         this.colorBotonActivado = Objects.requireNonNull(colorBotonFondoActivado, "colorBotonFondoActivado nulo");
         this.colorBotonAnimacion = Objects.requireNonNull(colorBotonFondoAnimacion, "colorBotonFondoAnimacion nulo");

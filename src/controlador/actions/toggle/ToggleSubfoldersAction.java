@@ -1,51 +1,83 @@
-// --- INICIO CÓDIGO A MODIFICAR en ToggleSubfoldersAction.java ---
+// En src/controlador/actions/toggle/ToggleSubfoldersAction.java
 package controlador.actions.toggle;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects; // Asegúrate de tener este import
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-// Quitar import de JRadioButtonMenuItem si ya no se usa
-// import javax.swing.JRadioButtonMenuItem;
 
 import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
+import controlador.commands.AppActionCommands;
+import modelo.VisorModel;
+import servicios.ConfigurationManager;
 
-public class ToggleSubfoldersAction extends BaseVisorAction {
+public class ToggleSubfoldersAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
     private static final String CONFIG_KEY = "comportamiento.carpeta.cargarSubcarpetas";
 
-    public ToggleSubfoldersAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        // El nombre aquí ya no importa tanto para los radios, pero sí para el botón si no tiene icono/tooltip
-        super("Alternar Subcarpetas", controller); // Cambiado para claridad
+    private ConfigurationManager configManagerRef; // No se usa aquí si VisorController lo maneja
+    private VisorModel modelRef;                 // Necesario para el estado inicial
+    private VisorController controllerRef;
+
+    // Constructor (como lo tenías)
+    public ToggleSubfoldersAction(
+            String name,
+            ImageIcon icon,
+            ConfigurationManager configManager, // Se podría quitar si VisorController centraliza todo
+            VisorModel model,
+            VisorController controller
+    ) {
+        super(name, icon);
+        // this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null"); // Podría ser opcional
+        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null");
+        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
+
         putValue(Action.SHORT_DESCRIPTION, "Alternar mostrar solo carpeta actual o incluir subcarpetas");
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
 
-        ImageIcon icon = iconUtils.getScaledIcon("7001-Subcarpetas_48x48.png", width, height);
-        if (icon != null) { putValue(Action.SMALL_ICON, icon); }
-        else { /*...*/ }
-
-        // Estado Inicial (Leer de config) - SIN CAMBIOS
-        if (controller != null && controller.getConfigurationManager() != null) {
-            boolean initialState = controller.getConfigurationManager().getBoolean(CONFIG_KEY, true);
-            putValue(Action.SELECTED_KEY, initialState);
-            System.out.println("[ToggleSubfoldersAction] Estado inicial leído (" + CONFIG_KEY + "): " + initialState);
-        } else { /*...*/ }
+        // Estado Inicial del SELECTED_KEY (basado en el modelo)
+        if (this.modelRef != null) {
+            // El estado de "incluir subcarpetas" es lo opuesto a "mostrar solo carpeta actual"
+            boolean initialStateIncluirSubcarpetas = !this.modelRef.isMostrarSoloCarpetaActual();
+            putValue(Action.SELECTED_KEY, initialStateIncluirSubcarpetas);
+             System.out.println("[ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: " + initialStateIncluirSubcarpetas);
+        } else {
+            putValue(Action.SELECTED_KEY, true); // Fallback si el modelo es null
+            System.out.println("[ToggleSubfoldersAction Constructor] WARN: modelRef era null, SELECTED_KEY fallback a true (incluir subcarpetas)");
+        }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller == null) { /*...*/ return; }
-        controller.logActionInfo(e); // Sigue siendo útil
+        if (controllerRef == null) { 
+            System.err.println("ERROR CRÍTICO [ToggleSubfoldersAction]: controllerRef es nulo.");
+            return;
+        }
+        
+        // El componente UI ya actualizó la propiedad Action.SELECTED_KEY.
+        // Este es el estado AL QUE SE QUIERE IR.
+        boolean nuevoEstadoDeseadoParaIncluirSubcarpetas = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
 
-        // SIMPLIFICADO: Asumimos que si esta Action se dispara, es porque se quiere
-        // alternar el estado actual. Los radios ahora tienen sus propios listeners.
-        boolean estadoActualAction = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
-        boolean estadoDeseado = !estadoActualAction; // Simplemente alternar
+        System.out.println("[ToggleSubfoldersAction actionPerformed] El componente UI cambió SELECTED_KEY a: " + nuevoEstadoDeseadoParaIncluirSubcarpetas);
+        System.out.println("  -> Llamando a controllerRef.setMostrarSubcarpetasLogicaYUi(" + nuevoEstadoDeseadoParaIncluirSubcarpetas + ")");
+        
+        controllerRef.setMostrarSubcarpetasLogicaYUi(nuevoEstadoDeseadoParaIncluirSubcarpetas);
+    }
 
-        // Llamar al controlador para que haga todo
-        System.out.println("[ToggleSubfoldersAction] Solicitando cambio de estado (desde botón) a: " + estadoDeseado);
-        controller.setMostrarSubcarpetasAndUpdateConfig(estadoDeseado);
+    // MÉTODO A AÑADIR / CORREGIR:
+    /**
+     * Actualiza el estado SELECTED_KEY de esta Action para que coincida
+     * con el estado actual del modelo respecto a la inclusión de subcarpetas.
+     * Llamado por VisorController durante la sincronización de la UI.
+     *
+     * @param estadoModeloIncluirSubcarpetas El estado actual en el modelo (true si se deben incluir subcarpetas).
+     */
+    public void sincronizarSelectedKeyConModelo(boolean estadoModeloIncluirSubcarpetas) {
+        if (!Objects.equals(getValue(Action.SELECTED_KEY), estadoModeloIncluirSubcarpetas)) {
+            putValue(Action.SELECTED_KEY, estadoModeloIncluirSubcarpetas);
+            // System.out.println("  [ToggleSubfoldersAction sincronizar] SELECTED_KEY actualizado a: " + estadoModeloIncluirSubcarpetas);
+        }
     }
 }
-// --- FIN CÓDIGO A MODIFICAR en ToggleSubfoldersAction.java ---

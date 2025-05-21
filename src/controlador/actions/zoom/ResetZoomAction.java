@@ -1,57 +1,68 @@
+// En src/controlador/actions/zoom/ResetZoomAction.java
 package controlador.actions.zoom;
 
-// --- TEXTO MODIFICADO ---
-// Ya no necesitas Image aquí
-// import java.awt.Image;
 import java.awt.event.ActionEvent;
+import java.util.Objects; // Para Objects.requireNonNull
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils; // <-- Importar IconUtils
-// --- FIN MODIFICACION ---
+import controlador.commands.AppActionCommands;
+import controlador.managers.ZoomManager;
+import vista.VisorView; // Si necesita interactuar directamente con la vista para algo específico
 
-public class ResetZoomAction extends BaseVisorAction {
+public class ResetZoomAction extends AbstractAction {
 
-    private static final long serialVersionUID = 1L;
-    // Opcional: private IconUtils iconUtils;
+    private static final long serialVersionUID = 1L; // Buena práctica añadir SUID
 
-    // --- TEXTO MODIFICADO: Constructor CORRECTO ---
-    public ResetZoomAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        // Llama al constructor de la superclase
-        super("Resetear Zoom", controller);
+    private ZoomManager zoomManager;
+    private VisorView viewRef; // Opcional: Solo si la Action necesita interactuar directamente con la View
+                              // más allá de lo que hace ZoomManager. Para ResetZoom, podría no ser necesario.
 
-        // Establece descripción y estado inicial
-        putValue(Action.SHORT_DESCRIPTION, "Volver al zoom 100% sin desplazamiento");
-        setEnabled(false); // Correcto, se habilita con zoom manual
+    // Constructor Refactorizado
+    public ResetZoomAction(String name, 
+                           ImageIcon icon, 
+                           ZoomManager zoomManager, 
+                           VisorView view) { // 'view' podría ser opcional aquí
+        super(name, icon); // El icono se pasa al constructor de AbstractAction
+                           // El nombre es para el menú/tooltip si no hay icono o si se sobreescribe
 
-        // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
-        // Llama a getScaledIcon con el nombre del icono y los tamaños recibidos
-        ImageIcon icon = iconUtils.getScaledIcon("3008-Reset_48x48.png", width, height);
+        this.zoomManager = Objects.requireNonNull(zoomManager, "ZoomManager no puede ser null en ResetZoomAction");
+        this.viewRef = view; // Guardar la referencia a la vista, puede ser null si no se usa
 
-        // Verifica y asigna el icono
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-        } else {
-            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '3008-Reset_48x48.png' usando IconUtils.");
-            // Opcional: putValue(Action.NAME, "Reset");
-        }
-        // --- FIN DE LA PARTE IMPORTANTE ---
+        // Propiedades estándar de la Action
+        putValue(Action.SHORT_DESCRIPTION, "Restablecer el zoom y la posición de la imagen al 100%");
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_RESET);
+        
+        // El estado 'enabled' de esta Action es manejado por ToggleZoomManualAction.
+        // Por defecto, podría empezar deshabilitada.
+        setEnabled(false); 
     }
-    // --- FIN CONSTRUCTOR MODIFICADO ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Loguear
-        if (controller != null) {
-            controller.logActionInfo(e);
+        // 1. Log de la acción (opcional pero útil)
+        System.out.println("[ResetZoomAction actionPerformed] Comando: " + e.getActionCommand());
+
+        // 2. Validar que ZoomManager esté disponible (aunque el constructor ya lo hizo)
+        if (this.zoomManager == null) {
+            System.err.println("ERROR CRÍTICO [ResetZoomAction]: ZoomManager es nulo. No se puede ejecutar la acción.");
+            return;
         }
 
-        // Acción
-        if (controller != null) {
-            controller.aplicarResetZoomAction();
-        } else {
-            System.err.println("Error: Controller es null en ResetZoomAction");
+        // 3. Delegar la lógica al ZoomManager
+        //    ZoomManager se encargará de actualizar el modelo y refrescar la vista.
+        this.zoomManager.resetearZoomYPanYRefrescarVista();
+
+        // 4. (Opcional) Si esta Action debe disparar una animación específica en un botón
+        //    de la toolbar, necesitaría una forma de acceder a la vista y llamar a un método
+        //    como 'aplicarAnimacionBotonPorComando'.
+        if (this.viewRef != null) {
+            // Asumiendo que VisorView tiene un método para aplicar animación basado en el comando de la Action
+            // this.viewRef.aplicarAnimacionBotonPorComando(AppActionCommands.CMD_ZOOM_RESET);
+            // O si usas la clave larga de config del botón (menos ideal para la Action saber esto):
+            // this.viewRef.aplicarAnimacionBotonPorClaveLarga("interfaz.boton.zoom.Reset_48x48");
         }
+        
+        System.out.println("[ResetZoomAction actionPerformed] Lógica de reseteo delegada a ZoomManager.");
     }
-}
+} // FIN de la clase ResetZoomAction

@@ -1,47 +1,55 @@
-// --- Archivo Completo: controlador/actions/edicion/FlipHorizontalAction.java ---
-package controlador.actions.edicion; // Asegúrate que el paquete sea correcto
+// En controlador.actions.edicion.FlipHorizontalAction.java
+package controlador.actions.edicion;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
 
-public class FlipHorizontalAction extends BaseVisorAction {
+import controlador.commands.AppActionCommands;
+import controlador.interfaces.ContextSensitiveAction;
+import controlador.managers.EditionManager;
+import modelo.VisorModel;
 
-    private static final long serialVersionUID = 1L;
+public class FlipHorizontalAction extends AbstractAction implements ContextSensitiveAction {
 
-    /**
-     * Constructor para la acción de volteo horizontal.
-     */
-    public FlipHorizontalAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        // Texto para menú (si lo añades) o tooltip
-        super("Voltear Horizontal", controller);
+    private static final long serialVersionUID = 1L; // Considera generar uno nuevo
+
+    private EditionManager editionManagerRef;
+    private VisorModel modelRef;
+
+    public FlipHorizontalAction(
+            EditionManager editionManager,
+            VisorModel model,
+            String name,
+            ImageIcon icon) {
+        super(name, icon);
+        this.editionManagerRef = Objects.requireNonNull(editionManager, "EditionManager no puede ser null");
+        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null");
+
         putValue(Action.SHORT_DESCRIPTION, "Voltear la imagen horizontalmente (efecto espejo)");
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_VOLTEAR_H);
 
-        // Cargar icono usando IconUtils
-        // Asegúrate que el nombre del archivo PNG sea correcto
-        ImageIcon icon = iconUtils.getScaledIcon("2003-Espejo_Horizontal_48x48.png", width, height);
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-        } else {
-            System.err.println("WARN [FlipHorizontalAction]: No se pudo cargar el icono 2003-Espejo_Horizontal_48x48.png");
-            putValue(Action.NAME, "<->"); // Texto fallback
-        }
+        updateEnabledState(this.modelRef); // Estado inicial
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // Loguear
-        if (controller != null) {
-            controller.logActionInfo(e);
-        } else {
-             System.err.println("Error: Controller es null en FlipHorizontalAction");
-             return;
+        if (editionManagerRef == null) {
+            System.err.println("ERROR CRÍTICO [FlipHorizontalAction]: EditionManager es nulo.");
+            return;
         }
-
-        // Llamar al método del controlador que realiza la acción
-        controller.aplicarVolteoHorizontal(); // Llama al método que ya tenías en el controller
+        editionManagerRef.aplicarVolteoHorizontal();
     }
-}// --- FIN FlipHorizontalAction ---
+
+    @Override
+    public void updateEnabledState(VisorModel currentModel) {
+        if (currentModel != null) {
+            setEnabled(currentModel.getCurrentImage() != null);
+        } else {
+            setEnabled(false);
+        }
+    }
+}

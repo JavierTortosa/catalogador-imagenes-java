@@ -320,11 +320,11 @@ public class UIDefinitionService {
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4005-Carrousel_48x48.png", "Vista Carrusel", "vista"));
 
         // Grupo Control
-        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, "5001-Refrescar_48x48.png", "Refrescar", "control"));
+        
         // TODO: Añadir comando para Favoritos
 //        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FAVORITO_MOSTRAR_LISTA, "5003-marcar_imagen_48x48.png", "Marcar Imagen para Favoritos", "control"));
-        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "5003-marcar_imagen_48x48.png", "Marcar Imagen para Favoritos", "proyecto"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ELIMINAR, "5004-Borrar_48x48.png", "Eliminar Imagen", "control"));
+        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, "5001-Refrescar_48x48.png", "Refrescar", "control"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_LOCALIZAR, "7004-Ubicacion_de_Archivo_48x48.png", "Abrir Ubicación", "control")); // Reubicado?
 
         // Grupo Especiales
@@ -332,12 +332,15 @@ public class UIDefinitionService {
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_MENU, "6002-Menu_48x48.png", "Menú Principal", "especiales"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, "6003-Botones_Ocultos_48x48.png", "Mostrar Botones Ocultos", "especiales"));
 
+        // Grupo Proyecto
+        // TODO: Añadir comando para Mostrar Favoritos (toggle)
+        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "5003-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto"));
+        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "7003-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto"));
+//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "7003-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "toggle"));
+
         // Grupo Toggle
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, "7001-Subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "toggle"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, "7002-Mantener_Proporciones_48x48.png", "Mantener Proporciones", "toggle"));
-        // TODO: Añadir comando para Mostrar Favoritos (toggle)
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "7003-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "toggle"));
-        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "7003-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "toggle"));
 
         
         

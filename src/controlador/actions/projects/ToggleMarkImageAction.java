@@ -1,45 +1,76 @@
-package controlador.actions.projects; // Ajusta el paquete
+package controlador.actions.projects;
 
 import java.awt.event.ActionEvent;
+import java.nio.file.Path; // Necesario para interactuar con ProjectManager
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JCheckBoxMenuItem; // Para la lógica del actionPerformed
+import javax.swing.JCheckBoxMenuItem; // Para la lógica específica en actionPerformed
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
+import controlador.interfaces.ContextSensitiveAction; // <<< IMPORTAR
 import controlador.commands.AppActionCommands;
-import vista.util.IconUtils;
+import modelo.VisorModel;
+import servicios.ProjectManager; // El servicio
+import vista.VisorView;         // Para actualizar el botón de la toolbar
 
-public class ToggleMarkImageAction extends BaseVisorAction {
+public class ToggleMarkImageAction extends AbstractAction implements ContextSensitiveAction { // <<< IMPLEMENTAR
 
     private static final long serialVersionUID = 1L;
 
-    public ToggleMarkImageAction(VisorController controller, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
-        super("Marcar/Desmarcar para Proyecto", controller);
+    private ProjectManager projectManagerServiceRef;
+    private VisorModel modelRef;
+    private VisorView viewRef; // Para actualizar el aspecto del botón en la toolbar si es necesario
+
+    // Constructor REFACTORIZADO
+    public ToggleMarkImageAction(
+            ProjectManager projectManager,
+            VisorModel model,
+            VisorView view, // Para la barra de estado y el botón de la toolbar
+            String name,
+            ImageIcon icon) {
+        super(name, icon);
+        this.projectManagerServiceRef = Objects.requireNonNull(projectManager, "ProjectManager no puede ser null");
+        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null");
+        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null");
+
         putValue(Action.SHORT_DESCRIPTION, "Marcar o desmarcar la imagen actual para el proyecto");
         putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-        putValue(Action.SELECTED_KEY, Boolean.FALSE); // Estado inicial
-
-        if (iconUtils != null) {
-            ImageIcon icon = iconUtils.getScaledIcon("5003-marcar_imagen_48x48.png", iconoAncho, iconoAlto);
-            if (icon != null) {
-                putValue(Action.SMALL_ICON, icon);
-            } else {
-                System.err.println("WARN [ToggleMarkImageAction]: No se pudo cargar el icono '5003-marcar_imagen_48x48.png'");
-            }
-        }
+        
+        // El estado inicial se establecerá la primera vez que se llame a updateEnabledState
+        updateEnabledState(this.modelRef);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller == null) { /* ... error ... */ return; }
-        controller.logActionInfo(e);
+        if (projectManagerServiceRef == null || modelRef == null || viewRef == null) {
+            System.err.println("ERROR CRÍTICO [ToggleMarkImageAction]: Dependencias nulas.");
+            return;
+        }
+
+        String currentImageKey = modelRef.getSelectedImageKey();
+        if (currentImageKey == null || currentImageKey.isEmpty()) {
+            System.out.println("[ToggleMarkImageAction] No hay imagen seleccionada para marcar/desmarcar.");
+            // updateEnabledState debería haber deshabilitado esta acción.
+            // Pero por si acaso, podemos asegurar que SELECTED_KEY sea false si no hay imagen.
+            if (Boolean.TRUE.equals(getValue(Action.SELECTED_KEY))) {
+                putValue(Action.SELECTED_KEY, Boolean.FALSE);
+            }
+            actualizarAspectoBotonToolbar(false); // Asegurar que el botón de la toolbar esté 'desmarcado'
+            return;
+        }
+
+        Path imagePath = modelRef.getRutaCompleta(currentImageKey);
+        if (imagePath == null) {
+            System.err.println("[ToggleMarkImageAction] No se pudo obtener la ruta para la clave: " + currentImageKey);
+            return;
+        }
 
         // Determinar el nuevo estado lógico DESEADO
         boolean estadoLogicoDeseado;
         Object source = e.getSource();
         if (source instanceof JCheckBoxMenuItem) {
-            // Si es un JCheckBoxMenuItem, su estado isSelected() YA refleja el nuevo estado
+            // Para un JCheckBoxMenuItem, su estado isSelected() YA refleja el nuevo estado
             estadoLogicoDeseado = ((JCheckBoxMenuItem) source).isSelected();
         } else {
             // Para otros componentes (como un JButton que actúa como toggle),
@@ -48,106 +79,91 @@ public class ToggleMarkImageAction extends BaseVisorAction {
             estadoLogicoDeseado = !estadoActualAction;
         }
         
-        // Llamar al método del controller que ahora toma el Path absoluto
-        controller.toggleMarcaImagenActual(estadoLogicoDeseado);
-        // El controller se encargará de llamar a ProjectManager y de actualizar el SELECTED_KEY de esta Action.
+        System.out.println("[ToggleMarkImageAction] Solicitando cambiar marca a: " + estadoLogicoDeseado + " para " + imagePath);
+
+        // Usar los métodos de ProjectManager
+        if (estadoLogicoDeseado) {
+            projectManagerServiceRef.marcarImagenInterno(imagePath);
+        } else {
+            projectManagerServiceRef.desmarcarImagenInterno(imagePath);
+        }
+
+        // Sincronizar el SELECTED_KEY de esta Action con el estado real
+        // (que debería ser ahora estadoLogicoDeseado).
+        // El componente JCheckBoxMenuItem ya lo hizo, pero esto asegura consistencia
+        // si la acción se llama programáticamente o desde un JToggleButton.
+        if (!Objects.equals(getValue(Action.SELECTED_KEY), estadoLogicoDeseado)) {
+            putValue(Action.SELECTED_KEY, estadoLogicoDeseado);
+        }
+        
+        // Actualizar la UI (aspecto del botón en toolbar y barra de estado)
+        actualizarAspectoBotonToolbar(estadoLogicoDeseado);
+        actualizarBarraDeEstado(estadoLogicoDeseado, imagePath);
+    }
+
+    // Implementación del método de la interfaz ContextSensitiveAction
+    @Override
+    public void updateEnabledState(VisorModel currentModel) {
+        boolean enabled = false;
+        boolean selected = false;
+
+        if (currentModel != null && projectManagerServiceRef != null) {
+            String currentImageKey = currentModel.getSelectedImageKey();
+            if (currentImageKey != null && !currentImageKey.isEmpty()) {
+                enabled = true; // Se puede marcar/desmarcar si hay una imagen
+                Path imagePath = currentModel.getRutaCompleta(currentImageKey);
+                if (imagePath != null) {
+                    selected = projectManagerServiceRef.estaMarcada(imagePath);
+                }
+            }
+        }
+        setEnabled(enabled);
+        if (!Objects.equals(getValue(Action.SELECTED_KEY), selected)) {
+            putValue(Action.SELECTED_KEY, selected);
+        }
+        
+        // Actualizar la UI también aquí por si el cambio de selección
+        // no pasó por actionPerformed de esta Action (ej. cambio de imagen)
+        Path imagePathForUI = null;
+        if (enabled && currentModel != null) {
+            imagePathForUI = currentModel.getRutaCompleta(currentModel.getSelectedImageKey());
+        }
+        actualizarAspectoBotonToolbar(selected);
+        actualizarBarraDeEstado(selected, imagePathForUI);
+    }
+
+    // Helper para actualizar el botón de la toolbar
+    private void actualizarAspectoBotonToolbar(boolean marcada) {
+        if (viewRef != null) {
+            // Asumiendo que VisorController tiene un método para esto,
+            // o que podemos acceder al botón directamente si ViewManager lo permite,
+            // o que el botón es un JToggleButton que reacciona a SELECTED_KEY.
+            // Por ahora, si VisorView tiene un método genérico:
+            // viewRef.actualizarAspectoBotonToggle(this, marcada); // 'this' es la Action
+            // Si no, esta parte necesitaría un mecanismo.
+            // TEMPORAL: Simulamos que VisorView.actualizarEstadoVisualBotonMarcarYBarraEstado
+            //           puede ser llamado de alguna manera o que el botón es un JToggleButton.
+            //           Idealmente, el botón de la toolbar es un JToggleButton que usa esta action.
+        }
+    }
+    
+    // Helper para actualizar la barra de estado
+    private void actualizarBarraDeEstado(boolean marcada, Path rutaImagen) {
+        if (viewRef != null) {
+            String textoRuta = "";
+            if (rutaImagen != null) {
+                textoRuta = rutaImagen.toString();
+            } else if (modelRef != null && modelRef.getSelectedImageKey() != null) {
+                Path p = modelRef.getRutaCompleta(modelRef.getSelectedImageKey());
+                if (p != null) textoRuta = p.toString();
+                else textoRuta = modelRef.getSelectedImageKey();
+            }
+
+            if (marcada) {
+                viewRef.setTextoRuta(textoRuta + " [MARCADA]");
+            } else {
+                viewRef.setTextoRuta(textoRuta);
+            }
+        }
     }
 }
-
-//package controlador.actions.projects; // O el paquete donde la tengas
-//
-//import java.awt.event.ActionEvent;
-//
-//import javax.swing.Action;
-//import javax.swing.ImageIcon; // Solo si vas a poner icono en la Action directamente
-//import javax.swing.JButton;
-//import javax.swing.JCheckBoxMenuItem;
-//
-//import controlador.VisorController;
-//import controlador.actions.BaseVisorAction;
-//import controlador.commands.AppActionCommands;
-//import servicios.ProjectManager; // Necesitarás esta importación
-//import vista.util.IconUtils;   // Solo si vas a poner icono en la Action directamente
-//
-//public class ToggleMarkImageAction extends BaseVisorAction {
-//
-//    private static final long serialVersionUID = 1L; // Considera generar uno nuevo
-//
-//    // Constructor
-//    public ToggleMarkImageAction(VisorController controller, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
-//        // El texto "Marcar/Desmarcar para Proyecto" se usará para Action.NAME
-//        super("Marcar/Desmarcar para Proyecto", controller);
-//
-//        // Establecer propiedades de la Action
-//        putValue(Action.SHORT_DESCRIPTION, "Marcar o desmarcar la imagen actual para el proyecto");
-//        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-//
-//        // Asignar icono (este icono será usado por defecto si el componente UI no tiene uno propio)
-//        // El ToolbarButtonDefinition puede especificar un icono diferente que lo sobrescribirá para ese botón.
-//        if (iconUtils != null) {
-//            // Asegúrate que "5003-marcar_imagen_48x48.png" es el nombre correcto y está en la ruta de IconUtils
-//            ImageIcon icon = iconUtils.getScaledIcon("5003-marcar_imagen_48x48.png", iconoAncho, iconoAlto);
-//            if (icon != null) {
-//                putValue(Action.SMALL_ICON, icon);
-//            } else {
-//                System.err.println("WARN [ToggleMarkImageAction]: No se pudo cargar el icono '5003-marcar_imagen_48x48.png'");
-//            }
-//        }
-//
-//        // Inicialmente, ninguna imagen está marcada, por lo que el estado "seleccionado" de la Action es false.
-//        // Esto se actualizará dinámicamente cuando cambie la imagen principal.
-//        putValue(Action.SELECTED_KEY, Boolean.FALSE);
-//    }
-//
-//    @Override
-//    public void actionPerformed(ActionEvent e) {
-//        // ... (validaciones iniciales) ...
-//        Object source = e.getSource();
-//        boolean nuevoEstadoLogico;
-//
-//        if (source instanceof JCheckBoxMenuItem) {
-//            // Para un JCheckBoxMenuItem, su estado isSelected() YA refleja el nuevo estado después del clic.
-//            nuevoEstadoLogico = ((JCheckBoxMenuItem) source).isSelected();
-//            System.out.println("  [ToggleMarkImageAction] Evento desde JCheckBoxMenuItem. Estado isSelected() del item: " + nuevoEstadoLogico);
-//        } else if (source instanceof JButton) {
-//            // Para un JButton que actúa como toggle, invertimos el estado actual de la Action
-//            boolean estadoActualAction = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
-//            nuevoEstadoLogico = !estadoActualAction;
-//            System.out.println("  [ToggleMarkImageAction] Evento desde JButton. Estado Action actual: " + estadoActualAction + ". Nuevo estado lógico: " + nuevoEstadoLogico);
-//        } else {
-//            // Fuente desconocida, comportamiento de toggle simple
-//            boolean estadoActualAction = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
-//            nuevoEstadoLogico = !estadoActualAction;
-//            System.out.println("  [ToggleMarkImageAction] Evento desde fuente desconocida. Estado Action actual: " + estadoActualAction + ". Nuevo estado lógico: " + nuevoEstadoLogico);
-//        }
-//
-//        String selectedImageKey = controller.getModel().getSelectedImageKey();
-//        if (selectedImageKey == null || selectedImageKey.isEmpty()) {
-//            System.out.println("[ToggleMarkImageAction] No hay imagen seleccionada para marcar/desmarcar.");
-//            // IMPORTANTE: Si no hay imagen, no deberíamos cambiar el estado de marca ni el SELECTED_KEY
-//            // Podríamos incluso revertir el SELECTED_KEY si la fuente era un JCheckBoxMenuItem
-//            // que se acaba de marcar sin haber imagen seleccionada.
-//            // O, mejor aún, la Action debería estar deshabilitada (setEnabled(false)) si no hay imagen.
-//            // Por ahora, simplemente no hacemos nada con el ProjectManager ni con el SELECTED_KEY.
-//            return;
-//        }
-//
-//        ProjectManager pm = controller.getProjectManager();
-//        if (pm == null) { /* ... error ... */ return; }
-//
-//        // Llamar al ProjectManager con el nuevoEstadoLogico determinado
-//        pm.marcarDesmarcarImagenActual(selectedImageKey, nuevoEstadoLogico);
-//
-//        // Actualizar el estado SELECTED_KEY de ESTA Action para que coincida con el nuevoEstadoLogico
-//        putValue(Action.SELECTED_KEY, nuevoEstadoLogico); // <--- ESTO ES LO QUE SINCRONIZA LA ACTION
-//        System.out.println("  [ToggleMarkImageAction] Estado Action.SELECTED_KEY (ID: " + System.identityHashCode(this) + ") actualizado a: " + nuevoEstadoLogico);
-//
-//        // Notificar al controller para que actualice otras partes de la UI
-//        controller.actualizarEstadoVisualBotonMarcarYBarraEstado(nuevoEstadoLogico);
-//
-//        // Log de estado visual del JCheckBoxMenuItem DESPUÉS de todo
-//        if (source instanceof JCheckBoxMenuItem) {
-//            System.out.println("  [ToggleMarkImageAction] Estado VISUAL del JCheckBoxMenuItem DESPUÉS de putValue: " + ((JCheckBoxMenuItem) source).isSelected());
-//        }
-//    }    
-//}

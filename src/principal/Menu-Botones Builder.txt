@@ -1,0 +1,89 @@
+¡Entendido! Un "mapa de ruta" o checklist es una excelente idea para tener a mano mientras te acostumbras a la nueva estructura. 
+Aquí tienes uno escueto para añadir una nueva funcionalidad que se activa desde un ítem de menú y/o un botón de la barra de herramientas:
+
+**Manual Escueto para Añadir Nueva Funcionalidad (Opción de Menú/Botón)**
+
+**Paso 0: Planificación (Mental o en Papel)**
+*   ¿Qué hace la nueva funcionalidad? (Ej: "Exportar Configuración como JSON")
+*   ¿Qué `Manager` se encargará de la lógica principal? (Ej: ¿`ConfigurationManager`? ¿Un nuevo `ExportManager`?)
+*   ¿Qué `AppActionCommand` usará? (Ej: `CMD_CONFIG_EXPORTAR_JSON`)
+*   ¿Necesita un icono?
+
+---
+
+**Fase 1: Lógica de Negocio y Comando**
+
+1.  **`controlador.commands.AppActionCommands.java`:**
+    *   **Acción:** Añadir la nueva constante para el comando.
+    *   **Ejemplo:** `public static final String CMD_CONFIG_EXPORTAR_JSON = "accionExportarConfig";`
+
+2.  **`controlador.managers.[ManagerCorrespondiente].java`** (o crea uno nuevo):
+    *   **Acción:** Implementar el método que realiza la lógica principal.
+    *   **Ejemplo (en un hipotético `ConfigOperationManager`):** `public void exportarConfiguracionJSON() { /* ... lógica para exportar ... */ }`
+    *   (Este manager necesitará las dependencias adecuadas, como `ConfigurationManager`, `VisorView` para diálogos de guardado, etc., inyectadas por `AppInitializer`).
+
+---
+
+**Fase 2: La Clase `Action`**
+
+3.  **`controlador.actions.[subpaquete_apropiado].MiNuevaAction.java`:**
+    *   **Acción:** Crear la nueva clase `Action` (e.g., `ExportarConfigAction.java`).
+        *   Heredar de `BaseVisorAction` o `AbstractAction`.
+        *   Constructor:
+            *   Recibe el `Manager` necesario (e.g., `ConfigOperationManager`).
+            *   Recibe `IconUtils` (si tiene icono).
+            *   Llama a `super(...)` o configura propiedades (`NAME`, `ACTION_COMMAND_KEY` usando la constante del Paso 1, `SMALL_ICON`, `SHORT_DESCRIPTION`).
+        *   `actionPerformed(ActionEvent e)`:
+            *   Llama al método del `Manager` (e.g., `this.configManager.exportarConfiguracionJSON();`).
+            *   (Opcional) Llama a `view.aplicarAnimacionBoton(AppActionCommands.CMD_CONFIG_EXPORTAR_JSON)` si quieres feedback en un botón de toolbar.
+
+---
+
+**Fase 3: Cableado en `ActionFactory`**
+
+4.  **`controlador.factory.ActionFactory.java`:**
+    *   **Acción (Constructor de `ActionFactory`):** Asegúrate de que `ActionFactory` recibe la instancia del `Manager` que tu nueva `Action` necesita (inyectado por `AppInitializer`).
+    *   **Acción (Métodos de Creación):**
+        *   Añadir un método para crear tu nueva `Action`: `public Action createExportarConfigAction() { return new ExportarConfigAction(this.configOperationManager, this.iconUtils, ...); }`
+        *   Añadir la nueva `Action` al `actionMap` que construye `ActionFactory`: `actionMap.put(AppActionCommands.CMD_CONFIG_EXPORTAR_JSON, createExportarConfigAction());`
+
+---
+
+**Fase 4: Definición en la UI**
+
+5.  **`vista.config.UIDefinitionService.java`:**
+    *   **Acción (Si es un Ítem de Menú):**
+        *   En el método que define los ítems del menú correspondiente (e.g., "Archivo", "Configuración"), añadir una nueva `MenuItemDefinition`.
+        *   Configurar su `text`, `actionCommandKey` (usando la constante del Paso 1), `iconKey` (si aplica), `mnemonic`, `accelerator`.
+    *   **Acción (Si es un Botón de Toolbar):**
+        *   En el método que define los botones de la toolbar correspondiente, añadir una nueva `ToolbarButtonDefinition`.
+        *   Configurar su `actionCommandKey` (usando la constante del Paso 1), `iconKey`, `tooltipText`.
+
+---
+
+**Fase 5: Verificación (Normalmente Automático si los Builders están bien)**
+
+6.  **`vista.builders.MenuBarBuilder.java` / `vista.builders.ToolbarBuilder.java`:**
+    *   **Acción:** Generalmente **ninguna acción directa aquí**.
+    *   **Verificación:** Si los builders están correctamente implementados para iterar sobre las definiciones de `UIDefinitionService` y usar el `actionMap` (de `ActionFactory`) para asignar las `Action`s a los componentes mediante `component.setAction(actionMap.get(comandoDeLaDefinicionUI))`, tu nueva opción/botón debería aparecer y funcionar.
+
+---
+
+**Resumen de Archivos a Tocar (Potencialmente):**
+
+1.  `AppActionCommands.java` (Comandos)
+2.  `[TuManager].java` (Lógica)
+3.  `[TuNuevaAction].java` (Clase Action)
+4.  `ActionFactory.java` (Creación y registro de Action)
+5.  `UIDefinitionService.java` (Definición UI)
+6.  (Opcional) `IconUtils.java` si necesitas cargar un nuevo icono y registrar su clave.
+7.  (Opcional) `AppInitializer.java` si necesitas instanciar un nuevo `Manager` y pasarlo a `ActionFactory`.
+
+**Consejos para No Perderse:**
+
+*   **Sigue el Flujo Inverso al Usar/Depurar:** Si un botón no funciona, empieza por el `Builder` -> `UIDefinition` -> `ActionFactory` -> `Action` -> `Manager`.
+*   **Consistencia en las Claves:** El `AppActionCommand` es el hilo conductor. ¡Asegúrate de que sea idéntico en todos los sitios donde se usa!
+*   **Pestañas Abiertas en el IDE:** Cuando añadas una nueva funcionalidad, ten estos 5-7 archivos clave abiertos en pestañas para facilitar la navegación.
+*   **"Buscar en Archivos" (Ctrl+H o similar):** Si buscas tu `AppActionCommand` (e.g., `CMD_CONFIG_EXPORTAR_JSON`), deberías encontrarlo en todas las clases relevantes.
+
+Este "mapa" debería ayudarte a sistematizar el proceso. Con la práctica, recordarás dónde va cada pieza. ¡La clave es la consistencia en la estructura!

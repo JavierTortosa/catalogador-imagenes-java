@@ -8,6 +8,8 @@ import java.util.Objects;
 
 import javax.swing.DefaultListModel;
 
+import servicios.zoom.ZoomModeEnum;
+
 /**
  * Modelo de datos para el Visor de Imágenes. Contiene el estado de la
  * aplicación.
@@ -26,7 +28,7 @@ public class VisorModel
 	private int imageOffsetY;
 	private boolean zoomHabilitado;
 	private double zoomFactor;
-	
+	private ZoomModeEnum currentZoomMode;
 	
 	// --- Estado de Configuración/Comportamiento (que afecta la lógica de
 	// carga/visualización) ---
@@ -38,6 +40,7 @@ public class VisorModel
     private int miniaturaNormAncho;
     private int miniaturaNormAlto;
     private boolean mantenerProporcion;
+    private Path carpetaRaizActual = null;
 
 	// --- Constructor ---
 	public VisorModel()
@@ -54,6 +57,7 @@ public class VisorModel
         zoomFactor = 1.0;     // Estado inicial funcional razonable
         imageOffsetX = 0;
         imageOffsetY = 0;
+        this.currentZoomMode = ZoomModeEnum.FIT_TO_SCREEN;
         
      // --- Valor mantener proporciones ---
         mantenerProporcion = true; // Valor inicial por defecto (coincide con config default)
@@ -61,6 +65,22 @@ public class VisorModel
    	}
 
 	
+	public ZoomModeEnum getCurrentZoomMode ()
+	{
+	
+		return currentZoomMode;
+	
+	}
+
+
+	public void setCurrentZoomMode (ZoomModeEnum newMode)
+	{
+	
+		this.currentZoomMode = newMode;
+	
+	}
+
+
 	/**
      * Reemplaza el modelo de lista interno y el mapa de rutas con los nuevos
      * proporcionados. Esta es una forma más eficiente de actualizar la lista
@@ -384,5 +404,36 @@ public class VisorModel
         }
     }
 
+
+// **************************************************************************************************************** ZOOM
+    
+ // En VisorModel.java (Opcional, si lo ves necesario)
+    /**
+     * Resetea solo los desplazamientos (paneo) de la imagen a (0,0),
+     * manteniendo el factor de zoom actual.
+     */
+    public void resetPan() {
+        this.imageOffsetX = 0;
+        this.imageOffsetY = 0;
+        // System.out.println("  [Model] Paneo reseteado. Offsets: (0,0)");
+    }
+    
+// **************************************************************************************************************** CARPETA RAIZ
+   
+    
+    public Path getCarpetaRaizActual() {
+        return carpetaRaizActual;
+    }
+
+    public void setCarpetaRaizActual(Path carpetaRaizActual) {
+        // Opcional: validar si es un directorio aquí o asumir que FileManager ya lo hizo
+        if (!Objects.equals(this.carpetaRaizActual, carpetaRaizActual)) {
+            System.out.println("  [VisorModel] carpetaRaizActual cambiada de '" + this.carpetaRaizActual + "' a '" + carpetaRaizActual + "'");
+            this.carpetaRaizActual = carpetaRaizActual;
+            // Podrías disparar un PropertyChangeEvent aquí si otros componentes necesitan saberlo.
+        }
+    }
+    
+    
 } //fin VisorModel
 

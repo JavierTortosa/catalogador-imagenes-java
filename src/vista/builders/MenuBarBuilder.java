@@ -1,5 +1,6 @@
 package vista.builders;
 
+
 import java.util.HashMap; // Asegúrate de tener los imports
 import java.util.List;
 import java.util.Map;
@@ -13,11 +14,10 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
-//import javax.swing.*; // Action, ButtonGroup, etc.
 
 import controlador.commands.AppActionCommands;
-import vista.config.MenuItemDefinition; // Importar
-import vista.config.MenuItemType;      // Importar
+import vista.config.MenuItemDefinition; 
+import vista.config.MenuItemType;      
 
 // Enum interno (o importado si está en otro archivo)
 enum MenuComponentType { MAIN_MENU, SUB_MENU, MENU_ITEM, UNKNOWN }

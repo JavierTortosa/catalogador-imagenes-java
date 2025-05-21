@@ -1,37 +1,57 @@
+// En controlador.actions.edicion.RotateLeftAction.java
 package controlador.actions.edicion;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
 
-public class RotateLeftAction extends BaseVisorAction {
+import controlador.commands.AppActionCommands;
+import controlador.interfaces.ContextSensitiveAction;
+import controlador.managers.EditionManager;
+import modelo.VisorModel;
 
-    private static final long serialVersionUID = 1L;
+public class RotateLeftAction extends AbstractAction implements ContextSensitiveAction {
 
-    public RotateLeftAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        super("Girar Izquierda", controller); // Texto para menú
+    private static final long serialVersionUID = 1L; // Considera generar uno nuevo
+
+    private EditionManager editionManagerRef;
+    private VisorModel modelRef;
+
+    public RotateLeftAction(
+            EditionManager editionManager,
+            VisorModel model,
+            String name,
+            ImageIcon icon) {
+        super(name, icon);
+        this.editionManagerRef = Objects.requireNonNull(editionManager, "EditionManager no puede ser null en RotateLeftAction");
+        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null en RotateLeftAction");
+
         putValue(Action.SHORT_DESCRIPTION, "Girar la imagen 90 grados a la izquierda");
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
 
-        // Cargar icono
-        ImageIcon icon = iconUtils.getScaledIcon("2001-Rotar_Izquierda_48x48.png", width, height);
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-        } else {
-            System.err.println("WARN [RotateLeftAction]: No se pudo cargar el icono 2001-Rotar_Izquierda_48x48.png");
-            // putValue(Action.NAME, "RotL"); // Fallback
-        }
+        updateEnabledState(this.modelRef); // Estado inicial
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller != null) {
-            controller.logActionInfo(e);
-            controller.aplicarRotarIzquierda(); // Llama al método correcto del controller
+        if (editionManagerRef == null) {
+            System.err.println("ERROR CRÍTICO [RotateLeftAction]: EditionManager es nulo.");
+            return;
+        }
+        // System.out.println("[RotateLeftAction actionPerformed] Comando: " + e.getActionCommand());
+        
+        editionManagerRef.aplicarRotarIzquierda();
+    }
+
+    @Override
+    public void updateEnabledState(VisorModel currentModel) {
+        if (currentModel != null) {
+            setEnabled(currentModel.getCurrentImage() != null);
         } else {
-             System.err.println("Error: Controller es null en RotateLeftAction");
+            setEnabled(false);
         }
     }
 }

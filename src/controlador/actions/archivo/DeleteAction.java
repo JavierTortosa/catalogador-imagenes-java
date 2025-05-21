@@ -1,54 +1,55 @@
+// En src/controlador/actions/archivo/DeleteAction.java
 package controlador.actions.archivo;
 
 import java.awt.event.ActionEvent;
-
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import controlador.commands.AppActionCommands;
+import controlador.managers.FileOperationsManager; // Nueva dependencia
+import modelo.VisorModel; // Solo para actualizar estado enabled
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
+public class DeleteAction extends AbstractAction {
 
-public class DeleteAction extends BaseVisorAction {
+    private static final long serialVersionUID = 1L;
+    private FileOperationsManager fileOpsManager;
+    private VisorModel model; // Para el método actualizarEstadoEnabled
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	
-	public DeleteAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        // Llama al constructor de la superclase
-        // El texto "Abrir Archivo..." se usa para el menú
-        super("Borrar Archivo...", controller);
-        
-        // Establece descripción (tooltip)
-        putValue(Action.SHORT_DESCRIPTION, "Elimina una imagen");
+    // Constructor Refactorizado
+    public DeleteAction(String name, 
+                        ImageIcon icon, 
+                        FileOperationsManager fileOpsManager,
+                        VisorModel model) { // VisorModel para actualizar su estado enabled
+        super(name, icon);
+        this.fileOpsManager = Objects.requireNonNull(fileOpsManager, "FileOperationsManager no puede ser null en DeleteAction");
+        this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en DeleteAction para actualizar estado enabled");
 
-        // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
-        // Llama a getScaledIcon con el nombre del icono y los tamaños recibidos.
-        // Usa el nombre que realmente tengan tus archivos PNG. Asumiré mayúsculas basado en el botón.
-        ImageIcon icon = iconUtils.getScaledIcon("5004-borrar_48x48.png", width, height);
-
-        // Verifica y asigna el icono
-        if (icon != null) {
-            // Este icono se asociará con la Action. Si el menú o el botón usan
-            // setAction(), tomarán este icono (si el LookAndFeel lo permite para menús).
-            putValue(Action.SMALL_ICON, icon);
-        } else {
-            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '5004-borrar_48x48.png' usando IconUtils.");
-            // Opcional: texto fallback
-            // putValue(Action.NAME, "Borrar imagen");
-        }
-        // --- FIN DE LA PARTE IMPORTANTE ---
+        putValue(Action.SHORT_DESCRIPTION, "Eliminar la imagen seleccionada");
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_IMAGEN_ELIMINAR);
+        actualizarEstadoEnabled(); // Estado inicial basado en si hay selección
     }
-	
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller != null) { // Buena práctica chequear controller
-            
-        	controller.logActionInfo(e); 
-            
-        	//controller  .borrarImagen();
+        System.out.println("[DeleteAction actionPerformed] Comando: " + e.getActionCommand());
+        if (this.fileOpsManager != null) {
+            this.fileOpsManager.borrarArchivoSeleccionado();
+        } else {
+            System.err.println("ERROR CRÍTICO [DeleteAction]: FileOperationsManager es nulo.");
+        }
+    }
+    
+    /**
+     * Actualiza el estado 'enabled' de esta Action basado en si hay una imagen seleccionada en el modelo.
+     * Este método debería ser llamado cuando cambia la selección de imagen.
+     * El ListCoordinator o VisorController podrían ser responsables de llamar a esto.
+     */
+    public void actualizarEstadoEnabled() {
+        if (model != null) {
+            setEnabled(model.getSelectedImageKey() != null && model.getRutaCompleta(model.getSelectedImageKey()) != null);
+        } else {
+            setEnabled(false);
         }
     }
 }

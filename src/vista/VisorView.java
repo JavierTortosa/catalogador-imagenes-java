@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
@@ -41,6 +42,7 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 import controlador.VisorController;
+import controlador.commands.AppActionCommands;
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
@@ -77,7 +79,7 @@ public class VisorView extends JFrame
     private Map<String, JMenuItem> menuItemsPorNombre;
 
 	// --- Referencias Externas y Configuración UI ---
-	private final ViewUIConfig uiConfig;
+	private ViewUIConfig uiConfig; // guarda la configuracion
 	private final VisorModel model; // Guardar referencia al modelo si otros métodos lo usan
     private final ThumbnailService servicioThumbs; // Guardar referencia si otros métodos lo usan
     private final JMenuBar mainMenuBar; // <-- Campo para guardar la menubar recibida
@@ -87,7 +89,7 @@ public class VisorView extends JFrame
     private DefaultListModel<String> modeloLista; // Referencia al modelo compartido
 
     // --- Constantes para represenracion de las miniaturas ---
-    private static final int MINIMUM_THUMBNAIL_CELL_DIMENSION 			= 30; //tamaño de la celda
+    private static final int MINIMUM_THUMBNAIL_CELL_DIMENSION 			= 15; //tamaño de la celda
     private static final int THUMBNAIL_CELL_HORIZONTAL_PADDING 			= 15; //espacio entre miniaturas
     private static final int THUMBNAIL_CELL_VERTICAL_PADDING_WITH_TEXT 	= 30; //espacio vertical con texto
     private static final int THUMBNAIL_CELL_VERTICAL_PADDING_NO_TEXT 	= 10; //espacio vertical sin texto
@@ -514,11 +516,11 @@ public class VisorView extends JFrame
 
         try {
             // 5.2.1. Obtener dimensiones del icono desde config
-            int thumbWidth = 40;
-            int thumbHeight = 40;
+            int thumbWidth = MINIMUM_THUMBNAIL_CELL_DIMENSION;
+            int thumbHeight = MINIMUM_THUMBNAIL_CELL_DIMENSION;
             if (this.uiConfig != null && this.uiConfig.configurationManager != null) {
-                thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
-                thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
+                thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", MINIMUM_THUMBNAIL_CELL_DIMENSION);
+                thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", MINIMUM_THUMBNAIL_CELL_DIMENSION);
             }
 
             // 5.2.2. Saber si tenemos que mostrar nombres
@@ -557,7 +559,7 @@ public class VisorView extends JFrame
             listaMiniaturas.setFixedCellHeight(cellHeight);// Usa el fallback 60
         }
 
-        // --- SECCIÓN 5.4 (MODIFICADA): Calcular Tamaño Preferido de la JList ---
+        // --- SECCIÓN 5.4: Calcular Tamaño Preferido de la JList ---
         // Este tamaño preferido es para la JList en sí misma, basado en el MÁXIMO de ítems
         // que podría mostrar según la configuración, para que el JScrollPane tenga una idea
         // de cuán grande *podría* llegar a ser la lista.
@@ -578,7 +580,7 @@ public class VisorView extends JFrame
             listaMiniaturas.setPreferredSize(new Dimension(15 * cellWidth, cellHeight));
         }
 
-        // --- SECCIÓN 6 (NUEVA): Creación del Panel Wrapper para Centrado Interno de la JList ---
+        // --- SECCIÓN 6: Creación del Panel Wrapper para Centrado Interno de la JList ---
         // Este panel usará FlowLayout.CENTER para centrar la JList si esta es más estrecha que el wrapper.
         JPanel wrapperListaMiniaturas = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0)); // Centrado, sin gaps h/v
         wrapperListaMiniaturas.setOpaque(false); // Hacerlo transparente para que se vea el fondo del panelCentrador
@@ -586,13 +588,13 @@ public class VisorView extends JFrame
         System.out.println("    [Init Miniaturas] Panel wrapper para JList creado con FlowLayout.CENTER.");
 
 
-        // --- SECCIÓN 7 (MODIFICADA): Creación del Panel Intermediario (`panelCentrador`) ---
+        // --- SECCIÓN 7: Creación del Panel Intermediario (`panelCentrador`) ---
         // Este panel usa GridBagLayout para centrar el 'wrapperListaMiniaturas'.
         JPanel panelCentrador = new JPanel(new GridBagLayout());
         panelCentrador.setOpaque(true);
         panelCentrador.setBackground(this.uiConfig.colorFondoPrincipal); // El fondo que se ve detrás de las miniaturas
 
-        // --- SECCIÓN 8 (MODIFICADA): Configuración de GridBagConstraints para Centrar el WRAPPER ---
+        // --- SECCIÓN 8: Configuración de GridBagConstraints para Centrar el WRAPPER ---
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
         gbc.gridy = 0;
@@ -601,19 +603,19 @@ public class VisorView extends JFrame
         gbc.anchor = GridBagConstraints.CENTER; // ANCLA el wrapper al centro de la celda del GBL
         gbc.fill = GridBagConstraints.HORIZONTAL;//.BOTH;   // HACE QUE EL WRAPPER LLENE la celda del GBL (horizontal y verticalmente)
 
-        // --- SECCIÓN 9 (MODIFICADA): Añadir el WRAPPER (que contiene la JList) al Panel Intermediario ---
+        // --- SECCIÓN 9: Añadir el WRAPPER (que contiene la JList) al Panel Intermediario ---
         panelCentrador.add(wrapperListaMiniaturas, gbc); // Añadir el wrapper, no la JList directamente
         System.out.println("    [Init Miniaturas] Wrapper de JList añadido a panelCentrador (GridBagLayout).");
 
-        // --- SECCIÓN 10 (MODIFICADA): Creación del JScrollPane ---
+        // --- SECCIÓN 10: Creación del JScrollPane ---
         scrollListaMiniaturas = new JScrollPane(panelCentrador); // El scrollpane ahora ve el panelCentrador
         System.out.println("    [Init Miniaturas] JScrollPane creado con panelCentrador.");
 
-        // --- SECCIÓN 11 (MODIFICADA): Configuración de las Barras de Scroll del ScrollPane ---
+        // --- SECCIÓN 11: Configuración de las Barras de Scroll del ScrollPane ---
         scrollListaMiniaturas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); // Como lo querías
         scrollListaMiniaturas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
 
-        // --- SECCIÓN 12 (MODIFICADA): Establecimiento del Tamaño Preferido del ScrollPane ---
+        // --- SECCIÓN 12: Establecimiento del Tamaño Preferido del ScrollPane ---
         // Ya no establecemos un preferredSize muy pequeño y fijo para el scrollPane.
         // Dejamos que su tamaño preferido se derive de su contenido (panelCentrador -> wrapper -> listaMiniaturas)
         // y de la altura que calculamos para las celdas + TitledBorder.
@@ -624,201 +626,18 @@ public class VisorView extends JFrame
         scrollListaMiniaturas.setPreferredSize(scrollPrefSize);
         scrollListaMiniaturas.setMinimumSize(new Dimension(50, this.miniaturaScrollPaneHeight / 2)); // Un mínimo razonable
 
-        // --- SECCIÓN 13 (MODIFICADA): Configuración Visual del Viewport y Borde ---
+        // --- SECCIÓN 13: Configuración Visual del Viewport y Borde ---
         scrollListaMiniaturas.getViewport().setBackground(this.uiConfig.colorFondoPrincipal);
         Border lineaMini = BorderFactory.createLineBorder(this.uiConfig.colorBorde);
         TitledBorder bordeTituladoMini = BorderFactory.createTitledBorder(lineaMini, "Miniaturas");
         bordeTituladoMini.setTitleColor(this.uiConfig.colorTextoSecundario);
         scrollListaMiniaturas.setBorder(bordeTituladoMini);
 
-        // --- SECCIÓN 14: Log Final (Sin cambios) ---
+        // --- SECCIÓN 14: Log Final ---
         System.out.println("  [Init Comp] Panel Miniaturas (Wrapper + GridBagLayout) finalizado. Altura scrollPaneHint: " + this.miniaturaScrollPaneHeight);
 
     } // --- FIN del metodo inicializarPanelImagenesMiniatura
     
-    
-//    private void inicializarPanelImagenesMiniatura (VisorModel modeloParam, ThumbnailService servicioThumbsLocal) {
-//        // --- SECCIÓN 1: Inicio y Log ---
-//        // 1.1. Imprimir log indicando el inicio de la inicialización.
-//        System.out.println("  [Init Comp] Inicializando Panel Miniaturas...");
-//
-//        // --- SECCIÓN 2: Creación de la JList de Miniaturas ---
-//        // 2.1. Crear la instancia de JList con un modelo vacío inicial.
-//        listaMiniaturas = new JList<>(new DefaultListModel<>());
-//        
-//        listaMiniaturas.setFocusable(true);
-//        System.out.println("    [Init Miniaturas] listaMiniaturas setFocusable(true)");
-//
-//        // --- SECCIÓN 3: Configuración de Propiedades Básicas de la JList ---
-//        // 3.1. Modo de selección único.
-//        listaMiniaturas.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-//        // 3.2. Color de fondo detrás de las celdas.
-//        listaMiniaturas.setBackground(this.uiConfig.colorFondoSecundario);
-//        // 3.3. Color de fondo para la celda seleccionada.
-//        listaMiniaturas.setSelectionBackground(this.uiConfig.colorSeleccionFondo);
-//        // 3.4. Color de texto para la celda seleccionada.
-//        listaMiniaturas.setSelectionForeground(this.uiConfig.colorSeleccionTexto);
-//        // 3.5. Hacer la JList NO opaca para que se vea el fondo del panel centrador.
-//        listaMiniaturas.setOpaque(false);
-//
-//        // --- SECCIÓN 4: Configuración del Layout de la JList ---
-//        // 4.1. Orientación horizontal con salto de línea.
-//        listaMiniaturas.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-//        // 4.2. Indicar que calcule las filas visibles (resulta en una sola fila horizontal con celda fija).
-//        listaMiniaturas.setVisibleRowCount(-1);
-//
-//        // --- SECCIÓN 5: Configuración del Renderer, Tamaño Fijo de Celda y Tamaño Preferido de JList ---
-//        int cellWidth = 60;  // Fallback si todo falla
-//        int cellHeight = 60; // Fallback si todo falla
-//
-//        try {
-//            // 5.2.1. Obtener dimensiones del icono desde configuración.
-//            int thumbWidth = 40;  // Default si uiConfig o su configManager son null
-//            int thumbHeight = 40; // Default
-//            if (this.uiConfig != null && this.uiConfig.configurationManager != null) {
-//                thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
-//                thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
-//            } else {
-//                System.err.println("WARN [VisorView InitThumbs]: uiConfig o su ConfigurationManager es null. Usando defaults para tamaño de thumbs.");
-//            }
-//
-//            // 5.2.2 Saber si tenemos que mostrar el nombre de la miniatura o no
-//            boolean mostrarNombresEnThumbs = true; // Default
-//            if (this.uiConfig != null && this.uiConfig.configurationManager != null) {
-//                mostrarNombresEnThumbs = this.uiConfig.configurationManager.getBoolean("ui.miniaturas.mostrar_nombres", true);
-//            } else {
-//                System.err.println("WARN [VisorView InitThumbs]: uiConfig o su ConfigurationManager es null. Usando default para mostrar_nombres.");
-//            }
-//            System.out.println("    [Init Miniaturas] Estado inicial para mostrar nombres: " + mostrarNombresEnThumbs);
-//
-//            // 5.2.3. Crear y asignar el renderer.
-//            // ¡AQUÍ PASAMOS TODOS LOS PARÁMETROS NECESARIOS!
-//            Color colorFondoDef = (this.uiConfig != null) ? this.uiConfig.colorFondoSecundario : Color.WHITE;
-//            Color colorFondoSelDef = (this.uiConfig != null) ? this.uiConfig.colorSeleccionFondo : new Color(57, 105, 138);
-//            Color colorTextoDef = (this.uiConfig != null) ? this.uiConfig.colorTextoPrimario : Color.BLACK;
-//            Color colorTextoSelDef = (this.uiConfig != null) ? this.uiConfig.colorSeleccionTexto : Color.WHITE;
-//            Color colorBordeSel = Color.ORANGE; // O un color de this.uiConfig si lo tienes
-//
-//            MiniaturaListCellRenderer rendererMiniaturas = new MiniaturaListCellRenderer(
-//                servicioThumbsLocal,    // Parámetro 1
-//                modeloParam,            // Parámetro 2 (usa la variable local del método)
-//                thumbWidth,             // Parámetro 3
-//                thumbHeight,            // Parámetro 4
-//                mostrarNombresEnThumbs, // Parámetro 5
-//                colorFondoDef,          // Parámetro 6
-//                colorFondoSelDef,       // Parámetro 7
-//                colorTextoDef,          // Parámetro 8
-//                colorTextoSelDef,       // Parámetro 9
-//                colorBordeSel           // Parámetro 10
-//            );
-//            listaMiniaturas.setCellRenderer(rendererMiniaturas);
-//
-//            // Ahora obtenemos las dimensiones de celda DESDE el renderer
-//            cellWidth = rendererMiniaturas.getAnchoCalculadaDeCelda();
-//            cellHeight = rendererMiniaturas.getAlturaCalculadaDeCelda();
-//
-//            listaMiniaturas.setFixedCellWidth(cellWidth);
-//            listaMiniaturas.setFixedCellHeight(cellHeight);
-//            System.out.println("    [Init Miniaturas] Renderer asignado. Tamaño de celda FIJO calculado por renderer: "+cellWidth+"x"+cellHeight);
-//
-//        } catch (Exception e) {
-//            System.err.println("ERROR [inicializarMiniaturas] creando/asignando Renderer o calculando tamaño celda: " + e.getMessage());
-//            e.printStackTrace();
-//            listaMiniaturas.setCellRenderer(new DefaultListCellRenderer());
-//            // Usar los fallbacks de cellWidth/Height definidos al inicio de la sección 5
-//            listaMiniaturas.setFixedCellWidth(60); // Fallback duro si todo falla
-//            listaMiniaturas.setFixedCellHeight(60);// Fallback duro
-//            System.out.println("    [Init Miniaturas] Usando tamaño de celda de fallback (60x60) debido a error.");
-//        }
-//
-//        // 5.4. Calcular y establecer tamaño preferido de la JList.
-//        try {
-//            // Usar los MÁXIMOS del modelo (leídos de config) para el tamaño preferido inicial de la JList
-//            int maxNumAntes = (modeloParam != null) ? modeloParam.getMiniaturasAntes() : 8; // Usa el modelo local del método
-//            int maxNumDespues = (modeloParam != null) ? modeloParam.getMiniaturasDespues() : 8;
-//            int maxTotalMiniaturas = maxNumAntes + 1 + maxNumDespues;
-//
-//            System.out.println("    [Init Miniaturas] Calculando tamaño pref. JList para MÁXIMO de " + maxTotalMiniaturas + " miniaturas (CellWidth: " + cellWidth + ")");
-//            int preferredListWidth = maxTotalMiniaturas * cellWidth; // cellWidth es el calculado por el renderer o el fallback
-//            int preferredListHeight = cellHeight; // cellHeight es el calculado por el renderer o el fallback
-//
-//            listaMiniaturas.setPreferredSize(new Dimension(preferredListWidth, preferredListHeight));
-//            System.out.println("    [Init Miniaturas] Tamaño Preferido JList establecido a: " + preferredListWidth + "x" + preferredListHeight);
-//        } catch (Exception e) {
-//            System.err.println("ERROR [inicializarMiniaturas] calculando/estableciendo tamaño preferido JList: " + e.getMessage());
-//            e.printStackTrace();
-//            // Fallback para el tamaño preferido de la JList
-//            listaMiniaturas.setPreferredSize(new Dimension(15 * cellWidth, cellHeight)); // Fallback a 15 items
-//            System.out.println("    [Init Miniaturas] Usando tamaño preferido JList de fallback (15 items).");
-//        }        
-//        
-//        // --- SECCIÓN 6: Creación del Panel Intermediario para Centrado ---
-//        // 6.1. Crear el panel con GridBagLayout.
-//        JPanel panelCentrador = new JPanel(new GridBagLayout());
-//        // 6.2. Configurar opacidad y color de fondo.
-//        panelCentrador.setOpaque(true);
-//        panelCentrador.setBackground(this.uiConfig.colorFondoPrincipal);
-//
-//        // --- SECCIÓN 7: Configuración de GridBagConstraints para Centrar la JList ---
-//        // 7.1. Crear objeto de restricciones.
-//        GridBagConstraints gbc = new GridBagConstraints();
-//        // 7.2. Celda única.
-//        gbc.gridx = 0;
-//        gbc.gridy = 0;
-//        // 7.3. Permitir que la celda absorba espacio extra.
-//        gbc.weightx = 1.0;
-//        gbc.weighty = 1.0;
-//        // 7.4. Anclar la JList al centro.
-//        gbc.anchor = GridBagConstraints.CENTER;
-//        // 7.5. No expandir la JList.
-//        gbc.fill = GridBagConstraints.NONE;
-//        // 7.6. Márgenes opcionales.
-//        // gbc.insets = new Insets(2, 2, 2, 2);
-//
-//        // --- SECCIÓN 8: Añadir la JList al Panel Intermediario ---
-//        // 8.1. Añadir la lista al panel con las restricciones.
-//        panelCentrador.add(listaMiniaturas, gbc);
-//        // 8.2. Log.
-//        System.out.println("    [Init Miniaturas] Panel centrador con GridBagLayout creado y JList añadida.");
-//
-//        // --- SECCIÓN 9: Creación del JScrollPane ---
-//        // 9.1. Crear el scrollpane usando el panelCentrador.
-//        scrollListaMiniaturas = new JScrollPane(panelCentrador);
-//        // 9.2. Log.
-//        System.out.println("    [Init Miniaturas] JScrollPane creado con panelCentrador.");
-//
-//        // --- SECCIÓN 10: Configuración de las Barras de Scroll del ScrollPane ---
-//        // 10.1. Barra horizontal siempre (o AS_NEEDED).
-//        scrollListaMiniaturas.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-//        // 10.2. Barra vertical nunca.
-//        scrollListaMiniaturas.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-//
-//        // --- SECCIÓN 11: Establecimiento del Tamaño Preferido del ScrollPane ---
-//        // 11.1. Usar la altura calculada y un ancho inicial pequeño.
-//        Dimension preferredSize = new Dimension(100, this.miniaturaScrollPaneHeight);
-//        // 11.2. Aplicar tamaño preferido al scrollpane.
-//        scrollListaMiniaturas.setPreferredSize(preferredSize);
-//
-//        // --- SECCIÓN 12: Configuración Visual del Viewport del ScrollPane ---
-//        // 12.1. Establecer color de fondo del área de visualización.
-//        scrollListaMiniaturas.getViewport().setBackground(this.uiConfig.colorFondoPrincipal);
-//
-//        // --- SECCIÓN 13: Creación y Aplicación del Borde Titulado ---
-//        // 13.1. Crear borde de línea.
-//        Border lineaMini = BorderFactory.createLineBorder(this.uiConfig.colorBorde);
-//        // 13.2. Crear borde titulado.
-//        TitledBorder bordeTituladoMini = BorderFactory.createTitledBorder(lineaMini, "Miniaturas");
-//        // 13.3. Establecer color del título.
-//        bordeTituladoMini.setTitleColor(this.uiConfig.colorTextoSecundario);
-//        // 13.4. Aplicar borde al scrollpane.
-//        scrollListaMiniaturas.setBorder(bordeTituladoMini);
-//
-//        // --- SECCIÓN 14: Log Final ---
-//        // 14.1. Indicar fin de la inicialización.
-//        System.out.println("  [Init Comp] Panel Miniaturas (Centrado con GridBagLayout) finalizado. Altura preferida Scroll: " + preferredSize.height);
-//
-//    } // --- FIN inicializarPanelImagenesMiniatura ---
-//    
     
 	// --- Método para inicializar Etiqueta Imagen ---
 	private void inicializarEtiquetaMostrarImagen ()
@@ -1550,16 +1369,16 @@ public class VisorView extends JFrame
      * Excluye de la animación al botón de Zoom ('Zoom_48x48') porque este
      * ya cambia su fondo de forma persistente para indicar su estado activo/inactivo.
      *
-     * @param nombreBotonBase El nombre base del botón (generalmente coincide con
+     * @param actionCommandDelBoton El nombre base del botón (generalmente coincide con
      *                        el ActionCommand corto o la parte final de la clave de config,
      *                        ej. "Siguiente_48x48", "Reset_48x48").
      */
-     public void aplicarAnimacionBoton(String nombreBotonBase) {
+     public void aplicarAnimacionBoton(String actionCommandDelBoton) {
          // 1. Log inicial (opcional)
-         // System.out.println("[VisorView] Solicitud de animación para botón base: " + nombreBotonBase);
+         System.out.println("[VisorView] Solicitud de animación para botón base: " + actionCommandDelBoton);
 
          // 2. Validaciones iniciales
-         if (nombreBotonBase == null || nombreBotonBase.trim().isEmpty()) {
+         if (actionCommandDelBoton == null || actionCommandDelBoton.trim().isEmpty()) {
               System.err.println("WARN [aplicarAnimacionBoton]: nombreBotonBase es nulo o vacío.");
               return;
          }
@@ -1573,60 +1392,125 @@ public class VisorView extends JFrame
           }
 
          // 3. Excluir el botón de Zoom manual de la animación
-         //    (porque su color de fondo indica estado, no acción momentánea)
-         if ("Zoom_48x48".equals(nombreBotonBase)) {
-              // System.out.println("  -> Animación omitida para el botón de Zoom."); // Log opcional
+          if (AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE.equals(actionCommandDelBoton)) {
+              System.out.println("  -> Animación omitida para el botón de Zoom Manual (tiene su propio manejo de color de fondo).");
               return;
-         }
+          } 
+         
+//         if ("Zoom_48x48".equals(actionCommandDelBoton)) {
+//              return;
+//         }
 
          // 4. Buscar el botón correspondiente en el mapa
-         JButton botonEncontrado = null;
-         String claveEncontrada = null; // Guardar la clave para logs
+         JButton botonParaAnimar = null;
+         String claveDelBotonIdentificado = null; // Guardar la clave para logs
+         
          // System.out.println("  -> Buscando botón cuya clave larga termine en '." + nombreBotonBase + "'..."); // Log opcional
+         
          for (Map.Entry<String, JButton> entry : botonesPorNombre.entrySet()) {
-              // Comprobar si la clave larga termina con ".nombreBotonBase"
-              if (entry.getKey() != null && entry.getKey().endsWith("." + nombreBotonBase)) {
-                  botonEncontrado = entry.getValue();
-                  claveEncontrada = entry.getKey();
-                   // System.out.println("    -> Botón encontrado con clave: " + claveEncontrada); // Log opcional
-                  break; // Asumir que solo hay uno que coincide
-              }
+             JButton botonActual = entry.getValue();
+             if (botonActual != null) {
+                 Action accionDelBoton = botonActual.getAction();
+                 if (accionDelBoton != null) {
+                     Object cmdKeyDeLaAction = accionDelBoton.getValue(Action.ACTION_COMMAND_KEY);
+                     if (actionCommandDelBoton.equals(cmdKeyDeLaAction)) {
+                         botonParaAnimar = botonActual;
+                         claveDelBotonIdentificado = entry.getKey();
+                         System.out.println("    -> Botón para animar encontrado por ActionCommand. Clave: " + claveDelBotonIdentificado);
+                         break; // Encontramos el botón
+                     }
+                 }
+             }
          }
+         
+//         for (Map.Entry<String, JButton> entry : botonesPorNombre.entrySet()) {
+//        	 // Comprobar si la clave larga termina con ".nombreBotonBase"
+//             if (entry.getKey() != null && entry.getKey().endsWith("." + actionCommandDelBoton)) {
+//                 botonParaAnimar = entry.getValue();
+//                 claveDelBotonEncontrado = entry.getKey();
+//                 // System.out.println("    -> Botón encontrado con clave: " + claveEncontrada); // Log opcional
+//                 break; // Asumir que solo hay uno que coincide
+//             }
+//         }
 
          // 5. Aplicar animación si se encontró el botón
-         if (botonEncontrado != null) {
-              System.out.println("    -> Aplicando animación al botón: " + claveEncontrada);
+         if (botonParaAnimar != null) {
+        	 final String claveFinalDelBotonAnimado = claveDelBotonIdentificado;
+             System.out.println("    -> Aplicando animación al botón: " + claveFinalDelBotonAnimado);
 
              // 5.1. Obtener colores del tema
              final Color colorOriginal = this.uiConfig.colorBotonFondo; // Color normal
              final Color colorAnimacion = this.uiConfig.colorBotonAnimacion; // Color para el "flash"
-
+             final JButton botonFinalParaTimer = botonParaAnimar;
+             
              // 5.2. Cambiar al color de animación inmediatamente
-             botonEncontrado.setBackground(colorAnimacion);
+             if (!Objects.equals(botonFinalParaTimer.getBackground(), colorAnimacion)) {
+                 botonFinalParaTimer.setBackground(colorAnimacion);
+                 botonFinalParaTimer.setOpaque(true); // Asegurar opacidad
+                 // botonFinalParaTimer.repaint(); // Opcional, el Timer lo hará al final
+             }
+             
+//             botonParaAnimar.setBackground(colorAnimacion);
              // Asegurar opacidad
-             botonEncontrado.setOpaque(true); 
+//             botonParaAnimar.setOpaque(true); 
              // Forzar repintado inmediato si es posible (aunque el Timer lo hará después)
              // botonEncontrado.paintImmediately(botonEncontrado.getBounds());
 
 
              // 5.3. Crear y empezar un Timer para restaurar el color original
              //      Usamos una variable final para el botón dentro de la lambda del Timer.
-             final JButton botonFinalParaTimer = botonEncontrado;
-             Timer timer = new Timer(BUTTON_CLICK_ANIMATION_DURATION_MS, (ActionEvent evt) -> { // Duración de la animación (200ms)
+//             final JButton botonFinalParaTimer = botonParaAnimar;
+             
+             Timer timer = new Timer(BUTTON_CLICK_ANIMATION_DURATION_MS, (ActionEvent evt) -> {
                  // Este código se ejecuta en el EDT después del delay
-                 if (botonFinalParaTimer != null) { // Chequeo extra
-                    // Restaurar el color de fondo original
-                    botonFinalParaTimer.setBackground(colorOriginal);
-                    // System.out.println("      -> Animación finalizada. Color restaurado para: " + claveEncontrada); // Log opcional
+                 if (botonFinalParaTimer != null) {
+//                     boolean esToggleActivoConColorPropio = false;
+                     Action accionDelBoton = botonFinalParaTimer.getAction();
+                     Color colorRestauracion;
+                     
+                     if (accionDelBoton != null && Boolean.TRUE.equals(accionDelBoton.getValue(Action.SELECTED_KEY))) {
+                         if (uiConfig.colorBotonActivado != null) { 
+                        	 colorRestauracion = uiConfig.colorBotonActivado;
+//                              botonFinalParaTimer.setBackground(uiConfig.colorBotonActivado);
+//                              esToggleActivoConColorPropio = true; // Marcamos que ya se gestionó
+                         } else {
+                        	 colorRestauracion = colorOriginal;
+                         }
+                     } else {
+                    	 colorRestauracion = colorOriginal;
+                     }
+
+//                     if (!esToggleActivoConColorPropio && !Objects.equals(botonFinalParaTimer.getBackground(), colorOriginal)) {
+                     if (!Objects.equals(botonFinalParaTimer.getBackground(), colorRestauracion)) {
+                         botonFinalParaTimer.setBackground(colorRestauracion);
+                     }
+                     // botonFinalParaTimer.repaint(); // Opcional
+                     System.out.println("      -> Animación finalizada. Color del botón '" + claveFinalDelBotonAnimado + 
+                    		 "' ahora es: " + botonFinalParaTimer.getBackground());
                  }
              });
-             timer.setRepeats(false); // Ejecutar solo una vez
-             timer.start();           // Iniciar el temporizador
+             timer.setRepeats(false);
+             timer.start();
 
          } else {
-              // Si no se encontró el botón
-              System.err.println("WARN [aplicarAnimacionBoton]: No se encontró botón con nombre base: '" + nombreBotonBase + "'");
-         }
+        	 System.err.println("WARN [VisorView aplicarAnimacionBoton]: No se encontró botón con ActionCommand: '" + 
+        			 actionCommandDelBoton + "'");         }
+             
+//             Timer timer = new Timer(BUTTON_CLICK_ANIMATION_DURATION_MS, (ActionEvent evt) -> { // Duración de la animación (200ms)
+//                 // Este código se ejecuta en el EDT después del delay
+//                 if (botonFinalParaTimer != null) { // Chequeo extra
+//                    // Restaurar el color de fondo original
+//                    botonFinalParaTimer.setBackground(colorOriginal);
+//                    // System.out.println("      -> Animación finalizada. Color restaurado para: " + claveEncontrada); // Log opcional
+//                 }
+//             });
+//             timer.setRepeats(false); // Ejecutar solo una vez
+//             timer.start();           // Iniciar el temporizador
+//
+//         } else {
+//              // Si no se encontró el botón
+//              System.err.println("WARN [aplicarAnimacionBoton]: No se encontró botón con nombre base: '" + actionCommandDelBoton + "'");
+//         }
     } // --- FIN aplicarAnimacionBoton ---
 
 	// --- Métodos para que el Controller Añada Listeners ---
@@ -2046,5 +1930,214 @@ public class VisorView extends JFrame
 		return false;
 
 	}    
+	
+	// Dentro de la clase VisorView
+
+	/**
+	 * Establece la configuración de la UI para esta vista.
+	 * Este método es llamado por AppInitializer después de que uiConfig
+	 * ha sido completamente construido (incluyendo el actionMap final).
+	 * La vista puede usar este uiConfig para acceder a colores, iconos, actions, etc.
+	 * si los necesita directamente después de la construcción inicial.
+	 *
+	 * @param uiConfig El objeto ViewUIConfig con la configuración de la UI.
+	 */
+	public void setUiConfig(ViewUIConfig uiConfig) {
+	    this.uiConfig = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo en VisorView");
+	    System.out.println("  [VisorView] ViewUIConfig asignado/actualizado.");
+
+	    // Opcional: Si la vista necesita reaccionar inmediatamente a este nuevo uiConfig
+	    // (por ejemplo, si algunos componentes ya creados necesitan colores del tema
+	    // que solo están disponibles a través de uiConfig y no se pasaron en el constructor),
+	    // podrías llamar a un método de actualización aquí.
+	    // Ejemplo:
+	    // aplicarColoresDesdeUIConfig();
+	    // repintarComponentesNecesarios();
+	    // Por ahora, es probable que el constructor de VisorView ya use los colores iniciales
+	    // y que el uiConfig sea más para referencia o para que los builders lo usen.
+	}
     
+
+	// Dentro de la clase vista.VisorView.java
+
+	/**
+	 * Recrea y reasigna el CellRenderer para la lista de miniaturas.
+	 * Este método lee la configuración actual para determinar si se deben mostrar
+	 * los nombres de archivo y otros parámetros visuales, y luego actualiza
+	 * la JList de miniaturas para reflejar estos cambios.
+	 * Es típicamente llamado cuando una preferencia que afecta el renderizado
+	 * de las miniaturas ha cambiado (ej. mostrar/ocultar nombres).
+	 */
+	public void solicitarRefrescoRenderersMiniaturas() {
+	    System.out.println("[VisorView] Solicitando refresco completo de renderers de miniaturas...");
+
+	    // 1. Validar dependencias críticas para recrear el renderer.
+	    //    Si alguna falta, no se puede proceder y se emite un error.
+	    if (this.listaMiniaturas == null) {
+	        System.err.println("ERROR [solicitarRefrescoRenderersMiniaturas]: this.listaMiniaturas es null.");
+	        return;
+	    }
+	    if (this.model == null) {
+	        System.err.println("ERROR [solicitarRefrescoRenderersMiniaturas]: this.model (VisorModel) es null.");
+	        return;
+	    }
+	    if (this.servicioThumbs == null) {
+	        System.err.println("ERROR [solicitarRefrescoRenderersMiniaturas]: this.servicioThumbs (ThumbnailService) es null.");
+	        return;
+	    }
+	    if (this.uiConfig == null || this.uiConfig.configurationManager == null) {
+	        System.err.println("ERROR [solicitarRefrescoRenderersMiniaturas]: this.uiConfig o su .configurationManager son null.");
+	        return;
+	    }
+
+	    // 2. Obtener el estado actual de "mostrar nombres" DESDE LA CONFIGURACIÓN.
+	    //    Se asume que la Action que disparó este refresco ya actualizó el valor en ConfigurationManager.
+	    boolean mostrarNombresActual = this.uiConfig.configurationManager.getBoolean(
+	        "miniaturas.ui.mostrar_nombres", // La clave de configuración exacta
+	        true // Valor por defecto si la clave no existe
+	    );
+	    System.out.println("  -> Estado actual de 'mostrarNombresEnMiniaturas' (leído de config): " + mostrarNombresActual);
+
+	    // 3. Obtener las dimensiones de la IMAGEN dentro de la miniatura y los colores del tema.
+	    //    Estos valores también se leen de la configuración a través de uiConfig.
+	    int thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
+	    int thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
+	    
+	    Color colorFondoMiniatura = this.uiConfig.colorFondoSecundario; // O un color específico para miniaturas si lo tienes en uiConfig
+	    Color colorFondoSeleccionMiniatura = this.uiConfig.colorSeleccionFondo;
+	    Color colorTextoMiniatura = this.uiConfig.colorTextoPrimario;
+	    Color colorTextoSeleccionMiniatura = this.uiConfig.colorSeleccionTexto;
+	    Color colorBordeSeleccionMiniatura = this.uiConfig.colorBordeSeleccionActiva; // Asumiendo que tienes esta clave en uiConfig o usa un color fijo
+
+	    // 4. Crear una NUEVA instancia del MiniaturaListCellRenderer con la configuración actualizada.
+	    System.out.println("  -> Creando nuevo MiniaturaListCellRenderer con mostrarNombres=" + mostrarNombresActual);
+	    MiniaturaListCellRenderer newRenderer = new MiniaturaListCellRenderer(
+	        this.servicioThumbs,
+	        this.model, // El VisorModel completo, el renderer puede necesitar acceso a más que solo la lista
+	        thumbWidth,
+	        thumbHeight,
+	        mostrarNombresActual, // El estado crucial que puede haber cambiado
+	        colorFondoMiniatura,
+	        colorFondoSeleccionMiniatura,
+	        colorTextoMiniatura,
+	        colorTextoSeleccionMiniatura,
+	        colorBordeSeleccionMiniatura
+	    );
+
+	    // 5. Asignar el nuevo renderer a la JList de miniaturas.
+	    this.listaMiniaturas.setCellRenderer(newRenderer);
+	    System.out.println("  -> Nuevo renderer asignado a listaMiniaturas.");
+
+	    // 6. MUY IMPORTANTE: Actualizar la altura y el ancho fijos de las celdas en la JList
+	    //    para que coincidan con las dimensiones que el nuevo renderer espera ocupar.
+	    //    El renderer debería tener métodos para exponer estas dimensiones calculadas.
+	    int nuevaAlturaCelda = newRenderer.getAlturaCalculadaDeCelda();
+	    int nuevoAnchoCelda = newRenderer.getAnchoCalculadaDeCelda();
+
+	    // Solo actualizar si realmente cambiaron para evitar ciclos innecesarios
+	    if (this.listaMiniaturas.getFixedCellHeight() != nuevaAlturaCelda) {
+	        this.listaMiniaturas.setFixedCellHeight(nuevaAlturaCelda);
+	        System.out.println("  -> Altura de celda de miniaturas actualizada a: " + nuevaAlturaCelda);
+	    }
+	    if (this.listaMiniaturas.getFixedCellWidth() != nuevoAnchoCelda) {
+	        this.listaMiniaturas.setFixedCellWidth(nuevoAnchoCelda);
+	        System.out.println("  -> Ancho de celda de miniaturas actualizado a: " + nuevoAnchoCelda);
+	    }
+	    
+	    // 7. Forzar a la JList a revalidar su layout y repintarse completamente.
+	    //    revalidate() es importante si el tamaño de las celdas cambió,
+	    //    lo que afectará el layout del JList y su contenedor (el JScrollPane).
+	    System.out.println("  -> Revalidando y repintando listaMiniaturas...");
+	    this.listaMiniaturas.revalidate(); // Importante si el tamaño de celda cambió
+	    this.listaMiniaturas.repaint();    // Asegura que se redibujen todas las celdas visibles
+
+	    // 8. Opcional: Si el cambio en el tamaño de las celdas puede afectar cuántas
+	    //    miniaturas caben en el viewport del JScrollPane, y por lo tanto,
+	    //    necesita que el "sliding window" de miniaturas (manejado por VisorController.actualizarModeloYVistaMiniaturas)
+	    //    se recalcule, entonces se necesitaría una forma de notificar ese cambio.
+	    //    Por ahora, asumimos que el controller llamará a actualizarModeloYVistaMiniaturas
+	    //    si es necesario después de que esta acción de toggle se complete, o que
+	    //    el listener de redimensionamiento de ventana se encargará.
+	    //    Si esta llamada causa problemas de bucle, se podría necesitar una lógica más fina.
+	    //    if (this.getController() instanceof VisorController && ((VisorController)this.getController()).getListCoordinator() != null) {
+	    //        VisorController vc = (VisorController)this.getController();
+	    //        int indiceActual = vc.getListCoordinator().getIndiceOficialSeleccionado();
+	    //        if (indiceActual != -1) {
+	    //            System.out.println("  -> Solicitando actualización del modelo de vista de miniaturas por cambio de renderer.");
+	    //            vc.actualizarModeloYVistaMiniaturas(indiceActual);
+	    //        }
+	    //    }
+
+	    System.out.println("[VisorView] Refresco de renderers de miniaturas completado.");
+	}
+	
+	
+	/**
+     * Actualiza la apariencia visual (típicamente el color de fondo) de un botón
+     * de la toolbar que actúa como un 'toggle' para reflejar su estado lógico.
+     *
+     * @param action La instancia de la Action de tipo toggle cuyo estado se quiere reflejar.
+     *               Se usa para encontrar el botón asociado en la vista.
+     * @param isSelected El estado lógico que debe reflejar el botón
+     *                   (true si debe parecer 'activo' o 'pulsado', false si 'normal').
+     */
+    public void actualizarAspectoBotonToggle(Action action, boolean isSelected) {
+        // 1. Validaciones Iniciales
+        if (action == null) {
+            System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: La Action proporcionada es null.");
+            return;
+        }
+        if (this.uiConfig == null) {
+            System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: uiConfig es null. No se pueden obtener colores.");
+            return;
+        }
+        if (this.botonesPorNombre == null || this.botonesPorNombre.isEmpty()) {
+            System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: Mapa 'botonesPorNombre' vacío o null.");
+            return;
+        }
+        
+        Object actionCommandValue = action.getValue(Action.ACTION_COMMAND_KEY);
+        String actionCommandParaLog = (actionCommandValue instanceof String) ? (String) actionCommandValue : "DESCONOCIDO";
+
+        System.out.println("[VisorView actualizarAspectoBotonToggle] Para Action: " + actionCommandParaLog + 
+                           ", isSelected: " + isSelected);
+
+        // 2. Encontrar el JButton asociado a la Action
+        JButton botonAsociado = null;
+        String claveDelBotonEncontrado = null;
+
+        for (Map.Entry<String, JButton> entry : this.botonesPorNombre.entrySet()) {
+            JButton botonActual = entry.getValue();
+            if (botonActual != null && action.equals(botonActual.getAction())) { // Comparar instancias de Action
+                botonAsociado = botonActual;
+                claveDelBotonEncontrado = entry.getKey();
+                System.out.println("  -> Botón encontrado por Action: " + claveDelBotonEncontrado);
+                break;
+            }
+        }
+
+        // 3. Aplicar el Cambio de Aspecto si se encontró el botón
+        if (botonAsociado != null) {
+            Color colorFondoDestino;
+            if (isSelected) {
+                colorFondoDestino = this.uiConfig.colorBotonActivado; // Color para estado "activo"
+            } else {
+                colorFondoDestino = this.uiConfig.colorBotonFondo;    // Color para estado "normal/inactivo"
+            }
+
+            // Solo cambiar si el color es diferente para evitar repintados innecesarios
+            if (!Objects.equals(botonAsociado.getBackground(), colorFondoDestino)) {
+                botonAsociado.setBackground(colorFondoDestino);
+                botonAsociado.setOpaque(true); // Asegurar que setBackground tenga efecto
+                // botonAsociado.repaint(); // Opcional, setBackground suele hacerlo
+                System.out.println("  -> Aspecto botón '" + claveDelBotonEncontrado + "' actualizado. Color fondo: " + colorFondoDestino);
+            } else {
+                System.out.println("  -> Aspecto botón '" + claveDelBotonEncontrado + "' ya era el correcto. Color fondo: " + colorFondoDestino);
+            }
+        } else {
+            System.err.println("WARN [VisorView actualizarAspectoBotonToggle]: No se encontró botón en la toolbar asociado a la Action con comando: " + actionCommandParaLog);
+        }
+    }
+    
+	
 } // Fin VisorView

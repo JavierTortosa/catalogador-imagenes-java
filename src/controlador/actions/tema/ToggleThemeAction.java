@@ -1,90 +1,112 @@
 package controlador.actions.tema;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JRadioButtonMenuItem; // Importar para detectar la fuente
+import javax.swing.ImageIcon; // Aunque probablemente sea null para JRadioButtonMenuItem
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
+import controlador.commands.AppActionCommands; // Para el ACTION_COMMAND_KEY
+import vista.VisorView; // Para ser el padre del JOptionPane
+import vista.theme.ThemeManager; // Para cambiar el tema
+import vista.theme.Tema; // Para obtener el nombre del tema actual
 
-public class ToggleThemeAction extends BaseVisorAction {
+public class ToggleThemeAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
-    private final String nombreTema; // Nombre del tema en minúsculas (ej. "claro", "oscuro")
 
-    /**
-     * Constructor para la acción de cambio de tema.
-     * @param controller La instancia del controlador principal.
-     * @param nombreTema El nombre del tema que esta acción representa (ej. "claro", "oscuro", "azul").
-     *                   Debe estar en minúsculas para coincidir con la configuración.
-     * @param textoMenu El texto que se mostrará en el menú (ej. "Tema Claro", "Tema Oscuro").
-     */
-    public ToggleThemeAction(VisorController controller, String nombreTema, String textoMenu) {
-        // Llama al constructor de BaseVisorAction pasando el texto del menú
-        super(textoMenu, controller);
+    private ThemeManager themeManagerRef;
+    private VisorView viewRef; // Para el JOptionPane
+    private String nombreInternoTemaQueRepresenta; // Ej: "clear", "dark"
+    private String nombreDisplayTema; // Ej: "Tema Claro", "Tema Oscuro" (para el JOptionPane)
 
-        if (nombreTema == null || nombreTema.trim().isEmpty()) {
-            throw new IllegalArgumentException("El nombre del tema no puede ser nulo o vacío");
-        }
-        this.nombreTema = nombreTema.toLowerCase().trim(); // Guarda en minúsculas
+    public ToggleThemeAction(ThemeManager themeManager, 
+                             VisorView view, 
+                             String nombreInternoTema, 
+                             String displayName, // Este es el texto del JRadioButtonMenuItem
+                             String actionCommandKey) { // El CMD_TEMA_...
+        super(displayName, null); // Icono es null para JRadioButtonMenuItem generalmente
 
-        // Descripción (Tooltip) - Opcional para menús
-        putValue(Action.SHORT_DESCRIPTION, "Establecer el tema visual a " + textoMenu);
+        this.themeManagerRef = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null");
+        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null");
+        this.nombreInternoTemaQueRepresenta = Objects.requireNonNull(nombreInternoTema, "nombreInternoTema no puede ser null");
+        this.nombreDisplayTema = (displayName != null && !displayName.isBlank()) ? displayName : nombreInternoTema;
 
-        // --- Estado Inicial Seleccionado ---
-        // si el tema actual en la configuración coincide con el tema de esta acción
-        if (controller != null && controller.getConfigurationManager() != null) { // Añadir chequeo configMgr
-             String temaActual = controller.getConfigurationManager().getTemaActual();
-             // Poner el estado SELECTED_KEY si este tema es el actual
-             putValue(Action.SELECTED_KEY, this.nombreTema.equals(temaActual));
-        } else {
-             System.err.println("WARN [ToggleThemeAction]: No se pudo obtener el tema actual durante la inicialización para: " + this.nombreTema);
-             putValue(Action.SELECTED_KEY, false); // Default a no seleccionado
-        }
-        // ---------------------------------
+        putValue(Action.SHORT_DESCRIPTION, "Establecer el " + this.nombreDisplayTema);
+        putValue(Action.ACTION_COMMAND_KEY, Objects.requireNonNull(actionCommandKey, "actionCommandKey no puede ser null"));
+
+        // Inicializar el estado SELECTED_KEY basado en el tema actual del ThemeManager
+        sincronizarEstadoSeleccionConManager();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller == null) {
-            System.err.println("Error: Controller es null en ToggleThemeAction para " + nombreTema);
+        System.out.println("[ToggleThemeAction actionPerformed] Aplicando tema: " + nombreInternoTemaQueRepresenta + ", Comando: " + e.getActionCommand());
+
+        if (themeManagerRef == null || viewRef == null) {
+            System.err.println("ERROR CRÍTICO [ToggleThemeAction]: ThemeManager o VisorView nulos.");
             return;
         }
 
-        // Loguear
-        controller.logActionInfo(e);
+        // Intentar establecer el nuevo tema
+        boolean temaRealmenteCambiado = themeManagerRef.setTemaActual(this.nombreInternoTemaQueRepresenta);
 
-        // --- Lógica Principal ---
-        // 1. Obtener el tema actual ANTES de cambiarlo (por si acaso)
-        String temaActualAntes = controller.getConfigurationManager().getTemaActual();
+        if (temaRealmenteCambiado) {
+            System.out.println("  -> Tema cambiado en ThemeManager a: " + this.nombreInternoTemaQueRepresenta);
+            
+            // Notificar a TODAS las ToggleThemeAction para que actualicen su SELECTED_KEY
+            // Esto se hará desde VisorController después de que esta action termine.
+            // Aquí, solo nos aseguramos que ESTA action esté seleccionada.
+            // En realidad, el JRadioButtonMenuItem ya habrá cambiado el estado de esta Action
+            // a seleccionado (true) porque el usuario hizo clic en él.
+            // Así que esta línea es más para asegurar consistencia si la acción se llama programáticamente.
+            // putValue(Action.SELECTED_KEY, Boolean.TRUE);
 
-        // 2. Comprobar si el tema ya es el seleccionado (evitar guardado innecesario)
-        if (this.nombreTema.equals(temaActualAntes)) {
-            System.out.println("[ToggleThemeAction] El tema '" + this.nombreTema + "' ya está seleccionado. No se hace nada.");
-             // Asegurar que el estado SELECTED esté correcto (por si acaso se desincronizó)
-             putValue(Action.SELECTED_KEY, true);
-            return;
+
+            // Notificar al usuario
+            SwingUtilities.invokeLater(() -> {
+                JOptionPane.showMessageDialog(
+                    viewRef.getFrame(),
+                    "El tema se ha cambiado a '" + this.nombreDisplayTema + "'.\n" +
+                    "Los cambios visuales completos se aplicarán la próxima vez\n" +
+                    "que inicie la aplicación.",
+                    "Cambio de Tema",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
+            });
+            
+            // Es responsabilidad del VisorController (o un UIManager) llamar a un método que
+            // itere sobre todas las ToggleThemeAction y llame a su sincronizarEstadoSeleccionConManager()
+            // para deseleccionar las otras.
+
+        } else {
+            System.out.println("  -> El tema '" + this.nombreInternoTemaQueRepresenta + "' ya era el actual o no es válido. No se realizaron cambios en ThemeManager.");
+            // Asegurar que el estado SELECTED_KEY de esta Action sea el correcto.
+            sincronizarEstadoSeleccionConManager();
         }
-
-        // 3. Llamar al método del controlador para CAMBIAR y GUARDAR el tema
-        //    Pasamos el nombre del tema que esta acción representa (ya está en minúsculas)
-        controller.cambiarTemaYNotificar(this.nombreTema);
-
-        // 4. Actualizar el estado SELECTED_KEY de ESTA Action
-        //    Esto asegura que el JRadioButtonMenuItem asociado se marque correctamente.
-        //    No es estrictamente necesario si el controlador actualiza todas las Actions,
-        //    pero es más seguro hacerlo aquí también.
-        putValue(Action.SELECTED_KEY, true);
     }
 
-    // --- método para actualizar estado ---
     /**
-     * Actualiza el estado de selección (SELECTED_KEY) de esta acción
-     * basándose en si su tema coincide con el tema global actual.
-     * Este método debe ser llamado por el controlador cuando el tema cambia.
-     * @param temaGlobalActual El nombre del tema que está activo globalmente.
+     * Actualiza el estado de selección (Action.SELECTED_KEY) de esta Action
+     * basándose en si el tema que representa coincide con el tema
+     * actualmente activo en el ThemeManager.
      */
-    public void actualizarEstadoSeleccion(String temaGlobalActual) {
-         putValue(Action.SELECTED_KEY, this.nombreTema.equals(temaGlobalActual));
+    public void sincronizarEstadoSeleccionConManager() {
+        if (themeManagerRef != null) {
+            Tema temaActivo = themeManagerRef.getTemaActual();
+            if (temaActivo != null) {
+                boolean deberiaEstarSeleccionada = temaActivo.nombreInterno().equals(this.nombreInternoTemaQueRepresenta);
+                if (!Objects.equals(getValue(Action.SELECTED_KEY), deberiaEstarSeleccionada)) {
+                    putValue(Action.SELECTED_KEY, deberiaEstarSeleccionada);
+                }
+            }
+        } else {
+            // Si themeManager es null, por seguridad, deseleccionar.
+            if (!Objects.equals(getValue(Action.SELECTED_KEY), Boolean.FALSE)) {
+                 putValue(Action.SELECTED_KEY, Boolean.FALSE);
+            }
+        }
     }
 }

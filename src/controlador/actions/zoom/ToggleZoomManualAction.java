@@ -1,93 +1,116 @@
+// En src/controlador/actions/zoom/ToggleZoomManualAction.java
 package controlador.actions.zoom;
 
 import java.awt.event.ActionEvent;
-
+import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JCheckBoxMenuItem;
+import controlador.commands.AppActionCommands;
+import controlador.managers.ZoomManager;
+import modelo.VisorModel;
+import vista.VisorView;
 
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils; // <-- Importar
-
-public class ToggleZoomManualAction extends BaseVisorAction {
+public class ToggleZoomManualAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
-    // Opcional: private IconUtils iconUtils;
 
-    // --- TEXTO MODIFICADO: Constructor CORRECTO ---
-    public ToggleZoomManualAction(VisorController controller, IconUtils iconUtils, int width, int height) {
-        // Llama al constructor de la superclase
-        super("Activar Zoom Manual", controller);
+    // --- SECCIÓN 1: CAMPOS DE INSTANCIA (DEPENDENCIAS) ---
+    private ZoomManager zoomManager;
+    private Action resetZoomActionRef; // Referencia a la Action de Reset para habilitarla/deshabilitarla
+    private VisorView viewRef;         // Para actualizar controles específicos de la UI (ej. aspecto del botón)
+    private VisorModel modelRef;       // Para leer el estado inicial y actual del zoom manual
 
-        // Establece descripción
-        putValue(Action.SHORT_DESCRIPTION, "Activar/desactivar zoom y desplazamiento manual");
-        // El estado inicial SELECTED_KEY se pone en initializeActions
+    // --- SECCIÓN 2: CONSTRUCTOR REFACTORIZADO ---
+    public ToggleZoomManualAction(String name,
+                                  ImageIcon icon,
+                                  ZoomManager zoomManager,
+                                  Action resetZoomActionRef, // La instancia de ResetZoomAction
+                                  VisorView view,
+                                  VisorModel model) {
+        super(name, icon); // El icono se pasa al constructor de AbstractAction
 
-        // --- ¡LA PARTE IMPORTANTE! Usa IconUtils ---
-        // Llama a getScaledIcon con el nombre del icono CORRECTO (con Z mayúscula)
-        // y los tamaños recibidos
-        ImageIcon icon = iconUtils.getScaledIcon("3001-Zoom_48x48.png", width, height); // <-- 'Z' mayúscula
+        // 2.1. Asignar dependencias inyectadas.
+        this.zoomManager = Objects.requireNonNull(zoomManager, "ZoomManager no puede ser null en ToggleZoomManualAction");
+        this.resetZoomActionRef = Objects.requireNonNull(resetZoomActionRef, "ResetZoomActionRef no puede ser null en ToggleZoomManualAction");
+        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null en ToggleZoomManualAction");
+        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null en ToggleZoomManualAction");
 
-        // Verifica y asigna el icono
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
+        // 2.2. Establecer propiedades estándar de la Action.
+        putValue(Action.SHORT_DESCRIPTION, "Activar o desactivar el zoom y desplazamiento manual de la imagen");
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+
+        // 2.3. Establecer el estado inicial de selección (SELECTED_KEY).
+        //      Esto es crucial para que JCheckBoxMenuItem y JToggleButton reflejen el estado correcto.
+        //      El estado se lee del modelo, que a su vez pudo haberlo leído de la configuración.
+        if (this.modelRef != null) { // Doble chequeo aunque el constructor lo requiere no nulo
+            boolean zoomHabilitadoInicialmente = this.modelRef.isZoomHabilitado();
+            putValue(Action.SELECTED_KEY, zoomHabilitadoInicialmente);
+            // También sincronizar el estado enabled de ResetZoomAction al inicio
+            this.resetZoomActionRef.setEnabled(zoomHabilitadoInicialmente);
         } else {
-            System.err.println("  -> ERROR: No se pudo cargar/escalar el icono '3008-Zoom_48x48.png' usando IconUtils.");
-            // Opcional: putValue(Action.NAME, "Zoom");
+            putValue(Action.SELECTED_KEY, Boolean.FALSE); // Fallback seguro
+            this.resetZoomActionRef.setEnabled(false);    // Fallback seguro
         }
-        // --- FIN DE LA PARTE IMPORTANTE ---
-    } // --- FIN CONSTRUCTOR ---
+    }
 
+    // --- SECCIÓN 3: MÉTODO actionPerformed ---
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller == null) { // Buena práctica chequear controller
-//            controller.logActionInfo(e);
-//        } else {
-             System.err.println("Error: Controller es null en ToggleZoomManualAction");
+        // 3.1. Log de inicio (opcional).
+        System.out.println("[ToggleZoomManualAction actionPerformed] Comando: " + e.getActionCommand());
+
+        // 3.2. Validar que las dependencias clave existan (aunque el constructor ya lo hizo).
+        if (zoomManager == null || modelRef == null || resetZoomActionRef == null || viewRef == null) {
+             System.err.println("ERROR CRÍTICO [ToggleZoomManualAction]: Alguna dependencia es nula. No se puede ejecutar.");
              return;
         }
 
-        // Loguear primero
-        controller.logActionInfo(e);
+        // 3.3. Determinar el nuevo estado de activación deseado.
+        //      Se alterna el estado actual leído desde el modelo (fuente de verdad).
+        boolean estadoActualModelo = modelRef.isZoomHabilitado();
+        boolean nuevoEstadoActivacion = !estadoActualModelo;
 
-        // Determinar el nuevo estado deseado basándose en la fuente del evento
-        boolean newState;// = false;
-        Object source = e.getSource();
-        
-        if (source instanceof JCheckBoxMenuItem) {
-            newState = ((JCheckBoxMenuItem) source).isSelected();
-            System.out.println("  [ToggleZoomManualAction] Evento desde JCheckBoxMenuItem. Nuevo estado (isSelected): " + newState);
-        } else if (source instanceof JButton) {
-            // Si viene del botón, togglea el estado actual del modelo
-            newState = !controller.isZoomManualCurrentlyEnabled();
-            System.out.println("  [ToggleZoomManualAction] Evento desde JButton. Estado actual del modelo: "
-                    + controller.isZoomManualCurrentlyEnabled() + ". Nuevo estado deseado: " + newState);
+        System.out.println("  -> Estado actual del zoom manual en modelo: " + estadoActualModelo + ". Intentando cambiar a: " + nuevoEstadoActivacion);
+
+        // 3.4. Llamar al ZoomManager para que aplique el cambio de estado en el modelo.
+        //      ZoomManager.activarODesactivarZoomManual actualiza el modelo y devuelve true si hubo cambio.
+        boolean cambioRealizadoEnModelo = zoomManager.activarODesactivarZoomManual(nuevoEstadoActivacion);
+
+        // 3.5. Si el estado en el modelo realmente cambió, actualizar la UI y otras Actions.
+        if (cambioRealizadoEnModelo) {
+            System.out.println("  -> El estado del zoom manual CAMBIÓ en el modelo. Actualizando UI y Actions...");
+
+            // 3.5.1. Actualizar la propiedad SELECTED_KEY de ESTA Action.
+            //          Esto es crucial para que JCheckBoxMenuItem y JToggleButton asociados se actualicen.
+            putValue(Action.SELECTED_KEY, nuevoEstadoActivacion);
+
+            // 3.5.2. Habilitar o deshabilitar la Action de reseteo de zoom.
+            resetZoomActionRef.setEnabled(nuevoEstadoActivacion);
+
+            // 3.5.3. Actualizar la apariencia visual de los controles de zoom en la Vista.
+            //          (ej. cambiar el color de fondo del botón de zoom manual si la vista lo hace).
+            //          El método en VisorView se encarga de los detalles visuales específicos.
+            viewRef.actualizarEstadoControlesZoom(nuevoEstadoActivacion, nuevoEstadoActivacion); // El segundo param es para el botón de reset
+            
+            // 3.5.4. Solicitar al ZoomManager que refresque la imagen principal en la vista.
+            //          Esto es necesario porque activarODesactivarZoomManual en ZoomManager
+            //          probablemente llamó a model.resetZoomState(), lo que cambia el factor y el paneo.
+            zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
+
         } else {
-             // Otro tipo de componente? Togglear estado actual Action
-             Object selectedValue = getValue(Action.SELECTED_KEY);
-             boolean currentState = (selectedValue instanceof Boolean && (Boolean)selectedValue);
-             newState = !currentState;
-             //newState = !(selectedValue instanceof Boolean && (Boolean)selectedValue);
-             System.out.println("WARN [ToggleZoomManualAction]: Evento de fuente desconocida ("
-                     + (source != null ? source.getClass().getName() : "null")
-                     + "). Toggleando estado actual de la Action. Nuevo estado: " + newState);
+            // 3.6. Si el estado en el modelo NO cambió (porque ya era el deseado),
+            //      igualmente es buena idea asegurarse de que el SELECTED_KEY de esta Action
+            //      y la UI visual estén sincronizados con el estado del modelo.
+            //      Esto puede ocurrir si el evento se dispara programáticamente cuando el estado ya es el correcto.
+            System.out.println("  -> El estado del zoom manual NO cambió en el modelo (ya era el correcto). Resincronizando UI/Action por si acaso...");
+            putValue(Action.SELECTED_KEY, modelRef.isZoomHabilitado()); // Sincronizar con el estado real del modelo
+            resetZoomActionRef.setEnabled(modelRef.isZoomHabilitado());
+            viewRef.actualizarEstadoControlesZoom(modelRef.isZoomHabilitado(), modelRef.isZoomHabilitado());
+            // No es necesario refrescar la imagen principal si no hubo cambio de estado de zoom.
         }
-
-        // --- 3. Llamar al Método del Controller ---
-        // Llama al método del controller que maneja la lógica
-        controller.setManualZoomEnabled(newState);
-
         
-        // --- 4. Actualizar Estado SELECTED_KEY de Esta Action ---
-        // Esto asegura que los componentes Swing vinculados (checkbox y botón toggle)
-        // reflejen visualmente el 'newState' que acabamos de procesar.
-        // setManualZoomEnabled en el controller también podría actualizar el SELECTED_KEY
-        // de esta Action (lo cual es bueno para centralizar), pero hacerlo aquí
-        // también como una "sincronización final" es seguro.
-        putValue(Action.SELECTED_KEY, newState);
-        System.out.println("  [ToggleZoomManualAction] Estado Action.SELECTED_KEY actualizado a: " + getValue(Action.SELECTED_KEY));
+        // 3.7. Log final del estado de la Action.
+        System.out.println("  [ToggleZoomManualAction] Fin actionPerformed. Estado Action.SELECTED_KEY final: " + getValue(Action.SELECTED_KEY));
     }
-    
-}
+} // FIN de la clase ToggleZoomManualAction

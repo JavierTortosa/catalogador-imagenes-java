@@ -1,39 +1,47 @@
+// En src/controlador/actions/navegacion/FirstImageAction.java
 package controlador.actions.navegacion;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects; // Para Objects.requireNonNull
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.VisorController;
-import controlador.actions.BaseVisorAction; // Asumiendo que existe y tiene 'controller'
-import controlador.commands.AppActionCommands; // Importar comandos
-import vista.util.IconUtils;
+import controlador.ListCoordinator; // Nueva dependencia
+import controlador.commands.AppActionCommands;
 
-public class PreviousImageAction extends BaseVisorAction {
+public class PreviousImageAction extends AbstractAction { // Ya no hereda de BaseVisorAction
 
-    private static final long serialVersionUID = 1L;
-    // IconUtils podría estar en BaseVisorAction, si no, añadir campo y pasarlo
+    private static final long serialVersionUID = 1L; // Genera uno si es necesario
 
-    public PreviousImageAction(VisorController controller, IconUtils iconUtils, int iconoAncho, int iconoAlto) {
-        super("Imagen Anterior", controller); // Pasa controller a la superclase
+    private ListCoordinator listCoordinator;
 
-        putValue(Action.SHORT_DESCRIPTION, "Ir a la imagen anterior");
+    // Constructor Refactorizado
+    public PreviousImageAction(ListCoordinator listCoordinator, String displayName, ImageIcon icon) {
+        super(displayName, icon); // Nombre para menú/tooltip, e icono
+        this.listCoordinator = Objects.requireNonNull(listCoordinator, "ListCoordinator no puede ser null en PreviousImageAction");
 
-        ImageIcon icon = iconUtils.getScaledIcon("1002-Anterior_48x48.png", iconoAncho, iconoAlto);
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
-        }
-        // ¡Asignar Comando Canónico!
-        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_NAV_ANTERIOR);
+        // Propiedades estándar de la Action
+        putValue(Action.SHORT_DESCRIPTION, "Ir a la imagen anterior de la lista"); // Tooltip
+        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_NAV_ANTERIOR); // Comando canónico
+
+        // El estado 'enabled' de estas actions de navegación
+        // será manejado por el ListCoordinator o VisorController cuando la lista cambie
+        // o la selección cambie. Podrían empezar deshabilitadas.
+        setEnabled(true); 
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controller == null) return; // Chequeo por si acaso
+        System.out.println("[PreviousImageAction actionPerformed] Comando: " + e.getActionCommand());
 
-        controller.logActionInfo(e); // <-- Logging centralizado
+        if (this.listCoordinator == null) {
+            System.err.println("ERROR CRÍTICO [PreviousImageAction]: ListCoordinator es nulo.");
+            return;
+        }
 
-        System.out.println("Acción: Imagen Anterior -> Llamando controller.navegarAnteriorViaCoordinador()");
-        controller.navegarAnteriorViaCoordinador(); // <-- Delegar en Controller
+        // Delegar la lógica de navegación al ListCoordinator
+        this.listCoordinator.seleccionarAnterior(); 
+        // No necesitamos llamar a logActionInfo(e) aquí si ya no depende de VisorController
+        // El logging de la acción puede hacerse aquí si es necesario, o el ListCoordinator puede loguear.
     }
-} //--- FIN PreviousImageAction
-
+}
