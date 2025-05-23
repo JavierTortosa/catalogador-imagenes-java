@@ -1,4 +1,3 @@
-// Sugerencia de paquete: vista.theme o servicios
 package vista.theme; // O servicios
 
 import java.awt.Color;
@@ -156,28 +155,6 @@ public class ThemeManager {
             return false; // <--- Tema no válido
         }
     }
-    
-//    public boolean setTemaActual(String nombreTemaInterno) {
-//        Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
-//        if (nuevoTema != null) {
-//            if (!nuevoTema.equals(this.temaActual)) { // Cambiar solo si es diferente
-//            	Tema temaAnterior = this.temaActual;
-//                this.temaActual = nuevoTema;
-//                // Guardar SOLO el nombre en ConfigurationManager
-//                configManager.setString("tema.nombre", this.temaActual.nombreInterno());
-//                // NO llamar a guardarConfiguracion aquí, eso lo hace el Controller/ShutdownHook
-//                System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
-//                // Aquí NO se notifica al usuario ni se refresca la UI, eso es responsabilidad del Controller/Vista
-//                notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
-//            } else {
-//                 System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
-//            }
-//            return true;
-//        } else {
-//            System.err.println("WARN [ThemeManager]: No se encontró el tema con nombre: " + nombreTemaInterno);
-//            return false;
-//        }
-//    }
     
     
     // --- NUEVO MÉTODO para notificar al VisorController ---

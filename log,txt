@@ -78,7 +78,8 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     B.4. [EDT] ListCoordinator creado e inyectado.
   [ActionFactory] Inicializando todas las Actions...
 [VisorView setCheckeredBG] Solicitado: false, Actual: false
-[ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
+[ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: false
+ActionFactory: Creando ToggleSubfoldersAction@3c38fe1b
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 44
     B.6. [EDT] ActionFactory creada. ActionMap completo (Tamaño: 44) inyectado en Controller.
@@ -87,7 +88,7 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     B.7. [EDT] ViewUIConfig COMPLETO (con actionMap) actualizado en Controller y View.
     B.8. [EDT] Lista de ContextSensitiveActions inyectada en ListCoordinator.
 --- MenuBarBuilder: Construyendo menú desde estructura definida ---
-DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
+DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 1940533346) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
 --- MenuBarBuilder: Menú construido. Total items en mapa: 124 ---
   [VisorView] JMenuBar real asignada.
   [VisorView] Map<String, JMenuItem> real asignado. Tamaño: 124
@@ -330,6 +331,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
     -> Alineación determinada: CENTER
   [TB addSeparator] Añadiendo separador después de categoría: 'proyecto'
   [TB procesarDef] Def: Comando='cmd.toggle.subcarpetas', Icono='7001-Subcarpetas_48x48.png', Cat='toggle'
+ToolbarBuilder: Obtenida Action@3c38fe1b para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
     -> Action 'cmd.toggle.subcarpetas' asignada al botón.
     -> Icono obtenido de la Action.
     -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.toggle.Subcarpetas_48x48
@@ -351,6 +353,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
 [VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
     [EDT Internal] Fin assignModeloMiniaturasToViewInternal.
     [EDT Internal] Estableciendo carpeta raíz inicial desde config...
+  [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
       -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
   [Apply Config View Internal] Aplicando configuración a la Vista...
@@ -358,18 +361,20 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
     -> Config Botones (Vista) OK.
     -> Aplicando config a Menús (Vista)...
     -> Config Menús (Vista) OK.
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' actualizado a: Activo
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' actualizado a: Activo
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
+  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: false
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
     -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.
   [Apply Config View Internal] Finalizado.
   [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
     -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    -> Cargando lista para carpeta inicial: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    -> Cargando lista para carpeta inicial (desde MODELO): D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     -> Clave de imagen inicial a intentar seleccionar: cyberpunk-city-anime-girl-5k-0e-1.png
 
 -->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
-  -> Modo búsqueda: Subcarpetas (depth=MAX)
-    -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Modo búsqueda: Solo Carpeta Actual (depth=1)
+    -> No se pudo obtener carpeta de imagen actual válida para 'solo carpeta'. Usando carpeta raíz actual: 
   -> Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
   -> Diálogo y Worker creados y asociados.
@@ -378,15 +383,15 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
 -->>> FIN cargarListaImagenes(String) | Clave mantenida: cyberpunk-city-anime-girl-5k-0e-1.png
   [Load Initial State Internal] Finalizado.
 [Controller Internal] Configurando Listeners de Vista...
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 1
   -> Listener de Selección añadido a listaNombres.
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
   -> Listener de Selección añadido a listaMiniaturas.
   -> Listeners de Zoom/Pan (Rueda y Arrastre) añadidos a etiquetaImagenPrincipal.
+  [Worker BG] Files.walk terminado. Archivos encontrados: 3
   -> MouseWheelListener añadido a scrollListaMiniaturas para scroll horizontal.
   -> MouseListener añadido a scrollListaMiniaturas para gestionar foco.
 [Controller Internal] Configuración de Listeners de Vista finalizada.
   -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 165
     -> [EDT AppInitializer] Configurando ComponentListener para miniaturas dinámicas...
     -> [EDT AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.
     [EDT Internal] Sincronizando UI Final...
@@ -409,12 +414,13 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-   -> Resultado obtenido: 165 archivos. Actualizando modelo y vista...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
+  WORKER TERMINADO. Número de archivos encontrados: 3
+   -> Resultado obtenido: 3 archivos. Actualizando modelo y vista...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 3
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 3
    -> estaCargandoLista = false.
-[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
-[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 3 miniaturas...
+[Controller] 3 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
      -> Índice final a seleccionar después de carga: 0 (intentando mantener: cyberpunk-city-anime-girl-5k-0e-1.png)
    -> Aplicando selección inicial al índice: 0
    -> Flag seleccionInicialEnCurso puesto a TRUE.
@@ -434,7 +440,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
 [VisorView] Mostrando indicador de carga: 'Cargando: cyberpunk-city-anime-girl-5k-0e-1.png...'
     [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
 --> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
+      [BG Img Load - pool-1-thread-4] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
         -> Índice actual en JList 'Nombres': 0
@@ -442,7 +448,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
       [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
 
 --- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 3
   [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
 --- FIN actualizarModeloYVistaMiniaturas ---
         -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
@@ -456,13 +462,13 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
   [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
    -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..2]
    -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
-[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
-[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 3. Índice relativo seleccionado: 0
+[Controller] Iniciando pre-calentamiento de caché para 3 miniaturas...
+[Controller] 3 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=150,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 3)
    -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
    -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
     [Coordinator Flag] sincronizandoUI -> false
@@ -470,517 +476,24 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
       [EDT Img Update] => Carga exitosa. Actualizando modelo...
       [EDT Img Update] Zoom manual no activo. Estado de zoom/pan reseteado para nueva imagen.
       [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=true
       [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.proyecto.toggle_marca, isSelected: false
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
-[ToggleSubfoldersAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMostrarSubcarpetasLogicaYUi(true)
+[ToggleSubfoldersAction actionPerformed] Estado actual (incluir sub): false. Solicitando cambiar a (incluir sub): true
 [VisorController setMostrarSubcarpetasLogicaYUi] Nuevo estado deseado (incluir): true
+  MODELO ANTES DE CAMBIO: model.isMostrarSoloCarpetaActual() = true
+  MODELO DESPUÉS DE CAMBIO: model.isMostrarSoloCarpetaActual() = false
   [VisorController sincronizarUiControlesSubcarpetas] Iniciando sincronización de UI. Estado modelo (incluir subcarpetas): true
+VisorController Sync: Pasando Action@3c38fe1b a view.actualizarAspectoBotonToggle.
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Subcarpetas_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
+  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
   [VisorController sincronizarUiControlesSubcarpetas] Sincronización de UI completada.
   -> Solicitando recarga de lista de imágenes (manteniendo si es posible: cyberpunk-city-anime-girl-5k-0e-1.png)
-
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
-  -> Modo búsqueda: Subcarpetas (depth=MAX)
-    -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-  -> Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  -> Diálogo y Worker creados y asociados.
-  -> Añadiendo PropertyChangeListener al worker...
-  -> Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: cyberpunk-city-anime-girl-5k-0e-1.png
-[VisorController setMostrarSubcarpetasLogicaYUi] Proceso completado.
-[VisorView] Limpiando etiqueta de imagen principal...
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-  -> Etiqueta de imagen limpiada.
->>> Coordinator: Recibido de Miniaturas -> Índice Principal: -1 (Actual Oficial: 0)
-  [ListCoordinator Interno] Procesando índice: -1 (Oficial actual: 0)
-    -> Actualizando índice oficial a: -1
-    -> Delegando limpieza de UI al Controller (índice -1)
-[Controller] Limpiando UI y Modelo a estado vacío...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
-  -> Modelo limpiado.
->>> Coordinator: Recibido de Nombres -> Índice: -1 (Actual Oficial: -1)
-    -> Ignorando (mismo índice ya seleccionado oficialmente).
-    [Asegurar Visibilidad] Índice -1, no se hace nada.
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 0
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
-  -> Lista de miniaturas repintada (vacía).
-  -> Vista actualizada a estado vacío.
-[ThumbnailService] Caché de miniaturas limpiado.
-  -> Caché de miniaturas limpiado.
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-  [ListCoordinator] Forzando actualización del estado enabled de navegación.
-[Controller] Limpieza de UI y Modelo completada.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
-    -> Llamando a sincronizarListaUI(Nombres, -1)
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: -1
-        -> Índice actual en JList 'Nombres': -1
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(-1) por seguridad de rango.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: -1
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 0
-  [actualizarMiniaturas] Índice principal inválido o lista principal vacía. Limpiando UI de miniaturas y saliendo.
---- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---
->>> Coordinator: Fin seleccionarDesdeMiniaturas(-1)
-  [Worker BG] Files.walk terminado. Archivos encontrados: 165
-   [EDT] Mostrando diálogo de progreso...
-    [Coordinator Flag] sincronizandoUI -> true
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
-[Worker EDT] Método done() alcanzado.
- [EDT Worker Done] Tarea de búsqueda finalizada. Procesando resultado...
-[Dialogo Progreso] Solicitud de cierre.
-  -> [EDT] Cerrando diálogo...
-  -> [EDT] Diálogo cerrado y desechado.
-   -> Resultado obtenido: 165 archivos. Actualizando modelo y vista...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
-   -> estaCargandoLista = false.
-[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
-[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-     -> Índice final a seleccionar después de carga: 0 (intentando mantener: cyberpunk-city-anime-girl-5k-0e-1.png)
-   -> Aplicando selección inicial al índice: 0
-   -> Flag seleccionInicialEnCurso puesto a TRUE.
- [EDT Worker Done] Procesamiento del resultado finalizado.
-   [EDT] Diálogo de progreso cerrado o ya no visible.
-    [Coordinator Flag] sincronizandoUI -> false
-  -> Solicitando repintado inicial de listaMiniaturas.
-   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
->>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
-    [Coordinator Flag] sincronizandoUI -> true
-  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
-    -> Actualizando índice oficial a: 0
-    -> Delegando carga de imagen al Controller para índice: 0
---> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice informativo: 0)
-[VisorView] Mostrando indicador de carga: 'Cargando: cyberpunk-city-anime-girl-5k-0e-1.png...'
-    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
---> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load] Lectura de imagen desde disco correcta.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
-        -> Índice actual en JList 'Nombres': 0
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
-  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
---- FIN actualizarModeloYVistaMiniaturas ---
-        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
->>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
-   -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.
-   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [EDT Img Update] => Carga exitosa. Actualizando modelo...
-      [EDT Img Update] Zoom manual no activo. Estado de zoom/pan reseteado para nueva imagen.
-      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
-      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
-   -> [EDT Miniaturas Update] Ejecutando actualización UI...
-    [Coordinator Flag] sincronizandoUI -> true
-   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
-  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
-   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
-[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
-[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
-   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
-   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
-    [Coordinator Flag] sincronizandoUI -> false
-  -> Solicitando repintado inicial de listaMiniaturas.
-    [Coordinator Flag] sincronizandoUI -> false
-[ToggleSubfoldersAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMostrarSubcarpetasLogicaYUi(true)
-[VisorController setMostrarSubcarpetasLogicaYUi] Nuevo estado deseado (incluir): true
-  [VisorController sincronizarUiControlesSubcarpetas] Iniciando sincronización de UI. Estado modelo (incluir subcarpetas): true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Subcarpetas_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  [VisorController sincronizarUiControlesSubcarpetas] Sincronización de UI completada.
-  -> Solicitando recarga de lista de imágenes (manteniendo si es posible: cyberpunk-city-anime-girl-5k-0e-1.png)
-
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
-  -> Modo búsqueda: Subcarpetas (depth=MAX)
-    -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-  -> Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  -> Diálogo y Worker creados y asociados.
-  -> Añadiendo PropertyChangeListener al worker...
-  -> Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: cyberpunk-city-anime-girl-5k-0e-1.png
-[VisorController setMostrarSubcarpetasLogicaYUi] Proceso completado.
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
->>> Coordinator: Recibido de Miniaturas -> Índice Principal: -1 (Actual Oficial: 0)
-  [ListCoordinator Interno] Procesando índice: -1 (Oficial actual: 0)
-    -> Actualizando índice oficial a: -1
-    -> Delegando limpieza de UI al Controller (índice -1)
-[Controller] Limpiando UI y Modelo a estado vacío...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
-  -> Modelo limpiado.
->>> Coordinator: Recibido de Nombres -> Índice: -1 (Actual Oficial: -1)
-    -> Ignorando (mismo índice ya seleccionado oficialmente).
-    [Asegurar Visibilidad] Índice -1, no se hace nada.
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 0
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
-  -> Lista de miniaturas repintada (vacía).
-  [Worker BG] Files.walk terminado. Archivos encontrados: 165
-  -> Vista actualizada a estado vacío.
-[ThumbnailService] Caché de miniaturas limpiado.
-  -> Caché de miniaturas limpiado.
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-  [ListCoordinator] Forzando actualización del estado enabled de navegación.
-[Controller] Limpieza de UI y Modelo completada.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
-    -> Llamando a sincronizarListaUI(Nombres, -1)
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: -1
-        -> Índice actual en JList 'Nombres': -1
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(-1) por seguridad de rango.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: -1
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 0
-  [actualizarMiniaturas] Índice principal inválido o lista principal vacía. Limpiando UI de miniaturas y saliendo.
---- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---
->>> Coordinator: Fin seleccionarDesdeMiniaturas(-1)
-   [EDT] Mostrando diálogo de progreso...
-[Worker EDT] Método done() alcanzado.
- [EDT Worker Done] Tarea de búsqueda finalizada. Procesando resultado...
-[Dialogo Progreso] Solicitud de cierre.
-  -> [EDT] Cerrando diálogo...
-  -> [EDT] Diálogo cerrado y desechado.
-   -> Resultado obtenido: 165 archivos. Actualizando modelo y vista...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
-   -> estaCargandoLista = false.
-[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
-[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-     -> Índice final a seleccionar después de carga: 0 (intentando mantener: cyberpunk-city-anime-girl-5k-0e-1.png)
-   -> Aplicando selección inicial al índice: 0
-   -> Flag seleccionInicialEnCurso puesto a TRUE.
- [EDT Worker Done] Procesamiento del resultado finalizado.
-   [EDT] Diálogo de progreso cerrado o ya no visible.
-    [Coordinator Flag] sincronizandoUI -> true
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
-  -> Solicitando repintado inicial de listaMiniaturas.
-    [Coordinator Flag] sincronizandoUI -> false
-   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
->>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
-    [Coordinator Flag] sincronizandoUI -> true
-  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
-    -> Actualizando índice oficial a: 0
-    -> Delegando carga de imagen al Controller para índice: 0
---> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice informativo: 0)
-[VisorView] Mostrando indicador de carga: 'Cargando: cyberpunk-city-anime-girl-5k-0e-1.png...'
-    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
---> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load] Lectura de imagen desde disco correcta.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
-        -> Índice actual en JList 'Nombres': 0
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
-  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
---- FIN actualizarModeloYVistaMiniaturas ---
-        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
->>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
-   -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.
-   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [EDT Img Update] => Carga exitosa. Actualizando modelo...
-      [EDT Img Update] Zoom manual no activo. Estado de zoom/pan reseteado para nueva imagen.
-      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
-      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
-   -> [EDT Miniaturas Update] Ejecutando actualización UI...
-    [Coordinator Flag] sincronizandoUI -> true
-   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
-  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
-   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
-[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
-[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
-   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
-   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
-    [Coordinator Flag] sincronizandoUI -> false
-  -> Solicitando repintado inicial de listaMiniaturas.
-    [Coordinator Flag] sincronizandoUI -> false
-[ToggleSubfoldersAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMostrarSubcarpetasLogicaYUi(true)
-[VisorController setMostrarSubcarpetasLogicaYUi] Nuevo estado deseado (incluir): true
-  [VisorController sincronizarUiControlesSubcarpetas] Iniciando sincronización de UI. Estado modelo (incluir subcarpetas): true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Subcarpetas_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  [VisorController sincronizarUiControlesSubcarpetas] Sincronización de UI completada.
-  -> Solicitando recarga de lista de imágenes (manteniendo si es posible: cyberpunk-city-anime-girl-5k-0e-1.png)
-
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
-  -> Modo búsqueda: Subcarpetas (depth=MAX)
-    -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-  -> Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  -> Diálogo y Worker creados y asociados.
-  -> Añadiendo PropertyChangeListener al worker...
-  -> Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: cyberpunk-city-anime-girl-5k-0e-1.png
-[VisorController setMostrarSubcarpetasLogicaYUi] Proceso completado.
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
->>> Coordinator: Recibido de Miniaturas -> Índice Principal: -1 (Actual Oficial: 0)
-  [ListCoordinator Interno] Procesando índice: -1 (Oficial actual: 0)
-    -> Actualizando índice oficial a: -1
-    -> Delegando limpieza de UI al Controller (índice -1)
-[Controller] Limpiando UI y Modelo a estado vacío...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
-  -> Modelo limpiado.
->>> Coordinator: Recibido de Nombres -> Índice: -1 (Actual Oficial: -1)
-    -> Ignorando (mismo índice ya seleccionado oficialmente).
-    [Asegurar Visibilidad] Índice -1, no se hace nada.
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 0
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
-  -> Lista de miniaturas repintada (vacía).
-  [Worker BG] Files.walk terminado. Archivos encontrados: 165
-  -> Vista actualizada a estado vacío.
-[ThumbnailService] Caché de miniaturas limpiado.
-  -> Caché de miniaturas limpiado.
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-  [ListCoordinator] Forzando actualización del estado enabled de navegación.
-[Controller] Limpieza de UI y Modelo completada.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
-    -> Llamando a sincronizarListaUI(Nombres, -1)
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: -1
-        -> Índice actual en JList 'Nombres': -1
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(-1) por seguridad de rango.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: -1
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 0
-  [actualizarMiniaturas] Índice principal inválido o lista principal vacía. Limpiando UI de miniaturas y saliendo.
---- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---
->>> Coordinator: Fin seleccionarDesdeMiniaturas(-1)
-   [EDT] Mostrando diálogo de progreso...
-[Worker EDT] Método done() alcanzado.
- [EDT Worker Done] Tarea de búsqueda finalizada. Procesando resultado...
-[Dialogo Progreso] Solicitud de cierre.
-  -> [EDT] Cerrando diálogo...
-  -> [EDT] Diálogo cerrado y desechado.
-   -> Resultado obtenido: 165 archivos. Actualizando modelo y vista...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
-   -> estaCargandoLista = false.
-[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
-[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-     -> Índice final a seleccionar después de carga: 0 (intentando mantener: cyberpunk-city-anime-girl-5k-0e-1.png)
-   -> Aplicando selección inicial al índice: 0
-   -> Flag seleccionInicialEnCurso puesto a TRUE.
- [EDT Worker Done] Procesamiento del resultado finalizado.
-   [EDT] Diálogo de progreso cerrado o ya no visible.
-    [Coordinator Flag] sincronizandoUI -> true
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
-  -> Solicitando repintado inicial de listaMiniaturas.
-    [Coordinator Flag] sincronizandoUI -> false
-   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
->>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
-    [Coordinator Flag] sincronizandoUI -> true
-  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
-    -> Actualizando índice oficial a: 0
-    -> Delegando carga de imagen al Controller para índice: 0
---> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice informativo: 0)
-[VisorView] Mostrando indicador de carga: 'Cargando: cyberpunk-city-anime-girl-5k-0e-1.png...'
-    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
---> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load - pool-1-thread-3] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load] Lectura de imagen desde disco correcta.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
-        -> Índice actual en JList 'Nombres': 0
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
-  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
---- FIN actualizarModeloYVistaMiniaturas ---
-        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
->>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
-   -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.
-   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [EDT Img Update] => Carga exitosa. Actualizando modelo...
-      [EDT Img Update] Zoom manual no activo. Estado de zoom/pan reseteado para nueva imagen.
-      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
-      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
-   -> [EDT Miniaturas Update] Ejecutando actualización UI...
-    [Coordinator Flag] sincronizandoUI -> true
-   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
-  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
-   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
-[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
-[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
-   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
-   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
-    [Coordinator Flag] sincronizandoUI -> false
-  -> Solicitando repintado inicial de listaMiniaturas.
-    [Coordinator Flag] sincronizandoUI -> false
-[ToggleProporcionesAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMantenerProporcionesLogicaYUi(true)
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  -> Solicitando a ZoomManager que refresque la imagen principal...
-[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
-[ToggleZoomManualAction actionPerformed] Comando: cmd.zoom.manual.toggle
-  -> Estado actual del zoom manual en modelo: false. Intentando cambiar a: true
-  -> El estado del zoom manual CAMBIÓ en el modelo. Actualizando UI y Actions...
-  [ToggleZoomManualAction] Fin actionPerformed. Estado Action.SELECTED_KEY final: true
-[AplicarModoZoomAction actionPerformed] Aplicando modo: DISPLAY_ORIGINAL, Comando: cmd.zoom.tipo.auto
-  [ZoomManager] Modo de zoom 'DISPLAY_ORIGINAL' aplicado. Nuevo factor en modelo: 1.0
-[AplicarModoZoomAction actionPerformed] Aplicando modo: DISPLAY_ORIGINAL, Comando: cmd.zoom.tipo.auto
-  [ZoomManager] Modo de zoom 'DISPLAY_ORIGINAL' aplicado. Nuevo factor en modelo: 1.0
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_WIDTH, Comando: cmd.zoom.tipo.ancho
-  [ZoomManager] Modo de zoom 'FIT_TO_WIDTH' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_HEIGHT, Comando: cmd.zoom.tipo.alto
-  [ZoomManager] Modo de zoom 'FIT_TO_HEIGHT' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_HEIGHT, Comando: cmd.zoom.tipo.alto
-  [ZoomManager] Modo de zoom 'FIT_TO_HEIGHT' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_SCREEN, Comando: cmd.zoom.tipo.ajustar
-  [ZoomManager] Modo de zoom 'FIT_TO_SCREEN' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[ToggleProporcionesAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMantenerProporcionesLogicaYUi(true)
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  -> Solicitando a ZoomManager que refresque la imagen principal...
-[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
-[ToggleZoomManualAction actionPerformed] Comando: cmd.zoom.manual.toggle
-  -> Estado actual del zoom manual en modelo: true. Intentando cambiar a: false
-  -> El estado del zoom manual CAMBIÓ en el modelo. Actualizando UI y Actions...
-  [ToggleZoomManualAction] Fin actionPerformed. Estado Action.SELECTED_KEY final: false
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_WIDTH, Comando: cmd.zoom.tipo.ancho
-  [ZoomManager] Modo de zoom 'FIT_TO_WIDTH' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_WIDTH, Comando: cmd.zoom.tipo.ancho
-  [ZoomManager] Modo de zoom 'FIT_TO_WIDTH' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[ToggleProporcionesAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMantenerProporcionesLogicaYUi(true)
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  -> Solicitando a ZoomManager que refresque la imagen principal...
-[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_WIDTH, Comando: cmd.zoom.tipo.ancho
-  [ZoomManager] Modo de zoom 'FIT_TO_WIDTH' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_WIDTH, Comando: cmd.zoom.tipo.ancho
-  [ZoomManager] Modo de zoom 'FIT_TO_WIDTH' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: DISPLAY_ORIGINAL, Comando: cmd.zoom.tipo.auto
-  [ZoomManager] Modo de zoom 'DISPLAY_ORIGINAL' aplicado. Nuevo factor en modelo: 1.0
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_WIDTH, Comando: cmd.zoom.tipo.ancho
-  [ZoomManager] Modo de zoom 'FIT_TO_WIDTH' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_HEIGHT, Comando: cmd.zoom.tipo.alto
-  [ZoomManager] Modo de zoom 'FIT_TO_HEIGHT' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_SCREEN, Comando: cmd.zoom.tipo.ajustar
-  [ZoomManager] Modo de zoom 'FIT_TO_SCREEN' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: MAINTAIN_CURRENT_ZOOM, Comando: cmd.zoom.tipo.fijo
-  [ZoomManager] Modo MAINTAIN_CURRENT_ZOOM seleccionado. Factor actual se mantiene.
-  [ZoomManager] Modo de zoom 'MAINTAIN_CURRENT_ZOOM' aplicado. Nuevo factor en modelo: 0.4938704028021016
-[AplicarModoZoomAction actionPerformed] Aplicando modo: USER_SPECIFIED_PERCENTAGE, Comando: cmd.zoom.tipo.especificado
-  [ZoomManager] Modo de zoom 'USER_SPECIFIED_PERCENTAGE' aplicado. Nuevo factor en modelo: 1.0
-[ToggleProporcionesAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMantenerProporcionesLogicaYUi(true)
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  -> Solicitando a ZoomManager que refresque la imagen principal...
-[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
-[ToggleProporcionesAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMantenerProporcionesLogicaYUi(true)
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  -> Solicitando a ZoomManager que refresque la imagen principal...
-[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
-[ToggleProporcionesAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMantenerProporcionesLogicaYUi(true)
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  -> Solicitando a ZoomManager que refresque la imagen principal...
-[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
-[ToggleProporcionesAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMantenerProporcionesLogicaYUi(true)
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Mantener_Proporciones_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  -> Solicitando a ZoomManager que refresque la imagen principal...
-[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
-[ToggleSubfoldersAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMostrarSubcarpetasLogicaYUi(true)
-[VisorController setMostrarSubcarpetasLogicaYUi] Nuevo estado deseado (incluir): true
-  [VisorController sincronizarUiControlesSubcarpetas] Iniciando sincronización de UI. Estado modelo (incluir subcarpetas): true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Subcarpetas_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  [VisorController sincronizarUiControlesSubcarpetas] Sincronización de UI completada.
-  -> Solicitando recarga de lista de imágenes (manteniendo si es posible: cyberpunk-city-anime-girl-5k-0e-1.png)
+  [VisorController DEBUG] Estado del MODELO ANTES DE CARGAR LISTA: model.isMostrarSoloCarpetaActual()=false
+  LLAMANDO A cargarListaImagenes con claveAntesDelCambio=cyberpunk-city-anime-girl-5k-0e-1.png y model.isMostrarSoloCarpetaActual()=false
 
 -->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
   -> Modo búsqueda: Subcarpetas (depth=MAX)
@@ -1012,137 +525,9 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
   -> Vista actualizada a estado vacío.
 [ThumbnailService] Caché de miniaturas limpiado.
   -> Caché de miniaturas limpiado.
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-  [ListCoordinator] Forzando actualización del estado enabled de navegación.
-[Controller] Limpieza de UI y Modelo completada.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
-    -> Llamando a sincronizarListaUI(Nombres, -1)
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: -1
-        -> Índice actual en JList 'Nombres': -1
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(-1) por seguridad de rango.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: -1
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 0
-  [actualizarMiniaturas] Índice principal inválido o lista principal vacía. Limpiando UI de miniaturas y saliendo.
---- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---
->>> Coordinator: Fin seleccionarDesdeMiniaturas(-1)
   [Worker BG] Files.walk terminado. Archivos encontrados: 165
-   [EDT] Mostrando diálogo de progreso...
-    [Coordinator Flag] sincronizandoUI -> true
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
-[Worker EDT] Método done() alcanzado.
- [EDT Worker Done] Tarea de búsqueda finalizada. Procesando resultado...
-[Dialogo Progreso] Solicitud de cierre.
-  -> [EDT] Cerrando diálogo...
-  -> [EDT] Diálogo cerrado y desechado.
-   -> Resultado obtenido: 165 archivos. Actualizando modelo y vista...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
-   -> estaCargandoLista = false.
-[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
-[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-     -> Índice final a seleccionar después de carga: 0 (intentando mantener: cyberpunk-city-anime-girl-5k-0e-1.png)
-   -> Aplicando selección inicial al índice: 0
-   -> Flag seleccionInicialEnCurso puesto a TRUE.
- [EDT Worker Done] Procesamiento del resultado finalizado.
-   [EDT] Diálogo de progreso cerrado o ya no visible.
-    [Coordinator Flag] sincronizandoUI -> false
-  -> Solicitando repintado inicial de listaMiniaturas.
-   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
-   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
->>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
-    [Coordinator Flag] sincronizandoUI -> true
-  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
-    -> Actualizando índice oficial a: 0
-    -> Delegando carga de imagen al Controller para índice: 0
---> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice informativo: 0)
-[VisorView] Mostrando indicador de carga: 'Cargando: cyberpunk-city-anime-girl-5k-0e-1.png...'
-    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
---> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load] Lectura de imagen desde disco correcta.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
-        -> Índice actual en JList 'Nombres': 0
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
-  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
---- FIN actualizarModeloYVistaMiniaturas ---
-        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
->>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
-   -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [EDT Img Update] => Carga exitosa. Actualizando modelo...
-      [EDT Img Update] Zoom manual no activo. Estado de zoom/pan reseteado para nueva imagen.
-      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
-      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
-   -> [EDT Miniaturas Update] Ejecutando actualización UI...
-    [Coordinator Flag] sincronizandoUI -> true
-   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
-  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
-   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
-[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
-[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
-   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
-   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
-    [Coordinator Flag] sincronizandoUI -> false
-  -> Solicitando repintado inicial de listaMiniaturas.
-    [Coordinator Flag] sincronizandoUI -> false
-[ToggleSubfoldersAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMostrarSubcarpetasLogicaYUi(true)
-[VisorController setMostrarSubcarpetasLogicaYUi] Nuevo estado deseado (incluir): true
-  [VisorController sincronizarUiControlesSubcarpetas] Iniciando sincronización de UI. Estado modelo (incluir subcarpetas): true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Subcarpetas_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  [VisorController sincronizarUiControlesSubcarpetas] Sincronización de UI completada.
-  -> Solicitando recarga de lista de imágenes (manteniendo si es posible: cyberpunk-city-anime-girl-5k-0e-1.png)
-
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
-  -> Modo búsqueda: Subcarpetas (depth=MAX)
-    -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-  -> Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  -> Diálogo y Worker creados y asociados.
-  -> Añadiendo PropertyChangeListener al worker...
-  -> Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: cyberpunk-city-anime-girl-5k-0e-1.png
-[VisorController setMostrarSubcarpetasLogicaYUi] Proceso completado.
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
->>> Coordinator: Recibido de Miniaturas -> Índice Principal: -1 (Actual Oficial: 0)
-  [ListCoordinator Interno] Procesando índice: -1 (Oficial actual: 0)
-    -> Actualizando índice oficial a: -1
-    -> Delegando limpieza de UI al Controller (índice -1)
-[Controller] Limpiando UI y Modelo a estado vacío...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
-  -> Modelo limpiado.
->>> Coordinator: Recibido de Nombres -> Índice: -1 (Actual Oficial: -1)
-    -> Ignorando (mismo índice ya seleccionado oficialmente).
-    [Asegurar Visibilidad] Índice -1, no se hace nada.
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 0
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
-  -> Lista de miniaturas repintada (vacía).
-  [Worker BG] Files.walk terminado. Archivos encontrados: 165
-  -> Vista actualizada a estado vacío.
-[ThumbnailService] Caché de miniaturas limpiado.
-  -> Caché de miniaturas limpiado.
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.proyecto.toggle_marca, isSelected: false
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
   [ListCoordinator] Forzando actualización del estado enabled de navegación.
 [Controller] Limpieza de UI y Modelo completada.
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
@@ -1164,6 +549,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
+  WORKER TERMINADO. Número de archivos encontrados: 165
    -> Resultado obtenido: 165 archivos. Actualizando modelo y vista...
 [Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
 [VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
@@ -1179,7 +565,6 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
 [VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
-   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
    -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
 >>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
     [Coordinator Flag] sincronizandoUI -> true
@@ -1190,7 +575,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
 [VisorView] Mostrando indicador de carga: 'Cargando: cyberpunk-city-anime-girl-5k-0e-1.png...'
     [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
 --> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load - pool-1-thread-7] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
+      [BG Img Load - pool-1-thread-8] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
       [BG Img Load] Lectura de imagen desde disco correcta.
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
@@ -1205,12 +590,15 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
         -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
 >>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
    -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.
+   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
       [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: cyberpunk-city-anime-girl-5k-0e-1.png
       [EDT Img Update] => Carga exitosa. Actualizando modelo...
       [EDT Img Update] Zoom manual no activo. Estado de zoom/pan reseteado para nueva imagen.
       [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=true
       [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.proyecto.toggle_marca, isSelected: false
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
           -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
    -> [EDT Miniaturas Update] Ejecutando actualización UI...
     [Coordinator Flag] sincronizandoUI -> true
@@ -1230,135 +618,26 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 927664317) asignada a 
     [Coordinator Flag] sincronizandoUI -> false
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
-[ToggleSubfoldersAction actionPerformed] El componente UI cambió SELECTED_KEY a: true
-  -> Llamando a controllerRef.setMostrarSubcarpetasLogicaYUi(true)
-[VisorController setMostrarSubcarpetasLogicaYUi] Nuevo estado deseado (incluir): true
-  [VisorController sincronizarUiControlesSubcarpetas] Iniciando sincronización de UI. Estado modelo (incluir subcarpetas): true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: true
-  -> Botón encontrado por Action: interfaz.boton.toggle.Subcarpetas_48x48
-  -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' ya era el correcto. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  [VisorController sincronizarUiControlesSubcarpetas] Sincronización de UI completada.
-  -> Solicitando recarga de lista de imágenes (manteniendo si es posible: cyberpunk-city-anime-girl-5k-0e-1.png)
-
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
-  -> Modo búsqueda: Subcarpetas (depth=MAX)
-    -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-  -> Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  -> Diálogo y Worker creados y asociados.
-  -> Añadiendo PropertyChangeListener al worker...
-  -> Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: cyberpunk-city-anime-girl-5k-0e-1.png
-[VisorController setMostrarSubcarpetasLogicaYUi] Proceso completado.
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
->>> Coordinator: Recibido de Miniaturas -> Índice Principal: -1 (Actual Oficial: 0)
-  [ListCoordinator Interno] Procesando índice: -1 (Oficial actual: 0)
-    -> Actualizando índice oficial a: -1
-    -> Delegando limpieza de UI al Controller (índice -1)
-[Controller] Limpiando UI y Modelo a estado vacío...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
-  -> Modelo limpiado.
->>> Coordinator: Recibido de Nombres -> Índice: -1 (Actual Oficial: -1)
-    -> Ignorando (mismo índice ya seleccionado oficialmente).
-    [Asegurar Visibilidad] Índice -1, no se hace nada.
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 0
-[VisorView] Limpiando etiqueta de imagen principal...
-  -> Etiqueta de imagen limpiada.
-  -> Lista de miniaturas repintada (vacía).
-  [Worker BG] Files.walk terminado. Archivos encontrados: 165
-  -> Vista actualizada a estado vacío.
-[ThumbnailService] Caché de miniaturas limpiado.
-  -> Caché de miniaturas limpiado.
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-  [ListCoordinator] Forzando actualización del estado enabled de navegación.
-[Controller] Limpieza de UI y Modelo completada.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
-    -> Llamando a sincronizarListaUI(Nombres, -1)
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: -1
-        -> Índice actual en JList 'Nombres': -1
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(-1) por seguridad de rango.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: -1
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 0
-  [actualizarMiniaturas] Índice principal inválido o lista principal vacía. Limpiando UI de miniaturas y saliendo.
---- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---
->>> Coordinator: Fin seleccionarDesdeMiniaturas(-1)
-   [EDT] Mostrando diálogo de progreso...
-[Worker EDT] Método done() alcanzado.
- [EDT Worker Done] Tarea de búsqueda finalizada. Procesando resultado...
-[Dialogo Progreso] Solicitud de cierre.
-  -> [EDT] Cerrando diálogo...
-  -> [EDT] Diálogo cerrado y desechado.
-   -> Resultado obtenido: 165 archivos. Actualizando modelo y vista...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 165
-[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 165
-   -> estaCargandoLista = false.
-[Controller] Iniciando pre-calentamiento de caché para 165 miniaturas...
-[Controller] 165 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-     -> Índice final a seleccionar después de carga: 0 (intentando mantener: cyberpunk-city-anime-girl-5k-0e-1.png)
-   -> Aplicando selección inicial al índice: 0
-   -> Flag seleccionInicialEnCurso puesto a TRUE.
- [EDT Worker Done] Procesamiento del resultado finalizado.
-   [EDT] Diálogo de progreso cerrado o ya no visible.
-    [Coordinator Flag] sincronizandoUI -> true
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
-  -> Solicitando repintado inicial de listaMiniaturas.
-    [Coordinator Flag] sincronizandoUI -> false
-   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
-   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
->>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
-    [Coordinator Flag] sincronizandoUI -> true
-  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
-    -> Actualizando índice oficial a: 0
-    -> Delegando carga de imagen al Controller para índice: 0
---> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice informativo: 0)
-[VisorView] Mostrando indicador de carga: 'Cargando: cyberpunk-city-anime-girl-5k-0e-1.png...'
-    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
---> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load - pool-1-thread-1] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
-      [BG Img Load] Lectura de imagen desde disco correcta.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
-        -> Índice actual en JList 'Nombres': 0
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
-
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 165
-  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
---- FIN actualizarModeloYVistaMiniaturas ---
-        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
->>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
-   -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: cyberpunk-city-anime-girl-5k-0e-1.png
-      [EDT Img Update] => Carga exitosa. Actualizando modelo...
-      [EDT Img Update] Zoom manual no activo. Estado de zoom/pan reseteado para nueva imagen.
-      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
-      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' actualizado a: Normal
-          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
-   -> [EDT Miniaturas Update] Ejecutando actualización UI...
-    [Coordinator Flag] sincronizandoUI -> true
-   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
-  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
-   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
-[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
-[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
-   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
-   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
-    [Coordinator Flag] sincronizandoUI -> false
-  -> Solicitando repintado inicial de listaMiniaturas.
-    [Coordinator Flag] sincronizandoUI -> false
+[ToggleProporcionesAction actionPerformed] Estado actual (mantener prop): true. Solicitando cambiar a (mantener prop): false
+[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: false
+  [Model] Estado mantenerProporcion cambiado a: false
+  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: false
+  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: false
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: false
+  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+  -> Solicitando a ZoomManager que refresque la imagen principal...
+  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=false
+[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
+[ToggleProporcionesAction actionPerformed] Estado actual (mantener prop): false. Solicitando cambiar a (mantener prop): true
+[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
+  [Model] Estado mantenerProporcion cambiado a: true
+  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
+  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
+  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
+  -> Solicitando a ZoomManager que refresque la imagen principal...
+  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=true
+[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
 --- Hook de Cierre Ejecutándose ---
   [Hook - Ventana] Guardando estado de la ventana en config...
     -> Bounds guardados en memoria config: java.awt.Rectangle[x=0,y=0,width=1536,height=500]

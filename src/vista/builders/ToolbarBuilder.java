@@ -1,4 +1,3 @@
-// En src/vista/builders/ToolbarBuilder.java
 package vista.builders;
 
 import java.awt.BorderLayout;
@@ -20,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 
 import controlador.VisorController; // Para ActionListener fallback
+import controlador.commands.AppActionCommands;
 import vista.config.ToolbarButtonDefinition;
 import vista.util.IconUtils;
 
@@ -211,6 +211,12 @@ public class ToolbarBuilder {
 
         // 4.1.4. Conectar Acción e Icono
         Action action = this.actionMap.get(definition.comandoCanonico());
+        if (definition.comandoCanonico().equals(AppActionCommands.CMD_TOGGLE_SUBCARPETAS)) {
+            System.out.println("ToolbarBuilder: Obtenida Action@" + Integer.toHexString(System.identityHashCode(action)) + 
+                               " para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.");
+        }
+        button.setAction(action);
+        
         ImageIcon iconoParaBoton = null;
 
         if (action != null) {
@@ -387,245 +393,3 @@ public class ToolbarBuilder {
     }
 }
 
-//package vista.builders;
-//
-//import java.awt.Color;
-//import java.awt.FlowLayout; // Opcional, si el panel principal usa FlowLayout
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.Objects;
-//
-//import javax.swing.Action;
-//import javax.swing.ImageIcon;
-//import javax.swing.JButton;
-//import javax.swing.JPanel;
-//import javax.swing.JToolBar; 
-//// No es necesario importar VisorController directamente si solo pasamos una interfaz
-//// o si las Actions ya manejan su propia lógica completamente.
-//// Si se necesita para un listener fallback MUY específico, se podría pasar
-//// una instancia de ActionListener o una interfaz funcional.
-//// import controlador.VisorController; // Temporalmente, si es para el listener fallback
-//
-//import vista.config.ToolbarButtonDefinition;
-//import vista.util.IconUtils;
-//
-//public class ToolbarBuilder {
-//
-//    // --- Campos de Instancia ---
-//    private final Map<String, Action> actionMap;
-//    private final IconUtils iconUtils;
-//    private final Color colorBotonFondo;
-//    private final Color colorBotonTexto; // No se usa si los botones solo tienen icono
-//    private final Color colorBotonActivado;
-//    private final Color colorBotonAnimacion;
-//    private final int iconoAncho;
-//    private final int iconoAlto;
-//    // private final VisorController controllerRef; // Si necesitas el controller para algo específico (ej. listener fallback)
-//
-//    private final Map<String, JButton> botonesPorNombre; // Mapa para almacenar los botones creados por su clave larga
-//
-//    /**
-//     * Constructor para ToolbarBuilder.
-//     *
-//     * @param actionMap           El mapa de acciones disponibles.
-//     * @param colorBotonFondo     Color de fondo para los botones.
-//     * @param colorBotonTexto     Color de texto para los botones (si muestran texto).
-//     * @param colorBotonActivado  Color para botones en estado activado/toggle.
-//     * @param colorBotonAnimacion Color para la animación de clic.
-//     * @param iconoAncho          Ancho deseado para los iconos.
-//     * @param iconoAlto           Alto deseado para los iconos.
-//     * @param iconUtils           Utilidad para cargar iconos.
-//     * @param controller          Referencia al VisorController (opcional, para listeners fallback o lógica compleja).
-//     */
-//    public ToolbarBuilder(
-//            Map<String, Action> actionMap,
-//            Color colorBotonFondo,
-//            Color colorBotonTexto,
-//            Color colorBotonActivado,
-//            Color colorBotonAnimacion,
-//            int iconoAncho,
-//            int iconoAlto,
-//            IconUtils iconUtils,
-//            Object controllerCallbackProvider // Cambiado a Object para ser más genérico, o usa una interfaz funcional
-//    ) {
-//        this.actionMap = Objects.requireNonNull(actionMap, "ActionMap no puede ser nulo");
-//        this.colorBotonFondo = Objects.requireNonNull(colorBotonFondo, "colorBotonFondo no puede ser nulo");
-//        this.colorBotonTexto = Objects.requireNonNull(colorBotonTexto, "colorBotonTexto no puede ser nulo");
-//        this.colorBotonActivado = Objects.requireNonNull(colorBotonActivado, "colorBotonActivado no puede ser nulo");
-//        this.colorBotonAnimacion = Objects.requireNonNull(colorBotonAnimacion, "colorBotonAnimacion no puede ser nulo");
-//        this.iconoAncho = (iconoAncho > 0) ? iconoAncho : 24; // Default si es inválido
-//        this.iconoAlto = (iconoAlto > 0) ? iconoAlto : 24;   // Default si es inválido
-//        this.iconUtils = Objects.requireNonNull(iconUtils, "IconUtils no puede ser nulo");
-//        // this.controllerRef = controller; // Guardar si se usa
-//
-//        this.botonesPorNombre = new HashMap<>();
-//        System.out.println("[ToolbarBuilder] Instancia creada.");
-//    }
-//
-//    /**
-//     * Construye el panel de la barra de herramientas (o múltiples JToolBars)
-//     * basándose en la estructura de definiciones proporcionada.
-//     *
-//     * @param structure La lista de definiciones de botones de la toolbar.
-//     * @return Un JPanel que contiene la(s) JToolBar(s) construida(s).
-//     */
-//    public JPanel buildToolbar(List<ToolbarButtonDefinition> structure) {
-//        // Panel principal que contendrá todas las JToolBars (si hay varias)
-//        // Usar FlowLayout para que las JToolBars se coloquen una al lado de la otra.
-//        JPanel mainToolbarPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0)); 
-//        // mainToolbarPanel.setOpaque(false); // Opcional: si quieres que tome el fondo del contenedor
-//
-//        JToolBar currentToolBar = null;
-//        String lastCategory = null;
-//
-//        System.out.println("  [ToolbarBuilder] Construyendo toolbar con " + structure.size() + " definiciones de botones...");
-//
-//        for (ToolbarButtonDefinition def : structure) {
-//            String currentCategory = def.categoriaLayout();
-//            if (currentCategory == null || currentCategory.isBlank()) {
-//                currentCategory = "General"; // Categoría por defecto
-//            }
-//
-//            // Si la categoría cambia, o es la primera toolbar, crear una nueva JToolBar
-//            if (currentToolBar == null || !currentCategory.equals(lastCategory)) {
-//                if (currentToolBar != null) {
-//                    mainToolbarPanel.add(currentToolBar); // Añadir la JToolBar anterior al panel principal
-//                }
-//                currentToolBar = new JToolBar(currentCategory); // Nombre de la JToolBar (opcionalmente visible)
-//                currentToolBar.setFloatable(false); // Evitar que la toolbar se pueda desacoplar
-//                currentToolBar.setRollover(true);   // Efecto rollover en botones
-//                // currentToolBar.setOpaque(false); // Si quieres que la JToolBar sea transparente
-//                // currentToolBar.setBorder(BorderFactory.createEmptyBorder(2,2,2,2)); // Padding
-//                lastCategory = currentCategory;
-//                System.out.println("    -> Creando/Cambiando a JToolBar para categoría: " + currentCategory);
-//            }
-//
-//            // Obtener la Action asociada al comando canónico
-//            Action action = (def.comandoCanonico() != null) ? this.actionMap.get(def.comandoCanonico()) : null;
-//            JButton button;
-//
-//            if (action != null) {
-//                button = new JButton(action); // Crear botón a partir de la Action
-//                
-//                // Configuración adicional si la Action no establece todo (ej. icono específico de toolbar)
-//                // El texto del botón se tomará de Action.NAME (si setHideActionText es false).
-//                // El icono de Action.SMALL_ICON.
-//                // El tooltip de Action.SHORT_DESCRIPTION.
-//
-//                // Si la Action no tiene un icono, pero la ToolbarButtonDefinition sí, podemos usarlo.
-//                if (button.getIcon() == null && def.claveIcono() != null && this.iconUtils != null) {
-//                    ImageIcon icon = this.iconUtils.getScaledIcon(def.claveIcono(), this.iconoAncho, this.iconoAlto);
-//                    if (icon != null) {
-//                        button.setIcon(icon);
-//                    }
-//                }
-//            } else {
-//                // Si no hay Action, crear un botón deshabilitado con el icono y tooltip
-//                button = new JButton(); // Botón vacío
-//                if (def.claveIcono() != null && this.iconUtils != null) {
-//                    ImageIcon icon = this.iconUtils.getScaledIcon(def.claveIcono(), this.iconoAncho, this.iconoAlto);
-//                    if (icon != null) {
-//                        button.setIcon(icon);
-//                    }
-//                }
-//                button.setEnabled(false); // Deshabilitar si no hay acción
-//                System.err.println("WARN [ToolbarBuilder]: No se encontró Action para el comando: " + def.comandoCanonico() +
-//                                   " (Tooltip: " + def.textoTooltip() + "). Botón creado deshabilitado.");
-//            }
-//
-//            // Establecer tooltip siempre desde la definición, puede ser más específico que el SHORT_DESCRIPTION de la Action.
-//            button.setToolTipText(def.textoTooltip());
-//
-//            // Ocultar texto si el botón tiene un icono (comportamiento típico de toolbar)
-//            if (button.getIcon() != null) {
-//                // button.setText(null); // Quitar texto explícitamente
-//                button.setHideActionText(true); // Preferido, pero depende del LookAndFeel
-//            }
-//            
-//            // Aplicar estilos comunes a los botones de la toolbar
-//            button.setBackground(this.colorBotonFondo);
-//            // button.setForeground(this.colorBotonTexto); // Solo si el texto es visible
-//            button.setFocusPainted(false); // Quitar el borde de foco al hacer clic
-//            // button.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5)); // Padding interno del botón
-//
-//            // Construir la clave larga para el mapa `botonesPorNombre`
-//            // Esta clave debe ser la misma que se usa en VisorView.aplicarAnimacionBoton
-//            // y en cualquier otro lugar donde se necesite buscar un botón por su "identificador largo".
-//            // Ejemplo: "interfaz.boton.<categoria>.<nombreIconoSinExtensionYFormateado>"
-//            // Es crucial que esta generación de clave sea consistente.
-//            String claveLargaBoton = generarClaveLargaParaBoton(def);
-//            this.botonesPorNombre.put(claveLargaBoton, button);
-//            // System.out.println("      -> Botón creado/configurado. Clave Larga: '" + claveLargaBoton + "', Comando: " + def.comandoCanonico());
-//
-//            // Añadir el botón a la JToolBar actual
-//            if (currentToolBar != null) {
-//                currentToolBar.add(button);
-//                
-//                // Añadir separador si el comando es un marcador de separador (ejemplo)
-//                // Necesitarías definir un comando especial para esto en AppActionCommands
-//                // if (AppActionCommands.CMD_TOOLBAR_SEPARATOR.equals(def.comandoCanonico())) {
-//                //    currentToolBar.addSeparator(new Dimension(6,0)); // Separador con un poco de espacio
-//                // }
-//            } else {
-//            	//FIXME codigo Muerto
-//                // Fallback por si algo va mal con la lógica de JToolBar por categoría
-//                mainToolbarPanel.add(button); 
-//            }
-//        }
-//        
-//        // Añadir la última JToolBar creada al panel principal
-//        if (currentToolBar != null) {
-//            mainToolbarPanel.add(currentToolBar);
-//        }
-//        
-//        System.out.println("  [ToolbarBuilder] Construcción de toolbar finalizada.");
-//        return mainToolbarPanel;
-//    }
-//
-//    /**
-//     * Genera una clave larga y única para un botón de la barra de herramientas,
-//     * basándose en su definición. Esta clave se usa para almacenar y recuperar
-//     * el botón en el mapa `botonesPorNombre`.
-//     * Es importante que este método genere claves consistentes con cómo se
-//     * referencian estos botones en otras partes del código (ej. para animaciones
-//     * o para la configuración de visibilidad/habilitación desde el menú).
-//     *
-//     * @param def La definición del botón de la barra de herramientas.
-//     * @return Una cadena que representa la clave larga del botón.
-//     */
-//    private String generarClaveLargaParaBoton(ToolbarButtonDefinition def) {
-//        String categoria = (def.categoriaLayout() != null && !def.categoriaLayout().isBlank()) 
-//                           ? def.categoriaLayout().toLowerCase().replace(" ", "_") 
-//                           : "general";
-//        
-//        String nombreBaseIcono = "desconocido";
-//        if (def.claveIcono() != null && !def.claveIcono().isBlank()) {
-//            nombreBaseIcono = def.claveIcono()
-//                              .replace(".png", "")  // Quitar extensión
-//                              .replace(".gif", "")  // Quitar otras extensiones comunes
-//                              .replace(".jpg", "")
-//                              .replace(".jpeg", "")
-//                              .replaceAll("[^a-zA-Z0-9_]", "_"); // Reemplazar caracteres no alfanuméricos por _
-//            // Quitar números iniciales y guiones si es el formato "XXXX-Nombre_WxH"
-//            nombreBaseIcono = nombreBaseIcono.replaceAll("^\\d+-", ""); 
-//        } else if (def.comandoCanonico() != null && !def.comandoCanonico().isBlank()) {
-//            // Fallback a usar parte del comando canónico si no hay claveIcono
-//            String[] partesCmd = def.comandoCanonico().split("\\.");
-//            nombreBaseIcono = partesCmd.length > 0 ? partesCmd[partesCmd.length -1] : "cmd_desconocido";
-//        }
-//        
-//        // Formato: "interfaz.boton.<categoria>.<nombre_limpio_del_icono_o_comando>"
-//        return "interfaz.boton." + categoria + "." + nombreBaseIcono;
-//    }
-//
-//
-//    /**
-//     * Devuelve el mapa de botones creados, donde la clave es la
-//     * clave de configuración larga generada y el valor es el JButton.
-//     * @return El mapa de botones.
-//     */
-//    public Map<String, JButton> getBotonesPorNombre() {
-//        return this.botonesPorNombre;
-//    }
-//}

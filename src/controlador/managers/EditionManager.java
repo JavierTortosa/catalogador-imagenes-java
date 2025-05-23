@@ -8,7 +8,6 @@ import controlador.commands.AppActionCommands;
 import modelo.VisorModel;
 import servicios.image.ImageEdition; // Tu servicio que realmente hace el volteo
 import vista.VisorView;
-import controlador.managers.ZoomManager;
 
 public class EditionManager /* implements IEditionManager */ {
 

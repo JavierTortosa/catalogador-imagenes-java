@@ -1,13 +1,10 @@
-package servicios.image; // O donde prefieras
+package servicios.image; 
 
 import java.awt.geom.AffineTransform;
 import java.awt.image.AffineTransformOp;
 import java.awt.image.BufferedImage;
 
 public class ImageEdition {
-
- // Usar métodos estáticos si no necesitan estado interno
- // Pasar la imagen a modificar como parámetro
 
  /**
   * Voltea una imagen horizontalmente.

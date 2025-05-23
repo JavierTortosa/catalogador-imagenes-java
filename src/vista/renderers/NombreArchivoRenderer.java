@@ -1,4 +1,3 @@
-// --- Archivo Completo: principal/NombreArchivoRenderer.java ---
 package vista.renderers; // O el paquete donde realmente esté
 
 import java.awt.Component;

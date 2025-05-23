@@ -519,21 +519,8 @@ public class ListCoordinator {
              actualizarEstadoDeTodasLasAccionesContextuales();
         }
 
-        // --- YA NO SINCRONIZAMOS UI AQUÍ ---
-        // La sincronización se hace en los métodos públicos externos
-
         actualizarEstadoEnabledAccionesNavegacion();
         actualizarEstadoDeTodasLasAccionesContextuales();
-        
-//        Action locateAction = controller.getActionMap().get(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
-//        if (locateAction instanceof LocateFileAction) {
-//            ((LocateFileAction) locateAction).updateEnabledState();
-//        }
-//
-//        Action deleteAction = controller.getActionMap().get(AppActionCommands.CMD_IMAGEN_ELIMINAR);
-//        if (deleteAction instanceof DeleteAction) { // Suponiendo que DeleteAction tiene un método similar
-//            ((DeleteAction) deleteAction).actualizarEstadoEnabled();
-//        }
         
         System.out.println("  [ListCoordinator Interno] Procesamiento interno finalizado para índice: " + indiceDeseado);
         return true; // Hubo cambio

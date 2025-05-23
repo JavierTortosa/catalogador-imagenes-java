@@ -1,4 +1,4 @@
-package controlador.worker; // O el paquete que elijas
+package controlador.worker; 
 
 import java.io.IOException;
 import java.nio.file.Files;

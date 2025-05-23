@@ -1423,16 +1423,6 @@ public class VisorView extends JFrame
              }
          }
          
-//         for (Map.Entry<String, JButton> entry : botonesPorNombre.entrySet()) {
-//        	 // Comprobar si la clave larga termina con ".nombreBotonBase"
-//             if (entry.getKey() != null && entry.getKey().endsWith("." + actionCommandDelBoton)) {
-//                 botonParaAnimar = entry.getValue();
-//                 claveDelBotonEncontrado = entry.getKey();
-//                 // System.out.println("    -> Botón encontrado con clave: " + claveEncontrada); // Log opcional
-//                 break; // Asumir que solo hay uno que coincide
-//             }
-//         }
-
          // 5. Aplicar animación si se encontró el botón
          if (botonParaAnimar != null) {
         	 final String claveFinalDelBotonAnimado = claveDelBotonIdentificado;
@@ -1450,13 +1440,6 @@ public class VisorView extends JFrame
                  // botonFinalParaTimer.repaint(); // Opcional, el Timer lo hará al final
              }
              
-//             botonParaAnimar.setBackground(colorAnimacion);
-             // Asegurar opacidad
-//             botonParaAnimar.setOpaque(true); 
-             // Forzar repintado inmediato si es posible (aunque el Timer lo hará después)
-             // botonEncontrado.paintImmediately(botonEncontrado.getBounds());
-
-
              // 5.3. Crear y empezar un Timer para restaurar el color original
              //      Usamos una variable final para el botón dentro de la lambda del Timer.
 //             final JButton botonFinalParaTimer = botonParaAnimar;
@@ -1495,22 +1478,6 @@ public class VisorView extends JFrame
          } else {
         	 System.err.println("WARN [VisorView aplicarAnimacionBoton]: No se encontró botón con ActionCommand: '" + 
         			 actionCommandDelBoton + "'");         }
-             
-//             Timer timer = new Timer(BUTTON_CLICK_ANIMATION_DURATION_MS, (ActionEvent evt) -> { // Duración de la animación (200ms)
-//                 // Este código se ejecuta en el EDT después del delay
-//                 if (botonFinalParaTimer != null) { // Chequeo extra
-//                    // Restaurar el color de fondo original
-//                    botonFinalParaTimer.setBackground(colorOriginal);
-//                    // System.out.println("      -> Animación finalizada. Color restaurado para: " + claveEncontrada); // Log opcional
-//                 }
-//             });
-//             timer.setRepeats(false); // Ejecutar solo una vez
-//             timer.start();           // Iniciar el temporizador
-//
-//         } else {
-//              // Si no se encontró el botón
-//              System.err.println("WARN [aplicarAnimacionBoton]: No se encontró botón con nombre base: '" + actionCommandDelBoton + "'");
-//         }
     } // --- FIN aplicarAnimacionBoton ---
 
 	// --- Métodos para que el Controller Añada Listeners ---
@@ -1956,10 +1923,8 @@ public class VisorView extends JFrame
 	    // Por ahora, es probable que el constructor de VisorView ya use los colores iniciales
 	    // y que el uiConfig sea más para referencia o para que los builders lo usen.
 	}
-    
 
-	// Dentro de la clase vista.VisorView.java
-
+	
 	/**
 	 * Recrea y reasigna el CellRenderer para la lista de miniaturas.
 	 * Este método lee la configuración actual para determinar si se deben mostrar
@@ -2081,63 +2046,61 @@ public class VisorView extends JFrame
      * @param isSelected El estado lógico que debe reflejar el botón
      *                   (true si debe parecer 'activo' o 'pulsado', false si 'normal').
      */
-    public void actualizarAspectoBotonToggle(Action action, boolean isSelected) {
-        // 1. Validaciones Iniciales
-        if (action == null) {
-            System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: La Action proporcionada es null.");
-            return;
-        }
-        if (this.uiConfig == null) {
-            System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: uiConfig es null. No se pueden obtener colores.");
-            return;
-        }
-        if (this.botonesPorNombre == null || this.botonesPorNombre.isEmpty()) {
-            System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: Mapa 'botonesPorNombre' vacío o null.");
-            return;
-        }
-        
-        Object actionCommandValue = action.getValue(Action.ACTION_COMMAND_KEY);
-        String actionCommandParaLog = (actionCommandValue instanceof String) ? (String) actionCommandValue : "DESCONOCIDO";
+	public void actualizarAspectoBotonToggle(Action action, boolean isSelected) {
+	    // System.out.println("[VisorView actualizarAspectoBotonToggle] Buscando botón para ActionParam@" + Integer.toHexString(System.identityHashCode(action)));
+	    
+	    if (action == null) {
+	        System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: La Action proporcionada es null.");
+	        return;
+	    }
+	    if (this.uiConfig == null) {
+	        System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: uiConfig es null. No se pueden obtener colores.");
+	        return;
+	    }
+	    if (this.botonesPorNombre == null || this.botonesPorNombre.isEmpty()) {
+	        System.err.println("ERROR [VisorView actualizarAspectoBotonToggle]: Mapa 'botonesPorNombre' vacío o null.");
+	        return;
+	    }
+	    
+	    Object actionCommandValue = action.getValue(Action.ACTION_COMMAND_KEY);
+	    String actionCommandParaLog = (actionCommandValue instanceof String) ? (String) actionCommandValue : "DESCONOCIDO";
 
-        System.out.println("[VisorView actualizarAspectoBotonToggle] Para Action: " + actionCommandParaLog + 
-                           ", isSelected: " + isSelected);
+	    System.out.println("[VisorView actualizarAspectoBotonToggle] Para Action: " + actionCommandParaLog + 
+	                       ", isSelected: " + isSelected);
 
-        // 2. Encontrar el JButton asociado a la Action
-        JButton botonAsociado = null;
-        String claveDelBotonEncontrado = null;
+	    JButton botonAsociado = null;
+	    String claveDelBotonEncontrado = null;
 
-        for (Map.Entry<String, JButton> entry : this.botonesPorNombre.entrySet()) {
-            JButton botonActual = entry.getValue();
-            if (botonActual != null && action.equals(botonActual.getAction())) { // Comparar instancias de Action
-                botonAsociado = botonActual;
-                claveDelBotonEncontrado = entry.getKey();
-                System.out.println("  -> Botón encontrado por Action: " + claveDelBotonEncontrado);
-                break;
-            }
-        }
+	    for (Map.Entry<String, JButton> entry : this.botonesPorNombre.entrySet()) {
+	        JButton botonActual = entry.getValue();
+	        if (botonActual != null && action.equals(botonActual.getAction())) {
+	            botonAsociado = botonActual;
+	            claveDelBotonEncontrado = entry.getKey();
+	            // System.out.println("  -> Botón encontrado por Action: " + claveDelBotonEncontrado); // Log reducido
+	            break;
+	        }
+	    }
 
-        // 3. Aplicar el Cambio de Aspecto si se encontró el botón
-        if (botonAsociado != null) {
-            Color colorFondoDestino;
-            if (isSelected) {
-                colorFondoDestino = this.uiConfig.colorBotonActivado; // Color para estado "activo"
-            } else {
-                colorFondoDestino = this.uiConfig.colorBotonFondo;    // Color para estado "normal/inactivo"
-            }
+	    if (botonAsociado != null) {
+	        Color colorFondoDestino;
+	        if (isSelected) {
+	            colorFondoDestino = this.uiConfig.colorBotonActivado; 
+	        } else {
+	            colorFondoDestino = this.uiConfig.colorBotonFondo;    
+	        }
 
-            // Solo cambiar si el color es diferente para evitar repintados innecesarios
-            if (!Objects.equals(botonAsociado.getBackground(), colorFondoDestino)) {
-                botonAsociado.setBackground(colorFondoDestino);
-                botonAsociado.setOpaque(true); // Asegurar que setBackground tenga efecto
-                // botonAsociado.repaint(); // Opcional, setBackground suele hacerlo
-                System.out.println("  -> Aspecto botón '" + claveDelBotonEncontrado + "' actualizado. Color fondo: " + colorFondoDestino);
-            } else {
-                System.out.println("  -> Aspecto botón '" + claveDelBotonEncontrado + "' ya era el correcto. Color fondo: " + colorFondoDestino);
-            }
-        } else {
-            System.err.println("WARN [VisorView actualizarAspectoBotonToggle]: No se encontró botón en la toolbar asociado a la Action con comando: " + actionCommandParaLog);
-        }
-    }
-    
+	        // Aplicar el color SIEMPRE y asegurar opacidad, similar a actualizarEstadoControlesZoom
+	        botonAsociado.setBackground(colorFondoDestino);
+	        botonAsociado.setOpaque(true); 
+	        botonAsociado.setSelected(isSelected);
+	        // botonAsociado.repaint(); // Normalmente no es necesario, setBackground lo dispara
+
+	        System.out.println("  -> Aspecto botón '" + claveDelBotonEncontrado + "' FORZADO. Color fondo: " + colorFondoDestino);
+	    } else {
+	        System.err.println("WARN [VisorView actualizarAspectoBotonToggle]: No se encontró botón en la toolbar asociado a la Action con comando: " + actionCommandParaLog);
+	    }
+	} // --- FIN del metodo actualizarAspectoBotonToggle
 	
+	
+
 } // Fin VisorView

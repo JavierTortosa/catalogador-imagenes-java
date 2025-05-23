@@ -1,4 +1,3 @@
-// En src/controlador/factory/ActionFactory.java
 package controlador.factory;
 
 import java.awt.event.ActionEvent;
@@ -204,14 +203,6 @@ public class ActionFactory {
                 createAplicarModoZoomAction(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, "Zoom Especificado", ZoomModeEnum.USER_SPECIFIED_PERCENTAGE));
         
         
-//        actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_AUTO, createZoomAutoAction());
-//        actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, createZoomAnchoAction());
-//        actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_ALTO, createZoomAltoAction());
-//        actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, createZoomFitAction());
-//        actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_FIJO, createZoomFixedAction());
-//        actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, createZoomFijadoAction());
-        // Las Actions de zoom ya inicializan su SELECTED_KEY en sus constructores leyendo del modelo/config.
-
         // 3.3. Crear y registrar Actions de Navegación
         actionMap.put(AppActionCommands.CMD_NAV_PRIMERA, createFirstImageAction());
         actionMap.put(AppActionCommands.CMD_NAV_ANTERIOR, createPreviousImageAction());
@@ -454,13 +445,14 @@ public class ActionFactory {
    
     // --- 4.9. Métodos Create para Actions de Toggle Generales ---
     private Action createToggleSubfoldersAction() {
-   	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-    	return new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.configuration, this.model, this.controllerRef);
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+        ToggleSubfoldersAction action = new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.configuration, this.model, this.controllerRef);
+        System.out.println("ActionFactory: Creando ToggleSubfoldersAction@" + Integer.toHexString(System.identityHashCode(action))); // Log de la instancia creada
+        return action;
     }
     private Action createSetSubfolderReadModeAction(String commandKey, String displayName, boolean shoulIncludeSubfolders) {
-   	    // Los JRadioButtonMenuItems generalmente no usan iconos de la Action
-    ImageIcon icon = null; 
-    return new SetSubfolderReadModeAction(displayName, icon, this.controllerRef, shoulIncludeSubfolders, commandKey);
+        ImageIcon icon = null; // Correcto, radios no suelen tener icono de la action
+        return new SetSubfolderReadModeAction(displayName, icon, 	this.controllerRef, shoulIncludeSubfolders, commandKey);
     }
     private Action createToggleProporcionesAction() {
     ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);

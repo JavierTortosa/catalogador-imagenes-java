@@ -2,8 +2,6 @@ package vista.theme;
 
 import java.awt.Color;
 
-//Usando un Record (Java 16+) para concisión (requiere que los campos sean finales)
-//Si usas una versión anterior, crea una clase normal con campos privados finales,
 //constructor y getters públicos.
 public record Tema(
  String nombreInterno, // ej: "claro", "oscuro" (para config)
@@ -26,8 +24,6 @@ public record Tema(
  Color colorBordeSeleccionActiva
  // ... otros colores que definas ...
 ) {
- // Los Records generan automáticamente constructor, getters, equals, hashCode, toString.
- // Puedes añadir validación en el constructor canónico si es necesario:
  public Tema { // Constructor canónico compacto
      if (nombreInterno == null || nombreInterno.isBlank()) throw new IllegalArgumentException("nombreInterno no puede ser vacío");
      if (nombreDisplay == null || nombreDisplay.isBlank()) throw new IllegalArgumentException("nombreDisplay no puede ser vacío");

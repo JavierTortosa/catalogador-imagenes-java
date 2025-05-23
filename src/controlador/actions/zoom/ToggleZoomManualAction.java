@@ -1,4 +1,3 @@
-// En src/controlador/actions/zoom/ToggleZoomManualAction.java
 package controlador.actions.zoom;
 
 import java.awt.event.ActionEvent;

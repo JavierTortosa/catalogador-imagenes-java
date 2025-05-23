@@ -1,4 +1,3 @@
-// En src/controlador/actions/toggle/ToggleSubfoldersAction.java
 package controlador.actions.toggle;
 
 import java.awt.event.ActionEvent;
@@ -49,24 +48,38 @@ public class ToggleSubfoldersAction extends AbstractAction {
         }
     }
 
+
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controllerRef == null) { 
-            System.err.println("ERROR CRÍTICO [ToggleSubfoldersAction]: controllerRef es nulo.");
+        if (controllerRef == null || modelRef == null) {
+            System.err.println("ERROR CRÍTICO [ToggleSubfoldersAction]: controllerRef o modelRef es nulo.");
             return;
         }
         
-        // El componente UI ya actualizó la propiedad Action.SELECTED_KEY.
-        // Este es el estado AL QUE SE QUIERE IR.
-        boolean nuevoEstadoDeseadoParaIncluirSubcarpetas = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
-
-        System.out.println("[ToggleSubfoldersAction actionPerformed] El componente UI cambió SELECTED_KEY a: " + nuevoEstadoDeseadoParaIncluirSubcarpetas);
-        System.out.println("  -> Llamando a controllerRef.setMostrarSubcarpetasLogicaYUi(" + nuevoEstadoDeseadoParaIncluirSubcarpetas + ")");
+        // 1. Leer el estado ACTUAL del modelo para "incluir subcarpetas"
+        boolean actualmenteIncluyeSubcarpetas = !modelRef.isMostrarSoloCarpetaActual();
         
+        // 2. Determinar el NUEVO estado deseado invirtiendo el estado actual del modelo
+        boolean nuevoEstadoDeseadoParaIncluirSubcarpetas = !actualmenteIncluyeSubcarpetas;
+
+        System.out.println("[ToggleSubfoldersAction actionPerformed] Estado actual (incluir sub): " + actualmenteIncluyeSubcarpetas + 
+                           ". Solicitando cambiar a (incluir sub): " + nuevoEstadoDeseadoParaIncluirSubcarpetas);
+        
+        // 3. Llamar al controlador para que aplique la lógica Y ACTUALICE EL MODELO
+        //    Asumimos que setMostrarSubcarpetasLogicaYUi actualiza el modelo y devuelve true si hubo un cambio real.
+        //    Si no devuelve un booleano, podemos comparar el estado del modelo antes y después.
         controllerRef.setMostrarSubcarpetasLogicaYUi(nuevoEstadoDeseadoParaIncluirSubcarpetas);
+
+        // 4. DESPUÉS de que el controlador haya actualizado el modelo,
+        //    sincronizar el SELECTED_KEY de ESTA Action con el nuevo estado REAL del modelo.
+        //    También se deben sincronizar los radios del menú y el aspecto del botón.
+        //    VisorController.setMostrarSubcarpetasLogicaYUi llama a sincronizarUiControlesSubcarpetas,
+        //    y sincronizarUiControlesSubcarpetas llama a this.sincronizarSelectedKeyConModelo().
+        //    Así que el SELECTED_KEY de esta Action se actualizará a través de ese camino.
+        //    Y también se llamará a view.actualizarAspectoBotonToggle() para el botón.
     }
 
-    // MÉTODO A AÑADIR / CORREGIR:
+
     /**
      * Actualiza el estado SELECTED_KEY de esta Action para que coincida
      * con el estado actual del modelo respecto a la inclusión de subcarpetas.

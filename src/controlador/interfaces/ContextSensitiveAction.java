@@ -1,4 +1,4 @@
-package controlador.interfaces; // Paquete para interfaces
+package controlador.interfaces; 
 
 import modelo.VisorModel;
 

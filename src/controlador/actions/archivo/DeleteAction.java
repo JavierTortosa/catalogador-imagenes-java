@@ -1,4 +1,3 @@
-// En src/controlador/actions/archivo/DeleteAction.java
 package controlador.actions.archivo;
 
 import java.awt.event.ActionEvent;

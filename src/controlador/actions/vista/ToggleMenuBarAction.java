@@ -1,4 +1,3 @@
-// En src/controlador/actions/vista/ToggleMenuBarAction.java
 package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;

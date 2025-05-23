@@ -1,4 +1,3 @@
-// En src/controlador/actions/toggle/ToggleProporcionesAction.java
 package controlador.actions.toggle;
 
 import java.awt.event.ActionEvent;
@@ -49,21 +48,32 @@ public class ToggleProporcionesAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controllerRef == null) {
-            System.err.println("ERROR CRÍTICO [ToggleProporcionesAction]: controllerRef es nulo.");
+        // 1. Validar dependencias (controllerRef y modelRef)
+        if (controllerRef == null || modelRef == null) {
+            System.err.println("ERROR CRÍTICO [ToggleProporcionesAction]: controllerRef o modelRef es nulo.");
             return;
         }
 
-        // El componente UI (JCheckBoxMenuItem o JToggleButton) ya actualizó
-        // la propiedad Action.SELECTED_KEY de ESTA Action al nuevo estado.
-        boolean nuevoEstadoMantenerProporciones = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
+        // 2. Leer el estado ACTUAL de "mantener proporciones" desde el VisorModel.
+        boolean actualmenteMantieneProporciones = modelRef.isMantenerProporcion();
 
-        System.out.println("[ToggleProporcionesAction actionPerformed] El componente UI cambió SELECTED_KEY a: " + nuevoEstadoMantenerProporciones);
-        System.out.println("  -> Llamando a controllerRef.setMantenerProporcionesLogicaYUi(" + nuevoEstadoMantenerProporciones + ")");
+        // 3. Determinar el NUEVO estado deseado invirtiendo el estado actual del modelo.
+        boolean nuevoEstadoDeseadoMantenerProporciones = !actualmenteMantieneProporciones;
 
-        // Delegar toda la lógica (actualizar modelo, config, refrescar imagen, sincronizar otros controles UI)
-        // a un método centralizado en VisorController.
-        controllerRef.setMantenerProporcionesLogicaYUi(nuevoEstadoMantenerProporciones);
+        System.out.println("[ToggleProporcionesAction actionPerformed] Estado actual (mantener prop): " + actualmenteMantieneProporciones +
+                           ". Solicitando cambiar a (mantener prop): " + nuevoEstadoDeseadoMantenerProporciones);
+        
+        // 4. Llamar al método en VisorController para que aplique la lógica
+        //    (actualizar modelo, config, y sincronizar toda la UI relacionada, incluyendo
+        //    el SELECTED_KEY de esta Action y la apariencia del botón).
+        controllerRef.setMantenerProporcionesLogicaYUi(nuevoEstadoDeseadoMantenerProporciones);
+
+        // No es necesario actualizar Action.SELECTED_KEY aquí directamente.
+        // VisorController.setMantenerProporcionesLogicaYUi(...)
+        //   -> llama a VisorController.sincronizarUiControlesProporciones(...)
+        //     -> llama a this.sincronizarSelectedKeyConModelo(...)
+        // Esto asegura que el SELECTED_KEY de la Action se actualice después de que el modelo
+        // haya sido modificado y sea la fuente de verdad.
     }
 
     /**

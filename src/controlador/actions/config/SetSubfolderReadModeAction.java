@@ -1,4 +1,3 @@
-// Crear en: controlador.actions.config.SetSubfolderReadModeAction.java (o similar)
 package controlador.actions.config; // O el paquete que prefieras para este tipo de action
 
 import java.awt.event.ActionEvent;
@@ -9,7 +8,6 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 
 import controlador.VisorController; // O FileOperationsManager
-// Importa otras clases necesarias como AppActionCommands
 
 public class SetSubfolderReadModeAction extends AbstractAction {
 
@@ -38,16 +36,9 @@ public class SetSubfolderReadModeAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         System.out.println("[" + getClass().getSimpleName() + "] ejecutada. Estableciendo modo incluir subcarpetas a: " + modoIncluirSubcarpetasAlQueEstablece);
         
-        // Llamar al método en VisorController (o FileOperationsManager) que realmente cambia la configuración
-        // y dispara la recarga.
-        // El método setMostrarSubcarpetasAndUpdateConfig en VisorController ya existe.
-        // Si lo movemos a FileOperationsManager, la llamada cambiaría.
         if (controller != null) {
             controller.setMostrarSubcarpetasAndUpdateConfig(this.modoIncluirSubcarpetasAlQueEstablece);
         } 
-        // else if (fileOpsManager != null) {
-        //     fileOpsManager.setMostrarSubcarpetasConfig(this.modoIncluirSubcarpetasAlQueEstablece, /* callback opcional */);
-        // } 
         else {
             System.err.println("ERROR CRÍTICO [" + getClass().getSimpleName() + "]: Controller (o FileOpsManager) es nulo.");
         }

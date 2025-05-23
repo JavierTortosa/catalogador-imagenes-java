@@ -1,4 +1,3 @@
-// En src/controlador/actions/archivo/OpenFileAction.java
 package controlador.actions.archivo;
 
 import java.awt.event.ActionEvent;
