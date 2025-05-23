@@ -206,7 +206,10 @@ public class AppInitializer {
 
             // Aplicar configuración de comportamiento al modelo
             boolean cargarSubcarpetas = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
-            
+            boolean zoomManualInicialActivo = this.configuration.getBoolean(
+            		ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO, true);// Valor por defecto si la clave no existe en el archivo (aunque debería estar en DEFAULT_CONFIG)
+            this.model.setZoomHabilitado(zoomManualInicialActivo);
+            System.out.println("    -> Modelo: Zoom manual inicial activo (desde config 'comportamiento...'): " + zoomManualInicialActivo);
             this.model.setMostrarSoloCarpetaActual(!cargarSubcarpetas); 
             boolean mantenerProp = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true); // Clave de config directa
             this.model.setMantenerProporcion(mantenerProp);
@@ -455,6 +458,9 @@ public class AppInitializer {
             this.controller.establecerCarpetaRaizDesdeConfigInternal();
             // this.controller.configurarComponentActionsInternal(); // Los builders se encargan de setAction
             this.controller.aplicarConfigAlaVistaInternal(); // Aplica config de visibilidad/enabled a botones/menús
+            
+            this.controller.sincronizarEstadoVisualBotonesYRadiosZoom();
+            
             this.controller.cargarEstadoInicialInternal();   // Carga la carpeta/imagen inicial
             this.controller.configurarListenersVistaInternal(); // Configura listeners principales de la vista
             this.controller.interceptarAccionesTecladoListas();

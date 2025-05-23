@@ -72,6 +72,7 @@ import controlador.actions.config.SetSubfolderReadModeAction;
 import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
+import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
 import controlador.managers.ZoomManager;
 import controlador.worker.BuscadorArchivosWorker;
@@ -85,7 +86,6 @@ import vista.VisorView;
 import vista.config.ViewUIConfig;
 import vista.dialogos.ProgresoCargaDialog;
 import vista.renderers.MiniaturaListCellRenderer;
-import vista.theme.Tema;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 import vista.util.ImageDisplayUtils;
@@ -759,7 +759,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                     	
                     	
                     	//LOG VisorController DEBUG
-                    	System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
+//                    	System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
                         this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
                     }
                 }
@@ -840,7 +840,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                     //          Esto hará que la imagen se redibuje con los nuevos offsets.
                     
                     //LOG VisorController DEBUG
-                    System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
+//                    System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
                     VisorController.this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
                     
                     // (Opcional) Log para depuración:
@@ -2001,7 +2001,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                         System.out.println("      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...");
                         
                         // LOG VisorController DEBUG
-                        System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
+//                        System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
                         zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
                         System.out.println("      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).");
 
@@ -3309,7 +3309,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              if (this.zoomManager != null) {
 
             	 //LOG VisorController DEBUG
-                 System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
+//                 System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
                  this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
                  
              } else {
@@ -4556,7 +4556,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
       * - (Implícitamente, guarda también el estado de la ventana si fue actualizado
       *   en el ConfigurationManager antes de llamar a este método).
       */
-     private void guardarConfiguracionActual() { //weno
+     private void guardarConfiguracionActual() { 
          // 1. Validar dependencias críticas (Config, Vista, Modelo)
          if (configuration == null || view == null || model == null) {
              System.err.println("ERROR [guardarConfiguracionActual]: Configuración, Vista o Modelo nulos. No se puede guardar.");
@@ -4579,8 +4579,16 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         	 // 3.2. Última imagen seleccionada
              estadoActualParaGuardar.put("inicio.imagen", model.getSelectedImageKey() != null ? model.getSelectedImageKey() : "");
              
-             // 3.3. Modo subcarpetas
+             // 3.3. Modo subcarpetas y zoom manual
              estadoActualParaGuardar.put("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(!model.isMostrarSoloCarpetaActual()));
+             if (this.model != null) {
+                 estadoActualParaGuardar.put(
+                     ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO,
+                     String.valueOf(this.model.isZoomHabilitado()) // Guardar el estado real del modelo
+                 );
+                 System.out.println("    -> Modelo: Guardando estado de zoomHabilitado: " + this.model.isZoomHabilitado() + 
+                                    " en clave: " + ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO);
+             }
              
              // 3.4. Configuración de miniaturas (si se pudieran cambiar)
              estadoActualParaGuardar.put("miniaturas.cantidad.antes", String.valueOf(model.getMiniaturasAntes()));
@@ -4592,14 +4600,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              
              // 3.5. Estado de toggles (leer desde la Action asociada es más fiable que desde el modelo)
 
-              Action toggleZoomManualAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE) : null;
-              if (toggleZoomManualAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.activar_zoom_manual.seleccionado", String.valueOf(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY))));
-              Action toggleProporcionesAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES) : null;
-              if (toggleProporcionesAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.mantener_proporciones.seleccionado", String.valueOf(Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY))));
-              // Estado subcarpetas (ya se guarda arriba desde el modelo, pero reconfirmar desde Action no hace daño)
-              // if (toggleSubfoldersAction != null) estadoActualParaGuardar.put("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY))));
-
-              // System.out.println("    -> Estado del Modelo recopilado."); // Log opcional
+             Action toggleZoomManualAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE) : null;
+             if (toggleZoomManualAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.activar_zoom_manual.seleccionado", 
+	                     String.valueOf(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY))));
+	         Action toggleProporcionesAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES) : null;
+	         if (toggleProporcionesAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.mantener_proporciones.seleccionado", 
+	        		 String.valueOf(Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY))));
+              
          } catch (Exception e) { System.err.println("ERROR recopilando estado del Modelo: " + e.getMessage()); }
 
          // 4. Actualizar el mapa con el estado de la Vista (Enabled/Visible/Selected)
@@ -5596,7 +5603,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	     System.out.println("  -> Solicitando a ZoomManager que refresque la imagen principal...");
 	     
 	     //LOG VisorController DEBUG
-	     System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
+//	     System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
 	     zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
 	
 	     System.out.println("[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.");
@@ -5629,7 +5636,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	    String claveAntesDelCambio = model.getSelectedImageKey(); 
 	    System.out.println("  -> Solicitando recarga de lista de imágenes (manteniendo si es posible: " + claveAntesDelCambio + ")");
 	    
-	    System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE CARGAR LISTA: model.isMostrarSoloCarpetaActual()=" + model.isMostrarSoloCarpetaActual());
+//	    System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE CARGAR LISTA: model.isMostrarSoloCarpetaActual()=" + model.isMostrarSoloCarpetaActual());
 	    
 	    //LOG 
 	    claveAntesDelCambio = model.getSelectedImageKey();
@@ -5765,7 +5772,24 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     } // --- FIN del metodo sincronizarUiControlesSubcarpetas
     
     
+    public void sincronizarEstadoVisualBotonesYRadiosZoom() {
+        if (this.actionMap == null || this.model == null || this.view == null) {
+            System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: actionMap, model o view nulos.");
+            return;
+        }
+        System.out.println("[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: " + model.getCurrentZoomMode());
 
+        for (Action action : this.actionMap.values()) {
+            if (action instanceof AplicarModoZoomAction) {
+                AplicarModoZoomAction zoomAction = (AplicarModoZoomAction) action;
+                zoomAction.sincronizarEstadoSeleccionConModelo(); // Esto actualiza el SELECTED_KEY de la Action (y por ende del JRadioButtonMenuItem)
+                
+                // Ahora, actualizar el aspecto del botón de la toolbar asociado a esta zoomAction
+                this.view.actualizarAspectoBotonToggle(zoomAction, Boolean.TRUE.equals(zoomAction.getValue(Action.SELECTED_KEY)));
+            }
+        }
+    } // FIN del metodo sincronizarEstadoVisualBotonesYRadiosZoom
+    
     
 // ********************************************************************************************* FIN METODOS DE SINCRONIZACION
 // ***************************************************************************************************************************    

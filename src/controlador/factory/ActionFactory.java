@@ -311,7 +311,7 @@ public class ActionFactory {
     private Action createAplicarModoZoomAction(String commandKey, String displayName, ZoomModeEnum modo) {
         ImageIcon icon = getIconForCommand(commandKey); 
         // Pasamos this.model a AplicarModoZoomAction
-        return new AplicarModoZoomAction(this.zoomManager, this.model, displayName, icon, modo, commandKey);
+        return new AplicarModoZoomAction(this.zoomManager, this.model, this.controllerRef, displayName, icon, modo, commandKey);
     }
     
     // --- 4.4. Métodos Create para Actions de Navegación ---

@@ -53,6 +53,7 @@ public class VisorModel
 		// Valores iniciales por defecto (podrían ser sobrescritos por config)
 		currentImage = null;
 		selectedImageKey = null;
+		//FIXME zoomHabilitado se deberia establecer en el config inicial no a mano....
 		zoomHabilitado = false;// Estado inicial funcional razonable
         zoomFactor = 1.0;     // Estado inicial funcional razonable
         imageOffsetX = 0;

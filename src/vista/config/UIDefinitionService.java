@@ -302,13 +302,13 @@ public class UIDefinitionService {
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_RECORTAR, "2005-Recortar_48x48.png", "Recortar", "edicion"));
 
         // Grupo Zoom
-        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-Zoom_48x48.png", "Activar/Desactivar Zoom Manual", "zoom"));
+        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, "3005-Escalar_Para_Ajustar_48x48.png", "Escalar para Ajustar", "zoom"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AUTO, "3002-Zoom_Auto_48x48.png", "Zoom Automático", "zoom"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, "3003-Ajustar_al_Ancho_48x48.png", "Ajustar al Ancho", "zoom"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, "3004-Ajustar_al_Alto_48x48.png", "Ajustar al Alto", "zoom"));
-        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, "3005-Escalar_Para_Ajustar_48x48.png", "Escalar para Ajustar", "zoom"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, "3006-Zoom_Fijo_48x48.png", "Zoom Actual Fijo", "zoom"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, "3007-zoom_especifico_48x48.png", "Zoom Especificado", "zoom")); // Ojo: nombre icono
+        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-Zoom_48x48.png", "Activar/Desactivar Zoom Manual", "zoom"));
         toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, "3008-Reset_48x48.png", "Resetear Zoom", "zoom"));
 
         // Grupo Vista

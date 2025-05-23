@@ -46,6 +46,7 @@ public class ConfigurationManager
 
     // --- 	CONSTANTES PARA COMPORTAMIENTO ---
     public static final String KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE = "comportamiento.display.zoom.initial_mode";
+    public static final String KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO = "comportamiento.zoom.manual_inicial_activo";
     
     
 	static
@@ -437,7 +438,9 @@ public class ConfigurationManager
 		// Comportamiento
 			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
 			defaults.put("comportamiento.carga.conRutas", "false");
-			defaults.put("comportamiento.display.zoom.initial_mode", "FIT_TO_SCREEN");
+			//defaults.put("comportamiento.display.zoom.initial_mode", "FIT_TO_SCREEN");
+			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE, "FIT_TO_SCREEN");
+			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO, "true");
 			
 		// Ventana de la aplicacion
 	        // Usar -1 para indicar que no hay posición/tamaño guardado (usar defaults del sistema/pack)
@@ -511,7 +514,7 @@ public class ConfigurationManager
     	//-- Zoom --
 			defaults.put("interfaz.boton.zoom.Zoom_48x48.activado", "true");	
 			defaults.put("interfaz.boton.zoom.Zoom_48x48.visible", "true");
-			defaults.put("interfaz.boton.zoom.Reset_48x48.activado", "false");	
+			defaults.put("interfaz.boton.zoom.Reset_48x48.activado", "true");	
 			defaults.put("interfaz.boton.zoom.Reset_48x48.visible", "true");	
 			defaults.put("interfaz.boton.zoom.Zoom_Auto_48x48.activado", "true");
 			defaults.put("interfaz.boton.zoom.Zoom_Auto_48x48.visible", "true");
@@ -640,8 +643,8 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.zoom.mantener_proporciones.seleccionado", "true");
 		defaults.put("interfaz.menu.zoom.activar_zoom_manual.activado", "true");
 		defaults.put("interfaz.menu.zoom.activar_zoom_manual.visible", "true");
-		defaults.put("interfaz.menu.zoom.activar_zoom_manual.seleccionado", "false");// = false # Zoom desactivado
-		defaults.put("interfaz.menu.zoom.resetear_zoom.activado", "false");// # ligado a zoom\n");
+//		defaults.put("interfaz.menu.zoom.activar_zoom_manual.seleccionado", "true");// = false # Zoom desactivado
+		defaults.put("interfaz.menu.zoom.resetear_zoom.activado", "true");// # ligado a zoom\n");
 		defaults.put("interfaz.menu.zoom.resetear_zoom.visible", "true");
 
 		defaults.put("interfaz.menu.zoom.Tipos_de_Zoom.activado", "true");
