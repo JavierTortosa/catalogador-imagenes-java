@@ -48,6 +48,8 @@ public class LocateFileAction extends AbstractAction implements ContextSensitive
             System.err.println("ERROR [LocateFileAction]: Model (modelRef) es null.");
             return;
         }
+        
+        
 
         String selectedKey = modelRef.getSelectedImageKey();
         if (selectedKey == null || selectedKey.isEmpty()) {
@@ -65,43 +67,86 @@ public class LocateFileAction extends AbstractAction implements ContextSensitive
              return;
         }
 
-        Path directoryPath = filePath.getParent();
-        if (directoryPath == null || !Files.isDirectory(directoryPath)) {
-             System.err.println("ERROR [LocateFileAction]: No se pudo obtener el directorio padre para: " + filePath);
-              JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
-                      "No se pudo determinar la carpeta contenedora.", "Error al Localizar", JOptionPane.ERROR_MESSAGE);
-             return;
-        }
+     // --- INICIO CÓDIGO MODIFICADO PARA SELECCIONAR ARCHIVO ---
+        String osName = System.getProperty("os.name").toLowerCase();
 
-        if (Desktop.isDesktopSupported()) {
-            Desktop desktop = Desktop.getDesktop();
-            if (desktop.isSupported(Desktop.Action.OPEN)) {
-                try {
-                    desktop.open(directoryPath.toFile());
-                } catch (IOException ioe) {
-                     System.err.println("ERROR [LocateFileAction]: IOException al intentar abrir el directorio: " + ioe.getMessage());
-                     JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
-                             "Error al intentar abrir la carpeta:\n" + ioe.getMessage(), "Error de Apertura", JOptionPane.ERROR_MESSAGE);
-                } catch (SecurityException se) {
-                     System.err.println("ERROR [LocateFileAction]: SecurityException: " + se.getMessage());
-                      JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
-                              "No se tienen permisos para abrir la carpeta.", "Error de Permisos", JOptionPane.ERROR_MESSAGE);
-                } catch (UnsupportedOperationException uoe) {
-                     System.err.println("ERROR [LocateFileAction]: Operación OPEN no soportada: " + uoe.getMessage());
-                      JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
-                              "La apertura de carpetas no es compatible con este sistema.", "Operación no Soportada", JOptionPane.WARNING_MESSAGE);
+        try {
+            if (osName.contains("win")) {
+                // Comando específico de Windows para abrir el explorador y seleccionar el archivo
+                String command = "explorer.exe /select,\"" + filePath.toAbsolutePath().toString() + "\"";
+                System.out.println("  [LocateFileAction] Ejecutando en Windows: " + command);
+                Runtime.getRuntime().exec(command);
+            } else if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.OPEN)) {
+                // Fallback para otros sistemas operativos (o si el comando de Windows falla por alguna razón):
+                // Abrir solo el directorio padre.
+                Path directoryPath = filePath.getParent();
+                if (directoryPath != null && Files.isDirectory(directoryPath)) {
+                    System.out.println("  [LocateFileAction] Abriendo directorio padre en SO no Windows (o fallback): " + directoryPath);
+                    Desktop.getDesktop().open(directoryPath.toFile());
+                } else {
+                    throw new IOException("No se pudo obtener el directorio padre.");
                 }
             } else {
-                 System.err.println("ERROR [LocateFileAction]: La acción Desktop.Action.OPEN no es soportada.");
-                  JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
-                          "La apertura de carpetas no es compatible con este sistema.", "Operación no Soportada", JOptionPane.WARNING_MESSAGE);
+                System.err.println("ERROR [LocateFileAction]: La API Desktop o la acción OPEN no son soportadas.");
+                JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+                        "La interacción con el explorador de archivos no es compatible con este sistema.", "Funcionalidad no Soportada", JOptionPane.WARNING_MESSAGE);
             }
-        } else {
-            System.err.println("ERROR [LocateFileAction]: La API Desktop no es soportada.");
-             JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
-                     "La interacción con el escritorio no es compatible con este sistema.", "Funcionalidad no Soportada", JOptionPane.WARNING_MESSAGE);
+        } catch (IOException ioe) {
+            System.err.println("ERROR [LocateFileAction]: IOException: " + ioe.getMessage());
+            JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+                    "Error al intentar interactuar con el explorador de archivos:\n" + ioe.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } catch (SecurityException se) {
+            System.err.println("ERROR [LocateFileAction]: SecurityException: " + se.getMessage());
+            JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+                    "No se tienen permisos para esta operación.", "Error de Permisos", JOptionPane.ERROR_MESSAGE);
+        } catch (UnsupportedOperationException uoe) {
+            System.err.println("ERROR [LocateFileAction]: Operación no soportada: " + uoe.getMessage());
+            JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+                    "Esta operación no es compatible con este sistema.", "Operación no Soportada", JOptionPane.WARNING_MESSAGE);
         }
+        // --- FIN CÓDIGO MODIFICADO ---
     }
+        
+        
+        
+        
+//        Path directoryPath = filePath.getParent();
+//        if (directoryPath == null || !Files.isDirectory(directoryPath)) {
+//             System.err.println("ERROR [LocateFileAction]: No se pudo obtener el directorio padre para: " + filePath);
+//              JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+//                      "No se pudo determinar la carpeta contenedora.", "Error al Localizar", JOptionPane.ERROR_MESSAGE);
+//             return;
+//        }
+//
+//        if (Desktop.isDesktopSupported()) {
+//            Desktop desktop = Desktop.getDesktop();
+//            if (desktop.isSupported(Desktop.Action.OPEN)) {
+//                try {
+//                    desktop.open(directoryPath.toFile());
+//                } catch (IOException ioe) {
+//                     System.err.println("ERROR [LocateFileAction]: IOException al intentar abrir el directorio: " + ioe.getMessage());
+//                     JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+//                             "Error al intentar abrir la carpeta:\n" + ioe.getMessage(), "Error de Apertura", JOptionPane.ERROR_MESSAGE);
+//                } catch (SecurityException se) {
+//                     System.err.println("ERROR [LocateFileAction]: SecurityException: " + se.getMessage());
+//                      JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+//                              "No se tienen permisos para abrir la carpeta.", "Error de Permisos", JOptionPane.ERROR_MESSAGE);
+//                } catch (UnsupportedOperationException uoe) {
+//                     System.err.println("ERROR [LocateFileAction]: Operación OPEN no soportada: " + uoe.getMessage());
+//                      JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+//                              "La apertura de carpetas no es compatible con este sistema.", "Operación no Soportada", JOptionPane.WARNING_MESSAGE);
+//                }
+//            } else {
+//                 System.err.println("ERROR [LocateFileAction]: La acción Desktop.Action.OPEN no es soportada.");
+//                  JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+//                          "La apertura de carpetas no es compatible con este sistema.", "Operación no Soportada", JOptionPane.WARNING_MESSAGE);
+//            }
+//        } else {
+//            System.err.println("ERROR [LocateFileAction]: La API Desktop no es soportada.");
+//             JOptionPane.showMessageDialog(viewRef != null ? viewRef.getFrame() : null,
+//                     "La interacción con el escritorio no es compatible con este sistema.", "Funcionalidad no Soportada", JOptionPane.WARNING_MESSAGE);
+//        }
+//    }
 
     // Implementación del método de la interfaz ContextSensitiveAction
     @Override

@@ -97,7 +97,8 @@ Hoy, te iré pasando el código de las clases específicas (VisorController.java
 Por favor, cíñete estrictamente a la clase/método que te indique en cada momento y proporciona solo el código o las modificaciones para esa parte específica. No te adelantes a otras clases o funcionalidades hasta que yo te lo pida y te confirme que el paso anterior está completado y funcionando (o al menos compilando sin errores relevantes para ese paso).
 
 		 
-		 
+*************************************************************************************************************************
+************************************************************************************************************************* 
 
 Aquí tienes un prompt que puedes usar cuando vuelvas, describiendo nuestro progreso y las clases clave involucradas.
 
@@ -208,3 +209,80 @@ Continuar refactorizando las clases `Action` restantes (las que aún causan erro
 ---
 
 Cuando estés listo, dime con qué clase `Action` (o con qué error de compilación específico en `ActionFactory`) quieres continuar. ¡Buen descanso!
+
+*************************************************************************************************************************
+*************************************************************************************************************************
+
+¡Excelente idea organizar las tareas pendientes! Aquí tienes un prompt que puedes usar para cuando retomemos el tema de las barras de estado/información. Incluye un resumen de lo que discutimos y una lista de las clases clave que hemos estado modificando.
+
+---
+
+**Prompt para Retomar: Implementación de Barras de Información y Estado**
+
+**Contexto General del Proyecto:**
+Estoy desarrollando una aplicación de escritorio en Java/Swing llamada "Visor/Catalogador de Imágenes".
+
+**Objetivo Actual de la Conversación:**
+Queremos implementar/mejorar las barras de información en la aplicación. Hemos discutido tener dos barras principales:
+
+1.  **Barra de Información Superior (Nueva):**
+    *   **Ubicación:** Debajo de la toolbar principal, encima del visor de imagen.
+    *   **Contenido (Display Principal):**
+        *   Nombre del Archivo (solo nombre, la ruta completa irá en la barra inferior).
+        *   Índice Actual / Total de Imágenes en la lista cargada (ej. "15/166").
+        *   Dimensiones Originales de la imagen actual (ej. "1920x1080").
+        *   Tamaño del Archivo en disco (ej. "1.2MB").
+        *   Fecha de Modificación del Archivo.
+        *   Nombre del Modo de Zoom Activo (ej. "Ajustar a Pantalla", "Zoom 100%").
+        *   **% Zoom Visual Resultante:** El factor de escala efectivo con el que se ve la imagen (`(int)(model.getZoomFactor() * 100) + "%"`).
+    *   **Funcionalidad Adicional Planeada (para después de la implementación básica):**
+        *   Hacer que el `% Zoom Visual Resultante` sea clickeable para abrir un `JPopupMenu` con valores predefinidos (25%, 50%, 100%, "Otro...") que, al seleccionarse, establezcan el `zoom.personalizado.porcentaje` en la configuración y activen el modo `USER_SPECIFIED_PERCENTAGE`.
+
+2.  **Barra de Estado/Control Inferior (Evolución de la existente):**
+    *   **Sección Izquierda:**
+        *   Ruta Completa + Nombre del Archivo (para facilitar copiar/pegar, especialmente útil mientras `LocateFileAction` no selecciona el archivo directamente en todos los SO).
+    *   **Sección Centro/Derecha (Controles Rápidos y Estados):**
+        *   **Control "% Zoom Especificado":** Un `JButton` (o similar) que muestra el último % usado para "Zoom Especificado". Al hacer clic, abre un `JPopupMenu` (50%, 100%, "Otro...") para establecer un nuevo % y activar el modo `USER_SPECIFIED_PERCENTAGE`.
+        *   **Control "Modo de Zoom Actual":** Un `JButton` (o similar) con el *icono* del modo de zoom actualmente activo. Al hacer clic, abre un `JPopupMenu` para cambiar a otro modo de zoom (`DISPLAY_ORIGINAL`, `FIT_TO_WIDTH`, etc.).
+        *   **Indicadores/Toggles Visuales Clickeables:**
+            *   Zoom Manual (icono lupa, fondo cambia verde/normal).
+            *   Mantener Proporciones (icono, fondo cambia).
+            *   Modo Subcarpetas (icono, fondo cambia).
+            *   (Potencialmente otros toggles importantes si la toolbar principal está oculta).
+    *   **Sección Extrema Derecha (o compartida):**
+        *   `JLabel` para mensajes temporales de la aplicación (errores no críticos, confirmaciones).
+
+**Consideraciones de Diseño Discutidas:**
+*   La funcionalidad de "pantalla completa" (`F11`) ocultará todas estas barras y la toolbar/menú. `Esc` para salir.
+*   Si la barra de menú principal está oculta (toggle desde menú Vista), el botón `CMD_ESPECIAL_MENU` en la toolbar se usará para acceder a las funciones del menú a través de un `JPopupMenu`.
+*   A largo plazo, el usuario podría configurar qué elementos aparecen en qué barra ("megaconfig").
+*   La `LocateFileAction` se mejoró para Windows, pero la idea de "Copiar Ruta" como acción separada sigue siendo válida.
+
+**Estado Actual de la Conversación (Antes de Implementar Barras):**
+Nos encontrábamos depurando y refinando el comportamiento de los **modos de zoom** y la funcionalidad de los **botones toggle** ("Mostrar Subcarpetas", "Mantener Proporciones"). También acabamos de abordar un problema de rendimiento al cargar carpetas con muchas imágenes, enfocándonos en limitar el precalentamiento de miniaturas y asegurar que `JList` maneje los datos eficientemente.
+
+**Tarea Inmediata Propuesta (para cuando retomemos las barras):**
+Comenzar con la implementación de la **Barra de Información Superior básica**, solo con los `JLabel`s de display para la información más fácil de obtener, y crear la lógica en `VisorController` (o un nuevo `InfoBarManager`) para actualizarla cuando cambie la imagen seleccionada o el estado del zoom/toggles.
+
+**Clases Clave que Necesitaré Revisar para Actualizarme (cuando abramos nueva sesión):**
+1.  `controlador.VisorController`
+2.  `controlador.AppInitializer`
+3.  `modelo.VisorModel`
+4.  `vista.VisorView`
+5.  `controlador.managers.ZoomManager`
+6.  `controlador.ListCoordinator`
+7.  `servicios.ConfigurationManager`
+8.  `vista.util.ImageDisplayUtils`
+9.  Las `Action`s de toggle principales:
+    *   `controlador.actions.toggle.ToggleSubfoldersAction`
+    *   `controlador.actions.toggle.ToggleProporcionesAction`
+    *   `controlador.actions.zoom.ToggleZoomManualAction`
+10. Las `Action`s de modo de zoom:
+    *   `controlador.actions.zoom.AplicarModoZoomAction`
+11. `vista.config.ViewUIConfig` (para ver cómo se pasan los colores y referencias)
+
+---
+
+Este prompt debería darte un buen punto de partida para cuando quieras volver a enfocarte en las barras de información. Cubre la visión, las decisiones clave que tomamos y las clases más relevantes para esa tarea específica.
+
+Ahora, volviendo al problema de la carga de carpetas "monstruo": ¡dime qué observas con el log y los cambios para limitar el precalentamiento y el `setPrototypeCellValue`!

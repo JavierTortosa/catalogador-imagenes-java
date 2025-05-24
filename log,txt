@@ -5,14 +5,16 @@ Iniciando Visor de Imágenes V2...
     -> VisorModel creado e inyectado.
 Mapa de configuración por defecto inicializado con 409 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 28 entradas.
+Config no encontrado. Creando por defecto...
+Creando config por defecto (estructura jerárquica v2.1)...
+Archivo de configuración por defecto creado en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 410
+Configuración leída. Total claves: 409
     -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración al Modelo...
     -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: FIT_TO_SCREEN
-    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: FIT_TO_WIDTH
+    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: FIT_TO_SCREEN
     -> Modelo: Zoom manual inicial activo (desde config 'comportamiento...'): true
-  [Model] Estado mantenerProporcion cambiado a: false
     -> Configuración aplicada al Modelo (Miniaturas, Comportamiento).
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
 [ThemeManager] Tema inicial establecido a: clear
@@ -82,8 +84,8 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   [ActionFactory] Inicializando todas las Actions...
 [VisorView setCheckeredBG] Solicitado: false, Actual: false
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@e1a866b
-[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: false (desde modelo)
+ActionFactory: Creando ToggleSubfoldersAction@391aa2d0
+[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 44
     B.6. [EDT] ActionFactory creada. ActionMap completo (Tamaño: 44) inyectado en Controller.
 [ViewUIConfig] Configuración UI creada con colores de tema.
@@ -91,7 +93,7 @@ ActionFactory: Creando ToggleSubfoldersAction@e1a866b
     B.7. [EDT] ViewUIConfig COMPLETO (con actionMap) actualizado en Controller y View.
     B.8. [EDT] Lista de ContextSensitiveActions inyectada en ListCoordinator.
 --- MenuBarBuilder: Construyendo menú desde estructura definida ---
-DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 829920606) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
+DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 1966040121) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
 --- MenuBarBuilder: Menú construido. Total items en mapa: 124 ---
   [VisorView] JMenuBar real asignada.
   [VisorView] Map<String, JMenuItem> real asignado. Tamaño: 124
@@ -334,7 +336,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 829920606) asignada a 
     -> Alineación determinada: CENTER
   [TB addSeparator] Añadiendo separador después de categoría: 'proyecto'
   [TB procesarDef] Def: Comando='cmd.toggle.subcarpetas', Icono='7001-Subcarpetas_48x48.png', Cat='toggle'
-ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
+ToolbarBuilder: Obtenida Action@391aa2d0 para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
     -> Action 'cmd.toggle.subcarpetas' asignada al botón.
     -> Icono obtenido de la Action.
     -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.toggle.Subcarpetas_48x48
@@ -364,31 +366,31 @@ ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a
     -> Config Botones (Vista) OK.
     -> Aplicando config a Menús (Vista)...
     -> Config Menús (Vista) OK.
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: false
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
+  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: true
   -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
     -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.
   [Apply Config View Internal] Finalizado.
-[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_WIDTH
+[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_SCREEN
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.alto, isSelected: false
   -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Alto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.especificado, isSelected: false
   -> Aspecto botón 'interfaz.boton.zoom.zoom_especifico_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.fijo, isSelected: false
   -> Aspecto botón 'interfaz.boton.zoom.Zoom_Fijo_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ajustar, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ajustar, isSelected: true
+  -> Aspecto botón 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.auto, isSelected: false
   -> Aspecto botón 'interfaz.boton.zoom.Zoom_Auto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: true
-  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: false
+  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
   [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
     -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     -> Cargando lista para carpeta inicial (desde MODELO): D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    -> Clave de imagen inicial a intentar seleccionar: A-gigante de hierro.jpg
+    -> Clave de imagen inicial a intentar seleccionar: 
 
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: A-gigante de hierro.jpg
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: 
   -> Modo búsqueda: Subcarpetas (depth=MAX)
     -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
   -> Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
@@ -396,7 +398,7 @@ ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a
   -> Diálogo y Worker creados y asociados.
   -> Añadiendo PropertyChangeListener al worker...
   -> Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: A-gigante de hierro.jpg
+-->>> FIN cargarListaImagenes(String) | Clave mantenida: 
   [Load Initial State Internal] Finalizado.
 [Controller Internal] Configurando Listeners de Vista...
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
@@ -415,12 +417,12 @@ ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a
     [EDT Internal] Sincronización UI Final completada.
     [Internal] Configurando Shutdown Hook...
     [Internal] Shutdown Hook registrado en la JVM.
+  [Worker BG] Files.walk terminado. Archivos encontrados: 170
     B.10. [EDT] Visibilidad inicial del botón Menu_48x48 (toolbar) establecida a: false
   [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
   [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
   [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.
 --- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---
-  [Worker BG] Files.walk terminado. Archivos encontrados: 170
   [Constructor EDT] Divisor JSplitPane establecido.
 [VisorView] Limpiando etiqueta de imagen principal...
   -> Etiqueta de imagen limpiada.
@@ -437,14 +439,14 @@ ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a
    -> estaCargandoLista = false.
 [Controller] Iniciando pre-calentamiento de caché para 170 miniaturas...
 [Controller] 170 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-     -> Índice final a seleccionar después de carga: 0 (intentando mantener: A-gigante de hierro.jpg)
+     -> Índice final a seleccionar después de carga: 0 (intentando mantener: )
    -> Aplicando selección inicial al índice: 0
    -> Flag seleccionInicialEnCurso puesto a TRUE.
  [EDT Worker Done] Procesamiento del resultado finalizado.
    [EDT] Diálogo de progreso cerrado o ya no visible.
+  -> Solicitando repintado inicial de listaMiniaturas.
       [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
       [WindowResized Timer - AppInitializer] Modelo no listo o sin selección oficial, no se actualizan miniaturas.
-  -> Solicitando repintado inicial de listaMiniaturas.
    -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
    -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
 >>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
@@ -456,7 +458,7 @@ ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a
 [VisorView] Mostrando indicador de carga: 'Cargando: A-gigante de hierro.jpg...'
     [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
 --> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: A-gigante de hierro.jpg
-      [BG Img Load - pool-1-thread-7] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+      [BG Img Load - pool-1-thread-8] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
         -> Índice actual en JList 'Nombres': 0
@@ -497,43 +499,938 @@ ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a
   -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
-[ToggleProporcionesAction actionPerformed] Estado actual (mantener prop): false. Solicitando cambiar a (mantener prop): true
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
-  [Model] Estado mantenerProporcion cambiado a: true
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
-  -> Solicitando a ZoomManager que refresque la imagen principal...
-  [VisorController] Reaplicando modo de zoom actual: FIT_TO_WIDTH debido a cambio de proporciones.
-[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_WIDTH
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.alto, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Alto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.especificado, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.zoom_especifico_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.fijo, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Zoom_Fijo_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ajustar, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.auto, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Zoom_Auto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: true
-  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
-[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_SCREEN
-[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_SCREEN
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.alto, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Alto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.especificado, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.zoom_especifico_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.fijo, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Zoom_Fijo_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ajustar, isSelected: true
-  -> Aspecto botón 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.auto, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Zoom_Auto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[OpenFileAction actionPerformed] Comando: cmd.archivo.abrir
+[FileManager] Iniciando selección de nueva carpeta...
+  [FileManager] Nueva carpeta seleccionada: M:\Archivos 3D
+  [VisorModel] carpetaRaizActual cambiada de 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources' a 'M:\Archivos 3D'
+
+[ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
+[ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
+[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
+Guardando configuración (preservando estructura) en config.cfg
+Claves a guardar/actualizar: 409
+Archivo de configuración actualizado exitosamente.
+
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: null
+  -> Modo búsqueda: Subcarpetas (depth=MAX)
+    -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: M:\Archivos 3D
+  -> Creando diálogo y worker para búsqueda en: M:\Archivos 3D
+[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
+  -> Diálogo y Worker creados y asociados.
+  -> Añadiendo PropertyChangeListener al worker...
+  -> Ejecutando worker y programando muestra de diálogo...
+-->>> FIN cargarListaImagenes(String) | Clave mantenida: null
+  [Worker BG] Iniciando búsqueda en M:\Archivos 3D con profundidad 2147483647
+[VisorView] Limpiando etiqueta de imagen principal...
+  -> Etiqueta de imagen limpiada.
+>>> Coordinator: Recibido de Miniaturas -> Índice Principal: -1 (Actual Oficial: 0)
+  [ListCoordinator Interno] Procesando índice: -1 (Oficial actual: 0)
+    -> Actualizando índice oficial a: -1
+    -> Delegando limpieza de UI al Controller (índice -1)
+[Controller] Limpiando UI y Modelo a estado vacío...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
+  -> Modelo limpiado.
+>>> Coordinator: Recibido de Nombres -> Índice: -1 (Actual Oficial: -1)
+    -> Ignorando (mismo índice ya seleccionado oficialmente).
+    [Asegurar Visibilidad] Índice -1, no se hace nada.
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 0
+[VisorView] Limpiando etiqueta de imagen principal...
+  -> Etiqueta de imagen limpiada.
+  -> Lista de miniaturas repintada (vacía).
+  -> Vista actualizada a estado vacío.
+[ThumbnailService] Caché de miniaturas limpiado.
+  -> Caché de miniaturas limpiado.
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.proyecto.toggle_marca, isSelected: false
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+  [ListCoordinator] Forzando actualización del estado enabled de navegación.
+[Controller] Limpieza de UI y Modelo completada.
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: -1
+    -> Llamando a sincronizarListaUI(Nombres, -1)
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: -1
+        -> Índice actual en JList 'Nombres': -1
+        -> Índice ya correcto. Asegurando solo visibilidad.
+      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
+    -> (Re)Llamando a controller.actualizarModeloYVistaMiniaturas(-1) por seguridad de rango.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: -1
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 0
+  [actualizarMiniaturas] Índice principal inválido o lista principal vacía. Limpiando UI de miniaturas y saliendo.
+--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---
+>>> Coordinator: Fin seleccionarDesdeMiniaturas(-1)
+   [EDT] Mostrando diálogo de progreso...
+    [Coordinator Flag] sincronizandoUI -> true
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
+    [Coordinator Flag] sincronizandoUI -> false
+  [Worker BG] Files.walk terminado. Archivos encontrados: 13439
+[Worker EDT] Método done() alcanzado.
+ [EDT Worker Done] Tarea de búsqueda finalizada. Procesando resultado...
+[Dialogo Progreso] Solicitud de cierre.
+  -> [EDT] Cerrando diálogo...
+  -> [EDT] Diálogo cerrado y desechado.
+  WORKER TERMINADO. Número de archivos encontrados: 13439
+   -> Resultado obtenido: 13439 archivos. Actualizando modelo y vista...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 13439
+[VisorView setListaImagenesModel]  asignado a listaNombres. asignado a listaMiniaturas. Tamaño modelo: 13439
+   -> estaCargandoLista = false.
+[Controller] Iniciando pre-calentamiento de caché para 13439 miniaturas...
+[Controller] 13439 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+     -> Índice final a seleccionar después de carga: 0 (default 0)
+   -> Aplicando selección inicial al índice: 0
+   -> Flag seleccionInicialEnCurso puesto a TRUE.
+ [EDT Worker Done] Procesamiento del resultado finalizado.
+   [EDT] Diálogo de progreso cerrado o ya no visible.
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
+>>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
+    [Coordinator Flag] sincronizandoUI -> true
+  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
+    -> Actualizando índice oficial a: 0
+    -> Delegando carga de imagen al Controller para índice: 0
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png' (Índice informativo: 0)
+[VisorView] Mostrando indicador de carga: 'Cargando: 25_to_32mm_split_ring.png...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
+        -> Índice actual en JList 'Nombres': 0
+        -> Índice ya correcto. Asegurando solo visibilidad.
+      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
+--- FIN actualizarModeloYVistaMiniaturas ---
+        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
+>>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
+   -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.
+          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
+[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
+[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
+   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Miniaturas\Lord of the Print\Free Items\Dragon+Head\images\tinycard_preview_dragonmochetestrender2.jpg
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Miniaturas\Lord of the Print\Free Items\Dragon+Head\images\medium_preview_Head01.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 1 (Actual Oficial: 0)
+  [ListCoordinator Interno] Procesando índice: 1 (Oficial actual: 0)
+    -> Actualizando índice oficial a: 1
+    -> Delegando carga de imagen al Controller para índice: 1
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring_left.png' (Índice informativo: 1)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 25_to_32mm_split_ring_left.png...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring_left.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring_left.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 1
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(1)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 1
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 1
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(1)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..9]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 10. Índice relativo seleccionado: 1
+[Controller] Iniciando pre-calentamiento de caché para 10 miniaturas...
+[Controller] 10 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=500,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 10)
+   -> [EDT Miniaturas Update] setSelectedIndex(1) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 2 (Actual Oficial: 1)
+  [ListCoordinator Interno] Procesando índice: 2 (Oficial actual: 1)
+    -> Actualizando índice oficial a: 2
+    -> Delegando carga de imagen al Controller para índice: 2
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring_right.png' (Índice informativo: 2)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 25_to_32mm_split_ring_right.png...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_split_ring_right.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_split_ring_right.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 2
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(2)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 2
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 2
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(2)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..10]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 11. Índice relativo seleccionado: 2
+[Controller] Iniciando pre-calentamiento de caché para 11 miniaturas...
+[Controller] 11 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=550,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 11)
+   -> [EDT Miniaturas Update] setSelectedIndex(2) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Wargames\GreatLibrary Patreons\Cast n Play\133-140 The Grand Tournament2.png
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Miniaturas\Lord of the Print\Free Items\Dragon+Head\images\medium_thumb_ZBrush_Document.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 3 (Actual Oficial: 2)
+  [ListCoordinator Interno] Procesando índice: 3 (Oficial actual: 2)
+    -> Actualizando índice oficial a: 3
+    -> Delegando carga de imagen al Controller para índice: 3
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_straight_wall_no_floor.png' (Índice informativo: 3)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 25_to_32mm_straight_wall_no_floor.png...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_straight_wall_no_floor.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_straight_wall_no_floor.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 3
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(3)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 3
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 3
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(3)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..11]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 12. Índice relativo seleccionado: 3
+[Controller] Iniciando pre-calentamiento de caché para 12 miniaturas...
+[Controller] 12 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=600,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 12)
+   -> [EDT Miniaturas Update] setSelectedIndex(3) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 4 (Actual Oficial: 3)
+  [ListCoordinator Interno] Procesando índice: 4 (Oficial actual: 3)
+    -> Actualizando índice oficial a: 4
+    -> Delegando carga de imagen al Controller para índice: 4
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_with_straight_wall_floor.png' (Índice informativo: 4)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 25_to_32mm_with_straight_wall_floor.png...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\25_to_32mm_with_straight_wall_floor.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/25_to_32mm_with_straight_wall_floor.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 4
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(4)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 4
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 4
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(4)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..12]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 13. Índice relativo seleccionado: 4
+[Controller] Iniciando pre-calentamiento de caché para 13 miniaturas...
+[Controller] 13 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=650,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 13)
+   -> [EDT Miniaturas Update] setSelectedIndex(4) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 5 (Actual Oficial: 4)
+  [ListCoordinator Interno] Procesando índice: 5 (Oficial actual: 4)
+    -> Actualizando índice oficial a: 5
+    -> Delegando carga de imagen al Controller para índice: 5
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/32mm_adaptors.jpg' (Índice informativo: 5)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 32mm_adaptors.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\32mm_adaptors.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/32mm_adaptors.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 5
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(5)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 5
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 5
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(5)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..13]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 14. Índice relativo seleccionado: 5
+[Controller] Iniciando pre-calentamiento de caché para 14 miniaturas...
+[Controller] 14 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=700,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 14)
+   -> [EDT Miniaturas Update] setSelectedIndex(5) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 6 (Actual Oficial: 5)
+  [ListCoordinator Interno] Procesando índice: 6 (Oficial actual: 5)
+    -> Actualizando índice oficial a: 6
+    -> Delegando carga de imagen al Controller para índice: 6
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/32mm_adaptors_adapting.jpg' (Índice informativo: 6)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 32mm_adaptors_adapting.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Medidor\25mm+to+32mm+base+adaptor+rings\images\32mm_adaptors_adapting.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Medidor/25mm+to+32mm+base+adaptor+rings/images/32mm_adaptors_adapting.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 6
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(6)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 6
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 6
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(6)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..14]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 15. Índice relativo seleccionado: 6
+[Controller] Iniciando pre-calentamiento de caché para 15 miniaturas...
+[Controller] 15 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=750,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 15)
+   -> [EDT Miniaturas Update] setSelectedIndex(6) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 7 (Actual Oficial: 6)
+  [ListCoordinator Interno] Procesando índice: 7 (Oficial actual: 6)
+    -> Actualizando índice oficial a: 7
+    -> Delegando carga de imagen al Controller para índice: 7
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Medidor/no vale.jpg' (Índice informativo: 7)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: no vale.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Medidor/no vale.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 7
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(7)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 7
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 7
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(7)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..15]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 16. Índice relativo seleccionado: 7
+[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
+[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=800,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 16)
+   -> [EDT Miniaturas Update] setSelectedIndex(7) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 10 (Actual Oficial: 7)
+  [ListCoordinator Interno] Procesando índice: 10 (Oficial actual: 7)
+    -> Actualizando índice oficial a: 10
+    -> Delegando carga de imagen al Controller para índice: 10
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/71fed6aa672aa47264cb6c9150b350e6_preview_featured.jpg' (Índice informativo: 10)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 71fed6aa672aa47264cb6c9150b350e6_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\71fed6aa672aa47264cb6c9150b350e6_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/71fed6aa672aa47264cb6c9150b350e6_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 10
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(10)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 10
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 10
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(10)
+>>> Coordinator: Recibido de Nombres -> Índice: 12 (Actual Oficial: 10)
+  [ListCoordinator Interno] Procesando índice: 12 (Oficial actual: 10)
+    -> Actualizando índice oficial a: 12
+    -> Delegando carga de imagen al Controller para índice: 12
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg' (Índice informativo: 12)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 12
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(12)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 12
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 12
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(12)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [2..18]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=850,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [4..20]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Recibido de Nombres -> Índice: 10 (Actual Oficial: 12)
+  [ListCoordinator Interno] Procesando índice: 10 (Oficial actual: 12)
+    -> Actualizando índice oficial a: 10
+    -> Delegando carga de imagen al Controller para índice: 10
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/71fed6aa672aa47264cb6c9150b350e6_preview_featured.jpg' (Índice informativo: 10)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 71fed6aa672aa47264cb6c9150b350e6_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\71fed6aa672aa47264cb6c9150b350e6_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/71fed6aa672aa47264cb6c9150b350e6_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 10
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(10)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 10
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 10
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(10)
+>>> Coordinator: Recibido de Nombres -> Índice: 8 (Actual Oficial: 10)
+  [ListCoordinator Interno] Procesando índice: 8 (Oficial actual: 10)
+    -> Actualizando índice oficial a: 8
+    -> Delegando carga de imagen al Controller para índice: 8
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/0973c1da1eb458af999fadbee7bd2003_preview_featured.jpg' (Índice informativo: 8)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 0973c1da1eb458af999fadbee7bd2003_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\0973c1da1eb458af999fadbee7bd2003_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/0973c1da1eb458af999fadbee7bd2003_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 8
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(8)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 8
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 8
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(8)
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [2..18]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..16]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Wargames\Warhammer 40k\Imperial Guard\Cog-Boy_Plasma_Thrower\images\ced7922d545d6d666a4b473ca3b6f90a_preview_featured.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 14 (Actual Oficial: 8)
+  [ListCoordinator Interno] Procesando índice: 14 (Oficial actual: 8)
+    -> Actualizando índice oficial a: 14
+    -> Delegando carga de imagen al Controller para índice: 14
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/f66c14c82602bca9e0732bf147ab51ee_preview_featured.jpg' (Índice informativo: 14)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: f66c14c82602bca9e0732bf147ab51ee_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\f66c14c82602bca9e0732bf147ab51ee_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/f66c14c82602bca9e0732bf147ab51ee_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 14
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(14)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 14
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 14
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(14)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [6..22]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Recibido de Nombres -> Índice: 13 (Actual Oficial: 14)
+  [ListCoordinator Interno] Procesando índice: 13 (Oficial actual: 14)
+    -> Actualizando índice oficial a: 13
+    -> Delegando carga de imagen al Controller para índice: 13
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/e9fea745ae9a7a4b89e4fcd3bc9ae367_preview_featured.jpg' (Índice informativo: 13)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: e9fea745ae9a7a4b89e4fcd3bc9ae367_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\e9fea745ae9a7a4b89e4fcd3bc9ae367_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/e9fea745ae9a7a4b89e4fcd3bc9ae367_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 13
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(13)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 13
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 13
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(13)
+>>> Coordinator: Recibido de Nombres -> Índice: 12 (Actual Oficial: 13)
+  [ListCoordinator Interno] Procesando índice: 12 (Oficial actual: 13)
+    -> Actualizando índice oficial a: 12
+    -> Delegando carga de imagen al Controller para índice: 12
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg' (Índice informativo: 12)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 12
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(12)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 12
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 12
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(12)
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [5..21]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [4..20]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 15 (Actual Oficial: 12)
+  [ListCoordinator Interno] Procesando índice: 15 (Oficial actual: 12)
+    -> Actualizando índice oficial a: 15
+    -> Delegando carga de imagen al Controller para índice: 15
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/castnplay_dial_2.png' (Índice informativo: 15)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: castnplay_dial_2.png...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\castnplay_dial_2.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/castnplay_dial_2.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 15
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(15)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 15
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 15
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(15)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [7..23]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Recibido de Nombres -> Índice: 17 (Actual Oficial: 15)
+  [ListCoordinator Interno] Procesando índice: 17 (Oficial actual: 15)
+    -> Actualizando índice oficial a: 17
+    -> Delegando carga de imagen al Controller para índice: 17
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/spells-pack @Sharehammer.jpg' (Índice informativo: 17)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: spells-pack @Sharehammer.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\spells-pack @Sharehammer.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/spells-pack @Sharehammer.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 17
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(17)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 17
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 17
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(17)
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [9..25]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Recibido de Nombres -> Índice: 18 (Actual Oficial: 17)
+  [ListCoordinator Interno] Procesando índice: 18 (Oficial actual: 17)
+    -> Actualizando índice oficial a: 18
+    -> Delegando carga de imagen al Controller para índice: 18
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/uploads_files_2269521_Giant+Mecha+Knights+GameTracker.jpg' (Índice informativo: 18)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: uploads_files_2269521_Giant+Mecha+Knights+GameTracker.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\uploads_files_2269521_Giant+Mecha+Knights+GameTracker.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/uploads_files_2269521_Giant+Mecha+Knights+GameTracker.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 18
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(18)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 18
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 18
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(18)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [10..26]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Recibido de Nombres -> Índice: 13 (Actual Oficial: 18)
+  [ListCoordinator Interno] Procesando índice: 13 (Oficial actual: 18)
+    -> Actualizando índice oficial a: 13
+    -> Delegando carga de imagen al Controller para índice: 13
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/e9fea745ae9a7a4b89e4fcd3bc9ae367_preview_featured.jpg' (Índice informativo: 13)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: e9fea745ae9a7a4b89e4fcd3bc9ae367_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\e9fea745ae9a7a4b89e4fcd3bc9ae367_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/e9fea745ae9a7a4b89e4fcd3bc9ae367_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 13
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(13)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 13
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 13
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(13)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [5..21]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 11 (Actual Oficial: 13)
+  [ListCoordinator Interno] Procesando índice: 11 (Oficial actual: 13)
+    -> Actualizando índice oficial a: 11
+    -> Delegando carga de imagen al Controller para índice: 11
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/79fb6dd99795d8c68ba0a1a06004aa45_preview_featured.jpg' (Índice informativo: 11)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 79fb6dd99795d8c68ba0a1a06004aa45_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\79fb6dd99795d8c68ba0a1a06004aa45_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/79fb6dd99795d8c68ba0a1a06004aa45_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 11
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(11)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 11
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 11
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(11)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [3..19]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 9 (Actual Oficial: 11)
+  [ListCoordinator Interno] Procesando índice: 9 (Oficial actual: 11)
+    -> Actualizando índice oficial a: 9
+    -> Delegando carga de imagen al Controller para índice: 9
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/29d1f9e52d50e06d7d83d140b05fbb8f_preview_featured.jpg' (Índice informativo: 9)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 29d1f9e52d50e06d7d83d140b05fbb8f_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\29d1f9e52d50e06d7d83d140b05fbb8f_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/29d1f9e52d50e06d7d83d140b05fbb8f_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 9
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(9)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 9
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 9
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(9)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [1..17]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 12 (Actual Oficial: 9)
+  [ListCoordinator Interno] Procesando índice: 12 (Oficial actual: 9)
+    -> Actualizando índice oficial a: 12
+    -> Delegando carga de imagen al Controller para índice: 12
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Contadores y heridas/Wounds_Counters/images/ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg' (Índice informativo: 12)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Contadores y heridas\Wounds_Counters\images\ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Contadores y heridas/Wounds_Counters/images/ceca61c3cd2d8548c35b6ebb36707c91_preview_featured.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 12
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(12)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 12
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 12
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(12)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [4..20]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Contadores y heridas\Medidor\no vale.jpg
+>>> Coordinator: Recibido de Nombres -> Índice: 23 (Actual Oficial: 12)
+  [ListCoordinator Interno] Procesando índice: 23 (Oficial actual: 12)
+    -> Actualizando índice oficial a: 23
+    -> Delegando carga de imagen al Controller para índice: 23
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Miniaturas/2021_12 Land of The Frost.jpg' (Índice informativo: 23)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 2021_12 Land of The Frost.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Miniaturas\2021_12 Land of The Frost.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Miniaturas/2021_12 Land of The Frost.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 23
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(23)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 23
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 23
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(23)
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [15..31]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Miniaturas\Lord of the Print\Free Items\Dragon+Head\images\large_thumb_ZBrush_Document.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Recibido de Nombres -> Índice: 25 (Actual Oficial: 23)
+  [ListCoordinator Interno] Procesando índice: 25 (Oficial actual: 23)
+    -> Actualizando índice oficial a: 25
+    -> Delegando carga de imagen al Controller para índice: 25
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Miniaturas/20_03_Titan_Forge_Cyberpunk_Age_&_Dragon_Empires_1_5_Unsupported.jpg' (Índice informativo: 25)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 20_03_Titan_Forge_Cyberpunk_Age_&_Dragon_Empires_1_5_Unsupported.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Miniaturas\20_03_Titan_Forge_Cyberpunk_Age_&_Dragon_Empires_1_5_Unsupported.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Miniaturas/20_03_Titan_Forge_Cyberpunk_Age_&_Dragon_Empires_1_5_Unsupported.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 25
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(25)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 25
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 25
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(25)
+>>> Coordinator: Recibido de Nombres -> Índice: 27 (Actual Oficial: 25)
+  [ListCoordinator Interno] Procesando índice: 27 (Oficial actual: 25)
+    -> Actualizando índice oficial a: 27
+    -> Delegando carga de imagen al Controller para índice: 27
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Miniaturas/29-cars-trucks-and-vehicles.jpg' (Índice informativo: 27)
+  -> Cancelando carga de imagen principal anterior...
+[VisorView] Mostrando indicador de carga: 'Cargando: 29-cars-trucks-and-vehicles.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: M:\Archivos 3D\Miniaturas\29-cars-trucks-and-vehicles.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Miniaturas/29-cars-trucks-and-vehicles.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 27
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(27)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 27
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 13439
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 27
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(27)
 --- Hook de Cierre Ejecutándose ---
   [Hook - Ventana] Guardando estado de la ventana en config...
     -> Bounds guardados en memoria config: java.awt.Rectangle[x=0,y=0,width=1536,height=500]
@@ -549,9 +1446,14 @@ ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a
 [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
 Guardando configuración (preservando estructura) en config.cfg
 Claves a guardar/actualizar: 410
+Añadiendo 1 claves nuevas:
+  Nuevo: interfaz.menu.zoom.activar_zoom_manual.seleccionado = true
 Archivo de configuración actualizado exitosamente.
   [ShutdownHook] Configuración actual guardada exitosamente.
   [ShutdownHook] Fin guardarConfiguracionActual.
   [Hook - Executor] Apagando ExecutorService...
-    -> ExecutorService terminado ordenadamente.
+[ThumbnailService] ERROR: No se pudo leer la imagen (formato no soportado o archivo corrupto): M:\Archivos 3D\Wargames\GreatLibrary Patreons\3DArtGuy\2020-10 CyberpunkBountyHunterVersionThree.png
+    -> ExecutorService no terminó en 5s. Forzando shutdownNow()...
+    -> Tareas que no llegaron a ejecutarse: 12788
+    -> ExecutorService finalmente terminado después de shutdownNow().
 --- Hook de Cierre Terminado ---
