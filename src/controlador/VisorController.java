@@ -718,57 +718,111 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     if (etiquetaImagenPrincipal != null) {
     
         // 2.2.1. Listener para la Rueda del Ratón (Zoom).
-        //         Este listener se activa cuando el usuario gira la rueda del ratón
-        //         sobre el componente 'etiquetaImagenPrincipal'.
-        etiquetaImagenPrincipal.addMouseWheelListener(e -> { // Inicio de la expresión lambda para el listener
-            
-            // 2.2.1.1. Verificar que el modelo de datos y el ZoomManager existan,
-            //          y que el modo de zoom manual esté habilitado en el modelo.
-            //          'this.model' y 'this.zoomManager' se refieren a los campos de la instancia de VisorController.
-            if (this.model != null && this.model.isZoomHabilitado() && this.zoomManager != null) {
-                
-                // 2.2.1.2. Obtener la dirección y magnitud de la rotación de la rueda.
-                //          'notches' es negativo si la rueda se gira hacia arriba/adelante (acercar).
-                //          'notches' es positivo si la rueda se gira hacia abajo/atrás (alejar).
-                int notches = e.getWheelRotation();
-                
-                // 2.2.1.3. Obtener el factor de zoom actual desde el modelo.
-                double currentZoomFactor = this.model.getZoomFactor();
-                
-                // 2.2.1.4. Calcular el nuevo factor de zoom.
-                //          'zoomIncrement' define cuánto cambia el zoom por cada "notch" de la rueda.
-                //          Este valor podría ser configurable en el futuro.
-                double zoomIncrement = 0.1; 
-                double newZoomFactor = currentZoomFactor + (notches < 0 ? zoomIncrement : -zoomIncrement);
-                
-                // 2.2.1.5. Limitar el nuevo factor de zoom a un rango razonable (ej. 1% a 2000%).
-                //          Esto evita zooms excesivamente pequeños o grandes.
-                newZoomFactor = Math.max(0.01, Math.min(newZoomFactor, 20.0)); 
+    	etiquetaImagenPrincipal.addMouseWheelListener(e -> {
+    	    if (this.model == null || this.zoomManager == null) { // Validar dependencias primero
+    	        System.err.println("CRITICAL [MouseWheelListener]: Model o ZoomManager nulos.");
+    	        return;
+    	    }
+    	    //FIXME ahora shif sube y baja pero sin shif acerca aleja... mejorar este comportamiento
+    	    if (e.isShiftDown()) { 
+    	        // --- LÓGICA DE PANEO VERTICAL RÁPIDO con Shift ---
+    	        int scrollAmount = e.getWheelRotation(); 
+    	        int panStep = this.view.getEtiquetaImagen().getHeight() / 4; // Asegúrate que view esté disponible
+    	                                                                  // o pasa etiquetaImagenPrincipal directamente.
+    	        int deltaY = -scrollAmount * panStep; 
+    	        
+    	        // Solo panear si la imagen realmente desborda y el zoom manual está activo,
+    	        // o si el zoom manual está inactivo pero un modo de zoom causa desborde.
+    	        boolean puedePanear = false;
+    	        if (this.model.isZoomHabilitado()) {
+    	            puedePanear = true;
+    	        } else {
+    	            // Comprobar si la imagen actual está desbordando verticalmente
+    	            // Necesitamos la altura REAL de la imagen pintada
+    	            Image imagenBase = this.view.getImagenReescaladaView(); // Necesitas un getter en VisorView para esto
+    	            if (imagenBase != null) {
+    	                int imagenPintadaAlto = (int)(imagenBase.getHeight(null) * this.model.getZoomFactor());
+    	                if (imagenPintadaAlto > this.view.getEtiquetaImagen().getHeight()) {
+    	                    puedePanear = true;
+    	                }
+    	            }
+    	        }
 
-                // 2.2.1.6. Solo proceder si el nuevo factor de zoom es significativamente diferente al actual.
-                //          Se usa una pequeña tolerancia (0.001) para comparaciones de números double.
-                if (Math.abs(newZoomFactor - currentZoomFactor) > 0.001) {
-                    
-                    // 2.2.1.6.1. Llamar al ZoomManager para que actualice el factor de zoom en el VisorModel.
-                    //             El método 'establecerFactorZoom' en ZoomManager debería devolver true
-                    //             si el valor en el modelo realmente cambió.
-                    boolean cambioHechoEnModelo = this.zoomManager.establecerFactorZoom(newZoomFactor);
-                    
-                    // 2.2.1.6.2. Si el estado en el modelo cambió, solicitar al ZoomManager que refresque la vista.
-                    if (cambioHechoEnModelo) {
-                    	
-                    	
-                    	//LOG VisorController DEBUG
-//                    	System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
-                        this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
-                    }
-                }
-            } else if (this.zoomManager == null) {
-                // Log de error si ZoomManager no está inicializado (problema de configuración).
-                System.err.println("CRITICAL [MouseWheelListener en VisorController]: ZoomManager es null. No se puede procesar el zoom.");
-            }
-            // Si el zoom manual no está habilitado (this.model.isZoomHabilitado() es false), no se hace nada con la rueda.
-        }); // Fin de la lambda para el MouseWheelListener
+    	        if (puedePanear) {
+    	            this.zoomManager.aplicarPan(0, deltaY); 
+    	            this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
+    	        }
+
+    	    } else if (this.model.isZoomHabilitado()) { 
+    	        // --- LÓGICA DE ZOOM NORMAL (sin Shift y zoom manual activo) ---
+    	        // Esta es tu lógica de zoom original, ahora dentro del else.
+    	        int notches = e.getWheelRotation();
+    	        double currentZoomFactor = this.model.getZoomFactor();
+    	        double zoomIncrement = 0.1; 
+    	        double newZoomFactor = currentZoomFactor + (notches < 0 ? zoomIncrement : -zoomIncrement);
+    	        newZoomFactor = Math.max(0.01, Math.min(newZoomFactor, 20.0)); 
+    	        if (Math.abs(newZoomFactor - currentZoomFactor) > 0.001) {
+    	            boolean cambioHechoEnModelo = this.zoomManager.establecerFactorZoom(newZoomFactor);
+    	            if (cambioHechoEnModelo) {
+    	                this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
+    	            }
+    	        }
+    	    }
+    	    // Si no es ShiftDown y el zoom manual no está habilitado, no hace nada con la rueda.
+    	});
+    	
+    	
+//        //         Este listener se activa cuando el usuario gira la rueda del ratón
+//        //         sobre el componente 'etiquetaImagenPrincipal'.
+//        etiquetaImagenPrincipal.addMouseWheelListener(e -> { // Inicio de la expresión lambda para el listener
+//            
+//            // 2.2.1.1. Verificar que el modelo de datos y el ZoomManager existan,
+//            //          y que el modo de zoom manual esté habilitado en el modelo.
+//            //          'this.model' y 'this.zoomManager' se refieren a los campos de la instancia de VisorController.
+//            if (this.model != null && this.model.isZoomHabilitado() && this.zoomManager != null) {
+//                
+//                // 2.2.1.2. Obtener la dirección y magnitud de la rotación de la rueda.
+//                //          'notches' es negativo si la rueda se gira hacia arriba/adelante (acercar).
+//                //          'notches' es positivo si la rueda se gira hacia abajo/atrás (alejar).
+//                int notches = e.getWheelRotation();
+//                
+//                // 2.2.1.3. Obtener el factor de zoom actual desde el modelo.
+//                double currentZoomFactor = this.model.getZoomFactor();
+//                
+//                // 2.2.1.4. Calcular el nuevo factor de zoom.
+//                //          'zoomIncrement' define cuánto cambia el zoom por cada "notch" de la rueda.
+//                //          Este valor podría ser configurable en el futuro.
+//                double zoomIncrement = 0.1; 
+//                double newZoomFactor = currentZoomFactor + (notches < 0 ? zoomIncrement : -zoomIncrement);
+//                
+//                // 2.2.1.5. Limitar el nuevo factor de zoom a un rango razonable (ej. 1% a 2000%).
+//                //          Esto evita zooms excesivamente pequeños o grandes.
+//                newZoomFactor = Math.max(0.01, Math.min(newZoomFactor, 20.0)); 
+//
+//                // 2.2.1.6. Solo proceder si el nuevo factor de zoom es significativamente diferente al actual.
+//                //          Se usa una pequeña tolerancia (0.001) para comparaciones de números double.
+//                if (Math.abs(newZoomFactor - currentZoomFactor) > 0.001) {
+//                    
+//                    // 2.2.1.6.1. Llamar al ZoomManager para que actualice el factor de zoom en el VisorModel.
+//                    //             El método 'establecerFactorZoom' en ZoomManager debería devolver true
+//                    //             si el valor en el modelo realmente cambió.
+//                    boolean cambioHechoEnModelo = this.zoomManager.establecerFactorZoom(newZoomFactor);
+//                    
+//                    // 2.2.1.6.2. Si el estado en el modelo cambió, solicitar al ZoomManager que refresque la vista.
+//                    if (cambioHechoEnModelo) {
+//                    	
+//                    	
+//                    	//LOG VisorController DEBUG
+////                    	System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
+//                        this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
+//                    }
+//                }
+//            } else if (this.zoomManager == null) {
+//                // Log de error si ZoomManager no está inicializado (problema de configuración).
+//                System.err.println("CRITICAL [MouseWheelListener en VisorController]: ZoomManager es null. No se puede procesar el zoom.");
+//            }
+//            // Si el zoom manual no está habilitado (this.model.isZoomHabilitado() es false), no se hace nada con la rueda.
+//        }); // Fin de la lambda para el MouseWheelListener
         
         // --- SECCIÓN 2.2.2: Listener para Eventos Básicos del Ratón (mousePressed para Paneo) ---
         //         Se añade un MouseAdapter para sobrescribir solo el método mousePressed.

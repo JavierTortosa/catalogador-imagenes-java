@@ -14,53 +14,56 @@ public class ImageDisplayUtils {
 	    if (imagenOriginal == null || model == null || view == null || view.getEtiquetaImagen() == null) return null;
 	    int etiquetaAncho = view.getEtiquetaImagen().getWidth();
 	    int etiquetaAlto = view.getEtiquetaImagen().getHeight();
-	    if (etiquetaAncho <= 0 || etiquetaAlto <= 0) return null;
+	    if (etiquetaAncho <= 0 || etiquetaAlto <= 0) { // Añadido para ser más robusto al inicio
+	        // Si la etiqueta no tiene tamaño, no podemos hacer escalados relativos a ella.
+	        // Devolver la original para que ZoomManager decida con factor 1.0 si es DISPLAY_ORIGINAL, etc.
+	        return imagenOriginal;
+	    }
 	    int imgOriginalAncho = imagenOriginal.getWidth();
 	    int imgOriginalAlto = imagenOriginal.getHeight();
 	    if (imgOriginalAncho <= 0 || imgOriginalAlto <= 0) return null;
 
 	    // --- SECCIÓN 2: OBTENER ESTADO DEL MODELO ---
-	    boolean mantenerProporcionGlobal = model.isMantenerProporcion();
+	    boolean mantenerProporcionGlobal = model.isMantenerProporcion(); // El toggle "prop"
 	    ZoomModeEnum currentMode = model.getCurrentZoomMode();
 
 	    // --- SECCIÓN 3: DECIDIR ESCALADO BASE ---
 	    int anchoFinalBase;
 	    int altoFinalBase;
 
-	    // Para DISPLAY_ORIGINAL, MAINTAIN_CURRENT_ZOOM, USER_SPECIFIED_PERCENTAGE,
-	    // el "escalado base" es la imagen original. El factor del ZoomManager se aplicará a esto.
-	    if (currentMode == ZoomModeEnum.DISPLAY_ORIGINAL ||
-	        currentMode == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM ||
-	        currentMode == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
-	        // System.out.println("  [ImageDisplayUtils] Modo " + currentMode + ": Devolviendo original como base.");
+	    // Si el modo de zoom NO es FIT_TO_SCREEN, ImageDisplayUtils devuelve la imagen original.
+	    // ZoomManager se encargará de calcular el factor correcto para DISPLAY_ORIGINAL, FIT_TO_WIDTH, FIT_TO_HEIGHT, etc.
+	    // aplicado a la imagen original.
+	    if (currentMode != ZoomModeEnum.FIT_TO_SCREEN) {
+	        // System.out.println("  [ImageDisplayUtils] Modo " + currentMode + ": Devolviendo original. ZoomManager calculará factor.");
 	        return imagenOriginal;
 	    }
 
-	    // Para FIT_TO_WIDTH, FIT_TO_HEIGHT, FIT_TO_SCREEN, preparamos una imagen base
-	    // que ya está ajustada o estirada según el toggle 'mantenerProporcionGlobal'.
-	    // El ZoomManager luego aplicará un factor (probablemente 1.0 para estos si este método hace el trabajo).
-	    if (mantenerProporcionGlobal) { // Si el toggle está ON
+	    // Si LLEGAMOS AQUÍ, el modo es FIT_TO_SCREEN.
+	    // Aquí sí aplicamos la lógica del toggle "mantenerProporcionGlobal".
+	    if (mantenerProporcionGlobal) { // prop ON para FIT_TO_SCREEN
 	        // Ajustar para que quepa manteniendo proporción ("contain")
 	        double ratioImg = (double) imgOriginalAncho / imgOriginalAlto;
 	        double ratioEtiqueta = (double) etiquetaAncho / etiquetaAlto;
-	        if (ratioEtiqueta > ratioImg) { // Etiqueta más ancha que imagen (o igual alto)
+	        if (ratioEtiqueta > ratioImg) {
 	            altoFinalBase = etiquetaAlto;
 	            anchoFinalBase = (int) (etiquetaAlto * ratioImg);
-	        } else { // Etiqueta más alta que imagen (o igual ancho)
+	        } else {
 	            anchoFinalBase = etiquetaAncho;
 	            altoFinalBase = (int) (etiquetaAncho / ratioImg);
 	        }
-	    } else { // Si el toggle está OFF
+	        // System.out.println("  [ImageDisplayUtils] FIT_TO_SCREEN prop ON: Base ajustada proporcionalmente a: " + anchoFinalBase + "x" + altoFinalBase);
+	    } else { // prop OFF para FIT_TO_SCREEN
 	        // Estirar para llenar la etiqueta
 	        anchoFinalBase = etiquetaAncho;
 	        altoFinalBase = etiquetaAlto;
+	        // System.out.println("  [ImageDisplayUtils] FIT_TO_SCREEN prop OFF: Base estirada a: " + anchoFinalBase + "x" + altoFinalBase);
 	    }
 
 	    anchoFinalBase = Math.max(1, anchoFinalBase);
 	    altoFinalBase = Math.max(1, altoFinalBase);
 
 	    try {
-	        // System.out.println("  [ImageDisplayUtils] Escalando base a: " + anchoFinalBase + "x" + altoFinalBase);
 	        return imagenOriginal.getScaledInstance(anchoFinalBase, altoFinalBase, Image.SCALE_SMOOTH);
 	    } catch (Exception e) { 
 	         System.err.println("ERROR [ImageDisplayUtils.reescalarImagenParaAjustar] durante getScaledInstance: " + e.getMessage());

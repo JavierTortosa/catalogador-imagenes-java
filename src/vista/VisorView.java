@@ -2101,6 +2101,8 @@ public class VisorView extends JFrame
 	    }
 	} // --- FIN del metodo actualizarAspectoBotonToggle
 	
-	
+	public Image getImagenReescaladaView() { // Getter público
+	    return this.imagenReescaladaView;
+	}
 
 } // Fin VisorView

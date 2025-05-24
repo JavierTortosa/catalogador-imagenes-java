@@ -141,31 +141,29 @@ public class ZoomManager {
 	            }
 	            break;
 
-            case FIT_TO_WIDTH:
-            	// ImageDisplayUtils devuelve original.
-                // Calculamos factor para que el ancho de la original sea el de la etiqueta.
-                if (imgW > 0 && etiquetaAncho > 0) {
-                    nuevoFactorCalculado = (double) etiquetaAncho / imgW;
-                    if (encajarTotalmente && imgH > 0 && etiquetaAlto > 0) {
-                        // Si prop ON, y el alto desborda, necesitamos que el factor final la haga caber.
-                        if ((imgH * nuevoFactorCalculado) > etiquetaAlto) {
-                            nuevoFactorCalculado = (double) etiquetaAlto / imgH;
-                        }
-                    }
-                }
-                break;
+	        case FIT_TO_WIDTH:
+	            if (imgW > 0 && etiquetaAncho > 0) {
+	                nuevoFactorCalculado = (double) etiquetaAncho / imgW;
+	                if (encajarTotalmente && imgH > 0 && etiquetaAlto > 0) { // Si prop ON y el alto se desborda
+	                    if ((imgH * nuevoFactorCalculado) > etiquetaAlto) {
+	                        nuevoFactorCalculado = (double) etiquetaAlto / imgH; // Ajusta para que quepa
+	                    }
+	                }
+	                // Si prop OFF, el factor se queda para ajustar al ancho, permitiendo desborde alto.
+	            }
+	            break;
 
-            case FIT_TO_HEIGHT:
-            	// ImageDisplayUtils devuelve original.
-                if (imgH > 0 && etiquetaAlto > 0) {
-                    nuevoFactorCalculado = (double) etiquetaAlto / imgH;
-                    if (encajarTotalmente && imgW > 0 && etiquetaAncho > 0) {
-                        if ((imgW * nuevoFactorCalculado) > etiquetaAncho) {
-                            nuevoFactorCalculado = (double) etiquetaAncho / imgW;
-                        }
-                    }
-                }
-                break;
+	        case FIT_TO_HEIGHT:
+	            if (imgH > 0 && etiquetaAlto > 0) {
+	                nuevoFactorCalculado = (double) etiquetaAlto / imgH;
+	                if (encajarTotalmente && imgW > 0 && etiquetaAncho > 0) { // Si prop ON y el ancho se desborda
+	                    if ((imgW * nuevoFactorCalculado) > etiquetaAncho) {
+	                        nuevoFactorCalculado = (double) etiquetaAncho / imgW; // Ajusta para que quepa
+	                    }
+	                }
+	                // Si prop OFF, el factor se queda para ajustar al alto, permitiendo desborde ancho.
+	            }
+	            break;
 
             case FIT_TO_SCREEN: // "Ajustar"
             	// ImageDisplayUtils ya ha hecho el trabajo:
