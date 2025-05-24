@@ -4633,8 +4633,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         	 // 3.2. Última imagen seleccionada
              estadoActualParaGuardar.put("inicio.imagen", model.getSelectedImageKey() != null ? model.getSelectedImageKey() : "");
              
-             // 3.3. Modo subcarpetas y zoom manual
+             // 3.3. Botones Toggle subcarpetas y partes de zoom
+             // 3.3.1. Estado de Modo Subcarpetas
              estadoActualParaGuardar.put("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(!model.isMostrarSoloCarpetaActual()));
+             
+             // 3.3.2. Estado de Zoom Manual activado 
              if (this.model != null) {
                  estadoActualParaGuardar.put(
                      ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO,
@@ -4642,6 +4645,15 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                  );
                  System.out.println("    -> Modelo: Guardando estado de zoomHabilitado: " + this.model.isZoomHabilitado() + 
                                     " en clave: " + ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO);
+             }
+             
+             // 3.3.3. Estado de Tipo de Zoom activo
+             if (this.model != null && this.model.getCurrentZoomMode() != null) {
+                 estadoActualParaGuardar.put(
+                     ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO,
+                     this.model.getCurrentZoomMode().name() // Guardar el nombre del enum
+                 );
+                 System.out.println("    -> Modelo: Guardando ultimo_modo_seleccionado: " + this.model.getCurrentZoomMode().name());
              }
              
              // 3.4. Configuración de miniaturas (si se pudieran cambiar)
@@ -4653,7 +4665,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              estadoActualParaGuardar.put("miniaturas.tamano.normal.alto", String.valueOf(model.getMiniaturaNormAlto()));
              
              // 3.5. Estado de toggles (leer desde la Action asociada es más fiable que desde el modelo)
-
              Action toggleZoomManualAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE) : null;
              if (toggleZoomManualAction != null) estadoActualParaGuardar.put("interfaz.menu.zoom.activar_zoom_manual.seleccionado", 
 	                     String.valueOf(Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY))));
@@ -4688,7 +4699,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                          else if (item instanceof JRadioButtonMenuItem) estadoActualParaGuardar.put(claveLarga + ".seleccionado", String.valueOf(((JRadioButtonMenuItem) item).isSelected()));
                      }
                  });
-                  // System.out.println("    -> Estado de Menús recopilado."); // Log opcional
              } else { System.err.println("WARN [guardarConfig]: Mapa de menús nulo."); }
          } catch (Exception e) { System.err.println("ERROR recopilando estado de la Vista: " + e.getMessage()); }
 

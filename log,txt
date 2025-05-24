@@ -3,14 +3,16 @@ Iniciando Visor de Imágenes V2...
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
     -> VisorModel creado e inyectado.
-Mapa de configuración por defecto inicializado con 408 claves.
-Mapa DEFAULT_GROUP_COMMENTS inicializado con 27 entradas.
+Mapa de configuración por defecto inicializado con 409 claves.
+Mapa DEFAULT_GROUP_COMMENTS inicializado con 28 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 409
+Configuración leída. Total claves: 410
     -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración al Modelo...
     -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: FIT_TO_SCREEN
+    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: FIT_TO_WIDTH
     -> Modelo: Zoom manual inicial activo (desde config 'comportamiento...'): true
+  [Model] Estado mantenerProporcion cambiado a: false
     -> Configuración aplicada al Modelo (Miniaturas, Comportamiento).
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
 [ThemeManager] Tema inicial establecido a: clear
@@ -80,8 +82,8 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   [ActionFactory] Inicializando todas las Actions...
 [VisorView setCheckeredBG] Solicitado: false, Actual: false
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@bf0e80a
-[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
+ActionFactory: Creando ToggleSubfoldersAction@e1a866b
+[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: false (desde modelo)
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 44
     B.6. [EDT] ActionFactory creada. ActionMap completo (Tamaño: 44) inyectado en Controller.
 [ViewUIConfig] Configuración UI creada con colores de tema.
@@ -89,7 +91,7 @@ ActionFactory: Creando ToggleSubfoldersAction@bf0e80a
     B.7. [EDT] ViewUIConfig COMPLETO (con actionMap) actualizado en Controller y View.
     B.8. [EDT] Lista de ContextSensitiveActions inyectada en ListCoordinator.
 --- MenuBarBuilder: Construyendo menú desde estructura definida ---
-DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 2014755793) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
+DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 829920606) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
 --- MenuBarBuilder: Menú construido. Total items en mapa: 124 ---
   [VisorView] JMenuBar real asignada.
   [VisorView] Map<String, JMenuItem> real asignado. Tamaño: 124
@@ -332,7 +334,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 2014755793) asignada a
     -> Alineación determinada: CENTER
   [TB addSeparator] Añadiendo separador después de categoría: 'proyecto'
   [TB procesarDef] Def: Comando='cmd.toggle.subcarpetas', Icono='7001-Subcarpetas_48x48.png', Cat='toggle'
-ToolbarBuilder: Obtenida Action@bf0e80a para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
+ToolbarBuilder: Obtenida Action@e1a866b para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
     -> Action 'cmd.toggle.subcarpetas' asignada al botón.
     -> Icono obtenido de la Action.
     -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.toggle.Subcarpetas_48x48
@@ -362,31 +364,31 @@ ToolbarBuilder: Obtenida Action@bf0e80a para CMD_TOGGLE_SUBCARPETAS. Asignando a
     -> Config Botones (Vista) OK.
     -> Aplicando config a Menús (Vista)...
     -> Config Menús (Vista) OK.
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: false
+  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.subcarpetas, isSelected: true
   -> Aspecto botón 'interfaz.boton.toggle.Subcarpetas_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
     -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.
   [Apply Config View Internal] Finalizado.
-[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_SCREEN
+[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_WIDTH
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.alto, isSelected: false
   -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Alto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.especificado, isSelected: false
   -> Aspecto botón 'interfaz.boton.zoom.zoom_especifico_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.fijo, isSelected: false
   -> Aspecto botón 'interfaz.boton.zoom.Zoom_Fijo_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ajustar, isSelected: true
-  -> Aspecto botón 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ajustar, isSelected: false
+  -> Aspecto botón 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.auto, isSelected: false
   -> Aspecto botón 'interfaz.boton.zoom.Zoom_Auto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: true
+  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
   [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
     -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     -> Cargando lista para carpeta inicial (desde MODELO): D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    -> Clave de imagen inicial a intentar seleccionar: Hero_Pack_____Miniature_jpg.jpg
+    -> Clave de imagen inicial a intentar seleccionar: A-gigante de hierro.jpg
 
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: Hero_Pack_____Miniature_jpg.jpg
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: A-gigante de hierro.jpg
   -> Modo búsqueda: Subcarpetas (depth=MAX)
     -> Iniciando búsqueda (con subcarpetas) desde carpeta raíz: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
   -> Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
@@ -394,7 +396,7 @@ ToolbarBuilder: Obtenida Action@bf0e80a para CMD_TOGGLE_SUBCARPETAS. Asignando a
   -> Diálogo y Worker creados y asociados.
   -> Añadiendo PropertyChangeListener al worker...
   -> Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: Hero_Pack_____Miniature_jpg.jpg
+-->>> FIN cargarListaImagenes(String) | Clave mantenida: A-gigante de hierro.jpg
   [Load Initial State Internal] Finalizado.
 [Controller Internal] Configurando Listeners de Vista...
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
@@ -405,7 +407,6 @@ ToolbarBuilder: Obtenida Action@bf0e80a para CMD_TOGGLE_SUBCARPETAS. Asignando a
   -> MouseListener añadido a scrollListaMiniaturas para gestionar foco.
 [Controller Internal] Configuración de Listeners de Vista finalizada.
   -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 170
     -> [EDT AppInitializer] Configurando ComponentListener para miniaturas dinámicas...
     -> [EDT AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.
     [EDT Internal] Sincronizando UI Final...
@@ -419,6 +420,7 @@ ToolbarBuilder: Obtenida Action@bf0e80a para CMD_TOGGLE_SUBCARPETAS. Asignando a
   [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
   [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.
 --- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---
+  [Worker BG] Files.walk terminado. Archivos encontrados: 170
   [Constructor EDT] Divisor JSplitPane establecido.
 [VisorView] Limpiando etiqueta de imagen principal...
   -> Etiqueta de imagen limpiada.
@@ -435,87 +437,73 @@ ToolbarBuilder: Obtenida Action@bf0e80a para CMD_TOGGLE_SUBCARPETAS. Asignando a
    -> estaCargandoLista = false.
 [Controller] Iniciando pre-calentamiento de caché para 170 miniaturas...
 [Controller] 170 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-     -> Índice final a seleccionar después de carga: 2 (intentando mantener: Hero_Pack_____Miniature_jpg.jpg)
-   -> Aplicando selección inicial al índice: 2
+     -> Índice final a seleccionar después de carga: 0 (intentando mantener: A-gigante de hierro.jpg)
+   -> Aplicando selección inicial al índice: 0
    -> Flag seleccionInicialEnCurso puesto a TRUE.
  [EDT Worker Done] Procesamiento del resultado finalizado.
    [EDT] Diálogo de progreso cerrado o ya no visible.
-  -> Solicitando repintado inicial de listaMiniaturas.
       [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
       [WindowResized Timer - AppInitializer] Modelo no listo o sin selección oficial, no se actualizan miniaturas.
-   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 2
-   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 2
->>> Coordinator: Solicitud para procesar índice: 2 (Actual Oficial: -1)
+  -> Solicitando repintado inicial de listaMiniaturas.
+   -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. Asegurando visibilidad para índice: 0
+   -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a Coordinator para procesar índice inicial: 0
+>>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
     [Coordinator Flag] sincronizandoUI -> true
-  [ListCoordinator Interno] Procesando índice: 2 (Oficial actual: -1)
-    -> Actualizando índice oficial a: 2
-    -> Delegando carga de imagen al Controller para índice: 2
---> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice informativo: 2)
-[VisorView] Mostrando indicador de carga: 'Cargando: Hero_Pack_____Miniature_jpg.jpg...'
-    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Hero_Pack_____Miniature_jpg.jpg
---> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Hero_Pack_____Miniature_jpg.jpg
-      [BG Img Load - pool-1-thread-6] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Hero_Pack_____Miniature_jpg.jpg
-      [BG Img Load] Lectura de imagen desde disco correcta.
-  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 2
-      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 2
-        -> Índice actual en JList 'Nombres': 2
+  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
+    -> Actualizando índice oficial a: 0
+    -> Delegando carga de imagen al Controller para índice: 0
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice informativo: 0)
+[VisorView] Mostrando indicador de carga: 'Cargando: A-gigante de hierro.jpg...'
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: A-gigante de hierro.jpg
+      [BG Img Load - pool-1-thread-7] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
+        -> Índice actual en JList 'Nombres': 0
         -> Índice ya correcto. Asegurando solo visibilidad.
       [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
 
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 2
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
   [actualizarMiniaturas] Tamaño modeloPrincipal: 170
-  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 2
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
 --- FIN actualizarModeloYVistaMiniaturas ---
-        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 2
->>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(2)
+        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
+>>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
    -> [WorkerDone Doble InvokeLater] Llamada a ListCoordinator (potencialmente) completada.
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: Hero_Pack_____Miniature_jpg.jpg
-      [EDT Img Update] => Carga exitosa. Actualizando modelo...
-      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
-      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
-      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.proyecto.toggle_marca, isSelected: false
-  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 2
+      [BG Img Load] Lectura de imagen desde disco correcta.
+          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
    -> [EDT Miniaturas Update] Ejecutando actualización UI...
     [Coordinator Flag] sincronizandoUI -> true
    -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
   [CalcularMiniaturas DEBUG] ViewportWidth: 1512, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
    -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..10]
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
    -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 11. Índice relativo seleccionado: 2
-[Controller] Iniciando pre-calentamiento de caché para 11 miniaturas...
-[Controller] 11 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=550,height=66]
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 11)
-   -> [EDT Miniaturas Update] setSelectedIndex(2) en JList miniaturas.
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
+[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
+[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
+   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
    -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
     [Coordinator Flag] sincronizandoUI -> false
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: A-gigante de hierro.jpg
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.proyecto.toggle_marca, isSelected: false
+  -> Aspecto botón 'interfaz.boton.proyecto.marcar_imagen_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
-[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_WIDTH
-[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_WIDTH
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.alto, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Alto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.especificado, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.zoom_especifico_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.fijo, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Zoom_Fijo_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ajustar, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.auto, isSelected: false
-  -> Aspecto botón 'interfaz.boton.zoom.Zoom_Auto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: true
-  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
-[ToggleProporcionesAction actionPerformed] Estado actual (mantener prop): true. Solicitando cambiar a (mantener prop): false
-[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: false
-  [Model] Estado mantenerProporcion cambiado a: false
-  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: false
-  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: false
-[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: false
-  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[ToggleProporcionesAction actionPerformed] Estado actual (mantener prop): false. Solicitando cambiar a (mantener prop): true
+[VisorController setMantenerProporcionesLogicaYUi] Nuevo estado deseado: true
+  [Model] Estado mantenerProporcion cambiado a: true
+  -> Configuración 'interfaz.menu.zoom.mantener_proporciones.seleccionado' actualizada en memoria a: true
+  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: true
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.toggle.mantener_proporciones, isSelected: true
+  -> Aspecto botón 'interfaz.boton.toggle.Mantener_Proporciones_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
   -> Solicitando a ZoomManager que refresque la imagen principal...
   [VisorController] Reaplicando modo de zoom actual: FIT_TO_WIDTH debido a cambio de proporciones.
 [VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_WIDTH
@@ -532,20 +520,35 @@ ToolbarBuilder: Obtenida Action@bf0e80a para CMD_TOGGLE_SUBCARPETAS. Asignando a
 [VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: true
   -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
 [VisorController setMantenerProporcionesLogicaYUi] Proceso completado.
+[AplicarModoZoomAction actionPerformed] Aplicando modo: FIT_TO_SCREEN
+[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_SCREEN
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.alto, isSelected: false
+  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Alto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.especificado, isSelected: false
+  -> Aspecto botón 'interfaz.boton.zoom.zoom_especifico_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.fijo, isSelected: false
+  -> Aspecto botón 'interfaz.boton.zoom.Zoom_Fijo_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ajustar, isSelected: true
+  -> Aspecto botón 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48' FORZADO. Color fondo: java.awt.Color[r=84,g=144,b=164]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.auto, isSelected: false
+  -> Aspecto botón 'interfaz.boton.zoom.Zoom_Auto_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
+[VisorView actualizarAspectoBotonToggle] Para Action: cmd.zoom.tipo.ancho, isSelected: false
+  -> Aspecto botón 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48' FORZADO. Color fondo: java.awt.Color[r=238,g=238,b=238]
 --- Hook de Cierre Ejecutándose ---
   [Hook - Ventana] Guardando estado de la ventana en config...
     -> Bounds guardados en memoria config: java.awt.Rectangle[x=0,y=0,width=1536,height=500]
   -> Llamando a guardarConfiguracionActual() desde hook...
   [ShutdownHook] Recopilando estado actual para guardar...
     -> Modelo: Guardando estado de zoomHabilitado: true en clave: comportamiento.zoom.manual_inicial_activo
+    -> Modelo: Guardando ultimo_modo_seleccionado: FIT_TO_SCREEN
     -> Estado recopilado completo. Tema a guardar: 'clear'
-    -> Llamando a configuration.guardarConfiguracion con 409 claves...
+    -> Llamando a configuration.guardarConfiguracion con 410 claves...
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 409
+Claves a guardar/actualizar: 410
 Archivo de configuración actualizado exitosamente.
   [ShutdownHook] Configuración actual guardada exitosamente.
   [ShutdownHook] Fin guardarConfiguracionActual.

@@ -182,6 +182,7 @@ public class AppInitializer {
             return;
         }
         
+        // Aplicar Estado Inicial de Zoom Manual
         String initialZoomModeStr = this.configuration.getString(ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE, "FIT_TO_SCREEN").toUpperCase();
         try {
             ZoomModeEnum initialMode = ZoomModeEnum.valueOf(initialZoomModeStr);
@@ -194,6 +195,22 @@ public class AppInitializer {
                                "'. Usando FIT_TO_SCREEN por defecto.");
             this.model.setCurrentZoomMode(ZoomModeEnum.FIT_TO_SCREEN);
         }
+        
+        // Aplicar Estado Inicial de Tipo de Zoom
+        String ultimoModoZoomStr = this.configuration.getString(
+       	    ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO, "FIT_TO_SCREEN").toUpperCase();
+        	ZoomModeEnum modoAEstablecer;
+        	try {
+        	    modoAEstablecer = ZoomModeEnum.valueOf(ultimoModoZoomStr);
+        	} catch (IllegalArgumentException e) {
+        	    System.err.println("WARN [AppInitializer]: Valor inválido para '" + 
+        	                       ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO +
+        	                       "' en config: '" + ultimoModoZoomStr + 
+        	                       "'. Usando FIT_TO_SCREEN por defecto.");
+        	    modoAEstablecer = ZoomModeEnum.FIT_TO_SCREEN;
+        	}
+        	this.model.setCurrentZoomMode(modoAEstablecer);
+        	System.out.println("    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: " + modoAEstablecer);
         
         try {
             // Aplicar configuración de miniaturas al modelo

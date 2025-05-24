@@ -47,6 +47,7 @@ public class ConfigurationManager
     // --- 	CONSTANTES PARA COMPORTAMIENTO ---
     public static final String KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE = "comportamiento.display.zoom.initial_mode";
     public static final String KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO = "comportamiento.zoom.manual_inicial_activo";
+    public static final String KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO = "comportamiento.zoom.ultimo_modo_seleccionado";
     
     
 	static
@@ -439,8 +440,9 @@ public class ConfigurationManager
 			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
 			defaults.put("comportamiento.carga.conRutas", "false");
 			//defaults.put("comportamiento.display.zoom.initial_mode", "FIT_TO_SCREEN");
-			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE, "FIT_TO_SCREEN");
 			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO, "true");
+			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE, "FIT_TO_SCREEN");
+			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO, "FIT_TO_SCREEN");
 			
 		// Ventana de la aplicacion
 	        // Usar -1 para indicar que no hay posición/tamaño guardado (usar defaults del sistema/pack)
@@ -974,6 +976,7 @@ public class ConfigurationManager
         comments.put("interfaz.boton", 	"# == Botones =="); // Subgrupo para TODOS los botones
         comments.put("interfaz.menu",  	"# == Menús ==");  // Subgrupo para TODOS los menús
         comments.put("comportamiento.display", "# === Comportamiento de Visualización ===");
+        comments.put("comportamiento.zoom", "# === Comportamiento del Zoom ===");
 
         // --- Subgrupos Nivel 2 (Dentro de interfaz.boton) ---
         comments.put("interfaz.boton.movimiento", "# === Botones de Movimiento ==="); // Nota: Uso "===" para diferenciar nivel
