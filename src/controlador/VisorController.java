@@ -5589,7 +5589,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	     }
 	
 	     // 1. Actualizar el VisorModel
-	     model.setMantenerProporcion(nuevoEstadoMantener); // <--- USA EL PARÁMETRO AQUÍ
+	     model.setMantenerProporcion(nuevoEstadoMantener); 
 	
 	     // 2. Actualizar ConfigurationManager (en memoria)
 	     String configKey = "interfaz.menu.zoom.mantener_proporciones.seleccionado";
@@ -5602,9 +5602,31 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	     // 4. Refrescar la imagen principal en la vista
 	     System.out.println("  -> Solicitando a ZoomManager que refresque la imagen principal...");
 	     
+	     if (this.zoomManager != null && this.model != null && this.model.getCurrentZoomMode() != null) {
+	         System.out.println("  [VisorController] Reaplicando modo de zoom actual: " + model.getCurrentZoomMode() + " debido a cambio de proporciones.");
+
+	         boolean modoDeZoomCambiadoEnManager = this.zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
+	     
+	      // DESPUÉS de que ZoomManager ha hecho su trabajo y el modelo (currentZoomMode y zoomFactor)
+	         // está actualizado, AHORA sincronizamos los botones/radios de los modos de zoom.
+	         sincronizarEstadoVisualBotonesYRadiosZoom(); // <<< AÑADIR ESTA LLAMADA AQUÍ
+
+	         // El 'modoDeZoomCambiadoEnManager' nos dice si el *tipo* de modo cambió.
+	         // Incluso si no cambió (ej. seguía siendo FIT_TO_SCREEN), el factor SÍ pudo haber cambiado
+	         // debido al nuevo estado de 'mantenerProporciones', por lo que la sincronización
+	         // de los botones de zoom (para que el correcto esté activo) sigue siendo necesaria.
+
+	     } else if (this.zoomManager != null) { 
+	         // Si no hay un modo de zoom automático (ej. podría estar en zoom manual), 
+	         // simplemente refrescar con el estado de proporciones actual.
+	         this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
+	     } else {
+	         System.err.println("ERROR [setMantenerProporcionesLogicaYUi]: ZoomManager es null al intentar refrescar.");
+	     }
+	     
 	     //LOG VisorController DEBUG
 //	     System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
-	     zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
+//	     zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
 	
 	     System.out.println("[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.");
 	 }

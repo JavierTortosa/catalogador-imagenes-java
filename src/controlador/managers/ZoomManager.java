@@ -103,9 +103,6 @@ public class ZoomManager {
      * @param modoDeseado El tipo de zoom a aplicar, según la enum {@link ZoomModeEnum}.
      * @return true si el ZoomModeEnum en el modelo realmente cambió, false en caso contrario.
      */
-
-    
- // En controlador.managers.ZoomManager
     public boolean aplicarModoDeZoom(ZoomModeEnum modoDeseado) {
         if (model == null || view == null || view.getEtiquetaImagen() == null || configuration == null) { /*...*/ return false; }
         BufferedImage imgOriginal = model.getCurrentImage();
@@ -132,21 +129,25 @@ public class ZoomManager {
         int imgH = imgOriginal.getHeight();
 
         switch (modoDeseado) {
-            case DISPLAY_ORIGINAL: // "Zoom Automático"
-                if (encajarTotalmente) { // prop ON
-                    if (imgW > 0 && imgH > 0 && etiquetaAncho > 0 && etiquetaAlto > 0) {
-                        double factorParaQueQuepa = Math.min((double)etiquetaAncho / imgW, (double)etiquetaAlto / imgH);
-                        nuevoFactorCalculado = Math.min(1.0, factorParaQueQuepa);
-                    } else { nuevoFactorCalculado = 1.0; }
-                } else { // prop OFF
-                    nuevoFactorCalculado = 1.0; // 100% original, permite desborde
-                }
-                break;
+	        case DISPLAY_ORIGINAL:
+	            if (encajarTotalmente) { // prop ON
+	                // ImageDisplayUtils devuelve original. Queremos 100% O que quepa.
+	                if (imgW > 0 && imgH > 0 && etiquetaAncho > 0 && etiquetaAlto > 0) {
+	                    double factorParaQueQuepa = Math.min((double)etiquetaAncho / imgW, (double)etiquetaAlto / imgH);
+	                    nuevoFactorCalculado = Math.min(1.0, factorParaQueQuepa);
+	                }
+	            } else { // prop OFF
+	                nuevoFactorCalculado = 1.0; // ImageDisplayUtils devuelve original. Mostrar al 100% con desborde.
+	            }
+	            break;
 
             case FIT_TO_WIDTH:
+            	// ImageDisplayUtils devuelve original.
+                // Calculamos factor para que el ancho de la original sea el de la etiqueta.
                 if (imgW > 0 && etiquetaAncho > 0) {
                     nuevoFactorCalculado = (double) etiquetaAncho / imgW;
                     if (encajarTotalmente && imgH > 0 && etiquetaAlto > 0) {
+                        // Si prop ON, y el alto desborda, necesitamos que el factor final la haga caber.
                         if ((imgH * nuevoFactorCalculado) > etiquetaAlto) {
                             nuevoFactorCalculado = (double) etiquetaAlto / imgH;
                         }
@@ -155,6 +156,7 @@ public class ZoomManager {
                 break;
 
             case FIT_TO_HEIGHT:
+            	// ImageDisplayUtils devuelve original.
                 if (imgH > 0 && etiquetaAlto > 0) {
                     nuevoFactorCalculado = (double) etiquetaAlto / imgH;
                     if (encajarTotalmente && imgW > 0 && etiquetaAncho > 0) {
@@ -166,29 +168,11 @@ public class ZoomManager {
                 break;
 
             case FIT_TO_SCREEN: // "Ajustar"
-                if (encajarTotalmente) { // prop ON
-                    if (imgW > 0 && imgH > 0 && etiquetaAncho > 0 && etiquetaAlto > 0) {
-                        nuevoFactorCalculado = Math.min((double)etiquetaAncho / imgW, (double)etiquetaAlto / imgH);
-                    }
-                } else { // prop OFF: ESTIRAR.
-                    // Para estirar, ImageDisplayUtils debería ser el responsable, o el paintComponent.
-                    // Si ImageDisplayUtils devuelve la original, necesitamos que paintComponent estire.
-                    // Por ahora, si prop está OFF, este modo NO DEBE MANTENER PROPORCIÓN.
-                    // Esto significa que el factor de zoom no puede ser único.
-                    // La forma más fácil es NO cambiar el factor aquí y dejar que VisorView.paintComponent lo haga.
-                    // PERO VisorView.paintComponent usa un solo zoomFactor.
-                    // Entonces, para FIT_TO_SCREEN con prop OFF, el "zoom" es inherentemente no uniforme.
-                    // La solución S1 para ImageDisplayUtils era que ÉL estirara si prop OFF.
-                    // Si ImageDisplayUtils NO estira (devuelve original), entonces FIT_TO_SCREEN con prop OFF es un problema.
-                    //
-                    // RECONSIDERACIÓN para FIT_TO_SCREEN prop OFF:
-                    // Si ImageDisplayUtils devuelve la original, y paintComponent solo aplica un factor uniforme,
-                    // no podemos "estirar" solo con el factor.
-                    // NECESITAMOS que ImageDisplayUtils estire la imagen base cuando prop=OFF.
-                    // Entonces, volvemos a la lógica S1 para ImageDisplayUtils que te di.
-                    // Y en ZoomManager, para FIT_TO_SCREEN con prop OFF:
-                    nuevoFactorCalculado = 1.0; // Se aplicará a la imagen ya estirada por ImageDisplayUtils.
-                }
+            	// ImageDisplayUtils ya ha hecho el trabajo:
+                // - Si prop ON: la base está ajustada proporcionalmente para caber.
+                // - Si prop OFF: la base está estirada para llenar.
+                // En ambos casos, el factor adicional es 1.0 para mostrar esa base tal cual.
+                nuevoFactorCalculado = 1.0;
                 break;
 
             case MAINTAIN_CURRENT_ZOOM:

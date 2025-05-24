@@ -70,21 +70,6 @@ public class AplicarModoZoomAction extends AbstractAction {
     }
     
     
-//    @Override
-//    public void actionPerformed(ActionEvent e) {
-//        System.out.println("[AplicarModoZoomAction actionPerformed] Aplicando modo: " + modoDeZoomQueRepresentaEstaAction + ", Comando: " + e.getActionCommand());
-//        if (this.zoomManager != null) {
-//            // ZoomManager se encarga de actualizar el modelo (incluyendo model.setCurrentZoomMode())
-//            // y de refrescar la vista. Después de eso, se debe llamar a la sincronización de todas
-//            // las AplicarModoZoomAction (lo cual se hará desde VisorController vía ZoomManager).
-//            this.zoomManager.aplicarModoDeZoom(this.modoDeZoomQueRepresentaEstaAction);
-//            
-//            // No actualizamos SELECTED_KEY aquí directamente, esperamos la notificación centralizada.
-//        } else {
-//            System.err.println("ERROR CRÍTICO [AplicarModoZoomAction]: ZoomManager es null.");
-//        }
-//    }
-    
     /**
      * Actualiza el estado de selección (Action.SELECTED_KEY) de esta Action
      * basándose en si el modo de zoom que representa coincide con el modo
