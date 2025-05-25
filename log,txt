@@ -1,0 +1,512 @@
+Iniciando Visor de Imágenes V2...
+--- Iniciando VisorController (Constructor Simple) ---
+--- AppInitializer: Iniciando Proceso de Inicialización Global ---
+  [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
+    -> VisorModel creado e inyectado.
+Mapa de configuración por defecto inicializado con 409 claves.
+Mapa DEFAULT_GROUP_COMMENTS inicializado con 28 entradas.
+Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
+Configuración leída. Total claves: 410
+    -> ConfigurationManager creado, cargado e inyectado.
+  [AppInitializer Fase A.2] Aplicando Configuración al Modelo...
+    -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: FIT_TO_SCREEN
+    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: FIT_TO_SCREEN
+    -> Modelo: Zoom manual inicial activo (desde config 'comportamiento...'): true
+    -> Configuración aplicada al Modelo (Miniaturas, Comportamiento).
+  [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
+[ThemeManager] Tema inicial establecido a: clear
+    -> ThemeManager creado e inyectado.
+    -> IconUtils creado e inyectado.
+[ThumbnailService] Servicio inicializado. Caché de miniaturas creado.
+    -> ThumbnailService y Modelo para JList de Miniaturas creados e inyectados.
+    -> ExecutorService (FixedThreadPool con 8 hilos) creado e inyectado.
+  [AppInitializer Fase A.4] Inicializando Servicio de Proyectos...
+  [ProjectManager] Cargadas 1 rutas absolutas desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
+[ProjectManager] Instancia creada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
+  -> Imágenes marcadas inicialmente: 1
+    -> ProjectManager (servicio) creado e inyectado.
+  [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
+--- AppInitializer: Inicialización base (fuera de EDT) completada. ---
+--- VisorController: Inicialización delegada completada con éxito ---
+VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
+  [AppInitializer Fase B - EDT] Iniciando creación de UI y componentes dependientes...
+[ViewUIConfig] Configuración UI creada con colores de tema.
+    B.1.bis. [EDT] ViewUIConfig INICIAL (para View y Factory) creado.
+[VisorView Constructor] Iniciando...
+--- [VisorView] Iniciando inicializarComponentes (Modular) ---
+    [VisorView] Creando PanelInfoSuperior...
+    [VisorView] PanelInfoSuperior creado.
+  [VisorView] Creando PanelModoNormal...
+    [VisorView] Creando PanelContenedorParaSplit (Izquierdo (Modo Normal))...
+    [VisorView] Creando PanelContenedorParaSplit (Derecho (Modo Normal))...
+    [VisorView] Configurando ComponentesDelSplitIzquierdo...
+      -> [VisorView] inicializarPanelIzquierdo...
+      -> PanelIzquierdo y ListaNombres configurados por inicializarPanelIzquierdo.
+      -> panelIzquierdo añadido a panelContenedorIzquierdoSplit.
+    [VisorView] Configurando ComponentesDelSplitDerecho...
+      -> [VisorView] inicializarEtiquetaMostrarImagen...
+      -> EtiquetaImagen configurada por inicializarEtiquetaMostrarImagen.
+      -> etiquetaImagen añadida a panelContenedorDerechoSplit.
+    [VisorView] Creando y configurando JSplitPane...
+    [VisorView] JSplitPane creado.
+    [VisorView] Configurando PanelDeMiniaturas...
+      -> [VisorView] inicializarPanelImagenesMiniatura...
+      -> PanelDeMiniaturas (scroll y lista) configurados por inicializarPanelImagenesMiniatura.
+    [VisorView] PanelDeMiniaturas configurado.
+  [VisorView] PanelModoNormal creado y ensamblado.
+    [VisorView] Creando PanelEstadoInferior...
+    [VisorView] PanelEstadoInferior creado con JLabels para ruta y mensajes.
+  [VisorView] Iniciando ensamblarUIGeneral...
+    -> Barra de Menú ensamblada.
+    -> Barra de Botones Principal ensamblada en JFrame.NORTH.
+    -> PanelInfoSuperior ensamblado en topAndCenterWrapper.NORTH.
+    -> PanelDelModoActivo ensamblado en topAndCenterWrapper.CENTER.
+    -> topAndCenterWrapper ensamblado en JFrame.CENTER.
+    -> PanelEstadoInferior ensamblado en JFrame.SOUTH.
+  [VisorView] Fin ensamblarUIGeneral.
+--- [VisorView] Fin inicializarComponentes (Modular) ---
+[VisorView Constructor] Finalizado.
+    B.2. [EDT] VisorView instanciada con uiConfigInicial e inyectada.
+    B.3.1. [EDT] ZoomManager creado e inyectado.
+    B.3.2. [EDT] ViewManager creado.
+    B.3.3. [EDT] FileOperationsManager creado.
+    B.3.4. [EDT] EditionManager creado.
+[ListCoordinator] Instancia creada.
+    B.4. [EDT] ListCoordinator creado e inyectado.
+  [ActionFactory] Inicializando todas las Actions...
+[ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
+ActionFactory: Creando ToggleSubfoldersAction@7eb16c4a
+[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
+  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 44
+    B.6. [EDT] ActionFactory creada. ActionMap completo (Tamaño: 44) inyectado en Controller.
+[ViewUIConfig] Configuración UI creada con colores de tema.
+    B.7. [EDT] ViewUIConfig COMPLETO (con actionMap) actualizado en Controller y View.
+    B.8. [EDT] Lista de ContextSensitiveActions inyectada en ListCoordinator.
+[InfoBarManager] Instancia creada.
+    B.X. [EDT] InfoBarManager creado.
+--- MenuBarBuilder: Construyendo menú desde estructura definida ---
+DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 357232600) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
+--- MenuBarBuilder: Menú construido. Total items en mapa: 124 ---
+[ToolbarBuilder Constructor] Iniciando...
+[ToolbarBuilder Constructor] Paneles de alineación configurados.
+[ToolbarBuilder Constructor] Finalizado.
+
+--- [ToolbarBuilder buildToolbar] Iniciando construcción de la toolbar ---
+  -> Paneles internos y mapa de botones reiniciados.
+  -> Procesando 32 definiciones de botones.
+  [TB procesarDef] Def: Comando='cmd.nav.primera', Icono='1001-Primera_48x48.png', Cat='movimiento'
+    -> Action 'cmd.nav.primera' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.movimiento.Primera_48x48
+  [TB getAlignment] Para categoría: 'movimiento'
+    -> Alineación determinada: LEFT
+    -> Botón añadido a panelBotonesIzquierda.
+  [TB procesarDef] Def: Comando='cmd.nav.anterior', Icono='1002-Anterior_48x48.png', Cat='movimiento'
+    -> Action 'cmd.nav.anterior' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.movimiento.Anterior_48x48
+  [TB getAlignment] Para categoría: 'movimiento'
+    -> Alineación determinada: LEFT
+    -> Botón añadido a panelBotonesIzquierda.
+  [TB procesarDef] Def: Comando='cmd.nav.siguiente', Icono='1003-Siguiente_48x48.png', Cat='movimiento'
+    -> Action 'cmd.nav.siguiente' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.movimiento.Siguiente_48x48
+  [TB getAlignment] Para categoría: 'movimiento'
+    -> Alineación determinada: LEFT
+    -> Botón añadido a panelBotonesIzquierda.
+  [TB procesarDef] Def: Comando='cmd.nav.ultima', Icono='1004-Ultima_48x48.png', Cat='movimiento'
+    -> Action 'cmd.nav.ultima' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.movimiento.Ultima_48x48
+  [TB getAlignment] Para categoría: 'movimiento'
+    -> Alineación determinada: LEFT
+    -> Botón añadido a panelBotonesIzquierda.
+  [TB getAlignment] Para categoría: 'movimiento'
+    -> Alineación determinada: LEFT
+  [TB addSeparator] Añadiendo separador después de categoría: 'movimiento'
+  [TB procesarDef] Def: Comando='cmd.imagen.rotar.izq', Icono='2001-Rotar_Izquierda_48x48.png', Cat='edicion'
+    -> Action 'cmd.imagen.rotar.izq' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.edicion.Rotar_Izquierda_48x48
+  [TB getAlignment] Para categoría: 'edicion'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.imagen.rotar.der', Icono='2002-Rotar_Derecha_48x48.png', Cat='edicion'
+    -> Action 'cmd.imagen.rotar.der' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.edicion.Rotar_Derecha_48x48
+  [TB getAlignment] Para categoría: 'edicion'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.imagen.voltear.h', Icono='2003-Espejo_Horizontal_48x48.png', Cat='edicion'
+    -> Action 'cmd.imagen.voltear.h' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.edicion.Espejo_Horizontal_48x48
+  [TB getAlignment] Para categoría: 'edicion'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.imagen.voltear.v', Icono='2004-Espejo_Vertical_48x48.png', Cat='edicion'
+    -> Action 'cmd.imagen.voltear.v' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.edicion.Espejo_Vertical_48x48
+  [TB getAlignment] Para categoría: 'edicion'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.imagen.recortar', Icono='2005-Recortar_48x48.png', Cat='edicion'
+    -> Action 'cmd.imagen.recortar' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.edicion.Recortar_48x48
+  [TB getAlignment] Para categoría: 'edicion'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB getAlignment] Para categoría: 'edicion'
+    -> Alineación determinada: CENTER
+  [TB addSeparator] Añadiendo separador después de categoría: 'edicion'
+  [TB procesarDef] Def: Comando='cmd.zoom.tipo.ajustar', Icono='3005-Escalar_Para_Ajustar_48x48.png', Cat='zoom'
+    -> Action 'cmd.zoom.tipo.ajustar' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.zoom.Escalar_Para_Ajustar_48x48
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.zoom.tipo.auto', Icono='3002-Zoom_Auto_48x48.png', Cat='zoom'
+    -> Action 'cmd.zoom.tipo.auto' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.zoom.Zoom_Auto_48x48
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.zoom.tipo.ancho', Icono='3003-Ajustar_al_Ancho_48x48.png', Cat='zoom'
+    -> Action 'cmd.zoom.tipo.ancho' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.zoom.Ajustar_al_Ancho_48x48
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.zoom.tipo.alto', Icono='3004-Ajustar_al_Alto_48x48.png', Cat='zoom'
+    -> Action 'cmd.zoom.tipo.alto' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.zoom.Ajustar_al_Alto_48x48
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.zoom.tipo.fijo', Icono='3006-Zoom_Fijo_48x48.png', Cat='zoom'
+    -> Action 'cmd.zoom.tipo.fijo' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.zoom.Zoom_Fijo_48x48
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.zoom.tipo.especificado', Icono='3007-zoom_especifico_48x48.png', Cat='zoom'
+    -> Action 'cmd.zoom.tipo.especificado' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.zoom.zoom_especifico_48x48
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.zoom.manual.toggle', Icono='3001-Zoom_48x48.png', Cat='zoom'
+    -> Action 'cmd.zoom.manual.toggle' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.zoom.Zoom_48x48
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.zoom.reset', Icono='3008-Reset_48x48.png', Cat='zoom'
+    -> Action 'cmd.zoom.reset' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.zoom.Reset_48x48
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB getAlignment] Para categoría: 'zoom'
+    -> Alineación determinada: CENTER
+  [TB addSeparator] Añadiendo separador después de categoría: 'zoom'
+  [TB procesarDef] Def: Comando='cmd.todo.funcionalidad_pendiente', Icono='4001-Panel-Galeria_48x48.png', Cat='vista'
+    -> Action 'cmd.todo.funcionalidad_pendiente' asignada al botón.
+    -> Icono '4001-Panel-Galeria_48x48.png' cargado y escalado vía IconUtils (Action no lo tenía).
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.vista.Panel-Galeria_48x48
+  [TB getAlignment] Para categoría: 'vista'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.todo.funcionalidad_pendiente', Icono='4002-Grid_48x48.png', Cat='vista'
+    -> Action 'cmd.todo.funcionalidad_pendiente' asignada al botón.
+    -> Icono '4002-Grid_48x48.png' cargado y escalado vía IconUtils (Action no lo tenía).
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.vista.Grid_48x48
+  [TB getAlignment] Para categoría: 'vista'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.todo.funcionalidad_pendiente', Icono='4003-Pantalla_Completa_48x48.png', Cat='vista'
+    -> Action 'cmd.todo.funcionalidad_pendiente' asignada al botón.
+    -> Icono '4003-Pantalla_Completa_48x48.png' cargado y escalado vía IconUtils (Action no lo tenía).
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.vista.Pantalla_Completa_48x48
+  [TB getAlignment] Para categoría: 'vista'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.vista.mostrar_dialogo_lista', Icono='4004-Lista_48x48.png', Cat='vista'
+    -> Action 'cmd.vista.mostrar_dialogo_lista' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.vista.Lista_48x48
+  [TB getAlignment] Para categoría: 'vista'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.todo.funcionalidad_pendiente', Icono='4005-Carrousel_48x48.png', Cat='vista'
+    -> Action 'cmd.todo.funcionalidad_pendiente' asignada al botón.
+    -> Icono '4005-Carrousel_48x48.png' cargado y escalado vía IconUtils (Action no lo tenía).
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.vista.Carrousel_48x48
+  [TB getAlignment] Para categoría: 'vista'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB getAlignment] Para categoría: 'vista'
+    -> Alineación determinada: CENTER
+  [TB addSeparator] Añadiendo separador después de categoría: 'vista'
+  [TB procesarDef] Def: Comando='cmd.imagen.eliminar', Icono='5004-Borrar_48x48.png', Cat='control'
+    -> Action 'cmd.imagen.eliminar' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.control.Borrar_48x48
+  [TB getAlignment] Para categoría: 'control'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.especial.refrescar', Icono='5001-Refrescar_48x48.png', Cat='control'
+    -> Action 'cmd.especial.refrescar' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.control.Refrescar_48x48
+  [TB getAlignment] Para categoría: 'control'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.imagen.localizar', Icono='7004-Ubicacion_de_Archivo_48x48.png', Cat='control'
+    -> Action 'cmd.imagen.localizar' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.control.Ubicacion_de_Archivo_48x48
+  [TB getAlignment] Para categoría: 'control'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB getAlignment] Para categoría: 'control'
+    -> Alineación determinada: CENTER
+  [TB addSeparator] Añadiendo separador después de categoría: 'control'
+  [TB procesarDef] Def: Comando='cmd.archivo.abrir', Icono='6001-Selector_de_Carpetas_48x48.png', Cat='especiales'
+    -> Action 'cmd.archivo.abrir' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.especiales.Selector_de_Carpetas_48x48
+  [TB getAlignment] Para categoría: 'especiales'
+    -> Alineación determinada: RIGHT
+    -> Botón añadido a panelBotonesDerecha.
+  [TB procesarDef] Def: Comando='cmd.especial.menu', Icono='6002-Menu_48x48.png', Cat='especiales'
+    -> Action 'cmd.especial.menu' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.especiales.Menu_48x48
+  [TB getAlignment] Para categoría: 'especiales'
+    -> Alineación determinada: RIGHT
+    -> Botón añadido a panelBotonesDerecha.
+  [TB procesarDef] Def: Comando='cmd.especial.botones_ocultos', Icono='6003-Botones_Ocultos_48x48.png', Cat='especiales'
+    -> Action 'cmd.especial.botones_ocultos' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.especiales.Botones_Ocultos_48x48
+  [TB getAlignment] Para categoría: 'especiales'
+    -> Alineación determinada: RIGHT
+    -> Botón añadido a panelBotonesDerecha.
+  [TB getAlignment] Para categoría: 'especiales'
+    -> Alineación determinada: RIGHT
+  [TB addSeparator] Añadiendo separador después de categoría: 'especiales'
+  [TB procesarDef] Def: Comando='cmd.proyecto.toggle_marca', Icono='5003-marcar_imagen_48x48.png', Cat='proyecto'
+    -> Action 'cmd.proyecto.toggle_marca' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.proyecto.marcar_imagen_48x48
+  [TB getAlignment] Para categoría: 'proyecto'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.proyecto.gestionar', Icono='7003-Mostrar_Favoritos_48x48.png', Cat='proyecto'
+    -> Action 'cmd.proyecto.gestionar' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.proyecto.Mostrar_Favoritos_48x48
+  [TB getAlignment] Para categoría: 'proyecto'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB getAlignment] Para categoría: 'proyecto'
+    -> Alineación determinada: CENTER
+  [TB addSeparator] Añadiendo separador después de categoría: 'proyecto'
+  [TB procesarDef] Def: Comando='cmd.toggle.subcarpetas', Icono='7001-Subcarpetas_48x48.png', Cat='toggle'
+ToolbarBuilder: Obtenida Action@7eb16c4a para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
+    -> Action 'cmd.toggle.subcarpetas' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.toggle.Subcarpetas_48x48
+  [TB getAlignment] Para categoría: 'toggle'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+  [TB procesarDef] Def: Comando='cmd.toggle.mantener_proporciones', Icono='7002-Mantener_Proporciones_48x48.png', Cat='toggle'
+    -> Action 'cmd.toggle.mantener_proporciones' asignada al botón.
+    -> Icono obtenido de la Action.
+    -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.toggle.Mantener_Proporciones_48x48
+  [TB getAlignment] Para categoría: 'toggle'
+    -> Alineación determinada: CENTER
+    -> Botón añadido a panelBotonesCentro.
+--- [ToolbarBuilder buildToolbar] Toolbar construida. Total botones en mapa: 32 ---
+    B.9. [EDT] Menú y Toolbar reales construidos y asignados a VisorView.
+    [EDT Internal] Asignando modelo de miniaturas a la Vista...
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
+    [EDT Internal] Fin assignModeloMiniaturasToViewInternal.
+    [EDT Internal] Estableciendo carpeta raíz inicial desde config...
+  [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
+      -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  [Apply Config View Internal] Aplicando configuración a la Vista...
+    -> Aplicando config a Botones (Vista)...
+    -> Config Botones (Vista) OK.
+    -> Aplicando config a Menús (Vista)...
+    -> Config Menús (Vista) OK.
+    -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.
+  [Apply Config View Internal] Finalizado.
+[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: FIT_TO_SCREEN
+  [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
+    -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    -> Cargando lista para carpeta inicial (desde MODELO): D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    -> Clave de imagen inicial a intentar seleccionar: A-gigante de hierro.jpg
+
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: A-gigante de hierro.jpg
+  -> Modo búsqueda: Subcarpetas (depth=MAX)
+    -> [cargarListaImagenes] Iniciando búsqueda (con subcarpetas) desde carpeta raíz del MODELO: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> [cargarListaImagenes] Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources (Relativizar a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources)
+[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
+  -> [cargarListaImagenes] Diálogo y Worker creados y asociados.
+  -> [cargarListaImagenes] Añadiendo PropertyChangeListener al worker...
+  -> [cargarListaImagenes] Ejecutando worker y programando muestra de diálogo...
+-->>> FIN cargarListaImagenes(String) | Clave mantenida: A-gigante de hierro.jpg
+  [Load Initial State Internal] Finalizado.
+[Controller Internal] Configurando Listeners de Vista...
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
+  -> Listener de Selección añadido a listaNombres.
+  -> Listener de Selección añadido a listaMiniaturas.
+  -> Listeners de Zoom/Pan (Rueda y Arrastre) añadidos a etiquetaImagenPrincipal.
+  -> MouseWheelListener añadido a scrollListaMiniaturas para scroll horizontal.
+  -> MouseListener añadido a scrollListaMiniaturas para gestionar foco.
+[Controller Internal] Configuración de Listeners de Vista finalizada.
+  -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
+  [Worker BG] Files.walk terminado. Archivos encontrados: 170
+    -> [EDT AppInitializer] Configurando ComponentListener para miniaturas dinámicas...
+    -> [EDT AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.
+    [EDT Internal] Sincronizando UI Final...
+      -> Sincronizando Fondo a Cuadros a estado: false
+    [EDT Internal] Sincronización UI Final completada.
+    [Internal] Configurando Shutdown Hook...
+    [Internal] Shutdown Hook registrado en la JVM.
+    B.10. [EDT] Visibilidad inicial del botón Menu_48x48 (toolbar) establecida a: false
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+  [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.
+--- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---
+  [Constructor EDT] Divisor JSplitPane establecido.
+    [EDT Carga Lista] Mostrando diálogo de progreso...
+[Worker EDT] Método done() alcanzado.
+  [EDT Worker Listener] Tarea de búsqueda (BuscadorArchivosWorker) ha finalizado (DONE). Procesando resultado...
+[Dialogo Progreso] Solicitud de cierre.
+  -> [EDT] Cerrando diálogo...
+  -> [EDT] Diálogo cerrado y desechado.
+    WORKER HA TERMINADO. Número de archivos encontrados: 170
+    -> Resultado obtenido del worker: 170 archivos. Actualizando modelo y vista...
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 170
+[VisorView setListaImagenesModel] Modelo asignado a listaNombres (y potencialmente listaMiniaturas). Tamaño: 170
+    -> Flag estaCargandoLista puesto a FALSE.
+      -> [Precalentamiento] Añadidas 30 rutas iniciales para precalentar.
+      -> [Precalentamiento] Intentando precalentar alrededor de 'A-gigante de hierro.jpg' (índice 0), rango en modelo principal [0..8]
+    -> [VisorController] Solicitando precalentamiento DIRIGIDO para un total de 39 miniaturas.
+[Controller] Iniciando pre-calentamiento de caché para 39 miniaturas...
+[Controller] 39 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+      -> Índice final a seleccionar después de carga: 0 (intentando mantener: 'A-gigante de hierro.jpg')
+    -> Aplicando selección inicial programática al índice: 0
+      -> Flag seleccionInicialEnCurso puesto a TRUE.
+  [EDT Worker Listener] Procesamiento del resultado finalizado.
+      [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
+      [WindowResized Timer - AppInitializer] Modelo no listo o sin selección oficial, no se actualizan miniaturas.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. (Índice que se intentó seleccionar: 0)
+    [Asegurar Visibilidad] Índice -1, no se hace nada.
+      -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a ListCoordinator para procesar índice inicial: 0
+>>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
+    [Coordinator Flag] sincronizandoUI -> true
+  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
+    -> Actualizando índice oficial a: 0
+    -> Delegando carga de imagen al Controller para índice: 0
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice informativo: 0)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: A-gigante de hierro.jpg
+      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
+        -> Índice actual en JList 'Nombres': 0
+        -> Índice ya correcto. Asegurando solo visibilidad.
+      [BG Img Load] Lectura de imagen desde disco correcta.
+      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
+--- FIN actualizarModeloYVistaMiniaturas ---
+        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
+>>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
+      [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
+--- FIN actualizarModeloYVistaMiniaturas ---
+          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: A-gigante de hierro.jpg
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 989, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
+[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
+[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
+   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+    [Coordinator Flag] sincronizandoUI -> false
+   -> [EDT Miniaturas Update] Ejecutando actualización UI...
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 989, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
+[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
+[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
+   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+--- Hook de Cierre Ejecutándose ---
+  [Hook - Ventana] Guardando estado de la ventana en config...
+    -> Bounds guardados en memoria config: java.awt.Rectangle[x=182,y=45,width=1013,height=541]
+  -> Llamando a guardarConfiguracionActual() desde hook...
+  [ShutdownHook] Recopilando estado actual para guardar...
+    -> Modelo: Guardando estado de zoomHabilitado: true en clave: comportamiento.zoom.manual_inicial_activo
+    -> Modelo: Guardando ultimo_modo_seleccionado: FIT_TO_SCREEN
+    -> Estado recopilado completo. Tema a guardar: 'clear'
+    -> Llamando a configuration.guardarConfiguracion con 410 claves...
+
+[ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
+[ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
+[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
+Guardando configuración (preservando estructura) en config.cfg
+Claves a guardar/actualizar: 410
+Archivo de configuración actualizado exitosamente.
+  [ShutdownHook] Configuración actual guardada exitosamente.
+  [ShutdownHook] Fin guardarConfiguracionActual.
+  [Hook - Executor] Apagando ExecutorService...
+    -> ExecutorService terminado ordenadamente.
+--- Hook de Cierre Terminado ---

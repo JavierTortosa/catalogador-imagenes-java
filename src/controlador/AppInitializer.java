@@ -25,8 +25,8 @@ import controlador.factory.ActionFactory; // La fábrica de Actions
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager; // Futuro
+import controlador.managers.InfoBarManager;
 import controlador.managers.ViewManager;
-
 // Managers
 import controlador.managers.ZoomManager;
 import modelo.VisorModel;
@@ -69,6 +69,8 @@ public class AppInitializer {
     private ZoomManager zoomManager;
     private EditionManager editionManager; 
     private FileOperationsManager fileOperationsManager;
+    private InfoBarManager infoBarManager;
+
     // private ViewUIManager viewUIManager;
     // private ProjectActionsManager projectActionsManager;
 
@@ -384,7 +386,7 @@ public class AppInitializer {
             this.controller.setListCoordinator(this.listCoordinator);
             System.out.println("    B.4. [EDT] ListCoordinator creado e inyectado.");
             
-            // --- B.5. (ANTES ERA B.5) AHORA ES B.6: CREAR ActionFactory ---
+            // --- B.5. CREAR ActionFactory ---
             vista.config.UIDefinitionService uiDefSvcForIcons = new vista.config.UIDefinitionService();
             List<ToolbarButtonDefinition> toolbarDefsForIcons = uiDefSvcForIcons.generateToolbarStructure();
             Map<String, String> comandoToIconKeyMap = new HashMap<>();
@@ -444,7 +446,14 @@ public class AppInitializer {
                 System.err.println("ERROR [AppInitializer EDT]: ActionFactory es nula, no se pudo obtener sensitiveActionsList.");
             }
             
-            // --- B.9. CONSTRUIR MENÚ Y TOOLBAR REALES USANDO BUILDERS ---
+            
+            // --- B.9. CREANDO infoBarManager (gestor de barras de status)
+            this.infoBarManager = new InfoBarManager(this.model, this.view, uiConfigCompleto);
+            this.controller.setInfoBarManager(this.infoBarManager);
+            System.out.println("    B.X. [EDT] InfoBarManager creado.");
+            
+            
+            // --- B.10. CONSTRUIR MENÚ Y TOOLBAR REALES USANDO BUILDERS ---
             List<MenuItemDefinition> menuStructure = uiDefSvcForIcons.generateMenuStructure();
             List<ToolbarButtonDefinition> toolbarStructure = toolbarDefsForIcons; // Ya la tenemos
 
@@ -469,7 +478,10 @@ public class AppInitializer {
             this.view.setActualBotonesMap(toolbarBuilder.getBotonesPorNombre()); // Método para setear el mapa
             System.out.println("    B.9. [EDT] Menú y Toolbar reales construidos y asignados a VisorView.");
 
-            // --- B.10. FINALIZAR CONFIGURACIÓN DEL CONTROLADOR Y VISTA ---
+            
+            
+            
+            // --- B.11. FINALIZAR CONFIGURACIÓN DEL CONTROLADOR Y VISTA ---
             //       Estos son los métodos que VisorController llamaba internamente o que AppInitializer gestiona ahora.
             this.controller.assignModeloMiniaturasToViewInternal();
             this.controller.establecerCarpetaRaizDesdeConfigInternal();
@@ -508,6 +520,10 @@ public class AppInitializer {
             System.out.println("  [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.");
             System.out.println("--- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---");
 
+            
+            this.view.setVisible(true);
+            
+            
         } catch (Exception e) {
             manejarErrorFatalInicializacion("[EDT] Error fatal durante creación de UI o componentes dependientes", e);
         }

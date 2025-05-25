@@ -168,8 +168,60 @@ Comenzar con la implementación de la **Barra de Información Superior básica**
     *   `controlador.actions.toggle.ToggleProporcionesAction`
 14. `vista.theme.Tema` y `vista.theme.ThemeManager`
 
----
 
-Este prompt ahora sí incluye el **propósito fundamental** de la aplicación, lo cual es esencial.
+Plan Conceptual para las Barras:
+*   **Barra de Información Superior (Display Info, debajo de la Toolbar):**
+    1.  `nombreArchivoLabel` (Solo nombre)
+    2.  `indiceTotalLabel` ("15/166")
+    3.  `dimensionesOriginalesLabel` ("1920x1080")
+    4.  `tamanoArchivoLabel` ("1.2MB")
+    5.  `fechaArchivoLabel`
+    6.  `modoZoomNombreLabel` ("Ajustar a Pantalla")
+    7.  `porcentajeZoomVisualRealLabel` ("125%") - *Clickeable a futuro para establecer zoom.*
+    8.  `indicadorZoomManualLabel` (Icono Lupa, fondo/color cambia)
+    9.  `indicadorMantenerPropLabel` (Icono Prop, fondo/color cambia)
+    10. `indicadorSubcarpetasLabel` (Icono SubC, fondo/color cambia)
 
-Ahora sí, envíame el log de la prueba con la carpeta monstruo y los cambios para limitar el precalentamiento y el `setPrototypeCellValue` (si los aplicaste). ¡Vamos a cazar ese bug de rendimiento!
+*   **Barra de Estado/Control Inferior (Ruta y Controles Rápidos):**
+    *   **Izquierda:** `rutaArchivoLabel` (Ruta Completa + Nombre).
+    *   **Centro/Derecha:**
+        *   `porcentajeZoomControlButton` (Clickeable para `JPopupMenu` con %, activa `USER_SPECIFIED_PERCENTAGE`).
+        *   `modoZoomActualIconoButton` (Icono del modo activo, clickeable para `JPopupMenu` con otros modos).
+        *   `indicadorZoomManualButton` (Clickeable para toggle).
+        *   `indicadorProporcionesButton` (Clickeable para toggle).
+        *   `indicadorSubcarpetasButton` (Clickeable para toggle).
+    *   **Extrema Derecha:** `mensajesAppLabel` (mensajes temporales).
+
+**Enfoque Iterativo Sugerido para Implementar las Barras:**
+
+1.  **Diseño de la UI en `VisorView`:**
+    *   Añade los `JPanel`s para la barra superior e inferior.
+    *   Añade los `JLabel`s iniciales (no interactivos) a la barra superior.
+    *   Modifica la barra inferior para tener el `rutaArchivoLabel` y un `mensajesAppLabel`.
+    *   Crea getters en `VisorView` para estos nuevos `JLabel`s para que puedan ser actualizados desde fuera.
+
+2.  **Creación del `InfoBarManager` (o lógica en `VisorController` / `ViewManager`):**
+    *   **Clase:** `controlador.managers.InfoBarManager` (sugerencia).
+    *   **Dependencias:** `VisorModel`, `VisorView`, `ConfigurationManager` (para preferencias futuras de qué mostrar).
+    *   **Método Principal:** `public void actualizarBarrasDeInfo()` (o métodos separados para barra superior e inferior).
+    *   **Lógica de `actualizarBarrasDeInfo()`:**
+        *   Leer todos los datos necesarios del `VisorModel`.
+        *   Formatear los strings.
+        *   Actualizar el `text` de los `JLabel`s correspondientes en `VisorView`.
+        *   Actualizar la apariencia de los indicadores (ej. color/icono de `indicadorZoomManualLabel`).
+
+3.  **Integración y Disparadores:**
+    *   `AppInitializer` crea e inyecta `InfoBarManager` en `VisorController`.
+    *   `VisorController` llama a `infoBarManager.actualizarBarrasDeInfo()` en los puntos clave:
+        *   Después de que `ListCoordinator` selecciona una nueva imagen.
+        *   Después de que un modo de zoom es aplicado por `ZoomManager` (y después de que `sincronizarEstadoVisualBotonesYRadiosZoom` se haya ejecutado).
+        *   Después de que los toggles (Proporciones, Subcarpetas, Zoom Manual) cambian de estado.
+
+4.  **Iteraciones Posteriores:**
+    *   Hacer clickeable el `% Zoom` y el icono de modo de zoom en las barras.
+    *   Hacer clickeables los indicadores de estado toggle en la barra inferior.
+    *   Implementar los mensajes temporales.
+    *   Añadir la información de Tamaño de Archivo y Fecha (que podría requerir acceso al disco).
+
+Empezar por la parte de "solo mostrar" de la barra superior te dará un feedback inmediato y será la base para añadir interactividad después.
+

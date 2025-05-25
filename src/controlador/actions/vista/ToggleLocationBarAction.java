@@ -5,9 +5,6 @@ import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon; 
-// import javax.swing.JCheckBoxMenuItem; // No es necesario si la Action no manipula directamente el componente
-
-// import controlador.commands.AppActionCommands; // No es necesario si se pasa como parámetro
 import servicios.ConfigurationManager;
 import vista.VisorView; // No se usa directamente aquí si ViewManager lo maneja
 import controlador.managers.ViewManager;

@@ -74,6 +74,7 @@ import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
+import controlador.managers.InfoBarManager;
 import controlador.managers.ZoomManager;
 import controlador.worker.BuscadorArchivosWorker;
 // --- Imports de Modelo, Servicios y Vista ---
@@ -109,6 +110,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private ListCoordinator listCoordinator;		// El coordinador para la selección y navegación en las listas
     private ProjectManager projectManager;			// Gestor de proyectos (imagenes favoritas)
     private ZoomManager zoomManager;				// Responsable de los metodos de zoom
+    private InfoBarManager infoBarManager;			// Responsable de las barras de status
     
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
@@ -1388,7 +1390,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 SwingUtilities.invokeLater(() -> {
                     if (view != null) { 
                         view.limpiarImagenMostrada();
-                        view.setTextoRuta(""); 
+                        view.setTextoBarraEstadoRuta(""); 
                         view.setTituloPanelIzquierdo("Escaneando: " + finalStartPath.getFileName() + "...");
                         if (view.getListaMiniaturas() != null) {
                             if (this.modeloMiniaturas != null) { 
@@ -1694,7 +1696,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             if (view != null) {
                 SwingUtilities.invokeLater(() -> {
                     view.limpiarImagenMostrada();
-                    view.setTextoRuta("");
+                    view.setTextoBarraEstadoRuta("");
                     view.setTituloPanelIzquierdo("Escaneando: " + finalStartPath.getFileName() + "...");
                     if (view.getListaMiniaturas() != null) {
                         if (this.modeloMiniaturas != null) this.modeloMiniaturas.clear();
@@ -2211,6 +2213,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         } else {
             System.out.println("[navegarAIndice] El índice solicitado (" + index + ") ya es el actual. No se hace nada.");
         }
+        
+        
+        
+        
+        
 
     } // --- FIN navegarAIndice ---
     
@@ -2244,7 +2251,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	            System.out.println("[VisorController.actualizarImagenPrincipal] No hay clave seleccionada o índice es -1. Limpiando imagen principal.");
 	            if (view != null) { // Solo limpiar la parte visual de la imagen
 	                view.limpiarImagenMostrada();
-	                view.setTextoRuta(model.getCarpetaRaizActual() != null ? model.getCarpetaRaizActual().toString() : ""); // Mostrar carpeta raíz si existe
+	                view.setTextoBarraEstadoRuta(model.getCarpetaRaizActual() != null ? model.getCarpetaRaizActual().toString() : ""); // Mostrar carpeta raíz si existe
 	            }
 	            if (model != null) model.setCurrentImage(null);
 	            // NO LLAMAR A limpiarUI() completo aquí, solo lo referente a la imagen principal.
@@ -2288,13 +2295,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             System.err.println("ERROR GRAVE [VisorController.actualizarImagenPrincipal]: No se encontró ruta completa para la clave válida: " + archivoSeleccionadoKey);
             model.setSelectedImageKey(null); // Deshacer selección en modelo como medida de seguridad.
             limpiarUI();
-            view.setTextoRuta("Error CRÍTICO: Ruta no encontrada para " + archivoSeleccionadoKey);
+            view.setTextoBarraEstadoRuta("Error CRÍTICO: Ruta no encontrada para " + archivoSeleccionadoKey);
             return; // Salir si no hay ruta.
         }
 
         // --- SECCIÓN 2: PREPARAR UI PARA LA CARGA ---
         // 2.1. Mostrar la ruta completa en la barra de estado de la vista.
-        view.setTextoRuta(rutaCompleta.toString());
+        view.setTextoBarraEstadoRuta(rutaCompleta.toString());
         
         // 2.2. Mostrar un indicador visual de "Cargando..." en el panel de la imagen principal.
         view.mostrarIndicadorCargaImagenPrincipal("Cargando: " + rutaCompleta.getFileName() + "...");
@@ -2405,7 +2412,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                         
                         model.setCurrentImage(null); // Asegurar que no hay imagen en el modelo.
                         view.limpiarImagenMostrada(); // Limpiar la vista.
-                        view.setTextoRuta("Error cargando: " + finalPathParaWorker.getFileName() + 
+                        view.setTextoBarraEstadoRuta("Error cargando: " + finalPathParaWorker.getFileName() + 
                                           (finalMensajeError != null ? " (" + finalMensajeError + ")" : ""));
                         
                         // Si el zoom manual estaba activo, podría ser buena idea desactivarlo
@@ -2479,7 +2486,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              view.limpiarImagenMostrada();
 
              // 3.3. Limpiar la barra de estado (texto de ruta)
-             view.setTextoRuta("");
+             view.setTextoBarraEstadoRuta("");
 
              // 3.4. Establecer título por defecto en el panel de la lista
              view.setTituloPanelIzquierdo("Lista de Archivos");
@@ -5599,10 +5606,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 		if (estaMarcada)
 		{
-			view.setTextoRuta(rutaActual + " [MARCADA]");
+			view.setTextoBarraEstadoRuta(rutaActual + " [MARCADA]");
 		} else
 		{
-			view.setTextoRuta(rutaActual);
+			view.setTextoBarraEstadoRuta(rutaActual);
 		}
 		System.out.println("  [Controller] Barra de estado y botón 'Marcar' actualizados. Marcada: " + estaMarcada);
 
@@ -5693,10 +5700,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 		if (estaMarcada)
 		{
-			view.setTextoRuta(textoRuta + " [MARCADA]");
+			view.setTextoBarraEstadoRuta(textoRuta + " [MARCADA]");
 		} else
 		{
-			view.setTextoRuta(textoRuta);
+			view.setTextoBarraEstadoRuta(textoRuta);
 		}
 
 		// System.out.println(" [Controller] Barra de estado y botón 'Marcar'
@@ -5908,6 +5915,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         return this.projectManager;
     }
 
+    
+	 public void setInfoBarManager (InfoBarManager infoBarManager)
+	 {
+		this.infoBarManager = infoBarManager;
+	 }     
+    
+    
 
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
@@ -6221,7 +6235,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              this.antes = antes;
              this.despues = despues;
          }
-     }    
+     }
+
+
+   
      
 // *************************************************************************** CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
 // ***************************************************************************************************************************    

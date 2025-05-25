@@ -446,8 +446,8 @@ public class ConfigurationManager
 			
 		// Ventana de la aplicacion
 	        // Usar -1 para indicar que no hay posición/tamaño guardado (usar defaults del sistema/pack)
-	        defaults.put(KEY_WINDOW_X, "-1");
-	        defaults.put(KEY_WINDOW_Y, "-1");
+	        defaults.put(KEY_WINDOW_X, "0");
+	        defaults.put(KEY_WINDOW_Y, "0");
 	        defaults.put(KEY_WINDOW_WIDTH, "1550");  // O un tamaño default razonable si prefieres
 	        defaults.put(KEY_WINDOW_HEIGHT, "500"); // Ej: defaults.put(KEY_WINDOW_WIDTH, "1200");
 	        defaults.put(KEY_WINDOW_MAXIMIZED, "false"); // Por defecto no empieza maximizada
