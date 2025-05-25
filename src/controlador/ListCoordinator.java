@@ -206,7 +206,7 @@ public class ListCoordinator {
      *
      * @param indice El índice (0-based, relativo al modelo PRINCIPAL) a hacer visible.
      */
-     private void asegurarVisibilidadAmbasListasSiVisibles(final int indice) 
+     public void asegurarVisibilidadAmbasListasSiVisibles(final int indice) 
      {
          // --- 1. VALIDACIÓN INICIAL ---
          
@@ -514,8 +514,10 @@ public class ListCoordinator {
              controller.actualizarImagenPrincipal(indiceDeseado);
         } else {
              model.setSelectedImageKey(null);
+             model.setCurrentImage(null);
              System.out.println("    -> Delegando limpieza de UI al Controller (índice -1)");
-             controller.limpiarUI();
+             //controller.limpiarUI();
+             controller.actualizarImagenPrincipal(-1);
              actualizarEstadoDeTodasLasAccionesContextuales();
         }
 

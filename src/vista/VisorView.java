@@ -430,6 +430,7 @@ public class VisorView extends JFrame
         // 2. Crear la JList para los nombres de archivo (`listaNombres`)
         //    Se le pasa el modelo de datos principal recibido como parámetro.
         listaNombres = new JList<>(modeloNombres);
+        listaNombres.setPrototypeCellValue("WWWWWWWWWWWWWWWWWWWWWWWWWWWWWW");
 
         // 3. Configurar propiedades básicas de la JList
         listaNombres.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Permitir seleccionar solo un item

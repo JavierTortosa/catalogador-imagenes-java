@@ -100,169 +100,53 @@ Por favor, cíñete estrictamente a la clase/método que te indique en cada mome
 *************************************************************************************************************************
 ************************************************************************************************************************* 
 
-Aquí tienes un prompt que puedes usar cuando vuelvas, describiendo nuestro progreso y las clases clave involucradas.
+**Prompt para Retomar: Implementación de Barras de Información y Estado (v2)**
 
----
+**Contexto General del Proyecto (¡EL MÁS IMPORTANTE!):**
 
-**Prompt para Continuar la Refactorización del Visor de Imágenes Java/Swing**
+Estoy desarrollando una aplicación de escritorio en Java/Swing llamada **"Visor/Catalogador de Imágenes"**. Su propósito principal es ayudarme a **navegar y encontrar imágenes específicas dentro de una gran colección personal (aproximadamente 26,000 imágenes y creciendo) que utilizo para mis proyectos de modelado e impresión 3D.** Cada imagen visualizada corresponde a un archivo comprimido (`.zip`, `.rar`) que contiene los modelos 3D relacionados con esa imagen. Los archivos de imagen están organizados en una estructura de carpetas temáticas (ej. `cine/star_wars/droides`, `herramientas/destornilladores`, `escenografia/edificios_futuristas`, o por diseñador como `artistas/PungaMiniatures/`, etc.), que pueden tener múltiples niveles de anidamiento.
 
-**Contexto del Proyecto:**
-Estamos refactorizando una aplicación de visualización y catalogación de imágenes en Java/Swing. El objetivo principal actual es reducir la complejidad de la clase `controlador.VisorController` extrayendo la lógica de manejo de acciones específicas a nuevas clases `Manager` ubicadas en el paquete `controlador.managers`. Además, estamos asegurando que las clases `javax.swing.Action` (ubicadas en `controlador.actions.*`) dependan de estos `Managers` o de las dependencias mínimas necesarias (`VisorModel`, `VisorView`, `ConfigurationManager`, `ImageIcon`), en lugar de depender directamente de `VisorController`.
+El objetivo de la aplicación es **agilizar la búsqueda y selección de estos modelos 3D** permitiendo la visualización rápida de sus imágenes de previsualización, el etiquetado/catalogación, y la creación de "proyectos" o colecciones de imágenes seleccionadas (que representan los modelos que quiero usar para un proyecto de impresión específico). Se planea en tres módulos principales: Visualizador, Gestor de Proyectos y Catalogador de Imágenes. La capacidad de "profundizar" en subcarpetas basadas en la imagen actual y "emerger" es una funcionalidad clave para la exploración eficiente de la colección.
 
-**Estado Actual de la Refactorización (Puntos Clave Alcanzados/En Proceso):**
-
-1.  **`AppInitializer` Reestructurado:**
-    *   Orquesta la creación de componentes en fases, separando la lógica pre-UI de la lógica de UI (que se ejecuta en el EDT).
-    *   Es responsable de crear e inyectar dependencias como `VisorModel`, `ConfigurationManager`, `ThemeManager`, `IconUtils`, `VisorView`, `ZoomManager`, `FileOperationsManager`, `ViewManager`, `ListCoordinator`, `ProjectManager` (servicio), y `ActionFactory`.
-    *   Crea un `Map<String, String> comandoToIconKeyMap` a partir de las `ToolbarButtonDefinition` (de `UIDefinitionService`) y lo pasa a `ActionFactory` para la obtención de iconos.
-
-2.  **`ActionFactory` Modificada:**
-    *   Su constructor ahora acepta todas las dependencias necesarias (modelo, vista, todos los managers relevantes, servicios, y el `comandoToIconKeyMap`).
-    *   Tiene un método `initializeAllActions()` que es responsable de crear **todas** las instancias de `Action`.
-    *   Utiliza un método helper `getIconForCommand(String appCommand)` para obtener `ImageIcon`s usando el `comandoToIconKeyMap` y `IconUtils`.
-    *   Los métodos `create...Action()` dentro de `ActionFactory` están siendo actualizados para instanciar las `Action`s con sus nuevos constructores (que no dependen de `VisorController`).
-
-3.  **Refactorización de Clases `Action` Individuales (En Proceso):**
-    *   **Actions de Zoom:**
-        *   `ResetZoomAction`: Refactorizada para usar `ZoomManager`.
-        *   `ToggleZoomManualAction`: Refactorizada para usar `ZoomManager`, `VisorModel`, `VisorView` y una referencia a `ResetZoomAction`.
-        *   `AplicarModoZoomAction`: Nueva clase genérica creada para manejar los diferentes modos de zoom (Auto, Ancho, Alto, etc.), dependiendo de `ZoomManager` y `VisorModel`. `ActionFactory` crea múltiples instancias de esta clase.
-    *   **Actions de Archivo:**
-        *   `OpenFileAction`: Refactorizada para usar `FileOperationsManager`.
-        *   `DeleteAction`: En proceso de refactorización para usar `FileOperationsManager` y `VisorModel`.
-        *   `RefreshAction`: Unificada (eliminada la duplicada) y en proceso de refactorización (dependerá de `VisorModel` y, a futuro, de un `Manager` para recargar la lista).
-    *   **Actions de Vista (Toggles de UI):**
-        *   `ToggleMenuBarAction`, `ToggleToolBarAction`, `ToggleFileListAction`, `ToggleThumbnailsAction`, `ToggleLocationBarAction`: Refactorizadas/en proceso para usar `ViewManager` y `ConfigurationManager`.
-        *   `ToggleCheckeredBackgroundAction`, `ToggleAlwaysOnTopAction`: Refactorizadas/en proceso para usar `VisorView` y `ConfigurationManager`.
-        *   `MostrarDialogoListaAction`: Refactorizada/en proceso para usar `VisorView`, `VisorModel` (y temporalmente `VisorController` para `ClipboardOwner` hasta mover esa lógica).
-        *   `ToggleMiniatureTextAction`: Refactorizada/en proceso para usar `ConfigurationManager` y `VisorView` (para llamar a `solicitarRefrescoRenderersMiniaturas`).
-    *   **Actions de Tema:**
-        *   `ToggleThemeAction`: Refactorizada para usar `ThemeManager` y `VisorView`. Se ha establecido un mecanismo de notificación desde `ThemeManager` (vía `VisorController`) para sincronizar el estado `SELECTED_KEY` de estas actions.
-
-4.  **Managers Implementados/En Proceso:**
-    *   `ZoomManager`: Lógica de zoom y paneo.
-    *   `ThemeManager`: Gestión de temas visuales.
-    *   `FileOperationsManager`: Lógica para abrir carpetas (borrar y refrescar son funcionalidades futuras para este manager).
-    *   `ViewManager`: Lógica para mostrar/ocultar componentes principales de la UI y actualizar su configuración.
-
-5.  **Sincronización de UI:**
-    *   Se está trabajando en asegurar que el estado `Action.SELECTED_KEY` se actualice correctamente para grupos de acciones mutuamente excluyentes (como los modos de zoom y los temas), involucrando a `VisorController` para orquestar esta sincronización.
-    *   El método `VisorView.actualizarAspectoBotonToggle()` se usa para cambiar la apariencia de `JButton`s que actúan como toggles.
-
-**Último Punto Abordado / Error Pendiente (antes de la pausa):**
-Estábamos trabajando en la refactorización de `ToggleThemeAction` y asegurando que `ThemeManager` pudiera notificar a `VisorController` para sincronizar las `Action`s de tema. El último error era `themeManager cannot be resolved or is not a field` en `ActionFactory.createToggleThemeAction()`, lo cual se solucionó añadiendo `ThemeManager` como dependencia a `ActionFactory`.
-
-**Siguiente Objetivo Inmediato:**
-Continuar refactorizando las clases `Action` restantes (las que aún causan errores de compilación en `ActionFactory` debido a constructores no definidos o incorrectos) para que no dependan de `VisorController` y usen los `Managers` o dependencias apropiadas.
-
-**Clases Clave Involucradas en la Refactorización Actual y Futura Inmediata:**
-*(Necesitarás tener estas clases a mano o poder consultarlas)*
-
-1.  **Controlador Principal:**
-    *   `controlador.VisorController` (el que estamos intentando adelgazar)
-
-2.  **Inicialización y Fábricas:**
-    *   `controlador.AppInitializer`
-    *   `controlador.factory.ActionFactory`
-
-3.  **Definiciones de Comandos y UI:**
-    *   `controlador.commands.AppActionCommands`
-    *   `vista.config.UIDefinitionService`
-    *   `vista.config.MenuItemDefinition`
-    *   `vista.config.ToolbarButtonDefinition`
-    *   `vista.config.ViewUIConfig`
-
-4.  **Managers:**
-    *   `controlador.managers.ZoomManager`
-    *   `controlador.managers.FileOperationsManager`
-    *   `controlador.managers.ViewManager`
-    *   `controlador.managers.EditionManager` (aún por refactorizar/crear en detalle)
-
-5.  **Modelo y Vista Principal:**
-    *   `modelo.VisorModel`
-    *   `vista.VisorView`
-
-6.  **Clases `Action` Individuales (principalmente en `controlador.actions.*`):**
-    *   Las de `controlador.actions.zoom.*` (ej. `AplicarModoZoomAction`, `ResetZoomAction`, `ToggleZoomManualAction`)
-    *   Las de `controlador.actions.vista.*` (ej. `ToggleMenuBarAction`, `ToggleCheckeredBackgroundAction`, `ToggleMiniatureTextAction`, `MostrarDialogoListaAction`)
-    *   Las de `controlador.actions.archivo.*` (ej. `OpenFileAction`, `DeleteAction`, `RefreshAction`)
-    *   Las de `controlador.actions.tema.*` (ej. `ToggleThemeAction`)
-    *   Las de `controlador.actions.toggle.*` (ej. `ToggleProporcionesAction`, `ToggleSubfoldersAction`)
-    *   Las de `controlador.actions.projects.*` (ej. `ToggleMarkImageAction`, `GestionarProyectoAction`)
-    *   Las de `controlador.actions.especiales.*` (ej. `MenuAction`, `HiddenButtonsAction`)
-    *   `controlador.imagen.LocateFileAction`
-
-7.  **Servicios y Utilidades:**
-    *   `servicios.ConfigurationManager`
-    *   `servicios.ProjectManager`
-    *   `servicios.image.ThumbnailService`
-    *   `servicios.image.ImageEdition` (para cuando lleguemos a `EditionManager`)
-    *   `servicios.zoom.ZoomModeEnum`
-    *   `vista.theme.ThemeManager`
-    *   `vista.theme.Tema` (el record/clase)
-    *   `vista.util.IconUtils`
-    *   `vista.util.ImageDisplayUtils`
-
-8.  **Coordinador de Listas:**
-    *   `controlador.ListCoordinator`
-
----
-
-Cuando estés listo, dime con qué clase `Action` (o con qué error de compilación específico en `ActionFactory`) quieres continuar. ¡Buen descanso!
-
-*************************************************************************************************************************
-*************************************************************************************************************************
-
-¡Excelente idea organizar las tareas pendientes! Aquí tienes un prompt que puedes usar para cuando retomemos el tema de las barras de estado/información. Incluye un resumen de lo que discutimos y una lista de las clases clave que hemos estado modificando.
-
----
-
-**Prompt para Retomar: Implementación de Barras de Información y Estado**
-
-**Contexto General del Proyecto:**
-Estoy desarrollando una aplicación de escritorio en Java/Swing llamada "Visor/Catalogador de Imágenes".
-
-**Objetivo Actual de la Conversación:**
+**Objetivo Actual de la Conversación (Implementar Barras de Información):**
 Queremos implementar/mejorar las barras de información en la aplicación. Hemos discutido tener dos barras principales:
 
 1.  **Barra de Información Superior (Nueva):**
     *   **Ubicación:** Debajo de la toolbar principal, encima del visor de imagen.
     *   **Contenido (Display Principal):**
-        *   Nombre del Archivo (solo nombre, la ruta completa irá en la barra inferior).
+        *   Nombre del Archivo (solo nombre).
         *   Índice Actual / Total de Imágenes en la lista cargada (ej. "15/166").
         *   Dimensiones Originales de la imagen actual (ej. "1920x1080").
         *   Tamaño del Archivo en disco (ej. "1.2MB").
         *   Fecha de Modificación del Archivo.
-        *   Nombre del Modo de Zoom Activo (ej. "Ajustar a Pantalla", "Zoom 100%").
-        *   **% Zoom Visual Resultante:** El factor de escala efectivo con el que se ve la imagen (`(int)(model.getZoomFactor() * 100) + "%"`).
-    *   **Funcionalidad Adicional Planeada (para después de la implementación básica):**
-        *   Hacer que el `% Zoom Visual Resultante` sea clickeable para abrir un `JPopupMenu` con valores predefinidos (25%, 50%, 100%, "Otro...") que, al seleccionarse, establezcan el `zoom.personalizado.porcentaje` en la configuración y activen el modo `USER_SPECIFIED_PERCENTAGE`.
+        *   Nombre del Modo de Zoom Activo (ej. "Ajustar a Pantalla").
+        *   **% Zoom Visual Resultante:** (`(int)(model.getZoomFactor() * 100) + "%"`).
+    *   **Funcionalidad Adicional Planeada (para después):**
+        *   Hacer que el `% Zoom Visual Resultante` sea clickeable para cambiar a modo `USER_SPECIFIED_PERCENTAGE`.
 
 2.  **Barra de Estado/Control Inferior (Evolución de la existente):**
     *   **Sección Izquierda:**
-        *   Ruta Completa + Nombre del Archivo (para facilitar copiar/pegar, especialmente útil mientras `LocateFileAction` no selecciona el archivo directamente en todos los SO).
+        *   Ruta Completa + Nombre del Archivo (útil para copiar/pegar y usar con ImageGlass mientras `LocateFileAction` se refina).
     *   **Sección Centro/Derecha (Controles Rápidos y Estados):**
-        *   **Control "% Zoom Especificado":** Un `JButton` (o similar) que muestra el último % usado para "Zoom Especificado". Al hacer clic, abre un `JPopupMenu` (50%, 100%, "Otro...") para establecer un nuevo % y activar el modo `USER_SPECIFIED_PERCENTAGE`.
-        *   **Control "Modo de Zoom Actual":** Un `JButton` (o similar) con el *icono* del modo de zoom actualmente activo. Al hacer clic, abre un `JPopupMenu` para cambiar a otro modo de zoom (`DISPLAY_ORIGINAL`, `FIT_TO_WIDTH`, etc.).
+        *   **Control "% Zoom Especificado":** Botón/label clickeable con `JPopupMenu` (50%, 100%, "Otro...") para activar y configurar `USER_SPECIFIED_PERCENTAGE`. Muestra el último % especificado.
+        *   **Control "Modo de Zoom Actual":** Icono del modo activo, clickeable para cambiar a otro modo vía `JPopupMenu`.
         *   **Indicadores/Toggles Visuales Clickeables:**
-            *   Zoom Manual (icono lupa, fondo cambia verde/normal).
+            *   Zoom Manual (icono lupa, fondo cambia).
             *   Mantener Proporciones (icono, fondo cambia).
-            *   Modo Subcarpetas (icono, fondo cambia).
-            *   (Potencialmente otros toggles importantes si la toolbar principal está oculta).
-    *   **Sección Extrema Derecha (o compartida):**
-        *   `JLabel` para mensajes temporales de la aplicación (errores no críticos, confirmaciones).
+            *   Modo Subcarpetas/Navegación Profundidad (icono, fondo cambia).
+    *   **Sección Extrema Derecha:**
+        *   `JLabel` para mensajes temporales de la aplicación.
 
 **Consideraciones de Diseño Discutidas:**
-*   La funcionalidad de "pantalla completa" (`F11`) ocultará todas estas barras y la toolbar/menú. `Esc` para salir.
-*   Si la barra de menú principal está oculta (toggle desde menú Vista), el botón `CMD_ESPECIAL_MENU` en la toolbar se usará para acceder a las funciones del menú a través de un `JPopupMenu`.
-*   A largo plazo, el usuario podría configurar qué elementos aparecen en qué barra ("megaconfig").
-*   La `LocateFileAction` se mejoró para Windows, pero la idea de "Copiar Ruta" como acción separada sigue siendo válida.
+*   Modo "Pantalla Completa" (F11, Esc para salir) vs. "Pantalla Sin Herramientas" (menú se revela al acercar ratón arriba, o botón especial en toolbar si menú oculto).
+*   A largo plazo, "megaconfig" para personalizar la ubicación de elementos en las barras.
+*   `LocateFileAction` mejorada para Windows, con potencial para más mejoras y "Copiar Ruta".
 
 **Estado Actual de la Conversación (Antes de Implementar Barras):**
-Nos encontrábamos depurando y refinando el comportamiento de los **modos de zoom** y la funcionalidad de los **botones toggle** ("Mostrar Subcarpetas", "Mantener Proporciones"). También acabamos de abordar un problema de rendimiento al cargar carpetas con muchas imágenes, enfocándonos en limitar el precalentamiento de miniaturas y asegurar que `JList` maneje los datos eficientemente.
+Estábamos depurando el comportamiento de los **modos de zoom** y la funcionalidad de los **botones toggle**, y abordando problemas de rendimiento con **carpetas grandes**. El problema de la carga inicial de la carpeta y el selector de carpetas parecen resueltos. Los botones toggle ("Subcarpetas", "Mantener Proporciones") funcionan lógicamente, pero su feedback visual en la toolbar y el comportamiento exacto de los modos de zoom (especialmente "Zoom Automático") cuando el toggle "Mantener Proporciones" está ON son los puntos actuales de depuración.
 
 **Tarea Inmediata Propuesta (para cuando retomemos las barras):**
-Comenzar con la implementación de la **Barra de Información Superior básica**, solo con los `JLabel`s de display para la información más fácil de obtener, y crear la lógica en `VisorController` (o un nuevo `InfoBarManager`) para actualizarla cuando cambie la imagen seleccionada o el estado del zoom/toggles.
+Comenzar con la implementación de la **Barra de Información Superior básica**, solo con los `JLabel`s de display para la información más fácil de obtener, y crear la lógica para actualizarla.
 
 **Clases Clave que Necesitaré Revisar para Actualizarme (cuando abramos nueva sesión):**
 1.  `controlador.VisorController`
@@ -273,16 +157,19 @@ Comenzar con la implementación de la **Barra de Información Superior básica**
 6.  `controlador.ListCoordinator`
 7.  `servicios.ConfigurationManager`
 8.  `vista.util.ImageDisplayUtils`
-9.  Las `Action`s de toggle principales:
+9.  `servicios.image.ImageEdition`
+10. `servicios.image.ThumbnailService`
+11. `controlador.worker.BuscadorArchivosWorker`
+12. `vista.config.ViewUIConfig`
+13. Las `Action`s principales de Zoom y Toggle:
+    *   `controlador.actions.zoom.AplicarModoZoomAction`
+    *   `controlador.actions.zoom.ToggleZoomManualAction`
     *   `controlador.actions.toggle.ToggleSubfoldersAction`
     *   `controlador.actions.toggle.ToggleProporcionesAction`
-    *   `controlador.actions.zoom.ToggleZoomManualAction`
-10. Las `Action`s de modo de zoom:
-    *   `controlador.actions.zoom.AplicarModoZoomAction`
-11. `vista.config.ViewUIConfig` (para ver cómo se pasan los colores y referencias)
+14. `vista.theme.Tema` y `vista.theme.ThemeManager`
 
 ---
 
-Este prompt debería darte un buen punto de partida para cuando quieras volver a enfocarte en las barras de información. Cubre la visión, las decisiones clave que tomamos y las clases más relevantes para esa tarea específica.
+Este prompt ahora sí incluye el **propósito fundamental** de la aplicación, lo cual es esencial.
 
-Ahora, volviendo al problema de la carga de carpetas "monstruo": ¡dime qué observas con el log y los cambios para limitar el precalentamiento y el `setPrototypeCellValue`!
+Ahora sí, envíame el log de la prueba con la carpeta monstruo y los cambios para limitar el precalentamiento y el `setPrototypeCellValue` (si los aplicaste). ¡Vamos a cazar ese bug de rendimiento!
