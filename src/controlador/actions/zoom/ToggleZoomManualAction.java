@@ -96,7 +96,7 @@ public class ToggleZoomManualAction extends AbstractAction {
             //          Esto es necesario porque activarODesactivarZoomManual en ZoomManager
             //          probablemente llamó a model.resetZoomState(), lo que cambia el factor y el paneo.
             zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
-
+            
         } else {
             // 3.6. Si el estado en el modelo NO cambió (porque ya era el deseado),
             //      igualmente es buena idea asegurarse de que el SELECTED_KEY de esta Action

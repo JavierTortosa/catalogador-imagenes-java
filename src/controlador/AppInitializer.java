@@ -452,6 +452,13 @@ public class AppInitializer {
             this.controller.setInfoBarManager(this.infoBarManager);
             System.out.println("    B.X. [EDT] InfoBarManager creado.");
             
+         // << --- B.10. NUEVA INYECCIÓN DEL ZOOM A INFOBARMANAGER --- >>
+            if (this.zoomManager != null && this.infoBarManager != null) {
+                this.zoomManager.setInfoBarManager(this.infoBarManager);
+                System.out.println("    B.X.Y. [EDT] InfoBarManager inyectado en ZoomManager.");
+            } else {
+                System.err.println("ERROR CRÍTICO [AppInitializer EDT]: ZoomManager o InfoBarManager nulos. No se pudo hacer la inyección cruzada.");
+            }
             
             // --- B.10. CONSTRUIR MENÚ Y TOOLBAR REALES USANDO BUILDERS ---
             List<MenuItemDefinition> menuStructure = uiDefSvcForIcons.generateMenuStructure();

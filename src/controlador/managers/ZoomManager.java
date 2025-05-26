@@ -20,6 +20,8 @@ public class ZoomManager {
     private VisorView view;
     private ConfigurationManager configuration;
     private int lastMouseX, lastMouseY; // Para el paneo
+    
+    private InfoBarManager infoBarManagerRef; 
 
     // --- SECCIÓN 2: CONSTRUCTOR ---
     /**
@@ -260,62 +262,6 @@ public class ZoomManager {
                 }
                 break;
             	
-//            	if (encajarTotalmente) { // prop ON
-//                    if (imgOriginal.getWidth() > 0 && imgOriginal.getHeight() > 0 && etiquetaAncho > 0 && etiquetaAlto > 0) {
-//                        double _w = (double) imgOriginal.getWidth();
-//                        double _h = (double) imgOriginal.getHeight();
-//                        double _ew = (double) etiquetaAncho;
-//                        double _eh = (double) etiquetaAlto;
-//
-//                        double factorAnchoImg = _ew / _w; // Factor para ajustar al ancho
-//                        double factorAltoImg = _eh / _h; // Factor para ajustar al alto
-//                        
-//                        double factorParaQueQuepa = Math.min(factorAnchoImg, factorAltoImg);
-//
-//                        // ---- NUEVO LOG DETALLADO ----
-//                        System.out.println("    [ZM DISPLAY_ORIGINAL prop ON DEBUG]");
-//                        System.out.println("      imgOriginal: " + imgOriginal.getWidth() + "x" + imgOriginal.getHeight());
-//                        System.out.println("      etiqueta: " + etiquetaAncho + "x" + etiquetaAlto);
-//                        System.out.println("      factorAnchoImg: " + factorAnchoImg);
-//                        System.out.println("      factorAltoImg: " + factorAltoImg);
-//                        System.out.println("      factorParaQueQuepa: " + factorParaQueQuepa);
-//                        // ---- FIN NUEVO LOG ----
-//
-//                        nuevoFactorCalculado = Math.min(1.0, factorParaQueQuepa);
-//                    } else { 
-//                        System.out.println("    [ZM DISPLAY_ORIGINAL prop ON DEBUG] Dimensiones inválidas para cálculo. Usando factor 1.0");
-//                        nuevoFactorCalculado = 1.0; 
-//                    }
-//                } else { // prop OFF
-//                    nuevoFactorCalculado = 1.0;
-//                }
-//                System.out.println("  [ZoomManager] Modo DISPLAY_ORIGINAL (" + (encajarTotalmente ? "EncajarTotalmente" : "PermitirDesborde") + "): Factor calculado FINAL = " + nuevoFactorCalculado);
-//                break;
-            	
-//            	if (encajarTotalmente) {
-//                    // Si queremos que quepa totalmente Y sea lo más cercano al 100%
-//                    if (imgOriginal.getWidth() > 0 && imgOriginal.getHeight() > 0 && etiquetaAncho > 0 && etiquetaAlto > 0) {
-//                        // Factor para que quepa completamente manteniendo proporción
-//                        double factorParaQueQuepa = Math.min(
-//                            (double) etiquetaAncho / imgOriginal.getWidth(),
-//                            (double) etiquetaAlto / imgOriginal.getHeight()
-//                        );
-//                        // Si 100% (factor 1.0) es más pequeño o igual que el factor para que quepa,
-//                        // significa que la imagen al 100% ya cabe o es más pequeña que el visor.
-//                        // Entonces, usamos 1.0.
-//                        // Si la imagen al 100% es más grande (factor 1.0 > factorParaQueQuepa),
-//                        // entonces debemos usar factorParaQueQuepa para reducirla.
-//                        nuevoFactorCalculado = Math.min(1.0, factorParaQueQuepa);
-//                    } else {
-//                        nuevoFactorCalculado = 1.0; // Fallback si dimensiones no válidas
-//                    }
-//                } else {
-//                    // Si encajarTotalmente es false, queremos 100% real, permitiendo desborde.
-//                    nuevoFactorCalculado = 1.0;
-//                }
-//                System.out.println("  [ZoomManager] Modo DISPLAY_ORIGINAL (" + (encajarTotalmente ? "EncajarTotalmente" : "PermitirDesborde") + "): Factor calculado = " + nuevoFactorCalculado);
-//                break;
-
             case FIT_TO_WIDTH:
             	if (imgOriginal.getWidth() > 0 && etiquetaAncho > 0) {
                     nuevoFactorCalculado = (double) etiquetaAncho / imgOriginal.getWidth();
@@ -515,76 +461,6 @@ public class ZoomManager {
 		        nuevoFactorCalculado = porcentajeConfigurado / 100.0;
 		        break;
         
-//            case DISPLAY_ORIGINAL: // Mostrar la imagen a su tamaño 100% (sin escalar por ajuste).
-//                nuevoFactorCalculado = 1.0;
-//                System.out.println("  [ZoomManager] Modo DISPLAY_ORIGINAL: Factor calculado = 1.0");
-//                break;
-//
-//            case FIT_TO_WIDTH: // Ajustar la imagen al ancho del área de visualización.
-//                if (imgOriginal.getWidth() > 0) { // Evitar división por cero.
-//                    nuevoFactorCalculado = (double) etiquetaAncho / imgOriginal.getWidth();
-//                    // Si se deben mantener proporciones y el alto calculado excede el alto del área,
-//                    // entonces se debe ajustar por alto para que quepa completamente.
-//                    if (mantenerProp && imgOriginal.getHeight() > 0) {
-//                        if ((imgOriginal.getHeight() * nuevoFactorCalculado) > etiquetaAlto) {
-//                            nuevoFactorCalculado = (double) etiquetaAlto / imgOriginal.getHeight();
-//                        }
-//                    }
-//                    System.out.println("  [ZoomManager] Modo FIT_TO_WIDTH: Factor calculado = " + nuevoFactorCalculado);
-//                } else {
-//                    System.err.println("WARN [ZoomManager.aplicarModoDeZoom]: Ancho de imagen original es 0 para FIT_TO_WIDTH.");
-//                }
-//                break;
-//
-//            case FIT_TO_HEIGHT: // Ajustar la imagen al alto del área de visualización.
-//                if (imgOriginal.getHeight() > 0) { // Evitar división por cero.
-//                    nuevoFactorCalculado = (double) etiquetaAlto / imgOriginal.getHeight();
-//                    // Si se deben mantener proporciones y el ancho calculado excede el ancho del área,
-//                    // entonces se debe ajustar por ancho para que quepa completamente.
-//                    if (mantenerProp && imgOriginal.getWidth() > 0) {
-//                        if ((imgOriginal.getWidth() * nuevoFactorCalculado) > etiquetaAncho) {
-//                            nuevoFactorCalculado = (double) etiquetaAncho / imgOriginal.getWidth();
-//                        }
-//                    }
-//                    System.out.println("  [ZoomManager] Modo FIT_TO_HEIGHT: Factor calculado = " + nuevoFactorCalculado);
-//                } else {
-//                    System.err.println("WARN [ZoomManager.aplicarModoDeZoom]: Alto de imagen original es 0 para FIT_TO_HEIGHT.");
-//                }
-//                break;
-//
-//            case FIT_TO_SCREEN: // Ajustar la imagen para que quepa completamente en el área (sin recortes).
-//                if (imgOriginal.getWidth() > 0 && imgOriginal.getHeight() > 0) { // Evitar división por cero.
-//                    double ratioAncho = (double) etiquetaAncho / imgOriginal.getWidth();
-//                    double ratioAlto = (double) etiquetaAlto / imgOriginal.getHeight();
-//                    nuevoFactorCalculado = Math.min(ratioAncho, ratioAlto); // Usar el ratio menor para asegurar que toda la imagen sea visible.
-//                    System.out.println("  [ZoomManager] Modo FIT_TO_SCREEN: Factor calculado = " + nuevoFactorCalculado);
-//                } else {
-//                    System.err.println("WARN [ZoomManager.aplicarModoDeZoom]: Dimensiones de imagen original inválidas para FIT_TO_SCREEN.");
-//                }
-//                break;
-//
-//            case MAINTAIN_CURRENT_ZOOM: // Mantener el factor de zoom actual (útil al cambiar de imagen).
-//                // No se cambia `nuevoFactorCalculado`, ya que se inicializó con `model.getZoomFactor()`.
-//                System.out.println("  [ZoomManager] Modo MAINTAIN_CURRENT_ZOOM: Factor actual (" + model.getZoomFactor() + ") se mantiene.");
-//                break;
-//
-//            case USER_SPECIFIED_PERCENTAGE: // Aplicar un porcentaje de zoom fijo leído de la configuración.
-//                double porcentajeConfigurado = configuration.getDouble("zoom.personalizado.porcentaje", 100.0); // Clave de config
-//                nuevoFactorCalculado = porcentajeConfigurado / 100.0;
-//                System.out.println("  [ZoomManager] Modo USER_SPECIFIED_PERCENTAGE: Factor calculado desde config (" + porcentajeConfigurado + "%) = " + nuevoFactorCalculado);
-//                break;
-                
-            // case FILL_SCREEN: // (Si se implementa en el futuro) Ajustar para que la imagen llene el área, permitiendo recortes.
-            //     if (imgOriginal.getWidth() > 0 && imgOriginal.getHeight() > 0) {
-            //         double ratioAncho = (double) etiquetaAncho / imgOriginal.getWidth();
-            //         double ratioAlto = (double) etiquetaAlto / imgOriginal.getHeight();
-            //         nuevoFactorCalculado = Math.max(ratioAncho, ratioAlto); // Usar el ratio mayor para llenar.
-            //         System.out.println("  [ZoomManager] Modo FILL_SCREEN: Factor calculado = " + nuevoFactorCalculado);
-            //     } else {
-            //          System.err.println("WARN [ZoomManager.aplicarModoDeZoom]: Dimensiones de imagen original inválidas para FILL_SCREEN.");
-            //     }
-            //     break;
-
             default:
                 System.err.println("WARN [ZoomManager.aplicarModoDeZoom]: Modo de zoom no reconocido o no implementado: " + modoDeseado + ". No se cambia el factor de zoom.");
                 // No se modifica nuevoFactorCalculado, se usará el que ya tenía el modelo.
@@ -737,17 +613,30 @@ public class ZoomManager {
      * le dice a la vista que la muestre aplicando el zoomFactor y offsets actuales del modelo.
      */
     public void refrescarVistaPrincipalConEstadoActualDelModelo() {
-        if (model == null || view == null) return;
-        BufferedImage imgOriginalDelModelo = model.getCurrentImage();
-        if (imgOriginalDelModelo == null) {
-            view.limpiarImagenMostrada();
+        if (model == null || view == null) {
+            System.err.println("ERROR [ZoomManager.refrescarVista]: Modelo o Vista nulos."); // Añadir log si quieres
             return;
         }
-        Image imagenBaseParaVista = ImageDisplayUtils.reescalarImagenParaAjustar(imgOriginalDelModelo, model, view);
-        if (imagenBaseParaVista != null) {
-            view.setImagenMostrada(imagenBaseParaVista, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
-        } else {
+        BufferedImage imgOriginalDelModelo = model.getCurrentImage();
+
+        if (imgOriginalDelModelo == null) {
             view.limpiarImagenMostrada();
+        } else {
+            Image imagenBaseParaVista = ImageDisplayUtils.reescalarImagenParaAjustar(imgOriginalDelModelo, model, view);
+            if (imagenBaseParaVista != null) {
+                view.setImagenMostrada(imagenBaseParaVista, model.getZoomFactor(), model.getImageOffsetX(), model.getImageOffsetY());
+            } else {
+                System.err.println("ERROR [ZoomManager.refrescarVista]: ImageDisplayUtils devolvió null. Limpiando vista."); // Log
+                view.limpiarImagenMostrada();
+            }
+        }
+
+        // --- LLAMADA PARA ACTUALIZAR LAS BARRAS DE INFORMACIÓN ---
+        if (infoBarManagerRef != null) {
+            System.out.println("  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...");
+            infoBarManagerRef.actualizarBarrasDeInfo();
+        } else {
+            System.out.println("  [ZoomManager] WARN: infoBarManagerRef es null. No se pueden actualizar barras desde ZoomManager.");
         }
     }
     
@@ -786,6 +675,14 @@ public class ZoomManager {
             this.lastMouseY = e.getY();
             
             refrescarVistaPrincipalConEstadoActualDelModelo();
+        }
+    }
+    
+    
+    public void setInfoBarManager(InfoBarManager infoBarManager) {
+        this.infoBarManagerRef = infoBarManager;
+        if (infoBarManager != null) { // Log opcional
+            System.out.println("  [ZoomManager] InfoBarManager inyectado.");
         }
     }
     

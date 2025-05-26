@@ -200,6 +200,7 @@ public class VisorView extends JFrame {
         this.panelInfoSuperior = crearPanelInfoSuperior();
         this.panelModoVisualizadorActual = crearPanelModoNormal(modeloNombresLista);
         this.bottomStatusBar = crearPanelEstadoInferior();
+        this.rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
 
         // --- FASE 2: Ensamblaje de la Jerarquía Visual Principal ---
         ensamblarUIGeneral(this.panelModoVisualizadorActual);
@@ -1136,7 +1137,7 @@ public class VisorView extends JFrame {
  	public JLabel getIndicadorSubcarpetasInfoLabel() { return this.indicadorSubcarpetasInfoLabel; }
 
      // Getters para la Barra de Estado Inferior (si ya los tienes, si no, los añadiremos)
-     // public JLabel getRutaCompletaArchivoLabel() { return this.rutaCompletaArchivoLabel; }
+      public JLabel getRutaCompletaArchivoLabel() { return this.rutaCompletaArchivoLabel; }
      // public JLabel getMensajesAppLabel() { return this.mensajesAppLabel; }
  	
  	

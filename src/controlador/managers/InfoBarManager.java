@@ -131,7 +131,13 @@ public class InfoBarManager {
         } else if (model.getCarpetaRaizActual() != null) {
             rutaTexto = model.getCarpetaRaizActual().toString();
         }
-        view.getTextoRuta().setText(rutaTexto); // Asumiendo que getTextoRuta() devuelve el JTextField/JLabel
+//        view.getTextoRuta().setText(rutaTexto); // Asumiendo que getTextoRuta() devuelve el JTextField/JLabel
+        
+        if (view.getRutaCompletaArchivoLabel() != null) { // Asegúrate que el getter exista y el label no sea null
+            view.getRutaCompletaArchivoLabel().setText(rutaTexto);
+        } else {
+            System.err.println("ERROR [InfoBarManager]: view.getRutaCompletaArchivoLabel() es null. No se puede actualizar la ruta.");
+        }
 
         // Aquí iría la lógica para los mensajes temporales y los controles de la barra inferior
         // System.out.println("  [InfoBarManager] Barra Estado Inferior actualizada.");

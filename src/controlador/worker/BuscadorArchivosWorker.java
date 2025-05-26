@@ -23,11 +23,10 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
     private final Path rutaRaizParaRelativizar;
     private final Predicate<Path> filtroImagen;
     private final ProgresoCargaDialog dialogoProgreso;
+    
 
-    // --- INICIO CÓDIGO MODIFICADO ---
     // Convertir contadorArchivos en un campo de instancia
     private int contadorArchivos = 0;
-    // --- FIN CÓDIGO MODIFICADO ---
 
 	public BuscadorArchivosWorker(Path rutaInicio, int profundidadBusqueda, Path rutaRaizParaRelativizar,
 			Predicate<Path> filtroImagen, ProgresoCargaDialog dialogoProgreso)
@@ -99,6 +98,7 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
              throw new RuntimeException(errorType, ioOrSecEx);
         } catch (CancellationException ce) {
             System.out.println("  [Worker BG] Files.walk detenido por cancelación.");
+            
              return null;
         }
 
