@@ -78,7 +78,7 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     B.4. [EDT] ListCoordinator creado e inyectado.
   [ActionFactory] Inicializando todas las Actions...
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@3a0c8a4e
+ActionFactory: Creando ToggleSubfoldersAction@5abbd3e7
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 44
     B.6. [EDT] ActionFactory creada. ActionMap completo (Tamaño: 44) inyectado en Controller.
@@ -90,7 +90,7 @@ ActionFactory: Creando ToggleSubfoldersAction@3a0c8a4e
   [ZoomManager] InfoBarManager inyectado.
     B.X.Y. [EDT] InfoBarManager inyectado en ZoomManager.
 --- MenuBarBuilder: Construyendo menú desde estructura definida ---
-DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 1589766886) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
+DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 504948776) asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: 'Marcar/Desmarcar para Proyecto'
 --- MenuBarBuilder: Menú construido. Total items en mapa: 124 ---
 [ToolbarBuilder Constructor] Iniciando...
 [ToolbarBuilder Constructor] Paneles de alineación configurados.
@@ -331,7 +331,7 @@ DEBUG MENUBARBUILDER: Action 'ToggleMarkImageAction' (ID: 1589766886) asignada a
     -> Alineación determinada: CENTER
   [TB addSeparator] Añadiendo separador después de categoría: 'proyecto'
   [TB procesarDef] Def: Comando='cmd.toggle.subcarpetas', Icono='7001-Subcarpetas_48x48.png', Cat='toggle'
-ToolbarBuilder: Obtenida Action@3a0c8a4e para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
+ToolbarBuilder: Obtenida Action@5abbd3e7 para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
     -> Action 'cmd.toggle.subcarpetas' asignada al botón.
     -> Icono obtenido de la Action.
     -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.toggle.Subcarpetas_48x48
@@ -385,6 +385,10 @@ ToolbarBuilder: Obtenida Action@3a0c8a4e para CMD_TOGGLE_SUBCARPETAS. Asignando 
   -> Listeners de Zoom/Pan (Rueda y Arrastre) añadidos a etiquetaImagenPrincipal.
   -> MouseWheelListener añadido a scrollListaMiniaturas para scroll horizontal.
   -> MouseListener añadido a scrollListaMiniaturas para gestionar foco.
+  -> Configurando Listeners para Iconos de Barra Inferior...
+    -> MouseListener añadido a iconoZoomManualLabel.
+    -> MouseListener añadido a iconoMantenerProporcionesLabel.
+    -> MouseListener añadido a iconoModoSubcarpetasLabel.
 [Controller Internal] Configuración de Listeners de Vista finalizada.
   -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
   [Worker BG] Files.walk terminado. Archivos encontrados: 170
@@ -436,7 +440,7 @@ ToolbarBuilder: Obtenida Action@3a0c8a4e para CMD_TOGGLE_SUBCARPETAS. Asignando 
 --> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice informativo: 0)
     [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
 --> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: A-gigante de hierro.jpg
-      [BG Img Load - pool-1-thread-8] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+      [BG Img Load - pool-1-thread-7] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
       [BG Img Load] Lectura de imagen desde disco correcta.
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
@@ -475,6 +479,18 @@ ToolbarBuilder: Obtenida Action@3a0c8a4e para CMD_TOGGLE_SUBCARPETAS. Asignando 
     [Coordinator Flag] sincronizandoUI -> false
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
+  [VisorController Listener] Clic en icono Zoom Manual.
+[ToggleZoomManualAction actionPerformed] Comando: cmd.zoom.manual.toggle
+  -> Estado actual del zoom manual en modelo: true. Intentando cambiar a: false
+  -> El estado del zoom manual CAMBIÓ en el modelo. Actualizando UI y Actions...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+  [ToggleZoomManualAction] Fin actionPerformed. Estado Action.SELECTED_KEY final: false
+  [VisorController Listener] Clic en icono Zoom Manual.
+[ToggleZoomManualAction actionPerformed] Comando: cmd.zoom.manual.toggle
+  -> Estado actual del zoom manual en modelo: false. Intentando cambiar a: true
+  -> El estado del zoom manual CAMBIÓ en el modelo. Actualizando UI y Actions...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+  [ToggleZoomManualAction] Fin actionPerformed. Estado Action.SELECTED_KEY final: true
 --- Hook de Cierre Ejecutándose ---
   [Hook - Ventana] Guardando estado de la ventana en config...
     -> Bounds guardados en memoria config: java.awt.Rectangle[x=0,y=0,width=1550,height=500]

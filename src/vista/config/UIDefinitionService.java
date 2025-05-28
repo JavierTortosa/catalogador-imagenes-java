@@ -81,6 +81,7 @@ public class UIDefinitionService {
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, MenuItemType.RADIO_BUTTON_ITEM, "Escalar Para Rellenar", null),
             new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
         );
+        
         // Menú Zoom principal
         List<MenuItemDefinition> zoomSubItems = List.of(
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_ACERCAR, MenuItemType.ITEM, "Acercar", null),

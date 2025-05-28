@@ -4,13 +4,14 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.FontMetrics; // Para crearSeparadorVerticalBarraInfo
+import java.awt.FontMetrics; 
+
 // Imports para el paintComponent de etiquetaImagen (si está aquí)
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image; // Necesario para el campo imagenReescaladaView
+import java.awt.Image; 
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.util.HashMap;

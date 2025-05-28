@@ -1,10 +1,10 @@
 package controlador;
 
 import java.awt.BorderLayout;
-
 // --- Imports Esenciales ---
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Image;
@@ -19,6 +19,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -42,7 +43,6 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -63,7 +63,6 @@ import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 import javax.swing.ListModel;
-import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
@@ -908,7 +907,75 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          System.err.println("WARN [VisorController.configurarListenersVistaInternal]: No se pudo añadir listener de foco (scroll o lista nulos).");
     }
     
-    // --- SECCIÓN 5: LOG FINAL ---
+    
+ // --- SECCIÓN 5: NUEVO - CONFIGURAR LISTENERS PARA ICONOS DE BARRA INFERIOR ---
+    System.out.println("  -> Configurando Listeners para Iconos de Barra Inferior...");
+
+    // 5.1 Listener para Icono Zoom Manual
+    final JLabel zmIconLabel = view.getIconoZoomManualLabel(); // Usa el getter de VisorView
+    final Action zoomManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+    if (zmIconLabel != null && zoomManualAction != null) {
+        zmIconLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                System.out.println("  [VisorController Listener] Clic en icono Zoom Manual.");
+                // Invertir el estado de SELECTED_KEY en la Action antes de ejecutarla
+                boolean nuevoEstado = !Boolean.TRUE.equals(zoomManualAction.getValue(Action.SELECTED_KEY));
+                zoomManualAction.putValue(Action.SELECTED_KEY, nuevoEstado);
+                zoomManualAction.actionPerformed(new ActionEvent(zmIconLabel, ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE));
+            }
+            @Override public void mouseEntered(MouseEvent e) { zmIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); }
+            @Override public void mouseExited(MouseEvent e) { zmIconLabel.setCursor(Cursor.getDefaultCursor()); }
+        });
+        System.out.println("    -> MouseListener añadido a iconoZoomManualLabel.");
+    } else {
+        if (zmIconLabel == null) System.err.println("WARN [VC Listeners]: iconoZoomManualLabel es null.");
+        if (zoomManualAction == null) System.err.println("WARN [VC Listeners]: zoomManualAction no encontrada en actionMap.");
+    }
+
+    // 5.2 Listener para Icono Mantener Proporciones
+    final JLabel propIconLabel = view.getIconoMantenerProporcionesLabel();
+    final Action proporcionesAction = actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
+    if (propIconLabel != null && proporcionesAction != null) {
+        propIconLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                System.out.println("  [VisorController Listener] Clic en icono Mantener Proporciones.");
+                boolean nuevoEstado = !Boolean.TRUE.equals(proporcionesAction.getValue(Action.SELECTED_KEY));
+                proporcionesAction.putValue(Action.SELECTED_KEY, nuevoEstado);
+                proporcionesAction.actionPerformed(new ActionEvent(propIconLabel, ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES));
+            }
+            @Override public void mouseEntered(MouseEvent e) { propIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); }
+            @Override public void mouseExited(MouseEvent e) { propIconLabel.setCursor(Cursor.getDefaultCursor()); }
+        });
+        System.out.println("    -> MouseListener añadido a iconoMantenerProporcionesLabel.");
+    } else {
+        if (propIconLabel == null) System.err.println("WARN [VC Listeners]: iconoMantenerProporcionesLabel es null.");
+        if (proporcionesAction == null) System.err.println("WARN [VC Listeners]: proporcionesAction no encontrada en actionMap.");
+    }
+
+    // 5.3 Listener para Icono Modo Subcarpetas
+    final JLabel subcIconLabel = view.getIconoModoSubcarpetasLabel();
+    final Action subcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+    if (subcIconLabel != null && subcarpetasAction != null) {
+        subcIconLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                System.out.println("  [VisorController Listener] Clic en icono Modo Subcarpetas.");
+                boolean nuevoEstado = !Boolean.TRUE.equals(subcarpetasAction.getValue(Action.SELECTED_KEY));
+                subcarpetasAction.putValue(Action.SELECTED_KEY, nuevoEstado);
+                subcarpetasAction.actionPerformed(new ActionEvent(subcIconLabel, ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_TOGGLE_SUBCARPETAS));
+            }
+            @Override public void mouseEntered(MouseEvent e) { subcIconLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)); }
+            @Override public void mouseExited(MouseEvent e) { subcIconLabel.setCursor(Cursor.getDefaultCursor()); }
+        });
+        System.out.println("    -> MouseListener añadido a iconoModoSubcarpetasLabel.");
+    } else {
+        if (subcIconLabel == null) System.err.println("WARN [VC Listeners]: iconoModoSubcarpetasLabel es null.");
+        if (subcarpetasAction == null) System.err.println("WARN [VC Listeners]: subcarpetasAction no encontrada en actionMap.");
+    }
+    
+    // --- SECCIÓN 6: LOG FINAL ---
     System.out.println("[Controller Internal] Configuración de Listeners de Vista finalizada.");
 
 } // --- FIN configurarListenersVistaInternal ---
@@ -3757,7 +3824,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	 */
      public void actualizarModeloYVistaMiniaturas(int indiceSeleccionadoPrincipal) {
     	 
-    	 //FIXME separar o juntar las miniaturas para que se ajusten al ancho de pantalla disponible
+    	 //FIXME separar o juntar la lista miniaturas para que se ajusten al ancho de pantalla disponible
     	 //FIXME cambiar cantidad de miniaturas visibles segun espacio disponible
 
          // --- SECCIÓN 1: VALIDACIONES INICIALES Y PREPARACIÓN (Fuera del EDT) ---
