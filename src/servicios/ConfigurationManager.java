@@ -645,7 +645,7 @@ public class ConfigurationManager
 		defaults.put("interfaz.menu.zoom.mantener_proporciones.seleccionado", "true");
 		defaults.put("interfaz.menu.zoom.activar_zoom_manual.activado", "true");
 		defaults.put("interfaz.menu.zoom.activar_zoom_manual.visible", "true");
-//		defaults.put("interfaz.menu.zoom.activar_zoom_manual.seleccionado", "true");// = false # Zoom desactivado
+		defaults.put("interfaz.menu.zoom.activar_zoom_manual.seleccionado", "true");// = false # Zoom desactivado
 		defaults.put("interfaz.menu.zoom.resetear_zoom.activado", "true");// # ligado a zoom\n");
 		defaults.put("interfaz.menu.zoom.resetear_zoom.visible", "true");
 

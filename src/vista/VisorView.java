@@ -3,6 +3,7 @@ package vista;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.FontMetrics; // Para crearSeparadorVerticalBarraInfo
 // Imports para el paintComponent de etiquetaImagen (si está aquí)
 import java.awt.Graphics;
@@ -20,6 +21,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
@@ -75,16 +77,24 @@ public class VisorView extends JFrame {
     private JLabel indiceTotalInfoLabel;
     private JLabel dimensionesOriginalesInfoLabel;
     private JLabel modoZoomNombreInfoLabel;
+    private JLabel tamanoArchivoInfoLabel; 
+    private JLabel fechaArchivoInfoLabel;   
     private JLabel porcentajeZoomVisualRealInfoLabel;
     private JLabel indicadorZoomManualInfoLabel;
     private JLabel indicadorMantenerPropInfoLabel;
     private JLabel indicadorSubcarpetasInfoLabel;
-
+    
     // Componentes de la Barra de Estado Inferior (bottomStatusBar)
     private JLabel rutaCompletaArchivoLabel; 
     private JLabel mensajesAppLabel;
     private JTextField textoRuta; // Usado como fallback temporalmente en crearPanelEstadoInferior
-
+	private JLabel iconoZoomManualLabel;
+	private JLabel iconoMantenerProporcionesLabel;
+	private JLabel iconoModoSubcarpetasLabel;
+	private JButton porcentajeZoomEspecificadoBoton;
+	private JButton modoZoomActualIconoBoton;
+    
+    
     // --- REFERENCIAS EXTERNAS Y CONFIGURACIÓN ---
     private final ViewUIConfig uiConfig;
     private final VisorModel model;
@@ -200,7 +210,7 @@ public class VisorView extends JFrame {
         this.panelInfoSuperior = crearPanelInfoSuperior();
         this.panelModoVisualizadorActual = crearPanelModoNormal(modeloNombresLista);
         this.bottomStatusBar = crearPanelEstadoInferior();
-        this.rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
+        //this.rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada en inicializarComponenentes)");
 
         // --- FASE 2: Ensamblaje de la Jerarquía Visual Principal ---
         ensamblarUIGeneral(this.panelModoVisualizadorActual);
@@ -302,67 +312,239 @@ public class VisorView extends JFrame {
         }
         System.out.println("  [VisorView] Fin ensamblarUIGeneral.");
     }
+    
 
     /**
      * Crea y configura el panel de información superior.
+     * Muestra información sobre el archivo actual, sus propiedades y el estado de visualización.
      * @return El JPanel configurado para la barra de información superior.
      */
     private JPanel crearPanelInfoSuperior() {
-        System.out.println("    [VisorView] Creando PanelInfoSuperior...");
+        System.out.println("    [VisorView] Creando PanelInfoSuperior (v2)...");
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5));
+        panel.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5)); // Padding general
         if (this.uiConfig != null && this.uiConfig.colorFondoSecundario != null) {
             panel.setBackground(this.uiConfig.colorFondoSecundario);
         } else {
-            panel.setBackground(Color.GRAY); // Fallback
+            panel.setBackground(Color.LIGHT_GRAY); // Fallback
         }
         panel.setOpaque(true);
 
-        // Inicializar JLabels que son campos de instancia
-        this.nombreArchivoInfoLabel = new JLabel("Archivo: N/A");
-        this.indiceTotalInfoLabel = new JLabel("0/0");
-        this.dimensionesOriginalesInfoLabel = new JLabel("Dim: N/A");
-        this.modoZoomNombreInfoLabel = new JLabel("Modo Zoom: N/A");
-        this.porcentajeZoomVisualRealInfoLabel = new JLabel("Zoom: N/A");
-        this.indicadorZoomManualInfoLabel = new JLabel("ZM:OFF");
-        this.indicadorMantenerPropInfoLabel = new JLabel("Prop:OFF");
-        this.indicadorSubcarpetasInfoLabel = new JLabel("SubC:OFF");
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.LINE_START; // Alineación por defecto para la mayoría
+        gbc.insets = new Insets(0, 3, 0, 3); // Espaciado pequeño entre componentes
 
-        // Aplicar colores de texto del tema
+        // --- Componentes (inicializar campos de instancia) ---
+        this.nombreArchivoInfoLabel = new JLabel("Archivo: N/A");
+        this.indiceTotalInfoLabel = new JLabel("Idx: N/A");
+        this.dimensionesOriginalesInfoLabel = new JLabel("Dim: N/A");
+        this.tamanoArchivoInfoLabel = new JLabel("Tam: N/A"); // Placeholder
+        this.fechaArchivoInfoLabel = new JLabel("Fch: N/A");   // Placeholder
+        this.modoZoomNombreInfoLabel = new JLabel("Modo: N/A");
+        this.porcentajeZoomVisualRealInfoLabel = new JLabel("%Z: N/A");
+
+        // Aplicar color de texto (asumimos que todos usarán colorTextoSecundario de uiConfig)
         Color colorTextoInfo = (this.uiConfig != null && this.uiConfig.colorTextoSecundario != null)
                                 ? this.uiConfig.colorTextoSecundario : Color.BLACK;
+        
         this.nombreArchivoInfoLabel.setForeground(colorTextoInfo);
         this.indiceTotalInfoLabel.setForeground(colorTextoInfo);
         this.dimensionesOriginalesInfoLabel.setForeground(colorTextoInfo);
+        this.tamanoArchivoInfoLabel.setForeground(colorTextoInfo);
+        this.fechaArchivoInfoLabel.setForeground(colorTextoInfo);
         this.modoZoomNombreInfoLabel.setForeground(colorTextoInfo);
         this.porcentajeZoomVisualRealInfoLabel.setForeground(colorTextoInfo);
-        this.indicadorZoomManualInfoLabel.setForeground(colorTextoInfo);
-        this.indicadorMantenerPropInfoLabel.setForeground(colorTextoInfo);
-        this.indicadorSubcarpetasInfoLabel.setForeground(colorTextoInfo);
 
-        // Añadir JLabels al panel con GridBagLayout
-        GridBagConstraints gbcInfo = new GridBagConstraints();
-        gbcInfo.gridx = 0; gbcInfo.gridy = 0; gbcInfo.anchor = GridBagConstraints.LINE_START; gbcInfo.insets = new Insets(0, 0, 0, 5); panel.add(this.nombreArchivoInfoLabel, gbcInfo);
-        gbcInfo.gridx++; panel.add(crearSeparadorVerticalBarraInfo(), gbcInfo);
-        gbcInfo.gridx++; panel.add(this.indiceTotalInfoLabel, gbcInfo);
-        gbcInfo.gridx++; panel.add(crearSeparadorVerticalBarraInfo(), gbcInfo);
-        gbcInfo.gridx++; panel.add(this.dimensionesOriginalesInfoLabel, gbcInfo);
-        
-        gbcInfo.gridx++; gbcInfo.weightx = 1.0; gbcInfo.fill = GridBagConstraints.HORIZONTAL; panel.add(Box.createHorizontalGlue(), gbcInfo);
-        gbcInfo.weightx = 0.0; gbcInfo.fill = GridBagConstraints.NONE; 
+        // --- Ensamblaje con GridBagLayout ---
 
-        gbcInfo.gridx++; gbcInfo.insets = new Insets(0, 5, 0, 5); panel.add(this.modoZoomNombreInfoLabel, gbcInfo);
-        gbcInfo.gridx++; panel.add(crearSeparadorVerticalBarraInfo(), gbcInfo);
-        gbcInfo.gridx++; panel.add(this.porcentajeZoomVisualRealInfoLabel, gbcInfo);
-        gbcInfo.gridx++; panel.add(crearSeparadorVerticalBarraInfo(), gbcInfo);
-        gbcInfo.gridx++; panel.add(this.indicadorZoomManualInfoLabel, gbcInfo);
-        gbcInfo.gridx++; gbcInfo.insets = new Insets(0, 2, 0, 5); panel.add(this.indicadorMantenerPropInfoLabel, gbcInfo);
-        gbcInfo.gridx++; panel.add(this.indicadorSubcarpetasInfoLabel, gbcInfo);
+        // 1. Nombre del Archivo (Izquierda)
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.0; // No queremos que este label se expanda por sí mismo
+        gbc.fill = GridBagConstraints.NONE;
+        panel.add(this.nombreArchivoInfoLabel, gbc);
+
+        // 2. Componente Elástico (Glue)
+        gbc.gridx = 1;
+        gbc.weightx = 1.0; // Este tomará todo el espacio extra
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        panel.add(Box.createHorizontalGlue(), gbc);
+
+        // Resetear weightx y fill para los siguientes componentes
+        gbc.weightx = 0.0;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.anchor = GridBagConstraints.LINE_END; // Alinear este grupo a la derecha del espacio que les queda
+
+        // 3. Sección Centro (Propiedades Imagen) - Alineada a la derecha del glue
+        gbc.gridx = 2;
+        panel.add(this.dimensionesOriginalesInfoLabel, gbc);
         
-        System.out.println("    [VisorView] PanelInfoSuperior creado.");
+        gbc.gridx = 3;
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+
+        gbc.gridx = 4;
+        panel.add(this.tamanoArchivoInfoLabel, gbc);
+
+        gbc.gridx = 5;
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+
+        gbc.gridx = 6;
+        panel.add(this.fechaArchivoInfoLabel, gbc);
+
+        // 4. Separador Doble/Más Grande (Opcional, puedes usar un Box.createHorizontalStrut o ajustar insets)
+        gbc.gridx = 7;
+        gbc.insets = new Insets(0, 8, 0, 8); // Mayor espaciado para este separador
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+        gbc.insets = new Insets(0, 3, 0, 3); // Restaurar insets para los siguientes
+
+        // 5. Sección Derecha (Estado App) - Alineada a la derecha
+        gbc.gridx = 8;
+        panel.add(this.indiceTotalInfoLabel, gbc);
+
+        gbc.gridx = 9;
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+        
+        gbc.gridx = 10;
+        panel.add(this.porcentajeZoomVisualRealInfoLabel, gbc);
+
+        gbc.gridx = 11;
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+
+        gbc.gridx = 12;
+        panel.add(this.modoZoomNombreInfoLabel, gbc);
+        
+        System.out.println("    [VisorView] PanelInfoSuperior (v2) creado.");
         return panel;
-    }
+    } // FIN del metodo crearPanelInfoSuperior
+    
+    
+    /**
+     * Crea y configura el panel para la barra de estado/control inferior.
+     * @return El JPanel configurado para la barra de estado inferior.
+     */
+ // En vista.VisorView.java
 
+    /**
+     * Crea y configura el panel para la barra de estado/control inferior.
+     * Este panel mostrará la ruta del archivo, indicadores de estado y mensajes de la aplicación.
+     * @return El JPanel configurado para la barra de estado inferior.
+     */
+    private JPanel crearPanelEstadoInferior() {
+        System.out.println("    [VisorView] Creando PanelEstadoInferior (v3 - con iconos)...");
+        
+        // 1. Crear el panel principal para la barra de estado inferior con BorderLayout.
+        //    Este panel (this.bottomStatusBar) se asigna al campo de instancia.
+        this.bottomStatusBar = new JPanel(new BorderLayout(5, 0)); // 5px de espacio horizontal entre regiones
+
+        // 2. Configurar apariencia base del panel principal de la barra de estado.
+        if (this.uiConfig != null && this.uiConfig.colorFondoSecundario != null) {
+            this.bottomStatusBar.setBackground(this.uiConfig.colorFondoSecundario);
+        } else {
+            this.bottomStatusBar.setBackground(Color.decode("#D6D9DF")); // Fallback
+        }
+        this.bottomStatusBar.setOpaque(true);
+        //    2.1. Añadir un borde superior para separarlo visualmente.
+        Border lineaExternaStatus = BorderFactory.createMatteBorder(1, 0, 0, 0,
+            (this.uiConfig != null && this.uiConfig.colorBorde != null) ? this.uiConfig.colorBorde : Color.GRAY);
+        //    2.2. Añadir padding interno.
+        Border paddingInternoStatus = BorderFactory.createEmptyBorder(2, 5, 2, 5); // Arriba, Izquierda, Abajo, Derecha
+        this.bottomStatusBar.setBorder(BorderFactory.createCompoundBorder(lineaExternaStatus, paddingInternoStatus));
+
+        // --- 3. Sección Izquierda/Centro: Ruta del Archivo ---
+        //    3.1. Inicializar el JLabel para la ruta (campo de instancia).
+        this.rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
+        //    3.2. Aplicar color de texto.
+        if (this.uiConfig != null && this.uiConfig.colorTextoPrimario != null) {
+            this.rutaCompletaArchivoLabel.setForeground(this.uiConfig.colorTextoPrimario);
+        } else {
+            this.rutaCompletaArchivoLabel.setForeground(Color.BLACK); // Fallback
+        }
+        //    3.3. Envolver en un panel para que se expanda horizontalmente.
+        JPanel panelRuta = new JPanel(new BorderLayout());
+        panelRuta.setOpaque(false); // Hacerlo transparente para heredar el fondo de bottomStatusBar.
+        panelRuta.add(this.rutaCompletaArchivoLabel, BorderLayout.CENTER);
+        //    3.4. Añadir el panel de la ruta al centro de la barra de estado (para que se expanda).
+        this.bottomStatusBar.add(panelRuta, BorderLayout.CENTER);
+
+        // --- 4. Sección Derecha: Contenedor para Controles y Mensajes ---
+        //    4.1. Crear un panel contenedor para la parte derecha, usando BorderLayout.
+        JPanel panelDerechoContenedor = new JPanel(new BorderLayout(5, 0)); // Espacio entre controles y mensajes
+        panelDerechoContenedor.setOpaque(false); // Transparente.
+
+            // --- 4A. Sub-Panel para Controles Rápidos e Indicadores (Iconos ZM, Prop, SubC) ---
+            //     4A.1. Crear panel con FlowLayout alineado a la derecha para los iconos/controles.
+            JPanel panelControlesInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0)); // 4px horizontal, 0px vertical gap
+            panelControlesInferior.setOpaque(false);
+
+                //     4A.2. Definir tamaño para los iconos de esta barra.
+                int iconSizeBarraInf = 18; // Puedes ajustar este valor (ej. 16, 20)
+                Dimension indicadorIconoDimension = new Dimension(iconSizeBarraInf + 6, iconSizeBarraInf + 4); // Icono + padding
+
+                //     4A.3. Crear e inicializar JLabel para el icono de Zoom Manual (ZM).
+                ImageIcon iconoZM = (this.uiConfig != null && this.uiConfig.iconUtils != null) ?
+                                    this.uiConfig.iconUtils.getScaledIcon("3001-Zoom_48x48.png", iconSizeBarraInf, iconSizeBarraInf) : null;
+                this.iconoZoomManualLabel = new JLabel(iconoZM);
+                this.iconoZoomManualLabel.setOpaque(true);
+                this.iconoZoomManualLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                this.iconoZoomManualLabel.setVerticalAlignment(SwingConstants.CENTER);
+                this.iconoZoomManualLabel.setPreferredSize(indicadorIconoDimension);
+                this.iconoZoomManualLabel.setToolTipText("Zoom Manual: Desactivado"); // Tooltip inicial
+                // this.iconoZoomManualLabel.setBorder(BorderFactory.createEtchedBorder()); // Temporal para ver límites
+
+                //     4A.4. Crear e inicializar JLabel para el icono de Mantener Proporciones (Prop).
+                ImageIcon iconoProp = (this.uiConfig != null && this.uiConfig.iconUtils != null) ?
+                                      this.uiConfig.iconUtils.getScaledIcon("7002-Mantener_Proporciones_48x48.png", iconSizeBarraInf, iconSizeBarraInf) : null;
+                this.iconoMantenerProporcionesLabel = new JLabel(iconoProp);
+                this.iconoMantenerProporcionesLabel.setOpaque(true);
+                this.iconoMantenerProporcionesLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                this.iconoMantenerProporcionesLabel.setVerticalAlignment(SwingConstants.CENTER);
+                this.iconoMantenerProporcionesLabel.setPreferredSize(indicadorIconoDimension);
+                this.iconoMantenerProporcionesLabel.setToolTipText("Mantener Proporciones: Desactivado"); // Tooltip inicial
+                
+                //     4A.5. Crear e inicializar JLabel para el icono de Modo Subcarpetas (SubC).
+                ImageIcon iconoSubC = (this.uiConfig != null && this.uiConfig.iconUtils != null) ?
+                                      this.uiConfig.iconUtils.getScaledIcon("7001-Subcarpetas_48x48.png", iconSizeBarraInf, iconSizeBarraInf) : null;
+                this.iconoModoSubcarpetasLabel = new JLabel(iconoSubC);
+                this.iconoModoSubcarpetasLabel.setOpaque(true);
+                this.iconoModoSubcarpetasLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                this.iconoModoSubcarpetasLabel.setVerticalAlignment(SwingConstants.CENTER);
+                this.iconoModoSubcarpetasLabel.setPreferredSize(indicadorIconoDimension);
+                this.iconoModoSubcarpetasLabel.setToolTipText("Incluir Subcarpetas: Desactivado"); // Tooltip inicial
+
+                //     4A.6. Añadir los indicadores de icono al panel de controles.
+                //           (El orden aquí define cómo aparecen de derecha a izquierda debido al FlowLayout.RIGHT)
+                panelControlesInferior.add(this.iconoZoomManualLabel);       // Más a la izquierda de este grupo
+                panelControlesInferior.add(this.iconoModoSubcarpetasLabel);  // Más a la derecha de este grupo
+                panelControlesInferior.add(this.iconoMantenerProporcionesLabel);
+                //         (Aquí se añadirían los controles de % Zoom y Modo Zoom en el futuro, probablemente antes de estos indicadores)
+
+            //     4A.7. Añadir el panel de controles al contenedor derecho.
+            //           Usamos BorderLayout.CENTER para que los controles se agrupen y no se separen demasiado de los mensajes.
+            panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER); 
+
+            // --- 4B. Sección Extrema Derecha: Mensajes de la Aplicación ---
+            //     4B.1. Inicializar el JLabel para mensajes (campo de instancia).
+            this.mensajesAppLabel = new JLabel(" "); // Espacio para que tenga altura inicial.
+            //     4B.2. Aplicar color de texto.
+            if (this.uiConfig != null && this.uiConfig.colorTextoSecundario != null) {
+                this.mensajesAppLabel.setForeground(this.uiConfig.colorTextoSecundario);
+            } else {
+                this.mensajesAppLabel.setForeground(Color.DARK_GRAY); // Fallback
+            }
+            this.mensajesAppLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+            //     4B.3. Darle un ancho preferido para que no colapse si el mensaje es corto.
+            this.mensajesAppLabel.setPreferredSize(new Dimension(150, this.mensajesAppLabel.getPreferredSize().height));
+            //     4B.4. Añadir el label de mensajes al este del contenedor derecho.
+            panelDerechoContenedor.add(this.mensajesAppLabel, BorderLayout.EAST); 
+
+        // 4.2. Añadir el contenedor derecho (con controles y mensajes) al ESTE de la barra de estado principal.
+        this.bottomStatusBar.add(panelDerechoContenedor, BorderLayout.EAST);
+        
+        System.out.println("    [VisorView] PanelEstadoInferior (v3 - con iconos) creado.");
+        return this.bottomStatusBar; // Devolver el panel principal de la barra inferior
+    }// FIN del metodo crearPanelEstadoInferior
+    
+    
     /**
      * Crea un panel contenedor simple para ser usado en uno de los lados del JSplitPane.
      * @param nombreParaLog Un identificador para los mensajes de log.
@@ -458,54 +640,6 @@ public class VisorView extends JFrame {
         System.out.println("    [VisorView] PanelDeMiniaturas configurado.");
     }
 
-    /**
-     * Crea y configura el panel para la barra de estado inferior.
-     * @return El JPanel configurado para la barra de estado inferior.
-     */
-    private JPanel crearPanelEstadoInferior() {
-        System.out.println("    [VisorView] Creando PanelEstadoInferior...");
-        JPanel panel = new JPanel(new BorderLayout(5, 0)); // Espacio horizontal de 5px entre componentes
-        if (this.uiConfig != null && this.uiConfig.colorFondoSecundario != null) {
-            panel.setBackground(this.uiConfig.colorFondoSecundario);
-        } else {
-            panel.setBackground(Color.decode("#D6D9DF")); // Un gris claro por defecto
-        }
-        panel.setOpaque(true);
-        // Borde superior para separarlo del contenido
-        Border lineaExternaStatus = BorderFactory.createMatteBorder(1, 0, 0, 0,
-            (this.uiConfig != null && this.uiConfig.colorBorde != null) ? this.uiConfig.colorBorde : Color.GRAY);
-        // Padding interno
-        Border paddingInternoStatus = BorderFactory.createEmptyBorder(3, 5, 3, 5); // Arriba, Izquierda, Abajo, Derecha
-        panel.setBorder(BorderFactory.createCompoundBorder(lineaExternaStatus, paddingInternoStatus));
-
-        // Componentes de la Barra Inferior
-        this.rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
-        if (this.uiConfig != null && this.uiConfig.colorTextoPrimario != null) {
-            this.rutaCompletaArchivoLabel.setForeground(this.uiConfig.colorTextoPrimario);
-        } else {
-            this.rutaCompletaArchivoLabel.setForeground(Color.BLACK);
-        }
-        // Envolver en un panel para que se expanda y no empuje a los mensajes
-        JPanel panelRuta = new JPanel(new BorderLayout());
-        panelRuta.setOpaque(false); // Hereda el fondo del panel principal de la barra de estado
-        panelRuta.add(this.rutaCompletaArchivoLabel, BorderLayout.CENTER);
-        panel.add(panelRuta, BorderLayout.CENTER); // Ruta al centro (se expandirá)
-
-        this.mensajesAppLabel = new JLabel(" "); // Espacio para que tenga altura inicial
-        if (this.uiConfig != null && this.uiConfig.colorTextoSecundario != null) {
-            this.mensajesAppLabel.setForeground(this.uiConfig.colorTextoSecundario);
-        } else {
-            this.mensajesAppLabel.setForeground(Color.DARK_GRAY);
-        }
-        this.mensajesAppLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        panel.add(this.mensajesAppLabel, BorderLayout.EAST); // Mensajes a la derecha
-
-        // this.textoRuta ya no se usa directamente aquí si usamos rutaCompletaArchivoLabel y mensajesAppLabel
-        // Podrías eliminar el campo this.textoRuta o marcarlo como obsoleto.
-
-        System.out.println("    [VisorView] PanelEstadoInferior creado con JLabels para ruta y mensajes.");
-        return panel;
-    }
 
     /**
      * Crea un JSeparator vertical para usar en la barra de información.
@@ -1136,10 +1270,14 @@ public class VisorView extends JFrame {
  	public JLabel getIndicadorMantenerPropInfoLabel() { return this.indicadorMantenerPropInfoLabel; }
  	public JLabel getIndicadorSubcarpetasInfoLabel() { return this.indicadorSubcarpetasInfoLabel; }
 
-     // Getters para la Barra de Estado Inferior (si ya los tienes, si no, los añadiremos)
-      public JLabel getRutaCompletaArchivoLabel() { return this.rutaCompletaArchivoLabel; }
+    // Getters para la Barra de Estado Inferior (si ya los tienes, si no, los añadiremos)
+    public JLabel getRutaCompletaArchivoLabel() { return this.rutaCompletaArchivoLabel; }
+    public JLabel getIconoZoomManualLabel() { return iconoZoomManualLabel; }
+    public JLabel getIconoMantenerProporcionesLabel() { return iconoMantenerProporcionesLabel; }
+    public JLabel getIconoModoSubcarpetasLabel() { return iconoModoSubcarpetasLabel; }
+    public JLabel getTamanoArchivoInfoLabel() {return this.tamanoArchivoInfoLabel;}
+    public JLabel getFechaArchivoInfoLabel() {return this.fechaArchivoInfoLabel;}
      // public JLabel getMensajesAppLabel() { return this.mensajesAppLabel; }
- 	
  	
     
 } // Fin clase VisorView

@@ -1594,6 +1594,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         }
         System.out.println("  -> Configurando bindings de teclado para JLists (Principalmente Flechas)...");
 
+        
+        //FIXME establecer que la rueda del mouse sobre las listas actue como up y down y sobre la imagen de zoom 
         // Nombres de Acción Únicos
         String actPrev = "coordSelectPrevious";
         String actNext = "coordSelectNext";
@@ -1771,6 +1773,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      *                  (Otros valores podrían usarse para saltos mayores si se modifica la lógica).
      */
     public void navegarImagen(int direccion) {
+    	
+    	//FIXME añadir botones de flecha superpuestas sobre la imagen para imagen siguiente o anterior
         // 1. Validar dependencias y estado
         if (model == null || view == null || view.getListaNombres() == null || model.getModeloLista() == null) {
             System.err.println("WARN [navegarImagen]: Modelo, Vista o ListaNombres no inicializados.");
@@ -3598,195 +3602,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
   	} // --- FIN parseColor ---
   
   
-	/**
-	 * Crea y configura un JLabel que actúa como un marcador de posición
-	 * ('placeholder') para una miniatura que aún se está cargando o que ha fallado
-	 * al cargar.
-	 *
-	 * Configura el texto (generalmente "..."), el tamaño preferido, el color de
-	 * fondo, el color de texto, el borde (punteado, con color diferente si está
-	 * seleccionada) y el tooltip.
-	 *
-	 * @param toolTipText    El texto a mostrar cuando el usuario pase el ratón por
-	 *                       encima (ej. "Cargando: imagen.jpg" o "Error:
-	 *                       imagen_corrupta.png").
-	 * @param ancho          El ancho deseado para el placeholder (debe coincidir
-	 *                       con el tamaño de celda esperado en la lista de
-	 *                       miniaturas).
-	 * @param alto           El alto deseado para el placeholder. Si es <= 0, se
-	 *                       usará el ancho.
-	 * @param esSeleccionada true si este placeholder representa la miniatura que
-	 *                       corresponde a la imagen actualmente seleccionada en la
-	 *                       lista principal, para aplicarle un borde distintivo.
-	 * @return Un JLabel configurado como placeholder.
-	 */
-	private JLabel crearPlaceholderMiniatura (String toolTipText, int ancho, int alto, boolean esSeleccionada)
-	{
-
-		// 1. Crear el JLabel con texto inicial "..." y centrado
-		JLabel placeholder = new JLabel("...", SwingConstants.CENTER);
-
-		// 2. Hacerlo opaco para que el color de fondo sea visible
-		placeholder.setOpaque(true);
-
-		// 3. Establecer color de texto (gris para indicar que no es contenido real)
-		placeholder.setForeground(Color.GRAY);
-
-		// 4. Calcular y establecer tamaño preferido
-		// Asegurar un tamaño mínimo y manejar el caso de alto <= 0
-		int phAncho = Math.max(10, ancho); // Ancho mínimo de 10px
-		int phAlto = Math.max(10, (alto <= 0 ? phAncho : alto)); // Alto mínimo, o igual al ancho si alto<=0
-		placeholder.setPreferredSize(new Dimension(phAncho, phAlto));
-
-		// 5. Configurar borde y fondo según si está seleccionada
-		if (esSeleccionada)
-		{
-			// Borde punteado azul y fondo azul claro para placeholder seleccionado
-			// TODO: Considerar usar colores del tema (uiConfig) si están disponibles aquí
-			placeholder.setBorder(BorderFactory.createDashedBorder(Color.BLUE, 1, 5, 3, false)); // Ajustar estilo de
-																									// línea si se desea
-			placeholder.setBackground(new Color(220, 230, 255)); // Azul muy pálido
-		} else
-		{
-			// Borde punteado gris claro y fondo blanco para placeholder normal
-			placeholder.setBorder(BorderFactory.createDashedBorder(Color.LIGHT_GRAY, 1, 5, 3, false));
-			placeholder.setBackground(Color.WHITE); // O un gris muy claro
-		}
-
-		// 6. Establecer el Tooltip (mensaje informativo al pasar el ratón)
-		placeholder.setToolTipText(toolTipText != null ? toolTipText : "Cargando..."); // Tooltip por defecto si es null
-
-		// 7. Devolver el JLabel configurado
-		return placeholder;
-
-	} // --- FIN crearPlaceholderMiniatura ---
-     
-     
      /** Getters para Modelo/Vista/Config (usados por Actions). */
      public VisorModel getModel() { return model; }
      public VisorView getView() { return view; }
      public ConfigurationManager getConfigurationManager() { return configuration; }
      
-     
-     /**
-      * Configura un 'Shutdown Hook', que es un hilo que la JVM intentará ejecutar
-      * cuando la aplicación está a punto de cerrarse (ya sea normalmente o por
-      * una señal externa como Ctrl+C, pero no necesariamente en caso de crash).
-      *
-      * El propósito principal de este hook es guardar el estado actual de la
-      * aplicación (tamaño/posición de ventana, última carpeta/imagen, configuraciones UI)
-      * en el archivo config.cfg para poder restaurarlo la próxima vez que se inicie.
-      * También se encarga de apagar de forma ordenada el ExecutorService.
-      */
-     private void configurarShutdownHook() {
-         // Crear un nuevo hilo (sin nombre específico, pero se podría añadir)
-         Thread shutdownThread = new Thread(() -> { // Inicio de la lambda para el hilo
-             // Este código se ejecutará cuando la JVM inicie el proceso de cierre
-
-             System.out.println("--- Hook de Cierre Iniciado ---");
-
-             // --- 1. GUARDAR ESTADO DE LA VENTANA ---
-             //      Solo si la vista y la configuración están disponibles
-             if (view != null && configuration != null) {
-                  System.out.println("  -> Guardando estado de la ventana...");
-                  try {
-                      // Comprobar si la ventana está maximizada
-                      boolean isMaximized = (view.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
-                      // Guardar el estado de maximización en la configuración
-                      configuration.setString(ConfigurationManager.KEY_WINDOW_MAXIMIZED, String.valueOf(isMaximized));
-
-                      // Si NO está maximizada, guardar posición y tamaño (bounds)
-                      if (!isMaximized) {
-                          java.awt.Rectangle bounds = view.getBounds(); // Obtener bounds actuales
-                          configuration.setString(ConfigurationManager.KEY_WINDOW_X, String.valueOf(bounds.x));
-                          configuration.setString(ConfigurationManager.KEY_WINDOW_Y, String.valueOf(bounds.y));
-                          configuration.setString(ConfigurationManager.KEY_WINDOW_WIDTH, String.valueOf(bounds.width));
-                          configuration.setString(ConfigurationManager.KEY_WINDOW_HEIGHT, String.valueOf(bounds.height));
-                           System.out.println("    -> Bounds guardados en memoria config: " + bounds);
-                      } else {
-                           System.out.println("    -> Ventana maximizada, no se guardan bounds específicos.");
-                      }
-                  } catch (Exception e) {
-                       // Capturar cualquier error inesperado al obtener/guardar estado ventana
-                       System.err.println("  -> ERROR al guardar estado de ventana: " + e.getMessage());
-                       e.printStackTrace(); // Imprimir stack trace para depuración
-                  }
-             } else {
-                  // Informar si no se puede guardar estado (vista o config nulas)
-                  System.out.println("  -> No se pudo guardar estado de ventana (Vista=" + view + ", Config=" + configuration + ").");
-             }
-
-             // --- 2. GUARDAR CONFIGURACIÓN GENERAL ---
-             //      Llama al método que recopila todo el estado actual y lo pasa
-             //      al ConfigurationManager para escribirlo en el archivo.
-             System.out.println("  -> Llamando a guardarConfiguracionActual()...");
-             // Verificar 'configuration' de nuevo por si acaso
-             
-             if (configuration != null) {
-                 // Llamar al método que se encarga de obtener el estado y guardar
-                  guardarConfiguracionActual(); // Este método llama internamente a configuration.guardarConfiguracion()
-                  
-             } else {
-                  System.err.println("  -> ConfigurationManager null, no se puede llamar a guardarConfiguracionActual().");
-             }
-
-             // --- 3. APAGAR ExecutorService ---
-             //      Es importante cerrar el pool de hilos de forma ordenada.
-             System.out.println("  -> Apagando ExecutorService...");
-             
-             if (executorService != null && !executorService.isShutdown()) {
-                executorService.shutdown(); // Iniciar apagado: no acepta nuevas tareas, espera a las actuales
-                
-                try {
-             
-                	// Esperar un tiempo razonable para que las tareas terminen
-                    if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                        // Si no terminaron, forzar el apagado inmediato
-                        System.err.println("    -> ExecutorService no terminó en 5s. Forzando shutdownNow()...");
-                        executorService.shutdownNow(); // Intenta interrumpir tareas activas
-                        
-                        // Esperar un poco más después de forzar
-                        if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                             System.err.println("    -> ExecutorService AÚN no terminó después de shutdownNow().");
-                        } else {
-                             System.out.println("    -> ExecutorService finalmente terminado después de shutdownNow().");
-                        }
-                    } else {
-                         System.out.println("    -> ExecutorService terminado ordenadamente.");
-                    }
-
-                } catch (InterruptedException ie) {
-                    // Si el hilo del hook es interrumpido mientras espera
-                    System.err.println("    -> Hilo ShutdownHook interrumpido mientras esperaba apagado de ExecutorService.");
-                    executorService.shutdownNow(); // Forzar apagado inmediato
-                    Thread.currentThread().interrupt(); // Re-establecer estado interrumpido del hook
-                
-                } catch (Exception e) {
-                     // Capturar otros posibles errores durante el apagado
-                     System.err.println("    -> ERROR inesperado durante apagado de ExecutorService: " + e.getMessage());
-                     e.printStackTrace();
-                }
-                
-             } else if (executorService == null){
-                  System.out.println("    -> ExecutorService es null.");
-                  
-             } else { // Ya estaba shutdown
-                  System.out.println("    -> ExecutorService ya estaba apagado.");
-                  
-             }
-
-             // 4. Log final del hook
-             System.out.println("--- Hook de Cierre Terminado ---");
-
-         // Nombre opcional para el hilo del hook (útil en perfiles/debugging)
-         }, "VisorShutdownHookThread"); 
-
-         // Registrar el hilo creado como Shutdown Hook en la JVM
-         Runtime.getRuntime().addShutdownHook(shutdownThread);
-         System.out.println(" -> Shutdown Hook registrado en la JVM."); // Log confirmando registro
-
-     } // --- FIN configurarShutdownHook ---
-
      
      /**
       * Recopila el estado actual relevante de la aplicación (desde el Modelo y la Vista)
@@ -3923,16 +3743,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      } // --- FIN guardarConfiguracionActual ---
      
      
-     /** Método helper para errores fatales. */
-     private void handleFatalError(String message, Throwable cause) {
-         System.err.println("FATAL: " + message);
-         if (cause != null) cause.printStackTrace();
-         JOptionPane.showMessageDialog(null, message + (cause != null ? "\n" + cause.getMessage() : ""), "Error Fatal", JOptionPane.ERROR_MESSAGE);
-         System.exit(1);
-     }
-     
-     
-
 	/**
 	 * Calcula el rango de miniaturas a mostrar basándose en la selección principal,
 	 * reconstruye el modelo de datos específico para la JList de miniaturas
@@ -3946,6 +3756,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	 *                                    (`model.getModeloLista()`).
 	 */
      public void actualizarModeloYVistaMiniaturas(int indiceSeleccionadoPrincipal) {
+    	 
+    	 //FIXME separar o juntar las miniaturas para que se ajusten al ancho de pantalla disponible
+    	 //FIXME cambiar cantidad de miniaturas visibles segun espacio disponible
 
          // --- SECCIÓN 1: VALIDACIONES INICIALES Y PREPARACIÓN (Fuera del EDT) ---
 
