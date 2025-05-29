@@ -330,16 +330,7 @@ public class InfoBarManager {
                 if (claveIcono != null) {
                 	ImageIcon icon = uiConfig.iconUtils.getScaledIcon(claveIcono, iconSize, iconSize);
                 	
-//                    // LOG ---- DEBUG ----
-//                    if (icon == null) {
-//                        System.err.println("DEBUG [InfoBarManager.getIcon lambda]: Icono para comando '" + comando + "' (clave: '" + claveIcono + "') ES NULL después de getScaledIcon.");
-//                    } else {
-//                        System.out.println("DEBUG [InfoBarManager.getIcon lambda]: Icono para comando '" + comando + "' (clave: '" + claveIcono + "') CARGADO. Tamaño: " + icon.getIconWidth() + "x" + icon.getIconHeight());
-//                    }
-//                    // ---- FIN DEBUG ----
-                	
                     return icon;
-//                    return uiConfig.iconUtils.getScaledIcon(claveIcono, iconSize, iconSize);
                 	
                 } else {
                     System.err.println("WARN [InfoBarManager.cargarIconosModoZoom]: No se encontró clave de icono para el comando: " + comando + " en comandoToClaveIconoMap.");

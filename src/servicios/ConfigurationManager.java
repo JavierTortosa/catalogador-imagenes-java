@@ -1245,8 +1245,5 @@ public class ConfigurationManager
         return defaultValue;
     }
     
-    
-    
-    
 } //Fin configurationManager
 

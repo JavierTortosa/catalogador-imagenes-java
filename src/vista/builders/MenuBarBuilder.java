@@ -1,7 +1,9 @@
+// En vista.builders.MenuBarBuilder.java
+
 package vista.builders;
 
-
-import java.util.HashMap; // Asegúrate de tener los imports
+import java.awt.event.ActionListener; // Asegúrate de tener este import
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -15,12 +17,9 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 
-import controlador.commands.AppActionCommands;
-import vista.config.MenuItemDefinition; 
-import vista.config.MenuItemType;      
-
-// Enum interno (o importado si está en otro archivo)
-enum MenuComponentType { MAIN_MENU, SUB_MENU, MENU_ITEM, UNKNOWN }
+import controlador.commands.AppActionCommands; // Asumo que lo necesitas para algún log o comparación, aunque no directamente aquí
+import vista.config.MenuItemDefinition;
+import vista.config.MenuItemType;
 
 public class MenuBarBuilder {
 
@@ -29,66 +28,114 @@ public class MenuBarBuilder {
     private Map<String, JMenuItem> menuItemsPorNombre; // Mapa Clave Larga -> Item
 
     // --- Estado Interno del Builder ---
-    private Map<String, Action> actionMap; // Mapa Comando CORTO -> Action
+    private Map<String, Action> actionMap; // Mapa Comando CORTO (AppActionCommands) -> Action
     private ButtonGroup currentButtonGroup = null;
-    
+    private ActionListener controllerGlobalActionListener; // Para ítems sin Action propia
+
     // Prefijo base para las claves de configuración del menú
     private final String CONFIG_KEY_PREFIX = "interfaz.menu";
-    
-    
+
     /**
      * Constructor simplificado. Inicializa las estructuras internas.
      */
     public MenuBarBuilder() {
         this.menuItemsPorNombre = new HashMap<>();
         this.menuBar = new JMenuBar();
-        // actionMap se recibirá en buildMenuBar
-        // currentButtonGroup se inicializa a null
+        // actionMap y controllerGlobalActionListener se recibirán/establecerán externamente.
+        // currentButtonGroup se inicializa a null y se gestiona durante la construcción.
     }
-    
+
+    /**
+     * Establece el ActionListener global que se usará para los JMenuItems
+     * que no tengan una Action específica asociada. Típicamente, este será
+     * el VisorController.
+     *
+     * @param listener El ActionListener a utilizar.
+     */
+    public void setControllerGlobalActionListener(ActionListener listener) {
+        this.controllerGlobalActionListener = listener;
+        if (listener != null) {
+            System.out.println("[MenuBarBuilder] ControllerGlobalActionListener establecido: " + listener.getClass().getName());
+        } else {
+            System.out.println("[MenuBarBuilder] ADVERTENCIA: ControllerGlobalActionListener establecido a null.");
+        }
+    }
 
     /**
      * Construye la barra de menú completa basada en la estructura de definiciones explícita.
-     * @param menuStructure La lista que define la jerarquía y los ítems del menú.
-     * @param actionMap El mapa que asocia comandos canónicos (AppActionCommands) con sus Actions.
-     * @return La JMenuBar construida.
+     *
+     * @param menuStructure La lista de {@link MenuItemDefinition} que define la jerarquía
+     *                      y los ítems del menú.
+     * @param actionMap     El mapa que asocia los comandos canónicos (Strings de
+     *                      {@link AppActionCommands}) con sus instancias de {@link Action}.
+     *                      Este mapa es proporcionado por el VisorController o AppInitializer.
+     * @return La {@link JMenuBar} construida.
      */
     public JMenuBar buildMenuBar(List<MenuItemDefinition> menuStructure, Map<String, Action> actionMap) {
 
-        // --- 1. Inicialización y Validación ---
-        // 1.1. Reiniciar estado interno por si se reutiliza el builder
+        // --- SECCIÓN 1: INICIALIZACIÓN Y VALIDACIÓN DEL MÉTODO ---
+        // 1.1. Reiniciar el estado interno del builder.
+        //      Esto permite que la misma instancia de MenuBarBuilder pueda ser reutilizada
+        //      (aunque típicamente se crea una nueva cada vez).
         this.menuBar = new JMenuBar();
         this.menuItemsPorNombre = new HashMap<>();
-        this.actionMap = Objects.requireNonNull(actionMap, "ActionMap no puede ser null"); // Guardar referencia
-        this.currentButtonGroup = null;
+        this.currentButtonGroup = null; // Resetear el ButtonGroup actual
 
-        System.out.println("--- MenuBarBuilder: Construyendo menú desde estructura definida ---");
-        
-        // 1.2. Validar estructura de entrada
+        // 1.2. Validar y almacenar el actionMap proporcionado.
+        //      Este mapa es crucial para vincular JMenuItems a sus funcionalidades.
+        this.actionMap = Objects.requireNonNull(actionMap, "ActionMap no puede ser null en MenuBarBuilder.buildMenuBar");
+
+        // 1.3. Log de inicio del proceso de construcción.
+        System.out.println("--- MenuBarBuilder: Iniciando construcción de JMenuBar ---");
+        System.out.println("  [MenuBarBuilder] ActionMap recibido con " + (this.actionMap != null ? this.actionMap.size() : "null") + " acciones.");
+        System.out.println("  [MenuBarBuilder] controllerGlobalActionListener: " +
+                           (this.controllerGlobalActionListener != null ? "PRESENTE (" + this.controllerGlobalActionListener.getClass().getSimpleName() + ")" : "AUSENTE"));
+
+        // 1.4. Validar la estructura de menú de entrada.
+        //      Si no hay definiciones, no se puede construir nada.
         if (menuStructure == null || menuStructure.isEmpty()) {
-            System.err.println("WARN [MenuBarBuilder]: La estructura del menú está vacía o es nula.");
-            return this.menuBar; // Devuelve barra vacía
+            System.err.println("WARN [MenuBarBuilder]: La estructura del menú (menuStructure) está vacía o es nula. Se devolverá una JMenuBar vacía.");
+            return this.menuBar; // Devolver una barra de menú vacía.
         }
 
-        // --- 2. Procesar Elementos Raíz ---
-        // 2.1. Iterar sobre los elementos de nivel superior
+        // --- SECCIÓN 2: PROCESAMIENTO DE LOS ELEMENTOS RAÍZ DEL MENÚ ---
+        // Los elementos raíz de la `menuStructure` deben ser de tipo `MenuItemType.MAIN_MENU`.
+        // Estos corresponden a los menús principales que se añaden directamente a la `JMenuBar`.
+        System.out.println("  [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...");
         for (MenuItemDefinition itemDef : menuStructure) {
-            // 2.2. Validar que los elementos raíz sean menús principales
+            // 2.1. Verificar que el tipo del elemento raíz sea MAIN_MENU.
             if (itemDef.tipo() == MenuItemType.MAIN_MENU) {
-                // 2.3. Llamar al método recursivo para procesar este menú y sus hijos
-                processMenuItemDefinition(itemDef, menuBar, null, null); // Padre es JMenuBar, sin menús padre
+                // 2.2. Llamar al método recursivo `processMenuItemDefinition` para construir
+                //      este menú principal y todos sus sub-ítems.
+                //      - `itemDef`: La definición del menú principal actual.
+                //      - `menuBar`: El contenedor padre (la JMenuBar).
+                //      - `null` para parentMainMenu: Porque este es un menú principal, no tiene un JMenu padre.
+                //      - `null` para parentSubMenu: Idem.
+                processMenuItemDefinition(itemDef, this.menuBar, null, null);
             } else {
-                System.err.println("WARN [MenuBarBuilder]: Se encontró un tipo inesperado (" + itemDef.tipo()
-                                   + ") en el nivel superior. Se esperaba MAIN_MENU. Texto: '" + itemDef.textoMostrado() + "'");
+                // 2.3. Log de error si se encuentra un tipo inesperado en el nivel raíz.
+                System.err.println("WARN [MenuBarBuilder]: Se encontró un tipo de ítem inesperado (" + itemDef.tipo() +
+                                   ") en el nivel superior de la estructura del menú. Se esperaba MAIN_MENU. " +
+                                   "Texto del ítem: '" + itemDef.textoMostrado() + "'. Este ítem será ignorado en el nivel raíz.");
             }
         }
 
-        // --- 3. Finalización ---
-        System.out.println("--- MenuBarBuilder: Menú construido. Total items en mapa: " + menuItemsPorNombre.size() + " ---");
-        return this.menuBar; // Devolver la barra construida
-    }// --- FIN metodo buildMenuBar    
-    
-    
+        // --- SECCIÓN 3: FINALIZACIÓN Y RETORNO ---
+        // 3.1. Log de finalización del proceso.
+        System.out.println("--- MenuBarBuilder: Construcción de JMenuBar completada. ---");
+        System.out.println("  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: " + this.menuItemsPorNombre.size());
+
+        // 3.2. Devolver la JMenuBar completamente construida.
+        return this.menuBar;
+    } // --- FIN del método buildMenuBar ---
+
+
+    // (El resto de los métodos: processMenuItemDefinition, assignActionOrCommand,
+    //  addMenuItemToParent, generateKeyPart, generateFullConfigKey, getMenuItemsMap
+    //  permanecerían como te los mostré en la respuesta anterior, con la adición
+    //  de la lógica para usar `this.controllerGlobalActionListener` en `assignActionOrCommand`)
+    // Por completitud, te los incluyo aquí de nuevo con los comentarios de sección.
+
     /**
      * Procesa recursivamente una definición de ítem de menú y sus sub-ítems,
      * creando y configurando los componentes Swing correspondientes.
@@ -100,633 +147,467 @@ public class MenuBarBuilder {
      */
     private void processMenuItemDefinition(MenuItemDefinition itemDef, JComponent parentContainer, JMenu parentMainMenu, JMenu parentSubMenu) {
 
-        // --- 1. Preparación ---
-        JMenuItem menuItemComponent = null; // El componente Swing que se creará
-        // 1.1. Generar la clave larga de configuración para este ítem
+        // --- 1. PREPARACIÓN Y GENERACIÓN DE CLAVE ---
+        JMenuItem menuItemComponent = null; // El componente Swing que se creará.
+        // 1.1. Generar la clave larga de configuración para este ítem.
+        //      Esta clave se usa para el mapa `menuItemsPorNombre` y potencialmente para logs.
         String fullConfigKey = generateFullConfigKey(itemDef, parentMainMenu, parentSubMenu);
+        // System.out.println("  [ProcessDef] Procesando: " + itemDef.textoMostrado() + " (Tipo: " + itemDef.tipo() + ", Clave: " + fullConfigKey + ")"); // Log detallado opcional
 
-        // --- 2. Creación del Componente según el Tipo ---
+        // --- 2. CREACIÓN DEL COMPONENTE SWING SEGÚN MenuItemType ---
         switch (itemDef.tipo()) {
             case MAIN_MENU:
-                // 2.1.1. Crear JMenu principal
+                // 2.1.1. Crear un JMenu para un menú principal.
                 JMenu mainMenu = new JMenu(itemDef.textoMostrado());
-                menuItemComponent = mainMenu;
-                // 2.1.2. Añadir a JMenuBar
-                if (parentContainer instanceof JMenuBar) {
-                     ((JMenuBar) parentContainer).add(mainMenu);
-                } else {
-                     System.err.println("ERROR: MAIN_MENU '" + itemDef.textoMostrado() + "' no tiene JMenuBar como padre.");
-                     this.menuBar.add(mainMenu); // Fallback
-                }
-                // 2.1.3. Establecer clave larga como ActionCommand (para identificación)
+                menuItemComponent = mainMenu; // Guardar referencia para registro.
+                // 2.1.2. Añadir este JMenu a su contenedor padre (debería ser la JMenuBar).
+                addMenuItemToParent(mainMenu, parentContainer); // Usa el helper para añadir y validar.
+                // 2.1.3. Establecer la clave de configuración larga como ActionCommand.
+                //        Esto es útil si se necesita identificar el JMenu fuente de un evento,
+                //        aunque los JMenu generalmente no disparan ActionEvents directos por clic.
                 mainMenu.setActionCommand(fullConfigKey);
-                // 2.1.4. Procesar recursivamente los sub-ítems
-                if (itemDef.subItems() != null) {
+                // 2.1.4. Procesar recursivamente los sub-ítems de este menú principal.
+                if (itemDef.subItems() != null && !itemDef.subItems().isEmpty()) {
                     for (MenuItemDefinition subDef : itemDef.subItems()) {
-                        // El contenedor padre para los hijos es este mainMenu
-                        // El menú principal padre para los hijos es este mainMenu
-                        // No hay submenú padre para los hijos directos de un mainMenu
                         processMenuItemDefinition(subDef, mainMenu, mainMenu, null);
                     }
                 }
-                break; // Fin MAIN_MENU
+                break; // Fin del caso MAIN_MENU
 
             case SUB_MENU:
-                // 2.2.1. Crear JMenu (submenú)
+                // 2.2.1. Crear un JMenu para un submenú.
                 JMenu subMenu = new JMenu(itemDef.textoMostrado());
                 menuItemComponent = subMenu;
-                // 2.2.2. Añadir al contenedor padre (debería ser otro JMenu)
+                // 2.2.2. Añadir este submenú a su contenedor padre (debería ser otro JMenu).
                 addMenuItemToParent(subMenu, parentContainer);
-                // 2.2.3. Establecer clave larga como ActionCommand
+                // 2.2.3. Establecer la clave de configuración larga como ActionCommand.
                 subMenu.setActionCommand(fullConfigKey);
-                // 2.2.4. Procesar recursivamente los sub-ítems
-                if (itemDef.subItems() != null) {
-                     for (MenuItemDefinition subDef : itemDef.subItems()) {
-                         // El contenedor padre para los hijos es este subMenu
-                         // El menú principal padre sigue siendo el mismo (parentMainMenu)
-                         // El submenú padre para los hijos es este subMenu
-                         processMenuItemDefinition(subDef, subMenu, parentMainMenu, subMenu);
-                     }
+                // 2.2.4. Procesar recursivamente los sub-ítems de este submenú.
+                if (itemDef.subItems() != null && !itemDef.subItems().isEmpty()) {
+                    for (MenuItemDefinition subDef : itemDef.subItems()) {
+                        processMenuItemDefinition(subDef, subMenu, parentMainMenu, subMenu);
+                    }
                 }
-                break; // Fin SUB_MENU
+                break; // Fin del caso SUB_MENU
 
             case ITEM:
-                // 2.3.1. Crear JMenuItem estándar
-                menuItemComponent = new JMenuItem(itemDef.textoMostrado());
-                // 2.3.2. Añadir al contenedor padre
+                // 2.3.1. Crear un JMenuItem estándar.
+                menuItemComponent = new JMenuItem(); // Texto se asignará en assignActionOrCommand
+                // 2.3.2. Añadir al contenedor padre.
                 addMenuItemToParent(menuItemComponent, parentContainer);
-                // 2.3.3. Asignar Action o ActionCommand
+                // 2.3.3. Asignar la Action correspondiente o configurar el ActionCommand y el listener.
                 assignActionOrCommand(menuItemComponent, itemDef);
-                break; // Fin ITEM
+                break; // Fin del caso ITEM
 
             case CHECKBOX_ITEM:
-                // 2.4.1. Crear JCheckBoxMenuItem
-                menuItemComponent = new JCheckBoxMenuItem(itemDef.textoMostrado());
-                // 2.4.2. Añadir al contenedor padre
+                // 2.4.1. Crear un JCheckBoxMenuItem.
+                menuItemComponent = new JCheckBoxMenuItem(); // Texto y estado se asignarán
+                // 2.4.2. Añadir al contenedor padre.
                 addMenuItemToParent(menuItemComponent, parentContainer);
-                // 2.4.3. Asignar Action o ActionCommand
+                // 2.4.3. Asignar la Action o configurar ActionCommand/listener.
+                //        Si hay una Action, esta manejará el estado 'selected'.
+                //        Si no, se dependerá de la configuración y el listener global.
                 assignActionOrCommand(menuItemComponent, itemDef);
-                break; // Fin CHECKBOX_ITEM
+                break; // Fin del caso CHECKBOX_ITEM
 
             case RADIO_BUTTON_ITEM:
-                // 2.5.1. Crear JRadioButtonMenuItem
-                JRadioButtonMenuItem radioItem = new JRadioButtonMenuItem(itemDef.textoMostrado());
+                // 2.5.1. Crear un JRadioButtonMenuItem.
+                JRadioButtonMenuItem radioItem = new JRadioButtonMenuItem(); // Texto y estado se asignarán
                 menuItemComponent = radioItem;
-                // 2.5.2. Añadir al ButtonGroup actual (si existe)
+                // 2.5.2. Añadir al ButtonGroup actual (si está activo).
+                //        Esto asegura la exclusividad mutua entre los radios del grupo.
                 if (currentButtonGroup != null) {
                     currentButtonGroup.add(radioItem);
                 } else {
-                    System.err.println("WARN [MenuBarBuilder]: JRadioButtonMenuItem '" + itemDef.textoMostrado() + "' sin ButtonGroup activo (falta RADIO_GROUP_START?).");
+                    System.err.println("WARN [MenuBarBuilder]: JRadioButtonMenuItem '" + itemDef.textoMostrado() +
+                                       "' creado sin un ButtonGroup activo. ¿Falta un RADIO_GROUP_START en la definición?");
                 }
-                // 2.5.3. Añadir al contenedor padre
-                addMenuItemToParent(menuItemComponent, parentContainer);
-                // 2.5.4. Asignar Action o ActionCommand
-                assignActionOrCommand(menuItemComponent, itemDef);
-                break; // Fin RADIO_BUTTON_ITEM
+                // 2.5.3. Añadir al contenedor padre.
+                addMenuItemToParent(radioItem, parentContainer);
+                // 2.5.4. Asignar la Action o configurar ActionCommand/listener.
+                assignActionOrCommand(radioItem, itemDef);
+                break; // Fin del caso RADIO_BUTTON_ITEM
 
             case SEPARATOR:
-                // 2.6.1. Añadir separador si el padre es un JMenu
+                // 2.6.1. Añadir un separador visual al menú padre.
+                //        Solo tiene sentido si el padre es un JMenu (no una JMenuBar).
                 if (parentContainer instanceof JMenu) {
                     ((JMenu) parentContainer).addSeparator();
                 } else {
-                     System.err.println("WARN [MenuBarBuilder]: SEPARATOR definido fuera de un JMenu.");
+                    System.err.println("WARN [MenuBarBuilder]: SEPARATOR definido fuera de un JMenu. Contenedor padre: " +
+                                       (parentContainer != null ? parentContainer.getClass().getName() : "null"));
                 }
-                // 2.6.2. Salir, no es un componente con estado/acción
-                return; // Importante salir aquí
+                // 2.6.2. No se crea un `menuItemComponent` ni se registra. Salir.
+                return; // Salir del método para SEPARATOR
 
             case RADIO_GROUP_START:
-                // 2.7.1. Iniciar un nuevo ButtonGroup
+                // 2.7.1. Iniciar un nuevo ButtonGroup.
+                //        Si ya existía uno, se reemplaza (podría indicar un error en la definición del menú).
                 if (currentButtonGroup != null) {
-                     System.err.println("WARN [MenuBarBuilder]: Se encontró RADIO_GROUP_START pero ya había un grupo activo. Se reemplazará.");
+                    System.err.println("WARN [MenuBarBuilder]: Se encontró RADIO_GROUP_START pero ya había un ButtonGroup activo. Se reemplazará el grupo anterior.");
                 }
                 currentButtonGroup = new ButtonGroup();
-                 // 2.7.2. Salir, no es un componente visible
-                return; // Importante salir aquí
+                // System.out.println("  [ProcessDef] ButtonGroup INICIADO."); // Log opcional
+                // 2.7.2. No es un componente visible. Salir.
+                return; // Salir del método para RADIO_GROUP_START
 
             case RADIO_GROUP_END:
-                // 2.8.1. Finalizar el ButtonGroup actual
+                // 2.8.1. Finalizar (anular) el ButtonGroup actual.
                 if (currentButtonGroup == null) {
-                    System.err.println("WARN [MenuBarBuilder]: Se encontró RADIO_GROUP_END sin un grupo activo.");
+                    System.err.println("WARN [MenuBarBuilder]: Se encontró RADIO_GROUP_END sin un ButtonGroup activo. ¿Definición de menú incorrecta?");
                 }
                 currentButtonGroup = null;
-                // 2.8.2. Salir, no es un componente visible
-                return; // Importante salir aquí
+                // System.out.println("  [ProcessDef] ButtonGroup FINALIZADO."); // Log opcional
+                // 2.8.2. No es un componente visible. Salir.
+                return; // Salir del método para RADIO_GROUP_END
 
             default:
-                // 2.9. Manejar tipos desconocidos
-                System.err.println("ERROR [MenuBarBuilder]: Tipo de MenuItemDefinition no reconocido: " + itemDef.tipo());
-                return; // Salir si no se reconoce
-        } // Fin del switch
+                // 2.9. Manejar tipos de ítem desconocidos o no soportados.
+                System.err.println("ERROR [MenuBarBuilder]: Tipo de MenuItemDefinition no reconocido o no manejado: " +
+                                   itemDef.tipo() + " para el ítem con texto: '" + itemDef.textoMostrado() + "'. Ítem ignorado.");
+                return; // Salir si el tipo no se reconoce
+        } // Fin del switch sobre itemDef.tipo()
 
-        // --- 3. Registro del Componente (si aplica) ---
-        // 3.1. Añadir al mapa `menuItemsPorNombre` si es un componente válido con clave
-        if (menuItemComponent != null && !fullConfigKey.isEmpty()) {
+        // --- 3. REGISTRO DEL COMPONENTE CREADO (SI APLICA) ---
+        // 3.1. Si se creó un componente JMenuItem y se generó una clave de configuración válida,
+        //      añadirlo al mapa `menuItemsPorNombre`.
+        //      Esto permite acceder al JMenuItem desde fuera del builder (ej. VisorController)
+        //      para modificar su estado si es necesario.
+        if (menuItemComponent != null && fullConfigKey != null && !fullConfigKey.isEmpty()) {
+            // Antes de añadir, verificar si la clave ya existe (no debería si las claves son únicas)
+            if (this.menuItemsPorNombre.containsKey(fullConfigKey)) {
+                System.err.println("WARN [MenuBarBuilder]: Clave de configuración duplicada encontrada: '" + fullConfigKey +
+                                   "'. El ítem anterior será sobrescrito en el mapa. Item nuevo: " + menuItemComponent.getText());
+            }
             this.menuItemsPorNombre.put(fullConfigKey, menuItemComponent);
         }
-        // 3.2. Log de advertencia si se creó componente pero no clave (excepto separador/grupos)
-        else if (menuItemComponent != null && fullConfigKey.isEmpty() && itemDef.tipo() != MenuItemType.SEPARATOR) {
-            System.err.println("WARN [MenuBarBuilder]: Componente '" + itemDef.textoMostrado() + "' ("+itemDef.tipo()+") no tiene clave de configuración generada.");
+        // 3.2. Log de advertencia si se creó un componente pero no se pudo generar una clave.
+        //      Esto es poco probable si `generateFullConfigKey` está bien, pero es una comprobación de seguridad.
+        else if (menuItemComponent != null && (fullConfigKey == null || fullConfigKey.isEmpty())) {
+            // No imprimir para tipos que intencionalmente no tienen clave (como JMenu que usa su ActionCommand)
+            // Los tipos SEPARATOR, RADIO_GROUP_START, RADIO_GROUP_END ya retornan antes.
+            if (!(menuItemComponent instanceof JMenu)) { // JMenu usa su ActionCommand como clave
+                 System.err.println("WARN [MenuBarBuilder]: JMenuItem creado '" + menuItemComponent.getText() +
+                                   "' (" + itemDef.tipo() + ") no tiene una clave de configuración generada y no será mapeado.");
+            }
         }
-    }// --- FIN metodo processMenuItemDefinition   
-    
-    
+    } // --- FIN del método processMenuItemDefinition ---
+
+
     /**
-     * Asigna la Action correspondiente del actionMap al item si existe,
-     * o asigna el comandoOClave como ActionCommand si no hay Action.
-     * También ajusta el texto del ítem si es necesario.
+     * Asigna la Action correspondiente del actionMap al JMenuItem si existe una para su comando/clave,
+     * o asigna el comando/clave como ActionCommand y (si está configurado) el listener global
+     * si no hay una Action específica. También ajusta el texto del ítem.
      *
-     * @param item El JMenuItem a configurar.
-     * @param itemDef La definición de donde obtener la información.
+     * @param item El JMenuItem (puede ser JCheckBoxMenuItem, JRadioButtonMenuItem) a configurar.
+     * @param itemDef La {@link MenuItemDefinition} de donde obtener la información.
      */
     private void assignActionOrCommand(JMenuItem item, MenuItemDefinition itemDef) {
-        // 1. Validaciones básicas
-        if (item == null || itemDef == null) return;
+        // --- 1. VALIDACIONES BÁSICAS ---
+        if (item == null) {
+            System.err.println("ERROR [assignActionOrCommand]: El JMenuItem es null.");
+            return;
+        }
+        if (itemDef == null) {
+            System.err.println("ERROR [assignActionOrCommand]: La MenuItemDefinition es null para el item: " + item.getText());
+            // Intentar poner el texto si el itemDef es null pero el item no lo es (caso raro)
+            if (item.getText() == null || item.getText().isEmpty()) item.setText("(Definición Nula)");
+            return;
+        }
 
-        // 2. Obtener comando/clave de la definición
+        // --- 2. OBTENER COMANDO/CLAVE DE LA DEFINICIÓN ---
         String comandoOClave = itemDef.comandoOClave();
 
-        // 3. Procesar si hay un comando/clave definido
+        // --- 3. PROCESAR SI HAY UN COMANDO O CLAVE DEFINIDO EN MenuItemDefinition ---
         if (comandoOClave != null && !comandoOClave.isBlank()) {
-            // 3.1. Intentar buscar la Action en el mapa
-            Action action = this.actionMap.get(comandoOClave);
+            // 3.1. Intentar buscar una Action en el `this.actionMap` usando el `comandoOClave`.
+            Action action = (this.actionMap != null) ? this.actionMap.get(comandoOClave) : null;
 
-            // 3.2. Si se encontró una Action
+            // 3.2. CASO: SE ENCONTRÓ UNA ACTION EN EL MAPA
             if (action != null) {
-                // 3.2.1. Asignar la Action al componente
+                // 3.2.1. Asignar la Action al JMenuItem.
+                //        Esto transfiere propiedades como nombre, icono, tooltip, estado enabled,
+                //        y lo más importante, el ActionListener. Para JCheckBoxMenuItem y
+                //        JRadioButtonMenuItem, también vincula su estado 'selected' a
+                //        la propiedad Action.SELECTED_KEY de la Action.
                 item.setAction(action);
-                
-                if (comandoOClave != null && comandoOClave.equals(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA)) {
-                    System.out.println("DEBUG MENUBARBUILDER: Action '" + action.getClass().getSimpleName() +
-                                       "' (ID: " + System.identityHashCode(action) +
-                                       ") asignada a JCheckBoxMenuItem para CMD_PROYECTO_TOGGLE_MARCA. Texto del item: '" + item.getText() + "'");
-                }
-                
-                // 3.2.2. Sobrescribir texto si el definido es diferente al de la Action
-                if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank() && !itemDef.textoMostrado().equals(action.getValue(Action.NAME))) {
+                // System.out.println("  [AssignActCmd] Action '" + action.getValue(Action.NAME) + "' asignada a JMenuItem para comando: " + comandoOClave + ". Texto menu: " + itemDef.textoMostrado());
+
+                // 3.2.2. Sobrescribir el texto del JMenuItem si `itemDef.textoMostrado()` es diferente
+                //        al nombre de la Action (Action.NAME). Esto permite tener un texto en el menú
+                //        diferente al nombre interno de la Action.
+                if (itemDef.textoMostrado() != null &&
+                    !itemDef.textoMostrado().isBlank() &&
+                    !Objects.equals(itemDef.textoMostrado(), action.getValue(Action.NAME))) {
                     item.setText(itemDef.textoMostrado());
+                    // System.out.println("    -> Texto del JMenuItem sobrescrito a: '" + itemDef.textoMostrado() + "'");
                 }
+                // El JMenuItem ya tiene su ActionListener (el de la Action). No añadir el global.
             }
-            // 3.3. Si NO se encontró Action
+            // 3.3. CASO: NO SE ENCONTRÓ UNA ACTION EN EL MAPA PARA ESTE COMANDO/CLAVE
             else {
-                // 3.3.1. Asignar el comando/clave como ActionCommand del componente
-                //        (Útil para checkboxes de config UI o items sin Action funcional)
+                // 3.3.1. Establecer el `comandoOClave` como el `ActionCommand` del JMenuItem.
+                //        Esto es crucial para que el ActionListener global (VisorController) pueda
+                //        identificar qué ítem fue presionado usando `event.getActionCommand()`.
                 item.setActionCommand(comandoOClave);
-                // 3.3.2. Asegurarse de que el texto se muestre si no hay Action
+                // System.out.println("  [AssignActCmd] No se encontró Action para '" + comandoOClave + "'. Estableciendo ActionCommand. Texto menu: " + itemDef.textoMostrado());
+
+                // 3.3.2. Establecer el texto del JMenuItem desde `itemDef.textoMostrado()`.
+                //        Si `textoMostrado` es nulo o vacío, el JMenuItem podría quedar sin texto visible.
                 if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
-                     item.setText(itemDef.textoMostrado());
+                    item.setText(itemDef.textoMostrado());
                 } else {
-                     // Si no hay ni Action ni texto, el texto será el que JMenuItem ponga por defecto (vacío)
-                     // O podríamos poner el comando como texto por defecto para debug:
-                     // item.setText(comandoOClave);
+                    // Fallback: si no hay texto definido, usar el comando como texto (para depuración)
+                    // o dejarlo vacío si se prefiere.
+                    item.setText(comandoOClave); // O item.setText("");
+                    System.out.println("    -> Texto del JMenuItem establecido al comandoOClave (fallback): '" + comandoOClave + "'");
+                }
+
+                // 3.3.3. Añadir el ActionListener global (VisorController) a este JMenuItem.
+                //        Esto solo se hace si el ítem es "final" (no un JMenu contenedor)
+                //        y si el `controllerGlobalActionListener` ha sido establecido.
+                if (this.controllerGlobalActionListener != null && !(item instanceof JMenu)) {
+                    item.addActionListener(this.controllerGlobalActionListener);
+                    // System.out.println("    -> controllerGlobalActionListener AÑADIDO a JMenuItem: " + item.getText() + " (Comando: " + comandoOClave + ")");
+                } else if (this.controllerGlobalActionListener == null && !(item instanceof JMenu)) {
+                    System.err.println("WARN [AssignActCmd]: controllerGlobalActionListener ES NULL. No se pudo añadir listener a JMenuItem: " +
+                                       item.getText() + " (Comando: " + comandoOClave + "). Este ítem no funcionará.");
                 }
             }
         }
-        // 4. Si NO hay comando/clave definido en la definición
+        // --- 4. CASO: NO HAY COMANDO O CLAVE DEFINIDO EN MenuItemDefinition ---
         else {
-             // 4.1. Solo aseguramos que el texto se muestre (si existe)
-             if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
-                 item.setText(itemDef.textoMostrado());
-             }
-             // Este sería un ítem puramente informativo sin acción.
+            // 4.1. Si no hay `comandoOClave`, solo se puede establecer el texto.
+            //      Este sería un JMenuItem puramente informativo o decorativo sin funcionalidad directa.
+            if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
+                item.setText(itemDef.textoMostrado());
+            } else {
+                item.setText("(Ítem sin texto ni comando)"); // Placeholder
+            }
+            // System.out.println("  [AssignActCmd] JMenuItem '" + item.getText() + "' sin comandoOClave definido. Solo se estableció el texto.");
+            // Opcional: Añadir el listener global aquí también si se espera que ítems sin comando hagan algo.
+            // if (this.controllerGlobalActionListener != null && !(item instanceof JMenu) && itemDef.tipo() != MenuItemType.SUB_MENU) {
+            //    item.addActionListener(this.controllerGlobalActionListener);
+            // }
         }
-    }// --- FIN metodo assignActionOrCommand 
-    
-    
+    } // --- FIN del método assignActionOrCommand ---
+
+
     /**
-     * Helper para añadir un JMenuItem a su contenedor padre (JMenu o JMenuBar).
-     * Incluye validación y logs de error.
+     * Método de utilidad para añadir un JMenuItem (o sus subclases como JMenu, JCheckBoxMenuItem)
+     * a su componente contenedor padre (JMenu o JMenuBar).
+     * Incluye validaciones para evitar NullPointerExceptions y logs de error.
      *
-     * @param item El JMenuItem (o JMenu, JCheckBoxMenuItem, etc.) a añadir.
-     * @param parentContainer El JComponent padre (esperado JMenu o JMenuBar).
+     * @param item El JMenuItem a añadir. No debe ser null.
+     * @param parentContainer El JComponent padre. Se espera que sea una instancia de JMenu o JMenuBar.
+     *                        No debe ser null.
      */
     private void addMenuItemToParent(JMenuItem item, JComponent parentContainer) {
-        // 1. Validar que el item a añadir no sea null
+        // --- 1. VALIDACIÓN DE ENTRADAS ---
+        // 1.1. Verificar que el ítem a añadir no sea null.
         if (item == null) {
-             System.err.println("ERROR [MenuBarBuilder]: Intentando añadir un ítem nulo.");
-             return;
+            System.err.println("ERROR [addMenuItemToParent]: Se intentó añadir un JMenuItem nulo. Operación cancelada.");
+            return;
         }
-        // 2. Validar que el contenedor padre no sea null
+        // 1.2. Verificar que el contenedor padre no sea null.
         if (parentContainer == null) {
-             System.err.println("ERROR [MenuBarBuilder]: Intentando añadir ítem '" + item.getText() + "' sin contenedor padre válido (null).");
-             return;
+            System.err.println("ERROR [addMenuItemToParent]: Se intentó añadir JMenuItem '" + item.getText() +
+                               "' a un contenedor padre nulo. Operación cancelada.");
+            return;
         }
 
-        // 3. Añadir al contenedor según su tipo
+        // --- 2. AÑADIR EL ITEM AL CONTENEDOR SEGÚN EL TIPO DE CONTENEDOR ---
+        // 2.1. Si el padre es un JMenu, usar su método `add(JMenuItem)`.
         if (parentContainer instanceof JMenu) {
             ((JMenu) parentContainer).add(item);
-        } else if (parentContainer instanceof JMenuBar) {
-            // Esto es menos común, para items directamente en la barra (no dentro de un menú)
-            ((JMenuBar) parentContainer).add(item);
-        } else {
-            // Si el contenedor no es ni JMenu ni JMenuBar, es un error de lógica
-            System.err.println("ERROR [MenuBarBuilder]: Contenedor padre inesperado para ítem '" + item.getText() + "': " + parentContainer.getClass().getName());
         }
-    }// --- FIN metodo addMenuItemToParent
+        // 2.2. Si el padre es una JMenuBar, usar su método `add(JMenu)`.
+        //      Esto es para los menús principales (File, Edit, etc.).
+        //      Un JMenuItem individual raramente se añade directamente a una JMenuBar,
+        //      pero se incluye por si acaso (aunque JMenu también es un JMenuItem).
+        else if (parentContainer instanceof JMenuBar) {
+            if (item instanceof JMenu) { // Solo añadir JMenu directamente a JMenuBar
+                ((JMenuBar) parentContainer).add((JMenu)item);
+            } else {
+                System.err.println("WARN [addMenuItemToParent]: Se intentó añadir un JMenuItem que no es JMenu ('" +
+                                   item.getText() + "') directamente a una JMenuBar. Esto es inusual.");
+                // Podríamos decidir añadirlo de todas formas, o no. Por ahora, lo permitimos.
+                // ((JMenuBar) parentContainer).add(item); // Si quieres permitirlo
+            }
+        }
+        // 2.3. Si el contenedor padre no es ni JMenu ni JMenuBar, es un error de lógica
+        //      en cómo se está llamando a este método.
+        else {
+            System.err.println("ERROR [addMenuItemToParent]: Contenedor padre de tipo inesperado para JMenuItem '" +
+                               item.getText() + "'. Tipo de padre: " + parentContainer.getClass().getName() +
+                               ". Se esperaba JMenu o JMenuBar.");
+        }
+    } // --- FIN del método addMenuItemToParent ---
+
 
     /**
-     * Helper para generar la parte de la clave de configuración a partir de texto o comando.
-     * Limpia el texto, reemplaza espacios y caracteres no válidos.
+     * Helper para generar la parte de la clave de configuración a partir de un texto
+     * (típicamente el texto mostrado del menú o el comando/clave de la definición).
+     * Limpia el texto (quita espacios al inicio/fin, reemplaza espacios internos por '_',
+     * elimina caracteres no alfanuméricos excepto '_') y lo convierte a minúsculas.
      *
-     * @param text El texto (o comando/clave) base para generar la parte de la clave.
-     * @return Una cadena segura para usar como parte de una clave de configuración.
+     * @param text El texto base para generar la parte de la clave.
+     * @return Una cadena segura y normalizada para usar como parte de una clave de configuración.
+     *         Si el texto de entrada es null o vacío, devuelve "unknown_key_part".
      */
     private String generateKeyPart(String text) {
-        // 1. Manejar caso null o vacío
-        if (text == null || text.isBlank()) return "unknown_key_part"; // Devolver algo identificable
+        // 1. Manejar caso de entrada nula o vacía.
+        if (text == null || text.isBlank()) {
+            // System.out.println("  [generateKeyPart] Texto nulo/vacío, devolviendo 'unknown_key_part'"); // Log opcional
+            return "unknown_key_part"; // Devolver un placeholder identificable.
+        }
 
-        // 2. Limpiar y normalizar
-        String cleanedText = text.trim()
-                   .replace(" ", "_")        // Espacios a guion bajo
-                   .replace("/", "_")        // Barras a guion bajo
-                   .replace("\\", "_")       // Contrabarras a guion bajo
-                   .replace("*", "")         // Quitar asteriscos
-                   .replace(".", "")         // Quitar puntos
-                   .replace("%", "porc")     // Reemplazar %
-                   .replace(":", "")         // Quitar dos puntos
-                   .replace("?", "")         // Quitar interrogación
-                   // Añadir más reemplazos específicos si son necesarios
-                   .replaceAll("[^a-zA-Z0-9_]", ""); // Quitar todo lo que no sea letra, número o guion bajo
+        // 2. Limpiar y normalizar la cadena:
+        String cleanedText = text.trim()                // Quitar espacios al inicio y al final.
+                .replace(" ", "_")       // Reemplazar espacios internos por guiones bajos.
+                .replace("/", "_")       // Reemplazar barras por guiones bajos.
+                .replace("\\", "_")      // Reemplazar contrabarras.
+                .replace("*", "")        // Eliminar asteriscos (usados para indicar tipo en definición antigua).
+                .replace(".", "")        // Eliminar puntos (para evitar confusión en claves jerárquicas).
+                .replace("%", "porc")    // Reemplazar '%' por "porc" para evitar problemas.
+                .replace(":", "")        // Eliminar dos puntos.
+                .replace("?", "")        // Eliminar signos de interrogación.
+                // Eliminar cualquier carácter que NO sea letra (a-z, A-Z), número (0-9) o guion bajo (_).
+                // Esto asegura que la clave solo contenga caracteres seguros.
+                .replaceAll("[^a-zA-Z0-9_]", "");
 
-        // 3. Convertir a minúsculas
+        // 3. Convertir la cadena resultante a minúsculas para consistencia.
         cleanedText = cleanedText.toLowerCase();
 
-        // 4. Asegurar que no quede vacío después de limpiar
+        // 4. Asegurar que la clave no quede vacía después de la limpieza.
+        //    Si todos los caracteres fueron eliminados, generar una clave fallback.
         if (cleanedText.isEmpty()) {
-            // Si queda vacío, generar algo basado en el hash (poco legible pero único)
-             return "emptykey_" + text.hashCode();
+            // Generar algo basado en el hash del texto original (poco legible pero único).
+            // System.out.println("  [generateKeyPart] Texto original '" + text + "' resultó en clave vacía. Usando hash."); // Log opcional
+            return "emptykey_" + Math.abs(text.hashCode()); // Usar Math.abs para evitar signo negativo.
         }
 
         return cleanedText;
-    } // --- FIN metodo generateKeyPart
+    } // --- FIN del método generateKeyPart ---
 
-    
+
     /**
-     * Helper para generar la clave larga de configuración jerárquica completa.
-     * Construye la clave basándose en la jerarquía de menús padre.
+     * Helper para generar la clave de configuración larga y jerárquica completa para un ítem de menú.
+     * Construye la clave basándose en la jerarquía de menús padre (principal y submenú)
+     * y el texto o comando del ítem actual.
+     * Ejemplo: "interfaz.menu.archivo.abrir_archivo"
      *
-     * @param itemDef La definición del ítem actual.
-     * @param parentMainMenu El JMenu principal padre (puede ser null).
-     * @param parentSubMenu El JMenu submenú padre directo (puede ser null).
-     * @return La clave larga de configuración (ej: "interfaz.menu.archivo.abrir_archivo")
-     *         o una cadena vacía si no se debe generar clave para este tipo.
+     * @param itemDef La {@link MenuItemDefinition} del ítem actual.
+     * @param parentMainMenu El {@link JMenu} principal al que pertenece este ítem (puede ser null).
+     * @param parentSubMenu El {@link JMenu} submenú directo al que pertenece este ítem (puede ser null).
+     * @return La clave larga de configuración generada, o una cadena vacía si no se debe
+     *         generar una clave para este tipo de ítem (ej. separadores, grupos de radio).
      */
     private String generateFullConfigKey(MenuItemDefinition itemDef, JMenu parentMainMenu, JMenu parentSubMenu) {
-        // 1. No generar clave para tipos que no tienen estado configurable individual
+        // --- 1. OMITIR TIPOS SIN CLAVE CONFIGURABLE INDIVIDUAL ---
+        //      Separadores y marcadores de grupo de radio no tienen estado individual
+        //      que necesite ser guardado/leído por una clave única.
         if (itemDef.tipo() == MenuItemType.SEPARATOR ||
             itemDef.tipo() == MenuItemType.RADIO_GROUP_START ||
             itemDef.tipo() == MenuItemType.RADIO_GROUP_END) {
-            return ""; // Clave vacía indica no almacenar
+            return ""; // Devolver clave vacía indica que no se almacenará en el mapa.
         }
 
-        // 2. Generar la parte final de la clave desde el texto o el comando/clave
+        // --- 2. GENERAR LA PARTE FINAL DE LA CLAVE (DESDE TEXTO O COMANDO) ---
         String keyPart;
-        // Priorizar el texto mostrado si existe
+        // 2.1. Priorizar el texto mostrado del ítem si está disponible y no es vacío.
         if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
             keyPart = generateKeyPart(itemDef.textoMostrado());
         }
-        // Si no hay texto, intentar usar el comando/clave
+        // 2.2. Si no hay texto mostrado, intentar usar el `comandoOClave` de la definición.
         else if (itemDef.comandoOClave() != null && !itemDef.comandoOClave().isBlank()) {
-             // Intentar extraer una parte legible del comando/clave
-             String comando = itemDef.comandoOClave();
-             // Intentar usar la parte después del último punto
-             int lastDot = comando.lastIndexOf('.');
-             if (lastDot != -1 && lastDot < comando.length() - 1) {
-                 keyPart = generateKeyPart(comando.substring(lastDot + 1));
-             } else {
-                 // Si no hay punto o es el último carácter, usar el comando completo
-                 keyPart = generateKeyPart(comando);
-             }
-             // Si después de limpiar el comando queda "unknown", usar hash como fallback
-             if (keyPart.equals("unknown_key_part") || keyPart.startsWith("emptykey_")) {
-                  keyPart = "cmdkey_" + comando.hashCode(); // Fallback basado en hash del comando
-             }
+            String comando = itemDef.comandoOClave();
+            // Intentar extraer una parte más legible del comando (ej. la parte después del último '.')
+            int lastDot = comando.lastIndexOf('.');
+            if (lastDot != -1 && lastDot < comando.length() - 1) {
+                keyPart = generateKeyPart(comando.substring(lastDot + 1));
+            } else {
+                // Si no hay punto o es el último carácter, usar el comando completo normalizado.
+                keyPart = generateKeyPart(comando);
+            }
+            // Si después de limpiar el comando queda "unknown" o similar, usar un hash como fallback
+            // para asegurar unicidad, aunque sea menos legible.
+            if (keyPart.equals("unknown_key_part") || keyPart.startsWith("emptykey_")) {
+                keyPart = "cmdkey_" + Math.abs(comando.hashCode());
+            }
         }
-        // Si no hay ni texto ni comando, generar un identificador único (poco probable)
+        // 2.3. Si no hay ni texto ni comando (caso muy raro para un ítem funcional),
+        //      generar un identificador único basado en el hash del objeto `itemDef`.
         else {
-             keyPart = "item_" + itemDef.hashCode();
-             System.err.println("WARN [MenuBarBuilder]: Generando clave fallback para item sin texto ni comando: " + keyPart);
+            keyPart = "itemdef_" + Math.abs(itemDef.hashCode());
+            System.err.println("WARN [generateFullConfigKey]: Generando clave fallback para MenuItemDefinition sin texto ni comandoOClave: " + keyPart);
         }
 
-
-        // 3. Construir la jerarquía de la clave
+        // --- 3. CONSTRUIR LA JERARQUÍA DE LA CLAVE USANDO LOS PADRES ---
         String baseKey;
-        // 3.1. Determinar la base según los padres
+        // 3.1. Si el ítem está dentro de un submenú (`parentSubMenu` no es null):
         if (parentSubMenu != null) {
-            // Dentro de un submenú: usar la clave del submenú como base
-            // Asumimos que el ActionCommand del JMenu ya contiene su clave larga correcta
+            // Usar el ActionCommand del submenú padre como base.
+            // Se asume que el ActionCommand de un JMenu (principal o submenú) ya contiene
+            // su propia clave de configuración larga y jerárquica.
             baseKey = parentSubMenu.getActionCommand();
             if (baseKey == null || baseKey.isBlank()) {
-                 System.err.println("ERROR [MenuBarBuilder]: Submenú padre '" + parentSubMenu.getText() + "' no tiene ActionCommand (clave larga)!");
-                 // Fallback MUY básico si falla la clave del padre
-                 baseKey = generateFullConfigKey(null, parentMainMenu, null) + "." + generateKeyPart(parentSubMenu.getText());
+                System.err.println("ERROR [generateFullConfigKey]: El submenú padre '" + parentSubMenu.getText() +
+                                   "' no tiene un ActionCommand (clave larga) establecido. Se usará fallback para la base.");
+                // Fallback: construir la clave del submenú padre recursivamente (si es posible)
+                // o usar una construcción manual menos robusta.
+                baseKey = generateFullConfigKey(new MenuItemDefinition(null, MenuItemType.SUB_MENU, parentSubMenu.getText(), null), parentMainMenu, null) + "." + generateKeyPart(parentSubMenu.getText());
             }
-        } else if (parentMainMenu != null) {
-            // Dentro de un menú principal (pero no submenú): usar clave del menú principal
+        }
+        // 3.2. Si el ítem está directamente bajo un menú principal (`parentMainMenu` no es null, pero `parentSubMenu` sí lo es):
+        else if (parentMainMenu != null) {
             baseKey = parentMainMenu.getActionCommand();
             if (baseKey == null || baseKey.isBlank()) {
-                System.err.println("ERROR [MenuBarBuilder]: Menú principal padre '" + parentMainMenu.getText() + "' no tiene ActionCommand (clave larga)!");
-                 baseKey = CONFIG_KEY_PREFIX + "." + generateKeyPart(parentMainMenu.getText()); // Fallback
+                System.err.println("ERROR [generateFullConfigKey]: El menú principal padre '" + parentMainMenu.getText() +
+                                   "' no tiene un ActionCommand (clave larga) establecido. Se usará fallback para la base.");
+                baseKey = CONFIG_KEY_PREFIX + "." + generateKeyPart(parentMainMenu.getText()); // Fallback
             }
-        } else if (itemDef.tipo() == MenuItemType.MAIN_MENU) {
-            // Es un menú principal (nivel raíz): usar el prefijo base
+        }
+        // 3.3. Si el ítem es un menú principal en sí mismo (`itemDef.tipo() == MenuItemType.MAIN_MENU`):
+        else if (itemDef.tipo() == MenuItemType.MAIN_MENU) {
+            // La base es simplemente el prefijo global para menús.
             baseKey = CONFIG_KEY_PREFIX;
-        } else {
-            // Caso inesperado (ej. ITEM añadido directamente a JMenuBar?)
-            System.err.println("WARN [MenuBarBuilder]: No se pudo determinar jerarquía clara para: " + keyPart + " (" + itemDef.tipo() + ")");
-            baseKey = CONFIG_KEY_PREFIX + ".error"; // Clave de error
+        }
+        // 3.4. Caso inesperado (ej. un JMenuItem `ITEM` añadido directamente a JMenuBar sin padres JMenu):
+        else {
+            System.err.println("WARN [generateFullConfigKey]: No se pudo determinar una jerarquía clara de menú padre para el ítem: '" +
+                               keyPart + "' (Tipo: " + itemDef.tipo() + "). Se usará una clave base de error.");
+            baseKey = CONFIG_KEY_PREFIX + ".error_jerarquia"; // Clave de error indicativa.
         }
 
-        // 4. Combinar base y parte final
-        return baseKey + "." + keyPart;
-    } // FIN metodo generateFullConfigKey
+        // --- 4. COMBINAR LA BASE JERÁRQUICA CON LA PARTE FINAL DEL ÍTEM ---
+        //      Asegurarse de que no se añada un punto si la base ya es solo el prefijo
+        //      o si la parte final es muy genérica (esto último es menos probable aquí).
+        if (baseKey.equals(CONFIG_KEY_PREFIX) && itemDef.tipo() == MenuItemType.MAIN_MENU) {
+             // Para un MAIN_MENU, la clave es "interfaz.menu.nombre_menu"
+             return baseKey + "." + keyPart;
+        } else if (!baseKey.isEmpty()) {
+             return baseKey + "." + keyPart;
+        } else {
+             // Si baseKey terminó vacía (no debería ocurrir con la lógica anterior), usar solo la parte del ítem con el prefijo.
+             System.err.println("WARN [generateFullConfigKey]: BaseKey resultó vacía para ítem: " + keyPart);
+             return CONFIG_KEY_PREFIX + "." + keyPart;
+        }
+    } // --- FIN del método generateFullConfigKey ---
 
-    
-    // --- Getter para el mapa ---
-    public Map<String, JMenuItem> getMenuItemsMap() {
-    	return this.menuItemsPorNombre;
-    }
-    
-    
+
     /**
-     * MÉTODO TEMPORAL - SOLO PARA COMPATIBILIDAD CON LA FASE INTERMEDIA DEL REFACTOR.
-     * Permite inyectar el actionMap antes de llamar al método buildMenuBar() antiguo.
-     * ESTE MÉTODO SERÁ ELIMINADO EN LA FASE 3.
-     * @param actionMap El mapa de acciones.
+     * Devuelve el mapa de JMenuItems construidos, donde la clave es la
+     * clave de configuración larga y jerárquica del ítem.
+     *
+     * @return Un mapa (posiblemente inmutable o una copia) de los JMenuItems.
      */
-    @Deprecated // Marcar como obsoleto para recordar quitarlo
-    void setActionMapInternalForLegacyBuild(Map<String, Action> actionMap) {
-        this.actionMap = Objects.requireNonNull(actionMap, "ActionMap no puede ser null");
-    }    
-    
-    
-// } //FIN clase MenuBarBuilder    
-    
-// ******************************************************************************************************    
-// ****************************** DESDE AQUI PARA ABAJO TEORICAMENTE SOBRA ******************************      
-// ******************************************************************************************************    
-    
-//    
-//    // --- Método auxiliar interno para crear JMenuItems ---
-//    private JMenuItem createMenuItemInternal(String text, ButtonGroup buttonGroup) {
-//        if (text.startsWith("*")) {
-//            return new JCheckBoxMenuItem(text.substring(1));
-//        } else if (text.startsWith(".")) {
-//            JRadioButtonMenuItem radioButtonMenuItem = new JRadioButtonMenuItem(text.substring(1));
-//            if (buttonGroup != null) {
-//                buttonGroup.add(radioButtonMenuItem);
-//            }
-//            return radioButtonMenuItem;
-//        } else {
-//            return new JMenuItem(text);
-//        }
-//    }
-//
-//
-// // Método para obtener la definición del menú como String
-//    private String getMenuDefinitionString() {
-//        // menu como un único String multilinea. Asegúrate de que los saltos
-//        // de línea sean correctos (puedes usar \n).
-//    	String parteMenuArchivo = (
-//    			"- Archivo\n"+
-//            	"--- Abrir Archivo\n"+
-//            	"--- Abrir en ventana nueva\n"+
-//            	"--- Guardar\n"+
-//            	"--- Guardar Como\n"+
-//            	
-//            	"_\n"+
-//            	
-//            	"--- Abrir Con...\n"+
-//            	"--- Editar Imagen\n"+
-//            	"--- Imprimir\n"+
-//            	"--- Compartir\n"+
-//            	
-//            	"_\n"+
-//            	
-////				"--- Abrir Ubicacion del Archivo\n"+
-//            	"--- Refrescar Imagen\n"+
-//            	"--- Volver a Cargar\n"+
-//            	"--- Recargar Lista de Imagenes\n"+
-//            	"--- Unload Imagen\n"+
-//            "\n");
-//    	
-//    	String parteMenuNavegacion = ("- Navegacion\n"+
-//	            "--- Primera Imagen\n"+
-//	            "--- Imagen Aterior\n"+
-//	            "--- Imagen Siguiente\n"+
-//	            "--- Ultima Imagen\n"+
-//	            
-//	            "_\n"+
-//	            
-//	            "--- Ir a...\n"+
-//	            "--- Buscar...\n"+
-//	            //"--- Primera Imagen\n"+
-//	            //"--- Ultima Imagen\n"+
-//	            
-//	            "_\n"+
-//	            
-//	            "--- Anterior Fotograma\n"+
-//	            "--- Siguiente Fotograma\n"+
-//	            "--- Primer Fotograma\n"+
-//	            "--- Ultimo Fotograma\n"+
-//            "\n");
-//    	
-//    	String parteMenuZoom= ("- Zoom\n"+
-//	            "--- Acercar\n"+
-//	            "--- Alejar\n"+
-//	            "--- Zoom Personalizado %\n"+
-//	            "--- Zoom Tamaño Real\n"+
-//	            "---* Mantener Proporciones\n"+
-//	            
-//	            "_\n"+
-//	            
-//	            "---* Activar Zoom Manual\n"+
-//	            "--- Resetear Zoom\n"+
-//	            
-//	            "_\n"+
-//	            
-//	            "--< Tipos de Zoom\n"+
-//		            "--{\n"+
-//		            "---. Zoom Automatico\n"+
-//		            "---. Zoom a lo Ancho\n"+
-//		            "---. Zoom a lo Alto\n"+
-//		            "---. Escalar Para Ajustar\n"+
-//		            "---. Zoom Actual Fijo\n"+
-//		            "---. Zoom Especificado\n"+
-//		            "---. Escalar Para Rellenar\n"+
-//		            "--}\n"+
-//	            "-->\n"+
-//            "\n");
-//    	
-//    	String parteMenuImagen =(
-//                "- Imagen\n"+
-//    	            "--< Carga y Orden\n"+
-//    			        "--{\n"+
-//    			            "----. Nombre por Defecto\n"+
-//    			            "----. Tamaño de Archivo\n"+
-//    			            "----. Fecha de Creacion\n"+
-//    			            "----. Extension\n"+
-//    			        "--}\n"+
-//    			            
-//    		            "_\n"+
-//    		            
-//    			        "--{\n"+
-//    			            "----. Sin Ordenar\n"+
-//    			            "----. Ascendente\n"+
-//    			            "----. Descendente\n"+
-//    			        "--}\n"+
-//    		            
-//    	            "-->\n"+
-//    	            "--< Edicion\n"+
-//    		            "---- Girar Izquierda\n"+
-//    		            "---- Girar Derecha\n"+
-//    		            "---- Voltear Horizontal\n"+
-//    		            "---- Voltear Vertical\n"+
-//    	            "-->\n"+
-//    		            
-//    	            "_\n"+
-//    	            
-//    	            "--- Cambiar Nombre de la Imagen\n"+
-//    	            "--- Mover a la Papelera\n"+
-//    	            "--- Eliminar Permanentemente\n"+
-//    	            
-//    	            "_\n"+
-//    	            
-//    	            "--- Establecer Como Fondo de Escritorio\n"+
-//    	            "--- Establecer Como Imagen de Bloqueo\n"+
-//    	            
-//    	            "_\n"+
-//    	            
-//					"--- Abrir Ubicacion del Archivo\n"+
-//    	            "--- Propiedades de la imagen\n"+
-//                "\n");
-//    	
-//    	String parteMenuVista =(
-//    			"- Vista\n"+
-//        	            "---* Barra de Menu\n"+
-//        	            "---* Barra de Botones\n"+
-//        	            "---* Mostrar/Ocultar la Lista de Archivos\n"+
-//        	            "---* Imagenes en Miniatura\n"+
-//        	            "---* Linea de Ubicacion del Archivo\n"+
-//        	            
-//        	            "_\n"+
-//        	            
-//        	            "---* Fondo a Cuadros\n"+
-//        	            "---* Mantener Ventana Siempre Encima\n"+
-//        	            
-//        	            "_\n"+
-//        	            
-//        	            "--- Mostrar Dialogo Lista de Imagenes\n"+
-//                    "\n");
-//    	
-//    	String parteMenuGeneral = (
-//    			"- Configuracion\n"+
-//        	            "--< Carga de Imagenes\n"+
-//                    
-//        		            "--{\n"+
-//        		            "---. Mostrar Solo Carpeta Actual\n"+
-//        		            "---. Mostrar Imagenes de Subcarpetas\n"+
-//        		            "--}\n"+
-//        		            
-//        		            "_\n"+
-//        		        
-//        		            "---- Miniaturas en la Barra de Imagenes\n"+
-//        		        "-->\n"+
-//        		            
-//        	            "_\n"+
-//        	            
-//        	            "--< General\n"+
-//        		            "---* Mostrar Imagen de Bienvenida\n"+
-//        		            "---* Abrir Ultima Imagen Vista\n"+
-//        		            
-//        		            "_\n"+
-//        		            
-//        		            "---* Volver a la Primera Imagen al Llegar al final de la Lista\n"+
-//        		            "---* Mostrar Flechas de Navegacion\n"+
-//        	            "-->\n"+
-//        		            
-//        	            "_\n"+
-//        	            
-//        	            "--< Visualizar Botones\n"+
-//        		            "---* Botón Rotar Izquierda\n"+
-//        		            "---* Botón Rotar Derecha\n"+
-//        		            "---* Botón Espejo Horizontal\n"+
-//        		            "---* Botón Espejo Vertical\n"+
-//        		            "---* Botón Recortar\n"+
-//        		            
-//        		            "_\n"+
-//        		            
-//        		            "---* Botón Zoom\n"+
-//        		            "---* Botón Zoom Automatico\n"+
-//        		            "---* Botón Ajustar al Ancho\n"+
-//        		            "---* Botón Ajustar al Alto\n"+
-//        		            "---* Botón Escalar para Ajustar\n"+
-//        		            "---* Botón Zoom Fijo\n"+
-//        		            "---* Botón Reset Zoom\n"+
-//        		            
-//        		            "_\n"+
-//        		            
-//        		            "---* Botón Panel-Galeria\n"+
-//        		            "---* Botón Grid\n"+
-//        		            "---* Botón Pantalla Completa\n"+
-//        		            "---* Botón Lista\n"+
-//        		            "---* Botón Carrousel\n"+
-//        		            
-//        		            "_\n"+
-//        		            
-//        		            "---* Botón Refrescar\n"+
-//        		            "---* Botón Subcarpetas\n"+
-//        		            "---* Botón Lista de Favoritos\n"+
-//        		            
-//        		            "_\n"+
-//        		            
-//        		            "---* Botón Borrar\n"+
-//        		            
-//        		            "_\n"+
-//        		            
-//        		            "---* Botón Menu\n"+
-//        		            "---* Mostrar Boton de Botones Ocultos\n"+
-//        		        "-->\n"+
-//        		            
-//        	            "_\n"+
-//        	            
-//        	            "--< Barra de Informacion\n"+
-//        		            "--{\n"+
-//        		            "---. Nombre del Archivo\n"+
-//        		            "---. Ruta y Nombre del Archivo\n"+
-//        		            "--}\n"+
-//        		            
-//        		            "_\n"+
-//        		            
-//        		            "---* Numero de Imagenes en la Carpeta Actual\n"+
-//        		            "---* % de Zoom actual\n"+
-//        		            "---* Tamaño del Archivo\n"+
-//        		            "---* Fecha y Hora de la Imagen\n"+
-//        	            "-->\n"+
-//        		            
-//        		        "--< Tema\n"+
-//        	            	"--{\n"+
-//        	            	"---. Tema Clear\n"+
-//        	            	"---. Tema Dark\n"+
-//        	            	"---. Tema Blue\n"+
-//        	            	"---. Tema Orange\n"+
-//        	            	"---. Tema Green\n"+
-//        	            	"--}\n"+
-//        	            "-->\n"+
-//        	            	
-//        	            "_\n"+
-//        	            
-//        	            "--- Guardar Configuracion Actual\n"+
-//        	            "--- Cargar Configuracion Inicial\n"+
-//        	            "_\n"+
-//        	            "--- Version");
-//    	
-//    	return
-//    			parteMenuArchivo+ "\n" +
-//    			parteMenuNavegacion+ "\n" +
-//    			parteMenuZoom+ "\n" +
-//    			parteMenuImagen+ "\n" +
-//    			parteMenuVista+ "\n" +
-//    			parteMenuGeneral;
-//    }
-} // <-- Cierra CLASE MenuBarBuilder
+    public Map<String, JMenuItem> getMenuItemsMap() {
+        // Es una buena práctica devolver una copia o una vista inmutable
+        // si se quiere proteger el mapa interno del builder de modificaciones externas.
+        // return Collections.unmodifiableMap(new HashMap<>(this.menuItemsPorNombre));
+        return this.menuItemsPorNombre; // O devolver la referencia directa si se confía en el uso.
+    }
+} // --- FIN de la clase MenuBarBuilder ---
+
 

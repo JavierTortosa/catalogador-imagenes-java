@@ -72,13 +72,13 @@ public class UIDefinitionService {
         // Submenú Tipos de Zoom
         List<MenuItemDefinition> tiposZoomSubItems = List.of(
             new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null),
+            new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, MenuItemType.RADIO_BUTTON_ITEM, "Escalar Para Ajustar", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_AUTO, MenuItemType.RADIO_BUTTON_ITEM, "Zoom Automatico", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, MenuItemType.RADIO_BUTTON_ITEM, "Zoom a lo Ancho", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, MenuItemType.RADIO_BUTTON_ITEM, "Zoom a lo Alto", null),
-            new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, MenuItemType.RADIO_BUTTON_ITEM, "Escalar Para Ajustar", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, MenuItemType.RADIO_BUTTON_ITEM, "Zoom Actual Fijo", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, MenuItemType.RADIO_BUTTON_ITEM, "Zoom Especificado", null),
-            new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, MenuItemType.RADIO_BUTTON_ITEM, "Escalar Para Rellenar", null),
+            //new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, MenuItemType.RADIO_BUTTON_ITEM, "Escalar Para Rellenar", null),
             new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
         );
         
@@ -348,4 +348,4 @@ public class UIDefinitionService {
         
         return toolbarStructure;
     }
-}
+} // ---FIN de la clase UIDefinitionService

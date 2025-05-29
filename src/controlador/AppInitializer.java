@@ -465,6 +465,15 @@ public class AppInitializer {
             List<ToolbarButtonDefinition> toolbarStructure = toolbarDefsForIcons; // Ya la tenemos
 
             MenuBarBuilder menuBuilder = new MenuBarBuilder(); // Aquí se usaría uiConfigCompleto si MenuBarBuilder lo necesitara
+            
+            if (this.controller != null) { // this.controller es tu instancia de VisorController
+                menuBuilder.setControllerGlobalActionListener(this.controller);
+                System.out.println("AppInitializer: VisorController (ActionListener) pasado a MenuBarBuilder.");
+            } else {
+                // Esto sería un error de inicialización muy grave si this.controller es null aquí
+                System.err.println("AppInitializer: ERROR CRÍTICO - this.controller (VisorController) es null en el momento de configurar MenuBarBuilder.");
+            }
+            
             JMenuBar finalMenuBar = menuBuilder.buildMenuBar(menuStructure, this.actionMap);
             this.view.setActualJMenuBar(finalMenuBar); // Método en VisorView para setear la JMenuBar real
             this.view.setActualMenuItemsMap(menuBuilder.getMenuItemsMap()); // Método para setear el mapa
@@ -638,14 +647,7 @@ public class AppInitializer {
     }
     
     
-//    private void notificarCambioDeTemaAlControlador(Tema temaAnterior, Tema temaNuevo) {
-//        if (this.controllerRefParaNotificacion != null) {
-//            // Llamar a un método en VisorController para que actualice las Actions de tema
-//            this.controllerRefParaNotificacion.sincronizarEstadoDeTodasLasToggleThemeActions();
-//        } else {
-//            System.err.println("WARN [ThemeManager]: controllerRefParaNotificacion es null. No se pudo notificar cambio de tema para actualizar Actions.");
-//        }
-//    }
+
     
     
 } // --- FIN CLASE AppInitializer ---

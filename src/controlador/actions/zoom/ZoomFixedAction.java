@@ -9,10 +9,6 @@ import controlador.VisorController;
 import controlador.actions.BaseVisorAction;
 import vista.util.IconUtils;
 
-/**
- * Activa el zoom y establece el zoom actual para escalar las siguientes imagenes que se vean
- * y NO tiene en cuenta si "Mantener Proporciones" esta activado o no
- */
 
 public class ZoomFixedAction extends BaseVisorAction
 {

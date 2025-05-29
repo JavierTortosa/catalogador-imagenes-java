@@ -3301,7 +3301,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              System.err.println("WARN [actionPerformed Central]: Comando es null para fuente: " + (source != null ? source.getClass().getSimpleName() : "null"));
              return; // Salir si no hay comando
         }
-
+        
         // --- MANEJAR TOGGLES DE BOTONES ---
         // Verificamos si la fuente es un JCheckBoxMenuItem y si su clave larga (obtenida por findLongKeyForComponent)
         // indica que es uno de los checkboxes para controlar la visibilidad/habilitación de botones.
@@ -3351,6 +3351,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             return; // Importante: Terminar aquí si ya manejamos el evento
         }
         
+        // LOG [VISORCONTROLLER SWITCH] Comando:
+        System.out.println("\n[VISORCONTROLLER SWITCH] Comando: " + command);
+        
         switch (command) {
 
             // Configuración
@@ -3367,6 +3370,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
             // Edicion
 //            case AppActionCommands
+                 
+                 
+            // Zoom
+            case AppActionCommands.CMD_ZOOM_PERSONALIZADO: // Comando para "Zoom Personalizado %..." del menú
+                System.out.println("  [VisorController actionPerformed] Acción: Zoom Personalizado desde Menú");
+                handleSetCustomZoomFromMenu(); 
+                break;
                  
             // Imagen
             case AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA:
@@ -3434,6 +3444,77 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
     } // --- FIN actionPerformed ---  
 
+
+	/**
+	 * Método helper para manejar la lógica cuando se selecciona "Zoom Personalizado
+	 * %..." desde el menú.
+	 */
+	private void handleSetCustomZoomFromMenu ()
+	{
+
+		if (this.view == null || this.configuration == null || this.actionMap == null)
+		{
+			System.err.println("ERROR [handleSetCustomZoomFromMenu]: Vista, Configuración o ActionMap nulos.");
+			return;
+		}
+
+		// 1. Mostrar JOptionPane para obtener el porcentaje del usuario
+		String input = JOptionPane.showInputDialog(this.view.getFrame(), // Padre del diálogo
+				"Introduce el porcentaje de zoom deseado (ej: 150):", // Mensaje
+				"Establecer Zoom Personalizado", // Título
+				JOptionPane.PLAIN_MESSAGE);
+
+		// 2. Procesar la entrada
+		if (input != null && !input.trim().isEmpty()){
+
+			try{
+				input = input.replace("%", "").trim(); // Limpiar
+				double percentValue = Double.parseDouble(input);
+
+				// Validar rango (igual que en InfoBarManager)
+				if (percentValue >= 1 && percentValue <= 5000){ // Ajusta límites si es necesario
+					// 2a. Actualizar la configuración en memoria
+					this.configuration.setZoomPersonalizadoPorcentaje(percentValue);
+					System.out.println("    -> Configuración '"
+							+ ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE
+							+ "' actualizada a: " + percentValue + "%");
+
+					// 2b. Obtener y ejecutar la Action para aplicar el modo
+					// USER_SPECIFIED_PERCENTAGE
+					Action aplicarUserSpecifiedAction = this.actionMap
+							.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
+
+					if (aplicarUserSpecifiedAction != null){
+						
+						aplicarUserSpecifiedAction.actionPerformed(new ActionEvent(this.view.getFrame(), // Fuente puede
+																											// ser el
+																											// frame
+						ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
+						System.out.println("    -> Action CMD_ZOOM_TIPO_ESPECIFICADO ejecutada para aplicar el nuevo zoom.");
+					} else{
+						
+						System.err.println("ERROR [handleSetCustomZoomFromMenu]: Action CMD_ZOOM_TIPO_ESPECIFICADO no encontrada en actionMap.");
+					}
+				} else{
+					
+					JOptionPane.showMessageDialog(this.view.getFrame(),
+							"Porcentaje inválido. Debe estar entre 1 y 5000 (o el rango definido).", "Error de Entrada",
+							JOptionPane.ERROR_MESSAGE);
+				}
+			} catch (NumberFormatException ex){
+				
+				JOptionPane.showMessageDialog(this.view.getFrame(), "Entrada inválida. Por favor, introduce un número.",
+						"Error de Formato", JOptionPane.ERROR_MESSAGE);
+			}
+		} else
+		{
+			System.out.println("  -> Establecer Zoom Personalizado cancelado por el usuario o entrada vacía.");
+		}
+
+		// La actualización de InfoBarManager (para el JLabel de porcentaje) ocurrirá
+		// cuando ZoomManager refresque la vista y llame a actualizarBarrasDeInfo().
+	}
+    
     
     /**
      * Este método se encargaría de marcar el radio correcto en el menú para mostrar carpeta o subcarpetas.
