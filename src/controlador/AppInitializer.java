@@ -448,7 +448,7 @@ public class AppInitializer {
             
             
             // --- B.9. CREANDO infoBarManager (gestor de barras de status)
-            this.infoBarManager = new InfoBarManager(this.model, this.view, uiConfigCompleto);
+            this.infoBarManager = new InfoBarManager(this.model, this.view, uiConfigCompleto, comandoToIconKeyMap);
             this.controller.setInfoBarManager(this.infoBarManager);
             System.out.println("    B.X. [EDT] InfoBarManager creado.");
             

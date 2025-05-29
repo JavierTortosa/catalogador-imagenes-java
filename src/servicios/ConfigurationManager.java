@@ -48,7 +48,7 @@ public class ConfigurationManager
     public static final String KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE = "comportamiento.display.zoom.initial_mode";
     public static final String KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO = "comportamiento.zoom.manual_inicial_activo";
     public static final String KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO = "comportamiento.zoom.ultimo_modo_seleccionado";
-    
+    public static final String KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE = "comportamiento.zoom.personalizado.porcentaje";
     
 	static
 	{
@@ -439,10 +439,10 @@ public class ConfigurationManager
 		// Comportamiento
 			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
 			defaults.put("comportamiento.carga.conRutas", "false");
-			//defaults.put("comportamiento.display.zoom.initial_mode", "FIT_TO_SCREEN");
 			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO, "true");
 			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE, "FIT_TO_SCREEN");
 			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO, "FIT_TO_SCREEN");
+			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, "100.0");
 			
 		// Ventana de la aplicacion
 	        // Usar -1 para indicar que no hay posición/tamaño guardado (usar defaults del sistema/pack)
@@ -1007,9 +1007,9 @@ public class ConfigurationManager
     }
 	
 
-	// ************************************************************************************
-	// GETTERS Y SETTERS
-	// ************************************************************************************
+// *******************************************************************************************************************************
+// GETTERS Y SETTERS
+// *******************************************************************************************************************************
 
 	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
 	public String getString (String key, String defaultValue)
@@ -1051,25 +1051,20 @@ public class ConfigurationManager
 				return 0;
 			}
 		}
-
 	}
 
 	// sobrecarga de metodo
 	public int getInt (String key, int defaultValue)
 	{
-
 		String value = config.get(key);
 
-		if (value == null)
-		{
+		if (value == null) {
 			return defaultValue;
 		}
 
-		try
-		{
+		try {
 			return Integer.parseInt(value);
-		} catch (NumberFormatException e)
-		{
+		} catch (NumberFormatException e) {
 			System.err.println("Advertencia: Error al parsear entero para la clave '" + key + "', valor: '" + value
 					+ "'. Usando valor por defecto: " + defaultValue);
 			return defaultValue;
@@ -1092,7 +1087,6 @@ public class ConfigurationManager
 	// sobrecarga de metodo
 	public boolean getBoolean (String key, boolean defaultValue)
 	{
-
 		String value = config.get(key);
 
 		if (value == null)
@@ -1105,66 +1099,46 @@ public class ConfigurationManager
 	}
 
 	// Devuelve una COPIA del mapa para proteger el estado interno
-	public Map<String, String> getConfigMap ()
-	{
+	public Map<String, String> getConfigMap (){return new HashMap<>(config);}
+	public Map<String, String> getConfig ()	{return config;}
 
-		return new HashMap<>(config);
-
-	}
-
-	public Map<String, String> getConfig ()
-	{
-
-		return config;
-
-	}
-
-	// Método para actualizar una clave en memoria (importante usar synchronized si
-	// hubiera concurrencia)
-	public synchronized void setString (String key, String value)
-	{
-
-		if (config != null && key != null && value != null)
-		{
-			
-			//LOG [Config Mgr setString] Actualizando clave
-//			String oldValue = config.get(key); // Obtener valor anterior
-//            System.out.println("[Config Mgr setString] Actualizando clave: '" + key + "' | Valor Anterior: '" + oldValue + "' | Valor Nuevo: '" + value + "'");
-			
+	// Método para actualizar una clave en memoria (importante usar synchronized si hubiera concurrencia)
+	public synchronized void setString (String key, String value) {
+		
+		if (config != null && key != null && value != null){
 			config.put(key, value);
-//			System.out.println("[Config Mgr] Valor en memoria actualizado: " + key + " = " + value); // Log
-		} else
-		{
+		} else {
 			System.err.println(
 					"[Config Mgr] Intento de actualizar config con null (key=" + key + ", value=" + value + ")");
 		}
-
 	}
 
 	// Método específico para inicio.carpeta por conveniencia
-	public void setInicioCarpeta (String path)
-	{
+	public void setInicioCarpeta (String path){setString("inicio.carpeta", path != null ? path : "");}
 
-		setString("inicio.carpeta", path != null ? path : ""); // Asegurar no guardar null
+	// Útil para el Controller si necesita saber el default sin leer la config	cargada
+	public static String getDefault (String key){return DEFAULT_CONFIG.get(key);}
+	public static String getDefault (String key, String fallback){return DEFAULT_CONFIG.getOrDefault(key, fallback);}
 
+	
+	// Zoom Personalizado
+	public double getZoomPersonalizadoPorcentaje() {return getDouble(KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, 100.0);}
+	
+	public void setZoomPersonalizadoPorcentaje(double porcentaje) {
+		
+		String valorFormateado;
+		
+	    if (porcentaje == (long) porcentaje) { // Comprueba si es un entero
+	        valorFormateado = String.format("%.0f", porcentaje); // Sin decimales
+	    } else {
+	        valorFormateado = String.format("%.2f", porcentaje).replace(',', '.'); // Un decimal, asegurar punto
+	    }
+	    
+		//setString(KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, String.valueOf(porcentaje));
+		setString(KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, valorFormateado);
+		
 	}
-
-	// Útil para el Controller si necesita saber el default sin leer la config
-	// cargada
-	public static String getDefault (String key)
-	{
-
-		return DEFAULT_CONFIG.get(key); // Devuelve null si la clave no está en los defaults
-
-	}
-
-	public static String getDefault (String key, String fallback)
-	{
-
-		return DEFAULT_CONFIG.getOrDefault(key, fallback);
-
-	}
-
+	
 	
 	/**
      * Obtiene el nombre del tema actual definido en la configuración (clave 'tema').
@@ -1174,11 +1148,7 @@ public class ConfigurationManager
      *
      * @return El nombre del tema actual (ej. "clear", "dark", "blue", "green", "orange").
      */
-    public String getTemaActual() {
-        // Usamos getString que ya maneja la lógica de buscar en 'config' y luego en 'DEFAULT_CONFIG'
-        // El segundo argumento de getString es el fallback final si la clave no existe en NINGUNO
-        return getString(KEY_TEMA_NOMBRE, "clear");
-    }
+    public String getTemaActual() {return getString(KEY_TEMA_NOMBRE, "clear");}
     
     
     /**
@@ -1275,6 +1245,8 @@ public class ConfigurationManager
         return defaultValue;
     }
     
-        
+    
+    
+    
 } //Fin configurationManager
 

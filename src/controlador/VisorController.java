@@ -82,6 +82,7 @@ import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager;
 import servicios.image.ThumbnailService;
+import servicios.zoom.ZoomModeEnum;
 import utils.StringUtils;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
@@ -90,6 +91,8 @@ import vista.renderers.MiniaturaListCellRenderer;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 import vista.util.ImageDisplayUtils;
+
+//import servicios.zoom.ZoomModeEnum;
 
 
 /**
@@ -134,6 +137,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     // Constantes de seguridad de imagenes antes y despues de la seleccionada
     public static final int DEFAULT_MINIATURAS_ANTES_FALLBACK = 8;
     public static final int DEFAULT_MINIATURAS_DESPUES_FALLBACK = 8;
+    
+    
     
     /**
      * Constructor principal (AHORA SIMPLIFICADO).
@@ -751,9 +756,25 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     	        double zoomIncrement = 0.1; 
     	        double newZoomFactor = currentZoomFactor + (notches < 0 ? zoomIncrement : -zoomIncrement);
     	        newZoomFactor = Math.max(0.01, Math.min(newZoomFactor, 20.0)); 
-    	        if (Math.abs(newZoomFactor - currentZoomFactor) > 0.001) {
+    	        if (Math.abs(newZoomFactor - currentZoomFactor) > 0.001){
     	            boolean cambioHechoEnModelo = this.zoomManager.establecerFactorZoom(newZoomFactor);
     	            if (cambioHechoEnModelo) {
+    	            	
+    	            	// nueva logica para actualizar el popup
+    	            	if (this.model.getCurrentZoomMode() == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
+    	                    // El 'newZoomFactor' es el que se acaba de establecer en el modelo.
+    	                    double porcentajeParaGuardar = newZoomFactor * 100.0;
+
+    	                    if (this.configuration != null) { // this.configuration es el campo en VisorController
+    	                        this.configuration.setZoomPersonalizadoPorcentaje(porcentajeParaGuardar); // Usa el método que ya formateará el String
+    	                        System.out.println("  [VisorController MouseWheel] Zoom Manual + Modo 'MAINTAIN_CURRENT_ZOOM':");
+    	                        System.out.println("    -> Config '" + ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE +
+    	                                           "' actualizado a " + String.format("%.2f", porcentajeParaGuardar) + "%");
+    	                    } else {
+    	                        System.err.println("WARN [VisorController MouseWheel]: ConfigurationManager es null. No se pudo guardar el porcentaje personalizado.");
+    	                    }
+    	            	}
+    	            	
     	                this.zoomManager.refrescarVistaPrincipalConEstadoActualDelModelo();
     	            }
     	        }
@@ -3899,7 +3920,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              // --- SECCIÓN 3: VALIDACIONES Y PREPARACIÓN DENTRO DEL EDT ---
 
              // 3.1. Log de inicio de la ejecución en el EDT.
-             System.out.println("   -> [EDT Miniaturas Update] Ejecutando actualización UI...");
+             //System.out.println("   -> [EDT Miniaturas Update] Ejecutando actualización UI...");
 
              // 3.2. Re-validar dependencias críticas (Vista, JList de miniaturas, Coordinador) DENTRO del EDT.
              //      Es una buena práctica por si el estado de la aplicación hubiera cambiado.
