@@ -1,4 +1,4 @@
-package vista.theme; // O servicios
+package vista.theme; 
 
 import java.awt.Color;
 import java.util.List;

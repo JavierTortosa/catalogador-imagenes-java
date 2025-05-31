@@ -192,7 +192,7 @@ public class AppInitializer {
             System.out.println("    -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: " + initialMode);
         } catch (IllegalArgumentException e) {
             System.err.println("WARN [AppInitializer]: Valor inválido para '" + 
-                               ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE + // <--- USA LA NUEVA CONSTANTE
+                               ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE + 
                                "' en config: '" + initialZoomModeStr + 
                                "'. Usando FIT_TO_SCREEN por defecto.");
             this.model.setCurrentZoomMode(ZoomModeEnum.FIT_TO_SCREEN);
@@ -232,8 +232,13 @@ public class AppInitializer {
             this.model.setMostrarSoloCarpetaActual(!cargarSubcarpetas); 
             boolean mantenerProp = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true); // Clave de config directa
             this.model.setMantenerProporcion(mantenerProp);
+            boolean navCircular = configuration.getBoolean("comportamiento.navegacion.circular", false);
+            this.model.setNavegacionCircularActivada(navCircular);
             
+            //LOG Navegacion Circular
+            System.out.println("    -> Modelo: Navegación circular (desde config 'comportamiento.navegacion.circular'): " + navCircular);
             System.out.println("    -> Configuración aplicada al Modelo (Miniaturas, Comportamiento).");
+            
         } catch (Exception e) {
             System.err.println("ERROR [AppInitializer.aplicarConfigAlModelo]: " + e.getMessage());
             e.printStackTrace(); // Continuar si es posible, pero loguear el error.
@@ -254,6 +259,15 @@ public class AppInitializer {
              this.controller.setThemeManager(this.themeManager);
              System.out.println("    -> ThemeManager creado e inyectado.");
 
+             
+             if (this.themeManager != null && this.controller != null) {
+                 this.themeManager.setControllerParaNotificacion(this.controller);
+             } else {
+                 // Esto sería un error de inicialización muy grave
+                 System.err.println("ERROR CRÍTICO en AppInitializer: ThemeManager o this.controller nulos al intentar inyección cruzada.");
+             }
+             
+             
              // A.3.2. IconUtils (depende de ThemeManager)
              this.iconUtils = new IconUtils(this.themeManager);
              this.controller.setIconUtils(this.iconUtils);

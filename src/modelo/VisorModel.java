@@ -29,6 +29,7 @@ public class VisorModel
 	private boolean zoomHabilitado;
 	private double zoomFactor;
 	private ZoomModeEnum currentZoomMode;
+	private boolean navegacionCircularActivada = false;
 	
 	// --- Estado de Configuración/Comportamiento (que afecta la lógica de
 	// carga/visualización) ---
@@ -435,6 +436,21 @@ public class VisorModel
         }
     }
     
+    
+    public boolean isNavegacionCircularActivada() {
+        return navegacionCircularActivada;
+    }
+
+    
+    public void setNavegacionCircularActivada(boolean activada) {
+        if (this.navegacionCircularActivada != activada) {
+            this.navegacionCircularActivada = activada;
+            System.out.println("  [VisorModel] Navegación Circular cambiada a: " + activada);
+            // No necesitas PropertyChangeSupport aquí a menos que otros componentes
+            // además del ListCoordinator necesiten reaccionar directamente a este cambio.
+            // ListCoordinator lo usará al tomar decisiones de navegación.
+        }
+    }
     
 } //fin VisorModel
 

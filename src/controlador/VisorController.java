@@ -761,7 +761,42 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         System.err.println("WARN [VisorController.configurarListenersVistaInternal]: listaNombres es null.");
     }
 
-    // 1.2. Configurar Listener para listaMiniaturas.
+    
+    	// 1.1.3. --- LISTENER DE RUEDA EN LISTA DE NOMBRES ---
+		JList<String> listaNombresParaRueda = view.getListaNombres(); 
+	
+		if (listaNombresParaRueda != null) {
+			// Limpiar MouseWheelListeners previos de listaNombresParaRueda
+			for (java.awt.event.MouseWheelListener mwl : listaNombresParaRueda.getMouseWheelListeners()) {
+				listaNombresParaRueda.removeMouseWheelListener(mwl);
+			}	
+			System.out.println("  -> MouseWheelListeners previos en listaNombres eliminados (si existían).");
+	
+			listaNombresParaRueda.addMouseWheelListener(e -> {
+				if (listCoordinator == null) {
+					System.err.println("WARN [MouseWheel Nombres]: ListCoordinator es null. No se puede navegar.");
+					return;
+				}
+				int notches = e.getWheelRotation();
+				if (notches < 0) { // Rueda hacia ARRIBA
+					// System.out.println("    -> Rueda ARRIBA sobre Nombres: Llamando a listCoordinator.seleccionarAnterior()");
+					listCoordinator.seleccionarAnterior();
+				} else if (notches > 0) { // Rueda hacia ABAJO
+					// System.out.println("    -> Rueda ABAJO sobre Nombres: Llamando a listCoordinator.seleccionarSiguiente()");
+					listCoordinator.seleccionarSiguiente();
+				}
+	
+				// Consumir el evento para PREVENIR el scroll por defecto de JScrollPane,
+				// ya que la navegación debería hacer que el ensureIndexIsVisible se encargue del scroll.
+				e.consume();
+			});
+			System.out.println("  -> Nuevo MouseWheelListener para NAVEGACIÓN ÍTEM A ÍTEM añadido a listaNombres.");
+		} else {
+			System.err.println("WARN [VisorController.configurarListenersVistaInternal]: listaNombres es null. No se pudo añadir listener de navegación por rueda.");
+		}
+
+	
+	// 1.2. Configurar Listener para listaMiniaturas.
     JList<String> listaMiniaturas = view.getListaMiniaturas();
     if (listaMiniaturas != null) {
         // 1.2.1. Limpiar listeners de selección previos.
@@ -992,32 +1027,85 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     }
 
 
-    // --- SECCIÓN 3: LISTENER DE RUEDA PARA SCROLL HORIZONTAL DE MINIATURAS ---
-    //    (Esta sección parece que ya la tienes bien, la mantengo como estaba en tu código)
+ // --- SECCIÓN 3: LISTENER DE RUEDA PARA NAVEGACIÓN EN MINIATURAS ---
     JScrollPane scrollMiniaturas = view.getScrollListaMiniaturas();
     if (scrollMiniaturas != null) {
-        // 3.1. Limpiar listeners previos de rueda.
-         for(java.awt.event.MouseWheelListener mwl : scrollMiniaturas.getMouseWheelListeners()){
-             if(mwl.getClass().getName().contains(this.getClass().getSimpleName()) || mwl.getClass().getName().contains("$Lambda")) {
-                 scrollMiniaturas.removeMouseWheelListener(mwl);
-             }
-         }
-         // 3.2. Añadir listener para la rueda del ratón.
-        scrollMiniaturas.addMouseWheelListener(e -> {
-            javax.swing.JScrollBar hScrollBar = scrollMiniaturas.getHorizontalScrollBar();
-            if (hScrollBar != null && hScrollBar.isVisible()) {
-                 int amount = (int)(e.getPreciseWheelRotation() * hScrollBar.getUnitIncrement() * 5);
-                 hScrollBar.setValue(hScrollBar.getValue() + amount);
-                 e.consume();
+        // 3.1. Limpiar TODOS los MouseWheelListeners previos para evitar duplicados o conflictos.
+        //      Es más seguro quitar todos y luego añadir el nuestro.
+        for (java.awt.event.MouseWheelListener mwl : scrollMiniaturas.getMouseWheelListeners()) {
+            scrollMiniaturas.removeMouseWheelListener(mwl);
+        }
+        System.out.println("  -> MouseWheelListeners previos en scrollListaMiniaturas eliminados (si existían).");
+
+        // 3.2. Añadir el nuevo MouseWheelListener para NAVEGACIÓN.
+        scrollMiniaturas.addMouseWheelListener(e -> { // Inicio de la lambda para el listener
+            // 3.2.1. Validar que ListCoordinator esté disponible.
+            if (listCoordinator == null) {
+                System.err.println("WARN [MouseWheel Miniaturas]: ListCoordinator es null. No se puede navegar.");
+                return; // Salir del listener si no hay coordinador.
             }
-        });
-         System.out.println("  -> MouseWheelListener añadido a scrollListaMiniaturas para scroll horizontal.");
+
+            // 3.2.2. Obtener la dirección de rotación de la rueda.
+            // e.getWheelRotation() devuelve:
+            //   - Un número negativo (generalmente -1) si la rueda se movió hacia arriba (hacia el usuario).
+            //   - Un número positivo (generalmente +1) si la rueda se movió hacia abajo (alejándose del usuario).
+            int notches = e.getWheelRotation();
+
+            // Log para depuración (opcional, puedes comentarlo una vez funcione)
+            // System.out.println("  [MouseWheel Miniaturas] Rueda movida. Notches: " + notches);
+
+            // 3.2.3. Determinar la acción de navegación basada en la dirección de la rueda.
+            if (notches < 0) {
+                // Rueda hacia ARRIBA -> Navegar a la imagen ANTERIOR
+                // System.out.println("    -> Rueda ARRIBA sobre Miniaturas: Llamando a listCoordinator.seleccionarAnterior()");
+                listCoordinator.seleccionarAnterior();
+            } else if (notches > 0) {
+                // Rueda hacia ABAJO -> Navegar a la imagen SIGUIENTE
+                // System.out.println("    -> Rueda ABAJO sobre Miniaturas: Llamando a listCoordinator.seleccionarSiguiente()");
+                listCoordinator.seleccionarSiguiente();
+            }
+            // Si notches es 0 (lo cual es raro para una rueda física), no se hace nada.
+
+            // 3.2.4. Consumir el evento.
+            //         Esto es importante para evitar que el JScrollPane intente realizar
+            //         su comportamiento de scroll por defecto (aunque las barras estén ocultas,
+            //         el Look & Feel podría intentar alguna acción).
+            e.consume();
+
+        }); // Fin de la lambda para el listener
+
+        System.out.println("  -> Nuevo MouseWheelListener para NAVEGACIÓN ÍTEM A ÍTEM añadido a scrollListaMiniaturas.");
+
     } else {
-        System.err.println("WARN [VisorController.configurarListenersVistaInternal]: scrollListaMiniaturas es null.");
+        // Este log se mantiene si scrollListaMiniaturas es null al inicio.
+        System.err.println("WARN [VisorController.configurarListenersVistaInternal]: scrollListaMiniaturas es null. No se pudo añadir listener de navegación por rueda.");
     }
+    // --- FIN SECCIÓN 3 ---
+    
+//    // --- SECCIÓN 3: LISTENER DE RUEDA PARA SCROLL HORIZONTAL DE MINIATURAS ---
+//    JScrollPane scrollMiniaturas = view.getScrollListaMiniaturas();
+//    if (scrollMiniaturas != null) {
+//        // 3.1. Limpiar listeners previos de rueda.
+//         for(java.awt.event.MouseWheelListener mwl : scrollMiniaturas.getMouseWheelListeners()){
+//             if(mwl.getClass().getName().contains(this.getClass().getSimpleName()) || mwl.getClass().getName().contains("$Lambda")) {
+//                 scrollMiniaturas.removeMouseWheelListener(mwl);
+//             }
+//         }
+//         // 3.2. Añadir listener para la rueda del ratón.
+//        scrollMiniaturas.addMouseWheelListener(e -> {
+//            javax.swing.JScrollBar hScrollBar = scrollMiniaturas.getHorizontalScrollBar();
+//            if (hScrollBar != null && hScrollBar.isVisible()) {
+//                 int amount = (int)(e.getPreciseWheelRotation() * hScrollBar.getUnitIncrement() * 5);
+//                 hScrollBar.setValue(hScrollBar.getValue() + amount);
+//                 e.consume();
+//            }
+//        });
+//         System.out.println("  -> MouseWheelListener añadido a scrollListaMiniaturas para scroll horizontal.");
+//    } else {
+//        System.err.println("WARN [VisorController.configurarListenersVistaInternal]: scrollListaMiniaturas es null.");
+//    }
     
     // --- SECCIÓN 4: GESTIONAR FOCO EN MINIATURAS AL HACER CLIC EN EL SCROLLPANE ---
-    //    (Esta sección parece que ya la tienes bien, la mantengo como estaba en tu código)
     JScrollPane scrollMiniaturasParaFoco = view.getScrollListaMiniaturas(); 
     JList<String> listaMiniaturasParaFoco = view.getListaMiniaturas(); 
 
@@ -1250,12 +1338,21 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 break;
 
             case "mostrar_ocultar_la_lista_de_archivos": // uiElementIdentifier usado por ToggleFileListAction
-                System.out.println("  -> [VisorController] UI ID: mostrar_ocultar_la_lista_de_archivos. Visibilidad a: " + nuevoEstadoVisible);
-                if (view.getPanelIzquierdo() != null && view.getPanelIzquierdo().isVisible() != nuevoEstadoVisible) {
-                    view.setFileListVisible(nuevoEstadoVisible);
-                    necesitaRevalidateRepaintGeneralDelFrame = true;
+            	System.out.println("  -> [VisorController] UI ID: mostrar_ocultar_la_lista_de_archivos. Visibilidad a: " + nuevoEstadoVisible);
+                JPanel panelControlado = view.getPanelContenedorIzquierdoSplit(); // Asumiendo que tienes este getter
+
+                if (panelControlado != null) {
+                    if (panelControlado.isVisible() != nuevoEstadoVisible) {
+                        view.setFileListVisible(nuevoEstadoVisible);
+                        necesitaRevalidateRepaintGeneralDelFrame = true;
+                    } else {
+                        System.out.println("  -> [VisorController] El panelContenedorIzquierdoSplit ya está en el estado de visibilidad deseado: " + nuevoEstadoVisible);
+                    }
+                } else {
+                    System.err.println("  ERROR [VisorController]: El panel a controlar (panelContenedorIzquierdoSplit) es null en VisorView.");
                 }
                 break;
+            	
 
             case "imagenes_en_miniatura": // uiElementIdentifier usado por ToggleThumbnailsAction
                 System.out.println("  -> [VisorController] UI ID: imagenes_en_miniatura. Visibilidad a: " + nuevoEstadoVisible);
@@ -4145,6 +4242,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      public VisorView getView() { return view; }
      public ConfigurationManager getConfigurationManager() { return configuration; }
      
+     
+     public ListCoordinator getListCoordinator() {return this.listCoordinator;}
 
 //     /**
 //      * Recopila el estado final de la aplicación y lo persiste en el archivo de configuración.
@@ -4400,6 +4499,16 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                  );
                  System.out.println("    -> Modelo: Guardando ultimo_modo_seleccionado: " + this.model.getCurrentZoomMode().name());
              }
+             
+             
+          // Estado de 'navegacionCircular'
+             // La Action ToggleNavegacionCircularAction llama a configuration.setString(),
+             // así que el valor en configEnMemoria (leído con configuration.getConfigMap()) ya debería ser el correcto.
+             // No necesitamos tomarlo de la Action.SELECTED_KEY ni del modelo aquí, porque la Action ya lo guardó en 'this.configuration'.
+             // Solo nos aseguramos de que la clave esté.
+             estadoActualParaGuardar.putIfAbsent("comportamiento.navegacion.circular",
+                                        String.valueOf(model.isNavegacionCircularActivada())); // Default del modelo si no estaba
+             System.out.println("      - comportamiento.navegacion.circular (desde config en memoria): " + estadoActualParaGuardar.get("comportamiento.navegacion.circular"));
              
              // 3.4. Configuración de miniaturas (si se pudieran cambiar)
              estadoActualParaGuardar.put("miniaturas.cantidad.antes", String.valueOf(model.getMiniaturasAntes()));
@@ -5277,6 +5386,52 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         if (toggleAction != null) {
         	this.view.actualizarAspectoBotonToggle(toggleAction, estadoActualIncluirSubcarpetas);
         }
+    }
+    
+    
+    /**
+     * Método centralizado para cambiar el estado de "Navegación Circular".
+     * Actualiza el modelo, la configuración, y sincroniza la UI (incluyendo el
+     * JCheckBoxMenuItem asociado y los botones de navegación).
+     * Este método es llamado por ToggleNavegacionCircularAction.
+     * @param nuevoEstadoCircular El nuevo estado deseado para la navegación circular.
+     */
+    public void setNavegacionCircularLogicaYUi(boolean nuevoEstadoCircular) {
+        System.out.println("[VisorController setNavegacionCircularLogicaYUi] Nuevo estado deseado: " + nuevoEstadoCircular);
+
+        if (model == null || configuration == null || actionMap == null || getListCoordinator() == null) {
+            System.err.println("  ERROR [VisorController setNavegacionCircularLogicaYUi]: Dependencias nulas. Abortando.");
+            return;
+        }
+
+        // 1. Actualizar el VisorModel
+        model.setNavegacionCircularActivada(nuevoEstadoCircular);
+        // El modelo ya imprime su log: "[VisorModel] Navegación Circular cambiada a: ..."
+
+        // 2. Actualizar ConfigurationManager (en memoria)
+        String configKey = "comportamiento.navegacion.circular"; // La clave que usa la Action
+        configuration.setString(configKey, String.valueOf(nuevoEstadoCircular));
+        System.out.println("  -> Configuración '" + configKey + "' actualizada en memoria a: " + nuevoEstadoCircular);
+
+        // 3. Sincronizar la UI:
+        //    a) El JCheckBoxMenuItem asociado a la Action
+        Action toggleAction = actionMap.get(AppActionCommands.CMD_TOGGLE_WRAP_AROUND);
+        if (toggleAction != null) {
+            // Comprobar si el estado de la Action ya es el correcto, para evitar ciclos si algo más lo cambió.
+            // Aunque en este flujo, nosotros somos la fuente del cambio.
+            if (!Boolean.valueOf(nuevoEstadoCircular).equals(toggleAction.getValue(Action.SELECTED_KEY))) {
+                toggleAction.putValue(Action.SELECTED_KEY, nuevoEstadoCircular);
+                System.out.println("    -> Action.SELECTED_KEY para CMD_TOGGLE_WRAP_AROUND actualizado a: " + nuevoEstadoCircular);
+            }
+        } else {
+            System.err.println("WARN [VisorController setNavegacionCircularLogicaYUi]: No se encontró Action para CMD_TOGGLE_WRAP_AROUND.");
+        }
+
+        //    b) El estado de los botones de navegación
+        getListCoordinator().forzarActualizacionEstadoNavegacion();
+        System.out.println("    -> Forzada actualización del estado de botones de navegación.");
+
+        System.out.println("[VisorController setNavegacionCircularLogicaYUi] Proceso completado.");
     }
     
     

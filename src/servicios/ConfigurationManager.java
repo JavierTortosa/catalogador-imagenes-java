@@ -468,6 +468,10 @@ public class ConfigurationManager
 		// Comportamiento
 			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
 			defaults.put("comportamiento.carga.conRutas", "false");
+			
+			defaults.put("comportamiento.navegacion.circular", "false");
+			defaults.put("interfaz.menu.configuracion.comportamiento_general.mostrar_flechas_de_navegacion_en_imagen.seleccionado", "false");
+			
 			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO, "true");
 			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE, "FIT_TO_SCREEN");
 			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO, "FIT_TO_SCREEN");

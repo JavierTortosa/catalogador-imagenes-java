@@ -39,6 +39,7 @@ import controlador.actions.navegacion.PreviousImageAction;
 import controlador.actions.projects.GestionarProyectoAction;
 import controlador.actions.projects.ToggleMarkImageAction;
 import controlador.actions.tema.ToggleThemeAction;
+import controlador.actions.toggle.ToggleNavegacionCircularAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.vista.MostrarDialogoListaAction;
@@ -210,6 +211,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_NAV_ANTERIOR, createPreviousImageAction());
         actionMap.put(AppActionCommands.CMD_NAV_SIGUIENTE, createNextImageAction());
         actionMap.put(AppActionCommands.CMD_NAV_ULTIMA, createLastImageAction());
+        actionMap.put(AppActionCommands.CMD_TOGGLE_WRAP_AROUND, createToggleNavegacionCircularAction());
         
         // 3.4. Crear y registrar Actions de Edición (usando funcionalidadPendiente por ahora)
         // Cuando EditionManager esté listo, se crearán las actions reales aquí.
@@ -259,8 +261,6 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, createHiddenButtonsAction());
         
      // BARRA DE INFORMACION SUPERIOR
-        
-        // INICIO DEL CODIGO NUEVO RECTIFICADO
         
         // --- ACCIONES PARA CONFIGURAR VISIBILIDAD DE ELEMENTOS EN LA BARRA DE INFORMACIÓN SUPERIOR ---
 
@@ -420,9 +420,6 @@ public class ActionFactory {
              AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA
          ));
 
-    	// FIN DEL CODIGO NUEVO MODIFICADO
-        
-        
     }
 
 
@@ -499,6 +496,19 @@ public class ActionFactory {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_ULTIMA);
         return new LastImageAction(this.listCoordinator, "Última Imagen", icon);
     }
+    
+    private Action createToggleNavegacionCircularAction() {
+        return new ToggleNavegacionCircularAction( 
+            "Alternar Navegación Circular", // Nombre interno de la Action
+            null, 
+            this.configuration,
+            this.model,
+            this.controllerRef, 
+            "comportamiento.navegacion.circular", // <<-- ESTA ES LA CLAVE DE CONFIGURACIÓN QUE USA LA ACTION
+            AppActionCommands.CMD_TOGGLE_WRAP_AROUND // El ActionCommand de esta Action
+        );
+    }
+
 
     // --- 4.5. Métodos Create para Actions de Edición (usarán EditionManager) ---
     // Ejemplo (cuando EditionManager esté listo):

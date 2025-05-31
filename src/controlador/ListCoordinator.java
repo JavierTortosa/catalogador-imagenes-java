@@ -120,34 +120,113 @@ public class ListCoordinator {
         
     } // --- FIN seleccionarImagenPorIndice
 
-    
+
     /**
      * Selecciona la imagen anterior en la lista principal.
-     * Si la imagen actual es la primera, va a la última (wrap around).
-     * MODIFICADO: Llama al helper interno.
+     * El comportamiento en los extremos (primera imagen) depende del estado
+     * de 'navegacionCircularActivada' en el VisorModel.
+     * Actualiza el estado interno, la UI (incluyendo la imagen principal y miniaturas)
+     * y el estado de los botones de navegación.
      */
     public synchronized void seleccionarAnterior() {
-        System.out.println(">>> Coordinator: Navegación -> Anterior (Actual Oficial: " + indiceOficialSeleccionado + ")");
-         if (model == null || model.getModeloLista() == null) {
-              System.err.println("ERROR [seleccionarAnterior]: Modelo no disponible."); return;
-         }
-         int total = model.getModeloLista().getSize();
-         if (total == 0) { System.out.println("    -> Lista vacía."); return; }
+        // --- 1. LOG DE INICIO Y VALIDACIÓN DE DEPENDENCIAS ---
+        System.out.println(">>> Coordinator: Solicitud de Navegación -> ANTERIOR (Índice Oficial Actual: " + this.indiceOficialSeleccionado + ")");
+        if (model == null || model.getModeloLista() == null) {
+            System.err.println("    ERROR CRÍTICO [seleccionarAnterior]: VisorModel o su lista interna son nulos. No se puede navegar.");
+            return;
+        }
 
-         int actual = this.indiceOficialSeleccionado;
-         int anterior = (actual == -1) ? total - 1 : actual - 1; // Si no hay selección, ir al último
-         if (anterior < 0) { anterior = total - 1; } // Wrap around
+        // --- 2. OBTENER ESTADO ACTUAL Y TAMAÑO DE LA LISTA ---
+        final DefaultListModel<String> modeloPrincipal = model.getModeloLista();
+        final int totalImagenes = modeloPrincipal.getSize();
 
-         if (anterior != actual) {
-             System.out.println("    -> Llamando a helper interno para procesar índice: " + anterior);
-             seleccionarIndiceYActualizarUICompleta_Helper(anterior); // <-- LLAMAR AL HELPER
-         } else {
-             System.out.println("    -> No hay cambio de índice.");
-             // Asegurar visibilidad si solo hay un elemento
-             if(total == 1) asegurarVisibilidadAmbasListasSiVisibles(actual);
-         }
-         System.out.println(">>> Coordinator: Fin seleccionarAnterior");
-    } // --- FIN seleccionarAnterior ---
+        if (totalImagenes == 0) {
+            System.out.println("    -> Lista de imágenes vacía. No hay nada a qué navegar.");
+            // No es necesario llamar a seleccionarIndiceYActualizarUICompleta_Helper si no hay nada.
+            // El estado de los botones se actualizará porque el índice oficial no cambiará de -1.
+            forzarActualizacionEstadoNavegacion(); // Asegura que los botones reflejen la lista vacía
+            return;
+        }
+
+        // --- 3. CALCULAR EL ÍNDICE ANTERIOR ---
+        int indiceActual = this.indiceOficialSeleccionado;
+        int indiceAnteriorPropuesto;
+
+        if (indiceActual == -1) {
+            // Si no hay nada seleccionado actualmente (ej. al inicio o después de limpiar),
+            // "anterior" debería ir al último ítem de la lista.
+            indiceAnteriorPropuesto = totalImagenes - 1;
+        } else {
+            indiceAnteriorPropuesto = indiceActual - 1;
+        }
+
+        // --- 4. APLICAR LÓGICA DE NAVEGACIÓN CIRCULAR (WRAP AROUND) ---
+        if (model.isNavegacionCircularActivada()) {
+            if (indiceAnteriorPropuesto < 0) {
+                indiceAnteriorPropuesto = totalImagenes - 1; // Va al último
+                System.out.println("    -> Navegación circular activada: Wrap around al final (índice " + indiceAnteriorPropuesto + ")");
+            }
+        } else { // Navegación NO circular
+            if (indiceAnteriorPropuesto < 0) {
+                // Si se pasó del inicio y no hay wrap, la selección no debe cambiar si ya estaba en el primero.
+                if (indiceActual == 0) {
+                    System.out.println("    -> Ya en el primer ítem y navegación no circular. No hay cambio de índice.");
+                    // Aunque no cambie el índice, es bueno asegurar la visibilidad
+                    asegurarVisibilidadAmbasListasSiVisibles(indiceActual);
+                    // El estado de los botones de navegación ya debería ser correcto, pero forzamos por si acaso.
+                    forzarActualizacionEstadoNavegacion();
+                    return; // Salir, no se llama al helper de actualización completa.
+                }
+                // Si no estaba en el primero pero el cálculo dio <0, se queda en el primero.
+                indiceAnteriorPropuesto = 0;
+                System.out.println("    -> Navegación no circular: Se detiene en el primer ítem (índice " + indiceAnteriorPropuesto + ")");
+            }
+        }
+
+        // --- 5. PROCESAR LA SELECCIÓN SI EL ÍNDICE HA CAMBIADO EFECTIVAMENTE ---
+        // Solo procesar si el índice calculado es diferente al actual,
+        // O si la selección inicial era -1 y ahora se va a un índice válido.
+        if (indiceAnteriorPropuesto != indiceActual || (indiceActual == -1 && indiceAnteriorPropuesto == totalImagenes -1) ) {
+            System.out.println("    -> Llamando a helper interno para procesar nuevo índice oficial: " + indiceAnteriorPropuesto);
+            seleccionarIndiceYActualizarUICompleta_Helper(indiceAnteriorPropuesto);
+        } else {
+            // Esto podría pasar si solo hay un ítem y la navegación no es circular.
+            System.out.println("    -> No hubo cambio efectivo en el índice. Índice oficial permanece: " + this.indiceOficialSeleccionado);
+            asegurarVisibilidadAmbasListasSiVisibles(this.indiceOficialSeleccionado);
+            // Forzar actualización de botones por si acaso (aunque seleccionarIndiceYActualizarUICompleta_Helper ya lo haría)
+            forzarActualizacionEstadoNavegacion();
+        }
+        System.out.println(">>> Coordinator: Fin seleccionarAnterior. Índice Oficial Final: " + this.indiceOficialSeleccionado);
+    }// --- FIN seleccionarAnterior ---
+    
+    
+//    /**
+//     * Selecciona la imagen anterior en la lista principal.
+//     * Si la imagen actual es la primera, va a la última (wrap around).
+//     * MODIFICADO: Llama al helper interno.
+//     */
+//    public synchronized void seleccionarAnterior() {
+//        System.out.println(">>> Coordinator: Navegación -> Anterior (Actual Oficial: " + indiceOficialSeleccionado + ")");
+//         if (model == null || model.getModeloLista() == null) {
+//              System.err.println("ERROR [seleccionarAnterior]: Modelo no disponible."); return;
+//         }
+//         int total = model.getModeloLista().getSize();
+//         if (total == 0) { System.out.println("    -> Lista vacía."); return; }
+//
+//         int actual = this.indiceOficialSeleccionado;
+//         int anterior = (actual == -1) ? total - 1 : actual - 1; // Si no hay selección, ir al último
+//         if (anterior < 0) { anterior = total - 1; } // Wrap around
+//
+//         if (anterior != actual) {
+//             System.out.println("    -> Llamando a helper interno para procesar índice: " + anterior);
+//             seleccionarIndiceYActualizarUICompleta_Helper(anterior); // <-- LLAMAR AL HELPER
+//         } else {
+//             System.out.println("    -> No hay cambio de índice.");
+//             // Asegurar visibilidad si solo hay un elemento
+//             if(total == 1) asegurarVisibilidadAmbasListasSiVisibles(actual);
+//         }
+//         System.out.println(">>> Coordinator: Fin seleccionarAnterior");
+//    } // --- FIN seleccionarAnterior ---
     
     
     /**
@@ -197,6 +276,106 @@ public class ListCoordinator {
          }
          System.out.println(">>> Coordinator: Fin seleccionarUltimo");
     } // --- FIN seleccionarUltimo ---    
+
+    
+    /**
+     * Selecciona la siguiente imagen en la lista principal.
+     * El comportamiento en los extremos (última imagen) depende del estado
+     * de 'navegacionCircularActivada' en el VisorModel.
+     * Actualiza el estado interno, la UI (incluyendo la imagen principal y miniaturas)
+     * y el estado de los botones de navegación.
+     */
+    public synchronized void seleccionarSiguiente() {
+        // --- 1. LOG DE INICIO Y VALIDACIÓN DE DEPENDENCIAS ---
+        System.out.println(">>> Coordinator: Solicitud de Navegación -> SIGUIENTE (Índice Oficial Actual: " + this.indiceOficialSeleccionado + ")");
+        if (model == null || model.getModeloLista() == null) {
+            System.err.println("    ERROR CRÍTICO [seleccionarSiguiente]: VisorModel o su lista interna son nulos. No se puede navegar.");
+            return;
+        }
+
+        // --- 2. OBTENER ESTADO ACTUAL Y TAMAÑO DE LA LISTA ---
+        final DefaultListModel<String> modeloPrincipal = model.getModeloLista();
+        final int totalImagenes = modeloPrincipal.getSize();
+
+        if (totalImagenes == 0) {
+            System.out.println("    -> Lista de imágenes vacía. No hay nada a qué navegar.");
+            forzarActualizacionEstadoNavegacion();
+            return;
+        }
+
+        // --- 3. CALCULAR EL ÍNDICE SIGUIENTE ---
+        int indiceActual = this.indiceOficialSeleccionado;
+        int indiceSiguientePropuesto;
+
+        if (indiceActual == -1) {
+            // Si no hay nada seleccionado, "siguiente" debería ir al primer ítem.
+            indiceSiguientePropuesto = 0;
+        } else {
+            indiceSiguientePropuesto = indiceActual + 1;
+        }
+
+        // --- 4. APLICAR LÓGICA DE NAVEGACIÓN CIRCULAR (WRAP AROUND) ---
+        if (model.isNavegacionCircularActivada()) {
+            if (indiceSiguientePropuesto >= totalImagenes) {
+                indiceSiguientePropuesto = 0; // Va al primero
+                System.out.println("    -> Navegación circular activada: Wrap around al inicio (índice " + indiceSiguientePropuesto + ")");
+            }
+        } else { // Navegación NO circular
+            if (indiceSiguientePropuesto >= totalImagenes) {
+                // Si se pasó del final y no hay wrap, la selección no debe cambiar si ya estaba en el último.
+                if (indiceActual == totalImagenes - 1) {
+                    System.out.println("    -> Ya en el último ítem y navegación no circular. No hay cambio de índice.");
+                    asegurarVisibilidadAmbasListasSiVisibles(indiceActual);
+                    forzarActualizacionEstadoNavegacion();
+                    return; // Salir, no se llama al helper.
+                }
+                // Si no estaba en el último pero el cálculo dio >= total, se queda en el último.
+                indiceSiguientePropuesto = totalImagenes - 1;
+                System.out.println("    -> Navegación no circular: Se detiene en el último ítem (índice " + indiceSiguientePropuesto + ")");
+            }
+        }
+
+        // --- 5. PROCESAR LA SELECCIÓN SI EL ÍNDICE HA CAMBIADO EFECTIVAMENTE ---
+        if (indiceSiguientePropuesto != indiceActual || (indiceActual == -1 && indiceSiguientePropuesto == 0)) {
+            System.out.println("    -> Llamando a helper interno para procesar nuevo índice oficial: " + indiceSiguientePropuesto);
+            seleccionarIndiceYActualizarUICompleta_Helper(indiceSiguientePropuesto);
+        } else {
+            System.out.println("    -> No hubo cambio efectivo en el índice. Índice oficial permanece: " + this.indiceOficialSeleccionado);
+            asegurarVisibilidadAmbasListasSiVisibles(this.indiceOficialSeleccionado);
+            forzarActualizacionEstadoNavegacion();
+        }
+        System.out.println(">>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: " + this.indiceOficialSeleccionado);
+    }// --- FIN seleccionarSiguiente ---
+
+    
+    
+//    /**
+//     * Selecciona la siguiente imagen en la lista principal.
+//     * Si la imagen actual es la última, vuelve al principio (wrap around).
+//     * MODIFICADO: Llama al helper interno.
+//     */
+//    public synchronized void seleccionarSiguiente() {
+//        System.out.println(">>> Coordinator: Navegación -> Siguiente (Actual Oficial: " + indiceOficialSeleccionado + ")");
+//        if (model == null || model.getModeloLista() == null) {
+//             System.err.println("ERROR [seleccionarSiguiente]: Modelo no disponible."); return;
+//        }
+//        int total = model.getModeloLista().getSize();
+//        if (total == 0) { System.out.println("    -> Lista vacía."); return; }
+//
+//        int actual = this.indiceOficialSeleccionado;
+//        int siguiente = (actual == -1) ? 0 : actual + 1;
+//        if (siguiente >= total) { siguiente = 0; } // Wrap around
+//
+//        if (siguiente != actual) {
+//            System.out.println("    -> Llamando a helper interno para procesar índice: " + siguiente);
+//            seleccionarIndiceYActualizarUICompleta_Helper(siguiente); // <-- LLAMAR AL HELPER
+//        } else {
+//            System.out.println("    -> No hay cambio de índice.");
+//            // Asegurar visibilidad si solo hay un elemento
+//            if(total == 1) asegurarVisibilidadAmbasListasSiVisibles(actual);
+//        }
+//        System.out.println(">>> Coordinator: Fin seleccionarSiguiente");
+//    } // --- FIN seleccionarSiguiente ---
     
 
     /**
@@ -439,43 +618,112 @@ public class ListCoordinator {
     
     /**
      * Actualiza el estado 'enabled' de las Actions de navegación
-     * basándose en el tamaño actual de la lista y el índice seleccionado.
+     * (Primera, Anterior, Siguiente, Última) basándose en el tamaño actual
+     * de la lista, el índice seleccionado y el estado de la navegación circular.
+     * Este método es llamado por `forzarActualizacionEstadoNavegacion()`
+     * y también internamente después de que `seleccionarImagenInterno` cambie el índice.
      */
     private void actualizarEstadoEnabledAccionesNavegacion() {
-        // Validar dependencias
+        // --- 1. VALIDACIÓN DE DEPENDENCIAS ---
         if (model == null || model.getModeloLista() == null || controller == null || controller.getActionMap() == null) {
-            System.err.println("WARN [LC.actualizarEstadoEnabledAccionesNavegacion]: Modelo, Controller o ActionMap nulos. No se puede actualizar estado enabled.");
+            System.err.println("WARN [LC.actualizarEstadoEnabledAccionesNavegacion]: " +
+                               "Modelo, Controller o ActionMap nulos. No se puede actualizar estado enabled.");
             return;
         }
 
+        // --- 2. OBTENER ESTADO ACTUAL ---
         DefaultListModel<String> modeloListaActual = model.getModeloLista();
         boolean hayAlgunaImagen = !modeloListaActual.isEmpty();
-        int indiceActual = this.indiceOficialSeleccionado; // El índice maestro
+        int indiceActual = this.indiceOficialSeleccionado; // El índice maestro gestionado por ListCoordinator
         int ultimoIndicePosible = hayAlgunaImagen ? modeloListaActual.getSize() - 1 : -1;
+        boolean navCircular = model.isNavegacionCircularActivada(); // Leer del modelo
 
         Map<String, Action> actionMap = controller.getActionMap();
 
+        // --- 3. OBTENER REFERENCIAS A LAS ACTIONS DE NAVEGACIÓN ---
         Action firstAction = actionMap.get(AppActionCommands.CMD_NAV_PRIMERA);
         Action prevAction  = actionMap.get(AppActionCommands.CMD_NAV_ANTERIOR);
         Action nextAction  = actionMap.get(AppActionCommands.CMD_NAV_SIGUIENTE);
         Action lastAction  = actionMap.get(AppActionCommands.CMD_NAV_ULTIMA);
 
-        // Lógica para habilitar/deshabilitar
+        // --- 4. APLICAR LÓGICA PARA HABILITAR/DESHABILITAR ---
+
+        // Botón "Primera Imagen":
+        // - Habilitado si hay imágenes Y no estamos ya en la primera.
         if (firstAction != null) {
             firstAction.setEnabled(hayAlgunaImagen && indiceActual > 0);
         }
-        if (prevAction != null) {
-            prevAction.setEnabled(hayAlgunaImagen && indiceActual > 0);
-        }
-        if (nextAction != null) {
-            nextAction.setEnabled(hayAlgunaImagen && indiceActual < ultimoIndicePosible);
-        }
+
+        // Botón "Última Imagen":
+        // - Habilitado si hay imágenes Y no estamos ya en la última.
         if (lastAction != null) {
             lastAction.setEnabled(hayAlgunaImagen && indiceActual < ultimoIndicePosible);
         }
 
-        // System.out.println("  [ListCoordinator] Estado enabled de Actions de Navegación actualizado."); // Log opcional
-    }    
+        // Botón "Imagen Anterior":
+        // - Habilitado si hay imágenes Y (la navegación circular está activa O no estamos en la primera).
+        if (prevAction != null) {
+            prevAction.setEnabled(hayAlgunaImagen && (navCircular || indiceActual > 0));
+        }
+
+        // Botón "Siguiente Imagen":
+        // - Habilitado si hay imágenes Y (la navegación circular está activa O no estamos en la última).
+        if (nextAction != null) {
+            nextAction.setEnabled(hayAlgunaImagen && (navCircular || indiceActual < ultimoIndicePosible));
+        }
+
+        // Log opcional para depuración
+        /*
+        System.out.println(String.format("  [LC ActualizarNavActions] Estado: hayImg=%b, idx=%d, ultIdx=%d, navCirc=%b -> PrevEn=%b, NextEn=%b, FirstEn=%b, LastEn=%b",
+            hayAlgunaImagen, indiceActual, ultimoIndicePosible, navCircular,
+            (prevAction != null ? prevAction.isEnabled() : null),
+            (nextAction != null ? nextAction.isEnabled() : null),
+            (firstAction != null ? firstAction.isEnabled() : null),
+            (lastAction != null ? lastAction.isEnabled() : null)
+        ));
+        */
+    }// FIN del metodo actualizarEstadoEnabledAccionesNavegacion
+    
+    
+//    /**
+//     * Actualiza el estado 'enabled' de las Actions de navegación
+//     * basándose en el tamaño actual de la lista y el índice seleccionado.
+//     */
+//    private void actualizarEstadoEnabledAccionesNavegacion() {
+//        // Validar dependencias
+//        if (model == null || model.getModeloLista() == null || controller == null || controller.getActionMap() == null) {
+//            System.err.println("WARN [LC.actualizarEstadoEnabledAccionesNavegacion]: Modelo, Controller o ActionMap nulos. No se puede actualizar estado enabled.");
+//            return;
+//        }
+//
+//        DefaultListModel<String> modeloListaActual = model.getModeloLista();
+//        boolean hayAlgunaImagen = !modeloListaActual.isEmpty();
+//        int indiceActual = this.indiceOficialSeleccionado; // El índice maestro
+//        int ultimoIndicePosible = hayAlgunaImagen ? modeloListaActual.getSize() - 1 : -1;
+//
+//        Map<String, Action> actionMap = controller.getActionMap();
+//
+//        Action firstAction = actionMap.get(AppActionCommands.CMD_NAV_PRIMERA);
+//        Action prevAction  = actionMap.get(AppActionCommands.CMD_NAV_ANTERIOR);
+//        Action nextAction  = actionMap.get(AppActionCommands.CMD_NAV_SIGUIENTE);
+//        Action lastAction  = actionMap.get(AppActionCommands.CMD_NAV_ULTIMA);
+//
+//        // Lógica para habilitar/deshabilitar
+//        if (firstAction != null) {
+//            firstAction.setEnabled(hayAlgunaImagen && indiceActual > 0);
+//        }
+//        if (prevAction != null) {
+//            prevAction.setEnabled(hayAlgunaImagen && indiceActual > 0);
+//        }
+//        if (nextAction != null) {
+//            nextAction.setEnabled(hayAlgunaImagen && indiceActual < ultimoIndicePosible);
+//        }
+//        if (lastAction != null) {
+//            lastAction.setEnabled(hayAlgunaImagen && indiceActual < ultimoIndicePosible);
+//        }
+//
+//        // System.out.println("  [ListCoordinator] Estado enabled de Actions de Navegación actualizado."); // Log opcional
+//    }    
     
     
     // -------------------------------------------------------- METODOS DE NAVEGACION E IMAGENES
@@ -819,33 +1067,10 @@ public class ListCoordinator {
     } // --- FIN seleccionarDesdeNombres ---
     
     
-    /**
-     * Selecciona la siguiente imagen en la lista principal.
-     * Si la imagen actual es la última, vuelve al principio (wrap around).
-     * MODIFICADO: Llama al helper interno.
-     */
-    public synchronized void seleccionarSiguiente() {
-        System.out.println(">>> Coordinator: Navegación -> Siguiente (Actual Oficial: " + indiceOficialSeleccionado + ")");
-        if (model == null || model.getModeloLista() == null) {
-             System.err.println("ERROR [seleccionarSiguiente]: Modelo no disponible."); return;
-        }
-        int total = model.getModeloLista().getSize();
-        if (total == 0) { System.out.println("    -> Lista vacía."); return; }
 
-        int actual = this.indiceOficialSeleccionado;
-        int siguiente = (actual == -1) ? 0 : actual + 1;
-        if (siguiente >= total) { siguiente = 0; } // Wrap around
-
-        if (siguiente != actual) {
-            System.out.println("    -> Llamando a helper interno para procesar índice: " + siguiente);
-            seleccionarIndiceYActualizarUICompleta_Helper(siguiente); // <-- LLAMAR AL HELPER
-        } else {
-            System.out.println("    -> No hay cambio de índice.");
-            // Asegurar visibilidad si solo hay un elemento
-            if(total == 1) asegurarVisibilidadAmbasListasSiVisibles(actual);
-        }
-        System.out.println(">>> Coordinator: Fin seleccionarSiguiente");
-    } // --- FIN seleccionarSiguiente ---
+    
+    
+    
     
     
     /**

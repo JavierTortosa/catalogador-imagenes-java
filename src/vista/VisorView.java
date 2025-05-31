@@ -802,6 +802,10 @@ public class VisorView extends JFrame {
         } // ... resto de tu configuración para listaNombres ...
         
         JScrollPane scrollPaneListaNombres = new JScrollPane(this.listaNombres);
+        
+        scrollPaneListaNombres.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPaneListaNombres.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER); 
+        
         if (uiConfig != null) {
             scrollPaneListaNombres.getViewport().setBackground(this.uiConfig.colorFondoSecundario);
             scrollPaneListaNombres.setBorder(BorderFactory.createLineBorder(this.uiConfig.colorBorde));
@@ -815,6 +819,7 @@ public class VisorView extends JFrame {
             bordeTitulado.setTitleColor(this.uiConfig.colorTextoSecundario);
             this.panelIzquierdo.setBorder(bordeTitulado);
         }
+        
         this.panelIzquierdo.add(scrollPaneListaNombres, BorderLayout.CENTER);
         System.out.println("      -> PanelIzquierdo y ListaNombres configurados por inicializarPanelIzquierdo.");
     }
@@ -1043,15 +1048,55 @@ public class VisorView extends JFrame {
         }
     }
 
+    
+ // En VisorView.java
     public void setFileListVisible(boolean visible) {
         if (this.panelContenedorIzquierdoSplit != null && this.panelContenedorIzquierdoSplit.isVisible() != visible) {
-            this.panelContenedorIzquierdoSplit.setVisible(visible); // Ocultar/mostrar el contenedor
+            System.out.println("  [VisorView setFileListVisible] Cambiando visibilidad de panelContenedorIzquierdoSplit a: " + visible);
+            this.panelContenedorIzquierdoSplit.setVisible(visible);
+
             if (this.splitPane != null) {
-                 SwingUtilities.invokeLater(() -> this.splitPane.resetToPreferredSizes());
+                if (visible) {
+                    SwingUtilities.invokeLater(() -> {
+                        // Intenta primero con una posición fija. Si funciona, podemos hacerla configurable.
+                        double dividerLocationPercentage = 0.25; // Ejemplo: 25% para el panel izquierdo
+                        int newDividerLocation = (int) (splitPane.getWidth() * dividerLocationPercentage);
+                        
+                        System.out.println("    -> [EDT] Intentando splitPane.setDividerLocation(" + newDividerLocation + ")");
+                        this.splitPane.setDividerLocation(newDividerLocation);
+
+                        // this.splitPane.resetToPreferredSizes(); // Lo has comentado, está bien probar sin él primero.
+
+                        this.splitPane.revalidate();
+                        this.splitPane.repaint();
+                        System.out.println("    -> [EDT] JSplitPane revalidado y repintado después de setDividerLocation.");
+                    });
+                }
+                // No es necesario hacer mucho cuando se oculta
+            } else { 
+                System.err.println("WARN [VisorView setFileListVisible]: splitPane es null.");
             }
-            SwingUtilities.invokeLater(this::revalidateFrame);
+
+            revalidateFrame(); // Llama a this.revalidate() y this.repaint() del JFrame
+            System.out.println("  [VisorView setFileListVisible] Frame revalidado y repintado.");
+
+        } else if (this.panelContenedorIzquierdoSplit == null) {
+            System.err.println("ERROR [VisorView setFileListVisible]: panelContenedorIzquierdoSplit es null.");
+        } else {
+            System.out.println("  [VisorView setFileListVisible] panelContenedorIzquierdoSplit ya está en estado: " + visible);
         }
     }
+
+    
+//    public void setFileListVisible(boolean visible) {
+//        if (this.panelContenedorIzquierdoSplit != null && this.panelContenedorIzquierdoSplit.isVisible() != visible) {
+//            this.panelContenedorIzquierdoSplit.setVisible(visible); // Ocultar/mostrar el contenedor
+//            if (this.splitPane != null) {
+//                 SwingUtilities.invokeLater(() -> this.splitPane.resetToPreferredSizes());
+//            }
+//            SwingUtilities.invokeLater(this::revalidateFrame);
+//        }
+//    }
 
     public void setThumbnailsVisible(boolean visible) {
         if (this.scrollListaMiniaturas != null && this.scrollListaMiniaturas.isVisible() != visible) {
@@ -1397,4 +1442,6 @@ public class VisorView extends JFrame {
     public JPanel getPanelBarraEstado() {return bottomStatusBar;}
     public JLabel getFormatoImagenInfoLabel() {return formatoImagenInfoLabel;}
     
+    
+    public JPanel getPanelContenedorIzquierdoSplit() {return this.panelContenedorIzquierdoSplit;}
 } // Fin clase VisorView
