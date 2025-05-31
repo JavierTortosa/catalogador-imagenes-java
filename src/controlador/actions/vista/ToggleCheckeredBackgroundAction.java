@@ -1,4 +1,3 @@
-// En src/controlador/actions/vista/ToggleCheckeredBackgroundAction.java
 package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;

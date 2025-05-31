@@ -461,9 +461,14 @@ public class MenuBarBuilder {
             // System.out.println("  [generateKeyPart] Texto nulo/vacío, devolviendo 'unknown_key_part'"); // Log opcional
             return "unknown_key_part"; // Devolver un placeholder identificable.
         }
+        
+        String normalizedText = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
+        normalizedText = normalizedText.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        
+        String cleanedText = normalizedText.toLowerCase();
 
         // 2. Limpiar y normalizar la cadena:
-        String cleanedText = text.trim()                // Quitar espacios al inicio y al final.
+        cleanedText = text.trim()                // Quitar espacios al inicio y al final.
                 .replace(" ", "_")       // Reemplazar espacios internos por guiones bajos.
                 .replace("/", "_")       // Reemplazar barras por guiones bajos.
                 .replace("\\", "_")      // Reemplazar contrabarras.
@@ -472,6 +477,11 @@ public class MenuBarBuilder {
                 .replace("%", "porc")    // Reemplazar '%' por "porc" para evitar problemas.
                 .replace(":", "")        // Eliminar dos puntos.
                 .replace("?", "")        // Eliminar signos de interrogación.
+                .replace("á", "a")		// quita la tilde de la á
+                .replace("é", "e")
+                .replace("í", "i")
+                .replace("ó", "o")
+                .replace("ú", "u")
                 // Eliminar cualquier carácter que NO sea letra (a-z, A-Z), número (0-9) o guion bajo (_).
                 // Esto asegura que la clave solo contenga caracteres seguros.
                 .replaceAll("[^a-zA-Z0-9_]", "");

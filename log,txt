@@ -3,10 +3,10 @@ Iniciando Visor de Imágenes V2...
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
     -> VisorModel creado e inyectado.
-Mapa de configuración por defecto inicializado con 411 claves.
-Mapa DEFAULT_GROUP_COMMENTS inicializado con 28 entradas.
+Mapa de configuración por defecto inicializado con 207 claves.
+Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 411
+Configuración leída. Total claves: 207
     -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración al Modelo...
     -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: Ajustar a Pantalla
@@ -75,29 +75,46 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     B.4. [EDT] ListCoordinator creado e inyectado.
   [ActionFactory] Inicializando todas las Actions...
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@62ba2242
+ActionFactory: Creando ToggleSubfoldersAction@7464f48
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 44
-    B.6. [EDT] ActionFactory creada. ActionMap completo (Tamaño: 44) inyectado en Controller.
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Barra de Información Superior' (clave config: interfaz.infobar.superior.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Nombre/Ruta Archivo (Sup.)' (clave config: interfaz.infobar.superior.nombre_ruta.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Índice/Total Imágenes' (clave config: interfaz.infobar.superior.indice_total.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Dimensiones Originales' (clave config: interfaz.infobar.superior.dimensiones.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Tamaño de Archivo' (clave config: interfaz.infobar.superior.tamano_archivo.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Fecha de Archivo' (clave config: interfaz.infobar.superior.fecha_archivo.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Formato de Imagen' (clave config: interfaz.infobar.superior.formato_imagen.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: false
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Modo de Zoom' (clave config: interfaz.infobar.superior.modo_zoom.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar % Zoom Real' (clave config: interfaz.infobar.superior.zoom_real_pct.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Barra de Estado/Control Inferior' (clave config: interfaz.infobar.inferior.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Nombre/Ruta Archivo (Inf.)' (clave config: interfaz.infobar.inferior.nombre_ruta.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Zoom Manual (Inf.)' (clave config: interfaz.infobar.inferior.icono_zm.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Proporciones (Inf.)' (clave config: interfaz.infobar.inferior.icono_prop.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Subcarpetas (Inf.)' (clave config: interfaz.infobar.inferior.icono_subc.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Control % Zoom (Inf.)' (clave config: interfaz.infobar.inferior.ctrl_zoom_pct.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Control Modo Zoom (Inf.)' (clave config: interfaz.infobar.inferior.ctrl_modo_zoom.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. SELECTED_KEY: true
+[ToggleUIElementVisibilityAction CSTR] 'Mostrar Área de Mensajes (Inf.)' (clave config: interfaz.infobar.inferior.mensajes_app.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. SELECTED_KEY: true
+  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 65
+    B.6. [EDT] ActionFactory creada. ActionMap completo (Tamaño: 65) inyectado en Controller.
 [ViewUIConfig] Configuración UI creada con colores de tema.
     B.7. [EDT] ViewUIConfig COMPLETO (con actionMap) actualizado en Controller y View.
     B.8. [EDT] Lista de ContextSensitiveActions inyectada en ListCoordinator.
-[InfoBarManager] Instancia creada. Configurando listeners...
-    [InfoBarManager] Iconos de modo de zoom cargados dinámicamente desde comandoToClaveIconoMap.
-    -> MouseListener añadido a PorcentajeZoomPersonalizadoLabel.
-    -> ActionListener añadido a ModoZoomActualIconoBoton.
-[InfoBarManager] Configuración de listeners finalizada.
+[InfoBarManager] Instancia creada. Configurando componentes...
+[InfoBarManager] Configuración de componentes finalizada.
     B.X. [EDT] InfoBarManager creado.
   [ZoomManager] InfoBarManager inyectado.
     B.X.Y. [EDT] InfoBarManager inyectado en ZoomManager.
+[VisorController] Sincronizando Actions de formato para Barra Superior...
+[VisorController] Sincronizando Actions de formato para Barra Inferior...
+    B.X. [EDT] Estado inicial de radios de formato InfoBar sincronizado.
 [MenuBarBuilder] ControllerGlobalActionListener establecido: controlador.VisorController
 AppInitializer: VisorController (ActionListener) pasado a MenuBarBuilder.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 44 acciones.
+  [MenuBarBuilder] ActionMap recibido con 65 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 123
+  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 142
 [ToolbarBuilder Constructor] Iniciando...
 [ToolbarBuilder Constructor] Paneles de alineación configurados.
 [ToolbarBuilder Constructor] Finalizado.
@@ -337,7 +354,7 @@ AppInitializer: VisorController (ActionListener) pasado a MenuBarBuilder.
     -> Alineación determinada: CENTER
   [TB addSeparator] Añadiendo separador después de categoría: 'proyecto'
   [TB procesarDef] Def: Comando='cmd.toggle.subcarpetas', Icono='7001-Subcarpetas_48x48.png', Cat='toggle'
-ToolbarBuilder: Obtenida Action@62ba2242 para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
+ToolbarBuilder: Obtenida Action@7464f48 para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
     -> Action 'cmd.toggle.subcarpetas' asignada al botón.
     -> Icono obtenido de la Action.
     -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.toggle.Subcarpetas_48x48
@@ -364,6 +381,218 @@ ToolbarBuilder: Obtenida Action@62ba2242 para CMD_TOGGLE_SUBCARPETAS. Asignando 
     -> Aplicando config a Botones (Vista)...
     -> Config Botones (Vista) OK.
     -> Aplicando config a Menús (Vista)...
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.ndice_total_imagenes, Texto: 'Índice/Total Imágenes', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.indice_total'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.ndice_total_imagenes'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.barra_de_botones, Texto: 'Barra de Botones', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.tool_bar'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.barra_de_botones'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_menu, Texto: 'Botón Menu', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.especiales.Menu_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_menu'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.especiales.Menu_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_menu' SET_SELECTED a: false (basado en config 'interfaz.boton.especiales.Menu_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.barra_de_miniaturas, Texto: 'Barra de Miniaturas', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.thumbnails'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.barra_de_miniaturas'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_lista, Texto: 'Botón Lista', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.vista.Lista_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_lista'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.vista.Lista_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_lista' SET_SELECTED a: true (basado en config 'interfaz.boton.vista.Lista_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_ajustar_al_ancho, Texto: 'Botón Ajustar al Ancho', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_ajustar_al_ancho'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_ajustar_al_ancho' SET_SELECTED a: true (basado en config 'interfaz.boton.zoom.Ajustar_al_Ancho_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.fondo_a_cuadros, Texto: 'Fondo a Cuadros', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.checkered_bg'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.fondo_a_cuadros'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.activar_zoom_manual, Texto: 'Activar Zoom Manual', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.manual.toggle'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.activar_zoom_manual'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_lista_de_favoritos, Texto: 'Botón Lista de Favoritos', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.control.lista_de_favoritos_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_lista_de_favoritos'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.control.lista_de_favoritos_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_lista_de_favoritos' SET_SELECTED a: true (basado en config 'interfaz.boton.control.lista_de_favoritos_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_grid, Texto: 'Botón Grid', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.vista.Grid_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_grid'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.vista.Grid_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_grid' SET_SELECTED a: true (basado en config 'interfaz.boton.vista.Grid_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.mantener_zoom_actual, Texto: 'Mantener Zoom Actual', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.fijo'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.mantener_zoom_actual'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_zoom_fijo, Texto: 'Botón Zoom Fijo', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.zoom.Zoom_Fijo_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_zoom_fijo'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.zoom.Zoom_Fijo_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_zoom_fijo' SET_SELECTED a: true (basado en config 'interfaz.boton.zoom.Zoom_Fijo_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.control_porc_zoom, Texto: 'Control % Zoom ', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.ctrl_zoom_pct'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.control_porc_zoom'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.area_de_mensajes, Texto: 'Area de Mensajes', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.mensajes_app'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.area_de_mensajes'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_rotar_derecha, Texto: 'Botón Rotar Derecha', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.edicion.Rotar_Derecha_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_rotar_derecha'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.edicion.Rotar_Derecha_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_rotar_derecha' SET_SELECTED a: true (basado en config 'interfaz.boton.edicion.Rotar_Derecha_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_green, Texto: 'Tema Green', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.green'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_green'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_zoom_manual, Texto: 'Icono Zoom Manual', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.icono_zm'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_zoom_manual'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.tamao_de_archivo, Texto: 'Tamaño de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.config.carga.solo_carpeta'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.tamao_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.control_modo_zoom, Texto: 'Control Modo Zoom', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.ctrl_modo_zoom'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.control_modo_zoom'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.comportamiento_general.mostrar_imagen_de_bienvenida, Texto: 'Mostrar Imagen de Bienvenida', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'Mostrar Imagen de Bienvenida'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.comportamiento_general.mostrar_imagen_de_bienvenida'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.tamao_de_archivo, Texto: 'Tamaño de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.tamano_archivo'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.tamao_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_blue, Texto: 'Tema Blue', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.blue'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_blue'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_panelgaleria, Texto: 'Botón Panel-Galeria', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.vista.Panel-Galeria_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_panelgaleria'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.vista.Panel-Galeria_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_panelgaleria' SET_SELECTED a: true (basado en config 'interfaz.boton.vista.Panel-Galeria_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas, Texto: 'Mostrar Imágenes de Subcarpetas', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.config.carga.con_subcarpetas'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.porc_zoom_real, Texto: '% Zoom Real', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.zoom_real_pct'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.porc_zoom_real'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.ajustar_a_pantalla, Texto: 'Ajustar a Pantalla', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.ajustar'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.ajustar_a_pantalla'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.imagen.carga_y_orden.sin_ordenar, Texto: 'Sin Ordenar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.direccion.ninguno'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.imagen.carga_y_orden.sin_ordenar'. Configurando su estado 'selected'...
+    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.imagen.carga_y_orden.sin_ordenar'. SET_SELECTED a: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.formato.ruta_completa_y_nombre, Texto: 'Ruta Completa y Nombre', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.formato.inferior.nombre_ruta.ruta_completa'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.formato.ruta_completa_y_nombre'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_carrousel, Texto: 'Botón Carrousel', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.vista.Carrousel_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_carrousel'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.vista.Carrousel_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_carrousel' SET_SELECTED a: true (basado en config 'interfaz.boton.vista.Carrousel_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_dark, Texto: 'Tema Dark', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.dark'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_dark'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_escalar_para_ajustar, Texto: 'Botón Escalar para Ajustar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_escalar_para_ajustar'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_escalar_para_ajustar' SET_SELECTED a: true (basado en config 'interfaz.boton.zoom.Escalar_Para_Ajustar_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.modo_de_zoom, Texto: 'Modo de Zoom', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.modo_zoom'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.modo_de_zoom'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.imagen.carga_y_orden.extension, Texto: 'Extension', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.criterio.extension'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.imagen.carga_y_orden.extension'. Configurando su estado 'selected'...
+    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.imagen.carga_y_orden.extension'. SET_SELECTED a: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_espejo_horizontal, Texto: 'Botón Espejo Horizontal', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.edicion.Espejo_Horizontal_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_espejo_horizontal'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.edicion.Espejo_Horizontal_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_espejo_horizontal' SET_SELECTED a: true (basado en config 'interfaz.boton.edicion.Espejo_Horizontal_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.imagen.carga_y_orden.nombre_por_defecto, Texto: 'Nombre por Defecto', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.criterio.nombre'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.imagen.carga_y_orden.nombre_por_defecto'. Configurando su estado 'selected'...
+    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.imagen.carga_y_orden.nombre_por_defecto'. SET_SELECTED a: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato.ruta_completa_y_nombre, Texto: 'Ruta Completa y Nombre', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.formato.superior.nombre_ruta.ruta_completa'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato.ruta_completa_y_nombre'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_orange, Texto: 'Tema Orange', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.orange'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_orange'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.ajustar_a_ancho, Texto: 'Ajustar a Ancho', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.ancho'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.ajustar_a_ancho'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.imagen.carga_y_orden.ascendente, Texto: 'Ascendente', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.direccion.asc'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.imagen.carga_y_orden.ascendente'. Configurando su estado 'selected'...
+    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.imagen.carga_y_orden.ascendente'. SET_SELECTED a: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.ajustar_a_alto, Texto: 'Ajustar a Alto', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.alto'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.ajustar_a_alto'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.mostrar_panel_de_control, Texto: 'Mostrar Panel de Control', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.visible'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.mostrar_panel_de_control'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_espejo_vertical, Texto: 'Botón Espejo Vertical', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.edicion.Espejo_Vertical_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_espejo_vertical'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.edicion.Espejo_Vertical_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_espejo_vertical' SET_SELECTED a: true (basado en config 'interfaz.boton.edicion.Espejo_Vertical_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.imagen.carga_y_orden.fecha_de_creacion, Texto: 'Fecha de Creacion', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.criterio.fecha'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.imagen.carga_y_orden.fecha_de_creacion'. Configurando su estado 'selected'...
+    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.imagen.carga_y_orden.fecha_de_creacion'. SET_SELECTED a: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.tamao_original_100porc, Texto: 'Tamaño Original (100%)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.auto'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.tamao_original_100porc'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_ajustar_al_alto, Texto: 'Botón Ajustar al Alto', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.zoom.Ajustar_al_Alto_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_ajustar_al_alto'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.zoom.Ajustar_al_Alto_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_ajustar_al_alto' SET_SELECTED a: true (basado en config 'interfaz.boton.zoom.Ajustar_al_Alto_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.nombre_ruta_archivo, Texto: 'Nombre/Ruta Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.nombre_ruta'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.nombre_ruta_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.mantener_ventana_siempre_encima, Texto: 'Mantener Ventana Siempre Encima', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.always_on_top'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.mantener_ventana_siempre_encima'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_refrescar, Texto: 'Botón Refrescar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.control.Refrescar_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_refrescar'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.control.Refrescar_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_refrescar' SET_SELECTED a: true (basado en config 'interfaz.boton.control.Refrescar_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.mostrar_boton_de_botones_ocultos, Texto: 'Mostrar Boton de Botones Ocultos', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.especiales.Botones_Ocultos_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.mostrar_boton_de_botones_ocultos'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.especiales.Botones_Ocultos_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.mostrar_boton_de_botones_ocultos' SET_SELECTED a: true (basado en config 'interfaz.boton.especiales.Botones_Ocultos_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual, Texto: 'Mostrar Solo Carpeta Actual', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.config.carga.solo_carpeta'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_subcarpetas, Texto: 'Icono Subcarpetas', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.icono_subc'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_subcarpetas'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.mantener_proporciones, Texto: 'Mantener Proporciones', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.toggle.mantener_proporciones'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.mantener_proporciones'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.mostrar_nombres_en_miniaturas, Texto: 'Mostrar Nombres en Miniaturas', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle_miniature_text'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.mostrar_nombres_en_miniaturas'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_zoom, Texto: 'Botón Zoom', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.zoom.Zoom_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_zoom'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.zoom.Zoom_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_zoom' SET_SELECTED a: true (basado en config 'interfaz.boton.zoom.Zoom_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.proyecto.marcar_para_proyecto, Texto: 'Marcar para Proyecto', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.proyecto.toggle_marca'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.proyecto.marcar_para_proyecto'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.lista_de_archivos, Texto: 'Lista de Archivos', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.file_list'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.lista_de_archivos'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.formato.solo_nombre_de_archivo, Texto: 'Solo Nombre de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.formato.inferior.nombre_ruta.solo_nombre'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.formato.solo_nombre_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_subcarpetas, Texto: 'Botón Subcarpetas', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.toggle.Subcarpetas_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_subcarpetas'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.toggle.Subcarpetas_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_subcarpetas' SET_SELECTED a: true (basado en config 'interfaz.boton.toggle.Subcarpetas_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.zoom_personalizado_porc, Texto: 'Zoom Personalizado %', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.especificado'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.zoom_personalizado_porc'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato.solo_nombre_de_archivo, Texto: 'Solo Nombre de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.formato.superior.nombre_ruta.solo_nombre'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato.solo_nombre_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_recortar, Texto: 'Botón Recortar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.edicion.Recortar_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_recortar'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.edicion.Recortar_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_recortar' SET_SELECTED a: true (basado en config 'interfaz.boton.edicion.Recortar_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.mostrar_panel_de_info, Texto: 'Mostrar Panel de Info.', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.visible'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.mostrar_panel_de_info'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_zoom_automatico, Texto: 'Botón Zoom Automatico', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.zoom.Zoom_Auto_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_zoom_automatico'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.zoom.Zoom_Auto_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_zoom_automatico' SET_SELECTED a: true (basado en config 'interfaz.boton.zoom.Zoom_Auto_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_clear, Texto: 'Tema Clear', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.clear'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_clear'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_pantalla_completa, Texto: 'Botón Pantalla Completa', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.vista.Pantalla_Completa_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_pantalla_completa'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.vista.Pantalla_Completa_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_pantalla_completa' SET_SELECTED a: true (basado en config 'interfaz.boton.vista.Pantalla_Completa_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.comportamiento_general.abrir_ultima_imagen_vista_al_iniciar, Texto: 'Abrir Ultima Imagen Vista al Iniciar', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'Abrir Ultima Imagen Vista al Iniciar'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.comportamiento_general.abrir_ultima_imagen_vista_al_iniciar'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.comportamiento_general.navegacion_circular_wrap_around, Texto: 'Navegación Circular (Wrap Around)', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.toggle.wrap_around'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.comportamiento_general.navegacion_circular_wrap_around'. Configurando su estado 'selected'...
+    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.comportamiento_general.navegacion_circular_wrap_around'. SET_SELECTED a: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.imagen.carga_y_orden.descendente, Texto: 'Descendente', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.direccion.desc'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.imagen.carga_y_orden.descendente'. Configurando su estado 'selected'...
+    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.imagen.carga_y_orden.descendente'. SET_SELECTED a: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_reset_zoom, Texto: 'Botón Reset Zoom', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.zoom.Reset_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_reset_zoom'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.zoom.Reset_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_reset_zoom' SET_SELECTED a: true (basado en config 'interfaz.boton.zoom.Reset_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.dimensiones_originales, Texto: 'Dimensiones Originales', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.dimensiones'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.dimensiones_originales'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.nombre_por_defecto, Texto: 'Nombre Por Defecto', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.config.carga.solo_carpeta'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.nombre_por_defecto'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_rotar_izquierda, Texto: 'Botón Rotar Izquierda', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.edicion.Rotar_Izquierda_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_rotar_izquierda'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.edicion.Rotar_Izquierda_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_rotar_izquierda' SET_SELECTED a: true (basado en config 'interfaz.boton.edicion.Rotar_Izquierda_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.fecha_de_archivo, Texto: 'Fecha de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.fecha_archivo'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.fecha_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.barra_de_menu, Texto: 'Barra de Menú', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.menu_bar'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.barra_de_menu'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.imagen.carga_y_orden.tamao_de_archivo, Texto: 'Tamaño de Archivo', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.criterio.tamano'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.imagen.carga_y_orden.tamao_de_archivo'. Configurando su estado 'selected'...
+    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.imagen.carga_y_orden.tamao_de_archivo'. SET_SELECTED a: false
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.visualizar_botones.boton_borrar, Texto: 'Botón Borrar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'interfaz.boton.control.Borrar_48x48'
+    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.visualizar_botones.boton_borrar'. Configurando su estado 'selected'...
+      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): 'interfaz.boton.control.Borrar_48x48'
+      -> Checkbox 'interfaz.menu.configuracion.visualizar_botones.boton_borrar' SET_SELECTED a: true (basado en config 'interfaz.boton.control.Borrar_48x48.visible')
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_proporciones, Texto: 'Icono Proporciones', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.icono_prop'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_proporciones'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.nombre_ruta_archivo, Texto: 'Nombre/Ruta Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.nombre_ruta'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.nombre_ruta_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
+  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato_de_imagen, Texto: 'Formato de Imagen', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.formato_imagen'
+    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato_de_imagen'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
     -> Config Menús (Vista) OK.
     -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.
   [Apply Config View Internal] Finalizado.
@@ -393,11 +622,11 @@ ToolbarBuilder: Obtenida Action@62ba2242 para CMD_TOGGLE_SUBCARPETAS. Asignando 
   -> MouseListener añadido a scrollListaMiniaturas para gestionar foco.
   -> Configurando Listeners para Iconos de Barra Inferior...
     -> MouseListener añadido a iconoZoomManualLabel.
+  [Worker BG] Files.walk terminado. Archivos encontrados: 170
     -> MouseListener añadido a iconoMantenerProporcionesLabel.
     -> MouseListener añadido a iconoModoSubcarpetasLabel.
 [Controller Internal] Configuración de Listeners de Vista finalizada.
   -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 170
     -> [EDT AppInitializer] Configurando ComponentListener para miniaturas dinámicas...
     -> [EDT AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.
     [EDT Internal] Sincronizando UI Final...
@@ -431,9 +660,9 @@ ToolbarBuilder: Obtenida Action@62ba2242 para CMD_TOGGLE_SUBCARPETAS. Asignando 
     -> Aplicando selección inicial programática al índice: 0
       -> Flag seleccionInicialEnCurso puesto a TRUE.
   [EDT Worker Listener] Procesamiento del resultado finalizado.
+  -> Solicitando repintado inicial de listaMiniaturas.
       [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
       [WindowResized Timer - AppInitializer] Modelo no listo o sin selección oficial, no se actualizan miniaturas.
-  -> Solicitando repintado inicial de listaMiniaturas.
     -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. (Índice que se intentó seleccionar: 0)
     [Asegurar Visibilidad] Índice -1, no se hace nada.
       -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a ListCoordinator para procesar índice inicial: 0
@@ -445,7 +674,7 @@ ToolbarBuilder: Obtenida Action@62ba2242 para CMD_TOGGLE_SUBCARPETAS. Asignando 
 --> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice informativo: 0)
     [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
 --> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: A-gigante de hierro.jpg
-      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
       [BG Img Load] Lectura de imagen desde disco correcta.
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
@@ -504,41 +733,1397 @@ ToolbarBuilder: Obtenida Action@62ba2242 para CMD_TOGGLE_SUBCARPETAS. Asignando 
     [Coordinator Flag] sincronizandoUI -> false
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
---- DEBUG: Acción Detectada ---
-  > Fuente        : JMenuItem (ID: 1334980534)
-  > Event Command : 'cmd.zoom.personalizado'
-  > Config Key    : 'interfaz.menu.zoom.zoom_personalizado_porc'
-  > Comando Canon.: 'cmd.zoom.personalizado'
-  > Action Class  : NINGUNA
-------------------------------
+>>> Coordinator: Recibido de Nombres -> Índice: 2 (Actual Oficial: 0)
+  [ListCoordinator Interno] Procesando índice: 2 (Oficial actual: 0)
+    -> Actualizando índice oficial a: 2
+    -> Delegando carga de imagen al Controller para índice: 2
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice informativo: 2)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Hero_Pack_____Miniature_jpg.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Hero_Pack_____Miniature_jpg.jpg
+      [BG Img Load - pool-1-thread-4] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Hero_Pack_____Miniature_jpg.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 2
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(2)
 
-[VISORCONTROLLER SWITCH] Comando: cmd.zoom.personalizado
-  [VisorController actionPerformed] Acción: Zoom Personalizado desde Menú
-  -> Establecer Zoom Personalizado cancelado por el usuario o entrada vacía.
-  [InfoBarManager Listener] Clic en PorcentajeZoomPersonalizadoLabel.
-  [InfoBarManager] JPopupMenu de porcentaje mostrado.
-  [InfoBarManager Popup] Porcentaje predefinido seleccionado: 125%
-[AplicarModoZoomAction actionPerformed] Aplicando modo: Porcentaje Personalizado
-  [ZoomManager] Modo USER_SPECIFIED_PERCENTAGE: Factor desde config (125.0%) = 1.25 (EncajarTotalmente: true)
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 2
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 2
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(2)
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..10]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 11. Índice relativo seleccionado: 2
+[Controller] Iniciando pre-calentamiento de caché para 11 miniaturas...
+[Controller] 11 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=550,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 11)
+   -> [EDT Miniaturas Update] setSelectedIndex(2) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+      [BG Img Load] Lectura de imagen desde disco correcta.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: Hero_Pack_____Miniature_jpg.jpg
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
   [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
-[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: Porcentaje Personalizado
-[Controller] Limpieza de UI y Modelo completada.
-    -> Action CMD_ZOOM_TIPO_ESPECIFICADO ejecutada.
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+>>> Coordinator: Recibido de Nombres -> Índice: 1 (Actual Oficial: 2)
+  [ListCoordinator Interno] Procesando índice: 1 (Oficial actual: 2)
+    -> Actualizando índice oficial a: 1
+    -> Delegando carga de imagen al Controller para índice: 1
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice informativo: 1)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 1
+    -> Llamando a controller.actualizarModeloYVistaMiniaturas(1)
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 1
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 1
+      [BG Img Load - pool-1-thread-6] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg
+--- FIN actualizarModeloYVistaMiniaturas ---
+>>> Coordinator: Fin seleccionarDesdeNombres(1)
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..9]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 10. Índice relativo seleccionado: 1
+[Controller] Iniciando pre-calentamiento de caché para 10 miniaturas...
+[Controller] 10 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=500,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 10)
+   -> [EDT Miniaturas Update] setSelectedIndex(1) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+      [BG Img Load] Lectura de imagen desde disco correcta.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 1)
+    -> Llamando a helper interno para procesar índice: 2
+  [ListCoordinator Interno] Procesando índice: 2 (Oficial actual: 1)
+    -> Actualizando índice oficial a: 2
+    -> Delegando carga de imagen al Controller para índice: 2
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice informativo: 2)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Hero_Pack_____Miniature_jpg.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Hero_Pack_____Miniature_jpg.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 2
+      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Hero_Pack_____Miniature_jpg.jpg
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 2
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 2
+        -> Índice actual en JList 'Nombres': 1
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 2
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 2
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 2
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 2
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 2
+>>> Coordinator: Fin seleccionarSiguiente
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 2
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..10]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 11. Índice relativo seleccionado: 2
+[Controller] Iniciando pre-calentamiento de caché para 11 miniaturas...
+[Controller] 11 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=550,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 11)
+   -> [EDT Miniaturas Update] setSelectedIndex(2) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+      [BG Img Load] Lectura de imagen desde disco correcta.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: Hero_Pack_____Miniature_jpg.jpg
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 2)
+    -> Llamando a helper interno para procesar índice: 3
+  [ListCoordinator Interno] Procesando índice: 3 (Oficial actual: 2)
+    -> Actualizando índice oficial a: 3
+    -> Delegando carga de imagen al Controller para índice: 3
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice informativo: 3)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Land of The Frost.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: Land of The Frost.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 3
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 3
+      [BG Img Load - pool-1-thread-1] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\Land of The Frost.jpg
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 3
+        -> Índice actual en JList 'Nombres': 2
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 3
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 3
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 3
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 3
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 3
+>>> Coordinator: Fin seleccionarSiguiente
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 3
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..11]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 12. Índice relativo seleccionado: 3
+[Controller] Iniciando pre-calentamiento de caché para 12 miniaturas...
+[Controller] 12 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=600,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 12)
+   -> [EDT Miniaturas Update] setSelectedIndex(3) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+      [BG Img Load] Lectura de imagen desde disco correcta.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: Land of The Frost.jpg
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 3)
+    -> Llamando a helper interno para procesar índice: 4
+  [ListCoordinator Interno] Procesando índice: 4 (Oficial actual: 3)
+    -> Actualizando índice oficial a: 4
+    -> Delegando carga de imagen al Controller para índice: 4
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice informativo: 4)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\bam september.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: bam september.jpg
+      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\bam september.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 4
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 4
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 4
+        -> Índice actual en JList 'Nombres': 3
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 4
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 4
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 4
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 4
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 4
+>>> Coordinator: Fin seleccionarSiguiente
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 4
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..12]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 13. Índice relativo seleccionado: 4
+[Controller] Iniciando pre-calentamiento de caché para 13 miniaturas...
+[Controller] 13 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=650,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 13)
+   -> [EDT Miniaturas Update] setSelectedIndex(4) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+      [BG Img Load] Lectura de imagen desde disco correcta.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: bam september.jpg
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 4)
+    -> Llamando a helper interno para procesar índice: 5
+  [ListCoordinator Interno] Procesando índice: 5 (Oficial actual: 4)
+    -> Actualizando índice oficial a: 5
+    -> Delegando carga de imagen al Controller para índice: 5
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice informativo: 5)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
+      [BG Img Load - pool-1-thread-8] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 5
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 5
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 5
+        -> Índice actual en JList 'Nombres': 4
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 5
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 5
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 5
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 5
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 5
+>>> Coordinator: Fin seleccionarSiguiente
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 5
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..13]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 14. Índice relativo seleccionado: 5
+[Controller] Iniciando pre-calentamiento de caché para 14 miniaturas...
+[Controller] 14 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=700,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 14)
+   -> [EDT Miniaturas Update] setSelectedIndex(5) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+      [BG Img Load] Lectura de imagen desde disco correcta.
+    [Coordinator Flag] sincronizandoUI -> false
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: cyberpunk-city-anime-girl-5k-0e-1.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 5)
+    -> Llamando a helper interno para procesar índice: 6
+  [ListCoordinator Interno] Procesando índice: 6 (Oficial actual: 5)
+    -> Actualizando índice oficial a: 6
+    -> Delegando carga de imagen al Controller para índice: 6
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice informativo: 6)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e.jpg
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: cyberpunk-city-anime-girl-5k-0e.jpg
+      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e.jpg
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 6
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 6
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 6
+        -> Índice actual en JList 'Nombres': 5
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 6
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 6
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 6
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 6
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 6
+>>> Coordinator: Fin seleccionarSiguiente
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 6
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..14]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 15. Índice relativo seleccionado: 6
+[Controller] Iniciando pre-calentamiento de caché para 15 miniaturas...
+[Controller] 15 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=750,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 15)
+   -> [EDT Miniaturas Update] setSelectedIndex(6) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 6)
+    -> Llamando a helper interno para procesar índice: 7
+  [ListCoordinator Interno] Procesando índice: 7 (Oficial actual: 6)
+    -> Actualizando índice oficial a: 7
+    -> Delegando carga de imagen al Controller para índice: 7
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice informativo: 7)
+  -> Cancelando carga de imagen principal anterior...
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1001-Primera_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/1001-Primera_48x48.png
+      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1001-Primera_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 7
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 7
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 7
+        -> Índice actual en JList 'Nombres': 6
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 7
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 7
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 7
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 7
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 7
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 7
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..15]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 16. Índice relativo seleccionado: 7
+[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
+[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=800,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 16)
+   -> [EDT Miniaturas Update] setSelectedIndex(7) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/1001-Primera_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 7)
+    -> Llamando a helper interno para procesar índice: 8
+  [ListCoordinator Interno] Procesando índice: 8 (Oficial actual: 7)
+    -> Actualizando índice oficial a: 8
+    -> Delegando carga de imagen al Controller para índice: 8
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice informativo: 8)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1002-Anterior_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/1002-Anterior_48x48.png
+      [BG Img Load - pool-1-thread-8] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1002-Anterior_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 8
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 8
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 8
+        -> Índice actual en JList 'Nombres': 7
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 8
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 8
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 8
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 8
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 8
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 8
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..16]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=850,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/1002-Anterior_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 8)
+    -> Llamando a helper interno para procesar índice: 9
+  [ListCoordinator Interno] Procesando índice: 9 (Oficial actual: 8)
+    -> Actualizando índice oficial a: 9
+    -> Delegando carga de imagen al Controller para índice: 9
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice informativo: 9)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1003-Siguiente_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/1003-Siguiente_48x48.png
+      [BG Img Load - pool-1-thread-6] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1003-Siguiente_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 9
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 9
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 9
+        -> Índice actual en JList 'Nombres': 8
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 9
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 9
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 9
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 9
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 9
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 9
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [1..17]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/1003-Siguiente_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 9)
+    -> Llamando a helper interno para procesar índice: 10
+  [ListCoordinator Interno] Procesando índice: 10 (Oficial actual: 9)
+    -> Actualizando índice oficial a: 10
+    -> Delegando carga de imagen al Controller para índice: 10
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1004-Ultima_48x48.png' (Índice informativo: 10)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1004-Ultima_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/1004-Ultima_48x48.png
+      [BG Img Load - pool-1-thread-4] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1004-Ultima_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 10
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 10
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 10
+        -> Índice actual en JList 'Nombres': 9
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 10
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 10
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 10
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 10
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 10
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 10
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [2..18]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/1004-Ultima_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 10)
+    -> Llamando a helper interno para procesar índice: 11
+  [ListCoordinator Interno] Procesando índice: 11 (Oficial actual: 10)
+    -> Actualizando índice oficial a: 11
+    -> Delegando carga de imagen al Controller para índice: 11
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2001-rotar_izquierda_48x48.png' (Índice informativo: 11)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2001-rotar_izquierda_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/2001-rotar_izquierda_48x48.png
+      [BG Img Load - pool-1-thread-8] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2001-rotar_izquierda_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 11
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 11
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 11
+        -> Índice actual en JList 'Nombres': 10
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 11
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 11
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 11
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 11
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 11
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 11
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [3..19]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/2001-rotar_izquierda_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 11)
+    -> Llamando a helper interno para procesar índice: 12
+  [ListCoordinator Interno] Procesando índice: 12 (Oficial actual: 11)
+    -> Actualizando índice oficial a: 12
+    -> Delegando carga de imagen al Controller para índice: 12
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2002-rotar_derecha_48x48.png' (Índice informativo: 12)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2002-rotar_derecha_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/2002-rotar_derecha_48x48.png
+      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2002-rotar_derecha_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 12
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 12
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 12
+        -> Índice actual en JList 'Nombres': 11
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 12
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 12
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 12
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 12
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 12
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 12
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [4..20]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/2002-rotar_derecha_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 12)
+    -> Llamando a helper interno para procesar índice: 13
+  [ListCoordinator Interno] Procesando índice: 13 (Oficial actual: 12)
+    -> Actualizando índice oficial a: 13
+    -> Delegando carga de imagen al Controller para índice: 13
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2003-espejo_horizontal_48x48.png' (Índice informativo: 13)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2003-espejo_horizontal_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/2003-espejo_horizontal_48x48.png
+      [BG Img Load - pool-1-thread-8] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2003-espejo_horizontal_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 13
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 13
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 13
+        -> Índice actual en JList 'Nombres': 12
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 13
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 13
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 13
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 13
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 13
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 13
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [5..21]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/2003-espejo_horizontal_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+      [BG Img Load] Tarea interrumpida DESPUÉS de leer (o durante). Descartando.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 13)
+    -> Llamando a helper interno para procesar índice: 14
+  [ListCoordinator Interno] Procesando índice: 14 (Oficial actual: 13)
+    -> Actualizando índice oficial a: 14
+    -> Delegando carga de imagen al Controller para índice: 14
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2004-espejo_vertical_48x48.png' (Índice informativo: 14)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2004-espejo_vertical_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/2004-espejo_vertical_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 14
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 14
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 14
+        -> Índice actual en JList 'Nombres': 13
+        -> Índice diferente. Iniciando cambio de selección...
+      [BG Img Load - pool-1-thread-6] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2004-espejo_vertical_48x48.png
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 14
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 14
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 14
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 14
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 14
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 14
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [6..22]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/2004-espejo_vertical_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 14)
+    -> Llamando a helper interno para procesar índice: 15
+  [ListCoordinator Interno] Procesando índice: 15 (Oficial actual: 14)
+    -> Actualizando índice oficial a: 15
+    -> Delegando carga de imagen al Controller para índice: 15
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2005-recortar_48x48.png' (Índice informativo: 15)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2005-recortar_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/2005-recortar_48x48.png
+      [BG Img Load - pool-1-thread-7] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\2005-recortar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 15
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 15
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 15
+        -> Índice actual en JList 'Nombres': 14
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 15
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 15
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 15
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 15
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 15
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 15
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [7..23]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/2005-recortar_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 15)
+    -> Llamando a helper interno para procesar índice: 16
+  [ListCoordinator Interno] Procesando índice: 16 (Oficial actual: 15)
+    -> Actualizando índice oficial a: 16
+    -> Delegando carga de imagen al Controller para índice: 16
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3001-zoom_48x48.png' (Índice informativo: 16)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3001-zoom_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/3001-zoom_48x48.png
+      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3001-zoom_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 16
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 16
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 16
+        -> Índice actual en JList 'Nombres': 15
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 16
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 16
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 16
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 16
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 16
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 16
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [8..24]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/3001-zoom_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 16)
+    -> Llamando a helper interno para procesar índice: 17
+  [ListCoordinator Interno] Procesando índice: 17 (Oficial actual: 16)
+    -> Actualizando índice oficial a: 17
+    -> Delegando carga de imagen al Controller para índice: 17
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3002-zoom_auto_48x48.png' (Índice informativo: 17)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3002-zoom_auto_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/3002-zoom_auto_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 17
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 17
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 17
+        -> Índice actual en JList 'Nombres': 16
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 17
+      [BG Img Load - pool-1-thread-4] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3002-zoom_auto_48x48.png
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 17
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 17
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 17
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 17
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 17
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [9..25]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/3002-zoom_auto_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 17)
+    -> Llamando a helper interno para procesar índice: 18
+  [ListCoordinator Interno] Procesando índice: 18 (Oficial actual: 17)
+    -> Actualizando índice oficial a: 18
+    -> Delegando carga de imagen al Controller para índice: 18
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3003-ajustar_al_ancho_48x48.png' (Índice informativo: 18)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3003-ajustar_al_ancho_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/3003-ajustar_al_ancho_48x48.png
+      [BG Img Load - pool-1-thread-3] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3003-ajustar_al_ancho_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 18
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 18
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 18
+        -> Índice actual en JList 'Nombres': 17
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 18
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 18
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 18
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 18
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 18
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 18
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [10..26]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/3003-ajustar_al_ancho_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 18)
+    -> Llamando a helper interno para procesar índice: 19
+  [ListCoordinator Interno] Procesando índice: 19 (Oficial actual: 18)
+    -> Actualizando índice oficial a: 19
+    -> Delegando carga de imagen al Controller para índice: 19
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3004-ajustar_al_alto_48x48.png' (Índice informativo: 19)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3004-ajustar_al_alto_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/3004-ajustar_al_alto_48x48.png
+      [BG Img Load - pool-1-thread-7] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3004-ajustar_al_alto_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 19
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 19
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 19
+        -> Índice actual en JList 'Nombres': 18
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 19
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 19
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 19
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 19
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 19
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 19
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [11..27]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/3004-ajustar_al_alto_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 19)
+    -> Llamando a helper interno para procesar índice: 20
+  [ListCoordinator Interno] Procesando índice: 20 (Oficial actual: 19)
+    -> Actualizando índice oficial a: 20
+    -> Delegando carga de imagen al Controller para índice: 20
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3005-escalar_para_ajustar_48x48.png' (Índice informativo: 20)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3005-escalar_para_ajustar_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/3005-escalar_para_ajustar_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 20
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 20
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 20
+        -> Índice actual en JList 'Nombres': 19
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 20
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 20
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 20
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 20
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 20
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3005-escalar_para_ajustar_48x48.png
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 20
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [12..28]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/3005-escalar_para_ajustar_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 20)
+    -> Llamando a helper interno para procesar índice: 21
+  [ListCoordinator Interno] Procesando índice: 21 (Oficial actual: 20)
+    -> Actualizando índice oficial a: 21
+    -> Delegando carga de imagen al Controller para índice: 21
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3006-zoom_fijo_48x48.png' (Índice informativo: 21)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3006-zoom_fijo_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/3006-zoom_fijo_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 21
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 21
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 21
+        -> Índice actual en JList 'Nombres': 20
+        -> Índice diferente. Iniciando cambio de selección...
+      [BG Img Load - pool-1-thread-4] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3006-zoom_fijo_48x48.png
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 21
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 21
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 21
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 21
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 21
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 21
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [13..29]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/3006-zoom_fijo_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 21)
+    -> Llamando a helper interno para procesar índice: 22
+  [ListCoordinator Interno] Procesando índice: 22 (Oficial actual: 21)
+    -> Actualizando índice oficial a: 22
+    -> Delegando carga de imagen al Controller para índice: 22
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3007-zoom_especifico_48x48.png' (Índice informativo: 22)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3007-zoom_especifico_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/3007-zoom_especifico_48x48.png
+      [BG Img Load - pool-1-thread-3] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3007-zoom_especifico_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 22
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 22
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 22
+        -> Índice actual en JList 'Nombres': 21
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 22
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 22
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 22
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 22
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 22
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 22
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [14..30]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/3007-zoom_especifico_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 22)
+    -> Llamando a helper interno para procesar índice: 23
+  [ListCoordinator Interno] Procesando índice: 23 (Oficial actual: 22)
+    -> Actualizando índice oficial a: 23
+    -> Delegando carga de imagen al Controller para índice: 23
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3008-Reset_48x48.png' (Índice informativo: 23)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3008-Reset_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/3008-Reset_48x48.png
+      [BG Img Load - pool-1-thread-6] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\3008-Reset_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 23
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 23
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 23
+        -> Índice actual en JList 'Nombres': 22
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 23
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 23
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 23
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 23
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 23
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 23
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [15..31]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/3008-Reset_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 23)
+    -> Llamando a helper interno para procesar índice: 24
+  [ListCoordinator Interno] Procesando índice: 24 (Oficial actual: 23)
+    -> Actualizando índice oficial a: 24
+    -> Delegando carga de imagen al Controller para índice: 24
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/4001-panel-galeria_48x48.png' (Índice informativo: 24)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4001-panel-galeria_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/4001-panel-galeria_48x48.png
+      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4001-panel-galeria_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 24
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 24
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 24
+        -> Índice actual en JList 'Nombres': 23
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 24
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 24
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 24
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 24
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 24
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 24
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [16..32]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/4001-panel-galeria_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 24)
+    -> Llamando a helper interno para procesar índice: 25
+  [ListCoordinator Interno] Procesando índice: 25 (Oficial actual: 24)
+    -> Actualizando índice oficial a: 25
+    -> Delegando carga de imagen al Controller para índice: 25
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/4002-grid_48x48.png' (Índice informativo: 25)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4002-grid_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/4002-grid_48x48.png
+      [BG Img Load - pool-1-thread-4] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4002-grid_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 25
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 25
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 25
+        -> Índice actual en JList 'Nombres': 24
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 25
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 25
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 25
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 25
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 25
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 25
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [17..33]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/4002-grid_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 25)
+    -> Llamando a helper interno para procesar índice: 26
+  [ListCoordinator Interno] Procesando índice: 26 (Oficial actual: 25)
+    -> Actualizando índice oficial a: 26
+    -> Delegando carga de imagen al Controller para índice: 26
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/4003-pantalla_completa_48x48.png' (Índice informativo: 26)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4003-pantalla_completa_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/4003-pantalla_completa_48x48.png
+      [BG Img Load - pool-1-thread-1] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4003-pantalla_completa_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 26
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 26
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 26
+        -> Índice actual en JList 'Nombres': 25
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 26
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 26
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 26
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 26
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 26
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 26
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [18..34]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/4003-pantalla_completa_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 26)
+    -> Llamando a helper interno para procesar índice: 27
+  [ListCoordinator Interno] Procesando índice: 27 (Oficial actual: 26)
+    -> Actualizando índice oficial a: 27
+    -> Delegando carga de imagen al Controller para índice: 27
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/4004-lista_48x48.png' (Índice informativo: 27)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4004-lista_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/4004-lista_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 27
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 27
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 27
+        -> Índice actual en JList 'Nombres': 26
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 27
+      [BG Img Load - pool-1-thread-6] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4004-lista_48x48.png
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 27
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 27
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 27
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 27
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 27
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [19..35]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/4004-lista_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Siguiente (Actual Oficial: 27)
+    -> Llamando a helper interno para procesar índice: 28
+  [ListCoordinator Interno] Procesando índice: 28 (Oficial actual: 27)
+    -> Actualizando índice oficial a: 28
+    -> Delegando carga de imagen al Controller para índice: 28
+--> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/4005-carrousel_48x48.png' (Índice informativo: 28)
+    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4005-carrousel_48x48.png
+--> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: iconos/black/4005-carrousel_48x48.png
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 28
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 28
+      [BG Img Load - pool-1-thread-2] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\4005-carrousel_48x48.png
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 28
+        -> Índice actual en JList 'Nombres': 27
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 28
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 28
+
+--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 28
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 170
+  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 28
+--- FIN actualizarModeloYVistaMiniaturas ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 28
+>>> Coordinator: Fin seleccionarSiguiente
+      [BG Img Load] Lectura de imagen desde disco correcta.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 28
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
+  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [20..36]
+   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 17. Índice relativo seleccionado: 8
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+   -> [EDT Miniaturas Update] setSelectedIndex(8) en JList miniaturas.
+   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado para: iconos/black/4005-carrousel_48x48.png
+      [EDT Img Update] => Carga exitosa. Actualizando modelo...
+      [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+      [EDT Img Update] => Solicitando a ZoomManager que refresque la vista...
+  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...
+      [EDT Img Update] => FIN ÉXITO (Vista refrescada por ZoomManager).
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
 --- Hook de Cierre Ejecutándose ---
   [Hook - Ventana] Guardando estado de la ventana en config...
     -> Bounds guardados en memoria config: java.awt.Rectangle[x=0,y=0,width=1550,height=500]
   -> Llamando a guardarConfiguracionActual() desde hook...
   [ShutdownHook] Recopilando estado actual para guardar...
     -> Modelo: Guardando estado de zoomHabilitado: true en clave: comportamiento.zoom.manual_inicial_activo
-    -> Modelo: Guardando ultimo_modo_seleccionado: USER_SPECIFIED_PERCENTAGE
+    -> Modelo: Guardando ultimo_modo_seleccionado: FIT_TO_SCREEN
     -> Estado recopilado completo. Tema a guardar: 'clear'
-    -> Llamando a configuration.guardarConfiguracion con 411 claves...
+    -> Llamando a configuration.guardarConfiguracion con 207 claves...
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 411
+Claves a guardar/actualizar: 207
 Archivo de configuración actualizado exitosamente.
   [ShutdownHook] Configuración actual guardada exitosamente.
   [ShutdownHook] Fin guardarConfiguracionActual.

@@ -57,6 +57,7 @@ public class VisorView extends JFrame {
     private JPanel panelModoVisualizadorActual; 
     private JPanel panelInfoSuperior;
     private JPanel bottomStatusBar; 
+    private JLabel formatoImagenInfoLabel; // Para mostrar el formato de la imagen 
 
     // Componentes del Modo Normal/Detalle
     private JSplitPane splitPane;
@@ -344,6 +345,8 @@ public class VisorView extends JFrame {
         this.fechaArchivoInfoLabel = new JLabel("Fch: N/A");   // Placeholder
         this.modoZoomNombreInfoLabel = new JLabel("Modo: N/A");
         this.porcentajeZoomVisualRealInfoLabel = new JLabel("%Z: N/A");
+        this.formatoImagenInfoLabel = new JLabel("Fmt: N/A"); // Placeholder inicial
+        this.formatoImagenInfoLabel.setToolTipText("Formato del archivo de imagen actual (Futuro)");
 
         // Aplicar color de texto (asumimos que todos usarán colorTextoSecundario de uiConfig)
         Color colorTextoInfo = (this.uiConfig != null && this.uiConfig.colorTextoSecundario != null)
@@ -393,27 +396,65 @@ public class VisorView extends JFrame {
         gbc.gridx = 6;
         panel.add(this.fechaArchivoInfoLabel, gbc);
 
-        // 4. Separador Doble/Más Grande (Opcional, puedes usar un Box.createHorizontalStrut o ajustar insets)
-        gbc.gridx = 7;
-        gbc.insets = new Insets(0, 8, 0, 8); // Mayor espaciado para este separador
-        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
-        gbc.insets = new Insets(0, 3, 0, 3); // Restaurar insets para los siguientes
+        // --- AÑADIR FORMATO IMAGEN AQUÍ ---
+        gbc.gridx = 7; // Siguiente posición
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc); // Separador antes de formato
 
-        // 5. Sección Derecha (Estado App) - Alineada a la derecha
-        gbc.gridx = 8;
+        gbc.gridx = 8; // Siguiente posición
+        panel.add(this.formatoImagenInfoLabel, gbc); // Añadir el nuevo JLabel
+
+        // 4. Separador Doble/Más Grande
+        // Los gridx de los siguientes componentes se desplazan
+        gbc.gridx = 9; // Antes era 7
+        gbc.insets = new Insets(0, 8, 0, 8);
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+        gbc.insets = new Insets(0, 3, 0, 3);
+
+        // 5. Sección Derecha (Estado App)
+        gbc.gridx = 10; // Antes era 8
         panel.add(this.indiceTotalInfoLabel, gbc);
 
-        gbc.gridx = 9;
+        gbc.gridx = 11; // Antes era 9
         panel.add(crearSeparadorVerticalBarraInfo(), gbc);
         
-        gbc.gridx = 10;
+        gbc.gridx = 12; // Antes era 10
         panel.add(this.porcentajeZoomVisualRealInfoLabel, gbc);
 
-        gbc.gridx = 11;
+        gbc.gridx = 13; // Antes era 11
         panel.add(crearSeparadorVerticalBarraInfo(), gbc);
 
-        gbc.gridx = 12;
+        gbc.gridx = 14; // Antes era 12
         panel.add(this.modoZoomNombreInfoLabel, gbc);
+        
+//        gbc.gridx = 6;
+//        panel.add(this.fechaArchivoInfoLabel, gbc);
+//
+//        // 4. Separador Doble/Más Grande (Opcional, puedes usar un Box.createHorizontalStrut o ajustar insets)
+//        gbc.gridx = 7;
+//        gbc.insets = new Insets(0, 8, 0, 8); // Mayor espaciado para este separador
+//        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+//        gbc.insets = new Insets(0, 3, 0, 3); // Restaurar insets para los siguientes
+//
+//        gbc.gridx = 8; // Siguiente posición
+//        panel.add(this.formatoImagenInfoLabel, gbc);
+//
+//        // 5. Sección Derecha (Estado App) - Alineada a la derecha
+//        gbc.gridx = 8;
+//        panel.add(this.indiceTotalInfoLabel, gbc);
+//
+//        
+//        gbc.gridx = 9;
+//        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+//        
+//        gbc.gridx = 10;
+//        panel.add(this.porcentajeZoomVisualRealInfoLabel, gbc);
+//
+//        gbc.gridx = 11;
+//        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+//
+//        gbc.gridx = 12;
+//        panel.add(this.modoZoomNombreInfoLabel, gbc);
+        
         
         System.out.println("    [VisorView] PanelInfoSuperior (v2) creado.");
         return panel;
@@ -1352,5 +1393,8 @@ public class VisorView extends JFrame {
     public JButton getModoZoomActualIconoBoton() { return this.modoZoomActualIconoBoton; }
     public JLabel getMensajesAppLabel() { return this.mensajesAppLabel; }
  	
+    public JPanel getPanelBarraSuperior() {return panelInfoSuperior;}
+    public JPanel getPanelBarraEstado() {return bottomStatusBar;}
+    public JLabel getFormatoImagenInfoLabel() {return formatoImagenInfoLabel;}
     
 } // Fin clase VisorView

@@ -1,4 +1,3 @@
-// En src/controlador/actions/vista/ToggleMiniatureTextAction.java
 package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;

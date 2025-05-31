@@ -82,55 +82,8 @@ En este punto tenemos varias herramientas:
 --------------------------------
 
 
-**Prompt para Retomar la Conversación del "Visor/Catalogador de Imágenes"**
 
-**De qué va el programa:**
-Estoy desarrollando una aplicación de escritorio en Java/Swing llamada **"Visor/Catalogador de Imágenes"**. Su propósito principal es ayudarme a **navegar y encontrar imágenes específicas dentro de una gran colección personal (aproximadamente 26,000 imágenes y creciendo) que utilizo para mis proyectos de modelado e impresión 3D.** Cada imagen visualizada corresponde a un archivo comprimido (`.zip`, `.rar`) que contiene los modelos 3D relacionados con esa imagen. Los archivos de imagen están organizados en una estructura de carpetas temáticas que pueden tener múltiples niveles de anidamiento.
-
-El objetivo de la aplicación es **agilizar la búsqueda y selección de estos modelos 3D** permitiendo la visualización rápida de sus imágenes de previsualización, el etiquetado/catalogación (futuro), y la creación de "proyectos" o colecciones de imágenes seleccionadas. Se planea con varios modos de visualización (Normal/Detalle, Grid, Carrusel) y funcionalidades de pantalla completa.
-
-**Qué estamos haciendo ahora (Objetivo Actual de la Conversación):**
-Estamos implementando y refinando **dos barras de información/control** en la aplicación:
-
-1.  **Barra de Información Superior:**
-    *   **Ubicación:** Debajo de la toolbar principal, encima del visor de imagen.
-    *   **Disposición Conceptual:**
-        *   Izquierda (Expansible): Nombre del Archivo.
-        *   Centro: Dimensiones Originales, Tamaño Archivo (futuro), Fecha Archivo (futuro).
-        *   Derecha (después de un separador doble/grande): Índice Actual/Total, % Zoom Visual Resultante, Nombre del Modo de Zoom Activo.
-    *   **Estado Actual:** Visualmente implementada y mostrando información dinámica correctamente (excepto tamaño/fecha).
-
-2.  **Barra de Estado/Control Inferior:**
-    *   **Disposición Conceptual:**
-        *   Izquierda/Centro (Expansible): Ruta completa del archivo.
-        *   Sección Derecha (Controles):
-            *   Indicadores de Icono Clickeables: Zoom Manual (ZM), Mantener Proporciones (Prop), Modo Subcarpetas (SubC). El fondo del icono cambia para indicar estado ON/OFF.
-            *   Control "% Zoom Especificado": Botón/label clickeable que muestra el último % especificado persistente. Al hacer clic, un `JPopupMenu` permite seleccionar % predefinidos o "Otro..." (que pide input). Cualquier selección actualiza el % persistente y activa el modo `ZoomModeEnum.USER_SPECIFIED_PERCENTAGE`.
-            *   Control "Modo de Zoom Actual": Icono del modo activo, clickeable para cambiar a otro modo vía `JPopupMenu` (usando las `AplicarModoZoomAction` existentes).
-        *   Extrema Derecha: `JLabel` para mensajes temporales.
-    *   **Estado Actual:**
-        *   Muestra la ruta del archivo correctamente.
-        *   Muestra los indicadores ZM, Prop, SubC como iconos cuyo fondo cambia con el estado. Son clickeables y activan/desactivan los toggles correspondientes.
-        *   **Pendiente de implementar:** El control "% Zoom Especificado" y el control "Modo de Zoom Actual".
-
-**Interacciones Específicas del Zoom que hemos Discutido:**
-*   El botón "% Zoom Especificado" en la barra inferior siempre muestra el valor de la configuración `"zoom.personalizado.porcentaje"`.
-*   Cuando se activa el modo `ZoomModeEnum.MAINTAIN_CURRENT_ZOOM` ("Zoom Fijo"), el `model.getZoomFactor()` actual se guarda en `"zoom.personalizado.porcentaje"`.
-*   Si el "Zoom Manual" está activo y el modo es `MAINTAIN_CURRENT_ZOOM`, los cambios con la rueda del ratón actualizan `model.getZoomFactor()` Y también actualizan `"zoom.personalizado.porcentaje"` en la configuración.
-*   El ítem de menú "Zoom > Zoom Personalizado %..." pide un input, actualiza `"zoom.personalizado.porcentaje"` en la config, y luego activa el modo `USER_SPECIFIED_PERCENTAGE`.
-
-**Por dónde vamos (Estado de la Implementación):**
-*   La estructura de `VisorView` ha sido refactorizada para ser modular.
-*   El problema de solapamiento de barras está resuelto.
-*   El problema de restauración de tamaño/posición de ventana está resuelto.
-*   `InfoBarManager` está actualizando la barra superior y los indicadores (iconos con fondo) de la barra inferior.
-*   Los indicadores ZM, Prop, SubC en la barra inferior son clickeables y funcionales.
-*   El rendimiento de carga de carpetas grandes ha mejorado.
-
-**Qué nos falta por hacer (Tarea Inmediata Propuesta):**
-Implementar el control **"% Zoom Especificado"** en la barra de estado/control inferior (el botón/label con el `JPopupMenu` para seleccionar/ingresar porcentajes).
-
-**Listado de Clases Clave que me has pasado para Contexto (puedes añadir más si es necesario):**
+**Listado de Clases Clave **
 1.  `vista.VisorView`
 2.  `controlador.VisorController`
 3.  `controlador.AppInitializer`

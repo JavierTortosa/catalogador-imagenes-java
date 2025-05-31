@@ -448,9 +448,13 @@ public class AppInitializer {
             
             
             // --- B.9. CREANDO infoBarManager (gestor de barras de status)
-            this.infoBarManager = new InfoBarManager(this.model, this.view, uiConfigCompleto, comandoToIconKeyMap);
+            this.infoBarManager = new InfoBarManager(this.model, this.view, uiConfigCompleto, comandoToIconKeyMap, this.projectManagerService);
             this.controller.setInfoBarManager(this.infoBarManager);
             System.out.println("    B.X. [EDT] InfoBarManager creado.");
+            
+            
+            
+            
             
          // << --- B.10. NUEVA INYECCIÓN DEL ZOOM A INFOBARMANAGER --- >>
             if (this.zoomManager != null && this.infoBarManager != null) {
@@ -459,6 +463,14 @@ public class AppInitializer {
             } else {
                 System.err.println("ERROR CRÍTICO [AppInitializer EDT]: ZoomManager o InfoBarManager nulos. No se pudo hacer la inyección cruzada.");
             }
+            
+            
+         // Sincronizar estado inicial de radios de formato de InfoBar
+            if (this.controller != null) {
+                this.controller.sincronizarEstadoVisualInicialDeRadiosDeFormato();
+                System.out.println("    B.X. [EDT] Estado inicial de radios de formato InfoBar sincronizado.");
+            }
+            
             
             // --- B.10. CONSTRUIR MENÚ Y TOOLBAR REALES USANDO BUILDERS ---
             List<MenuItemDefinition> menuStructure = uiDefSvcForIcons.generateMenuStructure();
@@ -494,8 +506,6 @@ public class AppInitializer {
             this.view.setActualBotonesMap(toolbarBuilder.getBotonesPorNombre()); // Método para setear el mapa
             System.out.println("    B.9. [EDT] Menú y Toolbar reales construidos y asignados a VisorView.");
 
-            
-            
             
             // --- B.11. FINALIZAR CONFIGURACIÓN DEL CONTROLADOR Y VISTA ---
             //       Estos son los métodos que VisorController llamaba internamente o que AppInitializer gestiona ahora.
@@ -645,9 +655,6 @@ public class AppInitializer {
     public void setControllerParaNotificacion(VisorController controller) {
         this.controllerRefParaNotificacion = controller;
     }
-    
-    
-
     
     
 } // --- FIN CLASE AppInitializer ---

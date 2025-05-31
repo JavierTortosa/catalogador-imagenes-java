@@ -114,6 +114,39 @@ public interface AppActionCommands {
     String CMD_FAVORITO_TOGGLE 				= "cmd.favorito.toggle";       // Para botón/menú Añadir/Quitar Favorito
     String CMD_FAVORITO_MOSTRAR_LISTA 		= "cmd.favorito.mostrar"; // Para botón/menú Ver lista de Favoritos
 
+    // --- Comandos para Configurar Visibilidad y Formato de Barras de Información ---
+
+    // -- Checkboxes para visibilidad de barras completas --
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_VISIBLE = "cmd.infobar.config.toggle.superior.visible";
+    String CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_VISIBLE = "cmd.infobar.config.toggle.inferior.visible";
+
+    // -- Checkboxes para visibilidad de elementos en Barra Superior --
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_NOMBRE_RUTA = "cmd.infobar.config.toggle.superior.nombre_ruta";
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_INDICE_TOTAL = "cmd.infobar.config.toggle.superior.indice_total";
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_DIMENSIONES = "cmd.infobar.config.toggle.superior.dimensiones";
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_TAMANO_ARCHIVO = "cmd.infobar.config.toggle.superior.tamano_archivo";
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FECHA_ARCHIVO = "cmd.infobar.config.toggle.superior.fecha_archivo";
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FORMATO_IMAGEN = "cmd.infobar.config.toggle.superior.formato_imagen"; // Para futuro
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_MODO_ZOOM = "cmd.infobar.config.toggle.superior.modo_zoom";
+    String CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_ZOOM_REAL_PCT = "cmd.infobar.config.toggle.superior.zoom_real_pct";
+
+    // -- RadioButtons para formato de Nombre/Ruta en Barra Superior --
+    String CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_SOLO_NOMBRE = "cmd.infobar.config.formato.superior.nombre_ruta.solo_nombre";
+    String CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_RUTA_COMPLETA = "cmd.infobar.config.formato.superior.nombre_ruta.ruta_completa";
+
+    // -- Checkboxes para visibilidad de elementos en Barra Inferior --
+    String CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_NOMBRE_RUTA = "cmd.infobar.config.toggle.inferior.nombre_ruta";
+    String CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_ZM = "cmd.infobar.config.toggle.inferior.icono_zm";
+    String CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_PROP = "cmd.infobar.config.toggle.inferior.icono_prop";
+    String CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_SUBC = "cmd.infobar.config.toggle.inferior.icono_subc";
+    String CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_ZOOM_PCT = "cmd.infobar.config.toggle.inferior.ctrl_zoom_pct";
+    String CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_MODO_ZOOM = "cmd.infobar.config.toggle.inferior.ctrl_modo_zoom";
+    String CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_MENSAJES_APP = "cmd.infobar.config.toggle.inferior.mensajes_app";
+
+    // -- RadioButtons para formato de Nombre/Ruta en Barra Inferior --
+    String CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE = "cmd.infobar.config.formato.inferior.nombre_ruta.solo_nombre";
+    String CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA = "cmd.infobar.config.formato.inferior.nombre_ruta.ruta_completa";
+    
     // --- Comandos para IDENTIFICAR elementos de UI (usados como ActionCommand en Fallback) ---
     // Estos NO tendrán una Action asociada en el actionMap principal.
     // Usaremos las claves largas de config directamente como identificadores.

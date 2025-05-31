@@ -1,4 +1,3 @@
-// En src/controlador/actions/vista/MostrarDialogoListaAction.java
 package controlador.actions.vista;
 
 import java.awt.BorderLayout; // Para el layout del diálogo
