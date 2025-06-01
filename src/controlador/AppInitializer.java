@@ -70,6 +70,7 @@ public class AppInitializer {
     private EditionManager editionManager; 
     private FileOperationsManager fileOperationsManager;
     private InfoBarManager infoBarManager;
+    private boolean zoomManualEstabaActivoAntesDeError = false;
 
     // private ViewUIManager viewUIManager;
     // private ProjectActionsManager projectActionsManager;

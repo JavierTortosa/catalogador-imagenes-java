@@ -38,22 +38,57 @@ public class ZoomManager {
 
     // --- SECCIÓN 3: MÉTODOS PARA GESTIONAR EL MODO DE ZOOM MANUAL ---
 
-    /**
-     * Activa o desactiva el modo de zoom manual en el modelo.
-     * Si el estado cambia, también resetea el zoom y paneo actuales del modelo.
-     * La actualización de la UI (botones, actions, repintado de imagen) la debe
-     * orquestar el llamador (la Action o el VisorController) DESPUÉS de llamar a este método.
-     *
-     * @param activar true para activar el zoom manual, false para desactivarlo.
-     * @return true si el estado del zoom manual en el modelo realmente cambió, false en caso contrario.
-     */
+//    /**
+//     * Activa o desactiva el modo de zoom manual en el modelo.
+//     * Si el estado cambia, también resetea el zoom y paneo actuales del modelo.
+//     * La actualización de la UI (botones, actions, repintado de imagen) la debe
+//     * orquestar el llamador (la Action o el VisorController) DESPUÉS de llamar a este método.
+//     *
+//     * @param activar true para activar el zoom manual, false para desactivarlo.
+//     * @return true si el estado del zoom manual en el modelo realmente cambió, false en caso contrario.
+//     */
+//    public boolean activarODesactivarZoomManual(boolean activar) {
+//        if (this.model == null) return false;
+//        if (this.model.isZoomHabilitado() == activar) return false;
+//        this.model.setZoomHabilitado(activar);
+//        this.model.resetZoomState(); 
+//        return true;
+//    }
+    
+    
     public boolean activarODesactivarZoomManual(boolean activar) {
-        if (this.model == null) return false;
-        if (this.model.isZoomHabilitado() == activar) return false;
-        this.model.setZoomHabilitado(activar);
-        this.model.resetZoomState(); 
-        return true;
+        if (this.model == null) {
+            System.err.println("ERROR [ZoomManager.activarODesactivarZoomManual]: Modelo es null.");
+            return false;
+        }
+        if (this.model.isZoomHabilitado() == activar) {
+            // System.out.println("[ZoomManager] Zoom manual ya está en estado: " + activar + ". No se realiza cambio.");
+            return false; // No hubo cambio
+        }
+
+        this.model.setZoomHabilitado(activar); // Actualiza el estado en el modelo
+        System.out.println("[ZoomManager] Zoom manual " + (activar ? "ACTIVADO" : "DESACTIVADO") + " en el modelo.");
+
+        if (!activar) { // Si se está desactivando
+            this.model.resetZoomState(); // Resetea factor de zoom y offsets en el modelo
+            System.out.println("[ZoomManager] Estado de zoom/pan reseteado en el modelo porque el zoom manual se desactivó.");
+        }
+
+        // --- ¡AQUÍ! ACTUALIZAR LA CONFIGURACIÓN ---
+        if (this.configuration != null) {
+            this.configuration.setString(
+                ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO,
+                String.valueOf(activar) // Guardar el nuevo estado
+            );
+            System.out.println("  [ZoomManager] Configuración '" + ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO + "' actualizada a: " + activar);
+        } else {
+            System.err.println("WARN [ZoomManager.activarODesactivarZoomManual]: ConfigurationManager es null. No se pudo guardar el estado del zoom manual en config.");
+        }
+        // --- FIN ACTUALIZAR CONFIGURACIÓN ---
+
+        return true; // Hubo cambio
     }
+    
 
     /**
      * Devuelve si el modo de zoom manual está actualmente activo según el modelo.
@@ -208,117 +243,9 @@ public class ZoomManager {
         model.setZoomFactor(nuevoFactorCalculado); 
         refrescarVistaPrincipalConEstadoActualDelModelo(); // Llama a ImageDisplayUtils y luego a view.setImagenMostrada
         return modoAnterior != modoDeseado;
-    }
+    } // FIN metodo aplicarModoDeZoom
     
     
-
-    
-    
-    
-    /**
-     * Aplica un modo de zoom específico (ej. ajustar a ancho, alto, pantalla).
-     * Calcula el factor de zoom necesario, actualiza el modelo y luego
-     * solicita un refresco de la vista.
-     * @param modoDeseado El tipo de zoom a aplicar, según la enum {@link ZoomModeEnum}.
-     */
-    public void aplicarModoDeZoomVERYOLD(ZoomModeEnum modoDeseado) {
-        // 5.1. Validaciones iniciales.
-        if (model == null || view == null || view.getEtiquetaImagen() == null || configuration == null) {
-            System.err.println("ERROR [ZoomManager.aplicarModoDeZoom]: Dependencias (Modelo, Vista, EtiquetaImagen o Config) nulas.");
-            return;
-        }
-        
-        BufferedImage imgOriginal = model.getCurrentImage();
-        if (imgOriginal == null) {
-            System.out.println("[ZoomManager.aplicarModoDeZoom] No hay imagen original en el modelo para aplicar modo de zoom.");
-            if (view != null) view.limpiarImagenMostrada(); // Limpiar vista si no hay imagen
-            return;
-        }
-
-        // 5.2. Obtener dimensiones del área de visualización.
-        int etiquetaAncho = view.getEtiquetaImagen().getWidth();
-        int etiquetaAlto = view.getEtiquetaImagen().getHeight();
-
-        // Si la etiqueta aún no tiene dimensiones (ej. al inicio), no se puede calcular el zoom de ajuste.
-        if (etiquetaAncho <= 0 || etiquetaAlto <= 0) {
-            System.out.println("[ZoomManager.aplicarModoDeZoom] WARN: EtiquetaImagen sin tamaño válido (" + etiquetaAncho + "x" + etiquetaAlto + "). No se puede aplicar modo de zoom de ajuste.");
-            // Podríamos optar por un zoom de 100% como fallback o simplemente no hacer nada.
-            // Si se aplica DISPLAY_ORIGINAL o USER_SPECIFIED, estos podrían funcionar.
-            if (modoDeseado != ZoomModeEnum.DISPLAY_ORIGINAL && modoDeseado != ZoomModeEnum.USER_SPECIFIED_PERCENTAGE && modoDeseado != ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
-                 return;
-            }
-        }
-
-        // 5.3. Variable para el nuevo factor de zoom.
-        double nuevoFactorCalculado = model.getZoomFactor(); // Por defecto, no cambiar si el modo no lo especifica.
-        // 5.4. Leer la preferencia de mantener proporciones del modelo.
-        boolean mantenerProp = model.isMantenerProporcion();
-
-        // 5.5. La mayoría de los modos de zoom predefinidos también resetean el paneo para centrar la imagen.
-        model.resetPan(); 
-
-        // 5.6. Calcular el nuevo factor de zoom según el modo deseado.
-        switch (modoDeseado) {
-            case DISPLAY_ORIGINAL: // Equivalente a "Zoom Automático" si este es 100%
-                nuevoFactorCalculado = 1.0;
-                break;
-            case FIT_TO_WIDTH:
-                if (imgOriginal.getWidth() > 0) { // Evitar división por cero
-                    nuevoFactorCalculado = (double) etiquetaAncho / imgOriginal.getWidth();
-                    if (mantenerProp && imgOriginal.getHeight() > 0) {
-                        // Si al ajustar al ancho, el alto se sale, entonces ajustar por alto también.
-                        if ((imgOriginal.getHeight() * nuevoFactorCalculado) > etiquetaAlto) {
-                            nuevoFactorCalculado = (double) etiquetaAlto / imgOriginal.getHeight();
-                        }
-                    }
-                }
-                break;
-            case FIT_TO_HEIGHT:
-                if (imgOriginal.getHeight() > 0) { // Evitar división por cero
-                    nuevoFactorCalculado = (double) etiquetaAlto / imgOriginal.getHeight();
-                    if (mantenerProp && imgOriginal.getWidth() > 0) {
-                        // Si al ajustar al alto, el ancho se sale, entonces ajustar por ancho también.
-                        if ((imgOriginal.getWidth() * nuevoFactorCalculado) > etiquetaAncho) {
-                            nuevoFactorCalculado = (double) etiquetaAncho / imgOriginal.getWidth();
-                        }
-                    }
-                }
-                break;
-            case FIT_TO_SCREEN: // Ajustar para que la imagen quepa completamente
-                if (imgOriginal.getWidth() > 0 && imgOriginal.getHeight() > 0) {
-                    double ratioAncho = (double) etiquetaAncho / imgOriginal.getWidth();
-                    double ratioAlto = (double) etiquetaAlto / imgOriginal.getHeight();
-                    nuevoFactorCalculado = Math.min(ratioAncho, ratioAlto); // Usar el menor para que quepa
-                }
-                break;
-            case MAINTAIN_CURRENT_ZOOM: // "Zoom Fijo" al cambiar de imagen
-                // Este modo no cambia el zoom actual, sino que lo preserva para la siguiente imagen.
-                // La lógica de aplicación real de este modo ocurre cuando se carga una NUEVA imagen.
-                // Al seleccionar este modo para la imagen ACTUAL, simplemente no se cambia el zoom.
-                System.out.println("  [ZoomManager] Modo MAINTAIN_CURRENT_ZOOM seleccionado. Factor actual se mantiene.");
-                // No se hace nada al factor, se usará el que ya tiene el modelo.
-                break;
-            case USER_SPECIFIED_PERCENTAGE: // "Zoom Fijado" a un %
-                // Leer el porcentaje de la configuración.
-                double porcentajeConfigurado = configuration.getDouble("zoom.personalizado.porcentaje", 100.0);
-                nuevoFactorCalculado = porcentajeConfigurado / 100.0;
-                break;
-            default:
-                System.err.println("WARN [ZoomManager.aplicarModoDeZoom]: Modo de zoom no reconocido: " + modoDeseado);
-                // Mantener el factor actual o volver a 1.0 como fallback.
-                // nuevoFactorCalculado = 1.0;
-                break;
-        }
-        
-        // 5.7. Aplicar el nuevo factor de zoom (con límites) al modelo.
-        model.setZoomFactor(Math.max(0.01, nuevoFactorCalculado)); // Evitar zoom <= 0. VisorModel.setZoomFactor también tiene límites.
-        System.out.println("  [ZoomManager] Modo de zoom '" + modoDeseado + "' aplicado. Nuevo factor en modelo: " + model.getZoomFactor());
-
-        // 5.8. Refrescar la vista principal para mostrar los cambios.
-        refrescarVistaPrincipalConEstadoActualDelModelo();
-       
-    }// FIN del metodo aplicarModoDeZoom
-
     /**
      * Resetea el zoom y paneo en el modelo y luego solicita a la vista que se refresque.
      * Normalmente llamado por ResetZoomAction.

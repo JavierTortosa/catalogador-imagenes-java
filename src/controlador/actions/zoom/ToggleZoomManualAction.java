@@ -2,12 +2,15 @@ package controlador.actions.zoom;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+
 import controlador.commands.AppActionCommands;
 import controlador.managers.ZoomManager;
 import modelo.VisorModel;
+import servicios.ConfigurationManager;
 import vista.VisorView;
 
 public class ToggleZoomManualAction extends AbstractAction {
@@ -16,9 +19,9 @@ public class ToggleZoomManualAction extends AbstractAction {
 
     // --- SECCIÓN 1: CAMPOS DE INSTANCIA (DEPENDENCIAS) ---
     private ZoomManager zoomManager;
-    private Action resetZoomActionRef; // Referencia a la Action de Reset para habilitarla/deshabilitarla
-    private VisorView viewRef;         // Para actualizar controles específicos de la UI (ej. aspecto del botón)
-    private VisorModel modelRef;       // Para leer el estado inicial y actual del zoom manual
+    private Action resetZoomActionRef; 				// Referencia a la Action de Reset para habilitarla/deshabilitarla
+    private VisorView viewRef;         				// Para actualizar controles específicos de la UI (ej. aspecto del botón)
+    private VisorModel modelRef;      				// Para leer el estado inicial y actual del zoom manual
 
     // --- SECCIÓN 2: CONSTRUCTOR REFACTORIZADO ---
     public ToggleZoomManualAction(String name,
@@ -34,7 +37,7 @@ public class ToggleZoomManualAction extends AbstractAction {
         this.resetZoomActionRef = Objects.requireNonNull(resetZoomActionRef, "ResetZoomActionRef no puede ser null en ToggleZoomManualAction");
         this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null en ToggleZoomManualAction");
         this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null en ToggleZoomManualAction");
-
+        
         // 2.2. Establecer propiedades estándar de la Action.
         putValue(Action.SHORT_DESCRIPTION, "Activar o desactivar el zoom y desplazamiento manual de la imagen");
         putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);

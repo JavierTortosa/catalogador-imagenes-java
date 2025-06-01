@@ -4,14 +4,13 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.FontMetrics; 
-
+import java.awt.FontMetrics;
 // Imports para el paintComponent de etiquetaImagen (si está aquí)
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image; 
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.RenderingHints;
 import java.util.HashMap;
@@ -42,6 +41,7 @@ import javax.swing.border.Border; // Para crearSeparadorVerticalBarraInfo y otro
 import javax.swing.border.TitledBorder; // Para panelIzquierdo
 
 import modelo.VisorModel;
+import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
 import vista.config.ViewUIConfig;
 import vista.renderers.MiniaturaListCellRenderer; // Asumiendo que lo usas en inicializarPanelImagenesMiniatura
@@ -116,91 +116,157 @@ public class VisorView extends JFrame {
     private final Color colorCuadroOscuro = new Color(255, 255, 255);
     private final int TAMANO_CUADRO = 16;
 
+    // --- Icono de Error de Imagen
+    private ImageIcon iconoErrorGeneral;
+    //private ImageIcon iconoErrorOriginal;
 
-    /**
-     * Constructor principal de la ventana VisorView.
-     * Inicializa las dependencias y llama al método de construcción de la UI.
-     *
-     * @param miniaturaPanelHeight Altura deseada para el scrollpane de miniaturas.
-     * @param config Objeto ViewUIConfig con parámetros de apariencia.
-     * @param modelo El VisorModel principal.
-     * @param servicioThumbs El ThumbnailService para renderers.
-     * @param menuBar La JMenuBar pre-construida.
-     * @param toolbarPanel El JPanel de la toolbar pre-construido.
-     * @param menuItems Mapa de JMenuItems generados.
-     * @param botones Mapa de JButtons generados.
-     */
-    public VisorView(
-            int miniaturaPanelHeight,
-            ViewUIConfig config,
-            VisorModel modelo,
-            ThumbnailService servicioThumbs,
-            JMenuBar menuBar,
-            JPanel toolbarPanel,
-            Map<String, JMenuItem> menuItems,
-            Map<String, JButton> botones
-    ) {
-        super("Visor/Catalogador de Imágenes"); 
-        System.out.println("[VisorView Constructor] Iniciando...");
+ // En package vista;
+ // ... (tus imports) ...
 
-        this.uiConfig = Objects.requireNonNull(config, "ViewUIConfig no puede ser null");
-        this.model = Objects.requireNonNull(modelo, "VisorModel no puede ser null");
-        this.servicioThumbs = Objects.requireNonNull(servicioThumbs, "ThumbnailService no puede ser null");
-        this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100;
 
-        this.mainMenuBar = menuBar;
-        this.mainToolbarPanel = toolbarPanel;
-        this.panelDeBotones = this.mainToolbarPanel; 
-        this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();
-        this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();
+     /**
+      * Constructor principal de la ventana VisorView.
+      * Inicializa las dependencias y llama al método de construcción de la UI.
+      *
+      * @param miniaturaPanelHeight Altura deseada para el scrollpane de miniaturas.
+      * @param config Objeto ViewUIConfig con parámetros de apariencia y referencias (como IconUtils).
+      * @param modelo El VisorModel principal.
+      * @param servicioThumbs El ThumbnailService para renderers de miniaturas.
+      * @param menuBar La JMenuBar pre-construida (o un placeholder si se construye después).
+      * @param toolbarPanel El JPanel de la toolbar pre-construido (o un placeholder).
+      * @param menuItems Mapa de JMenuItems generados (puede ser vacío inicialmente).
+      * @param botones Mapa de JButtons generados (puede ser vacío inicialmente).
+      */
+     public VisorView(
+             int miniaturaPanelHeight,
+             ViewUIConfig config,        // Contiene IconUtils, ConfigurationManager, colores, etc.
+             VisorModel modelo,
+             ThumbnailService servicioThumbs,
+             JMenuBar menuBar,           // Puede ser un placeholder inicial
+             JPanel toolbarPanel,        // Puede ser un placeholder inicial
+             Map<String, JMenuItem> menuItems, // Puede ser un placeholder inicial
+             Map<String, JButton> botones      // Puede ser un placeholder inicial
+     ) {
+         super("Visor/Catalogador de Imágenes"); // Título de la ventana
+         System.out.println("[VisorView Constructor] Iniciando constructor principal de VisorView...");
 
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLayout(new BorderLayout()); 
-        if (this.uiConfig != null && this.uiConfig.colorFondoPrincipal != null) {
-            getContentPane().setBackground(this.uiConfig.colorFondoPrincipal);
-        } else {
-            getContentPane().setBackground(Color.LIGHT_GRAY); // Fallback
-        }
+         // --- 1. ASIGNACIÓN DE DEPENDENCIAS INYECTADAS ---
+         //    Usa Objects.requireNonNull para asegurar que las dependencias críticas no sean nulas.
+         this.uiConfig = Objects.requireNonNull(config, "ViewUIConfig (config) no puede ser null en VisorView constructor");
+         this.model = Objects.requireNonNull(modelo, "VisorModel (modelo) no puede ser null en VisorView constructor");
+         this.servicioThumbs = Objects.requireNonNull(servicioThumbs, "ThumbnailService (servicioThumbs) no puede ser null en VisorView constructor");
+         
+         // Determinar la altura del panel de miniaturas, con un fallback.
+         this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100; // Ejemplo: 100px si no se especifica > 0
 
-        // Llamada al método de inicialización refactorizado
-        inicializarComponentes(this.model.getModeloLista());
+         // Asignar placeholders o componentes reales de menú/toolbar. Serán actualizados después por el Controller si es necesario.
+         this.mainMenuBar = (menuBar != null) ? menuBar : new JMenuBar(); // Usar placeholder si es null
+         this.mainToolbarPanel = (toolbarPanel != null) ? toolbarPanel : new JPanel(); // Usar placeholder si es null
+         this.panelDeBotones = this.mainToolbarPanel; // Referencia inicial
+         
+         // Mapas para componentes de UI (botones/menús) que serán poblados/actualizados por el Controller.
+         this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();
+         this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();
 
-        // --- Restaurar Estado de la Ventana (COPIA TU LÓGICA AQUÍ) ---
-        // Ejemplo simplificado (debes usar tu lógica completa de ConfigurationManager):
-        if (this.uiConfig.configurationManager != null) {
-            boolean wasMaximized = this.uiConfig.configurationManager.getBoolean("window.maximized", false);
-            if (wasMaximized) {
-                setExtendedState(JFrame.MAXIMIZED_BOTH);
-            } else {
-                int x = this.uiConfig.configurationManager.getInt("window.x", -1);
-                int y = this.uiConfig.configurationManager.getInt("window.y", -1);
-                int w = this.uiConfig.configurationManager.getInt("window.width", 1280); // Default más grande
-                int h = this.uiConfig.configurationManager.getInt("window.height", 720); // Default más grande
-                
-                if (w > 50 && h > 50 && x != -1 && y != -1) { // Chequeo básico
-                     setBounds(x, y, w, h);
-                } else {
-                     setSize(w,h);
-                     setLocationRelativeTo(null); // Centrar si no hay posición guardada
-                }
-            }
-        } else {
-            setSize(1280, 720);
-            setLocationRelativeTo(null);
-        }
-        
-        // Ajuste final del divisor del JSplitPane
-        SwingUtilities.invokeLater(() -> {
-            if (this.splitPane != null) {
-                // Podrías leer esta posición inicial de la configuración también
-                this.splitPane.setDividerLocation(0.25); 
-                System.out.println("  [Constructor EDT] Divisor JSplitPane establecido.");
-            }
-        });
+         // --- 2. CONFIGURACIÓN BÁSICA DEL JFRAME ---
+         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Comportamiento al cerrar la ventana.
+         setLayout(new BorderLayout()); // Establecer el layout principal del content pane.
+         
+         // Establecer color de fondo principal del content pane.
+         if (this.uiConfig.colorFondoPrincipal != null) {
+             getContentPane().setBackground(this.uiConfig.colorFondoPrincipal);
+         } else {
+             getContentPane().setBackground(Color.LIGHT_GRAY); // Color de fallback.
+             System.err.println("WARN [VisorView Constructor]: uiConfig.colorFondoPrincipal es null. Usando fallback LIGHT_GRAY.");
+         }
 
-        System.out.println("[VisorView Constructor] Finalizado.");
-        // setVisible(true) será llamado por AppInitializer o VisorController
-    }
+         // --- 3. CARGA DEL ICONO DE ERROR GENERAL (ESCALADO PARA EL VISOR PRINCIPAL) ---
+         //    Este icono se mostrará en etiquetaImagen cuando no se pueda cargar una imagen.
+         if (this.uiConfig.iconUtils != null) {
+             // Definir el tamaño deseado para el icono de error en el visor principal.
+             // Estos valores pueden ajustarse según tus preferencias visuales.
+             int anchoIconoErrorVisor = 128;  // Ejemplo: 128 píxeles de ancho
+             int altoIconoErrorVisor = 128;   // Ejemplo: 128 píxeles de alto
+                                              // Si quieres mantener proporción, pon -1 en una de las dimensiones, ej. (128, -1)
+
+             this.iconoErrorGeneral = this.uiConfig.iconUtils.getScaledCommonIcon(
+                 "imagen-rota.png",           // Nombre del archivo del icono (en /iconos/comunes/)
+                 anchoIconoErrorVisor,        // Ancho deseado para el visor principal
+                 altoIconoErrorVisor          // Alto deseado para el visor principal
+             );
+
+             if (this.iconoErrorGeneral == null) {
+                 System.err.println("WARN [VisorView Constructor]: No se pudo cargar o escalar el icono de error general 'imagen-rota.png' para el visor principal. Se usará texto de error.");
+             } else {
+                 System.out.println("  [VisorView Constructor] Icono de error general ('imagen-rota.png') cargado y escalado para visor principal a: " +
+                                    anchoIconoErrorVisor + "x" + altoIconoErrorVisor);
+             }
+         } else {
+             this.iconoErrorGeneral = null; // No se puede cargar el icono si iconUtils es null.
+             System.err.println("WARN [VisorView Constructor]: uiConfig.iconUtils es null. No se pudo cargar/inicializar iconoErrorGeneral.");
+         }
+         
+         // --- 4. INICIALIZACIÓN DE COMPONENTES DE LA UI ---
+         //    Llama al método que construye y ensambla los paneles y componentes internos.
+         //    Se pasa el modelo de lista del VisorModel para la lista de nombres de archivo.
+         if (this.model.getModeloLista() != null) {
+             inicializarComponentes(this.model.getModeloLista());
+         } else {
+             System.err.println("ERROR CRÍTICO [VisorView Constructor]: this.model.getModeloLista() es null. Inicializando componentes con modelo vacío.");
+             inicializarComponentes(new DefaultListModel<>()); // Fallback para evitar NullPointerException
+         }
+
+         // --- 5. RESTAURAR ESTADO DE LA VENTANA (TAMAÑO, POSICIÓN, MAXIMIZADO) ---
+         //    Se lee desde ConfigurationManager (accesible a través de uiConfig).
+         if (this.uiConfig.configurationManager != null) {
+             boolean wasMaximized = this.uiConfig.configurationManager.getBoolean(ConfigurationManager.KEY_WINDOW_MAXIMIZED, false);
+             if (wasMaximized) {
+                 setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximizar la ventana.
+             } else {
+                 // Obtener dimensiones y posición guardadas, con valores por defecto razonables.
+                 int x = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_X, -1);
+                 int y = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_Y, -1);
+                 int w = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_WIDTH, 1280); // Default ancho
+                 int h = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_HEIGHT, 720);  // Default alto
+                 
+                 // Aplicar solo si las dimensiones y posición son válidas.
+                 if (w > 50 && h > 50 && x != -1 && y != -1) { 
+                      setBounds(x, y, w, h);
+                 } else { // Si no hay posición guardada o es inválida, usar tamaño por defecto y centrar.
+                      setSize(w,h);
+                      setLocationRelativeTo(null); 
+                 }
+             }
+             System.out.println("  [VisorView Constructor] Estado de la ventana (tamaño/posición) restaurado desde configuración.");
+         } else {
+             // Fallback si ConfigurationManager no está disponible en uiConfig.
+             setSize(1280, 720); // Tamaño por defecto.
+             setLocationRelativeTo(null); // Centrar en pantalla.
+             System.err.println("WARN [VisorView Constructor]: uiConfig.configurationManager es null. Usando tamaño/posición de ventana por defecto.");
+         }
+         
+         // --- 6. AJUSTE FINAL DEL DIVISOR DEL JSPLITPANE (SI EXISTE) ---
+         //    Se usa invokeLater para asegurar que el JSplitPane ya esté realizado y tenga dimensiones.
+         SwingUtilities.invokeLater(() -> {
+             if (this.splitPane != null) { // splitPane se inicializa en crearPanelModoNormal
+                 // Leer la posición inicial del divisor desde la configuración o usar un default.
+                 double dividerLocationPercentage = 0.25; // Ejemplo: 25% para el panel izquierdo.
+                 if (this.uiConfig.configurationManager != null) {
+                     // Ejemplo de cómo podrías guardar/leer esto:
+                     // dividerLocationPercentage = this.uiConfig.configurationManager.getDouble("ui.splitpane.main.dividerLocation", 0.25);
+                 }
+                 this.splitPane.setDividerLocation(dividerLocationPercentage); 
+                 System.out.println("  [VisorView Constructor - EDT] Divisor del JSplitPane principal establecido a " + (dividerLocationPercentage * 100) + "%.");
+             } else {
+                 System.err.println("WARN [VisorView Constructor - EDT]: splitPane es null. No se pudo establecer la posición del divisor.");
+             }
+         });
+
+         System.out.println("[VisorView Constructor] Constructor de VisorView finalizado.");
+         // setVisible(true) NO se llama aquí. Será llamado por AppInitializer o VisorController
+         // después de que toda la inicialización esté completa.
+     }
+
 
     /**
      * Orquesta la creación y ensamblaje de todos los componentes de la UI.
@@ -426,43 +492,11 @@ public class VisorView extends JFrame {
         gbc.gridx = 14; // Antes era 12
         panel.add(this.modoZoomNombreInfoLabel, gbc);
         
-//        gbc.gridx = 6;
-//        panel.add(this.fechaArchivoInfoLabel, gbc);
-//
-//        // 4. Separador Doble/Más Grande (Opcional, puedes usar un Box.createHorizontalStrut o ajustar insets)
-//        gbc.gridx = 7;
-//        gbc.insets = new Insets(0, 8, 0, 8); // Mayor espaciado para este separador
-//        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
-//        gbc.insets = new Insets(0, 3, 0, 3); // Restaurar insets para los siguientes
-//
-//        gbc.gridx = 8; // Siguiente posición
-//        panel.add(this.formatoImagenInfoLabel, gbc);
-//
-//        // 5. Sección Derecha (Estado App) - Alineada a la derecha
-//        gbc.gridx = 8;
-//        panel.add(this.indiceTotalInfoLabel, gbc);
-//
-//        
-//        gbc.gridx = 9;
-//        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
-//        
-//        gbc.gridx = 10;
-//        panel.add(this.porcentajeZoomVisualRealInfoLabel, gbc);
-//
-//        gbc.gridx = 11;
-//        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
-//
-//        gbc.gridx = 12;
-//        panel.add(this.modoZoomNombreInfoLabel, gbc);
-        
-        
         System.out.println("    [VisorView] PanelInfoSuperior (v2) creado.");
         return panel;
     } // FIN del metodo crearPanelInfoSuperior
     
     
- // En vista.VisorView.java
-
     /**
      * Crea y configura el panel para la barra de estado/control inferior.
      * Este panel mostrará la ruta del archivo, indicadores de estado y mensajes de la aplicación.
@@ -581,27 +615,7 @@ public class VisorView extends JFrame {
                 this.modoZoomActualIconoBoton.setFocusable(false); // Para que no robe el foco.
                 this.modoZoomActualIconoBoton.setPreferredSize(new Dimension(iconSizeBarraInf + 8, iconSizeBarraInf + 6)); // Tamaño similar a otros iconos.
                 
-//                // --- INICIO PRUEBA BOTÓN MAGENTA ---
-//                // Configuración para que el botón sea visible y muestre su fondo (para depuración).
-//                // Si esto funciona, luego ajustaremos para que sea un botón de icono "invisible".
-//                this.modoZoomActualIconoBoton.setContentAreaFilled(true); // Necesario para setBackground
-//                this.modoZoomActualIconoBoton.setOpaque(true);            // Necesario para setBackground
-//                this.modoZoomActualIconoBoton.setBackground(java.awt.Color.MAGENTA); // Color de prueba muy visible
-//                this.modoZoomActualIconoBoton.setBorderPainted(true); // Mostrar borde para ver límites
-//                this.modoZoomActualIconoBoton.setText(null); // Asegurar que no haya texto que tape el icono
-//                 System.out.println("    [VisorView crearPanelEstadoInferior] MODO DEBUG: modoZoomActualIconoBoton con fondo MAGENTA.");
-//                // --- FIN PRUEBA BOTÓN MAGENTA ---
-
-                // Configuración original para botón de icono (comentada durante la prueba magenta):
-                // this.modoZoomActualIconoBoton.setBorderPainted(false);
-                // this.modoZoomActualIconoBoton.setContentAreaFilled(false);
-                // this.modoZoomActualIconoBoton.setOpaque(false);
-
                 // 4A.8. Añadir los componentes al panel 'panelControlesInferior'.
-                //       El orden de 'add' define el orden visual de izquierda a derecha
-                //       (ya que el FlowLayout está alineado a la DERECHA, los últimos añadidos aparecen más a la izquierda).
-                //       Si quieres ZM | PROP | SUBC | --SEP-- | %Label | ModoIcono
-                //       entonces el orden de add es: ModoIcono, %Label, SEP, SubC, Prop, ZM
                 panelControlesInferior.add(this.iconoZoomManualLabel);         // Más a la derecha de los indicadores
                 panelControlesInferior.add(this.iconoMantenerProporcionesLabel);
                 panelControlesInferior.add(this.iconoModoSubcarpetasLabel);
@@ -624,8 +638,6 @@ public class VisorView extends JFrame {
                 panelControlesInferior.add(this.modoZoomActualIconoBoton);        // Botón de icono de modo zoom.
 
             // 4A.9. Añadir el panel de controles al 'panelDerechoContenedor'.
-            //       Lo ponemos en el CENTER para que los controles se agrupen y no se separen
-            //       demasiado del label de mensajes si la ventana es muy ancha.
             panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER);
 
             // --- SUB-SECCIÓN 4B: Sección Extrema Derecha - Mensajes de la Aplicación ---
@@ -774,10 +786,6 @@ public class VisorView extends JFrame {
         return separator;
     }
 
-    // --- MÉTODOS DE INICIALIZACIÓN INTERNA ESPECÍFICOS (COPIA TU LÓGICA AQUÍ) ---
-    // Estos métodos deben configurar los campos de instancia de VisorView
-    // (this.panelIzquierdo, this.listaNombres, this.etiquetaImagen, 
-    //  this.scrollListaMiniaturas, this.listaMiniaturas)
 
     /**
      * Inicializa el panel izquierdo que contiene la lista de nombres de archivo.
@@ -843,10 +851,19 @@ public class VisorView extends JFrame {
             int thumbHeight = uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
             boolean mostrarNombres = uiConfig.configurationManager.getBoolean("ui.miniaturas.mostrar_nombres", true);
             MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
-                servicioThumbsParam, modeloVisorParam, thumbWidth, thumbHeight, mostrarNombres,
-                uiConfig.colorFondoSecundario, uiConfig.colorSeleccionFondo,
-                uiConfig.colorTextoPrimario, uiConfig.colorSeleccionTexto, Color.ORANGE // O uiConfig.colorBordeSeleccionActiva
-            );
+                    servicioThumbsParam,
+                    modeloVisorParam,
+                    thumbWidth,
+                    thumbHeight,
+                    mostrarNombres,
+                    uiConfig.colorFondoSecundario,    // colorFondoDefault
+                    uiConfig.colorSeleccionFondo,   // colorFondoSeleccionDefault
+                    uiConfig.colorTextoPrimario,    // colorTextoDefault
+                    uiConfig.colorSeleccionTexto,   // colorTextoSeleccionDefault
+                    uiConfig.colorBordeSeleccionActiva, // colorBordeSeleccion (o Color.ORANGE si era placeholder)
+                    // YA NO PASAS el iconoErrorGeneral aquí
+                    this.uiConfig.iconUtils          // <<< NUEVO PARÁMETRO: La instancia de IconUtils
+                );
             this.listaMiniaturas.setCellRenderer(renderer);
             this.listaMiniaturas.setFixedCellWidth(renderer.getAnchoCalculadaDeCelda());
             this.listaMiniaturas.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
@@ -895,14 +912,15 @@ public class VisorView extends JFrame {
         // Ejemplo:
         this.etiquetaImagen = new JLabel() { // Inicio JLabel anónimo
             private static final long serialVersionUID = 1L;
+            
+            
+            //TEST
             @Override
             protected void paintComponent(Graphics g) {
-                super.paintComponent(g); // Llamar al super es una buena práctica inicial
-
+                // ---- DIBUJA TU FONDO PRIMERO ----
                 int width = getWidth();
                 int height = getHeight();
 
-                // 1. Dibujar Fondo (cuadros o sólido)
                 if (fondoACuadrosActivado) {
                     Graphics2D g2dFondo = (Graphics2D) g.create();
                     try {
@@ -918,24 +936,32 @@ public class VisorView extends JFrame {
                         g2dFondo.dispose();
                     }
                 } else {
-                    g.setColor(getBackground()); // Usar el background del JLabel
+                    // Si no es fondo a cuadros, y quieres un color de fondo sólido específico
+                    // que tú controlas, píntalo. Si quieres el fondo por defecto del JLabel,
+                    // entonces setOpaque(true) y deja que el super lo pinte.
+                    // Asumiendo que quieres tu propio color de fondo sólido:
+                    if (uiConfig != null && uiConfig.colorFondoSecundario != null) { // O el color que uses como fondo de visor
+                        g.setColor(uiConfig.colorFondoSecundario);
+                    } else {
+                        g.setColor(Color.DARK_GRAY); // Tu fallback
+                    }
                     g.fillRect(0, 0, width, height);
                 }
 
-                // 2. Dibujar Imagen (si existe)
+                // ---- AHORA LLAMA AL SUPER (para que dibuje icono/texto encima de tu fondo) ----
+                super.paintComponent(g);
+
+                // ---- LUEGO DIBUJA LA IMAGEN REESCALADA (si existe, encima de todo) ----
                 if (imagenReescaladaView != null) {
                     Graphics2D g2dImagen = (Graphics2D) g.create();
                     try {
                         g2dImagen.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                        g2dImagen.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-                        g2dImagen.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                        // ... resto de tus hints ...
                         
-                        // El tamaño base de la imagenReescaladaView ya está ajustado por ImageDisplayUtils
                         int baseW = imagenReescaladaView.getWidth(null);
                         int baseH = imagenReescaladaView.getHeight(null);
 
                         if (baseW > 0 && baseH > 0) {
-                            // Aplicar el zoomFactorView y los offsets del modelo (que vienen de VisorModel)
                             int finalW = (int) (baseW * zoomFactorView);
                             int finalH = (int) (baseH * zoomFactorView);
                             int drawX = (width - finalW) / 2 + imageOffsetXView;
@@ -946,18 +972,9 @@ public class VisorView extends JFrame {
                         g2dImagen.dispose();
                     }
                 }
-                // 3. Dibujar Texto "Cargando..." (si no hay imagen y el JLabel tiene texto)
-                else if (getText() != null && !getText().isEmpty()) {
-                    g.setColor(getForeground());
-                    g.setFont(getFont());
-                    FontMetrics fm = g.getFontMetrics();
-                    int textW = fm.stringWidth(getText());
-                    int textH = fm.getAscent(); // Altura del texto desde la línea base
-                    int textX = (width - textW) / 2;
-                    int textY = (height - fm.getHeight()) / 2 + textH; // Centrar verticalmente
-                    g.drawString(getText(), textX, textY);
-                }
-            } // Fin paintComponent
+                
+            }// FIN del paintComponent
+            
         }; // Fin JLabel anónimo
 
         this.etiquetaImagen.setHorizontalAlignment(SwingConstants.CENTER);
@@ -971,10 +988,92 @@ public class VisorView extends JFrame {
             this.etiquetaImagen.setForeground(Color.WHITE);     // Fallback
         }
         System.out.println("      -> EtiquetaImagen configurada por inicializarEtiquetaMostrarImagen.");
+    } // FIN del metodo inicializarEtiquetaMostrarImagen
+    
+    
+	/**
+	 * Muestra una indicación de error en el área principal de visualización de imágenes (etiquetaImagen).
+	 * Si se ha cargado un icono de error general (this.iconoErrorGeneral), lo muestra.
+	 * De lo contrario, muestra un mensaje de texto formateado con HTML.
+	 * También limpia cualquier imagen previamente mostrada por el sistema de pintura personalizado.
+	 *
+	 * @param nombreArchivo    El nombre del archivo que no se pudo cargar (para mostrar en el mensaje de error).
+	 * @param mensajeDetallado Una descripción más detallada del error (para mostrar en el mensaje de error).
+	 */
+	public void mostrarErrorEnVisorPrincipal(String nombreArchivo, String mensajeDetallado) {
+	    if (this.etiquetaImagen == null) {
+	        System.err.println("ERROR CRÍTICO [VisorView.mostrarErrorEnVisorPrincipal]: etiquetaImagen es null.");
+	        return;
+	    }
+	
+	    System.out.println("  [VisorView] Mostrando error en visor principal para archivo: " + (nombreArchivo != null ? nombreArchivo : "desconocido"));
+	
+	    this.imagenReescaladaView = null; // Asegurar que no se intente pintar una imagen válida anterior
+	                                       // por el método paintComponent personalizado.
+	    // Si usas un flag adicional en paintComponent para el estado de error, actualízalo aquí:
+	    // this.errorAlCargarImagenActual = true;
+	
+	    if (this.iconoErrorGeneral != null) {
+	        // Mostrar el icono de error general.
+	        // Puedes decidir escalarlo aquí si es necesario para el visor principal,
+	        // o si ya lo escalaste a un tamaño adecuado al cargarlo en el constructor.
+	        // Ejemplo si quieres escalarlo ahora a un tamaño específico:
+	        // ImageIcon iconoParaDisplay = this.uiConfig.iconUtils.scaleImageIcon(this.iconoErrorGeneral, 256, 256); // Ajusta tamaño
+	        // this.etiquetaImagen.setIcon(iconoParaDisplay != null ? iconoParaDisplay : this.iconoErrorGeneral);
+	
+	        // Mostrando el icono tal cual se cargó (o como se escaló en el constructor)
+	        this.etiquetaImagen.setIcon(this.iconoErrorGeneral);
+	        this.etiquetaImagen.setText(null); // Limpiar cualquier texto ("Cargando...", etc.)
+	         
+	         
+	        this.etiquetaImagen.revalidate(); // Puede ayudar si el contenido cambió de texto a icono o viceversa
+	        this.etiquetaImagen.repaint();
+	         
+	    } else {
+	        // Fallback a mensaje de texto si iconoErrorGeneral no se pudo cargar.
+	        this.etiquetaImagen.setIcon(null);
+	        String mensajeHtml = "<html><body style='text-align:center;'>" +
+	                             "<b>Error al Cargar Imagen</b><br><br>" +
+	                             (nombreArchivo != null ? "Archivo: " + escapeHtml(nombreArchivo) + "<br>" : "") +
+	                             "<font color='gray' size='-1'><i>" +
+	                             (mensajeDetallado != null ? escapeHtml(mensajeDetallado) : "Detalles no disponibles.") +
+	                             "</i></font>" +
+	                             "</body></html>";
+	        this.etiquetaImagen.setText(mensajeHtml);
+	         
+	        // Establecer color de texto para el error
+	        if (uiConfig != null && uiConfig.colorTextoPrimario != null) {
+	            this.etiquetaImagen.setForeground(Color.RED); // O un color de error del tema
+	        } else {
+	            this.etiquetaImagen.setForeground(Color.RED);
+	        }
+	    }
+	
+	    this.etiquetaImagen.setHorizontalAlignment(SwingConstants.CENTER);
+	    this.etiquetaImagen.setVerticalAlignment(SwingConstants.CENTER);
+	
+	    // Importante si tu etiquetaImagen tiene un paintComponent personalizado para el fondo
+	    this.etiquetaImagen.setOpaque(false); 
+	    this.etiquetaImagen.repaint();
+	    System.out.println("  [VisorView] etiquetaImagen repintada para mostrar error/icono de error.");
+	}
+
+    
+    /**
+     * Escapa caracteres HTML básicos para evitar problemas al mostrar texto en un JLabel con HTML.
+     * @param text El texto a escapar.
+     * @return El texto con caracteres HTML escapados, o una cadena vacía si text es null.
+     */
+    private String escapeHtml(String text) {
+        if (text == null) {
+            return "";
+        }
+        return text.replace("&", "&")
+                   .replace("<", "<")
+                   .replace(">", ">")
+                   .replace("\n", "<br>"); // Convertir saltos de línea a <br> para HTML
     }
     
-    // --- MÉTODOS DE ACTUALIZACIÓN DE LA VISTA (DE TU CÓDIGO ANTERIOR) ---
-    // (Adapta estos según sea necesario, especialmente setTextoRuta)
     
     public void setListaImagenesModel(DefaultListModel<String> nuevoModelo) {
         if (this.listaNombres != null) {
@@ -1000,27 +1099,54 @@ public class VisorView extends JFrame {
         }
     }
     
+    
+    /**
+     * Establece la imagen principal que se va a mostrar, limpiando cualquier
+     * indicador de error o carga previo.
+     *
+     * @param imagenReescalada La imagen ya reescalada y lista para ser referenciada por paintComponent.
+     * @param zoom El factor de zoom actual para esta imagen.
+     * @param offsetX El desplazamiento X actual para esta imagen.
+     * @param offsetY El desplazamiento Y actual para esta imagen.
+     */
     public void setImagenMostrada(Image imagenReescalada, double zoom, int offsetX, int offsetY) {
         if (this.etiquetaImagen == null) return;
-        this.etiquetaImagen.setText(null);
-        this.etiquetaImagen.setIcon(null); 
-        this.imagenReescaladaView = imagenReescalada; 
-        this.zoomFactorView = zoom;       
-        this.imageOffsetXView = offsetX;  
-        this.imageOffsetYView = offsetY;  
-        this.etiquetaImagen.repaint();
-    }
 
+        // this.errorAlCargarImagenActual = false; // Si usas un flag para paintComponent
+        this.imagenReescaladaView = imagenReescalada; // Para tu paintComponent personalizado
+        this.zoomFactorView = zoom;
+        this.imageOffsetXView = offsetX;
+        this.imageOffsetYView = offsetY;
+
+        // Limpiar cualquier texto o icono de error/carga del JLabel
+        this.etiquetaImagen.setText(null);
+        this.etiquetaImagen.setIcon(null);
+
+        this.etiquetaImagen.repaint(); // paintComponent usará imagenReescaladaView
+    }
+    
+    
+    /**
+     * Limpia el área de visualización de la imagen principal, eliminando la imagen
+     * actual, cualquier icono de error, o texto de carga.
+     * El paintComponent dibujará el fondo (a cuadros o sólido).
+     */
     public void limpiarImagenMostrada() {
         if (this.etiquetaImagen == null) return;
-        this.etiquetaImagen.setText(null); 
-        this.etiquetaImagen.setIcon(null);  
-        this.imagenReescaladaView = null;
+
+        // this.errorAlCargarImagenActual = false; // Si usas un flag para paintComponent
+        this.imagenReescaladaView = null; // No hay imagen para paintComponent
         this.zoomFactorView = 1.0;
         this.imageOffsetXView = 0;
         this.imageOffsetYView = 0;
-        this.etiquetaImagen.repaint();
+
+        // Limpiar cualquier texto o icono de error/carga del JLabel
+        this.etiquetaImagen.setText(null);
+        this.etiquetaImagen.setIcon(null);
+
+        this.etiquetaImagen.repaint(); // paintComponent dibujará el fondo
     }
+
 
     public void setTituloPanelIzquierdo(String titulo) {
         if (this.panelIzquierdo == null || !(this.panelIzquierdo.getBorder() instanceof TitledBorder)) {
@@ -1049,7 +1175,6 @@ public class VisorView extends JFrame {
     }
 
     
- // En VisorView.java
     public void setFileListVisible(boolean visible) {
         if (this.panelContenedorIzquierdoSplit != null && this.panelContenedorIzquierdoSplit.isVisible() != visible) {
             System.out.println("  [VisorView setFileListVisible] Cambiando visibilidad de panelContenedorIzquierdoSplit a: " + visible);
@@ -1088,16 +1213,6 @@ public class VisorView extends JFrame {
     }
 
     
-//    public void setFileListVisible(boolean visible) {
-//        if (this.panelContenedorIzquierdoSplit != null && this.panelContenedorIzquierdoSplit.isVisible() != visible) {
-//            this.panelContenedorIzquierdoSplit.setVisible(visible); // Ocultar/mostrar el contenedor
-//            if (this.splitPane != null) {
-//                 SwingUtilities.invokeLater(() -> this.splitPane.resetToPreferredSizes());
-//            }
-//            SwingUtilities.invokeLater(this::revalidateFrame);
-//        }
-//    }
-
     public void setThumbnailsVisible(boolean visible) {
         if (this.scrollListaMiniaturas != null && this.scrollListaMiniaturas.isVisible() != visible) {
             this.scrollListaMiniaturas.setVisible(visible);
@@ -1176,19 +1291,34 @@ public class VisorView extends JFrame {
         if (etiquetaImagen != null) etiquetaImagen.addMouseMotionListener(listener);
     }
     
+    
+    /**
+     * Muestra un indicador de "Cargando..." en el área principal de la imagen.
+     * Limpia cualquier imagen o icono de error previo.
+     *
+     * @param mensaje El mensaje a mostrar (ej. "Cargando: nombre_archivo...").
+     */
     public void mostrarIndicadorCargaImagenPrincipal(String mensaje) {
         if (this.etiquetaImagen == null) return;
+
         String mensajeAMostrar = (mensaje != null && !mensaje.trim().isEmpty()) ? mensaje : "Cargando...";
-        this.imagenReescaladaView = null; 
-        this.etiquetaImagen.setIcon(null);  
-        this.etiquetaImagen.setText(mensajeAMostrar);
-        if(this.uiConfig != null) { 
+
+        // this.errorAlCargarImagenActual = false; // Si usas un flag para paintComponent
+        this.imagenReescaladaView = null; // No hay imagen mientras se carga
+        this.etiquetaImagen.setIcon(null);  // No mostrar icono de error
+        this.etiquetaImagen.setText(mensajeAMostrar); // Mostrar texto de carga
+
+        if (this.uiConfig != null && this.uiConfig.colorTextoPrimario != null) {
              this.etiquetaImagen.setForeground(this.uiConfig.colorTextoPrimario);
-        } else { this.etiquetaImagen.setForeground(Color.BLACK); }
+        } else {
+             this.etiquetaImagen.setForeground(Color.BLACK); // Fallback
+        }
         this.etiquetaImagen.setHorizontalAlignment(SwingConstants.CENTER);
         this.etiquetaImagen.setVerticalAlignment(SwingConstants.CENTER);
+        this.etiquetaImagen.setOpaque(false); // Para que el fondo de paintComponent se vea
         this.etiquetaImagen.repaint();
     }
+    
     
     // Métodos para actualizar los mapas y barras (recibidos de AppInitializer)
     public void setActualJMenuBar(JMenuBar menuBar) {
@@ -1212,60 +1342,113 @@ public class VisorView extends JFrame {
         //this.uiConfig = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo en VisorView.setUiConfig");
     }
     
- // En vista.VisorView.java
+    
+    /**
+     * Solicita un refresco completo de los renderers de la lista de miniaturas.
+     * Esto es útil cuando cambian las configuraciones que afectan la apariencia
+     * de las celdas de las miniaturas (ej. mostrar/ocultar nombres, cambio de tema,
+     * cambio de tamaño de miniaturas).
+     * Crea una nueva instancia del renderer con la configuración actual y la asigna
+     * a la JList de miniaturas, forzando una revalidación y repintado.
+     */
+    public void solicitarRefrescoRenderersMiniaturas() {
+        System.out.println("[VisorView] Iniciando solicitud de refresco para renderers de miniaturas...");
 
-    public void solicitarRefrescoRenderersMiniaturas() { // WENO
-        System.out.println("[VisorView] Solicitando refresco completo de renderers de miniaturas...");
-
-        // Corrección: Usar 'this.listaMiniaturas' directamente
-        if (this.listaMiniaturas != null && // <<-- CAMBIO AQUÍ
-            this.model != null && 
-            this.servicioThumbs != null && 
-            this.uiConfig != null && 
-            this.uiConfig.configurationManager != null) {
-
-            boolean mostrarNombresActual = this.uiConfig.configurationManager.getBoolean("miniaturas.ui.mostrar_nombres", true);
-            int thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
-            int thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
-            
-            Color colorFondoMiniatura = this.uiConfig.colorFondoSecundario;
-            Color colorFondoSeleccionMiniatura = this.uiConfig.colorSeleccionFondo;
-            Color colorTextoMiniatura = this.uiConfig.colorTextoPrimario;
-            Color colorTextoSeleccionMiniatura = this.uiConfig.colorSeleccionTexto;
-            Color colorBordeSeleccionMiniatura = this.uiConfig.colorBordeSeleccionActiva; 
-
-            MiniaturaListCellRenderer newRenderer = new MiniaturaListCellRenderer(
-                this.servicioThumbs, 
-                this.model,
-                thumbWidth, 
-                thumbHeight, 
-                mostrarNombresActual,
-                colorFondoMiniatura, 
-                colorFondoSeleccionMiniatura, 
-                colorTextoMiniatura, 
-                colorTextoSeleccionMiniatura, 
-                colorBordeSeleccionMiniatura
-            );
-
-            // Acceder a this.listaMiniaturas directamente
-            this.listaMiniaturas.setCellRenderer(newRenderer); // <<-- USA EL CAMPO DIRECTAMENTE
-            this.listaMiniaturas.setFixedCellHeight(newRenderer.getAlturaCalculadaDeCelda());
-            this.listaMiniaturas.setFixedCellWidth(newRenderer.getAnchoCalculadaDeCelda());
-            this.listaMiniaturas.revalidate();
-            this.listaMiniaturas.repaint();
-            System.out.println("  -> Renderers de miniaturas refrescados.");
-            
-        } else {
-            System.err.println("WARN [solicitarRefrescoRenderersMiniaturas]: No se pudo refrescar renderers debido a dependencias nulas.");
-            System.err.println("  -> this.listaMiniaturas: " + (this.listaMiniaturas != null)); // <<-- CAMBIO AQUÍ
-            System.err.println("  -> this.model: " + (this.model != null));
-            System.err.println("  -> this.servicioThumbs: " + (this.servicioThumbs != null));
-            System.err.println("  -> this.uiConfig: " + (this.uiConfig != null));
-            if (this.uiConfig != null) {
-                System.err.println("  -> this.uiConfig.configurationManager: " + (this.uiConfig.configurationManager != null));
-            }
+        // --- 1. VALIDACIÓN DE DEPENDENCIAS ESENCIALES ---
+        //    Necesitamos la lista de miniaturas, el modelo, el servicio de thumbs,
+        //    y la configuración de UI (que contiene IconUtils y ConfigurationManager).
+        if (this.listaMiniaturas == null) {
+            System.err.println("WARN [solicitarRefrescoRenderersMiniaturas]: listaMiniaturas es null. No se puede refrescar.");
+            return;
         }
+        if (this.model == null) {
+            System.err.println("WARN [solicitarRefrescoRenderersMiniaturas]: VisorModel (this.model) es null.");
+            return;
+        }
+        if (this.servicioThumbs == null) {
+            System.err.println("WARN [solicitarRefrescoRenderersMiniaturas]: ThumbnailService (this.servicioThumbs) es null.");
+            return;
+        }
+        if (this.uiConfig == null) {
+            System.err.println("WARN [solicitarRefrescoRenderersMiniaturas]: ViewUIConfig (this.uiConfig) es null.");
+            return;
+        }
+        if (this.uiConfig.configurationManager == null) {
+            System.err.println("WARN [solicitarRefrescoRenderersMiniaturas]: uiConfig.configurationManager es null.");
+            return;
+        }
+        if (this.uiConfig.iconUtils == null) { // Nueva verificación
+            System.err.println("WARN [solicitarRefrescoRenderersMiniaturas]: uiConfig.iconUtils es null. No se podrá pasar al renderer.");
+            // Podrías decidir continuar sin iconUtils y que el renderer maneje el null, o retornar.
+            // Por ahora, continuaremos, pero el icono de error en miniatura podría no funcionar.
+        }
+
+
+        // --- 2. OBTENER CONFIGURACIONES ACTUALES ---
+        //    Leer los valores actuales de la configuración que afectan al renderer.
+        boolean mostrarNombresActual = this.uiConfig.configurationManager.getBoolean("miniaturas.ui.mostrar_nombres", true);
+        int thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
+        int thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
+
+        // Obtener los colores del tema actual desde uiConfig
+        Color colorFondoMiniatura = this.uiConfig.colorFondoSecundario;
+        Color colorFondoSeleccionMiniatura = this.uiConfig.colorSeleccionFondo;
+        Color colorTextoMiniatura = this.uiConfig.colorTextoPrimario;
+        Color colorTextoSeleccionMiniatura = this.uiConfig.colorSeleccionTexto;
+        Color colorBordeSeleccionMiniatura = this.uiConfig.colorBordeSeleccionActiva; // O tu Color.ORANGE si era un placeholder
+
+        System.out.println("  [Refresco Renderers] Configs actuales: MostrarNombres=" + mostrarNombresActual +
+                           ", AnchoThumb=" + thumbWidth + ", AltoThumb=" + thumbHeight);
+
+        // --- 3. CREAR UNA NUEVA INSTANCIA DEL RENDERER ---
+        //    Se usa la nueva firma del constructor que espera IconUtils.
+        MiniaturaListCellRenderer newRenderer = new MiniaturaListCellRenderer(
+            this.servicioThumbs,
+            this.model, // Pasar el VisorModel de la VisorView
+            thumbWidth,
+            thumbHeight,
+            mostrarNombresActual,
+            colorFondoMiniatura,
+            colorFondoSeleccionMiniatura,
+            colorTextoMiniatura,
+            colorTextoSeleccionMiniatura,
+            colorBordeSeleccionMiniatura,
+            // this.iconoErrorGeneral, // YA NO SE PASA EL ICONO PRE-CARGADO
+            this.uiConfig.iconUtils     // <<< SE PASA LA INSTANCIA DE IconUtils
+        );
+        System.out.println("  [Refresco Renderers] Nueva instancia de MiniaturaListCellRenderer creada.");
+
+        // --- 4. APLICAR EL NUEVO RENDERER Y ACTUALIZAR LA JLIST ---
+        this.listaMiniaturas.setCellRenderer(newRenderer);
+        System.out.println("    -> Nuevo renderer asignado a listaMiniaturas.");
+
+        // Es crucial actualizar las dimensiones fijas de las celdas si el nuevo renderer
+        // las calcula de manera diferente (ej. si mostrarNombres afecta la altura).
+        this.listaMiniaturas.setFixedCellHeight(newRenderer.getAlturaCalculadaDeCelda());
+        this.listaMiniaturas.setFixedCellWidth(newRenderer.getAnchoCalculadaDeCelda());
+        System.out.println("    -> AlturaFijaCelda: " + newRenderer.getAlturaCalculadaDeCelda() +
+                           ", AnchoFijoCelda: " + newRenderer.getAnchoCalculadaDeCelda());
+
+        // Forzar a la JList a recalcular su layout y repintarse completamente.
+        this.listaMiniaturas.revalidate();
+        this.listaMiniaturas.repaint();
+        System.out.println("    -> listaMiniaturas revalidada y repintada.");
+
+        // Opcional: Si el cambio en el tamaño de celda es significativo, podrías
+        // necesitar notificar al ListCoordinator para que recalcule la ventana
+        // deslizante de miniaturas, aunque a menudo un revalidate/repaint es suficiente
+        // si la JList está dentro de un JScrollPane que se ajusta bien.
+        // if (controller != null && controller.getListCoordinator() != null) {
+        //     int indiceActual = controller.getListCoordinator().getIndiceOficialSeleccionado();
+        //     if (indiceActual != -1) {
+        //         controller.actualizarModeloYVistaMiniaturas(indiceActual);
+        //     }
+        // }
+
+        System.out.println("[VisorView] Refresco de renderers de miniaturas completado.");
     }
+    
+    
     public void actualizarAspectoBotonToggle(Action action, boolean isSelected) {
         if (action == null || this.uiConfig == null || this.botonesPorNombre == null) return;
         JButton botonAsociado = null;
