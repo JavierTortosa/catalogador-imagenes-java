@@ -1,4 +1,3 @@
-// En controlador.actions.archivo.RefreshAction.java
 package controlador.actions.archivo;
 
 import java.awt.event.ActionEvent;

@@ -12,19 +12,16 @@ import javax.swing.JButton;
 import controlador.VisorController; // <<<< AÑADIR IMPORT SI NO ESTÁ
 import servicios.ConfigurationManager;
 import vista.VisorView;
-// Ya no necesitamos ViewManager aquí si el controller hace el despacho
-// import controlador.managers.ViewManager;
 
 public class ToggleMenuBarAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    // private ViewManager viewManagerRef; // Ya no se necesita si llamamos al controller
     private ConfigurationManager configManagerRef;
     private String configKeyForState;
-    private String componentIdForController; // Renombrado para claridad, este es el uiElementIdentifier
+    private String componentIdForController; 
     private VisorView viewRef;
-    private VisorController controllerRef; // <<<< AÑADIR REFERENCIA AL CONTROLLER
+    private VisorController controllerRef; 
 
     // CONSTRUCTOR ACTUALIZADO para recibir VisorController
     public ToggleMenuBarAction(String name,
@@ -50,6 +47,9 @@ public class ToggleMenuBarAction extends AbstractAction {
 
         boolean initialState = this.configManagerRef.getBoolean(this.configKeyForState, true);
         putValue(Action.SELECTED_KEY, initialState);
+        
+      //LOG
+        System.out.println("  [ToggleMenuBarAction CSTR] Leyendo '" + this.configKeyForState + "' -> " + initialState + ". SELECTED_KEY puesto a: " + initialState);
     }
 
     @Override
@@ -90,7 +90,7 @@ public class ToggleMenuBarAction extends AbstractAction {
                         System.out.println("  -> [ToggleMenuBarAction] Visibilidad del botón Menu_48x48 (toolbar) actualizada a: " + visibilidadBotonMenu);
                         // Opcional: Si la visibilidad de ESTE botón también se guarda en config y tiene su propio control,
                         // esta lógica de guardado no iría aquí. Pero si solo depende de la JMenuBar, está bien.
-                        // configManagerRef.setString(claveBotonMenuEspecial + ".visible", String.valueOf(visibilidadBotonMenu));
+                        //configManagerRef.setString(claveBotonMenuEspecial + ".visible", String.valueOf(visibilidadBotonMenu));
                     }
                 } else {
                     System.err.println("WARN [ToggleMenuBarAction]: Botón Menu_48x48 no encontrado en la toolbar.");

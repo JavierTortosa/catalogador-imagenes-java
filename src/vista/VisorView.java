@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.FontMetrics;
+
 // Imports para el paintComponent de etiquetaImagen (si está aquí)
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -94,8 +95,8 @@ public class VisorView extends JFrame {
 	private JLabel iconoZoomManualLabel;
 	private JLabel iconoMantenerProporcionesLabel;
 	private JLabel iconoModoSubcarpetasLabel;
-	private JButton porcentajeZoomEspecificadoBoton;
 	private JButton modoZoomActualIconoBoton;
+	private JButton porcentajeZoomEspecificadoBoton;
     
     
     // --- REFERENCIAS EXTERNAS Y CONFIGURACIÓN ---
@@ -120,11 +121,8 @@ public class VisorView extends JFrame {
     private ImageIcon iconoErrorGeneral;
     //private ImageIcon iconoErrorOriginal;
 
- // En package vista;
- // ... (tus imports) ...
 
-
-     /**
+    /**
       * Constructor principal de la ventana VisorView.
       * Inicializa las dependencias y llama al método de construcción de la UI.
       *
@@ -263,8 +261,6 @@ public class VisorView extends JFrame {
          });
 
          System.out.println("[VisorView Constructor] Constructor de VisorView finalizado.");
-         // setVisible(true) NO se llama aquí. Será llamado por AppInitializer o VisorController
-         // después de que toda la inicialización esté completa.
      }
 
 
@@ -1617,7 +1613,7 @@ public class VisorView extends JFrame {
     public JLabel getTamanoArchivoInfoLabel() {return this.tamanoArchivoInfoLabel;}
     public JLabel getFechaArchivoInfoLabel() {return this.fechaArchivoInfoLabel;}
     public JLabel getPorcentajeZoomPersonalizadoLabel() { return this.porcentajeZoomPersonalizadoLabel; }
-    //public JButton getPorcentajeZoomPersonalizadoBoton() { return this.porcentajeZoomPersonalizadoBoton; }
+//    public JButton getPorcentajeZoomPersonalizadoBoton() { return this.porcentajeZoomPersonalizadoBoton; }
     public JButton getModoZoomActualIconoBoton() { return this.modoZoomActualIconoBoton; }
     public JLabel getMensajesAppLabel() { return this.mensajesAppLabel; }
  	

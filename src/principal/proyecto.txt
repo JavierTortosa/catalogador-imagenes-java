@@ -1,3 +1,4 @@
+
 	este es un proyecto de un visualilzador/catalogador en java/swing. 
 	el github es: https://github.com/JavierTortosa/catalogador-imagenes-java.git
 	
@@ -78,7 +79,34 @@ En este punto tenemos varias herramientas:
 		(una carpeta que empezo siendo cine, ahora tiene star wars, señor de los anillos.... y dentro de star wars esta la carpeta de naves, personajes, droides... y asi hasta el infinito....
 
 		 
-		 
+--- MegaConfig - El Centro de Control del Usuario:
+
+	Objetivo: Proporcionar una interfaz gráfica centralizada donde el usuario pueda ajustar finamente casi todos los aspectos del comportamiento y la apariencia de la aplicación, sin necesidad de editar manualmente el archivo config.cfg (aunque este seguirá siendo la base para la persistencia).
+
+	Contenido Potencial (basado en lo que ya tienes y planeas):
+		Visibilidad de Componentes de UI:
+		Checkboxes para mostrar/ocultar la barra de menú, la barra de herramientas principal, la lista de archivos, la barra de miniaturas, las barras de información (superior e inferior) y los elementos individuales dentro de estas barras.
+		Gestión de la visibilidad de botones individuales en la barra de herramientas (lo que ya tienes en el menú "Configuración -> Visualizar Botones" podría migrar o complementarse aquí).
+
+	Configuración de Paneles y Layout:
+		(Más avanzado) Opciones para cambiar la disposición de los paneles principales si decides ofrecer diferentes layouts.
+		Configuración de la posición por defecto del divisor del JSplitPane.
+
+	Comportamiento de la Aplicación:
+		Opciones de "Carga de Imágenes" (subcarpetas, ordenación por defecto).
+		Opciones de "Comportamiento General" (imagen de bienvenida, abrir última imagen, navegación circular, etc.).
+		Configuración de la cantidad de miniaturas (antes/después), tamaño de miniaturas.
+		Parámetros de zoom por defecto.
+
+	Apariencia y Temas:
+		Selector de temas (lo que ya tienes en el menú, pero podría tener una vista previa aquí).
+		(Muy avanzado) Editor de temas o personalización de colores individuales si quisieras ir por ese camino, aunque gestionar un tema completo es más sencillo.
+		Configuración de Teclado (Atajos):
+		(Avanzado) Permitir al usuario personalizar algunos atajos de teclado.
+		Configuración de la Base de Datos/Catalogador (Futuro):
+		Ruta de la base de datos, opciones de indexación, etc.
+		Botones de Acción: "Aplicar", "Cancelar", "Restaurar Defaults".
+   		 
 --------------------------------
 
 

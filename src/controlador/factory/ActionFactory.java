@@ -58,11 +58,9 @@ import controlador.commands.AppActionCommands;
 import controlador.imagen.LocateFileAction;
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.EditionManager;
-import controlador.managers.FileOperationsManager; // Futuro
+import controlador.managers.FileOperationsManager;
 import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
-// import controlador.managers.ViewUIManager; // Futuro
-// import controlador.managers.ProjectActionsManager; // Futuro
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager; // El servicio de persistencia de proyectos
@@ -183,6 +181,9 @@ public class ActionFactory {
      * El orden puede ser importante si hay dependencias entre Actions (ej. ToggleZoomManual necesita ResetZoom).
      */
     private void initializeAllActions() {
+    	
+    	boolean estadoConfigActualIncluyeSubcarpetas = this.configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas",true);
+    	
         // 3.1. Crear la Action genérica para funcionalidades pendientes primero.
         this.funcionalidadPendienteAction = createFuncionalidadPendienteAction();
         actionMap.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
@@ -247,9 +248,17 @@ public class ActionFactory {
         // El estado SELECTED de estas actions lo maneja ToggleThemeAction internamente.
 
         // 3.8. Crear y registrar Actions de Toggle Generales
+        
+        
         actionMap.put(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, createToggleSubfoldersAction());
-        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA, createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,"Mostrar Solo Carpeta Actual",false)); // false significa NO incluir subcarpetas
-        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS,"Mostrar Imágenes de Subcarpetas",true));
+        
+        boolean estadoModeloActualIncluyeSubcarpetas = !this.model.isMostrarSoloCarpetaActual();
+        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,"Mostrar Solo Carpeta Actual",false));//, estadoModeloActualIncluyeSubcarpetas));
+        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, "Mostrar Imágenes de Subcarpetas", true));//, estadoModeloActualIncluyeSubcarpetas));
+        
+//        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA, createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,"Mostrar Solo Carpeta Actual",false)); // false significa NO incluir subcarpetas
+//        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS,"Mostrar Imágenes de Subcarpetas",true));
+
         actionMap.put(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, createToggleProporcionesAction());
 
         // 3.9. Crear y registrar Actions de Proyecto
@@ -628,10 +637,10 @@ public class ActionFactory {
         System.out.println("ActionFactory: Creando ToggleSubfoldersAction@" + Integer.toHexString(System.identityHashCode(action))); // Log de la instancia creada
         return action;
     }
-    private Action createSetSubfolderReadModeAction(String commandKey, String displayName, boolean shoulIncludeSubfolders) {
-        ImageIcon icon = null; // Correcto, radios no suelen tener icono de la action
-        return new SetSubfolderReadModeAction(displayName, icon, 	this.controllerRef, shoulIncludeSubfolders, commandKey);
-    }
+    private Action createSetSubfolderReadModeAction(String commandKey, String displayName, boolean representaModoIncluirSubcarpetas) {
+    	ImageIcon icon = null; 
+    	return new SetSubfolderReadModeAction(displayName, icon, this.controllerRef, this.model,representaModoIncluirSubcarpetas, commandKey);
+    }    
     private Action createToggleProporcionesAction() {
     ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
     return new ToggleProporcionesAction("Mantener Proporciones", icon, this.model, this.controllerRef);
@@ -651,24 +660,17 @@ public class ActionFactory {
     }
     
     // --- 4.11. Métodos Create para Actions Especiales ---
-//	private Action createMenuAction() { // Ya no necesita toggleMenuBarActionInstance
-//	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_MENU);
-//	    
-//	    UIDefinitionService uiDefService = new UIDefinitionService();
-//	    List<MenuItemDefinition> fullMenuStructure = uiDefService.generateMenuStructure();
-//	    return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.uiConfig);
-//	}
      private Action createMenuAction() { // Ya no necesita toggleMenuBarActionInstance como parámetro directo
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_MENU);
          
          UIDefinitionService uiDefService = new UIDefinitionService();
          List<MenuItemDefinition> fullMenuStructure = uiDefService.generateMenuStructure();
 
-         return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.uiConfig);
+         return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.uiConfig,  this.configuration, this.controllerRef);
      }
      private Action createHiddenButtonsAction() {
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
-         return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.uiConfig );
+         return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.uiConfig, this.configuration, this.controllerRef );
      }
 
     // --- SECCIÓN 5: GETTER PARA EL ACTIONMAP ---
@@ -677,11 +679,23 @@ public class ActionFactory {
      * @return El mapa donde la clave es el String del comando (de AppActionCommands)
      *         y el valor es la instancia de Action correspondiente.
      */
-    public Map<String, Action> getActionMap() {
-        return Collections.unmodifiableMap(this.actionMap); // Devolver copia inmutable
-    }
-    
+     public Map<String, Action> getActionMap() {
+         return this.actionMap; 
+     }
     public List<ContextSensitiveAction> getContextSensitiveActions() {
         return Collections.unmodifiableList(this.contextSensitiveActions);
     }
-}
+    
+    // Getters para las dimensiones de los iconos
+    public Map<String, String> getComandoToIconKeyMap() {return Collections.unmodifiableMap(this.comandoToIconKeyMap);}
+    public int getIconoAncho() { return this.iconoAncho;}
+    public int getIconoAlto() { return this.iconoAlto;}
+    
+    public void registerAction(String commandKey, Action action) {
+        if (this.actionMap.containsKey(commandKey)) {
+            System.out.println("WARN [ActionFactory]: Reemplazando Action existente para el comando: " + commandKey);
+        }
+        this.actionMap.put(commandKey, action); // Modifica el mapa interno mutable
+        System.out.println("  [ActionFactory] Action registrada/actualizada para comando: " + commandKey);
+    }
+}	// --- FIN de la clase ActionFactory

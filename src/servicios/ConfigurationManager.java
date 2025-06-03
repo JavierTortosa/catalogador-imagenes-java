@@ -612,7 +612,7 @@ public class ConfigurationManager
 			defaults.put("interfaz.boton.especiales.Selector_de_Carpetas_48x48.activado", "true");
 			defaults.put("interfaz.boton.especiales.Selector_de_Carpetas_48x48.visible", "true");
 			defaults.put("interfaz.boton.especiales.Menu_48x48.activado", "true");
-			defaults.put("interfaz.boton.especiales.Menu_48x48.visible", "true");
+			defaults.put("interfaz.boton.especiales.Menu_48x48.visible", "false");
 			defaults.put("interfaz.boton.especiales.Botones_Ocultos_48x48.activado", "true");
 			defaults.put("interfaz.boton.especiales.Botones_Ocultos_48x48.visible", "true");
 

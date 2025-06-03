@@ -2,20 +2,22 @@ package controlador.actions.especiales;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
 
 import controlador.commands.AppActionCommands;
-// No necesita VisorView si solo usa e.getSource()
+import servicios.ConfigurationManager;
+import vista.builders.PopupMenuBuilder;   // Para construir el JPopupMenu
 import vista.config.MenuItemDefinition; // Para la estructura del menú
 import vista.config.MenuItemType;     // Para definir los items del popup
-import vista.builders.PopupMenuBuilder;   // Para construir el JPopupMenu
 import vista.config.ViewUIConfig;       // Para pasar al PopupMenuBuilder
 
 public class HiddenButtonsAction extends AbstractAction {
@@ -27,6 +29,8 @@ public class HiddenButtonsAction extends AbstractAction {
     private ViewUIConfig uiConfigRef;         // Para el PopupMenuBuilder
     // Podríamos tener una lista de los COMANDOS de los botones que podrían ir aquí
     // private List<String> overflowButtonCommands; 
+    private ConfigurationManager configManagerRef;         // <--- NUEVO CAMPO
+    private ActionListener specialConfigActionListenerRef;
 
     // Constructor REFACTORIZADO
     public HiddenButtonsAction(
@@ -34,13 +38,19 @@ public class HiddenButtonsAction extends AbstractAction {
             String name,
             ImageIcon icon,
             Map<String, Action> actionMap, // Para obtener las actions de los botones
-            ViewUIConfig uiConfig         // Para el builder
+            ViewUIConfig uiConfig,         // Para el builder
+            ConfigurationManager configManager,         
+            ActionListener specialConfigActionListener
             // List<String> overflowButtonCommands // Opcional: lista de comandos a mostrar
+            
     ) {
         super(name, icon);
         // this.viewRef = view;
         this.actionMapRef = Objects.requireNonNull(actionMap, "ActionMap no puede ser nulo");
         this.uiConfigRef = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo");
+        
+        this.configManagerRef = Objects.requireNonNull(configManager);
+        this.specialConfigActionListenerRef = Objects.requireNonNull(specialConfigActionListener);
         // this.overflowButtonCommands = overflowButtonCommands != null ? overflowButtonCommands : new ArrayList<>();
 
         putValue(Action.SHORT_DESCRIPTION, "Mostrar acciones adicionales o botones que no caben");
@@ -93,7 +103,12 @@ public class HiddenButtonsAction extends AbstractAction {
         }
 
         // --- Construir y mostrar el JPopupMenu ---
-        PopupMenuBuilder popupBuilder = new PopupMenuBuilder(this.uiConfigRef);
+        PopupMenuBuilder popupBuilder = new PopupMenuBuilder(
+        		this.uiConfigRef,
+                this.configManagerRef,
+                this.specialConfigActionListenerRef
+            );
+        
         JPopupMenu popupMenu = popupBuilder.buildPopupMenuWithNestedMenus(itemsParaPopup, this.actionMapRef);
 
         popupMenu.show(invokerComponent, 0, invokerComponent.getHeight());

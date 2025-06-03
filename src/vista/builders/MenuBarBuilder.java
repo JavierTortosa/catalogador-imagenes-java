@@ -1,5 +1,3 @@
-// En vista.builders.MenuBarBuilder.java
-
 package vista.builders;
 
 import java.awt.event.ActionListener; // Asegúrate de tener este import
