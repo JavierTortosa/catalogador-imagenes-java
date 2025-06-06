@@ -82,34 +82,10 @@ public class UIDefinitionService {
                 new MenuItemDefinition(AppActionCommands.CMD_IMAGEN_RECORTAR, MenuItemType.ITEM, "Recortar", null) // Placeholder
             );
         		
-        List<MenuItemDefinition> ordenCriterioSubItems = List.of(
-        	new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null),
-            new MenuItemDefinition("cmd.orden.criterio.nombre", MenuItemType.RADIO_BUTTON_ITEM, "Nombre por Defecto", null),
-            new MenuItemDefinition("cmd.orden.criterio.tamano", MenuItemType.RADIO_BUTTON_ITEM, "Tamaño de Archivo", null),
-            new MenuItemDefinition("cmd.orden.criterio.fecha", MenuItemType.RADIO_BUTTON_ITEM, "Fecha de Creacion", null),
-            new MenuItemDefinition("cmd.orden.criterio.extension", MenuItemType.RADIO_BUTTON_ITEM, "Extension", null),
-            new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
-            );
-            
-            List<MenuItemDefinition> ordenDireccionSubItems = List.of(
-            new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null),
-	        new MenuItemDefinition("cmd.orden.direccion.ninguno", MenuItemType.RADIO_BUTTON_ITEM, "Sin Ordenar", null), // ¿Necesario si ya hay criterio?
-	        new MenuItemDefinition("cmd.orden.direccion.asc", MenuItemType.RADIO_BUTTON_ITEM, "Ascendente", null),
-	        new MenuItemDefinition("cmd.orden.direccion.desc", MenuItemType.RADIO_BUTTON_ITEM, "Descendente", null),
-	        new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
-	        );
-	        
-	        List<MenuItemDefinition> cargaOrdenSubItems = new ArrayList<>(); // Usamos ArrayList para añadir
-	         cargaOrdenSubItems.addAll(ordenCriterioSubItems);
-	         cargaOrdenSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
-	         cargaOrdenSubItems.addAll(ordenDireccionSubItems);
-//	         new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Carga y Orden", cargaOrdenSubItems); 
+        
         	
-//	         List<MenuItemDefinition> imagenSubItems = new ArrayList<>();
-	        
 	        List<MenuItemDefinition> imagenSubItems = List.of(
-	        new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Carga y Orden", cargaOrdenSubItems),
-            new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
+//            new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
         	new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Edición", edicionSubItems),
             new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
             new MenuItemDefinition(AppActionCommands.CMD_IMAGEN_RENOMBRAR, MenuItemType.ITEM, "Cambiar Nombre de Imagen...", null),
@@ -152,11 +128,36 @@ public class UIDefinitionService {
         List<MenuItemDefinition> configSubItems = new ArrayList<>();
 
         // 7.2. Submenú "Carga de Imágenes"
+        List<MenuItemDefinition> ordenCriterioSubItems = List.of(
+            	new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null),
+                new MenuItemDefinition("cmd.orden.criterio.nombre", MenuItemType.RADIO_BUTTON_ITEM, "Nombre por Defecto", null),
+                new MenuItemDefinition("cmd.orden.criterio.tamano", MenuItemType.RADIO_BUTTON_ITEM, "Tamaño de Archivo", null),
+                new MenuItemDefinition("cmd.orden.criterio.fecha", MenuItemType.RADIO_BUTTON_ITEM, "Fecha de Creacion", null),
+                new MenuItemDefinition("cmd.orden.criterio.extension", MenuItemType.RADIO_BUTTON_ITEM, "Extension", null),
+                new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
+                );
+                
+        List<MenuItemDefinition> ordenDireccionSubItems = List.of(
+            new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null),
+	        new MenuItemDefinition("cmd.orden.direccion.ninguno", MenuItemType.RADIO_BUTTON_ITEM, "Sin Ordenar", null), // ¿Necesario si ya hay criterio?
+	        new MenuItemDefinition("cmd.orden.direccion.asc", MenuItemType.RADIO_BUTTON_ITEM, "Ascendente", null),
+	        new MenuItemDefinition("cmd.orden.direccion.desc", MenuItemType.RADIO_BUTTON_ITEM, "Descendente", null),
+	        new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
+	        );
+    	        
+        List<MenuItemDefinition> cargaOrdenSubItems = new ArrayList<>(); // Usamos ArrayList para añadir
+	        cargaOrdenSubItems.addAll(ordenCriterioSubItems);
+	        cargaOrdenSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
+	        cargaOrdenSubItems.addAll(ordenDireccionSubItems);
+        
         List<MenuItemDefinition> configCargaImgSubItems = List.of(
             new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null),
             new MenuItemDefinition(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA, MenuItemType.RADIO_BUTTON_ITEM, "Mostrar Solo Carpeta Actual", null),
             new MenuItemDefinition(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, MenuItemType.RADIO_BUTTON_ITEM, "Mostrar Imágenes de Subcarpetas", null),
-            new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
+            new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null),
+            new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
+            new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Orden Visual", cargaOrdenSubItems)
+            
             
             //new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, MenuItemType.CHECKBOX_ITEM, "Mostrar Nombres en Miniaturas", null) // Movido a "Vista"
             

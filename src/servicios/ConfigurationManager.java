@@ -651,26 +651,22 @@ public class ConfigurationManager
 		//Imagen
 		defaults.put("interfaz.menu.imagen.Imagen.activado", "true");
 		defaults.put("interfaz.menu.imagen.Imagen.visible", "true");
-		defaults.put("interfaz.menu.imagen.Carga_y_Orden.activado", "true");
-		defaults.put("interfaz.menu.imagen.Carga_y_Orden.visible", "true");
-
-		//	-- Carga y Orden     
-		defaults.put("interfaz.menu.imagen.carga_y_orden.nombre_por_defecto.seleccionado", "true");
-		defaults.put("interfaz.menu.imagen.carga_y_orden.tamao_de_archivo.seleccionado", "false");
-		defaults.put("interfaz.menu.imagen.carga_y_orden.fecha_de_creacion.seleccionado", "false");
-		defaults.put("interfaz.menu.imagen.carga_y_orden.extension.seleccionado", "false");
+		
+		
+		//	-- Orden Visual     
+		defaults.put("interfaz.menu.configuracion.carga_de_imagenes.orden_visual.nombre_por_defecto.seleccionado", "true");
+		defaults.put("interfaz.menu.configuracion.carga_de_imagenes.orden_visual.tamao_de_archivo.seleccionado", "false");
+		defaults.put("interfaz.menu.configuracion.carga_de_imagenes.orden_visual.fecha_de_creacion.seleccionado", "false");
+		defaults.put("interfaz.menu.configuracion.carga_de_imagenes.orden_visual.extension.seleccionado", "false");
 		
 		//	--Orden -> Tipos (Radio)
-		defaults.put("interfaz.menu.imagen.carga_y_orden.sin_ordenar.seleccionado", "true");
-		defaults.put("interfaz.menu.imagen.carga_y_orden.ascendente.seleccionado", "false");
-		defaults.put("interfaz.menu.imagen.carga_y_orden.descendente.seleccionado", "false");
+		defaults.put("interfaz.menu.configuracion.carga_de_imagenes.orden_visual.sin_ordenar.seleccionado", "true");
+		defaults.put("interfaz.menu.configuracion.carga_de_imagenes.orden_visual.ascendente.seleccionado", "false");
+		defaults.put("interfaz.menu.configuracion.carga_de_imagenes.orden_visual.descendente.seleccionado", "false");
 		
 		// --Edicion           
 		
 		//Vista
-		defaults.put("interfaz.menu.vista.Vista.activado", "true");
-		defaults.put("interfaz.menu.vista.Vista.visible", "true");
-                                   
 		defaults.put("interfaz.menu.vista.barra_de_menu.seleccionado", "true");
 		defaults.put("interfaz.menu.vista.barra_de_botones.seleccionado", "true");
 		defaults.put("interfaz.menu.vista.fondo_a_cuadros.seleccionado", "false");
