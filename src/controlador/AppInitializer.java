@@ -376,6 +376,7 @@ public class AppInitializer {
                 uiConfigInicialParaVistaYFactory, // Pasa el uiConfig sin el actionMap completo
                 this.model, 
                 this.servicioMiniaturas,
+                this.themeManager,
                 new JMenuBar(),       // Placeholder para JMenuBar
                 new JPanel(),         // Placeholder para Toolbar Panel
                 Collections.emptyMap(), // Placeholder para menuItems

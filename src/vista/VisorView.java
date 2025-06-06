@@ -2,10 +2,10 @@ package vista;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.FontMetrics;
-
 // Imports para el paintComponent de etiquetaImagen (si está aquí)
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -14,7 +14,11 @@ import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.RenderingHints;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -25,6 +29,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -38,6 +43,7 @@ import javax.swing.JTextField; // Mantenido si textoRuta se usa como fallback
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.Border; // Para crearSeparadorVerticalBarraInfo y otros bordes
 import javax.swing.border.TitledBorder; // Para panelIzquierdo
 
@@ -47,6 +53,7 @@ import servicios.image.ThumbnailService;
 import vista.config.ViewUIConfig;
 import vista.renderers.MiniaturaListCellRenderer; // Asumiendo que lo usas en inicializarPanelImagenesMiniatura
 import vista.renderers.NombreArchivoRenderer; // Asumiendo que lo usas en inicializarPanelIzquierdo
+import vista.theme.ThemeManager;
 
 
 public class VisorView extends JFrame {
@@ -103,6 +110,7 @@ public class VisorView extends JFrame {
     private final ViewUIConfig uiConfig;
     private final VisorModel model;
     private final ThumbnailService servicioThumbs;
+    private final ThemeManager themeManagerRef;
     private Map<String, JMenuItem> menuItemsPorNombre; 
     private Map<String, JButton> botonesPorNombre;   
     private int miniaturaScrollPaneHeight;
@@ -117,11 +125,18 @@ public class VisorView extends JFrame {
     private final Color colorCuadroOscuro = new Color(255, 255, 255);
     private final int TAMANO_CUADRO = 16;
 
+ // --- CAMPOS para los controles de fondo de previsualización ---
+    private JPanel panelControlesFondoIcono;    // El panel que contendrá los 7 puntos
+    private List<JPanel> listaPuntosDeColor;      // Lista de los JPanel que actúan como selectores
+    private Border bordePuntoNormal;
+    private Border bordePuntoSeleccionado;
+    private Color colorFondoNeutroParaSwatches;
+    
     // --- Icono de Error de Imagen
     private ImageIcon iconoErrorGeneral;
     //private ImageIcon iconoErrorOriginal;
-
-
+    
+    
     /**
       * Constructor principal de la ventana VisorView.
       * Inicializa las dependencias y llama al método de construcción de la UI.
@@ -130,6 +145,7 @@ public class VisorView extends JFrame {
       * @param config Objeto ViewUIConfig con parámetros de apariencia y referencias (como IconUtils).
       * @param modelo El VisorModel principal.
       * @param servicioThumbs El ThumbnailService para renderers de miniaturas.
+      * @param themeManager Parametro para la gestion del fondo del label de imagen      
       * @param menuBar La JMenuBar pre-construida (o un placeholder si se construye después).
       * @param toolbarPanel El JPanel de la toolbar pre-construido (o un placeholder).
       * @param menuItems Mapa de JMenuItems generados (puede ser vacío inicialmente).
@@ -140,6 +156,7 @@ public class VisorView extends JFrame {
              ViewUIConfig config,        // Contiene IconUtils, ConfigurationManager, colores, etc.
              VisorModel modelo,
              ThumbnailService servicioThumbs,
+             ThemeManager themeManager,
              JMenuBar menuBar,           // Puede ser un placeholder inicial
              JPanel toolbarPanel,        // Puede ser un placeholder inicial
              Map<String, JMenuItem> menuItems, // Puede ser un placeholder inicial
@@ -153,6 +170,7 @@ public class VisorView extends JFrame {
          this.uiConfig = Objects.requireNonNull(config, "ViewUIConfig (config) no puede ser null en VisorView constructor");
          this.model = Objects.requireNonNull(modelo, "VisorModel (modelo) no puede ser null en VisorView constructor");
          this.servicioThumbs = Objects.requireNonNull(servicioThumbs, "ThumbnailService (servicioThumbs) no puede ser null en VisorView constructor");
+         this.themeManagerRef = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en VisorView constructor");
          
          // Determinar la altura del panel de miniaturas, con un fallback.
          this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100; // Ejemplo: 100px si no se especifica > 0
@@ -166,6 +184,18 @@ public class VisorView extends JFrame {
          this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();
          this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();
 
+         // Control del fondo temporal del label de la imagen
+         this.bordePuntoNormal = BorderFactory.createEtchedBorder(); // Un borde sutil
+         this.bordePuntoSeleccionado = BorderFactory.createLineBorder(Color.RED, 2); // Borde rojo y grueso
+         this.colorFondoNeutroParaSwatches = UIManager.getColor("Panel.background"); // Color de fondo estándar de los paneles
+         if (this.colorFondoNeutroParaSwatches == null) {
+             this.colorFondoNeutroParaSwatches = new Color(230, 230, 230); // Fallback
+         }
+         this.bordePuntoNormal = BorderFactory.createLineBorder(this.colorFondoNeutroParaSwatches.darker()); 
+         this.bordePuntoSeleccionado = BorderFactory.createLineBorder(Color.RED, 2);
+         
+         
+         
          // --- 2. CONFIGURACIÓN BÁSICA DEL JFRAME ---
          setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Comportamiento al cerrar la ventana.
          setLayout(new BorderLayout()); // Establecer el layout principal del content pane.
@@ -246,22 +276,61 @@ public class VisorView extends JFrame {
          // --- 6. AJUSTE FINAL DEL DIVISOR DEL JSPLITPANE (SI EXISTE) ---
          //    Se usa invokeLater para asegurar que el JSplitPane ya esté realizado y tenga dimensiones.
          SwingUtilities.invokeLater(() -> {
-             if (this.splitPane != null) { // splitPane se inicializa en crearPanelModoNormal
-                 // Leer la posición inicial del divisor desde la configuración o usar un default.
-                 double dividerLocationPercentage = 0.25; // Ejemplo: 25% para el panel izquierdo.
-                 if (this.uiConfig.configurationManager != null) {
-                     // Ejemplo de cómo podrías guardar/leer esto:
-                     // dividerLocationPercentage = this.uiConfig.configurationManager.getDouble("ui.splitpane.main.dividerLocation", 0.25);
-                 }
-                 this.splitPane.setDividerLocation(dividerLocationPercentage); 
-                 System.out.println("  [VisorView Constructor - EDT] Divisor del JSplitPane principal establecido a " + (dividerLocationPercentage * 100) + "%.");
-             } else {
-                 System.err.println("WARN [VisorView Constructor - EDT]: splitPane es null. No se pudo establecer la posición del divisor.");
-             }
-         });
-
-         System.out.println("[VisorView Constructor] Constructor de VisorView finalizado.");
-     }
+             if (this.panelControlesFondoIcono != null && this.uiConfig != null && this.themeManagerRef != null) {
+                  Color colorFondoActualPreview = this.etiquetaImagen.getBackground();
+                  boolean esCuadrosActual = this.isFondoACuadrosActivado();
+                  
+                  // Buscar qué punto de color coincide con el estado actual del preview
+                  JPanel puntoAResaltar = null;
+                  if (esCuadrosActual) {
+                      // El penúltimo punto es el de cuadros (asumiendo 5 temas + cuadros + personalizado)
+                      if (this.listaPuntosDeColor.size() >= 6) { // Mínimo 5 temas + 1 cuadros
+                          puntoAResaltar = this.listaPuntosDeColor.get(this.listaPuntosDeColor.size() - 2);
+                      }
+                  } else {
+                      // Buscar el punto de tema que coincida con el color de fondo actual del etiquetaImagen
+                      // (que debería ser el colorFondoSecundario del tema actual)
+                      String temaActualNombre = this.themeManagerRef.getTemaActual().nombreInterno();
+                      String[] nombresTemas = {"clear", "dark", "blue", "orange", "green"}; // Mantener esto consistente
+                      for (int i = 0; i < nombresTemas.length; i++) {
+                          if (nombresTemas[i].equals(temaActualNombre)) {
+                              if (i < this.listaPuntosDeColor.size()) {
+                                  puntoAResaltar = this.listaPuntosDeColor.get(i);
+                              }
+                              break;
+                          }
+                      }
+                  }
+                  
+                  if (puntoAResaltar != null) {
+                      actualizarResaltadoPuntosDeColor(puntoAResaltar);
+                  } else if (!esCuadrosActual) { // Si es un color personalizado, resaltar el botón de personalizado
+                      if (!this.listaPuntosDeColor.isEmpty()) {
+                         actualizarResaltadoPuntosDeColor(this.listaPuntosDeColor.get(this.listaPuntosDeColor.size() - 1));
+                      }
+                  }
+              }
+          });
+      }
+         
+         
+//         SwingUtilities.invokeLater(() -> {
+//             if (this.splitPane != null) { // splitPane se inicializa en crearPanelModoNormal
+//                 // Leer la posición inicial del divisor desde la configuración o usar un default.
+//                 double dividerLocationPercentage = 0.25; // Ejemplo: 25% para el panel izquierdo.
+//                 if (this.uiConfig.configurationManager != null) {
+//                     // Ejemplo de cómo podrías guardar/leer esto:
+//                     // dividerLocationPercentage = this.uiConfig.configurationManager.getDouble("ui.splitpane.main.dividerLocation", 0.25);
+//                 }
+//                 this.splitPane.setDividerLocation(dividerLocationPercentage); 
+//                 System.out.println("  [VisorView Constructor - EDT] Divisor del JSplitPane principal establecido a " + (dividerLocationPercentage * 100) + "%.");
+//             } else {
+//                 System.err.println("WARN [VisorView Constructor - EDT]: splitPane es null. No se pudo establecer la posición del divisor.");
+//             }
+//         });
+//
+//         System.out.println("[VisorView Constructor] Constructor de VisorView finalizado.");
+//     }
 
 
     /**
@@ -273,6 +342,9 @@ public class VisorView extends JFrame {
 
         // --- FASE 1: Creación y Configuración de Paneles y Componentes Individuales ---
         this.panelInfoSuperior = crearPanelInfoSuperior();
+        
+        inicializarPanelControlesFondoIcono();
+        
         this.panelModoVisualizadorActual = crearPanelModoNormal(modeloNombresLista);
         this.bottomStatusBar = crearPanelEstadoInferior();
         //this.rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada en inicializarComponenentes)");
@@ -282,6 +354,7 @@ public class VisorView extends JFrame {
 
         System.out.println("--- [VisorView] Fin inicializarComponentes (Modular) ---");
     }
+    
 
     /**
      * Crea y ensambla el panel principal para el modo de visualización "Normal" o "Detalle".
@@ -387,7 +460,14 @@ public class VisorView extends JFrame {
     private JPanel crearPanelInfoSuperior() {
         System.out.println("    [VisorView] Creando PanelInfoSuperior (v2)...");
         JPanel panel = new JPanel(new GridBagLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5)); // Padding general
+        
+        Border paddingParaContenido = BorderFactory.createEmptyBorder(3, 5, 3, 5);
+        Border lineaInferiorExterna = BorderFactory.createMatteBorder(2, 2, 2, 2, 
+            (this.uiConfig != null && this.uiConfig.colorBorde != null) ? this.uiConfig.colorBorde : Color.GRAY);
+        
+        //panel.setBorder(BorderFactory.createEmptyBorder(3, 5, 3, 5)); // Padding general
+        panel.setBorder(BorderFactory.createCompoundBorder(lineaInferiorExterna, paddingParaContenido)); 
+        
         if (this.uiConfig != null && this.uiConfig.colorFondoSecundario != null) {
             panel.setBackground(this.uiConfig.colorFondoSecundario);
         } else {
@@ -444,49 +524,52 @@ public class VisorView extends JFrame {
 
         // 3. Sección Centro (Propiedades Imagen) - Alineada a la derecha del glue
         gbc.gridx = 2;
-        panel.add(this.dimensionesOriginalesInfoLabel, gbc);
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
         
         gbc.gridx = 3;
-        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
-
+        panel.add(this.dimensionesOriginalesInfoLabel, gbc);
+        
         gbc.gridx = 4;
-        panel.add(this.tamanoArchivoInfoLabel, gbc);
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
 
         gbc.gridx = 5;
-        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+        panel.add(this.tamanoArchivoInfoLabel, gbc);
 
         gbc.gridx = 6;
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc);
+
+        gbc.gridx = 7;
         panel.add(this.fechaArchivoInfoLabel, gbc);
-
-        // --- AÑADIR FORMATO IMAGEN AQUÍ ---
-        gbc.gridx = 7; // Siguiente posición
-        panel.add(crearSeparadorVerticalBarraInfo(), gbc); // Separador antes de formato
-
-        gbc.gridx = 8; // Siguiente posición
-        panel.add(this.formatoImagenInfoLabel, gbc); // Añadir el nuevo JLabel
 
         // 4. Separador Doble/Más Grande
         // Los gridx de los siguientes componentes se desplazan
-        gbc.gridx = 9; // Antes era 7
+        gbc.gridx = 8; // Antes era 7
         gbc.insets = new Insets(0, 8, 0, 8);
         panel.add(crearSeparadorVerticalBarraInfo(), gbc);
         gbc.insets = new Insets(0, 3, 0, 3);
 
         // 5. Sección Derecha (Estado App)
-        gbc.gridx = 10; // Antes era 8
+        gbc.gridx = 9; // Antes era 8
         panel.add(this.indiceTotalInfoLabel, gbc);
 
-        gbc.gridx = 11; // Antes era 9
+        gbc.gridx = 10; // Antes era 9
         panel.add(crearSeparadorVerticalBarraInfo(), gbc);
         
-        gbc.gridx = 12; // Antes era 10
+        gbc.gridx = 11; // Antes era 10
         panel.add(this.porcentajeZoomVisualRealInfoLabel, gbc);
 
-        gbc.gridx = 13; // Antes era 11
+        gbc.gridx = 12; // Antes era 11
         panel.add(crearSeparadorVerticalBarraInfo(), gbc);
 
-        gbc.gridx = 14; // Antes era 12
+        gbc.gridx = 13; // Antes era 12
         panel.add(this.modoZoomNombreInfoLabel, gbc);
+        
+        // --- AÑADIR FORMATO IMAGEN AQUÍ ---
+        gbc.gridx = 14; // Siguiente posición
+        panel.add(crearSeparadorVerticalBarraInfo(), gbc); // Separador antes de formato
+
+        gbc.gridx = 159; // Siguiente posición
+        panel.add(this.formatoImagenInfoLabel, gbc); // Añadir el nuevo JLabel
         
         System.out.println("    [VisorView] PanelInfoSuperior (v2) creado.");
         return panel;
@@ -717,10 +800,33 @@ public class VisorView extends JFrame {
         if (this.etiquetaImagen != null && this.panelContenedorDerechoSplit != null) {
             this.panelContenedorDerechoSplit.add(this.etiquetaImagen, BorderLayout.CENTER);
             System.out.println("      -> etiquetaImagen añadida a panelContenedorDerechoSplit.");
+            
+         // --- AÑADIR EL PANEL DE CONTROLES DE FONDO AQUÍ ---
+            if (this.panelControlesFondoIcono != null) {
+                JPanel southWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2)); // Gap pequeño, alineado a la derecha
+                southWrapper.setOpaque(false); // Para que herede el fondo de panelContenedorDerechoSplit
+                southWrapper.add(this.panelControlesFondoIcono);
+                this.panelContenedorDerechoSplit.add(southWrapper, BorderLayout.SOUTH);
+                System.out.println("      -> panelControlesFondoIcono añadido a panelContenedorDerechoSplit.SOUTH.");
+            }
+            
+            if (this.panelControlesFondoIcono != null) {
+                JPanel southWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
+                southWrapper.setOpaque(false);
+                southWrapper.add(this.panelControlesFondoIcono);
+                this.panelContenedorDerechoSplit.add(southWrapper, BorderLayout.SOUTH);
+                System.out.println("      -> panelControlesFondoIcono añadido a panelContenedorDerechoSplit.SOUTH.");
+            }
+            
         } else {
             System.err.println("ERROR CRÍTICO: etiquetaImagen o panelContenedorDerechoSplit nulos en configurarComponentesDelSplitDerecho.");
         }
     }
+            
+//        } else {
+//            System.err.println("ERROR CRÍTICO: etiquetaImagen o panelContenedorDerechoSplit nulos en configurarComponentesDelSplitDerecho.");
+//        }
+//    }
 
     /**
      * Crea y configura el JSplitPane principal.
@@ -1461,8 +1567,392 @@ public class VisorView extends JFrame {
             botonAsociado.setSelected(isSelected); // Importante para JToggleButton
         }
     }
+    
+    
+    private void inicializarPanelControlesFondoIcono() {
+    	
+        if (this.themeManagerRef == null) {
+            System.err.println("ERROR [VisorView.inicializarPanelControlesFondoIcono]: ThemeManagerRef es nulo. No se pueden crear selectores de fondo.");
+            return;
+        }
+        if (this.uiConfig == null || this.uiConfig.iconUtils == null) {
+            System.err.println("ERROR [VisorView.inicializarPanelControlesFondoIcono]: uiConfig o uiConfig.iconUtils son nulos.");
+            return;
+        }
+
+        this.panelControlesFondoIcono = new JPanel(new FlowLayout(FlowLayout.LEFT, 3, 1)); // 3px hgap, 1px vgap
+        this.panelControlesFondoIcono.setOpaque(false);
+
+        this.listaPuntosDeColor = new ArrayList<>();
+        // Definir bordes (puedes personalizarlos más si quieres)
+        
+        this.bordePuntoNormal = BorderFactory.createLineBorder(Color.BLACK); // Un borde negro para todos
+        this.bordePuntoSeleccionado = BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.RED, 2), // Borde rojo exterior
+            BorderFactory.createLineBorder(Color.BLACK)    // Borde negro interior (para que el color no toque el rojo)
+        );
+        
+        // Nombres internos de los temas para iterar y obtener sus colores
+        // Asegúrate de que estos nombres coinciden con los usados en ThemeManager
+        String[] nombresTemas = {"clear", "dark", "blue", "orange", "green"};
+        String[] tooltipsTemas = {
+            "Fondo Tema Claro", "Fondo Tema Oscuro", "Fondo Tema Azul", 
+            "Fondo Tema Naranja", "Fondo Tema Verde"
+        };
+
+        for (int i = 0; i < nombresTemas.length; i++) {
+        	
+        	
+            // Usar el color de fondo secundario del tema para el punto de color
+//            Color colorPunto = this.themeManagerRef.getFondoSecundarioParaTema(nombresTemas[i]);
+//            JPanel punto = crearPuntoSelectorFondo(colorPunto, tooltipsTemas[i], false, false, nombresTemas[i]);
+        	Color colorFondoOriginalTema = this.themeManagerRef.getFondoSecundarioParaTema(nombresTemas[i]);
+            Color colorParaElPuntoSelector;
+            
+            int luminosidad = colorFondoOriginalTema.getRed() + colorFondoOriginalTema.getGreen() + colorFondoOriginalTema.getBlue();
+            
+            if (luminosidad < 150) { // Si es muy oscuro
+                colorParaElPuntoSelector = aclararColor(colorFondoOriginalTema, 70); // Aclarar bastante
+            } else if (luminosidad > 600) { // Si es muy claro
+                colorParaElPuntoSelector = oscurecerColor(colorFondoOriginalTema, 70); // Oscurecer bastante
+            } else { // Colores intermedios, quizás no necesitan tanto ajuste o uno diferente
+                colorParaElPuntoSelector = colorFondoOriginalTema; // O un ligero aclarado/oscurecimiento
+            }
+            
+            JPanel punto = crearPuntoSelectorFondo(
+                    colorFondoOriginalTema, // Este es el color que se APLICARÁ al preview
+                    tooltipsTemas[i],
+                    false, false,
+                    nombresTemas[i],
+                    colorParaElPuntoSelector // NUEVO: Este es el color para PINTAR el selector
+                );
+            
+            this.listaPuntosDeColor.add(punto);
+            this.panelControlesFondoIcono.add(punto);
+        }
+
+        // Punto para fondo a cuadros
+        JPanel puntoCuadros = crearPuntoSelectorFondo(null, "Fondo a Cuadros", true, false, "cuadros");
+        this.listaPuntosDeColor.add(puntoCuadros);
+        this.panelControlesFondoIcono.add(puntoCuadros);
+
+        // Punto para color personalizado
+        JPanel puntoPersonalizado = crearPuntoSelectorFondo(null, "Seleccionar Color Personalizado...", false, true, "personalizado");
+        this.listaPuntosDeColor.add(puntoPersonalizado);
+        this.panelControlesFondoIcono.add(puntoPersonalizado);
+
+        // Establecer estado inicial del resaltado (se hará en el constructor de VisorView vía invokeLater)
+        // Aquí solo creamos los componentes.
+        System.out.println("  [VisorView] Panel de Controles de Fondo de Icono inicializado con " + this.listaPuntosDeColor.size() + " puntos.");
+    }
+
+    
+    private JPanel crearPuntoSelectorFondo(
+            final Color colorQueAplicaAlPreview, // El color real del fondo del tema
+            String tooltip,
+            final boolean esSelectorCuadros,
+            final boolean esSelectorPersonalizado,
+            final String identificadorPunto,
+            final Color colorParaPintarElSelector // El color (aclarado/oscurecido) para el botón
+    ) {
+    
+    @SuppressWarnings ("serial")
+	final JPanel punto = new JPanel() {
+        @Override
+        protected void paintComponent(Graphics g) {
+            // NO llamamos a super.paintComponent(g) si vamos a pintar todo nosotros.
+            // O lo llamamos y luego pintamos encima si el colorParaPintarElSelector es para el fondo del JPanel.
+            
+            Graphics2D g2d = (Graphics2D) g.create();
+            int w = getWidth();
+            int h = getHeight();
+
+            if (esSelectorCuadros) {
+                // ... pintar patrón a cuadros ...
+            } else if (esSelectorPersonalizado) {
+                // ... pintar icono de paleta (o dejar que el JLabel hijo lo haga) ...
+            } else if (colorParaPintarElSelector != null) { // Usar el colorParaPintarElSelector
+                // Pintar TODO el JPanel "punto" con el colorParaPintarElSelector
+                g2d.setColor(colorParaPintarElSelector);
+                g2d.fillRect(0, 0, w, h);
+            }
+            g2d.dispose();
+        }
+    };
+
+    punto.setPreferredSize(new Dimension(16, 16)); // O el tamaño que prefieras
+    punto.setToolTipText(tooltip);
+    punto.setBorder(this.bordePuntoNormal);
+    punto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    punto.setName(identificadorPunto);
+    punto.setOpaque(true); // Importante
+
+    // Ya no necesitas setBackground aquí si paintComponent lo maneja todo para los puntos de color
+    // if (esSelectorPersonalizado) { ... } 
+    // else if (esSelectorCuadros) { ... } 
+    // else { punto.setBackground(this.colorFondoNeutroParaSwatches); } // Ya no, porque pintamos con colorParaPintarElSelector
+
+    punto.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (esSelectorPersonalizado) {
+                // ... lógica JColorChooser ...
+                // aplicarFondoAPreview(colorElegido, false); // colorElegido es el que se aplica al preview
+            } else {
+                // Al hacer clic, se usa el color ORIGINAL del tema para el preview, no el aclarado/oscurecido
+                aplicarFondoAPreview(colorQueAplicaAlPreview, esSelectorCuadros);
+            }
+            actualizarResaltadoPuntosDeColor(punto);
+        }
+        // ...
+    });
+    return punto;
+}
+    
+    
+	private JPanel crearPuntoSelectorFondo (final Color colorTemaRepresentado, String tooltip,
+			final boolean esSelectorCuadros, final boolean esSelectorPersonalizado, final String identificadorPunto)
+	{
+		final JPanel punto = new JPanel()
+		{ // Usamos un JPanel anónimo para poder sobrescribir paintComponent
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			protected void paintComponent (Graphics g)
+			{
+
+				super.paintComponent(g); // Esto pintará el fondo del JPanel (que será colorFondoNeutroParaSwatches)
+
+				Graphics2D g2d = (Graphics2D) g.create();
+				int w = getWidth();
+				int h = getHeight();
+
+				if (esSelectorCuadros)
+				{
+// Pintar el patrón a cuadros
+					int tamCuadroPunto = Math.max(2, Math.min(w, h) / 4);
+
+					for (int row = 0; row < h; row += tamCuadroPunto)
+					{
+
+						for (int col = 0; col < w; col += tamCuadroPunto)
+						{
+							g2d.setColor((((row / tamCuadroPunto) % 2) == ((col / tamCuadroPunto) % 2)) ? Color.WHITE
+									: Color.LIGHT_GRAY);
+							g2d.fillRect(col, row, tamCuadroPunto, tamCuadroPunto);
+						}
+					}
+				} else if (esSelectorPersonalizado)
+				{
+				// Si el icono de la paleta no se añadió como un componente JLabel, lo dibujamos aquí.
+				// Si ya tienes un JLabel con el icono, esta parte podría no ser necesaria
+				// o podrías simplemente no pintar nada aquí y dejar que el JLabel haga su trabajo.
+				// Por ahora, si es el personalizado y tiene un icono como componente, no pintamos más.
+				// Si no tuviera un componente JLabel hijo, aquí dibujarías el icono:
+				// if (paletteIcon != null) g2d.drawImage(paletteIcon.getImage(), (w - paletteIcon.getIconWidth()) / 2, (h - paletteIcon.getIconHeight()) / 2, null);
+				} else if (colorTemaRepresentado != null)
+				{
+					// Es un punto de color de tema: dibujar el "swatch"
+					int inset = 3; // Margen para el "marco" del swatch
+
+					g2d.setColor(colorTemaRepresentado);
+				    g2d.fillRect(inset, inset, w - (2 * inset), h - (2 * inset));
+
+				    // PARA DEPURAR: Dibuja un borde alrededor del swatch interior
+				    g2d.setColor(Color.BLUE); // Un color muy obvio
+				    g2d.drawRect(inset, inset, w - (2 * inset) - 1, h - (2 * inset) - 1);
+				}
+				g2d.dispose();
+
+			}
+		};
+
+		punto.setPreferredSize(new Dimension(18, 18)); // Un tamaño un poco mayor para el efecto marco
+		punto.setToolTipText(tooltip);
+		punto.setBorder(this.bordePuntoNormal);
+		punto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		punto.setName(identificadorPunto);
+		punto.setOpaque(true); // El JPanel base del punto debe ser opaco para que su fondo se pinte
+
+		if (esSelectorPersonalizado)
+		{
+			punto.setLayout(new BorderLayout());
+			// Mantener el fondo neutro para el panel que contiene el icono
+			punto.setBackground(this.colorFondoNeutroParaSwatches);
+
+			if (this.uiConfig != null && this.uiConfig.iconUtils != null)
+			{
+				ImageIcon paletteIcon = this.uiConfig.iconUtils.getScaledCommonIcon("Paint-Palette--Streamline-Core.png", 12,
+						12);
+
+				if (paletteIcon != null)
+				{
+					JLabel iconLabel = new JLabel(paletteIcon);
+					iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+					// iconLabel.setOpaque(false); // El JLabel debería ser transparente por defecto
+					punto.add(iconLabel, BorderLayout.CENTER);
+				} else
+				{
+					// Fallback si el icono no carga: podría mostrar "P" o dejar el fondo neutro
+					System.err.println("WARN [VisorView]: Icono de paleta no cargado para selector personalizado.");
+				}
+			}
+		} else if (esSelectorCuadros)
+		{
+			// Para el panel de cuadros, su propio paintComponent se encarga.
+	// No necesita un setBackground aquí si paintComponent lo cubre todo.
+			// Podrías querer un fondo base si el patrón no llena todo en caso de errores.
+			punto.setBackground(this.colorFondoNeutroParaSwatches); // Fondo base detrás del patrón
+		} else
+		{ // Para los puntos de color de tema
+			// El fondo del JPanel "punto" será el neutro. El color del tema se pinta DENTRO.
+			punto.setBackground(this.colorFondoNeutroParaSwatches);
+		}
+
+		punto.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked (MouseEvent e)
+			{
+
+				if (esSelectorPersonalizado)
+				{
+					Color colorFondoActualEtiqueta = fondoACuadrosActivado ? etiquetaImagen.getBackground()
+							: etiquetaImagen.getBackground();
+
+					if (colorFondoActualEtiqueta == null && uiConfig != null)
+					{ // Fallback si el fondo es null (ej. transparente)
+						colorFondoActualEtiqueta = uiConfig.colorFondoSecundario;
+					} else if (colorFondoActualEtiqueta == null)
+					{
+						colorFondoActualEtiqueta = Color.WHITE;
+					}
+
+					Color colorElegido = JColorChooser.showDialog(SwingUtilities.getWindowAncestor(punto),
+							"Seleccionar Color de Fondo Personalizado", colorFondoActualEtiqueta);
+
+					if (colorElegido != null)
+					{
+						aplicarFondoAPreview(colorElegido, false);
+						actualizarResaltadoPuntosDeColor(punto);
+					}
+				} else
+				{
+					aplicarFondoAPreview(colorTemaRepresentado, esSelectorCuadros); // colorTemaRepresentado será null
+																					// para esSelectorCuadros
+					actualizarResaltadoPuntosDeColor(punto);
+				}
+			}
+
+			@Override
+			public void mouseEntered (MouseEvent e)
+			{
+				punto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			}
+
+			@Override
+			public void mouseExited (MouseEvent e)
+			{
+				punto.setCursor(Cursor.getDefaultCursor());
+			}
+		});
+		return punto;
+
+	}
+    
+    
+	/**
+	 * Aclara un color dado sumando un valor a sus componentes RGB.
+	 * Los componentes se limitan a un máximo de 255.
+	 *
+	 * @param colorOriginal El color a aclarar.
+	 * @param cantidadAclarar El valor a sumar a cada componente RGB.
+	 * @return Un nuevo objeto Color aclarado.
+	 */
+	public Color aclararColor(Color colorOriginal, int cantidadAclarar) {
+	    if (colorOriginal == null) {
+	        return Color.LIGHT_GRAY; // O algún otro default
+	    }
+	    int r = Math.min(255, colorOriginal.getRed() + cantidadAclarar);
+	    int g = Math.min(255, colorOriginal.getGreen() + cantidadAclarar);
+	    int b = Math.min(255, colorOriginal.getBlue() + cantidadAclarar);
+	    return new Color(r, g, b);
+	}
+
+	/**
+	 * Oscurece un color dado restando un valor a sus componentes RGB.
+	 * Los componentes se limitan a un mínimo de 0.
+	 *
+	 * @param colorOriginal El color a oscurecer.
+	 * @param cantidadOscurecer El valor a restar a cada componente RGB.
+	 * @return Un nuevo objeto Color oscurecido.
+	 */
+	public Color oscurecerColor(Color colorOriginal, int cantidadOscurecer) {
+	    if (colorOriginal == null) {
+	        return Color.DARK_GRAY; // O algún otro default
+	    }
+	    int r = Math.max(0, colorOriginal.getRed() - cantidadOscurecer);
+	    int g = Math.max(0, colorOriginal.getGreen() - cantidadOscurecer);
+	    int b = Math.max(0, colorOriginal.getBlue() - cantidadOscurecer);
+	    return new Color(r, g, b);
+	}
+	
+	
+    private void aplicarFondoAPreview(Color nuevoFondo, boolean esACuadros) {
+        if (this.etiquetaImagen == null) return;
+
+        if (esACuadros) {
+            this.setFondoACuadrosActivado(true); // Usa tu método existente
+            // El paintComponent de etiquetaImagen ya usa colorFondoSecundario si fondoACuadrosActivado es false
+            // y no es necesario llamar a setBackground explícitamente si setOpaque es false.
+            // Para el modo cuadros, queremos que el fondo del JLabel sea transparente
+            // y que el paintComponent dibuje los cuadros.
+            this.etiquetaImagen.setOpaque(false);
+        } else {
+            this.setFondoACuadrosActivado(false);
+            this.etiquetaImagen.setOpaque(true); // Necesario para que setBackground() tenga efecto visible
+            this.etiquetaImagen.setBackground(nuevoFondo);
+        }
+        this.etiquetaImagen.repaint();
+        System.out.println("  [VisorView] Fondo de 'etiquetaImagen' aplicado. EsACuadros: " + esACuadros + 
+                           (nuevoFondo != null ? ", Color: RGB(" + nuevoFondo.getRed() + "," + nuevoFondo.getGreen() + "," + nuevoFondo.getBlue() + ")" : ""));
+    }
+
+    private void actualizarResaltadoPuntosDeColor(JPanel puntoSeleccionado) {
+        if (this.listaPuntosDeColor == null) return;
+        for (JPanel punto : this.listaPuntosDeColor) {
+            punto.setBorder(punto == puntoSeleccionado ? this.bordePuntoSeleccionado : this.bordePuntoNormal);
+        }
+    }
+
+    
+    
     public Image getImagenReescaladaView() {
         return this.imagenReescaladaView;
+    }
+    
+    
+    /**
+     * Establece el estado del modo de fondo a cuadros para la etiqueta de imagen principal.
+     * No repinta directamente; se espera que el llamador solicite un repaint de etiquetaImagen
+     * después de cambiar este estado si es necesario un refresco visual inmediato.
+     * 
+     * @param activado true para activar el fondo a cuadros, false para desactivarlo (y usar el fondo sólido).
+     */
+    public void setFondoACuadrosActivado(boolean activado) {
+        if (this.fondoACuadrosActivado != activado) {
+            this.fondoACuadrosActivado = activado;
+            // Opcional: Log si quieres rastrear cuándo cambia este estado
+            // System.out.println("  [VisorView] Estado fondoACuadrosActivado cambiado a: " + this.fondoACuadrosActivado);
+            
+            // Si el fondo a cuadros se desactiva, etiquetaImagen debería volverse opaca
+            // para que su setBackground() tenga efecto. Si se activa, debería ser no opaca
+            // para que su paintComponent() pueda dibujar los cuadros y lo que esté detrás si el icono es transparente.
+            if (this.etiquetaImagen != null) {
+                this.etiquetaImagen.setOpaque(!this.fondoACuadrosActivado);
+                // No llamamos a repaint aquí directamente, aplicarFondoAPreview lo hará.
+            }
+        }
     }
     
     

@@ -285,7 +285,8 @@ public class ZoomManager {
 
         // --- LLAMADA PARA ACTUALIZAR LAS BARRAS DE INFORMACIÓN ---
         if (infoBarManagerRef != null) {
-            System.out.println("  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...");
+        	// LOG Refresco vista Completado
+//            System.out.println("  [ZoomManager] Refresco de vista completado. Solicitando actualización de InfoBars...");
             infoBarManagerRef.actualizarBarrasDeInfo();
         } else {
             System.out.println("  [ZoomManager] WARN: infoBarManagerRef es null. No se pueden actualizar barras desde ZoomManager.");

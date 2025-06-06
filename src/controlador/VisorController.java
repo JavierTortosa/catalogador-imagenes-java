@@ -2018,13 +2018,18 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             }
 
             if (consumed) {
-                System.out.println("    -> Evento CONSUMIDO por Dispatcher.");
-                e.consume();
+            	
+            	//LOG Si consumimos (era una flecha u otra tecla)
+                //System.out.println("    -> Evento CONSUMIDO por Dispatcher.");
+                
+            	e.consume();
                 return true; // Indicar que lo hemos manejado
             } else {
-                // Si no consumimos (era una flecha u otra tecla)
-                System.out.println("    -> Evento NO consumido por dispatcher (pasará a bindings JList si los hay).");
-                return false; // Dejar que siga
+            	
+                //LOG Si no consumimos (era una flecha u otra tecla)
+                //System.out.println("    -> Evento NO consumido por dispatcher (pasará a bindings JList si los hay).");
+                
+            	return false; // Dejar que siga
             }
         }
 

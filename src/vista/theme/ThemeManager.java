@@ -193,4 +193,33 @@ public class ThemeManager {
      public List<Tema> getTemasDisponibles() {
          return List.copyOf(temasDisponibles.values()); // Devuelve copia inmutable
      }
-}
+     
+     
+     /**
+      * Obtiene el color de fondo secundario para un tema específico.
+      * Este es el color que se usará como fondo para la previsualización de iconos.
+      *
+      * @param nombreTemaInterno El nombre interno del tema (ej. "clear", "dark").
+      * @return El Color de fondo secundario del tema, o un color de fallback (ej. Color.DARK_GRAY)
+      *         si el tema no se encuentra o el color no está definido.
+      */
+     public Color getFondoSecundarioParaTema(String nombreTemaInterno) {
+         if (nombreTemaInterno == null || nombreTemaInterno.isBlank()) {
+             System.err.println("WARN [ThemeManager.getFondoSecundarioParaTema]: nombreTemaInterno es nulo o vacío. Devolviendo fallback.");
+             return Color.DARK_GRAY; // Fallback
+         }
+         Tema tema = temasDisponibles.get(nombreTemaInterno.toLowerCase()); // Asegurar búsqueda en minúsculas
+         if (tema != null) {
+             // Asumiendo que la clase Tema tiene un método público/campo colorFondoSecundario()
+             Color color = tema.colorFondoSecundario(); 
+             if (color != null) {
+                 return color;
+             } else {
+                 System.err.println("WARN [ThemeManager.getFondoSecundarioParaTema]: Tema '" + nombreTemaInterno + "' no tiene definido colorFondoSecundario. Devolviendo fallback.");
+                 return Color.DARK_GRAY; // Fallback si el color específico es null en el tema
+             }
+         }
+         System.err.println("WARN [ThemeManager.getFondoSecundarioParaTema]: No se encontró tema '" + nombreTemaInterno + "'. Devolviendo fallback.");
+         return Color.DARK_GRAY; // Fallback si el tema no existe
+     }
+} // --- FIN de la clase ThemeManager ---
