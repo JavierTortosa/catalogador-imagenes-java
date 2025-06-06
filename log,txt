@@ -51,7 +51,6 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
       -> EtiquetaImagen configurada por inicializarEtiquetaMostrarImagen.
       -> etiquetaImagen añadida a panelContenedorDerechoSplit.
       -> panelControlesFondoIcono añadido a panelContenedorDerechoSplit.SOUTH.
-      -> panelControlesFondoIcono añadido a panelContenedorDerechoSplit.SOUTH.
     [VisorView] Creando y configurando JSplitPane...
     [VisorView] JSplitPane creado.
     [VisorView] Configurando PanelDeMiniaturas...
@@ -70,6 +69,10 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     -> PanelEstadoInferior ensamblado en JFrame.SOUTH.
   [VisorView] Fin ensamblarUIGeneral.
 --- [VisorView] Fin inicializarComponentes (Modular) ---
+  [VisorView Constructor] Restaurando estado de la ventana desde configuración...
+    -> Aplicando bounds guardados: java.awt.Rectangle[x=0,y=0,width=1550,height=500]
+    -> 'lastNormalBounds' inicializado a: java.awt.Rectangle[x=0,y=0,width=1550,height=500]
+    -> La configuración indica que la ventana debe iniciar maximizada. Aplicando estado...
   [VisorView Constructor] Estado de la ventana (tamaño/posición) restaurado desde configuración.
     B.2. [EDT] VisorView instanciada con uiConfigInicial e inyectada en Controller.
     B.3.1. [EDT] ZoomManager creado e inyectado.
@@ -81,7 +84,7 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   [ActionFactory] Inicializando todas las Actions...
   [ToggleMenuBarAction CSTR] Leyendo 'interfaz.menu.vista.barra_de_menu.seleccionado' -> true. SELECTED_KEY puesto a: true
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@2ba199bd
+ActionFactory: Creando ToggleSubfoldersAction@67b0def9
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
@@ -364,7 +367,7 @@ ActionFactory: Creando ToggleSubfoldersAction@2ba199bd
     -> Alineación determinada: CENTER
   [TB addSeparator] Añadiendo separador después de categoría: 'proyecto'
   [TB procesarDef] Def: Comando='cmd.toggle.subcarpetas', Icono='7001-Subcarpetas_48x48.png', Cat='toggle'
-ToolbarBuilder: Obtenida Action@2ba199bd para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
+ToolbarBuilder: Obtenida Action@67b0def9 para CMD_TOGGLE_SUBCARPETAS. Asignando a botón.
     -> Action 'cmd.toggle.subcarpetas' asignada al botón.
     -> Icono obtenido de la Action.
     -> Botón añadido a mapa botonesPorNombre con clave: interfaz.boton.toggle.Subcarpetas_48x48
@@ -640,6 +643,7 @@ ToolbarBuilder: Obtenida Action@2ba199bd para CMD_TOGGLE_SUBCARPETAS. Asignando 
     -> [EDT AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.
     [EDT Internal] Sincronizando UI Final...
       -> Sincronizando Fondo a Cuadros a estado: false
+  [Worker BG] Files.walk terminado. Archivos encontrados: 176
     [EDT Internal] Sincronización UI Final completada.
     [Internal] Configurando Shutdown Hook...
     [Internal] Shutdown Hook registrado en la JVM.
@@ -648,7 +652,7 @@ ToolbarBuilder: Obtenida Action@2ba199bd para CMD_TOGGLE_SUBCARPETAS. Asignando 
   [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
   [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.
 --- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---
-  [Worker BG] Files.walk terminado. Archivos encontrados: 176
+  [VisorView Constructor - EDT] Divisor del JSplitPane principal establecido a 25.0%.
     [EDT Carga Lista] Mostrando diálogo de progreso...
 [Worker EDT] Método done() alcanzado.
   [EDT Worker Listener] Tarea de búsqueda (BuscadorArchivosWorker) ha finalizado (DONE). Procesando resultado...
@@ -670,8 +674,8 @@ ToolbarBuilder: Obtenida Action@2ba199bd para CMD_TOGGLE_SUBCARPETAS. Asignando 
       -> Flag seleccionInicialEnCurso puesto a TRUE.
   [EDT Worker Listener] Procesamiento del resultado finalizado.
   -> Solicitando repintado inicial de listaMiniaturas.
-      [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
-      [WindowResized Timer - AppInitializer] Modelo no listo o sin selección oficial, no se actualizan miniaturas.
+    -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. (Índice que se intentó seleccionar: 0)
+    [Asegurar Visibilidad] Índice -1, no se hace nada.
       -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a ListCoordinator para procesar índice inicial: 0
 >>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
     [Coordinator Flag] sincronizandoUI -> true
@@ -681,7 +685,8 @@ ToolbarBuilder: Obtenida Action@2ba199bd para CMD_TOGGLE_SUBCARPETAS. Asignando 
 --> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice informativo: 0)
     [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
 --> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: A-gigante de hierro.jpg
-      [BG Img Load - pool-1-thread-7] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+      [BG Img Load] Lectura de imagen desde disco correcta para: A-gigante de hierro.jpg
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
         -> Índice actual en JList 'Nombres': 0
@@ -692,20 +697,18 @@ ToolbarBuilder: Obtenida Action@2ba199bd para CMD_TOGGLE_SUBCARPETAS. Asignando 
   [actualizarMiniaturas] Tamaño modeloPrincipal: 176
   [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
 --- FIN actualizarModeloYVistaMiniaturas ---
-      [BG Img Load] Lectura de imagen desde disco correcta para: A-gigante de hierro.jpg
         -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
 >>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
-    -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. (Índice que se intentó seleccionar: 0)
-    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
-      -> Asegurando visibilidad en Nombres para índice 0
-      -> Asegurando visibilidad en Miniaturas para índice relativo 0 (Principal 0)
-    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
       [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
 
 --- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
   [actualizarMiniaturas] Tamaño modeloPrincipal: 176
   [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
 --- FIN actualizarModeloYVistaMiniaturas ---
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado de carga para clave: A-gigante de hierro.jpg
+        -> [EDT Img Update] Carga desde disco fue EXITOSA. Actualizando modelo y UI...
+        -> [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+        -> [EDT Img Update] FIN PROCESO ÉXITO (Vista refrescada, marca actualizada).
           -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
     [Coordinator Flag] sincronizandoUI -> true
    -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
@@ -722,10 +725,6 @@ ToolbarBuilder: Obtenida Action@2ba199bd para CMD_TOGGLE_SUBCARPETAS. Asignando 
    -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
    -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
     [Coordinator Flag] sincronizandoUI -> false
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado de carga para clave: A-gigante de hierro.jpg
-        -> [EDT Img Update] Carga desde disco fue EXITOSA. Actualizando modelo y UI...
-        -> [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
-        -> [EDT Img Update] FIN PROCESO ÉXITO (Vista refrescada, marca actualizada).
     [Coordinator Flag] sincronizandoUI -> true
    -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
   [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
@@ -764,9 +763,12 @@ ToolbarBuilder: Obtenida Action@2ba199bd para CMD_TOGGLE_SUBCARPETAS. Asignando 
    -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
+[ResetZoomAction actionPerformed] Comando: cmd.zoom.reset
+[ResetZoomAction actionPerformed] Lógica de reseteo delegada a ZoomManager.
 --- Hook de Cierre Ejecutándose ---
   [Hook - Ventana] Guardando estado de la ventana en config...
-    -> Ventana maximizada, no se guardan bounds específicos.
+    -> Estado Maximized guardado en config: false
+    -> Últimos Bounds Normales guardados en config: java.awt.Rectangle[x=0,y=0,width=1550,height=500]
   -> Llamando a guardarConfiguracionActual() desde hook...
   [ShutdownHook] Recopilando estado actual para guardar...
     -> Modelo: Guardando estado de zoomHabilitado: true en clave: comportamiento.zoom.manual_inicial_activo

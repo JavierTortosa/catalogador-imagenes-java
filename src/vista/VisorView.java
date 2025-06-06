@@ -13,7 +13,10 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -103,7 +106,6 @@ public class VisorView extends JFrame {
 	private JLabel iconoMantenerProporcionesLabel;
 	private JLabel iconoModoSubcarpetasLabel;
 	private JButton modoZoomActualIconoBoton;
-	private JButton porcentajeZoomEspecificadoBoton;
     
     
     // --- REFERENCIAS EXTERNAS Y CONFIGURACIÓN ---
@@ -125,7 +127,7 @@ public class VisorView extends JFrame {
     private final Color colorCuadroOscuro = new Color(255, 255, 255);
     private final int TAMANO_CUADRO = 16;
 
- // --- CAMPOS para los controles de fondo de previsualización ---
+    // --- CAMPOS para los controles de fondo de previsualización ---
     private JPanel panelControlesFondoIcono;    // El panel que contendrá los 7 puntos
     private List<JPanel> listaPuntosDeColor;      // Lista de los JPanel que actúan como selectores
     private Border bordePuntoNormal;
@@ -135,6 +137,8 @@ public class VisorView extends JFrame {
     // --- Icono de Error de Imagen
     private ImageIcon iconoErrorGeneral;
     //private ImageIcon iconoErrorOriginal;
+    
+    private Rectangle lastNormalBounds;
     
     
     /**
@@ -151,188 +155,217 @@ public class VisorView extends JFrame {
       * @param menuItems Mapa de JMenuItems generados (puede ser vacío inicialmente).
       * @param botones Mapa de JButtons generados (puede ser vacío inicialmente).
       */
-     public VisorView(
-             int miniaturaPanelHeight,
-             ViewUIConfig config,        // Contiene IconUtils, ConfigurationManager, colores, etc.
-             VisorModel modelo,
-             ThumbnailService servicioThumbs,
-             ThemeManager themeManager,
-             JMenuBar menuBar,           // Puede ser un placeholder inicial
-             JPanel toolbarPanel,        // Puede ser un placeholder inicial
-             Map<String, JMenuItem> menuItems, // Puede ser un placeholder inicial
-             Map<String, JButton> botones      // Puede ser un placeholder inicial
-     ) {
-         super("Visor/Catalogador de Imágenes"); // Título de la ventana
-         System.out.println("[VisorView Constructor] Iniciando constructor principal de VisorView...");
+    public VisorView(
+            int miniaturaPanelHeight,
+            ViewUIConfig config,
+            VisorModel modelo,
+            ThumbnailService servicioThumbs,
+            ThemeManager themeManager,
+            JMenuBar menuBar,
+            JPanel toolbarPanel,
+            Map<String, JMenuItem> menuItems,
+            Map<String, JButton> botones
+    ) {
+        super("Visor/Catalogador de Imágenes");
+        System.out.println("[VisorView Constructor] Iniciando constructor principal de VisorView...");
 
-         // --- 1. ASIGNACIÓN DE DEPENDENCIAS INYECTADAS ---
-         //    Usa Objects.requireNonNull para asegurar que las dependencias críticas no sean nulas.
-         this.uiConfig = Objects.requireNonNull(config, "ViewUIConfig (config) no puede ser null en VisorView constructor");
-         this.model = Objects.requireNonNull(modelo, "VisorModel (modelo) no puede ser null en VisorView constructor");
-         this.servicioThumbs = Objects.requireNonNull(servicioThumbs, "ThumbnailService (servicioThumbs) no puede ser null en VisorView constructor");
-         this.themeManagerRef = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en VisorView constructor");
-         
-         // Determinar la altura del panel de miniaturas, con un fallback.
-         this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100; // Ejemplo: 100px si no se especifica > 0
+        // --- 1. ASIGNACIÓN DE DEPENDENCIAS INYECTADAS ---
+        this.uiConfig = Objects.requireNonNull(config, "ViewUIConfig (config) no puede ser null en VisorView constructor");
+        this.model = Objects.requireNonNull(modelo, "VisorModel (modelo) no puede ser null en VisorView constructor");
+        this.servicioThumbs = Objects.requireNonNull(servicioThumbs, "ThumbnailService (servicioThumbs) no puede ser null en VisorView constructor");
+        this.themeManagerRef = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en VisorView constructor");
+        
+        this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100;
 
-         // Asignar placeholders o componentes reales de menú/toolbar. Serán actualizados después por el Controller si es necesario.
-         this.mainMenuBar = (menuBar != null) ? menuBar : new JMenuBar(); // Usar placeholder si es null
-         this.mainToolbarPanel = (toolbarPanel != null) ? toolbarPanel : new JPanel(); // Usar placeholder si es null
-         this.panelDeBotones = this.mainToolbarPanel; // Referencia inicial
-         
-         // Mapas para componentes de UI (botones/menús) que serán poblados/actualizados por el Controller.
-         this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();
-         this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();
+        this.mainMenuBar = (menuBar != null) ? menuBar : new JMenuBar();
+        this.mainToolbarPanel = (toolbarPanel != null) ? toolbarPanel : new JPanel();
+        this.panelDeBotones = this.mainToolbarPanel;
+        
+        this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();
+        this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();
 
-         // Control del fondo temporal del label de la imagen
-         this.bordePuntoNormal = BorderFactory.createEtchedBorder(); // Un borde sutil
-         this.bordePuntoSeleccionado = BorderFactory.createLineBorder(Color.RED, 2); // Borde rojo y grueso
-         this.colorFondoNeutroParaSwatches = UIManager.getColor("Panel.background"); // Color de fondo estándar de los paneles
-         if (this.colorFondoNeutroParaSwatches == null) {
-             this.colorFondoNeutroParaSwatches = new Color(230, 230, 230); // Fallback
+        this.bordePuntoNormal = BorderFactory.createEtchedBorder();
+        this.bordePuntoSeleccionado = BorderFactory.createLineBorder(Color.RED, 2);
+        this.colorFondoNeutroParaSwatches = UIManager.getColor("Panel.background");
+        if (this.colorFondoNeutroParaSwatches == null) {
+            this.colorFondoNeutroParaSwatches = new Color(230, 230, 230);
+        }
+        this.bordePuntoNormal = BorderFactory.createLineBorder(this.colorFondoNeutroParaSwatches.darker()); 
+        this.bordePuntoSeleccionado = BorderFactory.createLineBorder(Color.RED, 2);
+        // lastNormalBounds se inicializará más adelante, en la sección de restauración de ventana.
+        // Darle un valor por defecto aquí es solo un fallback de seguridad.
+        this.lastNormalBounds = new Rectangle(100, 100, 1280, 720);
+        
+        
+        // --- 2. CONFIGURACIÓN BÁSICA DEL JFRAME ---
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLayout(new BorderLayout());
+        
+        if (this.uiConfig.colorFondoPrincipal != null) {
+            getContentPane().setBackground(this.uiConfig.colorFondoPrincipal);
+        } else {
+            getContentPane().setBackground(Color.LIGHT_GRAY);
+            System.err.println("WARN [VisorView Constructor]: uiConfig.colorFondoPrincipal es null. Usando fallback LIGHT_GRAY.");
+        }
+
+        // --- 3. CARGA DEL ICONO DE ERROR GENERAL ---
+        if (this.uiConfig.iconUtils != null) {
+            int anchoIconoErrorVisor = 128;
+            int altoIconoErrorVisor = 128;
+            this.iconoErrorGeneral = this.uiConfig.iconUtils.getScaledCommonIcon(
+                "imagen-rota.png",
+                anchoIconoErrorVisor,
+                altoIconoErrorVisor
+            );
+            if (this.iconoErrorGeneral == null) {
+                System.err.println("WARN [VisorView Constructor]: No se pudo cargar o escalar el icono de error general 'imagen-rota.png' para el visor principal. Se usará texto de error.");
+            } else {
+                System.out.println("  [VisorView Constructor] Icono de error general ('imagen-rota.png') cargado y escalado para visor principal a: " +
+                                   anchoIconoErrorVisor + "x" + altoIconoErrorVisor);
+            }
+        } else {
+            this.iconoErrorGeneral = null;
+            System.err.println("WARN [VisorView Constructor]: uiConfig.iconUtils es null. No se pudo cargar/inicializar iconoErrorGeneral.");
+        }
+        
+        // --- 4. INICIALIZACIÓN DE COMPONENTES DE LA UI ---
+        if (this.model.getModeloLista() != null) {
+            inicializarComponentes(this.model.getModeloLista());
+        } else {
+            System.err.println("ERROR CRÍTICO [VisorView Constructor]: this.model.getModeloLista() es null. Inicializando componentes con modelo vacío.");
+            inicializarComponentes(new DefaultListModel<>());
+        }
+
+        // --- 5. RESTAURAR ESTADO DE LA VENTANA (TAMAÑO, POSICIÓN, MAXIMIZADO) ---
+        // --- CAMBIO INICIO: Lógica refactorizada para restaurar el estado de la ventana ---
+        if (this.uiConfig.configurationManager != null) {
+            System.out.println("  [VisorView Constructor] Restaurando estado de la ventana desde configuración...");
+            
+            // --- PASO A: Leer SIEMPRE los bounds normales (x, y, ancho, alto) ---
+            //   Estos valores definen el estado de la ventana cuando NO está maximizada.
+            int x = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_X, -1);
+            int y = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_Y, -1);
+            int w = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_WIDTH, 1280); // Default ancho
+            int h = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_HEIGHT, 720);  // Default alto
+            
+            // --- PASO B: Establecer SIEMPRE los bounds normales en el JFrame ---
+            //   Esto asegura que el JFrame sepa a qué tamaño y posición volver cuando se restaure.
+            if (w > 50 && h > 50 && x != -1 && y != -1) {
+                // Si tenemos valores guardados y válidos, los aplicamos.
+                System.out.println("    -> Aplicando bounds guardados: " + new Rectangle(x,y,w,h));
+                setBounds(x, y, w, h);
+            } else {
+                // Si no, aplicamos los valores por defecto y centramos la ventana.
+                System.out.println("    -> Usando bounds por defecto y centrando.");
+                setSize(w, h);
+                setLocationRelativeTo(null);
+            }
+            
+            // --- PASO C: Inicializar 'lastNormalBounds' con los bounds que acabamos de establecer ---
+            //   Ahora 'getBounds()' devolverá los valores correctos que hemos aplicado.
+            this.lastNormalBounds = getBounds();
+            System.out.println("    -> 'lastNormalBounds' inicializado a: " + this.lastNormalBounds);
+            
+            // --- PASO D: Leer y aplicar el estado maximizado DESPUÉS de haber establecido los bounds normales ---
+            boolean wasMaximized = this.uiConfig.configurationManager.getBoolean(ConfigurationManager.KEY_WINDOW_MAXIMIZED, false);
+            if (wasMaximized) {
+                System.out.println("    -> La configuración indica que la ventana debe iniciar maximizada. Aplicando estado...");
+                // Usamos SwingUtilities.invokeLater para dar tiempo a Swing a procesar los bounds
+                // antes de intentar maximizar. Es una práctica más segura.
+                SwingUtilities.invokeLater(() -> {
+                    setExtendedState(JFrame.MAXIMIZED_BOTH);
+                });
+            }
+            
+            System.out.println("  [VisorView Constructor] Estado de la ventana (tamaño/posición) restaurado desde configuración.");
+            
+        } else {
+            // --- Fallback si ConfigurationManager no está disponible ---
+            setSize(1280, 720);
+            setLocationRelativeTo(null);
+            // Es crucial inicializar lastNormalBounds también en el caso de fallback.
+            this.lastNormalBounds = getBounds();
+            System.err.println("WARN [VisorView Constructor]: uiConfig.configurationManager es null. Usando tamaño/posición de ventana por defecto.");
+        }
+        // --- CAMBIO FIN ---
+        
+        // --- COMPONENTLISTENER (sin cambios, ya estaba bien) ---
+        this.addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentMoved(ComponentEvent e) {
+                if (getExtendedState() == JFrame.NORMAL) {
+                    lastNormalBounds = getBounds();
+                }
+            }
+            @Override
+            public void componentResized(ComponentEvent e) {
+                if (getExtendedState() == JFrame.NORMAL) {
+                    lastNormalBounds = getBounds();
+                }
+            }
+        });
+        
+        // --- 6. AJUSTE FINAL DEL DIVISOR DEL JSPLITPANE (sin cambios) ---
+        SwingUtilities.invokeLater(() -> {
+            if (this.panelControlesFondoIcono != null && this.uiConfig != null && this.themeManagerRef != null) {
+                
+                boolean esCuadrosActual = this.isFondoACuadrosActivado();
+                
+                JPanel puntoAResaltar = null;
+                if (esCuadrosActual) {
+                    if (this.listaPuntosDeColor.size() >= 6) {
+                        puntoAResaltar = this.listaPuntosDeColor.get(this.listaPuntosDeColor.size() - 2);
+                    }
+                } else {
+                    String temaActualNombre = this.themeManagerRef.getTemaActual().nombreInterno();
+                    for(JPanel punto : this.listaPuntosDeColor) {
+                        if (punto.getName().equals(temaActualNombre)) {
+                            puntoAResaltar = punto;
+                            break;
+                        }
+                    }
+                }
+                
+                if (puntoAResaltar != null) {
+                    actualizarResaltadoPuntosDeColor(puntoAResaltar);
+                } else if (!esCuadrosActual) {
+                    if (!this.listaPuntosDeColor.isEmpty()) {
+                       actualizarResaltadoPuntosDeColor(this.listaPuntosDeColor.get(this.listaPuntosDeColor.size() - 1));
+                    }
+                }
+                
+                if (this.splitPane != null) { 
+                    double dividerLocationPercentage = 0.25;
+                    if (this.uiConfig.configurationManager != null) {
+                        // dividerLocationPercentage = this.uiConfig.configurationManager.getDouble("ui.splitpane.main.dividerLocation", 0.25);
+                    }
+                    this.splitPane.setDividerLocation(dividerLocationPercentage); 
+                    System.out.println("  [VisorView Constructor - EDT] Divisor del JSplitPane principal establecido a " + (dividerLocationPercentage * 100) + "%.");
+                } else {
+                    System.err.println("WARN [VisorView Constructor - EDT]: splitPane es null. No se pudo establecer la posición del divisor.");
+                }
+            }
+        });
+    }
+    
+    
+     /**
+      * Devuelve los últimos bounds conocidos de la ventana cuando estaba en estado normal (no maximizada).
+      * Si la ventana está actualmente en estado normal, devuelve sus bounds actuales.
+      * Si está maximizada, devuelve el último valor guardado por el ComponentListener.
+      * @return Un objeto Rectangle con los bounds normales, o null si no se han podido determinar.
+      */
+     public Rectangle getLastNormalBounds() {
+         if (getExtendedState() == JFrame.NORMAL) {
+             // Si la ventana ya está en estado normal, sus bounds actuales son los correctos.
+             return getBounds();
          }
-         this.bordePuntoNormal = BorderFactory.createLineBorder(this.colorFondoNeutroParaSwatches.darker()); 
-         this.bordePuntoSeleccionado = BorderFactory.createLineBorder(Color.RED, 2);
-         
-         
-         
-         // --- 2. CONFIGURACIÓN BÁSICA DEL JFRAME ---
-         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE); // Comportamiento al cerrar la ventana.
-         setLayout(new BorderLayout()); // Establecer el layout principal del content pane.
-         
-         // Establecer color de fondo principal del content pane.
-         if (this.uiConfig.colorFondoPrincipal != null) {
-             getContentPane().setBackground(this.uiConfig.colorFondoPrincipal);
-         } else {
-             getContentPane().setBackground(Color.LIGHT_GRAY); // Color de fallback.
-             System.err.println("WARN [VisorView Constructor]: uiConfig.colorFondoPrincipal es null. Usando fallback LIGHT_GRAY.");
-         }
-
-         // --- 3. CARGA DEL ICONO DE ERROR GENERAL (ESCALADO PARA EL VISOR PRINCIPAL) ---
-         //    Este icono se mostrará en etiquetaImagen cuando no se pueda cargar una imagen.
-         if (this.uiConfig.iconUtils != null) {
-             // Definir el tamaño deseado para el icono de error en el visor principal.
-             // Estos valores pueden ajustarse según tus preferencias visuales.
-             int anchoIconoErrorVisor = 128;  // Ejemplo: 128 píxeles de ancho
-             int altoIconoErrorVisor = 128;   // Ejemplo: 128 píxeles de alto
-                                              // Si quieres mantener proporción, pon -1 en una de las dimensiones, ej. (128, -1)
-
-             this.iconoErrorGeneral = this.uiConfig.iconUtils.getScaledCommonIcon(
-                 "imagen-rota.png",           // Nombre del archivo del icono (en /iconos/comunes/)
-                 anchoIconoErrorVisor,        // Ancho deseado para el visor principal
-                 altoIconoErrorVisor          // Alto deseado para el visor principal
-             );
-
-             if (this.iconoErrorGeneral == null) {
-                 System.err.println("WARN [VisorView Constructor]: No se pudo cargar o escalar el icono de error general 'imagen-rota.png' para el visor principal. Se usará texto de error.");
-             } else {
-                 System.out.println("  [VisorView Constructor] Icono de error general ('imagen-rota.png') cargado y escalado para visor principal a: " +
-                                    anchoIconoErrorVisor + "x" + altoIconoErrorVisor);
-             }
-         } else {
-             this.iconoErrorGeneral = null; // No se puede cargar el icono si iconUtils es null.
-             System.err.println("WARN [VisorView Constructor]: uiConfig.iconUtils es null. No se pudo cargar/inicializar iconoErrorGeneral.");
-         }
-         
-         // --- 4. INICIALIZACIÓN DE COMPONENTES DE LA UI ---
-         //    Llama al método que construye y ensambla los paneles y componentes internos.
-         //    Se pasa el modelo de lista del VisorModel para la lista de nombres de archivo.
-         if (this.model.getModeloLista() != null) {
-             inicializarComponentes(this.model.getModeloLista());
-         } else {
-             System.err.println("ERROR CRÍTICO [VisorView Constructor]: this.model.getModeloLista() es null. Inicializando componentes con modelo vacío.");
-             inicializarComponentes(new DefaultListModel<>()); // Fallback para evitar NullPointerException
-         }
-
-         // --- 5. RESTAURAR ESTADO DE LA VENTANA (TAMAÑO, POSICIÓN, MAXIMIZADO) ---
-         //    Se lee desde ConfigurationManager (accesible a través de uiConfig).
-         if (this.uiConfig.configurationManager != null) {
-             boolean wasMaximized = this.uiConfig.configurationManager.getBoolean(ConfigurationManager.KEY_WINDOW_MAXIMIZED, false);
-             if (wasMaximized) {
-                 setExtendedState(JFrame.MAXIMIZED_BOTH); // Maximizar la ventana.
-             } else {
-                 // Obtener dimensiones y posición guardadas, con valores por defecto razonables.
-                 int x = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_X, -1);
-                 int y = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_Y, -1);
-                 int w = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_WIDTH, 1280); // Default ancho
-                 int h = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_HEIGHT, 720);  // Default alto
-                 
-                 // Aplicar solo si las dimensiones y posición son válidas.
-                 if (w > 50 && h > 50 && x != -1 && y != -1) { 
-                      setBounds(x, y, w, h);
-                 } else { // Si no hay posición guardada o es inválida, usar tamaño por defecto y centrar.
-                      setSize(w,h);
-                      setLocationRelativeTo(null); 
-                 }
-             }
-             System.out.println("  [VisorView Constructor] Estado de la ventana (tamaño/posición) restaurado desde configuración.");
-         } else {
-             // Fallback si ConfigurationManager no está disponible en uiConfig.
-             setSize(1280, 720); // Tamaño por defecto.
-             setLocationRelativeTo(null); // Centrar en pantalla.
-             System.err.println("WARN [VisorView Constructor]: uiConfig.configurationManager es null. Usando tamaño/posición de ventana por defecto.");
-         }
-         
-         // --- 6. AJUSTE FINAL DEL DIVISOR DEL JSPLITPANE (SI EXISTE) ---
-         //    Se usa invokeLater para asegurar que el JSplitPane ya esté realizado y tenga dimensiones.
-         SwingUtilities.invokeLater(() -> {
-             if (this.panelControlesFondoIcono != null && this.uiConfig != null && this.themeManagerRef != null) {
-                  Color colorFondoActualPreview = this.etiquetaImagen.getBackground();
-                  boolean esCuadrosActual = this.isFondoACuadrosActivado();
-                  
-                  // Buscar qué punto de color coincide con el estado actual del preview
-                  JPanel puntoAResaltar = null;
-                  if (esCuadrosActual) {
-                      // El penúltimo punto es el de cuadros (asumiendo 5 temas + cuadros + personalizado)
-                      if (this.listaPuntosDeColor.size() >= 6) { // Mínimo 5 temas + 1 cuadros
-                          puntoAResaltar = this.listaPuntosDeColor.get(this.listaPuntosDeColor.size() - 2);
-                      }
-                  } else {
-                      // Buscar el punto de tema que coincida con el color de fondo actual del etiquetaImagen
-                      // (que debería ser el colorFondoSecundario del tema actual)
-                      String temaActualNombre = this.themeManagerRef.getTemaActual().nombreInterno();
-                      String[] nombresTemas = {"clear", "dark", "blue", "orange", "green"}; // Mantener esto consistente
-                      for (int i = 0; i < nombresTemas.length; i++) {
-                          if (nombresTemas[i].equals(temaActualNombre)) {
-                              if (i < this.listaPuntosDeColor.size()) {
-                                  puntoAResaltar = this.listaPuntosDeColor.get(i);
-                              }
-                              break;
-                          }
-                      }
-                  }
-                  
-                  if (puntoAResaltar != null) {
-                      actualizarResaltadoPuntosDeColor(puntoAResaltar);
-                  } else if (!esCuadrosActual) { // Si es un color personalizado, resaltar el botón de personalizado
-                      if (!this.listaPuntosDeColor.isEmpty()) {
-                         actualizarResaltadoPuntosDeColor(this.listaPuntosDeColor.get(this.listaPuntosDeColor.size() - 1));
-                      }
-                  }
-              }
-          });
-      }
-         
-         
-//         SwingUtilities.invokeLater(() -> {
-//             if (this.splitPane != null) { // splitPane se inicializa en crearPanelModoNormal
-//                 // Leer la posición inicial del divisor desde la configuración o usar un default.
-//                 double dividerLocationPercentage = 0.25; // Ejemplo: 25% para el panel izquierdo.
-//                 if (this.uiConfig.configurationManager != null) {
-//                     // Ejemplo de cómo podrías guardar/leer esto:
-//                     // dividerLocationPercentage = this.uiConfig.configurationManager.getDouble("ui.splitpane.main.dividerLocation", 0.25);
-//                 }
-//                 this.splitPane.setDividerLocation(dividerLocationPercentage); 
-//                 System.out.println("  [VisorView Constructor - EDT] Divisor del JSplitPane principal establecido a " + (dividerLocationPercentage * 100) + "%.");
-//             } else {
-//                 System.err.println("WARN [VisorView Constructor - EDT]: splitPane es null. No se pudo establecer la posición del divisor.");
-//             }
-//         });
-//
-//         System.out.println("[VisorView Constructor] Constructor de VisorView finalizado.");
-//     }
-
-
+         // Si está maximizada o minimizada, debemos devolver el valor que guardamos
+         // la última vez que SÍ estuvo en estado normal.
+         return this.lastNormalBounds; 
+     }
+     
+     
     /**
      * Orquesta la creación y ensamblaje de todos los componentes de la UI.
      * @param modeloNombresLista El DefaultListModel para la lista de nombres de archivo.
@@ -762,6 +795,7 @@ public class VisorView extends JFrame {
         return panel;
     }
 
+    
     /**
      * Configura los componentes para el lado izquierdo del JSplitPane (lista de nombres).
      * Inicializa this.panelIzquierdo y this.listaNombres, y añade panelIzquierdo
@@ -785,6 +819,7 @@ public class VisorView extends JFrame {
         }
     }
 
+    
     /**
      * Configura los componentes para el lado derecho del JSplitPane (visor de imagen).
      * Inicializa this.etiquetaImagen y la añade a this.panelContenedorDerechoSplit.
@@ -810,23 +845,11 @@ public class VisorView extends JFrame {
                 System.out.println("      -> panelControlesFondoIcono añadido a panelContenedorDerechoSplit.SOUTH.");
             }
             
-            if (this.panelControlesFondoIcono != null) {
-                JPanel southWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 2));
-                southWrapper.setOpaque(false);
-                southWrapper.add(this.panelControlesFondoIcono);
-                this.panelContenedorDerechoSplit.add(southWrapper, BorderLayout.SOUTH);
-                System.out.println("      -> panelControlesFondoIcono añadido a panelContenedorDerechoSplit.SOUTH.");
-            }
-            
         } else {
             System.err.println("ERROR CRÍTICO: etiquetaImagen o panelContenedorDerechoSplit nulos en configurarComponentesDelSplitDerecho.");
         }
     }
-            
-//        } else {
-//            System.err.println("ERROR CRÍTICO: etiquetaImagen o panelContenedorDerechoSplit nulos en configurarComponentesDelSplitDerecho.");
-//        }
-//    }
+
 
     /**
      * Crea y configura el JSplitPane principal.
@@ -1277,6 +1300,9 @@ public class VisorView extends JFrame {
     }
 
     
+
+    
+    
     public void setFileListVisible(boolean visible) {
         if (this.panelContenedorIzquierdoSplit != null && this.panelContenedorIzquierdoSplit.isVisible() != visible) {
             System.out.println("  [VisorView setFileListVisible] Cambiando visibilidad de panelContenedorIzquierdoSplit a: " + visible);
@@ -1602,10 +1628,7 @@ public class VisorView extends JFrame {
 
         for (int i = 0; i < nombresTemas.length; i++) {
         	
-        	
             // Usar el color de fondo secundario del tema para el punto de color
-//            Color colorPunto = this.themeManagerRef.getFondoSecundarioParaTema(nombresTemas[i]);
-//            JPanel punto = crearPuntoSelectorFondo(colorPunto, tooltipsTemas[i], false, false, nombresTemas[i]);
         	Color colorFondoOriginalTema = this.themeManagerRef.getFondoSecundarioParaTema(nombresTemas[i]);
             Color colorParaElPuntoSelector;
             
@@ -1626,18 +1649,32 @@ public class VisorView extends JFrame {
                     nombresTemas[i],
                     colorParaElPuntoSelector // NUEVO: Este es el color para PINTAR el selector
                 );
-            
+        	
             this.listaPuntosDeColor.add(punto);
             this.panelControlesFondoIcono.add(punto);
         }
-
-        // Punto para fondo a cuadros
-        JPanel puntoCuadros = crearPuntoSelectorFondo(null, "Fondo a Cuadros", true, false, "cuadros");
+        
+     // Punto para fondo a cuadros
+        JPanel puntoCuadros = crearPuntoSelectorFondo(
+            null,                       // colorQueAplicaAlPreview (no aplica un color sólido)
+            "Fondo a Cuadros",          // tooltip
+            true,                       // esSelectorCuadros
+            false,                      // no esSelectorPersonalizado
+            "cuadros",                  // identificadorPunto
+            null                        // colorParaPintarElSelectorPropio (no se usa para cuadros)
+        );
         this.listaPuntosDeColor.add(puntoCuadros);
         this.panelControlesFondoIcono.add(puntoCuadros);
 
         // Punto para color personalizado
-        JPanel puntoPersonalizado = crearPuntoSelectorFondo(null, "Seleccionar Color Personalizado...", false, true, "personalizado");
+        JPanel puntoPersonalizado = crearPuntoSelectorFondo(
+            null,                       // colorQueAplicaAlPreview (el color lo elige el usuario)
+            "Seleccionar Color Personalizado...", // tooltip
+            false,                      // no esSelectorCuadros
+            true,                       // esSelectorPersonalizado
+            "personalizado",            // identificadorPunto
+            null                        // colorParaPintarElSelectorPropio (el icono de paleta tiene su propia apariencia)
+        );
         this.listaPuntosDeColor.add(puntoPersonalizado);
         this.panelControlesFondoIcono.add(puntoPersonalizado);
 
@@ -1647,218 +1684,149 @@ public class VisorView extends JFrame {
     }
 
     
+    /**
+     * Crea un JPanel individual que actúa como un "punto de color" seleccionable
+     * para cambiar el fondo de previsualización de la imagen.
+     *
+     * @param colorQueAplicaAlPreview         El color de fondo original del tema que este punto representará y
+     *                                        que se aplicará al área de previsualización principal.
+     *                                        Será null si esSelectorCuadros es true. Para esSelectorPersonalizado
+     *                                        no se usa directamente para pintar el selector.
+     * @param tooltip                         El texto a mostrar cuando el ratón pasa sobre el punto.
+     * @param esSelectorCuadros               true si este punto debe activar el fondo a cuadros.
+     * @param esSelectorPersonalizado        true si este punto debe abrir un JColorChooser.
+     * @param identificadorPunto              Un String para identificar este punto (ej. "clear", "cuadros", "personalizado").
+     * @param colorParaPintarElSelectorPropio El color con el que se pintará este propio JPanel selector.
+     *                                        Para los temas, será una versión aclarada/oscurecida del original.
+     *                                        Para cuadros/personalizado, puede ser null o un color base si no se pinta encima.
+     * @return Un JPanel configurado como un "punto de color" seleccionable.
+     */
     private JPanel crearPuntoSelectorFondo(
-            final Color colorQueAplicaAlPreview, // El color real del fondo del tema
+            final Color colorQueAplicaAlPreview,
             String tooltip,
             final boolean esSelectorCuadros,
             final boolean esSelectorPersonalizado,
             final String identificadorPunto,
-            final Color colorParaPintarElSelector // El color (aclarado/oscurecido) para el botón
-    ) {
-    
-    @SuppressWarnings ("serial")
-	final JPanel punto = new JPanel() {
-        @Override
-        protected void paintComponent(Graphics g) {
-            // NO llamamos a super.paintComponent(g) si vamos a pintar todo nosotros.
-            // O lo llamamos y luego pintamos encima si el colorParaPintarElSelector es para el fondo del JPanel.
-            
-            Graphics2D g2d = (Graphics2D) g.create();
-            int w = getWidth();
-            int h = getHeight();
+            final Color colorParaPintarElSelectorPropio) {
 
-            if (esSelectorCuadros) {
-                // ... pintar patrón a cuadros ...
-            } else if (esSelectorPersonalizado) {
-                // ... pintar icono de paleta (o dejar que el JLabel hijo lo haga) ...
-            } else if (colorParaPintarElSelector != null) { // Usar el colorParaPintarElSelector
-                // Pintar TODO el JPanel "punto" con el colorParaPintarElSelector
-                g2d.setColor(colorParaPintarElSelector);
-                g2d.fillRect(0, 0, w, h);
+        // 1. --- CREACIÓN DEL JPANEL "PUNTO" ---
+        //    Si es el selector de cuadros, necesita un paintComponent personalizado.
+        //    Para otros, un JPanel estándar podría ser suficiente si solo se establece el fondo.
+        @SuppressWarnings("serial") // Para evitar warning de serialVersionUID en clase anónima
+        final JPanel punto = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                // 1.1. Dejar que el JPanel pinte su fondo primero (que será colorParaPintarElSelectorPropio
+                //      o el fondo neutro para el icono de paleta).
+                super.paintComponent(g);
+
+                // 1.2. Si es el selector de cuadros, dibujar el patrón encima del fondo base.
+                if (esSelectorCuadros && isVisible()) {
+                    Graphics2D g2d = (Graphics2D) g.create();
+                    int w = getWidth();
+                    int h = getHeight();
+                    int tamCuadroPunto = Math.max(2, Math.min(w, h) / 4);
+                    for (int row = 0; row < h; row += tamCuadroPunto) {
+                        for (int col = 0; col < w; col += tamCuadroPunto) {
+                            g2d.setColor((((row / tamCuadroPunto) % 2) == ((col / tamCuadroPunto) % 2)) ? Color.WHITE : Color.LIGHT_GRAY);
+                            g2d.fillRect(col, row, tamCuadroPunto, tamCuadroPunto);
+                        }
+                    }
+                    g2d.dispose();
+                }
+                // Para los puntos de tema y el personalizado (con icono), el setBackground() de abajo es suficiente
+                // y no se necesita más lógica de pintado aquí.
             }
-            g2d.dispose();
-        }
-    };
+        };
 
-    punto.setPreferredSize(new Dimension(16, 16)); // O el tamaño que prefieras
-    punto.setToolTipText(tooltip);
-    punto.setBorder(this.bordePuntoNormal);
-    punto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-    punto.setName(identificadorPunto);
-    punto.setOpaque(true); // Importante
+        // 2. --- CONFIGURACIÓN DE PROPIEDADES COMUNES DEL JPANEL "PUNTO" ---
+        // 2.1. Establecer tamaño preferido.
+        punto.setPreferredSize(new Dimension(16, 16)); // O 18x18 si quieres más espacio para el borde
+        // 2.2. Establecer Tooltip.
+        punto.setToolTipText(tooltip);
+        // 2.3. Establecer borde inicial (el normal, no el resaltado).
+        punto.setBorder(this.bordePuntoNormal);
+        // 2.4. Cambiar cursor a mano al pasar por encima.
+        punto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        // 2.5. Guardar un nombre/identificador (útil para el resaltado inicial).
+        punto.setName(identificadorPunto);
+        // 2.6. El JPanel "punto" debe ser opaco para que su setBackground() tenga efecto.
+        punto.setOpaque(true);
 
-    // Ya no necesitas setBackground aquí si paintComponent lo maneja todo para los puntos de color
-    // if (esSelectorPersonalizado) { ... } 
-    // else if (esSelectorCuadros) { ... } 
-    // else { punto.setBackground(this.colorFondoNeutroParaSwatches); } // Ya no, porque pintamos con colorParaPintarElSelector
+        // 3. --- CONFIGURACIÓN ESPECÍFICA DEL FONDO O CONTENIDO DEL JPANEL "PUNTO" ---
+        if (esSelectorPersonalizado) {
+            // 3.1. Para el selector "Personalizado":
+            punto.setLayout(new BorderLayout());
+            // Usar un fondo neutro o el colorFondoNeutroParaSwatches para el panel que contiene el icono.
+            punto.setBackground(this.colorFondoNeutroParaSwatches != null ? this.colorFondoNeutroParaSwatches : new Color(220,220,220));
 
-    punto.addMouseListener(new MouseAdapter() {
-        @Override
-        public void mouseClicked(MouseEvent e) {
-            if (esSelectorPersonalizado) {
-                // ... lógica JColorChooser ...
-                // aplicarFondoAPreview(colorElegido, false); // colorElegido es el que se aplica al preview
-            } else {
-                // Al hacer clic, se usa el color ORIGINAL del tema para el preview, no el aclarado/oscurecido
-                aplicarFondoAPreview(colorQueAplicaAlPreview, esSelectorCuadros);
+            if (this.uiConfig != null && this.uiConfig.iconUtils != null) {
+                ImageIcon paletteIcon = this.uiConfig.iconUtils.getScaledCommonIcon("Paint-Palette--Streamline-Core.png", 10, 10);
+                if (paletteIcon != null) {
+                    JLabel iconLabel = new JLabel(paletteIcon);
+                    iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+                    punto.add(iconLabel, BorderLayout.CENTER);
+                } else {
+                    System.err.println("WARN [VisorView.crearPuntoSelectorFondo]: Icono de paleta no cargado para selector personalizado.");
+                    // Fallback: si no hay icono, podrías poner un texto o un color de fondo distintivo
+                    // punto.setBackground(new Color(200, 200, 250)); // Ejemplo
+                }
             }
-            actualizarResaltadoPuntosDeColor(punto);
+        } else if (esSelectorCuadros) {
+            // 3.2. Para el selector de "Fondo a Cuadros":
+            punto.setBackground(this.colorFondoNeutroParaSwatches != null ? this.colorFondoNeutroParaSwatches : Color.LIGHT_GRAY);
+        } else { // Para los puntos de color de tema
+            // 3.3. Para los selectores de tema:
+            punto.setBackground(colorParaPintarElSelectorPropio != null ? colorParaPintarElSelectorPropio : colorQueAplicaAlPreview);
         }
-        // ...
-    });
-    return punto;
-}
-    
-    
-	private JPanel crearPuntoSelectorFondo (final Color colorTemaRepresentado, String tooltip,
-			final boolean esSelectorCuadros, final boolean esSelectorPersonalizado, final String identificadorPunto)
-	{
-		final JPanel punto = new JPanel()
-		{ // Usamos un JPanel anónimo para poder sobrescribir paintComponent
-			private static final long serialVersionUID = 1L;
 
-			@Override
-			protected void paintComponent (Graphics g)
-			{
+        // 4. --- AÑADIR MOUSELISTENER PARA LA INTERACCIÓN ---
+        punto.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (esSelectorPersonalizado) {
+                    // 4.1. Lógica para el selector de color personalizado
+                    Color colorFondoActualEtiqueta = fondoACuadrosActivado ? Color.WHITE : etiquetaImagen.getBackground();
+                    // Fallback robusto si el background es null
+                    if (colorFondoActualEtiqueta == null) {
+                         colorFondoActualEtiqueta = (uiConfig != null && uiConfig.colorFondoSecundario != null) 
+                                                   ? uiConfig.colorFondoSecundario 
+                                                   : Color.WHITE;
+                    }
 
-				super.paintComponent(g); // Esto pintará el fondo del JPanel (que será colorFondoNeutroParaSwatches)
+                    Color colorElegido = JColorChooser.showDialog(
+                        SwingUtilities.getWindowAncestor(punto),
+                        "Seleccionar Color de Fondo Personalizado",
+                        colorFondoActualEtiqueta
+                    );
+                    if (colorElegido != null) {
+                        // Aplicar el color elegido del JColorChooser al preview grande
+                        aplicarFondoAPreview(colorElegido, false);
+                        actualizarResaltadoPuntosDeColor(punto); // Resaltar este punto "personalizado"
+                    }
+                } else {
+                    // 4.2. Lógica para los selectores de tema y el de cuadros
+                    //      Al hacer clic, se usa el 'colorQueAplicaAlPreview' (el original del tema)
+                    //      para el fondo del 'etiquetaImagen' principal.
+                    aplicarFondoAPreview(colorQueAplicaAlPreview, esSelectorCuadros);
+                    actualizarResaltadoPuntosDeColor(punto); // Resaltar el punto clickeado
+                }
+            }
 
-				Graphics2D g2d = (Graphics2D) g.create();
-				int w = getWidth();
-				int h = getHeight();
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                punto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            }
 
-				if (esSelectorCuadros)
-				{
-// Pintar el patrón a cuadros
-					int tamCuadroPunto = Math.max(2, Math.min(w, h) / 4);
+            @Override
+            public void mouseExited(MouseEvent e) {
+                punto.setCursor(Cursor.getDefaultCursor());
+            }
+        });
 
-					for (int row = 0; row < h; row += tamCuadroPunto)
-					{
-
-						for (int col = 0; col < w; col += tamCuadroPunto)
-						{
-							g2d.setColor((((row / tamCuadroPunto) % 2) == ((col / tamCuadroPunto) % 2)) ? Color.WHITE
-									: Color.LIGHT_GRAY);
-							g2d.fillRect(col, row, tamCuadroPunto, tamCuadroPunto);
-						}
-					}
-				} else if (esSelectorPersonalizado)
-				{
-				// Si el icono de la paleta no se añadió como un componente JLabel, lo dibujamos aquí.
-				// Si ya tienes un JLabel con el icono, esta parte podría no ser necesaria
-				// o podrías simplemente no pintar nada aquí y dejar que el JLabel haga su trabajo.
-				// Por ahora, si es el personalizado y tiene un icono como componente, no pintamos más.
-				// Si no tuviera un componente JLabel hijo, aquí dibujarías el icono:
-				// if (paletteIcon != null) g2d.drawImage(paletteIcon.getImage(), (w - paletteIcon.getIconWidth()) / 2, (h - paletteIcon.getIconHeight()) / 2, null);
-				} else if (colorTemaRepresentado != null)
-				{
-					// Es un punto de color de tema: dibujar el "swatch"
-					int inset = 3; // Margen para el "marco" del swatch
-
-					g2d.setColor(colorTemaRepresentado);
-				    g2d.fillRect(inset, inset, w - (2 * inset), h - (2 * inset));
-
-				    // PARA DEPURAR: Dibuja un borde alrededor del swatch interior
-				    g2d.setColor(Color.BLUE); // Un color muy obvio
-				    g2d.drawRect(inset, inset, w - (2 * inset) - 1, h - (2 * inset) - 1);
-				}
-				g2d.dispose();
-
-			}
-		};
-
-		punto.setPreferredSize(new Dimension(18, 18)); // Un tamaño un poco mayor para el efecto marco
-		punto.setToolTipText(tooltip);
-		punto.setBorder(this.bordePuntoNormal);
-		punto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-		punto.setName(identificadorPunto);
-		punto.setOpaque(true); // El JPanel base del punto debe ser opaco para que su fondo se pinte
-
-		if (esSelectorPersonalizado)
-		{
-			punto.setLayout(new BorderLayout());
-			// Mantener el fondo neutro para el panel que contiene el icono
-			punto.setBackground(this.colorFondoNeutroParaSwatches);
-
-			if (this.uiConfig != null && this.uiConfig.iconUtils != null)
-			{
-				ImageIcon paletteIcon = this.uiConfig.iconUtils.getScaledCommonIcon("Paint-Palette--Streamline-Core.png", 12,
-						12);
-
-				if (paletteIcon != null)
-				{
-					JLabel iconLabel = new JLabel(paletteIcon);
-					iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
-					// iconLabel.setOpaque(false); // El JLabel debería ser transparente por defecto
-					punto.add(iconLabel, BorderLayout.CENTER);
-				} else
-				{
-					// Fallback si el icono no carga: podría mostrar "P" o dejar el fondo neutro
-					System.err.println("WARN [VisorView]: Icono de paleta no cargado para selector personalizado.");
-				}
-			}
-		} else if (esSelectorCuadros)
-		{
-			// Para el panel de cuadros, su propio paintComponent se encarga.
-	// No necesita un setBackground aquí si paintComponent lo cubre todo.
-			// Podrías querer un fondo base si el patrón no llena todo en caso de errores.
-			punto.setBackground(this.colorFondoNeutroParaSwatches); // Fondo base detrás del patrón
-		} else
-		{ // Para los puntos de color de tema
-			// El fondo del JPanel "punto" será el neutro. El color del tema se pinta DENTRO.
-			punto.setBackground(this.colorFondoNeutroParaSwatches);
-		}
-
-		punto.addMouseListener(new MouseAdapter()
-		{
-			@Override
-			public void mouseClicked (MouseEvent e)
-			{
-
-				if (esSelectorPersonalizado)
-				{
-					Color colorFondoActualEtiqueta = fondoACuadrosActivado ? etiquetaImagen.getBackground()
-							: etiquetaImagen.getBackground();
-
-					if (colorFondoActualEtiqueta == null && uiConfig != null)
-					{ // Fallback si el fondo es null (ej. transparente)
-						colorFondoActualEtiqueta = uiConfig.colorFondoSecundario;
-					} else if (colorFondoActualEtiqueta == null)
-					{
-						colorFondoActualEtiqueta = Color.WHITE;
-					}
-
-					Color colorElegido = JColorChooser.showDialog(SwingUtilities.getWindowAncestor(punto),
-							"Seleccionar Color de Fondo Personalizado", colorFondoActualEtiqueta);
-
-					if (colorElegido != null)
-					{
-						aplicarFondoAPreview(colorElegido, false);
-						actualizarResaltadoPuntosDeColor(punto);
-					}
-				} else
-				{
-					aplicarFondoAPreview(colorTemaRepresentado, esSelectorCuadros); // colorTemaRepresentado será null
-																					// para esSelectorCuadros
-					actualizarResaltadoPuntosDeColor(punto);
-				}
-			}
-
-			@Override
-			public void mouseEntered (MouseEvent e)
-			{
-				punto.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-			}
-
-			@Override
-			public void mouseExited (MouseEvent e)
-			{
-				punto.setCursor(Cursor.getDefaultCursor());
-			}
-		});
-		return punto;
-
-	}
+        // 5. --- DEVOLVER EL PUNTO CREADO ---
+        return punto;
+    }
     
     
 	/**

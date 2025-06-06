@@ -10,6 +10,7 @@ import java.awt.FlowLayout;
 import java.awt.Image;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -246,7 +247,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // 1.2. Validar que el gestor de configuración exista.
         if (configuration == null) {
             System.err.println("ERROR [establecerCarpetaRaizDesdeConfigInternal]: ConfigurationManager es null. No se puede leer la carpeta.");
-//            this.carpetaRaizActual = null; // Asegurar que sea null si no hay config.
             
             if (this.model != null) { // Asegurarse que el modelo existe antes de intentar ponerle null
                 this.model.setCarpetaRaizActual(null); // <<< CAMBIO AQUÍ: Actualizar el modelo
@@ -1346,38 +1346,40 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private void guardarEstadoVentanaEnConfig() {
         // 1. Validar que la Vista y la Configuración existan.
         if (view == null || configuration == null) {
-            System.out.println("  [Hook - Ventana] No se pudo guardar estado (Vista=" + view + ", Config=" + configuration + ").");
-            return; // Salir si falta algo.
+            System.out.println("  [Hook - Ventana] No se pudo guardar estado (Vista=" + (view == null ? "null" : "existe") + 
+                               ", Config=" + (configuration == null ? "null" : "existe") + ").");
+            return;
         }
         System.out.println("  [Hook - Ventana] Guardando estado de la ventana en config...");
 
-        // 2. Bloque try-catch para manejar posibles excepciones al interactuar con la vista.
         try {
             // 2.1. Comprobar si la ventana está maximizada.
-            //      Usa una máscara de bits para verificar el estado.
             boolean isMaximized = (view.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
             // 2.2. Guardar el estado de maximización en ConfigurationManager.
             configuration.setString(ConfigurationManager.KEY_WINDOW_MAXIMIZED, String.valueOf(isMaximized));
+            System.out.println("    -> Estado Maximized guardado en config: " + isMaximized);
 
-            // 2.3. Si la ventana NO está maximizada, guardar sus dimensiones y posición.
-            if (!isMaximized) {
-                // 2.3.1. Obtener el objeto Rectangle con los bounds actuales de la ventana.
-                java.awt.Rectangle bounds = view.getBounds();
-                // 2.3.2. Guardar las coordenadas X, Y y las dimensiones Ancho, Alto en ConfigurationManager.
-                configuration.setString(ConfigurationManager.KEY_WINDOW_X, String.valueOf(bounds.x));
-                configuration.setString(ConfigurationManager.KEY_WINDOW_Y, String.valueOf(bounds.y));
-                configuration.setString(ConfigurationManager.KEY_WINDOW_WIDTH, String.valueOf(bounds.width));
-                configuration.setString(ConfigurationManager.KEY_WINDOW_HEIGHT, String.valueOf(bounds.height));
-                // 2.3.3. Log informando los bounds guardados.
-                System.out.println("    -> Bounds guardados en memoria config: " + bounds);
+            // 2.3. Obtener y guardar SIEMPRE los "últimos bounds normales"
+            //      Estos bounds son los que tenía la ventana la última vez que estuvo en estado NORMAL.
+            Rectangle normalBoundsToSave = view.getLastNormalBounds(); 
+            
+            if (normalBoundsToSave != null) {
+                configuration.setString(ConfigurationManager.KEY_WINDOW_X, String.valueOf(normalBoundsToSave.x));
+                configuration.setString(ConfigurationManager.KEY_WINDOW_Y, String.valueOf(normalBoundsToSave.y));
+                configuration.setString(ConfigurationManager.KEY_WINDOW_WIDTH, String.valueOf(normalBoundsToSave.width));
+                configuration.setString(ConfigurationManager.KEY_WINDOW_HEIGHT, String.valueOf(normalBoundsToSave.height));
+                System.out.println("    -> Últimos Bounds Normales guardados en config: " + normalBoundsToSave);
             } else {
-                // 2.3.4. Log si la ventana está maximizada (no se guardan bounds).
-                System.out.println("    -> Ventana maximizada, no se guardan bounds específicos.");
+                // Esto sería inesperado si lastNormalBounds se inicializa bien en VisorView
+                // y la vista existe.
+                System.err.println("  WARN [Hook - Ventana]: view.getLastNormalBounds() devolvió null. No se pudieron guardar bounds normales detallados.");
+                // Considera si quieres guardar valores por defecto aquí o dejar las claves como están en config.
+                // Si las dejas, ConfigurationManager usará sus defaults al leer si las claves no existen.
             }
-        // 2.4. Capturar y loguear excepciones.
+
         } catch (Exception e) {
-            System.err.println("  [Hook - Ventana] ERROR al guardar estado: " + e.getMessage());
-            e.printStackTrace(); // Imprimir detalles del error.
+            System.err.println("  [Hook - Ventana] ERROR al guardar estado de la ventana: " + e.getMessage());
+            e.printStackTrace();
         }
     } // --- FIN guardarEstadoVentanaEnConfig ---
 
@@ -2182,9 +2184,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ****************************************************************************************************************** UTILIDAD
 
     
- // ... (otros campos de VisorController, incluyendo):
- // private boolean zoomManualEstabaActivoAntesDeError = false; // Asegúrate que este campo existe
-
      /**
       * Inicia el proceso de carga y visualización de la imagen principal.
       * Llamado por ListCoordinator después de actualizar el índice oficial, o
@@ -5337,10 +5336,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          }
      }
 
-
-   
      
-// *************************************************************************** CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
+// ************************************************************************FIN CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
 // ***************************************************************************************************************************    
     
 } // --- FIN CLASE VisorController ---
