@@ -30,53 +30,57 @@ public class ConfigurationManager
 	public static final String KEY_INICIO_CARPETA = "inicio.carpeta";
 	
 	// --- CONSTANTES PARA ESTADO VENTANA ---
-    public static final String KEY_WINDOW_X = "window.x";
-    public static final String KEY_WINDOW_Y = "window.y";
-    public static final String KEY_WINDOW_WIDTH = "window.width";
-    public static final String KEY_WINDOW_HEIGHT = "window.height";
-    public static final String KEY_WINDOW_MAXIMIZED = "window.maximized";
+//    public static final String WINDOW_X = "window.x";
+//    public static final String WINDOW_Y = "window.y";
+//    public static final String WINDOW_WIDTH = "window.width";
+//    public static final String WINDOW_HEIGHT = "window.height";
+//    public static final String WINDOW_MAXIMIZED = "window.maximized";
 	
     // --- CONSTANTES PARA PROYECTOS
-    public static final String KEY_PROYECTOS_CARPETA_BASE = "proyectos.carpeta_base";
-    public static final String KEY_PROYECTOS_ARCHIVO_TEMPORAL = "proyectos.archivo_temporal_nombre";
-    public static final String KEY_TEMA_NOMBRE = "tema.nombre";
+//    public static final String PROYECTOS_CARPETA_BASE = "proyectos.carpeta_base";
+//    public static final String PROYECTOS_ARCHIVO_TEMPORAL = "proyectos.archivo_temporal_nombre";
+//    public static final String TEMA_NOMBRE = "tema.nombre";
+	
     // Para el futuro:
     // public static final String KEY_PROYECTOS_ULTIMO_ABIERTO = "proyectos.ultimo_abierto_ruta_completa";
     // public static final String KEY_PROYECTOS_INICIO_ACCION = "proyectos.inicio.accion"; // ej. "cargar_ultimo", "nuevo_temporal"
 
     // --- 	CONSTANTES PARA COMPORTAMIENTO ---
-    public static final String KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE = "comportamiento.display.zoom.initial_mode";
-    public static final String KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO = "comportamiento.zoom.manual_inicial_activo";
-    public static final String KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO = "comportamiento.zoom.ultimo_modo_seleccionado";
-    public static final String KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE = "comportamiento.zoom.personalizado.porcentaje";
+//    public static final String COMPORTAMIENTO_ZOOM_MODO_INICIAL = "comportamiento.display.zoom.initial_mode";
+//    public static final String COMPORTAMIENTO_ZOOM_MANUAL_INICIAL = "comportamiento.zoom.manual_inicial_activo";
+//    public static final String COMPORTAMIENTO_ZOOM_ULTIMO_MODO = "comportamiento.zoom.ultimo_modo_seleccionado";
+//    public static final String COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO = "comportamiento.zoom.personalizado.porcentaje";
     
     
  // --- CONSTANTES PARA VISIBILIDAD Y FORMATO DE BARRAS DE INFORMACIÓN ---
 
     // -- Visibilidad de Barras Completas --
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_VISIBLE = "interfaz.infobar.superior.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_VISIBLE = "interfaz.infobar.inferior.visible";
+//    public static final String INFOBAR_SUP_VISIBLE = "interfaz.infobar.superior.visible";
 
     // -- Elementos Barra Superior --
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_NOMBRE_RUTA_VISIBLE = "interfaz.infobar.superior.nombre_ruta.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_NOMBRE_RUTA_FORMATO = "interfaz.infobar.superior.nombre_ruta.formato"; // Valores: "solo_nombre", "ruta_completa"
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_INDICE_TOTAL_VISIBLE = "interfaz.infobar.superior.indice_total.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_DIMENSIONES_VISIBLE = "interfaz.infobar.superior.dimensiones.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_TAMANO_ARCHIVO_VISIBLE = "interfaz.infobar.superior.tamano_archivo.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_FECHA_ARCHIVO_VISIBLE = "interfaz.infobar.superior.fecha_archivo.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_FORMATO_IMAGEN_VISIBLE = "interfaz.infobar.superior.formato_imagen.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_MODO_ZOOM_VISIBLE = "interfaz.infobar.superior.modo_zoom.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_SUPERIOR_ZOOM_REAL_PCT_VISIBLE = "interfaz.infobar.superior.zoom_real_pct.visible";
+//    public static final String INFOBAR_SUP_NOMBRE_RUTA_VISIBLE = "interfaz.infobar.superior.nombre_ruta.visible";
+//    public static final String INFOBAR_SUP_NOMBRE_RUTA_FORMATO = "interfaz.infobar.superior.nombre_ruta.formato"; // Valores: "solo_nombre", "ruta_completa"
+//    public static final String INFOBAR_SUP_INDICE_TOTAL_VISIBLE = "interfaz.infobar.superior.indice_total.visible";
+//    public static final String INFOBAR_SUP_DIMENSIONES_VISIBLE = "interfaz.infobar.superior.dimensiones.visible";
+//    public static final String INFOBAR_SUP_TAMANO_ARCHIVO_VISIBLE = "interfaz.infobar.superior.tamano_archivo.visible";
+//    public static final String INFOBAR_SUP_FECHA_ARCHIVO_VISIBLE = "interfaz.infobar.superior.fecha_archivo.visible";
+//    public static final String INFOBAR_SUP_FORMATO_IMAGEN_VISIBLE = "interfaz.infobar.superior.formato_imagen.visible";
+//    public static final String INFOBAR_SUP_MODO_ZOOM_VISIBLE = "interfaz.infobar.superior.modo_zoom.visible";
+//    public static final String INFOBAR_SUP_ZOOM_REAL_PCT_VISIBLE = "interfaz.infobar.superior.zoom_real_pct.visible";
 
-    // -- Elementos Barra Inferior --
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_NOMBRE_RUTA_VISIBLE = "interfaz.infobar.inferior.nombre_ruta.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_NOMBRE_RUTA_FORMATO = "interfaz.infobar.inferior.nombre_ruta.formato"; // Valores: "solo_nombre", "ruta_completa"
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_ZM_VISIBLE = "interfaz.infobar.inferior.icono_zm.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_PROP_VISIBLE = "interfaz.infobar.inferior.icono_prop.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_SUBC_VISIBLE = "interfaz.infobar.inferior.icono_subc.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_CTRL_ZOOM_PCT_VISIBLE = "interfaz.infobar.inferior.ctrl_zoom_pct.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_CTRL_MODO_ZOOM_VISIBLE = "interfaz.infobar.inferior.ctrl_modo_zoom.visible";
-    public static final String KEY_INTERFAZ_INFOBAR_INFERIOR_MENSAJES_APP_VISIBLE = "interfaz.infobar.inferior.mensajes_app.visible";
+    // --- SECCIÓN: BARRAS DE INFORMACIÓN (INFERIOR) ---
+//    public static final String INFOBAR_INF_VISIBLE = "interfaz.infobar.inferior.visible";
+//    // -- Elementos Barra Inferior --
+//    public static final String INFOBAR_INF_NOMBRE_RUTA_VISIBLE = "interfaz.infobar.inferior.nombre_ruta.visible";
+//    public static final String INFOBAR_INF_NOMBRE_RUTA_FORMATO = "interfaz.infobar.inferior.nombre_ruta.formato"; // Valores: "solo_nombre", "ruta_completa"
+//    public static final String INFOBAR_INF_ICONO_ZM_VISIBLE = "interfaz.infobar.inferior.icono_zm.visible";
+//    public static final String INFOBAR_INF_ICONO_PROP_VISIBLE = "interfaz.infobar.inferior.icono_prop.visible";
+//    public static final String INFOBAR_INF_ICONO_SUBC_VISIBLE = "interfaz.infobar.inferior.icono_subc.visible";
+//    public static final String INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE = "interfaz.infobar.inferior.ctrl_zoom_pct.visible";
+//    public static final String INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE = "interfaz.infobar.inferior.ctrl_modo_zoom.visible";
+//    public static final String INFOBAR_INF_MENSAJES_APP_VISIBLE = "interfaz.infobar.inferior.mensajes_app.visible";
+//    
+    
     
     
 	static
@@ -99,58 +103,152 @@ public class ConfigurationManager
 	        "proyecto"// Ahora "interfaz" es la sección principal
 	);
 	
-	public ConfigurationManager() throws IOException
+	//--------------------------------------------------------------------------------------------------------------
+	//FIXME comentar este bloque para eliminar el singleton de configurationManager
+	private static ConfigurationManager instance = null;
+	public static synchronized ConfigurationManager getInstance() {
+	    if (instance == null) {
+	        try {
+	            instance = new ConfigurationManager();
+	        } catch (IOException e) {
+	            throw new RuntimeException("Fallo al inicializar la instancia de ConfigurationManager", e);
+	        }
+	    }
+	    return instance;
+	}
+	//FIXME recordar volver public el constructor y modificar el bloque de "singleton de configurationmanager"
+	//--------------------------------------------------------------------------------------------------------------
+	
+	private ConfigurationManager() throws IOException
 	{
 
 		config = cargarConfiguracion();
 		
 		//LOG ConfigurationManager inicializado.
-		//System.out.println("ConfigurationManager inicializado.");
-
+		System.out.println("ConfigurationManager inicializado.");
+		System.out.println("!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: " + System.identityHashCode(config));
+		
 	}
 
+	
 	// Método para cargar toda la configuración
-	public Map<String, String> cargarConfiguracion () throws IOException
-	{
+	public Map<String, String> cargarConfiguracion() throws IOException {
+	    File configFile = new File(CONFIG_FILE_PATH);
+	    Map<String, String> loadedConfig;
 
-		File configFile = new File(CONFIG_FILE_PATH);
+	    // --- FASE 1: LEER EL ARCHIVO O CREARLO SI NO EXISTE ---
+	    if (!configFile.exists()) {
+	        System.out.println("Config no encontrado. Creando por defecto...");
+	        try {
+	            // Intenta crear el archivo de configuración por defecto
+	            crearConfigPorDefecto(configFile);
+	            // Luego, lee el archivo que acabamos de crear
+	            loadedConfig = leerArchivoConfigExistente(configFile);
+	        } catch (IOException e) {
+	            // Si falla la creación o la lectura posterior, es un error crítico.
+	            // Usamos el mapa de defaults puro como último recurso.
+	            System.err.println("¡FALLO CRÍTICO al crear/leer config! Usando defaults internos en memoria.");
+	            loadedConfig = new HashMap<>(DEFAULT_CONFIG); 
+	        }
+	    } else {
+	        // Si el archivo ya existe, intentamos leerlo.
+	        try {
+	            loadedConfig = leerArchivoConfigExistente(configFile);
+	        } catch (IOException e) {
+	            // Si falla la lectura de un archivo existente, es un error crítico.
+	            // Usamos el mapa de defaults puro como último recurso.
+	            System.err.println("¡FALLO CRÍTICO al leer config existente! Usando defaults internos en memoria. Error: " + e.getMessage());
+	            loadedConfig = new HashMap<>(DEFAULT_CONFIG);
+	        }
+	    }
 
-		if (!configFile.exists())
-		{
-			System.out.println("Config no encontrado. Creando por defecto...");
+	 // FIXME --- ¡NUEVO BLOQUE DE DEBUG! ---
+	    System.out.println("--- DEBUG PRE-SINCRONIZACIÓN ---");
+	    System.out.println("Tamaño de DEFAULT_CONFIG: " + DEFAULT_CONFIG.size());
+	    System.out.println("Tamaño de loadedConfig (del archivo): " + loadedConfig.size());
+	    System.out.println("DEFAULT_CONFIG contiene 'salto_bloque'?: " + DEFAULT_CONFIG.containsKey(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE));
+	    System.out.println("loadedConfig contiene 'salto_bloque'?: " + loadedConfig.containsKey(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE));
+	    System.out.println("---------------------------------");
+	 // --- FIN NUEVO BLOQUE DE DEBUG ---
+	    
+	    
+	    // --- FASE 2: SINCRONIZAR LA CONFIGURACIÓN CARGADA CON LOS VALORES POR DEFECTO ---
+	    //    Este bloque asegura que cualquier clave nueva definida en DEFAULT_CONFIG
+	    //    que no esté en el archivo .cfg se añada al mapa en memoria.
+	    System.out.println("Sincronizando configuración cargada con mapa de defaults...");
+	    int clavesAñadidas = 0;
+	    
+	    // Iteramos sobre cada entrada del mapa de configuración por defecto.
+	    for (Map.Entry<String, String> defaultEntry : DEFAULT_CONFIG.entrySet()) {
+	        
+	        // El método putIfAbsent(clave, valor) hace lo siguiente:
+	        // 1. Comprueba si 'loadedConfig' contiene 'defaultEntry.getKey()'.
+	        // 2. Si NO la contiene, añade la clave y su valor a 'loadedConfig' y devuelve null.
+	        // 3. Si SÍ la contiene, no hace NADA y devuelve el valor que ya existía.
+	        if (loadedConfig.putIfAbsent(defaultEntry.getKey(), defaultEntry.getValue()) == null) {
+	            // Entramos aquí solo si la clave no existía y fue añadida.
+	            System.out.println("  -> Clave por defecto faltante añadida a la config en memoria: '" + defaultEntry.getKey() + "'");
+	            clavesAñadidas++;
+	        }
+	    }
 
-			try
-			{
-				crearConfigPorDefecto(configFile);
-				// Leemos el archivo recién creado
-				return leerArchivoConfigExistente(configFile);
-			} catch (IOException e)
-			{
-				System.err.println("¡FALLO CRÍTICO al crear/leer config! Usando defaults internos.");
-				// Devolver una COPIA del mapa de defaults como último recurso
-				return new HashMap<>(DEFAULT_CONFIG);
-				// O podrías lanzar una excepción si la config es obligatoria:
-				// throw new IOException("No se pudo crear ni leer config, y los defaults
-				// internos podrían no ser suficientes.", e);
-			}
-		} else
-		{
-			// Si existe, intentar leerlo
-			try
-			{
-				return leerArchivoConfigExistente(configFile);
-			} catch (IOException e)
-			{
-				System.err.println(
-						"¡FALLO CRÍTICO al leer config existente! Usando defaults internos. Error: " + e.getMessage());
-				// Devolver una COPIA del mapa de defaults como último recurso
-				return new HashMap<>(DEFAULT_CONFIG);
-				// O lanzar excepción
-				// throw new IOException("Error al leer config existente, usando defaults
-				// internos.", e);
-			}
-		}
+	    if (clavesAñadidas > 0) {
+	        System.out.println("Se añadieron " + clavesAñadidas + " claves por defecto que no estaban en el archivo config.cfg.");
+	    } else {
+	        System.out.println("La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.");
+	    }
+	    // -------------------------------------------------------------------------------------
+
+	    // Devolvemos el mapa 'loadedConfig', que ahora está completo y sincronizado.
+	    return loadedConfig;
 	}
+	
+	
+//	public Map<String, String> cargarConfiguracion () throws IOException
+//	{
+//
+//		File configFile = new File(CONFIG_FILE_PATH);
+//
+//		if (!configFile.exists())
+//		{
+//			System.out.println("Config no encontrado. Creando por defecto...");
+//
+//			try
+//			{
+//				crearConfigPorDefecto(configFile);
+//				// Leemos el archivo recién creado
+//				return leerArchivoConfigExistente(configFile);
+//			} catch (IOException e)
+//			{
+//				System.err.println("¡FALLO CRÍTICO al crear/leer config! Usando defaults internos.");
+//				// Devolver una COPIA del mapa de defaults como último recurso
+//				return new HashMap<>(DEFAULT_CONFIG);
+//				// O podrías lanzar una excepción si la config es obligatoria:
+//				// throw new IOException("No se pudo crear ni leer config, y los defaults
+//				// internos podrían no ser suficientes.", e);
+//			}
+//		} else
+//		{
+//			// Si existe, intentar leerlo
+//			try
+//			{
+//				return leerArchivoConfigExistente(configFile);
+//				
+//				
+//			} catch (IOException e)
+//			{
+//				System.err.println(
+//						"¡FALLO CRÍTICO al leer config existente! Usando defaults internos. Error: " + e.getMessage());
+//				// Devolver una COPIA del mapa de defaults como último recurso
+//				return new HashMap<>(DEFAULT_CONFIG);
+//				// O lanzar excepción
+//				// throw new IOException("Error al leer config existente, usando defaults
+//				// internos.", e);
+//			}
+//		}
+//	}
+
+
 
 	
     private Map<String, String> leerArchivoConfigExistente (File configFile) throws IOException
@@ -203,14 +301,32 @@ public class ConfigurationManager
 	public void guardarConfiguracion (Map<String, String> configAGuardar) throws IOException
 	{
 
+		System.out.println("!!! DEBUG: Guardando mapa. HashCode del mapa recibido: " + System.identityHashCode(configAGuardar));
+		
 		// LOG DETALLADO: Inicio y verificación del valor a guardar ---
         System.out.println("\n[ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===");
         System.out.println("[ConfigurationManager guardarConfiguracion] Intentando guardar en: " + CONFIG_FILE_PATH);
-        String temaEnMapaAGuardar = configAGuardar.get(KEY_TEMA_NOMBRE);
-        System.out.println("[ConfigurationManager guardarConfiguracion] Valor de '" + KEY_TEMA_NOMBRE + "' que se intentará guardar: '" + temaEnMapaAGuardar + "'");
+        String temaEnMapaAGuardar = configAGuardar.get(ConfigKeys.TEMA_NOMBRE);
+        System.out.println("[ConfigurationManager guardarConfiguracion] Valor de '" + ConfigKeys.TEMA_NOMBRE + "' que se intentará guardar: '" + temaEnMapaAGuardar + "'");
         if (temaEnMapaAGuardar == null) {
-             System.err.println("  --> ¡¡ADVERTENCIA!! La clave '" + KEY_TEMA_NOMBRE + "' NO está en el mapa que se va a guardar.");
+             System.err.println("  --> ¡¡ADVERTENCIA!! La clave '" + ConfigKeys.TEMA_NOMBRE + "' NO está en el mapa que se va a guardar.");
         }
+        
+        
+     // --- AÑADE ESTE BLOQUE DE DEBUG AQUÍ MISMO ---
+        System.out.println("--- DEBUG: Contenido del mapa a guardar ---");
+        boolean encontrado = false;
+        for (String clave : configAGuardar.keySet()) {
+            if (clave.equals(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE)) {
+                System.out.println("  -> ¡ENCONTRADO! " + clave + " = " + configAGuardar.get(clave));
+                encontrado = true;
+            }
+        }
+        if (!encontrado) {
+            System.err.println("  -> ¡ERROR DE DEBUG! La clave '" + ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE + "' NO se encontró en el mapa a guardar.");
+        }
+        System.out.println("------------------------------------------");
+        // --- FIN DEL BLOQUE DE DEBUG ---
         //------------------------------------
 		
 		File configFile = new File(CONFIG_FILE_PATH);
@@ -456,84 +572,88 @@ public class ConfigurationManager
 		String inicioImagenDefault = "";//"pandoras pedestals sagas.png";
 		
 //			defaults.put("inicio.carpeta", inicioCarpetaDefault+ "\\resources");
-			defaults.put(KEY_INICIO_CARPETA, inicioCarpetaDefault + "\\resources");
+			defaults.put(ConfigKeys.INICIO_CARPETA, inicioCarpetaDefault + "\\resources");
 			defaults.put("inicio.imagen", inicioImagenDefault);
 			
 		//carpeta inicial de proyectos
-			defaults.put(KEY_PROYECTOS_CARPETA_BASE, inicioCarpetaDefault + "\\.proyectos");
-			defaults.put(KEY_PROYECTOS_ARCHIVO_TEMPORAL, "seleccion_actual.txt");
+			
+			//FIXME descomentar esto
+			defaults.put(ConfigKeys.PROYECTOS_CARPETA_BASE, inicioCarpetaDefault + "\\.proyectos");
+			
+			defaults.put(ConfigKeys.PROYECTOS_ARCHIVO_TEMPORAL, "seleccion_actual.txt");
 			// defaults.put(KEY_PROYECTOS_ULTIMO_ABIERTO, ""); // Vacío por defecto
 			// defaults.put(KEY_PROYECTOS_INICIO_ACCION, "nuevo_temporal");
 		
 		// Comportamiento
-			defaults.put("comportamiento.carpeta.cargarSubcarpetas", "true");
-			defaults.put("comportamiento.carga.conRutas", "false");
+			defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL, "true");
+			defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_MODO_INICIAL, "FIT_TO_SCREEN");
+			defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO, "FIT_TO_SCREEN");
+			defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO, "100.0");
+			defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, "false");
+			defaults.put(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, "true");
 			
-			defaults.put("comportamiento.navegacion.circular", "false");
 			defaults.put("interfaz.menu.configuracion.comportamiento_general.mostrar_flechas_de_navegacion_en_imagen.seleccionado", "false");
-			
-			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO, "true");
-			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE, "FIT_TO_SCREEN");
-			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO, "FIT_TO_SCREEN");
-			defaults.put(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, "100.0");
-			
+
 		// Ventana de la aplicacion
 	        // Usar -1 para indicar que no hay posición/tamaño guardado (usar defaults del sistema/pack)
-	        defaults.put(KEY_WINDOW_X, "0");
-	        defaults.put(KEY_WINDOW_Y, "0");
-	        defaults.put(KEY_WINDOW_WIDTH, "1550");  // O un tamaño default razonable si prefieres
-	        defaults.put(KEY_WINDOW_HEIGHT, "500"); // Ej: defaults.put(KEY_WINDOW_WIDTH, "1200");
-	        defaults.put(KEY_WINDOW_MAXIMIZED, "false"); // Por defecto no empieza maximizada
+	        defaults.put(ConfigKeys.WINDOW_X, "0");
+	        defaults.put(ConfigKeys.WINDOW_Y, "0");
+	        defaults.put(ConfigKeys.WINDOW_WIDTH, "1550");  // O un tamaño default razonable si prefieres
+	        defaults.put(ConfigKeys.WINDOW_HEIGHT, "500"); // Ej: defaults.put(KEY_WINDOW_WIDTH, "1200");
+	        defaults.put(ConfigKeys.WINDOW_MAXIMIZED, "false"); // Por defecto no empieza maximizada
 		
 	     // --- Visibilidad y Formato Barras de Información ---
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_INF_VISIBLE, "true");
 
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_NOMBRE_RUTA_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_NOMBRE_RUTA_FORMATO, "solo_nombre");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_INDICE_TOTAL_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_DIMENSIONES_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_TAMANO_ARCHIVO_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_FECHA_ARCHIVO_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_FORMATO_IMAGEN_VISIBLE, "false"); // Desactivado por defecto
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_MODO_ZOOM_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_SUPERIOR_ZOOM_REAL_PCT_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO, "solo_nombre");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_INDICE_TOTAL_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_DIMENSIONES_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_TAMANO_ARCHIVO_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_FECHA_ARCHIVO_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_FORMATO_IMAGEN_VISIBLE, "false"); // Desactivado por defecto
+	        defaults.put(ConfigKeys.INFOBAR_SUP_MODO_ZOOM_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_SUP_ZOOM_REAL_PCT_VISIBLE, "true");
 
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_NOMBRE_RUTA_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_NOMBRE_RUTA_FORMATO, "ruta_completa");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_ZM_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_PROP_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_SUBC_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_CTRL_ZOOM_PCT_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_CTRL_MODO_ZOOM_VISIBLE, "true");
-	        defaults.put(KEY_INTERFAZ_INFOBAR_INFERIOR_MENSAJES_APP_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_FORMATO, "ruta_completa");
+	        defaults.put(ConfigKeys.INFOBAR_INF_ICONO_ZM_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_INF_ICONO_PROP_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_INF_ICONO_SUBC_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE, "true");
+	        defaults.put(ConfigKeys.INFOBAR_INF_MENSAJES_APP_VISIBLE, "true");
 	        
 		//===== Personalizacion =====
 		//Tema
-			defaults.put(KEY_TEMA_NOMBRE, "clear");
+			defaults.put(ConfigKeys.TEMA_NOMBRE, "clear");
 		
 		//TODO Iconos
 			defaults.put("iconos.alto" , "24");
 			defaults.put("iconos.ancho" , "24");
 		
 		//Tamaño del salto con pgup y pgdown
-			defaults.put("navegacion.tamano_salto_bloque", "10");
+//			defaults.put("navegacion.tamano_salto_bloque", "10");
+			defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE , "10");
 			
     	//===== Barra de Miniaturas =====
     	//Cantidad de miniaturas antes/después de la seleccionada
-			defaults.put("miniaturas.cantidad.antes", "8");
-			defaults.put("miniaturas.cantidad.despues", "8");
+			defaults.put(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, "8");
+			defaults.put(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES, "8");
 
     	//Tamaño (píxeles) para miniaturas seleccionadas
-			defaults.put("miniaturas.tamano.seleccionada.ancho", "60");
-			defaults.put("miniaturas.tamano.seleccionada.alto", "60");
+			defaults.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ANCHO, "60");
+			defaults.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO, "60");
 
     	//Tamaño (píxeles) para miniaturas normales
-			defaults.put("miniaturas.tamano.normal.ancho", "40");
-			defaults.put("miniaturas.tamano.normal.alto", "40");
+			defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, "40");
+			defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, "40");
 
-		//Mostrar Texto de las miniaturas on off			
-			defaults.put("miniaturas.ui.mostrar_nombres", "true");
+		//Mostrar Texto de las miniaturas on off
+			
+			//FIXME descomentar esta linea. es solo para una prueba
+			defaults.put(ConfigKeys.MINIATURAS_MOSTRAR_NOMBRES, "true");
 			
     	//===== Estados Interfaz Usuario =====
 		
@@ -843,92 +963,7 @@ public class ConfigurationManager
 // GETTERS Y SETTERS
 // *******************************************************************************************************************************
 
-	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
-	public String getString (String key, String defaultValue)
-	{
 
-		return config.getOrDefault(key, defaultValue);
-	}
-
-	// Sobrecarga para mantener compatibilidad si se quiere pasar un default
-	// específico
-	public String getString (String key)// , String defaultValue)
-	{
-
-		return config.getOrDefault(key, DEFAULT_CONFIG.getOrDefault(key, ""));
-
-	}
-
-	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
-	public int getInt (String key)
-	{
-
-		String defaultValueStr = DEFAULT_CONFIG.getOrDefault(key, "0"); // Default de String es "0"
-		String valueStr = config.getOrDefault(key, defaultValueStr);
-
-		try
-		{
-			return Integer.parseInt(valueStr);
-		} catch (NumberFormatException e)
-		{
-			System.err.println("WARN: Error parseando int para '" + key + "', valor: '" + valueStr
-					+ "'. Usando default int: " + Integer.parseInt(defaultValueStr));
-
-			// Intentar parsear el default string, o usar 0 si falla
-			try
-			{
-				return Integer.parseInt(defaultValueStr);
-			} catch (NumberFormatException ne)
-			{
-				return 0;
-			}
-		}
-	}
-
-	// sobrecarga de metodo
-	public int getInt (String key, int defaultValue)
-	{
-		String value = config.get(key);
-
-		if (value == null) {
-			return defaultValue;
-		}
-
-		try {
-			return Integer.parseInt(value);
-		} catch (NumberFormatException e) {
-			System.err.println("Advertencia: Error al parsear entero para la clave '" + key + "', valor: '" + value
-					+ "'. Usando valor por defecto: " + defaultValue);
-			return defaultValue;
-		}
-
-	}
-
-	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
-	public boolean getBoolean (String key)
-	{
-
-		String defaultValueStr = DEFAULT_CONFIG.getOrDefault(key, "false"); // Default de String es "false"
-		String valueStr = config.getOrDefault(key, defaultValueStr);
-		// Boolean.parseBoolean considera "true" (ignorando caso) como true, el resto
-		// false.
-		return Boolean.parseBoolean(valueStr);
-
-	}
-
-	// sobrecarga de metodo
-	public boolean getBoolean (String key, boolean defaultValue)
-	{
-		String value = config.get(key);
-
-		if (value == null)
-		{
-			return defaultValue;
-		}
-		// "true" (ignorando mayúsculas) es true, cualquier otra cosa es false.
-		return Boolean.parseBoolean(value);
-
-	}
 
 	// Devuelve una COPIA del mapa para proteger el estado interno
 	public Map<String, String> getConfigMap (){return new HashMap<>(config);}
@@ -954,7 +989,7 @@ public class ConfigurationManager
 
 	
 	// Zoom Personalizado
-	public double getZoomPersonalizadoPorcentaje() {return getDouble(KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, 100.0);}
+	public double getZoomPersonalizadoPorcentaje() {return getDouble(ConfigKeys.COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO, 100.0);}
 	
 	public void setZoomPersonalizadoPorcentaje(double porcentaje) {
 		
@@ -967,7 +1002,7 @@ public class ConfigurationManager
 	    }
 	    
 		//setString(KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, String.valueOf(porcentaje));
-		setString(KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, valorFormateado);
+		setString(ConfigKeys.COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO, valorFormateado);
 		
 	}
 	
@@ -980,7 +1015,7 @@ public class ConfigurationManager
      *
      * @return El nombre del tema actual (ej. "clear", "dark", "blue", "green", "orange").
      */
-    public String getTemaActual() {return getString(KEY_TEMA_NOMBRE, "clear");}
+    public String getTemaActual() {return getString(ConfigKeys.TEMA_NOMBRE, "clear");}
     
     
     /**
@@ -1032,11 +1067,11 @@ public class ConfigurationManager
         // }
 
         // Actualiza el valor en el mapa 'config' en memoria
-        setString(KEY_TEMA_NOMBRE, nuevoTema.trim()); // setString ya imprime un log
+        setString(ConfigKeys.TEMA_NOMBRE, nuevoTema.trim()); // setString ya imprime un log
 
         //LOG [ConfigurationManager setTemaActualYGuardar] Valor de: 
-        String valorEnMemoria = config.get(KEY_TEMA_NOMBRE);
-        System.out.println("[ConfigurationManager setTemaActualYGuardar] Valor de '" + KEY_TEMA_NOMBRE + "' en memoria ANTES de guardar: '" + valorEnMemoria + "'");
+        String valorEnMemoria = config.get(ConfigKeys.TEMA_NOMBRE);
+        System.out.println("[ConfigurationManager setTemaActualYGuardar] Valor de '" + ConfigKeys.TEMA_NOMBRE + "' en memoria ANTES de guardar: '" + valorEnMemoria + "'");
         if (!nuevoTema.trim().equals(valorEnMemoria)) {
              System.err.println("  --> ¡¡ADVERTENCIA!! El valor en memoria no coincide con el solicitado después de setString.");
         }
@@ -1054,28 +1089,225 @@ public class ConfigurationManager
     }
     
     
+// *******************************************************************************************************************************
+// 													GETTERS DE CONFIGURACION 
+// *******************************************************************************************************************************
+
     /**
-     * Obtiene un valor de configuración como un double.
-     * Si la clave no existe o el valor no puede ser convertido a double,
-     * devuelve el valor por defecto proporcionado.
+     * Obtiene un valor String de la configuración.
+     * Si la clave no existe, utiliza el valor por defecto, lo guarda en la configuración
+     * en memoria para que se persista al cerrar, y lo devuelve.
      *
      * @param key La clave de configuración.
-     * @param defaultValue El valor a devolver si la clave no se encuentra o hay error de parseo.
-     * @return El valor double de la configuración o el defaultValue.
+     * @param defaultValue El valor a usar y guardar si la clave no se encuentra.
+     * @return El valor de la configuración o el valor por defecto.
+     */
+    public String getString(String key, String defaultValue) {
+        String value = config.get(key);
+        if (value == null) {
+            System.out.println("WARN: Clave '" + key + "' no encontrada. Usando default '" + defaultValue + "' y añadiendo a config en memoria.");
+            this.setString(key, defaultValue); // Autocorrección en memoria
+            return defaultValue;
+        }
+        return value;
+    }
+
+    /**
+     * Obtiene un valor entero de la configuración.
+     * Valida que la clave exista y que su valor sea un número entero válido.
+     * Si no existe o es inválido, utiliza el valor por defecto, lo guarda/corrige en la
+     * configuración en memoria para que se persista al cerrar, y lo devuelve.
+     *
+     * @param key La clave de configuración.
+     * @param defaultValue El valor a usar y guardar si la clave no se encuentra o es inválida.
+     * @return El valor entero de la configuración o el valor por defecto.
+     */
+    public int getInt(String key, int defaultValue) {
+        String valueStr = config.get(key);
+        if (valueStr == null) {
+            System.out.println("WARN: Clave '" + key + "' no encontrada. Usando default '" + defaultValue + "' y añadiendo a config en memoria.");
+            this.setString(key, String.valueOf(defaultValue)); // Autocorrección en memoria
+            return defaultValue;
+        }
+
+        try {
+            return Integer.parseInt(valueStr.trim());
+        } catch (NumberFormatException e) {
+            System.err.println("WARN: Valor inválido para la clave '" + key + "': '" + valueStr + "'. Usando default '" + defaultValue + "' y corrigiendo en memoria.");
+            this.setString(key, String.valueOf(defaultValue)); // Autocorrección en memoria
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Obtiene un valor booleano de la configuración.
+     * Valida que la clave exista y que su valor sea "true" o "false" (ignorando mayúsculas/minúsculas).
+     * Si no existe o es inválido, utiliza el valor por defecto, lo guarda/corrige en la
+     * configuración en memoria para que se persista al cerrar, y lo devuelve.
+     *
+     * @param key La clave de configuración.
+     * @param defaultValue El valor a usar y guardar si la clave no se encuentra o es inválida.
+     * @return El valor booleano de la configuración o el valor por defecto.
+     */
+    public boolean getBoolean(String key, boolean defaultValue) {
+        String valueStr = config.get(key);
+        if (valueStr == null) {
+            System.out.println("WARN: Clave '" + key + "' no encontrada. Usando default '" + defaultValue + "' y añadiendo a config en memoria.");
+            this.setString(key, String.valueOf(defaultValue)); // Autocorrección en memoria
+            return defaultValue;
+        }
+
+        String trimmedValue = valueStr.trim().toLowerCase();
+        if (trimmedValue.equals("true")) {
+            return true;
+        } else if (trimmedValue.equals("false")) {
+            return false;
+        } else {
+            System.err.println("WARN: Valor inválido para la clave '" + key + "': '" + valueStr + "'. Debe ser 'true' o 'false'. Usando default '" + defaultValue + "' y corrigiendo en memoria.");
+            this.setString(key, String.valueOf(defaultValue)); // Autocorrección en memoria
+            return defaultValue;
+        }
+    }
+
+    /**
+     * Obtiene un valor double de la configuración.
+     * Valida que la clave exista y que su valor sea un número double válido (acepta '.' y ',' como separador decimal).
+     * Si no existe o es inválido, utiliza el valor por defecto, lo guarda/corrige en la
+     * configuración en memoria para que se persista al cerrar, y lo devuelve.
+     *
+     * @param key La clave de configuración.
+     * @param defaultValue El valor a usar y guardar si la clave no se encuentra o es inválida.
+     * @return El valor double de la configuración o el valor por defecto.
      */
     public double getDouble(String key, double defaultValue) {
-        String valueString = getString(key, null); // Usa tu método getString existente
-
-        if (valueString != null) {
-            try {
-                return Double.parseDouble(valueString.trim().replace(',', '.')); // Reemplaza coma por punto para parseo
-            } catch (NumberFormatException e) {
-                System.err.println("WARN [ConfigurationManager]: No se pudo parsear el valor '" + valueString + "' para la clave '" + key + "' como double. Usando default: " + defaultValue);
-                // Opcional: loguear e.getMessage()
-            }
+        String valueStr = config.get(key);
+        if (valueStr == null) {
+            System.out.println("WARN: Clave '" + key + "' no encontrada. Usando default '" + defaultValue + "' y añadiendo a config en memoria.");
+            this.setString(key, String.valueOf(defaultValue)); // Autocorrección en memoria
+            return defaultValue;
         }
-        return defaultValue;
+
+        try {
+            // Reemplaza la coma por un punto para asegurar compatibilidad con Double.parseDouble
+            return Double.parseDouble(valueStr.trim().replace(',', '.'));
+        } catch (NumberFormatException e) {
+            System.err.println("WARN: Valor inválido para la clave '" + key + "': '" + valueStr + "'. Usando default '" + defaultValue + "' y corrigiendo en memoria.");
+            this.setString(key, String.valueOf(defaultValue)); // Autocorrección en memoria
+            return defaultValue;
+        }
     }
+    
+//    /**
+//     * Obtiene un valor de configuración como un double.
+//     * Si la clave no existe o el valor no puede ser convertido a double,
+//     * devuelve el valor por defecto proporcionado.
+//     *
+//     * @param key La clave de configuración.
+//     * @param defaultValue El valor a devolver si la clave no se encuentra o hay error de parseo.
+//     * @return El valor double de la configuración o el defaultValue.
+//     */
+//    public double getDouble(String key, double defaultValue) {
+//        String valueString = getString(key, null); // Usa tu método getString existente
+//
+//        if (valueString != null) {
+//            try {
+//                return Double.parseDouble(valueString.trim().replace(',', '.')); // Reemplaza coma por punto para parseo
+//            } catch (NumberFormatException e) {
+//                System.err.println("WARN [ConfigurationManager]: No se pudo parsear el valor '" + valueString + "' para la clave '" + key + "' como double. Usando default: " + defaultValue);
+//                // Opcional: loguear e.getMessage()
+//            }
+//        }
+//        return defaultValue;
+//    } // FIN del metodo getDouble
+//
+//    
+// // Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
+// 	public String getString (String key, String defaultValue)
+// 	{
+//
+// 		return config.getOrDefault(key, defaultValue);
+// 	}
+//
+// 	// Sobrecarga para mantener compatibilidad si se quiere pasar un default
+// 	// específico
+// 	public String getString (String key)// , String defaultValue)
+// 	{
+//
+// 		return config.getOrDefault(key, DEFAULT_CONFIG.getOrDefault(key, ""));
+//
+// 	}
+//
+// 	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
+// 	public int getInt (String key)
+// 	{
+//
+// 		String defaultValueStr = DEFAULT_CONFIG.getOrDefault(key, "0"); // Default de String es "0"
+// 		String valueStr = config.getOrDefault(key, defaultValueStr);
+//
+// 		try
+// 		{
+// 			return Integer.parseInt(valueStr);
+// 		} catch (NumberFormatException e)
+// 		{
+// 			System.err.println("WARN: Error parseando int para '" + key + "', valor: '" + valueStr
+// 					+ "'. Usando default int: " + Integer.parseInt(defaultValueStr));
+//
+// 			// Intentar parsear el default string, o usar 0 si falla
+// 			try
+// 			{
+// 				return Integer.parseInt(defaultValueStr);
+// 			} catch (NumberFormatException ne)
+// 			{
+// 				return 0;
+// 			}
+// 		}
+// 	}
+//
+// 	// sobrecarga de metodo
+// 	public int getInt (String key, int defaultValue)
+// 	{
+// 		String value = config.get(key);
+//
+// 		if (value == null) {
+// 			return defaultValue;
+// 		}
+//
+// 		try {
+// 			return Integer.parseInt(value);
+// 		} catch (NumberFormatException e) {
+// 			System.err.println("Advertencia: Error al parsear entero para la clave '" + key + "', valor: '" + value
+// 					+ "'. Usando valor por defecto: " + defaultValue);
+// 			return defaultValue;
+// 		}
+//
+// 	}
+//
+// 	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
+// 	public boolean getBoolean (String key)
+// 	{
+//
+// 		String defaultValueStr = DEFAULT_CONFIG.getOrDefault(key, "false"); // Default de String es "false"
+// 		String valueStr = config.getOrDefault(key, defaultValueStr);
+// 		// Boolean.parseBoolean considera "true" (ignorando caso) como true, el resto
+// 		// false.
+// 		return Boolean.parseBoolean(valueStr);
+//
+// 	}
+//
+// 	// sobrecarga de metodo
+// 	public boolean getBoolean (String key, boolean defaultValue)
+// 	{
+// 		String value = config.get(key);
+//
+// 		if (value == null)
+// 		{
+// 			return defaultValue;
+// 		}
+// 		// "true" (ignorando mayúsculas) es true, cualquier otra cosa es false.
+// 		return Boolean.parseBoolean(value);
+//
+// 	}
+    
     
 } //Fin configurationManager
 

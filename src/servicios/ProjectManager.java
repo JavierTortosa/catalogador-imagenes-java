@@ -14,6 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+
 import javax.swing.JOptionPane;
 
 public class ProjectManager {
@@ -32,7 +33,7 @@ public class ProjectManager {
 
     private void inicializarRutaArchivoSeleccion() {
         String carpetaBaseProyectosStr = this.configManager.getString(
-            ConfigurationManager.KEY_PROYECTOS_CARPETA_BASE,
+        		ConfigKeys.PROYECTOS_CARPETA_BASE,
             ".project_selections" // Default si la clave no está en config
         );
         Path carpetaBaseProyectos = Paths.get(carpetaBaseProyectosStr);
@@ -55,7 +56,7 @@ public class ProjectManager {
         }
 
         String nombreArchivoSeleccion = this.configManager.getString(
-            ConfigurationManager.KEY_PROYECTOS_ARCHIVO_TEMPORAL,
+        		ConfigKeys.PROYECTOS_ARCHIVO_TEMPORAL,
             "seleccion_actual_rutas.txt" // Default si la clave no está en config
         );
         this.archivoSeleccionActualPath = carpetaBaseProyectos.resolve(nombreArchivoSeleccion);

@@ -7,6 +7,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap; // Para seguridad en hilos si fuera necesario
 
 import controlador.VisorController;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager; // Necesita leer/guardar el nombre
 
 public class ThemeManager {
@@ -142,7 +143,7 @@ public class ThemeManager {
             if (!nuevoTema.equals(this.temaActual)) { // Cambiar solo si es diferente
                 Tema temaAnterior = this.temaActual;
                 this.temaActual = nuevoTema;
-                configManager.setString(ConfigurationManager.KEY_TEMA_NOMBRE, this.temaActual.nombreInterno()); // Usar la constante
+                configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno()); // Usar la constante
                 System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
                 notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
                 return true; // <--- Tema realmente cambiado

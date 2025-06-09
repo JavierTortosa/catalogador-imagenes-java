@@ -81,6 +81,7 @@ import controlador.managers.ZoomManager;
 import controlador.worker.BuscadorArchivosWorker;
 // --- Imports de Modelo, Servicios y Vista ---
 import modelo.VisorModel;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager;
 import servicios.image.ThumbnailService;
@@ -1207,6 +1208,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                     necesitaRevalidateRepaintGeneralDelFrame = true;
                 }
                 break;
+                
+            case AppActionCommands.CMD_REFRESH_TOOLBARS:
+                System.out.println("  -> [VisorController] UI ID: REFRESH_TOOLBARS. Delegando a ToolbarManager...");
+                // if (toolbarManager != null) {
+                //    toolbarManager.refrescarVisibilidadBarras();
+                // }
+                break;
 
             case "mostrar_ocultar_la_lista_de_archivos": // uiElementIdentifier usado por ToggleFileListAction
             	System.out.println("  -> [VisorController] UI ID: mostrar_ocultar_la_lista_de_archivos. Visibilidad a: " + nuevoEstadoVisible);
@@ -1356,7 +1364,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             // 2.1. Comprobar si la ventana está maximizada.
             boolean isMaximized = (view.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
             // 2.2. Guardar el estado de maximización en ConfigurationManager.
-            configuration.setString(ConfigurationManager.KEY_WINDOW_MAXIMIZED, String.valueOf(isMaximized));
+            configuration.setString(ConfigKeys.WINDOW_MAXIMIZED, String.valueOf(isMaximized));
             System.out.println("    -> Estado Maximized guardado en config: " + isMaximized);
 
             // 2.3. Obtener y guardar SIEMPRE los "últimos bounds normales"
@@ -1364,10 +1372,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             Rectangle normalBoundsToSave = view.getLastNormalBounds(); 
             
             if (normalBoundsToSave != null) {
-                configuration.setString(ConfigurationManager.KEY_WINDOW_X, String.valueOf(normalBoundsToSave.x));
-                configuration.setString(ConfigurationManager.KEY_WINDOW_Y, String.valueOf(normalBoundsToSave.y));
-                configuration.setString(ConfigurationManager.KEY_WINDOW_WIDTH, String.valueOf(normalBoundsToSave.width));
-                configuration.setString(ConfigurationManager.KEY_WINDOW_HEIGHT, String.valueOf(normalBoundsToSave.height));
+                configuration.setString(ConfigKeys.WINDOW_X, String.valueOf(normalBoundsToSave.x));
+                configuration.setString(ConfigKeys.WINDOW_Y, String.valueOf(normalBoundsToSave.y));
+                configuration.setString(ConfigKeys.WINDOW_WIDTH, String.valueOf(normalBoundsToSave.width));
+                configuration.setString(ConfigKeys.WINDOW_HEIGHT, String.valueOf(normalBoundsToSave.height));
                 System.out.println("    -> Últimos Bounds Normales guardados en config: " + normalBoundsToSave);
             } else {
                 // Esto sería inesperado si lastNormalBounds se inicializa bien en VisorView
@@ -1460,13 +1468,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
         // 6.1. Aplicar configuración al Modelo (valores que afectan lógica)
         try {
-            model.setMiniaturasAntes(configuration.getInt("miniaturas.cantidad.antes", 7));
-            model.setMiniaturasDespues(configuration.getInt("miniaturas.cantidad.despues", 7));
-            model.setMiniaturaSelAncho(configuration.getInt("miniaturas.tamano.seleccionada.ancho", 60));
-            model.setMiniaturaSelAlto(configuration.getInt("miniaturas.tamano.seleccionada.alto", 60));
-            model.setMiniaturaNormAncho(configuration.getInt("miniaturas.tamano.normal.ancho", 40));
-            model.setMiniaturaNormAlto(configuration.getInt("miniaturas.tamano.normal.alto", 40));
-            boolean cargarSubcarpetas = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
+            model.setMiniaturasAntes(configuration.getInt	(ConfigKeys.MINIATURAS_CANTIDAD_ANTES			, 7));
+            model.setMiniaturasDespues(configuration.getInt	(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES			, 7));
+            model.setMiniaturaSelAncho(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_SEL_ANCHO	, 60));
+            model.setMiniaturaSelAlto(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO	, 60));
+            model.setMiniaturaNormAncho(configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO		, 40));
+            model.setMiniaturaNormAlto(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO		, 40));
+            boolean cargarSubcarpetas = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, true);
             model.setMostrarSoloCarpetaActual(!cargarSubcarpetas);
             System.out.println("    -> Config Modelo OK.");
         } catch (Exception e) { System.err.println("ERROR aplicando config al Modelo: " + e.getMessage()); }
@@ -1580,7 +1588,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // 3.2. Establecer la profundidad de búsqueda para Files.walk.
         int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
         System.out.println("  -> Modo búsqueda: " + (mostrarSoloCarpeta ? "Solo Carpeta Actual (depth=1)" : "Subcarpetas (depth=MAX)"));
-        
+
         // 3.3. Determinar la carpeta desde donde iniciar la búsqueda (`pathDeInicioWalk`).
         Path pathDeInicioWalk = null;
         if (mostrarSoloCarpeta) {
@@ -1599,10 +1607,19 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             pathDeInicioWalk = this.model.getCarpetaRaizActual();
             System.out.println("    -> [cargarListaImagenes] Iniciando búsqueda (con subcarpetas) desde carpeta raíz del MODELO: " + pathDeInicioWalk);
         }
+        
 
         // --- 4. VALIDAR PATH DE INICIO Y PROCEDER CON LA CARGA ---
         // 4.1. Comprobar si el `pathDeInicioWalk` calculado es un directorio válido.
         if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk)) {
+        	
+        	// --- LIMPIEZA DE CACHÉ ---
+            if (this.servicioMiniaturas != null) {
+                System.out.println("  -> Limpiando caché de ThumbnailService antes de nueva carga...");
+                this.servicioMiniaturas.limpiarCache();
+            }
+            // -------------------------
+        	
             // 4.2. Crear variables finales para ser accesibles por lambdas y el SwingWorker.
             final Path finalStartPath = pathDeInicioWalk;
             final int finalDepth = depth;
@@ -1888,7 +1905,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         if (listaNombres != null) {
             ActionMap actionMapNombres = listaNombres.getActionMap();
             InputMap inputMapNombres = listaNombres.getInputMap(JComponent.WHEN_FOCUSED);
-//            System.out.println("    -> Configurando listaNombres (WHEN_FOCUSED)...");
 
             inputMapNombres.put(KeyStroke.getKeyStroke("UP"), actPrev);
             inputMapNombres.put(KeyStroke.getKeyStroke("DOWN"), actNext);
@@ -1916,7 +1932,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         if (listaMiniaturas != null) {
             ActionMap actionMapMiniaturas = listaMiniaturas.getActionMap();
             InputMap inputMapMiniaturas = listaMiniaturas.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-//            System.out.println("    -> Configurando listaMiniaturas (WHEN_ANCESTOR) - SOLO FLECHAS...");
 
             // Mapear SOLO las flechas
             inputMapMiniaturas.put(KeyStroke.getKeyStroke("LEFT"), actPrev);  // LEFT -> ANTERIOR
@@ -1928,7 +1943,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             actionMapMiniaturas.put(actNext, new AbstractAction(actNext) { @Override public void actionPerformed(ActionEvent e) { /*logActionOrigin("Miniaturas", "DOWN/RIGHT");*/ if (listCoordinator != null) listCoordinator.seleccionarSiguiente(); }});
             // --- NO AÑADIR ACCIONES PARA HOME, END, PAGE_UP, PAGE_DOWN AQUÍ ---
 
-//            System.out.println("    -> Acciones de teclado (solo flechas) configuradas en listaMiniaturas.");
         } else { 
         	System.err.println("WARN [interceptarAccionesTecladoListas]: listaMiniaturas es null.");
         	
@@ -2893,22 +2907,14 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         //    Esto centraliza el estado lógico del modo de carga.
         System.out.println("    1. Actualizando Action.SELECTED_KEY...");
         toggleSubfoldersAction.putValue(Action.SELECTED_KEY, mostrarSubcarpetasDeseado);
-        // Verificar que cambió (debug)
-        // System.out.println("       -> Action.SELECTED_KEY AHORA ES: " + Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY)));
 
         // 5. Actualizar el estado en el Modelo
-        //    model.isMostrarSoloCarpetaActual() debe ser lo opuesto a mostrarSubcarpetasDeseado.
         System.out.println("    2. Actualizando Modelo...");
         model.setMostrarSoloCarpetaActual(!mostrarSubcarpetasDeseado);
-        // Verificar que cambió (debug)
-        // System.out.println("       -> Modelo.isMostrarSoloCarpetaActual() AHORA ES: " + model.isMostrarSoloCarpetaActual());
 
         // 6. Actualizar la Configuración en Memoria
         System.out.println("    3. Actualizando Configuración en Memoria...");
         configuration.setString("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(mostrarSubcarpetasDeseado));
-        // Verificar que cambió (debug)
-        // System.out.println("       -> Config 'comportamiento...' AHORA ES: " + configuration.getString("comportamiento.carpeta.cargarSubcarpetas"));
-        // Nota: La configuración se guardará al archivo en el ShutdownHook.
 
         // 7. Sincronizar la Interfaz de Usuario (Botón y Radios del Menú)
         System.out.println("    4. Sincronizando UI...");
@@ -3662,7 +3668,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 					// 2a. Actualizar la configuración en memoria
 					this.configuration.setZoomPersonalizadoPorcentaje(percentValue);
 					System.out.println("    -> Configuración '"
-							+ ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE
+							+ ConfigKeys.COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO
 							+ "' actualizada a: " + percentValue + "%");
 
 					// 2b. Obtener y ejecutar la Action para aplicar el modo
@@ -3964,6 +3970,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      public ListCoordinator getListCoordinator() {return this.listCoordinator;}
 
      
+
      /**
       * Recopila el estado actual relevante de la aplicación (desde el Modelo y la Vista)
       * y lo persiste en el archivo de configuración (`config.cfg`) utilizando el
@@ -3994,7 +4001,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          // 2. Obtener un mapa con la configuración actual en memoria
          //    Esto sirve como base, y actualizaremos los valores que dependen
          //    del estado actual de la UI o el modelo.
-         Map<String, String> estadoActualParaGuardar = configuration.getConfigMap();
+         Map<String, String> estadoActualParaGuardar = configuration.getConfig();
 
          // 3. Actualizar el mapa con valores del Modelo
          try {
@@ -4012,17 +4019,17 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              // 3.3.2. Estado de Zoom Manual activado 
              if (this.model != null) {
                  estadoActualParaGuardar.put(
-                     ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO,
+                		 ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL,
                      String.valueOf(this.model.isZoomHabilitado()) // Guardar el estado real del modelo
                  );
                  System.out.println("    -> Modelo: Guardando estado de zoomHabilitado: " + this.model.isZoomHabilitado() + 
-                                    " en clave: " + ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO);
+                                    " en clave: " + ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL);
              }
              
              // 3.3.3. Estado de Tipo de Zoom activo
              if (this.model != null && this.model.getCurrentZoomMode() != null) {
                  estadoActualParaGuardar.put(
-                     ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO,
+                		 ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO,
                      this.model.getCurrentZoomMode().name() // Guardar el nombre del enum
                  );
                  System.out.println("    -> Modelo: Guardando ultimo_modo_seleccionado: " + this.model.getCurrentZoomMode().name());
@@ -4039,12 +4046,12 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              System.out.println("      - comportamiento.navegacion.circular (desde config en memoria): " + estadoActualParaGuardar.get("comportamiento.navegacion.circular"));
              
              // 3.4. Configuración de miniaturas (si se pudieran cambiar)
-             estadoActualParaGuardar.put("miniaturas.cantidad.antes", String.valueOf(model.getMiniaturasAntes()));
-             estadoActualParaGuardar.put("miniaturas.cantidad.despues", String.valueOf(model.getMiniaturasDespues()));
-             estadoActualParaGuardar.put("miniaturas.tamano.seleccionada.ancho", String.valueOf(model.getMiniaturaSelAncho()));
-             estadoActualParaGuardar.put("miniaturas.tamano.seleccionada.alto", String.valueOf(model.getMiniaturaSelAlto()));
-             estadoActualParaGuardar.put("miniaturas.tamano.normal.ancho", String.valueOf(model.getMiniaturaNormAncho()));
-             estadoActualParaGuardar.put("miniaturas.tamano.normal.alto", String.valueOf(model.getMiniaturaNormAlto()));
+             estadoActualParaGuardar.put(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, String.valueOf(model.getMiniaturasAntes()));
+             estadoActualParaGuardar.put(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES, String.valueOf(model.getMiniaturasDespues()));
+             estadoActualParaGuardar.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ANCHO, String.valueOf(model.getMiniaturaSelAncho()));
+             estadoActualParaGuardar.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO, String.valueOf(model.getMiniaturaSelAlto()));
+             estadoActualParaGuardar.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, String.valueOf(model.getMiniaturaNormAncho()));
+             estadoActualParaGuardar.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, String.valueOf(model.getMiniaturaNormAlto()));
              
              // 3.5. Estado de toggles (leer desde la Action asociada es más fiable que desde el modelo)
              Action toggleZoomManualAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE) : null;
@@ -4090,7 +4097,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          // 5. Asegurar que el nombre del tema es el correcto
          //    Obtenerlo directamente de ConfigurationManager, que a su vez lo tiene del ThemeManager.
          String temaActualConfirmado = configuration.getTemaActual();
-         estadoActualParaGuardar.put(ConfigurationManager.KEY_TEMA_NOMBRE, temaActualConfirmado);
+         estadoActualParaGuardar.put(ConfigKeys.TEMA_NOMBRE, temaActualConfirmado);
          System.out.println("    -> Estado recopilado completo. Tema a guardar: '" + temaActualConfirmado + "'");
 
          // 6. Llamar al ConfigurationManager para guardar el mapa en el archivo
@@ -4918,7 +4925,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     }
     
     
- // En VisorController.java
     public void sincronizarControlesSubcarpetas() {
         if (model == null || actionMap == null) return;
 
@@ -5234,10 +5240,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // --- GUARDAR EL MODO ACTUAL EN LA CONFIGURACIÓN ---
         if (configuration != null && model.getCurrentZoomMode() != null) {
             configuration.setString(
-                ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO,
+            		ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO,
                 model.getCurrentZoomMode().name()
             );
-            System.out.println("  -> Config '" + ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO + "' actualizada a: " + model.getCurrentZoomMode().name());
+            System.out.println("  -> Config '" + ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO + "' actualizada a: " + model.getCurrentZoomMode().name());
         } else {
             if (configuration == null) System.err.println("WARN [sincronizar...Zoom]: ConfigurationManager es null. No se guardó último modo zoom.");
             if (model.getCurrentZoomMode() == null) System.err.println("WARN [sincronizar...Zoom]: model.getCurrentZoomMode() es null. No se guardó último modo zoom.");

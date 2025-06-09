@@ -8,5 +8,6 @@ public enum MenuItemType {
     RADIO_BUTTON_ITEM, // JRadioButtonMenuItem
     SEPARATOR,
     RADIO_GROUP_START, // Marcador lógico, no es un componente Swing
-    RADIO_GROUP_END    // Marcador lógico
+    RADIO_GROUP_END,    // Marcador lógico
+    CHECKBOX_ITEM_WITH_SUBMENU
 }

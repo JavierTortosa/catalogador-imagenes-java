@@ -1,11 +1,12 @@
 package controlador.actions.config;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JCheckBoxMenuItem; // Para obtener el estado si es necesario (aunque Action.SELECTED_KEY es preferible)
-import servicios.ConfigurationManager;
+
 import controlador.VisorController;
+import servicios.ConfigurationManager;
 
 public class ToggleUIElementVisibilityAction extends AbstractAction {
     private static final long serialVersionUID = 1L; // Genera uno si lo deseas
@@ -26,8 +27,13 @@ public class ToggleUIElementVisibilityAction extends AbstractAction {
      * @param uiElementId       Un identificador único para este elemento de UI, usado por el controller para saber qué actualizar en la vista.
      * @param actionCommandKey  El comando canónico (de AppActionCommands) asociado a esta Action.
      */
-    public ToggleUIElementVisibilityAction(VisorController controller, ConfigurationManager configManager,
-                                           String name, String configKey, String uiElementId, String actionCommandKey) {
+    public ToggleUIElementVisibilityAction(	VisorController controller, 
+    										ConfigurationManager configManager,
+    										String name, 
+    										String configKey, 
+    										String uiElementId, 
+    										String actionCommandKey) {
+    	
         super(name); // Establece el nombre de la Action (usado por JMenuItem)
         this.controller = controller;
         this.configManager = configManager;

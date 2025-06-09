@@ -10,6 +10,7 @@ import java.util.Objects;
 import javax.swing.SwingUtilities;
 
 import modelo.VisorModel;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager; // Para leer el porcentaje de zoom personalizado
 import servicios.zoom.ZoomModeEnum;     // La enum que define los tipos de zoom
 import vista.VisorView;
@@ -77,10 +78,10 @@ public class ZoomManager {
         // --- ¡AQUÍ! ACTUALIZAR LA CONFIGURACIÓN ---
         if (this.configuration != null) {
             this.configuration.setString(
-                ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO,
+            		ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL,
                 String.valueOf(activar) // Guardar el nuevo estado
             );
-            System.out.println("  [ZoomManager] Configuración '" + ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO + "' actualizada a: " + activar);
+            System.out.println("  [ZoomManager] Configuración '" + ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL + "' actualizada a: " + activar);
         } else {
             System.err.println("WARN [ZoomManager.activarODesactivarZoomManual]: ConfigurationManager es null. No se pudo guardar el estado del zoom manual en config.");
         }
@@ -218,7 +219,7 @@ public class ZoomManager {
                 if (configuration != null) { // Buena práctica verificar
                     configuration.setZoomPersonalizadoPorcentaje(porcentajeParaGuardar);
                     System.out.println("  [ZoomManager] MAINTAIN_CURRENT_ZOOM: config '" +
-                                       ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE +
+                    		ConfigKeys.COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO +
                                        "' actualizado a " + String.format("%.2f", porcentajeParaGuardar) + // Formatear para el log
                                        "% (basado en el factor de zoom actual: " + String.format("%.4f", nuevoFactorCalculado) + ").");
                 } else {
@@ -227,7 +228,7 @@ public class ZoomManager {
                 
                 break;
             case USER_SPECIFIED_PERCENTAGE:
-            	double pConfig = configuration.getDouble(ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_PERSONALIZADO_PORCENTAJE, 100.0);
+            	double pConfig = configuration.getDouble(ConfigKeys.COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO, 100.0);
                 nuevoFactorCalculado = pConfig / 100.0;
                 System.out.println("  [ZoomManager] Modo USER_SPECIFIED_PERCENTAGE: Factor desde config (" + pConfig + "%) = " + nuevoFactorCalculado + " (EncajarTotalmente: " + encajarTotalmente + ")");
                 break;

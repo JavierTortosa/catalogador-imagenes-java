@@ -2,7 +2,6 @@ package controlador;
 
 import java.awt.Color;
 import java.awt.KeyboardFocusManager;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap; // Para el mapa de comando -> claveIcono
@@ -29,10 +28,12 @@ import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager; // Futuro
 import controlador.managers.InfoBarManager;
+import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 // Managers
 import controlador.managers.ZoomManager;
 import modelo.VisorModel;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager; // Asumiendo que este es tu servicio de proyectos
 import servicios.image.ThumbnailService;
@@ -42,6 +43,7 @@ import vista.builders.MenuBarBuilder;
 import vista.builders.ToolbarBuilder;
 import vista.config.MenuItemDefinition;
 import vista.config.ToolbarButtonDefinition;
+import vista.config.ToolbarDefinition;
 import vista.config.UIDefinitionService;
 import vista.config.ViewUIConfig;       // Si aún la usas o la refactorizas
 import vista.theme.Tema;
@@ -75,6 +77,7 @@ public class AppInitializer {
     private FileOperationsManager fileOperationsManager;
     private InfoBarManager infoBarManager;
     private boolean zoomManualEstabaActivoAntesDeError = false;
+    private ToolbarManager toolbarManager;
 
     // private ViewUIManager viewUIManager;
     // private ProjectActionsManager projectActionsManager;
@@ -161,14 +164,23 @@ public class AppInitializer {
             System.out.println("    -> VisorModel creado e inyectado.");
 
             // A.1.2. Crear y Cargar el Gestor de Configuración
-            this.configuration = new ConfigurationManager(); // Puede lanzar IOException
+            
+        // ---------------------------------------------------------------------------------------- singleton de configurationmanager
+            //FIXME COMENTAR ESTA LINEA PARA USAR EL PATRON SINGLETON DE CONFIGURATIONMANAGER
+            //this.configuration = new ConfigurationManager(); // Puede lanzar IOException
+            //FIXME Y DESCOMENTAR ESTA OTRA
+            this.configuration = ConfigurationManager.getInstance();
+        // ----------------------------------------------------------------------------------------
+            
             this.controller.setConfigurationManager(this.configuration); // Inyectar en VisorController
             System.out.println("    -> ConfigurationManager creado, cargado e inyectado.");
 
             return true; // Éxito de la fase
-        } catch (IOException e) {
-            manejarErrorFatalInicializacion("Error fatal al inicializar ConfigurationManager", e);
-            return false; 
+            
+//        } catch (IOException e) {
+//            manejarErrorFatalInicializacion("Error fatal al inicializar ConfigurationManager", e);
+//            return false;
+            
         } catch (Exception e) {
              manejarErrorFatalInicializacion("Error inesperado inicializando componentes base", e);
              return false;
@@ -190,14 +202,14 @@ public class AppInitializer {
         }
         
         // Aplicar Estado Inicial de Zoom Manual
-        String initialZoomModeStr = this.configuration.getString(ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE, "FIT_TO_SCREEN").toUpperCase();
+        String initialZoomModeStr = this.configuration.getString(ConfigKeys.COMPORTAMIENTO_ZOOM_MODO_INICIAL, "FIT_TO_SCREEN").toUpperCase();
         try {
             ZoomModeEnum initialMode = ZoomModeEnum.valueOf(initialZoomModeStr);
             this.model.setCurrentZoomMode(initialMode);
             System.out.println("    -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: " + initialMode);
         } catch (IllegalArgumentException e) {
             System.err.println("WARN [AppInitializer]: Valor inválido para '" + 
-                               ConfigurationManager.KEY_COMPORTAMIENTO_DISPLAY_ZOOM_INITIAL_MODE + 
+            		ConfigKeys.COMPORTAMIENTO_ZOOM_MODO_INICIAL + 
                                "' en config: '" + initialZoomModeStr + 
                                "'. Usando FIT_TO_SCREEN por defecto.");
             this.model.setCurrentZoomMode(ZoomModeEnum.FIT_TO_SCREEN);
@@ -205,13 +217,13 @@ public class AppInitializer {
         
         // Aplicar Estado Inicial de Tipo de Zoom
         String ultimoModoZoomStr = this.configuration.getString(
-       	    ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO, "FIT_TO_SCREEN").toUpperCase();
+        		ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO, "FIT_TO_SCREEN").toUpperCase();
         	ZoomModeEnum modoAEstablecer;
         	try {
         	    modoAEstablecer = ZoomModeEnum.valueOf(ultimoModoZoomStr);
         	} catch (IllegalArgumentException e) {
         	    System.err.println("WARN [AppInitializer]: Valor inválido para '" + 
-        	                       ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_ULTIMO_MODO_SELECCIONADO +
+        	    		ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO +
         	                       "' en config: '" + ultimoModoZoomStr + 
         	                       "'. Usando FIT_TO_SCREEN por defecto.");
         	    modoAEstablecer = ZoomModeEnum.FIT_TO_SCREEN;
@@ -221,23 +233,23 @@ public class AppInitializer {
         
         try {
             // Aplicar configuración de miniaturas al modelo
-            this.model.setMiniaturasAntes(configuration.getInt("miniaturas.cantidad.antes", VisorController.DEFAULT_MINIATURAS_ANTES_FALLBACK));
-            this.model.setMiniaturasDespues(configuration.getInt("miniaturas.cantidad.despues", VisorController.DEFAULT_MINIATURAS_DESPUES_FALLBACK));
-            this.model.setMiniaturaSelAncho(configuration.getInt("miniaturas.tamano.seleccionada.ancho", 60));
-            this.model.setMiniaturaSelAlto(configuration.getInt("miniaturas.tamano.seleccionada.alto", 60));
-            this.model.setMiniaturaNormAncho(configuration.getInt("miniaturas.tamano.normal.ancho", 40));
-            this.model.setMiniaturaNormAlto(configuration.getInt("miniaturas.tamano.normal.alto", 40));
+            this.model.setMiniaturasAntes(configuration.getInt		(ConfigKeys.MINIATURAS_CANTIDAD_ANTES			, VisorController.DEFAULT_MINIATURAS_ANTES_FALLBACK));
+            this.model.setMiniaturasDespues(configuration.getInt	(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES			, VisorController.DEFAULT_MINIATURAS_DESPUES_FALLBACK));
+            this.model.setMiniaturaSelAncho(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_SEL_ANCHO	, 60));
+            this.model.setMiniaturaSelAlto(configuration.getInt		(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO	, 60));
+            this.model.setMiniaturaNormAncho(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO		, 40));
+            this.model.setMiniaturaNormAlto(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO		, 40));
 
             // Aplicar configuración de comportamiento al modelo
             boolean cargarSubcarpetas = configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas", true);
             boolean zoomManualInicialActivo = this.configuration.getBoolean(
-            		ConfigurationManager.KEY_COMPORTAMIENTO_ZOOM_MANUAL_INICIAL_ACTIVO, true);// Valor por defecto si la clave no existe en el archivo (aunque debería estar en DEFAULT_CONFIG)
+            		ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL, true);// Valor por defecto si la clave no existe en el archivo (aunque debería estar en DEFAULT_CONFIG)
             this.model.setZoomHabilitado(zoomManualInicialActivo);
             System.out.println("    -> Modelo: Zoom manual inicial activo (desde config 'comportamiento...'): " + zoomManualInicialActivo);
             this.model.setMostrarSoloCarpetaActual(!cargarSubcarpetas); 
             boolean mantenerProp = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true); // Clave de config directa
             this.model.setMantenerProporcion(mantenerProp);
-            boolean navCircular = configuration.getBoolean("comportamiento.navegacion.circular", false);
+            boolean navCircular = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, false);
             this.model.setNavegacionCircularActivada(navCircular);
             
             //LOG Navegacion Circular
@@ -417,18 +429,44 @@ public class AppInitializer {
             
             // --- B.5. CREAR ActionFactory ---
             //      ActionFactory necesita varias dependencias, incluyendo uiConfigInicialParaVistaYFactory (para IconUtils).
-            UIDefinitionService uiDefSvcForIcons = new UIDefinitionService(); // Para la estructura de botones/iconos
-            List<ToolbarButtonDefinition> toolbarDefsForIcons = uiDefSvcForIcons.generateToolbarStructure();
+            
+//            UIDefinitionService uiDefSvcForIcons = new UIDefinitionService(); // Para la estructura de botones/iconos
+            
+//            List<ToolbarButtonDefinition> toolbarDefsForIcons = uiDefSvcForIcons.generateToolbarStructure();
+//            Map<String, String> comandoToIconKeyMap = new HashMap<>();
+//            for (ToolbarButtonDefinition def : toolbarDefsForIcons) {
+//                if (def.comandoCanonico() != null && def.claveIcono() != null) {
+//                    comandoToIconKeyMap.put(def.comandoCanonico(), def.claveIcono());
+//                }
+//            }
+            
+//            Map<String, String> comandoToIconKeyMap = new HashMap<>();
+//            List<ToolbarDefinition> allToolbarDefs = uiDefSvcForIcons.generateModularToolbarStructure();
+//            for (ToolbarDefinition toolbarDef : allToolbarDefs) {
+//                for (ToolbarButtonDefinition buttonDef : toolbarDef.botones()) {
+//                    if (buttonDef.comandoCanonico() != null && buttonDef.claveIcono() != null) {
+//                        comandoToIconKeyMap.put(buttonDef.comandoCanonico(), buttonDef.claveIcono());
+//                    }
+//                }
+//            }
+            
+            UIDefinitionService uiDefSvcForIcons = new UIDefinitionService();
             Map<String, String> comandoToIconKeyMap = new HashMap<>();
-            for (ToolbarButtonDefinition def : toolbarDefsForIcons) {
-                if (def.comandoCanonico() != null && def.claveIcono() != null) {
-                    comandoToIconKeyMap.put(def.comandoCanonico(), def.claveIcono());
+            List<ToolbarDefinition> allToolbarDefs = uiDefSvcForIcons.generateModularToolbarStructure();
+            for (ToolbarDefinition toolbarDef : allToolbarDefs) {
+                for (ToolbarButtonDefinition buttonDef : toolbarDef.botones()) {
+                    if (buttonDef.comandoCanonico() != null && buttonDef.claveIcono() != null) {
+                        comandoToIconKeyMap.put(buttonDef.comandoCanonico(), buttonDef.claveIcono());
+                    }
                 }
             }
+            
             this.actionFactory = new ActionFactory(
                 this.model, this.view, this.zoomManager, this.fileOperationsManager,
                 this.editionManager, this.listCoordinator, this.iconUtils, this.configuration,
-                this.projectManagerService, comandoToIconKeyMap, this.viewManager,
+                this.projectManagerService, 
+                comandoToIconKeyMap, 
+                this.viewManager,
                 this.themeManager, uiConfigInicialParaVistaYFactory, this.controller
             );
             
@@ -536,42 +574,117 @@ public class AppInitializer {
             }
             
             // --- B.11. CONSTRUIR MENÚ Y TOOLBAR REALES USANDO BUILDERS ---
-            //      Los builders ahora usarán this.actionMap (completo) y uiConfigParaBuildersYMenuAction.
-            List<MenuItemDefinition> menuStructureForBuilder = uiDefSvcForIcons.generateMenuStructure(); // Reutilizar o regenerar
-            List<ToolbarButtonDefinition> toolbarStructureForBuilder = toolbarDefsForIcons; 
+            System.out.println("    B.11. [EDT] Construyendo UI (Menú y Barras de Herramientas)...");
+            UIDefinitionService uiDefSvc = new UIDefinitionService();
 
-            MenuBarBuilder menuBuilder = new MenuBarBuilder();
-            if (this.controller != null) {
-                menuBuilder.setControllerGlobalActionListener(this.controller);
-            } else { /* ... log error ... */ }
-            JMenuBar finalMenuBar = menuBuilder.buildMenuBar(menuStructureForBuilder, this.actionMap); // USA EL ACTIONMAP COMPLETO
-            this.view.setActualJMenuBar(finalMenuBar);
+            // --- Construir la Barra de Menú ---
+            MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration);
+            menuBuilder.setControllerGlobalActionListener(this.controller);
+            List<MenuItemDefinition> menuStructure = uiDefSvc.generateMenuStructure();
+            JMenuBar finalMenuBar = menuBuilder.buildMenuBar(menuStructure, this.actionMap);
+            this.view.setJMenuBar(finalMenuBar); // Usamos el setter directo de JFrame
             this.view.setActualMenuItemsMap(menuBuilder.getMenuItemsMap());
 
+            // --- Construir las Barras de Herramientas ---
             ToolbarBuilder toolbarBuilder = new ToolbarBuilder(
-                 this.actionMap, // USA EL ACTIONMAP COMPLETO
-                 uiConfigParaBuildersYMenuAction.colorBotonFondo, uiConfigParaBuildersYMenuAction.colorBotonTexto,
-                 uiConfigParaBuildersYMenuAction.colorBotonActivado, uiConfigParaBuildersYMenuAction.colorBotonAnimacion,
-                 uiConfigParaBuildersYMenuAction.iconoAncho, uiConfigParaBuildersYMenuAction.iconoAlto,
-                 uiConfigParaBuildersYMenuAction.iconUtils, 
-                 this.controller
+                this.actionMap, 
+                uiConfigParaBuildersYMenuAction.colorBotonFondo, uiConfigParaBuildersYMenuAction.colorBotonTexto,
+                uiConfigParaBuildersYMenuAction.colorBotonActivado, uiConfigParaBuildersYMenuAction.colorBotonAnimacion,
+                uiConfigParaBuildersYMenuAction.iconoAncho, uiConfigParaBuildersYMenuAction.iconoAlto,
+                uiConfigParaBuildersYMenuAction.iconUtils, 
+                this.controller
             );
-            JPanel finalToolbarPanel = toolbarBuilder.buildToolbar(toolbarStructureForBuilder);
-            this.view.setActualToolbarPanel(finalToolbarPanel);
-            this.view.setActualBotonesMap(toolbarBuilder.getBotonesPorNombre());
-            System.out.println("    B.11. [EDT] Menú y Toolbar reales construidos (usando actionMap completo) y asignados a VisorView.");
 
-            // --- B.11.bis. VERIFICACIÓN DEL BOTÓN DE MENÚ EN TOOLBAR (OPCIONAL LOG) ---
-            //      ToolbarBuilder ya debería haber asignado la menuActionFinal correcta al botón
-            //      porque la encontró en el actionMap que se le pasó.
-            JButton botonMenuToolbarCheck = this.view.getBotonesPorNombre().get("interfaz.boton.especiales.Menu_48x48");
-            if (botonMenuToolbarCheck != null && botonMenuToolbarCheck.getAction() == this.actionMap.get(AppActionCommands.CMD_ESPECIAL_MENU) ) {
-                System.out.println("      VERIFICACIÓN [AppInitializer]: Botón de toolbar 'Menu_48x48' tiene la MenuAction correcta asignada por ToolbarBuilder.");
-            } else if (botonMenuToolbarCheck != null) {
-                 System.err.println("      ERROR VERIFICACIÓN [AppInitializer]: Botón de toolbar 'Menu_48x48' NO tiene la MenuAction correcta. Action actual: " + botonMenuToolbarCheck.getAction());
-            } else {
-                 System.err.println("      ERROR VERIFICACIÓN [AppInitializer]: Botón 'interfaz.boton.especiales.Menu_48x48' no encontrado después de construir toolbar.");
-            }
+            // Creamos el manager que orquestará la creación y gestión de las barras
+            ToolbarManager toolbarManager = new ToolbarManager(this.view, this.configuration, toolbarBuilder, uiDefSvc);
+
+            // Le pedimos que construya e instale todas las barras definidas en UIDefinitionService
+            toolbarManager.inicializarBarrasDeHerramientas();
+
+            // Inyectamos la referencia al manager en el controlador para uso futuro
+            // this.controller.setToolbarManager(toolbarManager); // Necesitaremos añadir este setter
+
+            // Actualizamos el mapa de botones en la vista (ahora contiene todos los botones de todas las barras)
+            this.view.setActualBotonesMap(toolbarBuilder.getBotonesPorNombre());
+
+            System.out.println("    B.11. [EDT] Menú y Barras de Herramientas Modulares construidos.");
+            
+            
+//            System.out.println("    B.11. [EDT] Construyendo UI (Menú y Barras de Herramientas)...");
+//            
+//            UIDefinitionService uiDefSvc = new UIDefinitionService();
+//            
+//            // --- CONSTRUIR Y ASIGNAR LA BARRA DE MENÚ (Esto no cambia mucho) ---
+//            MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration);
+//            menuBuilder.setControllerGlobalActionListener(this.controller);
+//            List<MenuItemDefinition> menuStructure = uiDefSvc.generateMenuStructure();
+//            JMenuBar finalMenuBar = menuBuilder.buildMenuBar(menuStructure, this.actionMap);
+//            this.view.setActualJMenuBar(finalMenuBar);
+//            this.view.setActualMenuItemsMap(menuBuilder.getMenuItemsMap());
+//
+//            // --- CONSTRUIR Y ASIGNAR LAS BARRAS DE HERRAMIENTAS (¡NUEVA LÓGICA!) ---
+//            
+//            // 1. Crear el ToolbarBuilder (esto ya lo tenías, solo asegúrate de que esté aquí)
+//            ToolbarBuilder toolbarBuilder = new ToolbarBuilder(
+//            	    this.actionMap,
+//            	    uiConfigParaBuildersYMenuAction.colorBotonFondo,
+//            	    uiConfigParaBuildersYMenuAction.colorBotonTexto,
+//            	    uiConfigParaBuildersYMenuAction.colorBotonActivado,
+//            	    uiConfigParaBuildersYMenuAction.colorBotonAnimacion,
+//            	    uiConfigParaBuildersYMenuAction.iconoAncho,
+//            	    uiConfigParaBuildersYMenuAction.iconoAlto,
+//            	    uiConfigParaBuildersYMenuAction.iconUtils,
+//            	    this.controller
+//            	);
+//
+//            // 2. Crear el ToolbarManager, pasándole todas sus dependencias
+//            this.toolbarManager = new ToolbarManager(this.view, this.configuration, toolbarBuilder, uiDefSvc);
+//
+//            // 3. Pedirle al ToolbarManager que construya e instale todas las barras
+//            this.toolbarManager.inicializarBarrasDeHerramientas();
+//
+//            // 4. Actualizar el mapa de botones en la vista con los que ha creado el builder
+//            this.view.setActualBotonesMap(toolbarBuilder.getBotonesPorNombre());
+//
+//            System.out.println("    B.11. [EDT] Menú y Barras de Herramientas Modulares construidos.");
+//
+//            
+////            //      Los builders ahora usarán this.actionMap (completo) y uiConfigParaBuildersYMenuAction.
+////            List<MenuItemDefinition> menuStructureForBuilder = uiDefSvcForIcons.generateMenuStructure(); // Reutilizar o regenerar
+////            List<ToolbarButtonDefinition> toolbarStructureForBuilder = toolbarDefsForIcons; 
+////
+////            MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration);
+////            if (this.controller != null) {
+////                menuBuilder.setControllerGlobalActionListener(this.controller);
+////            } else { /* ... log error ... */ }
+////            JMenuBar finalMenuBar = menuBuilder.buildMenuBar(menuStructureForBuilder, this.actionMap); // USA EL ACTIONMAP COMPLETO
+////            this.view.setActualJMenuBar(finalMenuBar);
+////            this.view.setActualMenuItemsMap(menuBuilder.getMenuItemsMap());
+////
+////            ToolbarBuilder toolbarBuilder = new ToolbarBuilder(
+////                 this.actionMap, // USA EL ACTIONMAP COMPLETO
+////                 uiConfigParaBuildersYMenuAction.colorBotonFondo, uiConfigParaBuildersYMenuAction.colorBotonTexto,
+////                 uiConfigParaBuildersYMenuAction.colorBotonActivado, uiConfigParaBuildersYMenuAction.colorBotonAnimacion,
+////                 uiConfigParaBuildersYMenuAction.iconoAncho, uiConfigParaBuildersYMenuAction.iconoAlto,
+////                 uiConfigParaBuildersYMenuAction.iconUtils, 
+////                 this.controller
+////            );
+////            JPanel finalToolbarPanel = toolbarBuilder.buildToolbar(toolbarStructureForBuilder);
+////            this.view.setActualToolbarPanel(finalToolbarPanel);
+////            this.view.setActualBotonesMap(toolbarBuilder.getBotonesPorNombre());
+////            System.out.println("    B.11. [EDT] Menú y Toolbar reales construidos (usando actionMap completo) y asignados a VisorView.");
+////
+////            // --- B.11.bis. VERIFICACIÓN DEL BOTÓN DE MENÚ EN TOOLBAR (OPCIONAL LOG) ---
+////            //      ToolbarBuilder ya debería haber asignado la menuActionFinal correcta al botón
+////            //      porque la encontró en el actionMap que se le pasó.
+////            JButton botonMenuToolbarCheck = this.view.getBotonesPorNombre().get("interfaz.boton.especiales.Menu_48x48");
+////            if (botonMenuToolbarCheck != null && botonMenuToolbarCheck.getAction() == this.actionMap.get(AppActionCommands.CMD_ESPECIAL_MENU) ) {
+////                System.out.println("      VERIFICACIÓN [AppInitializer]: Botón de toolbar 'Menu_48x48' tiene la MenuAction correcta asignada por ToolbarBuilder.");
+////            } else if (botonMenuToolbarCheck != null) {
+////                 System.err.println("      ERROR VERIFICACIÓN [AppInitializer]: Botón de toolbar 'Menu_48x48' NO tiene la MenuAction correcta. Action actual: " + botonMenuToolbarCheck.getAction());
+////            } else {
+////                 System.err.println("      ERROR VERIFICACIÓN [AppInitializer]: Botón 'interfaz.boton.especiales.Menu_48x48' no encontrado después de construir toolbar.");
+////            }
 
             // --- B.12. FINALIZAR CONFIGURACIÓN DEL CONTROLADOR Y VISTA ---
             this.controller.assignModeloMiniaturasToViewInternal();

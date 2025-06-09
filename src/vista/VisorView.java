@@ -43,6 +43,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField; // Mantenido si textoRuta se usa como fallback
+import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -51,7 +52,7 @@ import javax.swing.border.Border; // Para crearSeparadorVerticalBarraInfo y otro
 import javax.swing.border.TitledBorder; // Para panelIzquierdo
 
 import modelo.VisorModel;
-import servicios.ConfigurationManager;
+import servicios.ConfigKeys;
 import servicios.image.ThumbnailService;
 import vista.config.ViewUIConfig;
 import vista.renderers.MiniaturaListCellRenderer; // Asumiendo que lo usas en inicializarPanelImagenesMiniatura
@@ -83,7 +84,9 @@ public class VisorView extends JFrame {
     // Componentes Comunes (Barras, etc.)
     private final JMenuBar mainMenuBar;       
     private final JPanel mainToolbarPanel;  
-    private JPanel panelDeBotones;          
+    private JPanel panelDeBotones;        
+    private JPanel contenedorDeBarras; // El nuevo panel que contendrá las JToolBar
+    private Map<String, JToolBar> barrasDeHerramientas;
 
     // Componentes de las Barras de Información
     private JLabel nombreArchivoInfoLabel;
@@ -183,6 +186,9 @@ public class VisorView extends JFrame {
         
         this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();
         this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();
+        this.barrasDeHerramientas = new HashMap<>();
+        this.contenedorDeBarras = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0)); // FlowLayout para que se pongan una al lado de la otra
+        this.contenedorDeBarras.setOpaque(false); // Para que sea transparente
 
         this.bordePuntoNormal = BorderFactory.createEtchedBorder();
         this.bordePuntoSeleccionado = BorderFactory.createLineBorder(Color.RED, 2);
@@ -243,10 +249,10 @@ public class VisorView extends JFrame {
             
             // --- PASO A: Leer SIEMPRE los bounds normales (x, y, ancho, alto) ---
             //   Estos valores definen el estado de la ventana cuando NO está maximizada.
-            int x = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_X, -1);
-            int y = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_Y, -1);
-            int w = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_WIDTH, 1280); // Default ancho
-            int h = this.uiConfig.configurationManager.getInt(ConfigurationManager.KEY_WINDOW_HEIGHT, 720);  // Default alto
+            int x = this.uiConfig.configurationManager.getInt(ConfigKeys.WINDOW_X, -1);
+            int y = this.uiConfig.configurationManager.getInt(ConfigKeys.WINDOW_Y, -1);
+            int w = this.uiConfig.configurationManager.getInt(ConfigKeys.WINDOW_WIDTH, 1280); // Default ancho
+            int h = this.uiConfig.configurationManager.getInt(ConfigKeys.WINDOW_HEIGHT, 720);  // Default alto
             
             // --- PASO B: Establecer SIEMPRE los bounds normales en el JFrame ---
             //   Esto asegura que el JFrame sepa a qué tamaño y posición volver cuando se restaure.
@@ -267,7 +273,7 @@ public class VisorView extends JFrame {
             System.out.println("    -> 'lastNormalBounds' inicializado a: " + this.lastNormalBounds);
             
             // --- PASO D: Leer y aplicar el estado maximizado DESPUÉS de haber establecido los bounds normales ---
-            boolean wasMaximized = this.uiConfig.configurationManager.getBoolean(ConfigurationManager.KEY_WINDOW_MAXIMIZED, false);
+            boolean wasMaximized = this.uiConfig.configurationManager.getBoolean(ConfigKeys.WINDOW_MAXIMIZED, false);
             if (wasMaximized) {
                 System.out.println("    -> La configuración indica que la ventana debe iniciar maximizada. Aplicando estado...");
                 // Usamos SwingUtilities.invokeLater para dar tiempo a Swing a procesar los bounds
@@ -451,7 +457,7 @@ public class VisorView extends JFrame {
 
         // 3. Añadir Barra de Botones Principal
         if (this.mainToolbarPanel != null) {
-            add(this.mainToolbarPanel, BorderLayout.NORTH);
+        	add(this.contenedorDeBarras, BorderLayout.NORTH);
             System.out.println("    -> Barra de Botones Principal ensamblada en JFrame.NORTH.");
         }
 
@@ -1893,6 +1899,19 @@ public class VisorView extends JFrame {
         }
     }
 
+    
+    public void addToolbar(String nombre, JToolBar barra) {
+        if (nombre == null || barra == null) return;
+        this.barrasDeHerramientas.put(nombre, barra);
+        this.contenedorDeBarras.add(barra);
+    }
+
+    public void revalidateToolbarContainer() {
+        if (this.contenedorDeBarras != null) {
+            this.contenedorDeBarras.revalidate();
+            this.contenedorDeBarras.repaint();
+        }
+    }
     
     
     public Image getImagenReescaladaView() {

@@ -17,6 +17,7 @@ import javax.swing.SwingUtilities; // Para invokeLater en sincronizarListaUI
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
 import modelo.VisorModel;
+import servicios.ConfigKeys;
 import vista.VisorView;
 
 public class ListCoordinator {
@@ -33,7 +34,8 @@ public class ListCoordinator {
 
     //TODO se podria especificar en el config.cfg
     // Define el tamaño del salto para Page Up/Down (ajustable)
-    private static final int PAGE_SCROLL_INCREMENT = 10; // Salta 10 ítems, por ejemplo
+//    private static final int PAGE_SCROLL_INCREMENT = 10; // Salta 10 ítems, por ejemplo
+    private int pageScrollIncrement;
     
     /**
      * Constructor.
@@ -47,6 +49,14 @@ public class ListCoordinator {
         this.view = Objects.requireNonNull(view, "VisorView no puede ser null");
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null");
         
+        if (this.controller.getConfigurationManager() != null) {
+            this.pageScrollIncrement = this.controller.getConfigurationManager().getInt(
+                ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10
+            );
+        } else {
+            this.pageScrollIncrement = 10; // Fallback
+            // AQUI DEBERIA GUARDAR EN MEMORIA EL VALOR DEL SALTO
+        }
         
         System.out.println("[ListCoordinator] Instancia creada.");
     } //--- FIN ListCoordinator
@@ -1174,7 +1184,7 @@ public class ListCoordinator {
         // --- 2. CALCULAR ÍNDICE DEL BLOQUE SIGUIENTE ---
         int actual = this.indiceOficialSeleccionado;
         // Si no hay selección, empezar desde el principio + salto
-        int indiceDeseado = (actual == -1) ? PAGE_SCROLL_INCREMENT : actual + PAGE_SCROLL_INCREMENT;
+        int indiceDeseado = (actual == -1) ? this.pageScrollIncrement : actual + this.pageScrollIncrement;
 
         // 3. CLAMP (Limitar) al último índice válido. No hacer wrap around.
         int ultimoIndice = total - 1;
@@ -1218,7 +1228,7 @@ public class ListCoordinator {
         // Si no hay selección, ir al índice 0
         // Si está en el 0, el bloque anterior es 0
         // Si está en otro, restar el salto
-        int indiceDeseado = (actual == -1) ? 0 : actual - PAGE_SCROLL_INCREMENT;
+        int indiceDeseado = (actual == -1) ? 0 : actual - this.pageScrollIncrement;
 
         // 3. CLAMP (Limitar) al primer índice válido (0). No hacer wrap around.
         indiceDeseado = Math.max(0, indiceDeseado); // No pasar de 0

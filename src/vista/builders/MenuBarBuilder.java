@@ -15,9 +15,13 @@ import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JRadioButtonMenuItem;
 
+import controlador.VisorController;
+import controlador.actions.config.ToggleUIElementVisibilityAction;
 import controlador.commands.AppActionCommands; // Asumo que lo necesitas para algún log o comparación, aunque no directamente aquí
+import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
 import vista.config.MenuItemType;
+
 
 public class MenuBarBuilder {
 
@@ -32,13 +36,17 @@ public class MenuBarBuilder {
 
     // Prefijo base para las claves de configuración del menú
     private final String CONFIG_KEY_PREFIX = "interfaz.menu";
+    private final ConfigurationManager configuration;
+    private final VisorController controllerRef;
 
     /**
      * Constructor simplificado. Inicializa las estructuras internas.
      */
-    public MenuBarBuilder() {
+    public MenuBarBuilder(VisorController controller, ConfigurationManager config) {
         this.menuItemsPorNombre = new HashMap<>();
         this.menuBar = new JMenuBar();
+        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
+        this.configuration = Objects.requireNonNull(config, "ConfigurationManager no puede ser null");
         // actionMap y controllerGlobalActionListener se recibirán/establecerán externamente.
         // currentButtonGroup se inicializa a null y se gestiona durante la construcción.
     }
@@ -198,16 +206,66 @@ public class MenuBarBuilder {
                 break; // Fin del caso ITEM
 
             case CHECKBOX_ITEM:
-                // 2.4.1. Crear un JCheckBoxMenuItem.
-                menuItemComponent = new JCheckBoxMenuItem(); // Texto y estado se asignarán
-                // 2.4.2. Añadir al contenedor padre.
-                addMenuItemToParent(menuItemComponent, parentContainer);
-                // 2.4.3. Asignar la Action o configurar ActionCommand/listener.
-                //        Si hay una Action, esta manejará el estado 'selected'.
-                //        Si no, se dependerá de la configuración y el listener global.
-                assignActionOrCommand(menuItemComponent, itemDef);
-                break; // Fin del caso CHECKBOX_ITEM
+                // Creamos el JCheckBoxMenuItem. Aún no le ponemos la acción.
+                JCheckBoxMenuItem checkboxItem = new JCheckBoxMenuItem();
+                menuItemComponent = checkboxItem; // Para el registro final
 
+                // Obtenemos la clave de la definición. Puede ser un ActionCommand o una clave de config.
+                String claveOComando = itemDef.actionCommand();
+
+                if (claveOComando != null && claveOComando.startsWith("interfaz.herramientas.")) {
+                    // --- CASO NUEVO: Es un checkbox para la visibilidad de un botón de toolbar ---
+                    
+                    // Creamos una Action reutilizable al vuelo para este checkbox específico
+                    Action toggleVisibilityAction = new ToggleUIElementVisibilityAction(
+                        this.controllerRef, this.configuration, itemDef.textoMostrado(),
+                        claveOComando, "REFRESH_TOOLBARS", claveOComando
+                    );
+                    // Asignamos la acción al checkbox. Esto configura el texto y el estado.
+                    checkboxItem.setAction(toggleVisibilityAction);
+
+                    // Establecemos el estado inicial explícitamente desde la configuración
+                    boolean isSelected = this.configuration.getBoolean(claveOComando, true);
+                    toggleVisibilityAction.putValue(Action.SELECTED_KEY, isSelected);
+
+                } else {
+                    // --- CASO ANTIGUO: Es un checkbox normal vinculado a una Action pre-creada ---
+                    // Tu lógica existente para asignar una Action desde el actionMap va aquí.
+                    assignActionOrCommand(checkboxItem, itemDef);
+                }
+
+                // Añadimos el checkbox configurado a su menú padre
+                addMenuItemToParent(checkboxItem, parentContainer);
+                break;
+
+            case CHECKBOX_ITEM_WITH_SUBMENU:
+                // La Action reutilizable para este menú
+                Action toggleAction = new ToggleUIElementVisibilityAction(
+                    this.controllerRef,
+                    this.configuration,
+                    itemDef.textoMostrado(),
+                    itemDef.actionCommand(), // Usando el nombre correcto del campo
+                    "REFRESH_TOOLBARS",
+                    itemDef.actionCommand()
+                );
+                
+                // Creamos la instancia de nuestra nueva clase
+                JCheckBoxMenu menuConCheckbox = new JCheckBoxMenu(toggleAction);
+                
+                // Asignamos la referencia al componente genérico para el registro
+                menuItemComponent = menuConCheckbox;
+                
+                // Lo añadimos al menú padre
+                addMenuItemToParent(menuConCheckbox, parentContainer);
+                
+                // Procesamos los sub-ítems recursivamente
+                if (itemDef.subItems() != null && !itemDef.subItems().isEmpty()) {
+                    for (MenuItemDefinition subDef : itemDef.subItems()) {
+                        processMenuItemDefinition(subDef, menuConCheckbox, parentMainMenu, menuConCheckbox);
+                    }
+                }
+                break;
+                
             case RADIO_BUTTON_ITEM:
                 // 2.5.1. Crear un JRadioButtonMenuItem.
                 JRadioButtonMenuItem radioItem = new JRadioButtonMenuItem(); // Texto y estado se asignarán
@@ -259,6 +317,7 @@ public class MenuBarBuilder {
                 // 2.8.2. No es un componente visible. Salir.
                 return; // Salir del método para RADIO_GROUP_END
 
+            
             default:
                 // 2.9. Manejar tipos de ítem desconocidos o no soportados.
                 System.err.println("ERROR [MenuBarBuilder]: Tipo de MenuItemDefinition no reconocido o no manejado: " +
@@ -292,6 +351,32 @@ public class MenuBarBuilder {
     } // --- FIN del método processMenuItemDefinition ---
 
 
+    private JMenu createCheckboxMenu(MenuItemDefinition definition) {
+        JMenu menu = new JMenu();
+
+        // Creamos una Action REUTILIZABLE para este menú específico
+        // ¡Aquí es donde ocurre la magia que evita la sobrecarga en ActionFactory!
+        Action toggleAction = new ToggleUIElementVisibilityAction(
+                this.controllerRef,
+                this.configuration,
+                definition.textoMostrado(),
+                definition.actionCommand(),
+                "REFRESH_TOOLBARS", // Crearemos este comando en AppActionCommands
+                definition.actionCommand()
+            );
+        
+        menu.setAction(toggleAction);
+
+        // Ponemos el estado inicial del checkbox basándonos en la configuración
+        boolean isSelected = this.configuration.getBoolean(definition.actionCommand(), true);
+        menu.setSelected(isSelected); // Esto puede que no funcione directamente en un JMenu
+                                      // La Action con SELECTED_KEY es la forma correcta.
+        toggleAction.putValue(Action.SELECTED_KEY, isSelected);
+
+        return menu;
+    }
+    
+    
     /**
      * Asigna la Action correspondiente del actionMap al JMenuItem si existe una para su comando/clave,
      * o asigna el comando/clave como ActionCommand y (si está configurado) el listener global
@@ -314,7 +399,7 @@ public class MenuBarBuilder {
         }
 
         // --- 2. OBTENER COMANDO/CLAVE DE LA DEFINICIÓN ---
-        String comandoOClave = itemDef.comandoOClave();
+        String comandoOClave = itemDef.actionCommand();
 
         // --- 3. PROCESAR SI HAY UN COMANDO O CLAVE DEFINIDO EN MenuItemDefinition ---
         if (comandoOClave != null && !comandoOClave.isBlank()) {
@@ -528,8 +613,8 @@ public class MenuBarBuilder {
             keyPart = generateKeyPart(itemDef.textoMostrado());
         }
         // 2.2. Si no hay texto mostrado, intentar usar el `comandoOClave` de la definición.
-        else if (itemDef.comandoOClave() != null && !itemDef.comandoOClave().isBlank()) {
-            String comando = itemDef.comandoOClave();
+        else if (itemDef.actionCommand() != null && !itemDef.actionCommand().isBlank()) {
+            String comando = itemDef.actionCommand();
             // Intentar extraer una parte más legible del comando (ej. la parte después del último '.')
             int lastDot = comando.lastIndexOf('.');
             if (lastDot != -1 && lastDot < comando.length() - 1) {

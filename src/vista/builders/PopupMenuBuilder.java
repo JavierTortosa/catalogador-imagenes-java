@@ -48,7 +48,7 @@ public class PopupMenuBuilder {
     private void addItemsToMenuComponent(JComponent parentMenuComponent, List<MenuItemDefinition> items, Map<String, Action> actionMap) {
         for (MenuItemDefinition def : items) {
             MenuItemType type = def.tipo();
-            String comandoOClave = def.comandoOClave(); // Clave de la definición (puede ser AppActionCommand o clave de config)
+            String comandoOClave = def.actionCommand(); // Clave de la definición (puede ser AppActionCommand o clave de config)
             
             // Intentar obtener la Action del mapa principal si hay un comandoOClave
             Action action = (comandoOClave != null) ? actionMap.get(comandoOClave) : null;

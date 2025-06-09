@@ -29,6 +29,7 @@ import javax.swing.SwingUtilities;
 
 import controlador.commands.AppActionCommands;
 import modelo.VisorModel;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager;
 import servicios.zoom.ZoomModeEnum;
@@ -106,7 +107,7 @@ public class InfoBarManager {
         ConfigurationManager cfg = uiConfig.configurationManager;
 
         // 3.2.1. Visibilidad del PANEL COMPLETO de la Barra Superior
-        boolean panelBarraSuperiorVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_VISIBLE, true);
+        boolean panelBarraSuperiorVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_VISIBLE, true);
         if (view.getPanelBarraSuperior() != null) {
             view.getPanelBarraSuperior().setVisible(panelBarraSuperiorVisible);
         } else {
@@ -118,13 +119,13 @@ public class InfoBarManager {
         // 3.2.2. Nombre del Archivo / Ruta (Superior)
         JLabel nombreArchivoLabelSup = view.getNombreArchivoInfoLabel();
         if (nombreArchivoLabelSup != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_NOMBRE_RUTA_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_VISIBLE, true);
             nombreArchivoLabelSup.setVisible(esVisible);
             if (esVisible) {
                 String nombreArchivoDisplay = "N/A";
                 Path rutaCompletaActual = (model.getSelectedImageKey() != null) ? model.getRutaCompleta(model.getSelectedImageKey()) : null;
                 if (rutaCompletaActual != null) {
-                    String formato = cfg.getString(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_NOMBRE_RUTA_FORMATO, "solo_nombre");
+                    String formato = cfg.getString(ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO, "solo_nombre");
                     nombreArchivoDisplay = "ruta_completa".equalsIgnoreCase(formato) ? rutaCompletaActual.toString() : rutaCompletaActual.getFileName().toString();
                 } else if (model.getSelectedImageKey() != null) {
                     nombreArchivoDisplay = model.getSelectedImageKey() + " (Ruta no enc.)";
@@ -141,7 +142,7 @@ public class InfoBarManager {
         // 3.2.3. Índice Actual / Total de Imágenes
         JLabel indiceTotalLabel = view.getIndiceTotalInfoLabel();
         if (indiceTotalLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_INDICE_TOTAL_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_INDICE_TOTAL_VISIBLE, true);
             indiceTotalLabel.setVisible(esVisible);
             if (esVisible) {
                 int indiceActual = -1, totalImagenes = (model.getModeloLista() != null) ? model.getModeloLista().getSize() : 0;
@@ -156,7 +157,7 @@ public class InfoBarManager {
         // 3.2.4. Dimensiones Originales de la Imagen
         JLabel dimensionesLabel = view.getDimensionesOriginalesInfoLabel();
         if (dimensionesLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_DIMENSIONES_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_DIMENSIONES_VISIBLE, true);
             dimensionesLabel.setVisible(esVisible);
             if (esVisible) {
                 String dimsDisplay = "N/A";
@@ -171,7 +172,7 @@ public class InfoBarManager {
         // 3.2.5. Tamaño del Archivo
         JLabel tamanoArchivoLabel = view.getTamanoArchivoInfoLabel();
         if (tamanoArchivoLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_TAMANO_ARCHIVO_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_TAMANO_ARCHIVO_VISIBLE, true);
             tamanoArchivoLabel.setVisible(esVisible);
             if (esVisible) {
                 String tamanoDisplay = "N/A";
@@ -189,7 +190,7 @@ public class InfoBarManager {
         // 3.2.6. Fecha de Modificación del Archivo
         JLabel fechaArchivoLabel = view.getFechaArchivoInfoLabel();
         if (fechaArchivoLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_FECHA_ARCHIVO_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_FECHA_ARCHIVO_VISIBLE, true);
             fechaArchivoLabel.setVisible(esVisible);
             if (esVisible) {
                 String fechaDisplay = "N/A";
@@ -207,7 +208,7 @@ public class InfoBarManager {
         // 3.2.7. Formato de Imagen
         JLabel formatoImagenLabel = view.getFormatoImagenInfoLabel();
         if (formatoImagenLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_FORMATO_IMAGEN_VISIBLE, false);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_FORMATO_IMAGEN_VISIBLE, false);
             formatoImagenLabel.setVisible(esVisible);
             if (esVisible) {
                 String formatoDisplay = "N/A";
@@ -222,7 +223,7 @@ public class InfoBarManager {
         // 3.2.8. Nombre del Modo de Zoom Activo
         JLabel modoZoomNombreLabel = view.getModoZoomNombreInfoLabel();
         if (modoZoomNombreLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_MODO_ZOOM_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_MODO_ZOOM_VISIBLE, true);
             modoZoomNombreLabel.setVisible(esVisible);
             if (esVisible) {
                 String modoZoomDisplay = (model.getCurrentZoomMode() != null) ? model.getCurrentZoomMode().getNombreLegible() : "N/A";
@@ -235,7 +236,7 @@ public class InfoBarManager {
         // 3.2.9. Porcentaje de Zoom Visual Resultante
         JLabel zoomRealPctLabel = view.getPorcentajeZoomVisualRealInfoLabel();
         if (zoomRealPctLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_SUPERIOR_ZOOM_REAL_PCT_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_SUP_ZOOM_REAL_PCT_VISIBLE, true);
             zoomRealPctLabel.setVisible(esVisible);
             if (esVisible) {
                 String zoomPctDisplay = (model.getCurrentImage() != null) ? String.format("%.0f%%", model.getZoomFactor() * 100) : "N/A";
@@ -259,7 +260,7 @@ public class InfoBarManager {
         ConfigurationManager cfg = uiConfig.configurationManager;
 
         // 3.3.1. Visibilidad del PANEL COMPLETO de la Barra Inferior
-        boolean panelBarraInferiorVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_VISIBLE, true);
+        boolean panelBarraInferiorVisible = cfg.getBoolean(ConfigKeys.INFOBAR_INF_VISIBLE, true);
         if (view.getPanelBarraEstado() != null) {
             view.getPanelBarraEstado().setVisible(panelBarraInferiorVisible);
         } else {
@@ -274,13 +275,13 @@ public class InfoBarManager {
         // 3.3.2. Ruta Completa del Archivo (Inferior)
         JLabel rutaCompletaLabel = view.getRutaCompletaArchivoLabel();
         if (rutaCompletaLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_NOMBRE_RUTA_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE, true);
             rutaCompletaLabel.setVisible(esVisible);
             if (esVisible) {
                 String rutaTextoDisplay = "(Ninguna imagen sel.)";
                 Path rutaActualParaBarra = (model.getSelectedImageKey() != null) ? model.getRutaCompleta(model.getSelectedImageKey()) : null;
                 if (rutaActualParaBarra != null) {
-                    String formato = cfg.getString(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_NOMBRE_RUTA_FORMATO, "ruta_completa");
+                    String formato = cfg.getString(ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_FORMATO, "ruta_completa");
                     rutaTextoDisplay = "solo_nombre".equalsIgnoreCase(formato) ? rutaActualParaBarra.getFileName().toString() : rutaActualParaBarra.toString();
                     if (projectService != null && projectService.estaMarcada(rutaActualParaBarra)) rutaTextoDisplay += " [MARCADA]";
                 } else if (model.getCarpetaRaizActual() != null) {
@@ -296,7 +297,7 @@ public class InfoBarManager {
         // 3.3.3. Icono Zoom Manual (ZM)
         JLabel zmIconLabel = view.getIconoZoomManualLabel();
         if (zmIconLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_ZM_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_INF_ICONO_ZM_VISIBLE, true);
             zmIconLabel.setVisible(esVisible);
             if (esVisible) {
                 boolean zoomManualActivo = model.isZoomHabilitado();
@@ -309,7 +310,7 @@ public class InfoBarManager {
         // 3.3.4. Icono Mantener Proporciones (Prop)
         JLabel propIconLabel = view.getIconoMantenerProporcionesLabel();
         if (propIconLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_PROP_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_INF_ICONO_PROP_VISIBLE, true);
             propIconLabel.setVisible(esVisible);
             if (esVisible) {
                 boolean proporcionesActivas = model.isMantenerProporcion();
@@ -322,7 +323,7 @@ public class InfoBarManager {
         // 3.3.5. Icono Modo Subcarpetas (SubC)
         JLabel subcIconLabel = view.getIconoModoSubcarpetasLabel();
         if (subcIconLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_ICONO_SUBC_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_INF_ICONO_SUBC_VISIBLE, true);
             subcIconLabel.setVisible(esVisible);
             if (esVisible) {
                 boolean incluyeSubcarpetas = !model.isMostrarSoloCarpetaActual();
@@ -335,7 +336,7 @@ public class InfoBarManager {
         // 3.3.6. Control % Zoom (JLabel clickeable)
         JLabel porcentajeLabel = view.getPorcentajeZoomPersonalizadoLabel();
         if (porcentajeLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_CTRL_ZOOM_PCT_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE, true);
             porcentajeLabel.setVisible(esVisible);
             if (esVisible) {
                 double customZoomPercent = cfg.getZoomPersonalizadoPorcentaje();
@@ -350,7 +351,7 @@ public class InfoBarManager {
         // 3.3.7. Control Modo Zoom (JButton con icono)
         JButton modoZoomBoton = view.getModoZoomActualIconoBoton();
         if (modoZoomBoton != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_CTRL_MODO_ZOOM_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE, true);
             modoZoomBoton.setVisible(esVisible);
             if (esVisible) {
                 if (model.getCurrentZoomMode() != null) {
@@ -377,7 +378,7 @@ public class InfoBarManager {
         // 3.3.8. Área de Mensajes de la Aplicación
         JLabel mensajesLabel = view.getMensajesAppLabel();
         if (mensajesLabel != null) {
-            boolean esVisible = cfg.getBoolean(ConfigurationManager.KEY_INTERFAZ_INFOBAR_INFERIOR_MENSAJES_APP_VISIBLE, true);
+            boolean esVisible = cfg.getBoolean(ConfigKeys.INFOBAR_INF_MENSAJES_APP_VISIBLE, true);
             mensajesLabel.setVisible(esVisible);
             if (esVisible) {
                 // mensajesLabel.setText(model.getAppStatusMessage() != null ? model.getAppStatusMessage() : "Listo.");

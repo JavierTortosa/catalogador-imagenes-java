@@ -1,2 +1,0 @@
-# VisorImagenes - Selección de Proyecto (Rutas Absolutas)
-D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e.jpg

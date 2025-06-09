@@ -147,6 +147,10 @@ public interface AppActionCommands {
     String CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE = "cmd.infobar.config.formato.inferior.nombre_ruta.solo_nombre";
     String CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA = "cmd.infobar.config.formato.inferior.nombre_ruta.ruta_completa";
     
+    
+    //public static final 
+    String CMD_REFRESH_TOOLBARS = "cmd.refresh.toolbars";
+    
     // --- Comandos para IDENTIFICAR elementos de UI (usados como ActionCommand en Fallback) ---
     // Estos NO tendrán una Action asociada en el actionMap principal.
     // Usaremos las claves largas de config directamente como identificadores.

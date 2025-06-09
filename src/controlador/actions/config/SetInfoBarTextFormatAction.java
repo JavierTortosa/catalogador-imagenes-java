@@ -1,4 +1,3 @@
-// En: controlador.actions.config.SetInfoBarTextFormatAction.java
 package controlador.actions.config;
 
 import java.awt.event.ActionEvent;
@@ -111,7 +110,7 @@ public class SetInfoBarTextFormatAction extends AbstractAction {
      */
     public void sincronizarSelectedKeyConConfig() {
         if (configManagerRef == null) return;
-        String currentFormatInConfig = configManagerRef.getString(configKeyForFormatStorage);
+        String currentFormatInConfig = configManagerRef.getString(configKeyForFormatStorage, "solo_nombre");
         boolean isSelected = formatValueThisActionRepresents.equals(currentFormatInConfig);
         
         if (!Objects.equals(getValue(Action.SELECTED_KEY), isSelected)) { // Solo actualizar si es diferente
