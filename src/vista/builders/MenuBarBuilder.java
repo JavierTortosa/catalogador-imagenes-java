@@ -1,6 +1,8 @@
 package vista.builders;
 
+import java.awt.Component;
 import java.awt.event.ActionListener; // Asegúrate de tener este import
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -13,11 +15,14 @@ import javax.swing.JComponent;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 
 import controlador.VisorController;
+import controlador.actions.config.ToggleToolbarButtonVisibilityAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
 import controlador.commands.AppActionCommands; // Asumo que lo necesitas para algún log o comparación, aunque no directamente aquí
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
 import vista.config.MenuItemType;
@@ -157,7 +162,7 @@ public class MenuBarBuilder {
         JMenuItem menuItemComponent = null; // El componente Swing que se creará.
         // 1.1. Generar la clave larga de configuración para este ítem.
         //      Esta clave se usa para el mapa `menuItemsPorNombre` y potencialmente para logs.
-        String fullConfigKey = generateFullConfigKey(itemDef, parentMainMenu, parentSubMenu);
+        String fullConfigKey = generateFullConfigKey(itemDef, parentContainer); 
         // System.out.println("  [ProcessDef] Procesando: " + itemDef.textoMostrado() + " (Tipo: " + itemDef.tipo() + ", Clave: " + fullConfigKey + ")"); // Log detallado opcional
 
         // --- 2. CREACIÓN DEL COMPONENTE SWING SEGÚN MenuItemType ---
@@ -181,21 +186,41 @@ public class MenuBarBuilder {
                 break; // Fin del caso MAIN_MENU
 
             case SUB_MENU:
-                // 2.2.1. Crear un JMenu para un submenú.
-                JMenu subMenu = new JMenu(itemDef.textoMostrado());
-                menuItemComponent = subMenu;
-                // 2.2.2. Añadir este submenú a su contenedor padre (debería ser otro JMenu).
-                addMenuItemToParent(subMenu, parentContainer);
-                // 2.2.3. Establecer la clave de configuración larga como ActionCommand.
-                subMenu.setActionCommand(fullConfigKey);
-                // 2.2.4. Procesar recursivamente los sub-ítems de este submenú.
+                JMenu menuToCreate;
+                String actionCommand = itemDef.actionCommand();
+
+                if (actionCommand != null && actionCommand.startsWith("interfaz.herramientas.")) {
+                    
+                    // Creamos la Action al vuelo para este menú.
+                    Action toggleAction = new ToggleUIElementVisibilityAction(
+                        this.controllerRef,
+                        this.configuration,
+                        itemDef.textoMostrado(),
+                        actionCommand, // La clave de config a modificar (...visible)
+                        actionCommand.split("\\.")[2], // El ID de la UI (ej: "edicion")
+                        actionCommand // El ActionCommand
+                    );
+                    
+                    // Creamos nuestra clase JCheckBoxMenu personalizada.
+                    menuToCreate = new JCheckBoxMenu(toggleAction);
+
+                } else {
+                    // Si no, es un JMenu normal.
+                    menuToCreate = new JMenu(itemDef.textoMostrado());
+                }
+                
+                menuItemComponent = menuToCreate;
+                addMenuItemToParent(menuToCreate, parentContainer);
+                menuToCreate.setActionCommand(fullConfigKey);
+                
+                // Procesamos los sub-ítems recursivamente.
                 if (itemDef.subItems() != null && !itemDef.subItems().isEmpty()) {
                     for (MenuItemDefinition subDef : itemDef.subItems()) {
-                        processMenuItemDefinition(subDef, subMenu, parentMainMenu, subMenu);
+                        processMenuItemDefinition(subDef, menuToCreate, parentMainMenu, menuToCreate);
                     }
                 }
-                break; // Fin del caso SUB_MENU
-
+                break;
+                
             case ITEM:
                 // 2.3.1. Crear un JMenuItem estándar.
                 menuItemComponent = new JMenuItem(); // Texto se asignará en assignActionOrCommand
@@ -206,59 +231,68 @@ public class MenuBarBuilder {
                 break; // Fin del caso ITEM
 
             case CHECKBOX_ITEM:
-                // Creamos el JCheckBoxMenuItem. Aún no le ponemos la acción.
                 JCheckBoxMenuItem checkboxItem = new JCheckBoxMenuItem();
-                menuItemComponent = checkboxItem; // Para el registro final
+                menuItemComponent = checkboxItem;
+                String comandoOClave = itemDef.actionCommand();
+                Action actionPredefinida = (actionMap != null) ? actionMap.get(comandoOClave) : null;
 
-                // Obtenemos la clave de la definición. Puede ser un ActionCommand o una clave de config.
-                String claveOComando = itemDef.actionCommand();
-
-                if (claveOComando != null && claveOComando.startsWith("interfaz.herramientas.")) {
-                    // --- CASO NUEVO: Es un checkbox para la visibilidad de un botón de toolbar ---
+                if (actionPredefinida != null) {
+                    checkboxItem.setAction(actionPredefinida);
+                } 
+                else if (comandoOClave != null && comandoOClave.startsWith("interfaz.boton.")) {
+                    // --- INICIO DEL CAMBIO ---
+                    // comandoOClave es la clave BASE del botón: "interfaz.boton.edicion.imagen_rotar_izq"
                     
-                    // Creamos una Action reutilizable al vuelo para este checkbox específico
-                    Action toggleVisibilityAction = new ToggleUIElementVisibilityAction(
-                        this.controllerRef, this.configuration, itemDef.textoMostrado(),
-                        claveOComando, "REFRESH_TOOLBARS", claveOComando
+                    String buttonKeyBase = comandoOClave;
+                    String menuKeyBase = generateFullConfigKey(itemDef, parentContainer);
+                    String toolbarId = buttonKeyBase.split("\\.")[2];
+
+                    // Se crea la Action pasándole las CLAVES BASE.
+                    // La Action se encargará de añadir los sufijos ".visible" y ".seleccionado" internamente.
+                    Action toggleAction = new ToggleToolbarButtonVisibilityAction(
+                        itemDef.textoMostrado(),
+                        this.configuration,
+                        this.controllerRef,
+                        menuKeyBase,      // Clave base del menú
+                        buttonKeyBase,    // Clave base del botón
+                        toolbarId
                     );
-                    // Asignamos la acción al checkbox. Esto configura el texto y el estado.
-                    checkboxItem.setAction(toggleVisibilityAction);
-
-                    // Establecemos el estado inicial explícitamente desde la configuración
-                    boolean isSelected = this.configuration.getBoolean(claveOComando, true);
-                    toggleVisibilityAction.putValue(Action.SELECTED_KEY, isSelected);
-
+                    //checkboxItem.setSelected(true);
+                    checkboxItem.setAction(toggleAction);
+                    // --- FIN DEL CAMBIO ---
+                    
                 } else {
-                    // --- CASO ANTIGUO: Es un checkbox normal vinculado a una Action pre-creada ---
-                    // Tu lógica existente para asignar una Action desde el actionMap va aquí.
                     assignActionOrCommand(checkboxItem, itemDef);
                 }
-
-                // Añadimos el checkbox configurado a su menú padre
                 addMenuItemToParent(checkboxItem, parentContainer);
                 break;
-
+                
             case CHECKBOX_ITEM_WITH_SUBMENU:
-                // La Action reutilizable para este menú
-                Action toggleAction = new ToggleUIElementVisibilityAction(
+                // --- INICIO DEL CAMBIO ---
+                // El actionCommand que llega de UIDefinitionService AHORA es la clave completa con ".visible"
+                String toolbarVisibilityKey = itemDef.actionCommand();
+                
+                // Extraemos la clave BASE y el uiIdentifier de la clave completa
+                String toolbarKeyBase = toolbarVisibilityKey.replace(".visible", "");
+                String[] parts = toolbarKeyBase.split("\\.");
+                String uiIdentifier = parts[parts.length - 1];
+                
+                // Se crea la Action pasándole la CLAVE BASE
+                Action toggleBarAction = new ToggleUIElementVisibilityAction(
                     this.controllerRef,
                     this.configuration,
                     itemDef.textoMostrado(),
-                    itemDef.actionCommand(), // Usando el nombre correcto del campo
-                    "REFRESH_TOOLBARS",
-                    itemDef.actionCommand()
+                    toolbarKeyBase, // <<< Se pasa la clave BASE
+                    uiIdentifier,
+                    toolbarVisibilityKey // El action command puede seguir siendo la clave completa
                 );
-                
-                // Creamos la instancia de nuestra nueva clase
-                JCheckBoxMenu menuConCheckbox = new JCheckBoxMenu(toggleAction);
-                
-                // Asignamos la referencia al componente genérico para el registro
+                // --- FIN DEL CAMBIO ---
+
+                JCheckBoxMenu menuConCheckbox = new JCheckBoxMenu(toggleBarAction);
                 menuItemComponent = menuConCheckbox;
-                
-                // Lo añadimos al menú padre
                 addMenuItemToParent(menuConCheckbox, parentContainer);
+                menuConCheckbox.setActionCommand(fullConfigKey);
                 
-                // Procesamos los sub-ítems recursivamente
                 if (itemDef.subItems() != null && !itemDef.subItems().isEmpty()) {
                     for (MenuItemDefinition subDef : itemDef.subItems()) {
                         processMenuItemDefinition(subDef, menuConCheckbox, parentMainMenu, menuConCheckbox);
@@ -351,32 +385,6 @@ public class MenuBarBuilder {
     } // --- FIN del método processMenuItemDefinition ---
 
 
-    private JMenu createCheckboxMenu(MenuItemDefinition definition) {
-        JMenu menu = new JMenu();
-
-        // Creamos una Action REUTILIZABLE para este menú específico
-        // ¡Aquí es donde ocurre la magia que evita la sobrecarga en ActionFactory!
-        Action toggleAction = new ToggleUIElementVisibilityAction(
-                this.controllerRef,
-                this.configuration,
-                definition.textoMostrado(),
-                definition.actionCommand(),
-                "REFRESH_TOOLBARS", // Crearemos este comando en AppActionCommands
-                definition.actionCommand()
-            );
-        
-        menu.setAction(toggleAction);
-
-        // Ponemos el estado inicial del checkbox basándonos en la configuración
-        boolean isSelected = this.configuration.getBoolean(definition.actionCommand(), true);
-        menu.setSelected(isSelected); // Esto puede que no funcione directamente en un JMenu
-                                      // La Action con SELECTED_KEY es la forma correcta.
-        toggleAction.putValue(Action.SELECTED_KEY, isSelected);
-
-        return menu;
-    }
-    
-    
     /**
      * Asigna la Action correspondiente del actionMap al JMenuItem si existe una para su comando/clave,
      * o asigna el comando/clave como ActionCommand y (si está configurado) el listener global
@@ -528,167 +536,65 @@ public class MenuBarBuilder {
     } // --- FIN del método addMenuItemToParent ---
 
 
-    /**
-     * Helper para generar la parte de la clave de configuración a partir de un texto
-     * (típicamente el texto mostrado del menú o el comando/clave de la definición).
-     * Limpia el texto (quita espacios al inicio/fin, reemplaza espacios internos por '_',
-     * elimina caracteres no alfanuméricos excepto '_') y lo convierte a minúsculas.
-     *
-     * @param text El texto base para generar la parte de la clave.
-     * @return Una cadena segura y normalizada para usar como parte de una clave de configuración.
-     *         Si el texto de entrada es null o vacío, devuelve "unknown_key_part".
-     */
-    private String generateKeyPart(String text) {
-        // 1. Manejar caso de entrada nula o vacía.
-        if (text == null || text.isBlank()) {
-            // System.out.println("  [generateKeyPart] Texto nulo/vacío, devolviendo 'unknown_key_part'"); // Log opcional
-            return "unknown_key_part"; // Devolver un placeholder identificable.
-        }
-        
-        String normalizedText = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
-        normalizedText = normalizedText.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-        
-        String cleanedText = normalizedText.toLowerCase();
-
-        // 2. Limpiar y normalizar la cadena:
-        cleanedText = text.trim()                // Quitar espacios al inicio y al final.
-                .replace(" ", "_")       // Reemplazar espacios internos por guiones bajos.
-                .replace("/", "_")       // Reemplazar barras por guiones bajos.
-                .replace("\\", "_")      // Reemplazar contrabarras.
-                .replace("*", "")        // Eliminar asteriscos (usados para indicar tipo en definición antigua).
-                .replace(".", "")        // Eliminar puntos (para evitar confusión en claves jerárquicas).
-                .replace("%", "porc")    // Reemplazar '%' por "porc" para evitar problemas.
-                .replace(":", "")        // Eliminar dos puntos.
-                .replace("?", "")        // Eliminar signos de interrogación.
-                .replace("á", "a")		// quita la tilde de la á
-                .replace("é", "e")
-                .replace("í", "i")
-                .replace("ó", "o")
-                .replace("ú", "u")
-                // Eliminar cualquier carácter que NO sea letra (a-z, A-Z), número (0-9) o guion bajo (_).
-                // Esto asegura que la clave solo contenga caracteres seguros.
-                .replaceAll("[^a-zA-Z0-9_]", "");
-
-        // 3. Convertir la cadena resultante a minúsculas para consistencia.
-        cleanedText = cleanedText.toLowerCase();
-
-        // 4. Asegurar que la clave no quede vacía después de la limpieza.
-        //    Si todos los caracteres fueron eliminados, generar una clave fallback.
-        if (cleanedText.isEmpty()) {
-            // Generar algo basado en el hash del texto original (poco legible pero único).
-            // System.out.println("  [generateKeyPart] Texto original '" + text + "' resultó en clave vacía. Usando hash."); // Log opcional
-            return "emptykey_" + Math.abs(text.hashCode()); // Usar Math.abs para evitar signo negativo.
-        }
-
-        return cleanedText;
-    } // --- FIN del método generateKeyPart ---
+    
 
 
     /**
-     * Helper para generar la clave de configuración larga y jerárquica completa para un ítem de menú.
-     * Construye la clave basándose en la jerarquía de menús padre (principal y submenú)
-     * y el texto o comando del ítem actual.
-     * Ejemplo: "interfaz.menu.archivo.abrir_archivo"
+     * Construye la clave de configuración jerárquica para un ítem de menú.
+     * Sube por el árbol de componentes para asegurar una jerarquía correcta y
+     * sigue el esquema definido "interfaz.menu.[...]"
      *
-     * @param itemDef La {@link MenuItemDefinition} del ítem actual.
-     * @param parentMainMenu El {@link JMenu} principal al que pertenece este ítem (puede ser null).
-     * @param parentSubMenu El {@link JMenu} submenú directo al que pertenece este ítem (puede ser null).
-     * @return La clave larga de configuración generada, o una cadena vacía si no se debe
-     *         generar una clave para este tipo de ítem (ej. separadores, grupos de radio).
+     * @param itemDef La definición del ítem actual.
+     * @param parentContainer El JComponent padre directo (JMenu, JMenuBar, o JPopupMenu).
+     * @return La clave de configuración canónica para el ítem.
      */
-    private String generateFullConfigKey(MenuItemDefinition itemDef, JMenu parentMainMenu, JMenu parentSubMenu) {
-        // --- 1. OMITIR TIPOS SIN CLAVE CONFIGURABLE INDIVIDUAL ---
-        //      Separadores y marcadores de grupo de radio no tienen estado individual
-        //      que necesite ser guardado/leído por una clave única.
+    private String generateFullConfigKey(MenuItemDefinition itemDef, JComponent parentContainer) {
+        // Los tipos que no generan clave se ignoran, esto es correcto.
         if (itemDef.tipo() == MenuItemType.SEPARATOR ||
             itemDef.tipo() == MenuItemType.RADIO_GROUP_START ||
             itemDef.tipo() == MenuItemType.RADIO_GROUP_END) {
-            return ""; // Devolver clave vacía indica que no se almacenará en el mapa.
+            return "";
         }
 
-        // --- 2. GENERAR LA PARTE FINAL DE LA CLAVE (DESDE TEXTO O COMANDO) ---
-        String keyPart;
-        // 2.1. Priorizar el texto mostrado del ítem si está disponible y no es vacío.
-        if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
-            keyPart = generateKeyPart(itemDef.textoMostrado());
+        // 1. Normalizar el nombre del ítem actual. Esta es la parte final de la clave.
+        String itemNamePart = ConfigKeys.normalizePart(itemDef.textoMostrado());
+        if ("unknown".equals(itemNamePart)) {
+            // Si no hay texto, es un error de definición. Generamos una clave de error.
+            return ConfigKeys.menu("error", "item_sin_texto_" + Math.abs(itemDef.hashCode()));
         }
-        // 2.2. Si no hay texto mostrado, intentar usar el `comandoOClave` de la definición.
-        else if (itemDef.actionCommand() != null && !itemDef.actionCommand().isBlank()) {
-            String comando = itemDef.actionCommand();
-            // Intentar extraer una parte más legible del comando (ej. la parte después del último '.')
-            int lastDot = comando.lastIndexOf('.');
-            if (lastDot != -1 && lastDot < comando.length() - 1) {
-                keyPart = generateKeyPart(comando.substring(lastDot + 1));
+        
+        // 2. Construir la jerarquía de forma recursiva hacia arriba.
+        List<String> hierarchyParts = new ArrayList<>();
+        hierarchyParts.add(itemNamePart); // Añadir el nombre del hijo primero
+
+        Component currentParent = parentContainer;
+        while (currentParent != null) {
+            // Si el padre es un JMenu, añadimos su texto al principio de la jerarquía.
+            if (currentParent instanceof JMenu) {
+                hierarchyParts.add(0, ConfigKeys.normalizePart(((JMenu) currentParent).getText()));
+            }
+            
+            // Navegamos hacia el siguiente padre en la jerarquía de Swing.
+            // Un JMenu está dentro de un JPopupMenu, cuyo "invocador" es el JMenu padre.
+            if (currentParent.getParent() instanceof JPopupMenu) {
+                currentParent = ((JPopupMenu) currentParent.getParent()).getInvoker();
             } else {
-                // Si no hay punto o es el último carácter, usar el comando completo normalizado.
-                keyPart = generateKeyPart(comando);
+                // Si no, simplemente tomamos el padre directo.
+                currentParent = currentParent.getParent();
             }
-            // Si después de limpiar el comando queda "unknown" o similar, usar un hash como fallback
-            // para asegurar unicidad, aunque sea menos legible.
-            if (keyPart.equals("unknown_key_part") || keyPart.startsWith("emptykey_")) {
-                keyPart = "cmdkey_" + Math.abs(comando.hashCode());
-            }
-        }
-        // 2.3. Si no hay ni texto ni comando (caso muy raro para un ítem funcional),
-        //      generar un identificador único basado en el hash del objeto `itemDef`.
-        else {
-            keyPart = "itemdef_" + Math.abs(itemDef.hashCode());
-            System.err.println("WARN [generateFullConfigKey]: Generando clave fallback para MenuItemDefinition sin texto ni comandoOClave: " + keyPart);
-        }
-
-        // --- 3. CONSTRUIR LA JERARQUÍA DE LA CLAVE USANDO LOS PADRES ---
-        String baseKey;
-        // 3.1. Si el ítem está dentro de un submenú (`parentSubMenu` no es null):
-        if (parentSubMenu != null) {
-            // Usar el ActionCommand del submenú padre como base.
-            // Se asume que el ActionCommand de un JMenu (principal o submenú) ya contiene
-            // su propia clave de configuración larga y jerárquica.
-            baseKey = parentSubMenu.getActionCommand();
-            if (baseKey == null || baseKey.isBlank()) {
-                System.err.println("ERROR [generateFullConfigKey]: El submenú padre '" + parentSubMenu.getText() +
-                                   "' no tiene un ActionCommand (clave larga) establecido. Se usará fallback para la base.");
-                // Fallback: construir la clave del submenú padre recursivamente (si es posible)
-                // o usar una construcción manual menos robusta.
-                baseKey = generateFullConfigKey(new MenuItemDefinition(null, MenuItemType.SUB_MENU, parentSubMenu.getText(), null), parentMainMenu, null) + "." + generateKeyPart(parentSubMenu.getText());
+            
+            // Paramos cuando llegamos a la JMenuBar o nos quedamos sin padres.
+            if (currentParent instanceof JMenuBar) {
+                break;
             }
         }
-        // 3.2. Si el ítem está directamente bajo un menú principal (`parentMainMenu` no es null, pero `parentSubMenu` sí lo es):
-        else if (parentMainMenu != null) {
-            baseKey = parentMainMenu.getActionCommand();
-            if (baseKey == null || baseKey.isBlank()) {
-                System.err.println("ERROR [generateFullConfigKey]: El menú principal padre '" + parentMainMenu.getText() +
-                                   "' no tiene un ActionCommand (clave larga) establecido. Se usará fallback para la base.");
-                baseKey = CONFIG_KEY_PREFIX + "." + generateKeyPart(parentMainMenu.getText()); // Fallback
-            }
-        }
-        // 3.3. Si el ítem es un menú principal en sí mismo (`itemDef.tipo() == MenuItemType.MAIN_MENU`):
-        else if (itemDef.tipo() == MenuItemType.MAIN_MENU) {
-            // La base es simplemente el prefijo global para menús.
-            baseKey = CONFIG_KEY_PREFIX;
-        }
-        // 3.4. Caso inesperado (ej. un JMenuItem `ITEM` añadido directamente a JMenuBar sin padres JMenu):
-        else {
-            System.err.println("WARN [generateFullConfigKey]: No se pudo determinar una jerarquía clara de menú padre para el ítem: '" +
-                               keyPart + "' (Tipo: " + itemDef.tipo() + "). Se usará una clave base de error.");
-            baseKey = CONFIG_KEY_PREFIX + ".error_jerarquia"; // Clave de error indicativa.
-        }
 
-        // --- 4. COMBINAR LA BASE JERÁRQUICA CON LA PARTE FINAL DEL ÍTEM ---
-        //      Asegurarse de que no se añada un punto si la base ya es solo el prefijo
-        //      o si la parte final es muy genérica (esto último es menos probable aquí).
-        if (baseKey.equals(CONFIG_KEY_PREFIX) && itemDef.tipo() == MenuItemType.MAIN_MENU) {
-             // Para un MAIN_MENU, la clave es "interfaz.menu.nombre_menu"
-             return baseKey + "." + keyPart;
-        } else if (!baseKey.isEmpty()) {
-             return baseKey + "." + keyPart;
-        } else {
-             // Si baseKey terminó vacía (no debería ocurrir con la lógica anterior), usar solo la parte del ítem con el prefijo.
-             System.err.println("WARN [generateFullConfigKey]: BaseKey resultó vacía para ítem: " + keyPart);
-             return CONFIG_KEY_PREFIX + "." + keyPart;
-        }
-    } // --- FIN del método generateFullConfigKey ---
-
-
+        // 3. Usar el KeyGenerator (ahora dentro de ConfigKeys) para construir la clave final.
+        return ConfigKeys.menu(hierarchyParts.toArray(new String[0]));
+        
+    } // --- FIN del metodo generateFullConfigKey ---
+    
+    
     /**
      * Devuelve el mapa de JMenuItems construidos, donde la clave es la
      * clave de configuración larga y jerárquica del ítem.

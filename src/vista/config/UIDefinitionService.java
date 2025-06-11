@@ -2,7 +2,10 @@ package vista.config;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 import controlador.commands.AppActionCommands;
+import servicios.ConfigKeys;
 
 public class UIDefinitionService {
 
@@ -175,54 +178,7 @@ public class UIDefinitionService {
         );
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Comportamiento General", configGeneralSubItems));
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
-
-        
-     // 7.4. Submenú "Visualizar Botones en Toolbar"
-/*        List<MenuItemDefinition> configVisBtnSubItems = List.of( // La lista se abre aquí
-            // Edición
-            new MenuItemDefinition("interfaz.boton.edicion.Rotar_Izquierda_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Rotar Izquierda", null),
-            new MenuItemDefinition("interfaz.boton.edicion.Rotar_Derecha_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Rotar Derecha", null),
-            new MenuItemDefinition("interfaz.boton.edicion.Espejo_Horizontal_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Espejo Horizontal", null),
-            new MenuItemDefinition("interfaz.boton.edicion.Espejo_Vertical_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Espejo Vertical", null),
-            new MenuItemDefinition("interfaz.boton.edicion.Recortar_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Recortar", null),
-            new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
-
-            // Zoom
-            new MenuItemDefinition("interfaz.boton.zoom.Zoom_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Zoom", null),
-            new MenuItemDefinition("interfaz.boton.zoom.Zoom_Auto_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Zoom Automatico", null),
-            new MenuItemDefinition("interfaz.boton.zoom.Ajustar_al_Ancho_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Ajustar al Ancho", null),
-            new MenuItemDefinition("interfaz.boton.zoom.Ajustar_al_Alto_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Ajustar al Alto", null),
-            new MenuItemDefinition("interfaz.boton.zoom.Escalar_Para_Ajustar_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Escalar para Ajustar", null),
-            new MenuItemDefinition("interfaz.boton.zoom.Zoom_Fijo_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Zoom Fijo", null),
-            new MenuItemDefinition("interfaz.boton.zoom.Reset_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Reset Zoom", null),
-            new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
-
-            // Vista
-            new MenuItemDefinition("interfaz.boton.vista.Panel-Galeria_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Panel-Galeria", null),
-            new MenuItemDefinition("interfaz.boton.vista.Grid_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Grid", null),
-            new MenuItemDefinition("interfaz.boton.vista.Pantalla_Completa_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Pantalla Completa", null),
-            new MenuItemDefinition("interfaz.boton.vista.Lista_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Lista", null),
-            new MenuItemDefinition("interfaz.boton.vista.Carrousel_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Carrousel", null),
-            new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
-
-            // Control y Toggles
-            new MenuItemDefinition("interfaz.boton.control.Refrescar_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Refrescar", null),
-            new MenuItemDefinition("interfaz.boton.toggle.Subcarpetas_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Subcarpetas", null),
-            new MenuItemDefinition("interfaz.boton.control.lista_de_favoritos_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Lista de Favoritos", null), // Asumo que esta clave es correcta
-            new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
-
-            // Especiales
-            new MenuItemDefinition("interfaz.boton.control.Borrar_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Borrar", null),
-            new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
-            new MenuItemDefinition("interfaz.boton.especiales.Menu_48x48", MenuItemType.CHECKBOX_ITEM, "Botón Menu", null),
-            new MenuItemDefinition("interfaz.boton.especiales.Botones_Ocultos_48x48", MenuItemType.CHECKBOX_ITEM, "Mostrar Boton de Botones Ocultos", null)
-        ); // La lista se cierra AQUÍ, después de todas las definiciones
        
-
-        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Visualizar Botones", configVisBtnSubItems));
-       	configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
-*/
-        
      // 7.4. Submenú "Visualizar Botones en Toolbar"
         // Menu inteligente para configurar los botones visibles de las toolbars
         List<MenuItemDefinition> configHerramientasSubItems = new ArrayList<>();
@@ -236,14 +192,25 @@ public class UIDefinitionService {
 	        // Creamos la lista de checkboxes para los botones de ESTA barra
 	        List<MenuItemDefinition> checkboxesDeBotones = new ArrayList<>();
 	        for (ToolbarButtonDefinition boton : barra.botones()) {
-	            String claveConfigBoton = "interfaz.herramientas." + barra.claveBarra() + ".boton." + extraerNombreClave(boton.comandoCanonico()) + ".visible";
+	            // Generamos la clave BASE del botón.
+	            String claveBaseBoton = ConfigKeys.buildKey(
+	                "interfaz.boton", // O el prefijo correcto
+	                barra.claveBarra(),
+	                extraerNombreClave(boton.comandoCanonico())
+	            );
+	            
 	            checkboxesDeBotones.add(
-	                new MenuItemDefinition(claveConfigBoton, MenuItemType.CHECKBOX_ITEM, "  " + boton.textoTooltip(), null)
+	                new MenuItemDefinition(
+	                    claveBaseBoton, // <-- El ActionCommand ahora es la clave BASE
+	                    MenuItemType.CHECKBOX_ITEM, 
+	                    "  " + boton.textoTooltip(), 
+	                    null
+	                )
 	            );
 	        }
 	        
 	        // Creamos la clave de configuración para la visibilidad de la barra completa
-	        String claveConfigBarra = "interfaz.herramientas." + barra.claveBarra() + ".visible";
+	        String claveConfigBarra = ConfigKeys.buildKey("interfaz.herramientas", barra.claveBarra());
 	
 	        // Creamos el submenú para esta barra
 	        configHerramientasSubItems.add(
@@ -386,74 +353,9 @@ public class UIDefinitionService {
 
         // --- SECCIÓN 8: FIN DE LA DEFINICIÓN DE TODOS LOS MENÚS ---
         return menuBarStructure;
-    }
+    }// --- FIN del metodo generateMenuStructure ---
 
 
-//    // --- Método para la Toolbar ---
-//    @Deprecated
-//    public List<ToolbarButtonDefinition> generateToolbarStructure() {
-//        List<ToolbarButtonDefinition> toolbarStructure = new ArrayList<>();
-//
-//        // Grupo Movimiento
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_PRIMERA, "1001-Primera_48x48.png", "Primera Imagen", "movimiento"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ANTERIOR, "1002-Anterior_48x48.png", "Imagen Anterior", "movimiento"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_SIGUIENTE, "1003-Siguiente_48x48.png", "Imagen Siguiente", "movimiento"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ULTIMA, "1004-Ultima_48x48.png", "Última Imagen", "movimiento"));
-//
-//        // Grupo Edición
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ, "2001-Rotar_Izquierda_48x48.png", "Rotar Izquierda", "edicion"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_DER, "2002-Rotar_Derecha_48x48.png", "Rotar Derecha", "edicion"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_H, "2003-Espejo_Horizontal_48x48.png", "Voltear Horizontal", "edicion"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_V, "2004-Espejo_Vertical_48x48.png", "Voltear Vertical", "edicion"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_RECORTAR, "2005-Recortar_48x48.png", "Recortar", "edicion"));
-//
-//        // Grupo Zoom
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, "3005-Escalar_Para_Ajustar_48x48.png", "Escalar para Ajustar", "zoom"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AUTO, "3002-Zoom_Auto_48x48.png", "Zoom Automático", "zoom"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, "3003-Ajustar_al_Ancho_48x48.png", "Ajustar al Ancho", "zoom"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, "3004-Ajustar_al_Alto_48x48.png", "Ajustar al Alto", "zoom"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, "3006-Zoom_Fijo_48x48.png", "Zoom Actual Fijo", "zoom"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, "3007-zoom_especifico_48x48.png", "Zoom Especificado", "zoom")); // Ojo: nombre icono
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-Zoom_48x48.png", "Activar/Desactivar Zoom Manual", "zoom"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, "3008-Reset_48x48.png", "Resetear Zoom", "zoom"));
-//
-//        // Grupo Vista
-//        // TODO: Añadir comandos para estos botones si tienen Actions
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4001-Panel-Galeria_48x48.png", "Panel Galería", "vista"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4002-Grid_48x48.png", "Vista Grid", "vista"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4003-Pantalla_Completa_48x48.png", "Pantalla Completa", "vista"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, "4004-Lista_48x48.png", "Vista Lista", "vista"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4005-Carrousel_48x48.png", "Vista Carrusel", "vista"));
-//
-//        // Grupo Control
-//        
-//        // TODO: Añadir comando para Favoritos
-////        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FAVORITO_MOSTRAR_LISTA, "5003-marcar_imagen_48x48.png", "Marcar Imagen para Favoritos", "control"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ELIMINAR, "5004-Borrar_48x48.png", "Eliminar Imagen", "control"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, "5001-Refrescar_48x48.png", "Refrescar", "control"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_LOCALIZAR, "7004-Ubicacion_de_Archivo_48x48.png", "Abrir Ubicación", "control")); // Reubicado?
-//
-//        // Grupo Especiales
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ARCHIVO_ABRIR, "6001-Selector_de_Carpetas_48x48.png", "Abrir Carpeta", "especiales"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_MENU, "6002-Menu_48x48.png", "Menú Principal", "especiales"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, "6003-Botones_Ocultos_48x48.png", "Mostrar Botones Ocultos", "especiales"));
-//
-//        // Grupo Proyecto
-//        // TODO: Añadir comando para Mostrar Favoritos (toggle)
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "5003-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "7003-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto"));
-////        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "7003-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "toggle"));
-//
-//        // Grupo Toggle
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, "7001-Subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "toggle"));
-//        toolbarStructure.add(new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, "7002-Mantener_Proporciones_48x48.png", "Mantener Proporciones", "toggle"));
-//
-//        
-//        
-//        
-//        return toolbarStructure;
-//    }
-    
  // --- Método para definir la estructura de barras de herramientas modulares ---
     /**
      * Define la estructura completa de todas las barras de herramientas modulares.
@@ -588,6 +490,17 @@ public class UIDefinitionService {
         resultado = resultado.replace('.', '_');
         
         return resultado;
+    }
+    
+    
+    /**
+     * Devuelve una lista con las claves de todas las barras de herramientas definidas.
+     * @return Una lista de Strings (ej. ["navegacion", "edicion", "zoom", ...]).
+     */
+    public List<String> getToolbarKeys() {
+        return generateModularToolbarStructure().stream()
+                                                .map(ToolbarDefinition::claveBarra)
+                                                .collect(Collectors.toList());
     }
     
     

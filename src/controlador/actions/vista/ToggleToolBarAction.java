@@ -6,43 +6,56 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import controlador.VisorController; // <<<< NECESARIO
+import controlador.VisorController;
 import servicios.ConfigurationManager;
-// Ya no necesitamos ViewManager aquí si el controller hace el despacho
-// import controlador.managers.ViewManager;
 
 public class ToggleToolBarAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    // private ViewManager viewManagerRef; // Ya no se usa aquí
-    private ConfigurationManager configManagerRef;
-    private String configKeyForState;
-    private String uiElementIdentifierForController; // Este es el ID que el controller usará
-    private VisorController controllerRef; // <<<< AÑADIR REFERENCIA AL CONTROLLER
+    private final ConfigurationManager configManagerRef;
+    private final String configKeyBase; // Antes: configKeyForState
+    private final String uiElementIdentifierForController;
+    private final VisorController controllerRef;
 
-    // CONSTRUCTOR MODIFICADO
+    /**
+     * Constructor MODIFICADO para una Action que alterna la visibilidad de la barra de herramientas principal.
+     * AHORA espera la clave de configuración BASE y añade el sufijo ".seleccionado" internamente.
+     *
+     * @param name           El texto que se mostrará en el JCheckBoxMenuItem (ej. "Barra de Botones").
+     * @param icon           El icono para la Action (puede ser null).
+     * @param configManager  El gestor de configuración.
+     * @param controller     La referencia al controlador principal.
+     * @param configKeyBase  La clave BASE en ConfigurationManager (ej. "interfaz.menu.vista.barra_de_botones").
+     * @param uiElementId    El identificador único para la UI (ej. "Barra_de_Botones").
+     * @param actionCommandKey El comando canónico asociado a esta Action.
+     */
     public ToggleToolBarAction(String name,
                                ImageIcon icon,
-                               // ViewManager viewManager, // Ya no se pasa directamente
                                ConfigurationManager configManager,
-                               VisorController controller, // <<<< AÑADIR PARÁMETRO CONTROLLER
-                               String configKeyForSelectedState,
-                               String uiElementId, // Renombrado para claridad
+                               VisorController controller,
+                               String configKeyBase, // <<< CAMBIO: Nombre del parámetro
+                               String uiElementId,
                                String actionCommandKey) {
         super(name, icon);
 
         this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
-        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null"); // <<<< ASIGNAR
-        this.configKeyForState = Objects.requireNonNull(configKeyForSelectedState, "configKeyForState no puede ser null");
+        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
+        this.configKeyBase = Objects.requireNonNull(configKeyBase, "configKeyBase no puede ser null");
         this.uiElementIdentifierForController = Objects.requireNonNull(uiElementId, "uiElementId no puede ser null");
 
-        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la " + name); // "la Barra de Botones"
+        putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la " + name);
         putValue(Action.ACTION_COMMAND_KEY, Objects.requireNonNull(actionCommandKey, "actionCommandKey no puede ser null"));
 
-        boolean initialState = this.configManagerRef.getBoolean(this.configKeyForState, true);
+        // --- CAMBIO: Construir la clave completa para leer el estado inicial ---
+        // La clave para un checkbox de menú es "...seleccionado"
+        String fullStateKey = this.configKeyBase + ".seleccionado";
+        boolean initialState = this.configManagerRef.getBoolean(fullStateKey, true);
         putValue(Action.SELECTED_KEY, initialState);
-    }
+        
+        System.out.println("[ToggleToolBarAction CSTR] '" + name + "' (clave base: " + this.configKeyBase +
+                           ", UI ID: " + this.uiElementIdentifierForController + ") inicializada. Leyendo de '" + fullStateKey + "'. SELECTED_KEY: " + initialState);
+    } // --- FIN del Constructor ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -52,18 +65,21 @@ public class ToggleToolBarAction extends AbstractAction {
         }
 
         boolean nuevoEstadoVisible = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
-        System.out.println("[ToggleToolBarAction actionPerformed] para UI ID: " + uiElementIdentifierForController +
+        
+        // --- CAMBIO: Construir la clave completa para guardar el nuevo estado ---
+        String fullStateKey = this.configKeyBase + ".seleccionado";
+        this.configManagerRef.setString(fullStateKey, String.valueOf(nuevoEstadoVisible));
+        
+        System.out.println("[ToggleToolBarAction actionPerformed] para UI ID: " + this.uiElementIdentifierForController +
                            ", nuevo estado de visibilidad: " + nuevoEstadoVisible);
+        System.out.println("  -> [ToggleToolBarAction] Estado guardado en config: " + fullStateKey + " = " + nuevoEstadoVisible);
 
-        // 1. Guardar el nuevo estado en ConfigurationManager
-        this.configManagerRef.setString(this.configKeyForState, String.valueOf(nuevoEstadoVisible));
-        System.out.println("  -> [ToggleToolBarAction] Estado guardado en config: " + this.configKeyForState + " = " + nuevoEstadoVisible);
-
-        // 2. Notificar al VisorController para que actualice la UI
+        // Notificar al VisorController para que actualice la UI
         this.controllerRef.solicitarActualizacionInterfaz(
-            this.uiElementIdentifierForController, // Será "Barra_de_Botones"
-            this.configKeyForState,
+            this.uiElementIdentifierForController, // "Barra_de_Botones"
+            fullStateKey,                          // La clave completa que se modificó
             nuevoEstadoVisible
         );
-    }
-}
+    } // --- FIN del método actionPerformed ---
+    
+} // --- FIN de la clase ToggleToolBarAction ---

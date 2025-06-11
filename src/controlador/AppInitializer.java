@@ -744,6 +744,11 @@ public class AppInitializer {
             System.out.println("  [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.");
             System.out.println("--- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---");
             
+            System.out.println("[AppInitializer] Ejecutando sincronización final de checkboxes de botones...");
+            if (this.controller != null) {
+                this.controller.sincronizarEstadoVisualCheckboxesDeBotones();
+            }
+            
             this.view.setVisible(true); // Hacer visible la ventana principal al final de todo
             
         } catch (Exception e) {

@@ -13,6 +13,7 @@ import javax.swing.JButton;
 import javax.swing.JToolBar;
 
 import controlador.VisorController; // Para ActionListener fallback
+import servicios.ConfigKeys;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarDefinition;
 import vista.util.IconUtils;
@@ -229,9 +230,11 @@ public class ToolbarBuilder {
     // --- SECCIÓN 4: MÉTODOS HELPER INTERNOS ---
 
     // 4.1. Método para procesar una definición de botón individual
+    
     /**
      * Crea y configura un único JButton a partir de su definición.
-     * Asigna la acción, icono, tooltip y lo registra en el mapa de botones.
+     * Asigna la acción, icono, tooltip y lo registra en el mapa de botones
+     * usando una clave canónica basada en el comando de la acción.
      *
      * @param definition La definición del botón a crear.
      * @return El JButton configurado, o null si la definición es inválida.
@@ -242,7 +245,7 @@ public class ToolbarBuilder {
             return null;
         }
 
-        // 1. Crear el JButton y aplicar estilos básicos
+        // 1. Crear el JButton y aplicar estilos básicos.
         JButton button = new JButton();
         button.setMargin(new Insets(2, 2, 2, 2));
         button.setBorderPainted(false);
@@ -252,33 +255,44 @@ public class ToolbarBuilder {
         button.setOpaque(true);
         button.setToolTipText(definition.textoTooltip());
 
-        // 2. Asignar la Action
+        // 2. Asignar la Action desde el mapa.
         Action action = this.actionMap.get(definition.comandoCanonico());
         if (action != null) {
             button.setAction(action);
-            button.setText(null); // Ocultamos el texto si hay acción con icono
+            // Ocultamos el texto por defecto si la Action lo tuviera,
+            // ya que en la toolbar priorizamos el icono.
+            button.setText(null); 
         } else {
+            // Fallback si no se encuentra una Action predefinida.
             System.err.println("WARN [crearBotonIndividual]: No se encontró Action para comando: '" + definition.comandoCanonico() + "'");
-            button.setText("?"); // Placeholder si no hay acción
+            button.setText("?"); // Placeholder visual de error.
             button.setActionCommand(definition.comandoCanonico());
-            button.addActionListener(this.controllerRef); // Fallback listener
+            button.addActionListener(this.controllerRef); // Asignar el listener global.
         }
 
-        // 3. (Opcional) Sobrescribir el icono si la Action no lo tiene
+        // 3. Asegurar que el icono esté presente.
+        // Si la Action no tenía un icono asignado, lo cargamos desde la definición.
         if (button.getIcon() == null && definition.claveIcono() != null) {
             ImageIcon icono = this.iconUtils.getScaledIcon(definition.claveIcono(), this.iconoAncho, this.iconoAlto);
             button.setIcon(icono);
         }
 
-        // 4. Registrar el botón en el mapa para futura referencia (usando una nueva clave estandarizada)
-        String claveBoton = "interfaz.herramientas." + definition.categoriaLayout() + ".boton." + extraerNombreClave(definition.comandoCanonico());
-        this.botonesPorNombre.put(claveBoton, button);
-        System.out.println("    -> Botón '" + definition.comandoCanonico() + "' creado y mapeado a clave: " + claveBoton);
+        // 4. Generar la clave de configuración canónica y registrar el botón.
+        // Se basa en la CATEGORÍA y el COMANDO CANÓNICO.
+        String nombreBotonParaClave = extraerNombreClave(definition.comandoCanonico());
+        String claveBaseBoton = ConfigKeys.buildKey(
+            "interfaz.boton",
+            definition.categoriaLayout(),
+            nombreBotonParaClave
+        );
+        
+        this.botonesPorNombre.put(claveBaseBoton, button);
+        System.out.println("    -> Botón '" + definition.comandoCanonico() + "' creado y mapeado a clave base: " + claveBaseBoton);
         
         return button;
-    }
+    } // --- FIN del metodo crearBotonIndividual ---
 
-    // Pega aquí el mismo método ayudante que añadimos a UIDefinitionService
+
     private String extraerNombreClave(String comandoCanonico) {
         if (comandoCanonico == null) return "desconocido";
         String resultado = comandoCanonico.startsWith("cmd.") ? comandoCanonico.substring(4) : comandoCanonico;

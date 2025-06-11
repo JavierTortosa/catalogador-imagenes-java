@@ -9,6 +9,120 @@ public final class ConfigKeys {
 
     // Constructor privado para evitar que alguien cree una instancia de esta clase de utilidad.
     private ConfigKeys() {}
+    
+    
+ // --- PREFIJOS BASE ---
+    private static final String MENU 			= "interfaz.menu";
+    private static final String TOOLBAR 		= "interfaz.herramientas";
+    private static final String BUTTON_PREFIX	= "interfaz.boton";
+    private static final String INFOBAR 		= "interfaz.infobar";
+    private static final String MINIATURES 		= "interfaz.miniaturas";
+//    private static final String 		= "";
+    
+    // ... puedes añadir más prefijos aquí si los necesitas
+
+    // --- GENERADORES DINÁMICOS ---
+    public static String menu(String... parts) {return buildKey(MENU, parts);}
+    public static String menuState(String... parts) {return buildKey(MENU, parts) + ".seleccionado";}
+    public static String toolbarVisible(String toolbarKey) {return buildKey(TOOLBAR, normalizePart(toolbarKey)) + ".visible";}
+    //public static String toolbarButtonVisible(String toolbarKey, String buttonKey) {return buildKey(TOOLBAR, normalizePart(toolbarKey), "boton", normalizePart(buttonKey)) + ".visible";}
+    
+    /**
+     * Genera la clave para la visibilidad de un botón específico en una barra.
+     * Sigue el esquema: interfaz.boton.[nombre_barra].[nombre_boton].visible
+     *
+     * @param toolbarKey El nombre de la barra (ej: "edicion").
+     * @param buttonKey El nombre del botón (ej: "rotar_derecha").
+     * @return La clave canónica.
+     */
+    public static String toolbarButtonVisible(String toolbarKey, String buttonKey) {
+        return buildKey(BUTTON_PREFIX, normalizePart(toolbarKey), normalizePart(buttonKey)) + ".visible";
+    }
+    
+    
+    // --- CONSTANTES PARA CLAVES ÚNICAS (las que no se pueden generar) ---
+    public static final String INICIO_CARPETA = "inicio.carpeta";
+    public static final String INICIO_IMAGEN = "inicio.imagen";
+    
+    public static final String VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE = menuState("vista", "mostrar_nombres_en_miniaturas");
+    // ... aquí irían el resto de tus constantes de ConfigKeys que no siguen un patrón generable
+
+    // --- MÉTODOS AYUDANTES ---
+
+    public static String buildKey(String prefix, String... parts) {
+        StringBuilder sb = new StringBuilder(prefix);
+        for (String part : parts) {
+            sb.append(".").append(part);
+        }
+        return sb.toString();
+    }
+    
+    
+    /**
+     * Helper para generar la parte de la clave de configuración a partir de un texto
+     * (típicamente el texto mostrado del menú o el comando/clave de la definición).
+     * Limpia el texto (quita espacios al inicio/fin, reemplaza espacios internos por '_',
+     * elimina caracteres no alfanuméricos excepto '_') y lo convierte a minúsculas.
+     *
+     * @param text El texto base para generar la parte de la clave.
+     * @return Una cadena segura y normalizada para usar como parte de una clave de configuración.
+     *         Si el texto de entrada es null o vacío, devuelve "unknown_key_part".
+     */
+    public static String normalizePart(String text) {
+        // 1. Manejar caso de entrada nula o vacía.
+        if (text == null || text.isBlank()) {
+            // System.out.println("  [generateKeyPart] Texto nulo/vacío, devolviendo 'unknown_key_part'"); // Log opcional
+            return "unknown_key_part"; // Devolver un placeholder identificable.
+        }
+        
+        String normalizedText = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
+        normalizedText = normalizedText.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+        
+        String cleanedText = normalizedText.toLowerCase();
+
+        // 2. Limpiar y normalizar la cadena:
+        cleanedText = text.trim()                // Quitar espacios al inicio y al final.
+                .replace(" ", "_")       // Reemplazar espacios internos por guiones bajos.
+                .replace("/", "_")       // Reemplazar barras por guiones bajos.
+                .replace("\\", "_")      // Reemplazar contrabarras.
+                .replace("*", "")        // Eliminar asteriscos (usados para indicar tipo en definición antigua).
+                .replace(".", "")        // Eliminar puntos (para evitar confusión en claves jerárquicas).
+                .replace("%", "porc")    // Reemplazar '%' por "porc" para evitar problemas.
+                .replace(":", "")        // Eliminar dos puntos.
+                .replace("?", "")        // Eliminar signos de interrogación.
+                .replace("á", "a")		// quita la tilde de la á
+                .replace("é", "e")
+                .replace("í", "i")
+                .replace("ó", "o")
+                .replace("ú", "u")
+                // Eliminar cualquier carácter que NO sea letra (a-z, A-Z), número (0-9) o guion bajo (_).
+                // Esto asegura que la clave solo contenga caracteres seguros.
+                .replaceAll("[^a-zA-Z0-9_]", "");
+
+        // 3. Convertir la cadena resultante a minúsculas para consistencia.
+        cleanedText = cleanedText.toLowerCase();
+
+        // 4. Asegurar que la clave no quede vacía después de la limpieza.
+        //    Si todos los caracteres fueron eliminados, generar una clave fallback.
+        if (cleanedText.isEmpty()) {
+            // Generar algo basado en el hash del texto original (poco legible pero único).
+            // System.out.println("  [generateKeyPart] Texto original '" + text + "' resultó en clave vacía. Usando hash."); // Log opcional
+            return "emptykey_" + Math.abs(text.hashCode()); // Usar Math.abs para evitar signo negativo.
+        }
+
+        return cleanedText;
+    } // --- FIN del método generateKeyPart ---
+    
+    
+//    public static String normalizePart(String text) {
+//        if (text == null || text.isBlank()) return "unknown";
+//        String normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
+//        normalized = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
+//        return normalized.trim().toLowerCase()
+//                         .replaceAll("\\s+", "_")
+//                         .replaceAll("[^a-z0-9_]", "");
+//    }
+    
 
     // --- SECCIÓN: ESTADO DE LA VENTANA ---
     public static final String WINDOW_X = "window.x";
@@ -18,8 +132,6 @@ public final class ConfigKeys {
     public static final String WINDOW_MAXIMIZED = "window.maximized";
 
     // --- SECCIÓN: INICIO Y PROYECTOS ---
-    public static final String INICIO_CARPETA = "inicio.carpeta";
-    public static final String INICIO_IMAGEN = "inicio.imagen";
     public static final String PROYECTOS_CARPETA_BASE = "proyectos.carpeta_base";
     public static final String PROYECTOS_ARCHIVO_TEMPORAL = "proyectos.archivo_temporal_nombre";
     // Para el futuro:
@@ -76,7 +188,7 @@ public final class ConfigKeys {
     public static final String MINIATURAS_TAMANO_SEL_ALTO = "miniaturas.tamano.seleccionada.alto";
     public static final String MINIATURAS_TAMANO_NORM_ANCHO = "miniaturas.tamano.normal.ancho";
     public static final String MINIATURAS_TAMANO_NORM_ALTO = "miniaturas.tamano.normal.alto";
-    public static final String MINIATURAS_MOSTRAR_NOMBRES = "miniaturas.ui.mostrar_nombres";
+//    public static final String MINIATURAS_MOSTRAR_NOMBRES = "miniaturas.ui.mostrar_nombres";
 
     
     // =================================================================================

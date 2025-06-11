@@ -980,7 +980,7 @@ public class VisorView extends JFrame {
         if (uiConfig != null && uiConfig.configurationManager != null && servicioThumbsParam != null && modeloVisorParam != null) {
             int thumbWidth = uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
             int thumbHeight = uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
-            boolean mostrarNombres = uiConfig.configurationManager.getBoolean("ui.miniaturas.mostrar_nombres", true);
+            boolean mostrarNombres = uiConfig.configurationManager.getBoolean(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, true);
             MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
                     servicioThumbsParam,
                     modeloVisorParam,
@@ -1520,7 +1520,7 @@ public class VisorView extends JFrame {
 
         // --- 2. OBTENER CONFIGURACIONES ACTUALES ---
         //    Leer los valores actuales de la configuración que afectan al renderer.
-        boolean mostrarNombresActual = this.uiConfig.configurationManager.getBoolean("miniaturas.ui.mostrar_nombres", true);
+        boolean mostrarNombresActual = this.uiConfig.configurationManager.getBoolean(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, true);
         int thumbWidth = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.ancho", 40);
         int thumbHeight = this.uiConfig.configurationManager.getInt("miniaturas.tamano.normal.alto", 40);
 
@@ -2051,26 +2051,10 @@ public class VisorView extends JFrame {
         return this.panelIzquierdo;
     }
    
-    /**
-     * Devuelve el panel que contiene la barra de botones principal (toolbar).
-     * Este panel es usualmente el que se recibe del ToolbarBuilder.
-     *
-     * @return El JPanel de la barra de botones, o null si no ha sido inicializado.
-     */
-    public JPanel getPanelDeBotones() {
-        return this.panelDeBotones; // o this.mainToolbarPanel, si panelDeBotones es solo una referencia a él
-    }
-    
-    /**
-     * Devuelve el JTextField que se utilizaba anteriormente como barra de estado/ubicación.
-     * Este método podría quedar obsoleto si this.textoRuta se elimina completamente
-     * en favor de los componentes dentro de bottomStatusBar.
-     *
-     * @return El JTextField de la barra de estado, o null si no ha sido inicializado.
-     */
-    public JTextField getTextoRuta() {
-        return this.textoRuta;
-    }
+    // Getters para la barra de botones
+    public JPanel getPanelDeBotones() {return this.panelDeBotones; }
+    public Map<String, JToolBar> getToolbars() {return this.barrasDeHerramientas;}
+    public JTextField getTextoRuta() {return this.textoRuta;}
     
     // Getters para la Barra de Información Superior
  	public JLabel getNombreArchivoInfoLabel() { return this.nombreArchivoInfoLabel; }
