@@ -636,11 +636,18 @@ public class ActionFactory {
     // --- 4.10. Métodos Create para Actions de Proyecto ---
     private Action createToggleMarkImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-        // Ahora este constructor coincide con el refactorizado
-        ToggleMarkImageAction action = new ToggleMarkImageAction(this.projectService, this.model, this.view, "Marcar/Desmarcar para Proyecto",icon);
-        this.contextSensitiveActions.add(action); // REGISTRAR como sensible al contexto
+        
+        // --- CAMBIO: Se pasa 'this.controllerRef' en lugar de 'this.view' ---
+        ToggleMarkImageAction action = new ToggleMarkImageAction(
+            this.projectService,
+            this.model,
+            this.controllerRef, // <<< Pasamos la referencia al controlador
+            "Marcar/Desmarcar para Proyecto",
+            icon
+        );
+        this.contextSensitiveActions.add(action);
         return action;
-    }
+    } // --- FIN del método createToggleMarkImageAction ---
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
         return new GestionarProyectoAction(this.projectService, this.view, "Gestionar Proyectos", icon);

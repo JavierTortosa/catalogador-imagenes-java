@@ -94,7 +94,7 @@ public class ToggleZoomManualAction extends AbstractAction {
             //          (ej. cambiar el color de fondo del botón de zoom manual si la vista lo hace).
             //          El método en VisorView se encarga de los detalles visuales específicos.
             viewRef.actualizarEstadoControlesZoom(nuevoEstadoActivacion, nuevoEstadoActivacion); // El segundo param es para el botón de reset
-            
+            viewRef.actualizarAspectoBotonToggle(this, nuevoEstadoActivacion);
             // 3.5.4. Solicitar al ZoomManager que refresque la imagen principal en la vista.
             //          Esto es necesario porque activarODesactivarZoomManual en ZoomManager
             //          probablemente llamó a model.resetZoomState(), lo que cambia el factor y el paneo.
@@ -110,6 +110,7 @@ public class ToggleZoomManualAction extends AbstractAction {
             resetZoomActionRef.setEnabled(modelRef.isZoomHabilitado());
             viewRef.actualizarEstadoControlesZoom(modelRef.isZoomHabilitado(), modelRef.isZoomHabilitado());
             // No es necesario refrescar la imagen principal si no hubo cambio de estado de zoom.
+            viewRef.actualizarAspectoBotonToggle(this, modelRef.isZoomHabilitado());
         }
         
         // 3.7. Log final del estado de la Action.

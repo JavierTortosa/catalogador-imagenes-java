@@ -71,27 +71,31 @@ public class AplicarModoZoomAction extends AbstractAction {
     
     
     /**
-     * Actualiza el estado de selección (Action.SELECTED_KEY) de esta Action
-     * basándose en si el modo de zoom que representa coincide con el modo
-     * actualmente activo en el VisorModel.
-     * Este método debe ser llamado externamente cuando el modo de zoom global cambia.
+     * MODIFICADO: Actualiza el estado de selección (Action.SELECTED_KEY) y
+     * DEVUELVE si la acción quedó seleccionada.
+     *
+     * @return true si esta acción representa el modo de zoom actualmente activo, false en caso contrario.
      */
-    public void sincronizarEstadoSeleccionConModelo() {
+    public boolean sincronizarEstadoSeleccionConModelo() {
+        boolean deberiaEstarSeleccionada = false; // Valor por defecto
+
         if (modelRef != null) {
-            boolean deberiaEstarSeleccionada = (modelRef.getCurrentZoomMode() == this.modoDeZoomQueRepresentaEstaAction);
-            
-            // Solo actualizar y disparar evento si el estado realmente cambia
-            if (!Objects.equals(getValue(Action.SELECTED_KEY), deberiaEstarSeleccionada)) {
-                putValue(Action.SELECTED_KEY, deberiaEstarSeleccionada);
-                // System.out.println("  [AplicarModoZoomAction: " + modoDeZoomQueRepresentaEstaAction + "] SELECTED_KEY actualizado a: " + deberiaEstarSeleccionada);
-            }
-        } else {
-            // Si el modelo es null, por seguridad, deseleccionar.
-            if (!Objects.equals(getValue(Action.SELECTED_KEY), Boolean.FALSE)) {
-                 putValue(Action.SELECTED_KEY, Boolean.FALSE);
-            }
+            deberiaEstarSeleccionada = (modelRef.getCurrentZoomMode() == this.modoDeZoomQueRepresentaEstaAction);
         }
-    }
+
+        // Obtener el estado actual antes de cambiarlo para evitar eventos innecesarios
+        boolean estadoActual = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
+
+        // Solo actualizar si el estado realmente cambia
+        if (estadoActual != deberiaEstarSeleccionada) {
+            putValue(Action.SELECTED_KEY, deberiaEstarSeleccionada);
+        }
+
+        // Devolver el estado que la acción DEBERÍA tener
+        return deberiaEstarSeleccionada;
+
+    } // --- FIN del método sincronizarEstadoSeleccionConModelo ---
+    
 
     // (Opcional) Getter para saber qué modo representa esta acción, podría ser útil para depuración.
     public ZoomModeEnum getModoDeZoomQueRepresenta() {

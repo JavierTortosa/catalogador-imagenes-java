@@ -5,23 +5,30 @@ Iniciando Visor de Imágenes V2...
     -> VisorModel creado e inyectado.
 Mapa de configuración por defecto inicializado con 95 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
+Config no encontrado. Creando por defecto...
+Creando config por defecto (estructura jerárquica v2.1)...
+Archivo de configuración por defecto creado en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 244
+Configuración leída. Total claves: 95
 --- DEBUG PRE-SINCRONIZACIÓN ---
 Tamaño de DEFAULT_CONFIG: 95
-Tamaño de loadedConfig (del archivo): 244
+Tamaño de loadedConfig (del archivo): 95
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
 Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
-!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1177096266
+!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1190035432
     -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración al Modelo...
     -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: Ajustar a Pantalla
     -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: Ajustar a Pantalla
+WARN: Clave 'miniaturas.tamano.seleccionada.alto' no encontrada. Usando default '60' y añadiendo a config en memoria.
+WARN: Clave 'miniaturas.tamano.normal.ancho' no encontrada. Usando default '40' y añadiendo a config en memoria.
+WARN: Clave 'miniaturas.tamano.normal.alto' no encontrada. Usando default '40' y añadiendo a config en memoria.
     -> Modelo: Zoom manual inicial activo (desde config 'comportamiento...'): true
+WARN: Clave 'interfaz.menu.zoom.mantener_proporciones.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
     -> Modelo: Navegación circular (desde config 'comportamiento.navegacion.circular'): false
     -> Configuración aplicada al Modelo (Miniaturas, Comportamiento).
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
@@ -32,9 +39,9 @@ ConfigurationManager inicializado.
     -> ThumbnailService y Modelo para JList de Miniaturas creados e inyectados.
     -> ExecutorService (FixedThreadPool con 8 hilos) creado e inyectado.
   [AppInitializer Fase A.4] Inicializando Servicio de Proyectos...
-  [ProjectManager] Archivo de selección no encontrado o no legible: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Se iniciará con selección vacía.
+  [ProjectManager] Cargadas 2 rutas absolutas desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
 [ProjectManager] Instancia creada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-  -> Imágenes marcadas inicialmente: 0
+  -> Imágenes marcadas inicialmente: 2
     -> ProjectManager (servicio) creado e inyectado.
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -65,6 +72,7 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     [VisorView] JSplitPane creado.
     [VisorView] Configurando PanelDeMiniaturas...
       -> [VisorView] inicializarPanelImagenesMiniatura...
+WARN: Clave 'interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
       -> PanelDeMiniaturas (scroll y lista) configurados por inicializarPanelImagenesMiniatura.
     [VisorView] PanelDeMiniaturas configurado.
   [VisorView] PanelModoNormal creado y ensamblado.
@@ -92,30 +100,53 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     B.4. [EDT] ListCoordinator creado e inyectado.
   [ActionFactory] Inicializando todas las Actions...
   [ToggleMenuBarAction CSTR] Leyendo 'interfaz.menu.vista.barra_de_menu.seleccionado' -> true. SELECTED_KEY puesto a: true
+WARN: Clave 'interfaz.menu.vista.barra_de_botones.seleccionado.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolBarAction CSTR] 'Barra de Botones' (clave base: interfaz.menu.vista.barra_de_botones.seleccionado, UI ID: Barra_de_Botones) inicializada. Leyendo de 'interfaz.menu.vista.barra_de_botones.seleccionado.seleccionado'. SELECTED_KEY: true
+WARN: Clave 'interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.menu.vista.imagenes_en_miniatura.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.inferior.nombre_ruta.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado' no encontrada. Usando default 'false' y añadiendo a config en memoria.
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@147a9768
+ActionFactory: Creando ToggleSubfoldersAction@30c8640b
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
+WARN: Clave 'interfaz.infobar.superior.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Barra de Información Superior' (clave base: interfaz.infobar.superior.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.superior.nombre_ruta.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Nombre/Ruta Archivo (Sup.)' (clave base: interfaz.infobar.superior.nombre_ruta.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.nombre_ruta.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.superior.indice_total.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Índice/Total Imágenes' (clave base: interfaz.infobar.superior.indice_total.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.indice_total.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.superior.dimensiones.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Dimensiones Originales' (clave base: interfaz.infobar.superior.dimensiones.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.dimensiones.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.superior.tamano_archivo.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Tamaño de Archivo' (clave base: interfaz.infobar.superior.tamano_archivo.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.tamano_archivo.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.superior.fecha_archivo.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Fecha de Archivo' (clave base: interfaz.infobar.superior.fecha_archivo.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.fecha_archivo.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.superior.formato_imagen.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Formato de Imagen' (clave base: interfaz.infobar.superior.formato_imagen.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.formato_imagen.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.superior.modo_zoom.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Modo de Zoom' (clave base: interfaz.infobar.superior.modo_zoom.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.modo_zoom.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.superior.zoom_real_pct.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar % Zoom Real' (clave base: interfaz.infobar.superior.zoom_real_pct.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.zoom_real_pct.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Barra de Estado/Control Inferior' (clave base: interfaz.infobar.inferior.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.nombre_ruta.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Nombre/Ruta Archivo (Inf.)' (clave base: interfaz.infobar.inferior.nombre_ruta.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.nombre_ruta.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.icono_zm.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Zoom Manual (Inf.)' (clave base: interfaz.infobar.inferior.icono_zm.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.icono_zm.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.icono_prop.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Proporciones (Inf.)' (clave base: interfaz.infobar.inferior.icono_prop.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.icono_prop.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.icono_subc.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Subcarpetas (Inf.)' (clave base: interfaz.infobar.inferior.icono_subc.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.icono_subc.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.ctrl_zoom_pct.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Control % Zoom (Inf.)' (clave base: interfaz.infobar.inferior.ctrl_zoom_pct.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.ctrl_zoom_pct.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.ctrl_modo_zoom.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Control Modo Zoom (Inf.)' (clave base: interfaz.infobar.inferior.ctrl_modo_zoom.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.ctrl_modo_zoom.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.mensajes_app.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleUIElementVisibilityAction CSTR] 'Mostrar Área de Mensajes (Inf.)' (clave base: interfaz.infobar.inferior.mensajes_app.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.mensajes_app.visible.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.infobar.inferior.nombre_ruta.formato' no encontrada. Usando default 'solo_nombre' y añadiendo a config en memoria.
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 66
     B.6. [EDT] ActionFactory creada. ActionMap base obtenido (Tamaño: 66).
 [ViewUIConfig] Configuración UI creada con colores de tema.
@@ -124,6 +155,10 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
       -> MenuAction final añadida a this.actionMap. Tamaño actual del actionMap: 66
     B.7.ter. [EDT] ActionMap FINAL (con MenuAction) y ViewUIConfig correspondiente inyectados en Controller y View.
     B.8. [EDT] Lista de ContextSensitiveActions inyectada en ListCoordinator.
+    B.9. [EDT] Creando ConfigApplicationManager...
+[ConfigApplicationManager] Creando instancia...
+[ConfigApplicationManager] Instancia creada con todas las dependencias.
+    B.9. [EDT] ConfigApplicationManager creado.
 [InfoBarManager] Instancia creada. Configurando componentes...
 [InfoBarManager] Configuración de componentes finalizada.
     B.9. [EDT] InfoBarManager creado.
@@ -139,44 +174,73 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 [ToggleUIElementVisibilityAction CSTR] 'Barra de Navegación' (clave base: interfaz.herramientas.navegacion, UI ID: navegacion) inicializada. Leyendo de 'interfaz.herramientas.navegacion.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.navegacion.nav_primera.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Primera Imagen' (botón base: interfaz.boton.navegacion.nav_primera) inicializada. Leyendo de 'interfaz.boton.navegacion.nav_primera.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.navegacion.nav_anterior.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Imagen Anterior' (botón base: interfaz.boton.navegacion.nav_anterior) inicializada. Leyendo de 'interfaz.boton.navegacion.nav_anterior.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.navegacion.nav_siguiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Imagen Siguiente' (botón base: interfaz.boton.navegacion.nav_siguiente) inicializada. Leyendo de 'interfaz.boton.navegacion.nav_siguiente.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.navegacion.nav_ultima.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Última Imagen' (botón base: interfaz.boton.navegacion.nav_ultima) inicializada. Leyendo de 'interfaz.boton.navegacion.nav_ultima.visible'. SELECTED_KEY: true
 [ToggleUIElementVisibilityAction CSTR] 'Barra de Edición' (clave base: interfaz.herramientas.edicion, UI ID: edicion) inicializada. Leyendo de 'interfaz.herramientas.edicion.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.edicion.imagen_rotar_izq.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Rotar Izquierda' (botón base: interfaz.boton.edicion.imagen_rotar_izq) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_rotar_izq.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.edicion.imagen_rotar_der.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Rotar Derecha' (botón base: interfaz.boton.edicion.imagen_rotar_der) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_rotar_der.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.edicion.imagen_voltear_h.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Voltear Horizontal' (botón base: interfaz.boton.edicion.imagen_voltear_h) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_voltear_h.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.edicion.imagen_voltear_v.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Voltear Vertical' (botón base: interfaz.boton.edicion.imagen_voltear_v) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_voltear_v.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.edicion.imagen_recortar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Recortar' (botón base: interfaz.boton.edicion.imagen_recortar) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_recortar.visible'. SELECTED_KEY: true
 [ToggleUIElementVisibilityAction CSTR] 'Barra de Zoom' (clave base: interfaz.herramientas.zoom, UI ID: zoom) inicializada. Leyendo de 'interfaz.herramientas.zoom.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ajustar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Escalar para Ajustar' (botón base: interfaz.boton.zoom.zoom_tipo_ajustar) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_ajustar.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_auto.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Zoom Automático' (botón base: interfaz.boton.zoom.zoom_tipo_auto) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_auto.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ancho.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Ajustar al Ancho' (botón base: interfaz.boton.zoom.zoom_tipo_ancho) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_ancho.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_alto.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Ajustar al Alto' (botón base: interfaz.boton.zoom.zoom_tipo_alto) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_alto.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_fijo.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Zoom Actual Fijo' (botón base: interfaz.boton.zoom.zoom_tipo_fijo) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_fijo.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_especificado.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Zoom Especificado' (botón base: interfaz.boton.zoom.zoom_tipo_especificado) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_especificado.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.zoom.zoom_manual_toggle.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Activar/Desactivar Zoom Manual' (botón base: interfaz.boton.zoom.zoom_manual_toggle) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_manual_toggle.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.zoom.zoom_reset.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Resetear Zoom' (botón base: interfaz.boton.zoom.zoom_reset) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_reset.visible'. SELECTED_KEY: true
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Vistas' (clave base: interfaz.herramientas.vistas, UI ID: vistas) inicializada. Leyendo de 'interfaz.herramientas.vistas.visible'. SELECTED_KEY: false
+[ToggleUIElementVisibilityAction CSTR] 'Barra de Vistas' (clave base: interfaz.herramientas.vistas, UI ID: vistas) inicializada. Leyendo de 'interfaz.herramientas.vistas.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Panel Galería' (botón base: interfaz.boton.vistas.todo_funcionalidad_pendiente) inicializada. Leyendo de 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible'. SELECTED_KEY: true
 [ToggleToolbarButtonVisibilityAction CSTR] '  Vista Grid' (botón base: interfaz.boton.vistas.todo_funcionalidad_pendiente) inicializada. Leyendo de 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible'. SELECTED_KEY: true
 [ToggleToolbarButtonVisibilityAction CSTR] '  Pantalla Completa' (botón base: interfaz.boton.vistas.todo_funcionalidad_pendiente) inicializada. Leyendo de 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Vista Lista' (botón base: interfaz.boton.vistas.vista_mostrar_dialogo_lista) inicializada. Leyendo de 'interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible'. SELECTED_KEY: true
 [ToggleToolbarButtonVisibilityAction CSTR] '  Vista Carrusel' (botón base: interfaz.boton.vistas.todo_funcionalidad_pendiente) inicializada. Leyendo de 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible'. SELECTED_KEY: true
 [ToggleUIElementVisibilityAction CSTR] 'Barra de Proyecto' (clave base: interfaz.herramientas.proyecto, UI ID: proyecto) inicializada. Leyendo de 'interfaz.herramientas.proyecto.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.proyecto.proyecto_toggle_marca.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Marcar Imagen para Proyecto' (botón base: interfaz.boton.proyecto.proyecto_toggle_marca) inicializada. Leyendo de 'interfaz.boton.proyecto.proyecto_toggle_marca.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.proyecto.proyecto_gestionar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Mostrar/Ocultar Favoritos' (botón base: interfaz.boton.proyecto.proyecto_gestionar) inicializada. Leyendo de 'interfaz.boton.proyecto.proyecto_gestionar.visible'. SELECTED_KEY: true
 [ToggleUIElementVisibilityAction CSTR] 'Barra de Toggles' (clave base: interfaz.herramientas.toggle, UI ID: toggle) inicializada. Leyendo de 'interfaz.herramientas.toggle.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.toggle.subcarpetas.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Incluir/Excluir Subcarpetas' (botón base: interfaz.boton.toggle.subcarpetas) inicializada. Leyendo de 'interfaz.boton.toggle.subcarpetas.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.toggle.mantener_proporciones.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Mantener Proporciones' (botón base: interfaz.boton.toggle.mantener_proporciones) inicializada. Leyendo de 'interfaz.boton.toggle.mantener_proporciones.visible'. SELECTED_KEY: true
 [ToggleUIElementVisibilityAction CSTR] 'Barra de Utilidades' (clave base: interfaz.herramientas.utils, UI ID: utils) inicializada. Leyendo de 'interfaz.herramientas.utils.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.utils.imagen_eliminar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Eliminar Imagen' (botón base: interfaz.boton.utils.imagen_eliminar) inicializada. Leyendo de 'interfaz.boton.utils.imagen_eliminar.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.utils.especial_refrescar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Refrescar' (botón base: interfaz.boton.utils.especial_refrescar) inicializada. Leyendo de 'interfaz.boton.utils.especial_refrescar.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.utils.imagen_localizar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Abrir Ubicación' (botón base: interfaz.boton.utils.imagen_localizar) inicializada. Leyendo de 'interfaz.boton.utils.imagen_localizar.visible'. SELECTED_KEY: true
 [ToggleUIElementVisibilityAction CSTR] 'Barra de Apoyo' (clave base: interfaz.herramientas.apoyo, UI ID: apoyo) inicializada. Leyendo de 'interfaz.herramientas.apoyo.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.apoyo.archivo_abrir.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Abrir Carpeta' (botón base: interfaz.boton.apoyo.archivo_abrir) inicializada. Leyendo de 'interfaz.boton.apoyo.archivo_abrir.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.apoyo.especial_menu.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Menú Principal' (botón base: interfaz.boton.apoyo.especial_menu) inicializada. Leyendo de 'interfaz.boton.apoyo.especial_menu.visible'. SELECTED_KEY: true
+WARN: Clave 'interfaz.boton.apoyo.especial_botones_ocultos.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 [ToggleToolbarButtonVisibilityAction CSTR] '  Mostrar Botones Ocultos' (botón base: interfaz.boton.apoyo.especial_botones_ocultos) inicializada. Leyendo de 'interfaz.boton.apoyo.especial_botones_ocultos.visible'. SELECTED_KEY: true
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 158
@@ -241,6 +305,21 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
 --- [ToolbarBuilder] Barra 'Apoyo' construida con 3 componentes.
 [ToolbarManager] Inicialización de barras completada.
     B.11. [EDT] Menú y Barras de Herramientas Modulares construidos.
+    B.12. [EDT] Aplicando configuración global a través de ConfigApplicationManager...
+--- [ConfigApplicationManager] Aplicando configuración globalmente... ---
+  [ConfigAppManager] Aplicando configuración al Modelo...
+    -> Configuración del Modelo aplicada.
+--- [ConfigApplicationManager] Aplicación de configuración global completada. ---
+    B.12.1. [EDT] Sincronizando estado visual inicial de los botones de Zoom...
+[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: Ajustar a Pantalla
+  -> Config 'comportamiento.zoom.ultimo_modo_seleccionado' actualizada a: FIT_TO_SCREEN
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_especificado
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_alto
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_fijo
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_ajustar
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_auto
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_ancho
+[VisorController] Sincronización de botones/radios de zoom finalizada.
     [EDT Internal] Asignando modelo de miniaturas a la Vista...
 [VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
     [EDT Internal] Fin assignModeloMiniaturasToViewInternal.
@@ -248,248 +327,7 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
   [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
       -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-  [Apply Config View Internal] Aplicando configuración a la Vista...
-    -> Aplicando config a Botones (Vista)...
-    -> Config Botones (Vista) OK.
-    -> Aplicando config a Menús (Vista)...
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_utilidades.refrescar, Texto: '  Refrescar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Refrescar'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_utilidades.refrescar'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_utilidades.refrescar'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.ndice_total_imagenes, Texto: 'Mostrar Índice/Total Imágenes', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.indice_total'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.ndice_total_imagenes'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_zoom.ajustar_al_alto, Texto: '  Ajustar al Alto', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Ajustar al Alto'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.ajustar_al_alto'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.ajustar_al_alto'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_vistas.pantalla_completa, Texto: '  Pantalla Completa', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Pantalla Completa'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.pantalla_completa'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.pantalla_completa'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.barra_de_botones, Texto: 'Barra de Botones', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.tool_bar'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.barra_de_botones'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.orden_visual.extension, Texto: 'Extension', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.criterio.extension'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.extension'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.extension'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_utilidades.eliminar_imagen, Texto: '  Eliminar Imagen', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Eliminar Imagen'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_utilidades.eliminar_imagen'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_utilidades.eliminar_imagen'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.barra_de_miniaturas, Texto: 'Barra de Miniaturas', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.thumbnails'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.barra_de_miniaturas'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_zoom.resetear_zoom, Texto: '  Resetear Zoom', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Resetear Zoom'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.resetear_zoom'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.resetear_zoom'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_edicion.recortar, Texto: '  Recortar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Recortar'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.recortar'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.recortar'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.fondo_a_cuadros, Texto: 'Fondo a Cuadros', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.checkered_bg'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.fondo_a_cuadros'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.activar_zoom_manual, Texto: 'Activar Zoom Manual', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.manual.toggle'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.activar_zoom_manual'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_actual_fijo, Texto: '  Zoom Actual Fijo', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Zoom Actual Fijo'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_actual_fijo'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_actual_fijo'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_automatico, Texto: '  Zoom Automático', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Zoom Automático'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_automatico'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_automatico'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.mantener_zoom_actual, Texto: 'Mantener Zoom Actual', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.fijo'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.mantener_zoom_actual'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.control_porc_zoom, Texto: 'Mostrar Control % Zoom (Inf.)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.ctrl_zoom_pct'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.control_porc_zoom'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.area_de_mensajes, Texto: 'Mostrar Área de Mensajes (Inf.)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.mensajes_app'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.area_de_mensajes'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_navegacion.ltima_imagen, Texto: '  Última Imagen', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Última Imagen'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_navegacion.ltima_imagen'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_navegacion.ltima_imagen'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_green, Texto: 'Tema Green', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.green'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_green'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_zoom_manual, Texto: 'Mostrar Icono Zoom Manual (Inf.)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.icono_zm'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_zoom_manual'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.control_modo_zoom, Texto: 'Mostrar Control Modo Zoom (Inf.)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.ctrl_modo_zoom'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.control_modo_zoom'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.comportamiento_general.mostrar_imagen_de_bienvenida, Texto: 'Funcionalidad Pendiente', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'Funcionalidad Pendiente'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.comportamiento_general.mostrar_imagen_de_bienvenida'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.tamao_de_archivo, Texto: 'Mostrar Tamaño de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.tamano_archivo'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.tamao_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_blue, Texto: 'Tema Blue', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.blue'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_blue'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_grid, Texto: '  Vista Grid', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Vista Grid'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_grid'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_grid'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas, Texto: 'Mostrar Imágenes de Subcarpetas', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.config.carga.con_subcarpetas'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.porc_zoom_real, Texto: 'Mostrar % Zoom Real', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.zoom_real_pct'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.porc_zoom_real'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_carrusel, Texto: '  Vista Carrusel', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Vista Carrusel'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_carrusel'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_carrusel'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.ajustar_a_pantalla, Texto: 'Ajustar a Pantalla', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.ajustar'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.ajustar_a_pantalla'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_especificado, Texto: '  Zoom Especificado', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Zoom Especificado'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_especificado'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.zoom_especificado'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.comportamiento_general.mostrar_flechas_de_navegacion_en_imagen, Texto: 'Funcionalidad Pendiente', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'Funcionalidad Pendiente'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.comportamiento_general.mostrar_flechas_de_navegacion_en_imagen'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_navegacion.primera_imagen, Texto: '  Primera Imagen', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Primera Imagen'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_navegacion.primera_imagen'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_navegacion.primera_imagen'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.formato.ruta_completa_y_nombre, Texto: 'Ruta Completa y Nombre', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.formato.inferior.nombre_ruta.ruta_completa'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.formato.ruta_completa_y_nombre'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_dark, Texto: 'Tema Dark', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.dark'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_dark'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.modo_de_zoom, Texto: 'Mostrar Modo de Zoom', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.modo_zoom'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.modo_de_zoom'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_proyecto.mostrar_ocultar_favoritos, Texto: '  Mostrar/Ocultar Favoritos', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Mostrar/Ocultar Favoritos'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_proyecto.mostrar_ocultar_favoritos'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_proyecto.mostrar_ocultar_favoritos'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato.ruta_completa_y_nombre, Texto: 'Ruta Completa y Nombre', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.formato.superior.nombre_ruta.ruta_completa'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato.ruta_completa_y_nombre'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.orden_visual.fecha_de_creacion, Texto: 'Fecha de Creacion', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.criterio.fecha'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.fecha_de_creacion'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.fecha_de_creacion'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_orange, Texto: 'Tema Orange', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.orange'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_orange'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_toggles.incluir_excluir_subcarpetas, Texto: '  Incluir/Excluir Subcarpetas', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Incluir/Excluir Subcarpetas'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_toggles.incluir_excluir_subcarpetas'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_toggles.incluir_excluir_subcarpetas'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.ajustar_a_ancho, Texto: 'Ajustar a Ancho', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.ancho'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.ajustar_a_ancho'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_toggles.mantener_proporciones, Texto: '  Mantener Proporciones', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Mantener Proporciones'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_toggles.mantener_proporciones'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_toggles.mantener_proporciones'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.ajustar_a_alto, Texto: 'Ajustar a Alto', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.alto'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.ajustar_a_alto'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.mostrar_panel_de_control, Texto: 'Mostrar Barra de Estado/Control Inferior', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.visible'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.mostrar_panel_de_control'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_apoyo.abrir_carpeta, Texto: '  Abrir Carpeta', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Abrir Carpeta'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_apoyo.abrir_carpeta'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_apoyo.abrir_carpeta'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_edicion.voltear_horizontal, Texto: '  Voltear Horizontal', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Voltear Horizontal'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.voltear_horizontal'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.voltear_horizontal'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_zoom.escalar_para_ajustar, Texto: '  Escalar para Ajustar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Escalar para Ajustar'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.escalar_para_ajustar'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.escalar_para_ajustar'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_vistas.panel_galeria, Texto: '  Panel Galería', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Panel Galería'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.panel_galeria'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.panel_galeria'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.tamao_original_100porc, Texto: 'Tamaño Original (100%)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.auto'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.tamao_original_100porc'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.nombre_ruta_archivo, Texto: 'Mostrar Nombre/Ruta Archivo (Sup.)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.nombre_ruta'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.nombre_ruta_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.mantener_ventana_siempre_encima, Texto: 'Mantener Ventana Siempre Encima', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.always_on_top'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.mantener_ventana_siempre_encima'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual, Texto: 'Mostrar Solo Carpeta Actual', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.config.carga.solo_carpeta'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_zoom.ajustar_al_ancho, Texto: '  Ajustar al Ancho', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Ajustar al Ancho'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.ajustar_al_ancho'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.ajustar_al_ancho'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_subcarpetas, Texto: 'Mostrar Icono Subcarpetas (Inf.)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.icono_subc'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_subcarpetas'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.mantener_proporciones, Texto: 'Mantener Proporciones', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.toggle.mantener_proporciones'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.mantener_proporciones'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_navegacion.imagen_siguiente, Texto: '  Imagen Siguiente', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Imagen Siguiente'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_navegacion.imagen_siguiente'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_navegacion.imagen_siguiente'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.orden_visual.sin_ordenar, Texto: 'Sin Ordenar', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.direccion.ninguno'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.sin_ordenar'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.sin_ordenar'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.mostrar_nombres_en_miniaturas, Texto: 'Mostrar Nombres en Miniaturas', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle_miniature_text'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.mostrar_nombres_en_miniaturas'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.proyecto.marcar_para_proyecto, Texto: 'Marcar/Desmarcar para Proyecto', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.proyecto.toggle_marca'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.proyecto.marcar_para_proyecto'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.lista_de_archivos, Texto: 'Lista de Archivos', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.file_list'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.lista_de_archivos'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.formato.solo_nombre_de_archivo, Texto: 'Solo Nombre de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.formato.inferior.nombre_ruta.solo_nombre'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.formato.solo_nombre_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_edicion.rotar_izquierda, Texto: '  Rotar Izquierda', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Rotar Izquierda'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.rotar_izquierda'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.rotar_izquierda'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.orden_visual.tamao_de_archivo, Texto: 'Tamaño de Archivo', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.criterio.tamano'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.tamao_de_archivo'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.tamao_de_archivo'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_zoom.activar_desactivar_zoom_manual, Texto: '  Activar/Desactivar Zoom Manual', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Activar/Desactivar Zoom Manual'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.activar_desactivar_zoom_manual'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_zoom.activar_desactivar_zoom_manual'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.zoom.ajuste_visual.zoom_personalizado_porc, Texto: 'Zoom Personalizado %', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.zoom.tipo.especificado'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.zoom.ajuste_visual.zoom_personalizado_porc'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato.solo_nombre_de_archivo, Texto: 'Solo Nombre de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.formato.superior.nombre_ruta.solo_nombre'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato.solo_nombre_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_apoyo.menu_principal, Texto: '  Menú Principal', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Menú Principal'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_apoyo.menu_principal'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_apoyo.menu_principal'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.mostrar_panel_de_info, Texto: 'Mostrar Barra de Información Superior', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.visible'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.mostrar_panel_de_info'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_edicion.voltear_vertical, Texto: '  Voltear Vertical', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Voltear Vertical'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.voltear_vertical'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.voltear_vertical'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.tema.tema_clear, Texto: 'Tema Clear', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.tema.clear'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.tema.tema_clear'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_proyecto.marcar_imagen_para_proyecto, Texto: '  Marcar Imagen para Proyecto', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Marcar Imagen para Proyecto'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_proyecto.marcar_imagen_para_proyecto'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_proyecto.marcar_imagen_para_proyecto'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.comportamiento_general.abrir_ultima_imagen_vista_al_iniciar, Texto: 'Funcionalidad Pendiente', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'Funcionalidad Pendiente'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.comportamiento_general.abrir_ultima_imagen_vista_al_iniciar'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: null
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.comportamiento_general.navegacion_circular_wrap_around, Texto: 'Alternar Navegación Circular', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.toggle.wrap_around'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.comportamiento_general.navegacion_circular_wrap_around'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_utilidades.abrir_ubicacion, Texto: '  Abrir Ubicación', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Abrir Ubicación'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_utilidades.abrir_ubicacion'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_utilidades.abrir_ubicacion'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.orden_visual.ascendente, Texto: 'Ascendente', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.direccion.asc'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.ascendente'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.ascendente'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.orden_visual.descendente, Texto: 'Descendente', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.direccion.desc'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.descendente'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.descendente'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.dimensiones_originales, Texto: 'Mostrar Dimensiones Originales', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.dimensiones'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.dimensiones_originales'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.carga_de_imagenes.orden_visual.nombre_por_defecto, Texto: 'Nombre por Defecto', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: 'cmd.orden.criterio.nombre'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.nombre_por_defecto'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.carga_de_imagenes.orden_visual.nombre_por_defecto'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.fecha_de_archivo, Texto: 'Mostrar Fecha de Archivo', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.fecha_archivo'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.fecha_de_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.vista.barra_de_menu, Texto: 'Barra de Menú', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.vista.toggle.menu_bar'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.vista.barra_de_menu'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_apoyo.mostrar_botones_ocultos, Texto: '  Mostrar Botones Ocultos', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Mostrar Botones Ocultos'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_apoyo.mostrar_botones_ocultos'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_apoyo.mostrar_botones_ocultos'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_proporciones, Texto: 'Mostrar Icono Proporciones (Inf.)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.icono_prop'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.icono_proporciones'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.estado_y_control.nombre_ruta_archivo, Texto: 'Mostrar Nombre/Ruta Archivo (Inf.)', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.inferior.nombre_ruta'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.estado_y_control.nombre_ruta_archivo'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_edicion.rotar_derecha, Texto: '  Rotar Derecha', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Rotar Derecha'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.rotar_derecha'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_edicion.rotar_derecha'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_lista, Texto: '  Vista Lista', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Vista Lista'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_lista'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_vistas.vista_lista'. SET_SELECTED a: false
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato_de_imagen, Texto: 'Mostrar Formato de Imagen', Tiene Action de ActionMap: true, ActionCommand del JMenuItem: 'cmd.infobar.config.toggle.superior.formato_imagen'
-    -> Menú Seleccionable CON Action de ActionMap: 'interfaz.menu.configuracion.paneles_de_datos.informacion_de_imagen.formato_de_imagen'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: true
-  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: interfaz.menu.configuracion.herramientas.barra_de_navegacion.imagen_anterior, Texto: '  Imagen Anterior', Tiene Action de ActionMap: false, ActionCommand del JMenuItem: '  Imagen Anterior'
-    -> Menú Seleccionable SIN Action de ActionMap: 'interfaz.menu.configuracion.herramientas.barra_de_navegacion.imagen_anterior'. Configurando su estado 'selected'...
-    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: 'interfaz.menu.configuracion.herramientas.barra_de_navegacion.imagen_anterior'. SET_SELECTED a: false
-    -> Config Menús (Vista) OK.
-    -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.
-  [Apply Config View Internal] Finalizado.
-[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: Ajustar a Pantalla
-  -> Config 'comportamiento.zoom.ultimo_modo_seleccionado' actualizada a: FIT_TO_SCREEN
-[VisorController] Sincronización de botones/radios de zoom finalizada.
-  [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
-    -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    -> Cargando lista para carpeta inicial (desde MODELO): D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    -> Clave de imagen inicial a intentar seleccionar: A-gigante de hierro.jpg
-
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: A-gigante de hierro.jpg
-  -> Modo búsqueda: Subcarpetas (depth=MAX)
-    -> [cargarListaImagenes] Iniciando búsqueda (con subcarpetas) desde carpeta raíz del MODELO: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-  -> Limpiando caché de ThumbnailService antes de nueva carga...
-[ThumbnailService] Caché de miniaturas limpiado.
-  -> [cargarListaImagenes] Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources (Relativizar a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources)
-[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  -> [cargarListaImagenes] Diálogo y Worker creados y asociados.
-  -> [cargarListaImagenes] Añadiendo PropertyChangeListener al worker...
-  -> [cargarListaImagenes] Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: A-gigante de hierro.jpg
-  [Load Initial State Internal] Finalizado.
 [Controller Internal] Configurando Listeners de Vista...
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
   -> Listener de Selección (ListSelectionListener) añadido a listaNombres.
   -> Listener de Rueda (MouseWheelListener) para NAVEGACIÓN ÍTEM A ÍTEM añadido a listaNombres.
   -> Listener de Selección (ListSelectionListener) añadido a listaMiniaturas.
@@ -504,52 +342,101 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
   -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
     -> [EDT AppInitializer] Configurando ComponentListener para miniaturas dinámicas...
     -> [EDT AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.
-    [EDT Internal] Sincronizando UI Final...
-      -> Sincronizando Fondo a Cuadros a estado: false
-    [EDT Internal] Sincronización UI Final completada.
     [Internal] Configurando Shutdown Hook...
     [Internal] Shutdown Hook registrado en la JVM.
+  [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
+    -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    -> Cargando lista para carpeta inicial (desde MODELO): D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    -> Clave de imagen inicial a intentar seleccionar: 
+
+-->>> INICIO cargarListaImagenes(String) | Mantener Clave: 
+  -> Modo búsqueda: Subcarpetas (depth=MAX)
+    -> [cargarListaImagenes] Iniciando búsqueda (con subcarpetas) desde carpeta raíz del MODELO: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  -> Limpiando caché de ThumbnailService antes de nueva carga...
+[ThumbnailService] Caché de miniaturas limpiado.
+  -> [cargarListaImagenes] Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources (Relativizar a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources)
+[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
+  -> [cargarListaImagenes] Diálogo y Worker creados y asociados.
+  -> [cargarListaImagenes] Añadiendo PropertyChangeListener al worker...
+  -> [cargarListaImagenes] Ejecutando worker y programando muestra de diálogo...
+-->>> FIN cargarListaImagenes(String) | Clave mantenida: 
+  [Load Initial State Internal] Finalizado.
   [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.proyecto.proyecto_toggle_marca
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.proyecto.proyecto_toggle_marca
   [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
   [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.
 --- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---
 [AppInitializer] Ejecutando sincronización final de checkboxes de botones...
 [VisorController] Sincronizando estado visual de Checkboxes de visibilidad de botones...
-  -> CORRIGIENDO estado para 'Refrescar'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Ajustar al Alto'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Pantalla Completa'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Eliminar Imagen'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Resetear Zoom'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Recortar'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Zoom Actual Fijo'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Zoom Automático'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Última Imagen'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Vista Grid'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Vista Carrusel'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Zoom Especificado'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Primera Imagen'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Mostrar/Ocultar Favoritos'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Incluir/Excluir Subcarpetas'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Mantener Proporciones'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Abrir Carpeta'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Voltear Horizontal'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Escalar para Ajustar'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Panel Galería'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Ajustar al Ancho'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Imagen Siguiente'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Rotar Izquierda'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Activar/Desactivar Zoom Manual'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Menú Principal'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Voltear Vertical'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Marcar Imagen para Proyecto'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Abrir Ubicación'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Mostrar Botones Ocultos'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Rotar Derecha'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Vista Lista'. Debería ser: true (Estaba: false)
-  -> CORRIGIENDO estado para 'Imagen Anterior'. Debería ser: true (Estaba: false)
 [VisorController] Sincronización de checkboxes de visibilidad finalizada.
   [Worker BG] Files.walk terminado. Archivos encontrados: 176
   [VisorView Constructor - EDT] Divisor del JSplitPane principal establecido a 25.0%.
+  [ConfigAppManager] Aplicando configuración a la Vista (en EDT)...
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_especificado.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_anterior.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_anterior.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_alto.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.especial_refrescar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.especial_refrescar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_rotar_der.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.imagen_localizar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.imagen_localizar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_voltear_v.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.vista_mostrar_dialogo_lista.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.vista_mostrar_dialogo_lista.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_rotar_izq.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ajustar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ancho.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.proyecto_toggle_marca.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_primera.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_primera.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_auto.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_reset.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.proyecto_gestionar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.toggle.subcarpetas.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_voltear_h.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.especial_botones_ocultos.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.especial_botones_ocultos.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.imagen_eliminar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.imagen_eliminar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.especial_menu.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.especial_menu.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_manual_toggle.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.archivo_abrir.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.archivo_abrir.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_recortar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.todo_funcionalidad_pendiente.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.toggle.mantener_proporciones.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_siguiente.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_siguiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_fijo.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_ultima.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_ultima.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+    -> Sincronizando estado visual inicial de botones toggle...
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_manual_toggle
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.toggle.mantener_proporciones
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.toggle.subcarpetas
+    -> Sincronización de botones toggle completada.
+    -> Configuración básica de Vista (botones/menús) aplicada.
+  [ConfigAppManager] Sincronizando UI final (en EDT)...
+    -> Sincronización de UI final completada.
+WARN: Clave 'interfaz.infobar.superior.dimensiones.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.superior.tamano_archivo.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.superior.fecha_archivo.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.superior.formato_imagen.visible' no encontrada. Usando default 'false' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.superior.modo_zoom.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.superior.zoom_real_pct.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.inferior.mensajes_app.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.inferior.icono_zm.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.inferior.icono_prop.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.inferior.icono_subc.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.inferior.ctrl_zoom_pct.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.infobar.inferior.ctrl_modo_zoom.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
     [EDT Carga Lista] Mostrando diálogo de progreso...
 [Worker EDT] Método done() alcanzado.
   [EDT Worker Listener] Tarea de búsqueda (BuscadorArchivosWorker) ha finalizado (DONE). Procesando resultado...
@@ -562,21 +449,18 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
 [VisorView setListaImagenesModel] Modelo asignado a listaNombres (y potencialmente listaMiniaturas). Tamaño: 176
     -> Flag estaCargandoLista puesto a FALSE.
       -> [Precalentamiento] Añadidas 30 rutas iniciales para precalentar.
-      -> [Precalentamiento] Intentando precalentar alrededor de 'A-gigante de hierro.jpg' (índice 0), rango en modelo principal [0..8]
-    -> [VisorController] Solicitando precalentamiento DIRIGIDO para un total de 39 miniaturas.
-[Controller] Iniciando pre-calentamiento de caché para 39 miniaturas...
-[Controller] 39 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-      -> Índice final a seleccionar después de carga: 0 (intentando mantener: 'A-gigante de hierro.jpg')
+    -> [VisorController] Solicitando precalentamiento DIRIGIDO para un total de 30 miniaturas.
+[Controller] Iniciando pre-calentamiento de caché para 30 miniaturas...
+[Controller] 30 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+      -> Índice final a seleccionar después de carga: 0 (intentando mantener: '')
     -> Aplicando selección inicial programática al índice: 0
       -> Flag seleccionInicialEnCurso puesto a TRUE.
   [EDT Worker Listener] Procesamiento del resultado finalizado.
+      [WindowResized Timer] Ejecutando actualización de UI por redimensionamiento...
   -> Solicitando repintado inicial de listaMiniaturas.
-      [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
-      [WindowResized Timer - AppInitializer] Modelo no listo o sin selección oficial, no se actualizan miniaturas.
     -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. (Índice que se intentó seleccionar: 0)
     [Asegurar Visibilidad] Índice -1, no se hace nada.
-      [WindowResized Timer - AppInitializer] Ejecutando recálculo de miniaturas...
-      [WindowResized Timer - AppInitializer] Modelo no listo o sin selección oficial, no se actualizan miniaturas.
+      [WindowResized Timer] Ejecutando actualización de UI por redimensionamiento...
       -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a ListCoordinator para procesar índice inicial: 0
 >>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
     [Coordinator Flag] sincronizandoUI -> true
@@ -586,8 +470,8 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
 --> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice informativo: 0)
     [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
 --> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: A-gigante de hierro.jpg
-      [BG Img Load - pool-1-thread-3] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
-      [BG Img Load] Lectura de imagen desde disco correcta para: A-gigante de hierro.jpg
+      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.proyecto.proyecto_toggle_marca
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
         -> Índice actual en JList 'Nombres': 0
@@ -600,10 +484,7 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
 --- FIN actualizarModeloYVistaMiniaturas ---
         -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
 >>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado de carga para clave: A-gigante de hierro.jpg
-        -> [EDT Img Update] Carga desde disco fue EXITOSA. Actualizando modelo y UI...
-        -> [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
-        -> [EDT Img Update] FIN PROCESO ÉXITO (Vista refrescada, marca actualizada).
+      [BG Img Load] Lectura de imagen desde disco correcta para: A-gigante de hierro.jpg
           -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
     [Coordinator Flag] sincronizandoUI -> true
    -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
@@ -620,6 +501,11 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
    -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
    -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
     [Coordinator Flag] sincronizandoUI -> false
+      [EDT Img Update - AWT-EventQueue-0] Procesando resultado de carga para clave: A-gigante de hierro.jpg
+        -> [EDT Img Update] Carga desde disco fue EXITOSA. Actualizando modelo y UI...
+        -> [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
+  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.proyecto.proyecto_toggle_marca
+        -> [EDT Img Update] FIN PROCESO ÉXITO (Vista refrescada, marca actualizada).
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
 --- Hook de Cierre Ejecutándose ---
@@ -628,7 +514,7 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
     -> Últimos Bounds Normales guardados en config: java.awt.Rectangle[x=0,y=0,width=1550,height=500]
   -> Llamando a guardarConfiguracionActual() desde hook...
   [Guardar] Guardando estado final...
-!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1177096266
+!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1190035432
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
@@ -637,7 +523,118 @@ ActionFactory: Creando ToggleSubfoldersAction@147a9768
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 244
+Claves a guardar/actualizar: 205
+Añadiendo 110 claves nuevas:
+  Nuevo: interfaz.boton.apoyo.archivo_abrir.visible = true
+  Nuevo: interfaz.boton.apoyo.especial_botones_ocultos.visible = true
+  Nuevo: interfaz.boton.apoyo.especial_menu.visible = true
+  Nuevo: interfaz.boton.control.especial_refrescar.activado = true
+  Nuevo: interfaz.boton.control.especial_refrescar.visible = true
+  Nuevo: interfaz.boton.control.imagen_eliminar.activado = true
+  Nuevo: interfaz.boton.control.imagen_eliminar.visible = true
+  Nuevo: interfaz.boton.control.imagen_localizar.activado = true
+  Nuevo: interfaz.boton.control.imagen_localizar.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_recortar.activado = true
+  Nuevo: interfaz.boton.edicion.imagen_recortar.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_rotar_der.activado = true
+  Nuevo: interfaz.boton.edicion.imagen_rotar_der.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_rotar_izq.activado = true
+  Nuevo: interfaz.boton.edicion.imagen_rotar_izq.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_voltear_h.activado = true
+  Nuevo: interfaz.boton.edicion.imagen_voltear_h.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_voltear_v.activado = true
+  Nuevo: interfaz.boton.edicion.imagen_voltear_v.visible = true
+  Nuevo: interfaz.boton.especiales.archivo_abrir.activado = true
+  Nuevo: interfaz.boton.especiales.archivo_abrir.visible = true
+  Nuevo: interfaz.boton.especiales.especial_botones_ocultos.activado = true
+  Nuevo: interfaz.boton.especiales.especial_botones_ocultos.visible = true
+  Nuevo: interfaz.boton.especiales.especial_menu.activado = true
+  Nuevo: interfaz.boton.especiales.especial_menu.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_anterior.activado = true
+  Nuevo: interfaz.boton.movimiento.nav_anterior.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_primera.activado = true
+  Nuevo: interfaz.boton.movimiento.nav_primera.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_siguiente.activado = true
+  Nuevo: interfaz.boton.movimiento.nav_siguiente.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_ultima.activado = true
+  Nuevo: interfaz.boton.movimiento.nav_ultima.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_anterior.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_primera.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_siguiente.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_ultima.visible = true
+  Nuevo: interfaz.boton.proyecto.proyecto_gestionar.activado = true
+  Nuevo: interfaz.boton.proyecto.proyecto_gestionar.visible = true
+  Nuevo: interfaz.boton.proyecto.proyecto_toggle_marca.activado = true
+  Nuevo: interfaz.boton.proyecto.proyecto_toggle_marca.visible = true
+  Nuevo: interfaz.boton.toggle.mantener_proporciones.activado = true
+  Nuevo: interfaz.boton.toggle.mantener_proporciones.visible = true
+  Nuevo: interfaz.boton.toggle.subcarpetas.activado = true
+  Nuevo: interfaz.boton.toggle.subcarpetas.visible = true
+  Nuevo: interfaz.boton.utils.especial_refrescar.visible = true
+  Nuevo: interfaz.boton.utils.imagen_eliminar.visible = true
+  Nuevo: interfaz.boton.utils.imagen_localizar.visible = true
+  Nuevo: interfaz.boton.vista.todo_funcionalidad_pendiente.activado = true
+  Nuevo: interfaz.boton.vista.todo_funcionalidad_pendiente.visible = true
+  Nuevo: interfaz.boton.vista.vista_mostrar_dialogo_lista.activado = true
+  Nuevo: interfaz.boton.vista.vista_mostrar_dialogo_lista.visible = true
+  Nuevo: interfaz.boton.vistas.todo_funcionalidad_pendiente.visible = true
+  Nuevo: interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_manual_toggle.activado = true
+  Nuevo: interfaz.boton.zoom.zoom_manual_toggle.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_reset.activado = true
+  Nuevo: interfaz.boton.zoom.zoom_reset.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_ajustar.activado = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_ajustar.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_alto.activado = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_alto.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_ancho.activado = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_ancho.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_auto.activado = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_auto.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_especificado.activado = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_especificado.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_fijo.activado = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_fijo.visible = true
+  Nuevo: interfaz.infobar.inferior.ctrl_modo_zoom.visible = true
+  Nuevo: interfaz.infobar.inferior.ctrl_modo_zoom.visible.visible = true
+  Nuevo: interfaz.infobar.inferior.ctrl_zoom_pct.visible = true
+  Nuevo: interfaz.infobar.inferior.ctrl_zoom_pct.visible.visible = true
+  Nuevo: interfaz.infobar.inferior.icono_prop.visible = true
+  Nuevo: interfaz.infobar.inferior.icono_prop.visible.visible = true
+  Nuevo: interfaz.infobar.inferior.icono_subc.visible = true
+  Nuevo: interfaz.infobar.inferior.icono_subc.visible.visible = true
+  Nuevo: interfaz.infobar.inferior.icono_zm.visible = true
+  Nuevo: interfaz.infobar.inferior.icono_zm.visible.visible = true
+  Nuevo: interfaz.infobar.inferior.mensajes_app.visible = true
+  Nuevo: interfaz.infobar.inferior.mensajes_app.visible.visible = true
+  Nuevo: interfaz.infobar.inferior.nombre_ruta.formato = solo_nombre
+  Nuevo: interfaz.infobar.inferior.nombre_ruta.visible = true
+  Nuevo: interfaz.infobar.inferior.nombre_ruta.visible.visible = true
+  Nuevo: interfaz.infobar.inferior.visible.visible = true
+  Nuevo: interfaz.infobar.superior.dimensiones.visible = true
+  Nuevo: interfaz.infobar.superior.dimensiones.visible.visible = true
+  Nuevo: interfaz.infobar.superior.fecha_archivo.visible = true
+  Nuevo: interfaz.infobar.superior.fecha_archivo.visible.visible = true
+  Nuevo: interfaz.infobar.superior.formato_imagen.visible = false
+  Nuevo: interfaz.infobar.superior.formato_imagen.visible.visible = true
+  Nuevo: interfaz.infobar.superior.indice_total.visible.visible = true
+  Nuevo: interfaz.infobar.superior.modo_zoom.visible = true
+  Nuevo: interfaz.infobar.superior.modo_zoom.visible.visible = true
+  Nuevo: interfaz.infobar.superior.nombre_ruta.visible.visible = true
+  Nuevo: interfaz.infobar.superior.tamano_archivo.visible = true
+  Nuevo: interfaz.infobar.superior.tamano_archivo.visible.visible = true
+  Nuevo: interfaz.infobar.superior.visible.visible = true
+  Nuevo: interfaz.infobar.superior.zoom_real_pct.visible = true
+  Nuevo: interfaz.infobar.superior.zoom_real_pct.visible.visible = true
+  Nuevo: interfaz.menu.vista.barra_de_botones.seleccionado.seleccionado = true
+  Nuevo: interfaz.menu.vista.imagenes_en_miniatura.seleccionado = true
+  Nuevo: interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado = false
+  Nuevo: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado = true
+  Nuevo: interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado = true
+  Nuevo: interfaz.menu.zoom.mantener_proporciones.seleccionado = true
+  Nuevo: miniaturas.tamano.normal.alto = 40
+  Nuevo: miniaturas.tamano.normal.ancho = 40
+  Nuevo: miniaturas.tamano.seleccionada.alto = 60
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   [Hook - Executor] Apagando ExecutorService...

@@ -1239,6 +1239,25 @@ public class ConfigurationManager
         }
     }
     
+    /**
+     * Descarta la configuración actual en memoria y la reemplaza con una
+     * copia fresca del mapa de configuración por defecto (DEFAULT_CONFIG).
+     * Esto es útil para la funcionalidad de "Restaurar Defaults".
+     */
+    public void resetToDefaults() {
+        System.out.println("[ConfigurationManager] Reseteando configuración en memoria a los valores por defecto...");
+
+        // Paso 1: Crear el nuevo mapa en una variable local para que no haya ambigüedad.
+        Map<String, String> nuevoMapaDefaults = new HashMap<>(ConfigurationManager.DEFAULT_CONFIG);
+        
+        // Paso 2: Asignarlo al campo de la instancia.
+        this.config = nuevoMapaDefaults;
+        
+        // Paso 3: Imprimir el tamaño.
+        System.out.println("  -> Configuración en memoria reseteada. Total claves: " + this.config.size());
+    } // --- FIN del método resetToDefaults ---
+    
+    
 //    /**
 //     * Obtiene un valor de configuración como un double.
 //     * Si la clave no existe o el valor no puede ser convertido a double,

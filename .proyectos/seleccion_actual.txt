@@ -1,0 +1,3 @@
+# VisorImagenes - Selección de Proyecto (Rutas Absolutas)
+D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/A-gigante de hierro.jpg
+D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg

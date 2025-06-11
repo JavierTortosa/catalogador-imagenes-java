@@ -77,6 +77,7 @@ import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
+import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfoBarManager;
 import controlador.managers.ZoomManager;
 import controlador.worker.BuscadorArchivosWorker;
@@ -145,6 +146,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     
     
     private boolean zoomManualEstabaActivoAntesDeError = false;
+    
+    private ConfigApplicationManager configAppManager;
     
     /**
      * Constructor principal (AHORA SIMPLIFICADO).
@@ -319,226 +322,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
     } // --- FIN establecerCarpetaRaizDesdeConfigInternal ---
 
-    
-    /**
-     * Método helper para aplicar la configuración inicial SOLO a los componentes
-     * de la VISTA. Se llama DESPUÉS de crear la Vista, dentro del invokeLater
-     * del AppInitializer.
-     * Configura el estado inicial de visibilidad y habilitación de botones y menús,
-     * y sincroniza el estado visual de controles específicos (como los de Zoom).
-     */
-    /*package-private*/ void aplicarConfigAlaVistaInternal() {
-        
-    	// --- SECCIÓN 1: Log de Inicio y Validaciones ---
-        // 1.1. Indicar el inicio de la aplicación de configuración a la vista.
-        System.out.println("  [Apply Config View Internal] Aplicando configuración a la Vista...");
-        
-        // 1.2. Validar dependencias críticas: configuration y view deben existir.
-        //      Model también se incluye por si alguna lógica futura lo necesita aquí.
-        if (configuration == null || view == null || model == null) {
-             System.err.println("ERROR [aplicarConfigAlaVistaInternal]: Configuración, Vista o Modelo nulos. Abortando.");
-             return; // No se puede continuar sin estos componentes.
-        }
-
-        // --- SECCIÓN 2: Aplicar Configuración a Botones (Visibilidad y Estado Enabled) ---
-        // 2.1. Obtener el mapa de botones desde la vista.
-        Map<String, JButton> botones = view.getBotonesPorNombre();
-        
-        // 2.2. Comprobar si el mapa de botones existe.
-        if (botones != null) {
-            System.out.println("    -> Aplicando config a Botones (Vista)...");
-        
-            // 2.3. Iterar sobre cada entrada del mapa (clave larga -> botón).
-            botones.forEach((claveCompletaBoton, button) -> {
-            
-            	// 2.4. Bloque try-catch para manejar errores al leer config para un botón específico.
-                try {
-                
-                	// 2.4.1. Leer el estado 'activado' (enabled) desde la configuración.
-                    //        Usa la clave larga del botón + ".activado". Proporciona 'true' como valor por defecto.
-                    boolean activado = configuration.getBoolean(claveCompletaBoton + ".activado", true);
-                   
-                    // 2.4.2. Establecer el estado 'enabled' del botón.
-                    button.setEnabled(activado);
-
-                    // 2.4.3. Leer el estado 'visible' desde la configuración.
-                    //        Usa la clave larga del botón + ".visible". Proporciona 'true' como valor por defecto.
-                    boolean visible = configuration.getBoolean(claveCompletaBoton + ".visible", true);
-                    
-                    // 2.4.4. Establecer la visibilidad del botón.
-                    button.setVisible(visible);
-                    
-                    // 2.4.5. Log opcional para depuración.
-                    // System.out.println("      -> Botón '" + claveCompletaBoton + "': enabled=" + activado + ", visible=" + visible);
-
-                // 2.5. Capturar cualquier excepción durante la lectura/aplicación de config para este botón.
-                } catch (Exception e) {
-                    System.err.println("ERROR aplicando config a Botón (Vista) '" + claveCompletaBoton + "': " + e.getMessage());
-                    // Continuar con el siguiente botón si uno falla.
-                }
-            });
-            
-            // 2.6. Log indicando fin de configuración de botones.
-            System.out.println("    -> Config Botones (Vista) OK.");
-        // 2.7. Log de advertencia si el mapa de botones no se encontró en la vista.
-        } else {
-            System.err.println("WARN [aplicarConfigAlaVistaInternal]: Mapa de botones ('botonesPorNombre') nulo en la Vista.");
-        }
-        
-        
-     // --- SECCIÓN 3: Aplicar Configuración a Menús (Visibilidad, Enabled y Selección) ---
-        // 3.1. Obtener el mapa de items de menú desde la vista.
-        Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
-
-        // 3.2. Comprobar si el mapa de menús existe.
-        if (menuItems != null) {
-            System.out.println("    -> Aplicando config a Menús (Vista)...");
-
-            // 3.3. Iterar sobre cada entrada del mapa (claveCompletaMenu -> menuItem).
-            //      'claveCompletaMenu' es la clave jerárquica generada por MenuBarBuilder
-            //      (ej. "interfaz.menu.vista.barra_de_menu").
-            menuItems.forEach((claveCompletaMenu, menuItem) -> {
-                // 3.4. Bloque try-catch para manejar errores para un item específico.
-                try {
-                    // 3.4.1. Leer y aplicar el estado 'activado' (enabled) del JMenuItem.
-                    //        Default: true (la mayoría de los menús están habilitados por defecto).
-                    //        La clave en config.cfg sería, por ejemplo:
-                    //        "interfaz.menu.vista.barra_de_menu.activado = true"
-                    //boolean activado = configuration.getBoolean(claveCompletaMenu + ".activado", true);
-                    //menuItem.setEnabled(activado);
-
-                    // 3.4.2. Leer y aplicar el estado 'visible' del JMenuItem.
-                    //        Default: true (la mayoría de los menús son visibles por defecto).
-                    //        La clave en config.cfg sería, por ejemplo:
-                    //        "interfaz.menu.vista.barra_de_menu.visible = true"
-                    //boolean visible = configuration.getBoolean(claveCompletaMenu + ".visible", true);
-                    //menuItem.setVisible(visible);
-
-                    // 3.4.3. Determinar si el JMenuItem es un tipo seleccionable (Checkbox o RadioButton).
-                    boolean esSeleccionable = (menuItem instanceof JCheckBoxMenuItem || menuItem instanceof JRadioButtonMenuItem);
-
-                    // 3.4.4. Determinar si el JMenuItem tiene una Action directamente asignada DESDE NUESTRO actionMap.
-                    //          Esto es importante para no interferir con Actions que ya manejan su propio estado SELECTED_KEY.
-                    Action assignedAction = menuItem.getAction();
-                    boolean tieneActionDeNuestroActionMap = (assignedAction != null &&
-                                                            actionMap != null && // Asegurarse que actionMap del controller está inicializado
-                                                            actionMap.containsValue(assignedAction) &&
-                                                            !(assignedAction instanceof javax.swing.text.TextAction)); // Excluir actions de texto por defecto
-
-                    // Log para depuración de cada JMenuItem seleccionable
-                    if (esSeleccionable) {
-                        System.out.println("  [APLICAR_CONFIG_VISTA - Menú Seleccionable] Clave: " + claveCompletaMenu +
-                                           ", Texto: '" + menuItem.getText() +
-                                           "', Tiene Action de ActionMap: " + tieneActionDeNuestroActionMap +
-                                           ", ActionCommand del JMenuItem: '" + menuItem.getActionCommand() + "'");
-                    }
-
-
-                    // 3.4.5. Lógica para establecer el estado .selected INICIALMENTE:
-                    if (esSeleccionable && !tieneActionDeNuestroActionMap) {
-                        // CASO A: Es un JCheckBoxMenuItem o JRadioButtonMenuItem que NO tiene una Action de nuestro actionMap.
-                        //         Esto incluye los checkboxes de "Visualizar Botones Toolbar".
-
-                        System.out.println("    -> Menú Seleccionable SIN Action de ActionMap: '" + claveCompletaMenu + "'. Configurando su estado 'selected'...");
-
-                        if (claveCompletaMenu.startsWith("interfaz.menu.configuracion.visualizar_botones.")) {
-                            // SUB-CASO A1: Es un checkbox de "Visualizar Botones Toolbar".
-                            // Su estado 'selected' debe reflejar el estado '.visible' del BOTÓN DE LA TOOLBAR que controla.
-                            // El ActionCommand del JCheckBoxMenuItem (menuItem.getActionCommand())
-                            // fue establecido por MenuBarBuilder para ser la clave del botón de la toolbar.
-                            String toolbarButtonKey = menuItem.getActionCommand();
-                            System.out.println("      -> Es Checkbox de 'Visualizar Botones'. ActionCommand (ToolbarButtonKey): '" + toolbarButtonKey + "'");
-
-                            if (toolbarButtonKey != null && !toolbarButtonKey.isEmpty()) {
-                                // Leer la configuración de visibilidad del BOTÓN DE LA TOOLBAR.
-                                boolean botonDebeSerVisibleConfig = configuration.getBoolean(toolbarButtonKey + ".visible", true); // Default true si no se encuentra
-                                ((JCheckBoxMenuItem) menuItem).setSelected(botonDebeSerVisibleConfig);
-                                // menuItem.setEnabled(true); // El .setEnabled general ya se hizo arriba.
-                                System.out.println("      -> Checkbox '" + claveCompletaMenu + "' SET_SELECTED a: " + botonDebeSerVisibleConfig +
-                                                   " (basado en config '" + toolbarButtonKey + ".visible')");
-                            } else {
-                                System.err.println("      -> ERROR: ToolbarButtonKey (ActionCommand del checkbox) es null o vacío para Checkbox '" + claveCompletaMenu + "'. Checkbox se dejará desmarcado.");
-                                ((JCheckBoxMenuItem) menuItem).setSelected(false);
-                                // menuItem.setEnabled(false); // Podrías deshabilitarlo si no tiene objetivo
-                            }
-                        } else {
-                            // SUB-CASO A2: Es otro JCheckBoxMenuItem o JRadioButtonMenuItem sin Action de nuestro actionMap
-                            //              (si existieran y quisieras persistir su estado .seleccionado con la clave larga).
-                            //              Por ahora, la mayoría de tus otros checkboxes/radios SÍ tienen Actions.
-                            boolean seleccionadoConfig = configuration.getBoolean(claveCompletaMenu + ".seleccionado", false);
-                            if (menuItem instanceof JCheckBoxMenuItem) {
-                                ((JCheckBoxMenuItem) menuItem).setSelected(seleccionadoConfig);
-                            } else if (menuItem instanceof JRadioButtonMenuItem) {
-                                ((JRadioButtonMenuItem) menuItem).setSelected(seleccionadoConfig);
-                            }
-                             System.out.println("    -> Otro Checkbox/Radio sin Action de ActionMap. Clave: '" + claveCompletaMenu + "'. SET_SELECTED a: " + seleccionadoConfig);
-                        }
-                    } else if (esSeleccionable && tieneActionDeNuestroActionMap) {
-                        // CASO B: Es un JCheckBoxMenuItem o JRadioButtonMenuItem que SÍ tiene una Action de nuestro actionMap.
-                        //         (Ej. ToggleUIElementVisibilityAction, ToggleThemeAction, SetSubfolderReadModeAction, ToggleProporcionesAction, etc.)
-                        //         Estas Actions YA leyeron la configuración y establecieron su Action.SELECTED_KEY
-                        //         en sus propios constructores. El JMenuItem vinculado a ellas ya debería estar
-                        //         visualmente correcto (marcado/desmarcado). No necesitamos hacer menuItem.setSelected() aquí.
-                        System.out.println("    -> Menú Seleccionable CON Action de ActionMap: '" + claveCompletaMenu +
-                                           "'. Su estado 'selected' es manejado por su Action. Valor actual de Action.SELECTED_KEY: " +
-                                           assignedAction.getValue(Action.SELECTED_KEY));
-                    }
-                    // Fin de la lógica para .selected
-
-                // 3.5. Capturar cualquier excepción durante la lectura/aplicación de config para este menuItem.
-                } catch (Exception ex) {
-                    System.err.println("ERROR aplicando config a Menú (Vista) '" + claveCompletaMenu + "': " + ex.getMessage());
-                    ex.printStackTrace(); // Para más detalle
-                }
-            }); // Fin del menuItems.forEach
-
-            // 3.6. Log indicando fin de configuración de menús.
-            System.out.println("    -> Config Menús (Vista) OK.");
-        // 3.7. Log de advertencia si el mapa de menús no se encontró.
-        } else {
-            System.err.println("WARN [aplicarConfigAlaVistaInternal]: Mapa de menús ('menuItemsPorNombre') nulo en la Vista.");
-        }
-        
-        // --- SECCIÓN 4: Sincronizar Estados Visuales Específicos (dependientes de Actions) ---
-        // 4.1. Iniciar bloque try-catch para esta sección.
-        try {
-            // 4.1.1. Sincronizar controles de Zoom Manual y Reset.
-        	Action toggleZoomManualAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE) : null;
-            boolean zoomManualInicial = (toggleZoomManualAction != null) && Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY));
-            if (view != null) { // Chequeo de view
-                 view.actualizarEstadoControlesZoom(zoomManualInicial, zoomManualInicial);
-            } else { System.err.println("WARN [aplicarConfigAlaVistaInternal]: Vista nula al actualizar controles zoom.");}
-
-
-            // 4.1.2. Sincronizar estado visual del botón de Mantener Proporciones.
-        	Action toggleProporcionesAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES) : null;            
-            boolean proporcionesInicial = (toggleProporcionesAction != null) && Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY));
-            this.view.actualizarAspectoBotonToggle(toggleProporcionesAction, proporcionesInicial); // Este método ya chequea si action es null
-
-            // 4.1.3. Sincronizar estado visual del botón y radios de Cargar Subcarpetas.
-            Action toggleSubfoldersAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS) : null;
-            boolean subcarpetasInicial = (toggleSubfoldersAction != null) && Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY));
-            this.view.actualizarAspectoBotonToggle(toggleSubfoldersAction, subcarpetasInicial);
-            // ¡MOVER LA LLAMADA AQUÍ DENTRO DEL TRY!
-            sincronizarRadiosSubcarpetasVisualmente(subcarpetasInicial); // Asegurar que los radios del menú se marquen correctamente
-
-            // 4.1.4. (Comentario sin cambios)
-
-            // 4.1.5. Log confirmando la sincronización visual.
-            System.out.println("    -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados visualmente a UI.");
-
-        // 4.2. Capturar excepciones durante la sincronización visual.
-        } catch(Exception e) {
-            System.err.println("ERROR aplicando estados visuales específicos a la Vista: " + e.getMessage());
-            e.printStackTrace();
-        }
-        
-        // --- SECCIÓN 5: Log Final ---
-        // 5.1. Indicar que la configuración visual ha terminado.
-        System.out.println("  [Apply Config View Internal] Finalizado.");
-
-    } // --- FIN aplicarConfigAlaVistaInternal ---
-    
     
 	/**
 	 * Carga la carpeta y la imagen iniciales definidas en la configuración.
@@ -1081,74 +864,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	
     
     /**
-     * Realiza sincronizaciones visuales finales después de que todos los
-     * componentes principales, listeners y actions han sido configurados.
-     * Principalmente se usa para asegurar que el estado visual de ciertos
-     * componentes (como el fondo a cuadros) coincida con el estado lógico
-     * inicial de sus Actions asociadas.
-     * Se llama desde AppInitializer (en el EDT) como uno de los últimos pasos
-     * de la inicialización de la UI.
-     */
-    /*package-private*/ void sincronizarUIFinalInternal() {
-        // --- SECCIÓN 1: Log de Inicio y Validaciones ---
-        // 1.1. Imprimir log indicando el inicio de la sincronización final.
-        System.out.println("    [EDT Internal] Sincronizando UI Final...");
-        // 1.2. Validar que la Vista exista, ya que vamos a interactuar con ella.
-        if (view == null) {
-             System.err.println("ERROR [sincronizarUIFinalInternal]: Vista es null. No se puede sincronizar UI final.");
-             return; // Salir si no hay vista.
-        }
-
-        // --- SECCIÓN 2: Sincronizar Estado Visual del Fondo a Cuadros ---
-        // 2.1. Comprobar si la Action para el fondo a cuadros existe.
-        Action toggleCheckeredBgAction = this.actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
-        if (toggleCheckeredBgAction != null) {
-            // 2.1.1. Obtener el estado lógico inicial (seleccionado/no seleccionado)
-            //        desde la propiedad SELECTED_KEY de la Action. Este valor
-            //        fue establecido previamente en initializeActionsInternal
-            //        leyendo desde la configuración.
-            boolean estadoInicialFondo = Boolean.TRUE.equals(toggleCheckeredBgAction.getValue(Action.SELECTED_KEY));
-            // 2.1.2. Log del estado que se aplicará.
-            System.out.println("      -> Sincronizando Fondo a Cuadros a estado: " + estadoInicialFondo);
-            // 2.1.3. Llamar al método correspondiente en la Vista para aplicar
-            //        el estado visual (activar/desactivar el pintado de cuadros).
-            view.setCheckeredBackgroundEnabled(estadoInicialFondo);
-        // 2.2. Log de advertencia si la Action no existe.
-        } else {
-            System.err.println("WARN [sincronizarUIFinalInternal]: toggleCheckeredBgAction es null. No se pudo sincronizar fondo.");
-        }
-
-        // --- SECCIÓN 3: Sincronizar Otros Estados Visuales (Si es Necesario) ---
-        // 3.1. Sincronizar "Siempre Encima" (Always On Top)
-        //      Aunque la Action lo maneja, podemos forzar la sincronización inicial aquí por seguridad.
-        Action toggleAlwaysOnTopAction = this.actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
-        if (toggleAlwaysOnTopAction != null) {
-            boolean estadoInicialTop = Boolean.TRUE.equals(toggleAlwaysOnTopAction.getValue(Action.SELECTED_KEY));
-             // Llamar directamente al método del JFrame (VisorView hereda de JFrame)
-             if (view.isAlwaysOnTop() != estadoInicialTop) { // Solo si es diferente
-                 System.out.println("      -> Sincronizando Siempre Encima a estado: " + estadoInicialTop);
-                 view.setAlwaysOnTop(estadoInicialTop);
-             }
-        } else {
-             System.err.println("WARN [sincronizarUIFinalInternal]: toggleAlwaysOnTopAction es null.");
-        }
-
-        // 3.2. Añadir aquí cualquier otra sincronización visual final que sea necesaria.
-        //      Por ejemplo, si el estado visual de algún componente no depende directamente
-        //      de una Action y necesita establecerse basado en configuración u otro estado
-        //      del modelo al finalizar la inicialización.
-        //      Ejemplo hipotético:
-        //      boolean algunOtroEstado = model.getAlgunOtroEstado();
-        //      view.actualizarAparienciaSegunOtroEstado(algunOtroEstado);
-
-        // --- SECCIÓN 4: Log Final ---
-        // 4.1. Indicar que la sincronización final ha concluido.
-        System.out.println("    [EDT Internal] Sincronización UI Final completada.");
-
-    } // --- FIN sincronizarUIFinalInternal ---   
-    
-
-    /**
      * Método llamado por Actions (como ToggleUIElementVisibilityAction o las Actions
      * para mostrar/ocultar MenuBar, ToolBar, etc.) para notificar que el estado de
      * visibilidad de un elemento o zona de la UI ha cambiado y que la vista necesita
@@ -1515,95 +1230,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
  // ******************************************************************************************************************* CARGA      
 
      
-    /**
-     * Carga la configuración inicial de la interfaz de usuario (visibilidad, selección de menús/botones)
-     * leyendo los valores desde ConfigurationManager y aplicándolos a la Vista y al Modelo.
-     * Se llama desde el constructor (en el EDT) después de crear la Vista.
-     */
-    private void aplicarConfiguracionInicial() { // Solo para el boton del menu
-        System.out.println("  [Apply Config] Aplicando configuración inicial...");
-        // Verificar dependencias primero
-        if (configuration == null || view == null || model == null) {
-            System.err.println("ERROR [aplicarConfiguracionInicial]: Configuración, Vista o Modelo nulos. Abortando.");
-            return;
-        }
-
-        // 6.1. Aplicar configuración al Modelo (valores que afectan lógica)
-        try {
-            model.setMiniaturasAntes(configuration.getInt	(ConfigKeys.MINIATURAS_CANTIDAD_ANTES			, 7));
-            model.setMiniaturasDespues(configuration.getInt	(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES			, 7));
-            model.setMiniaturaSelAncho(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_SEL_ANCHO	, 60));
-            model.setMiniaturaSelAlto(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO	, 60));
-            model.setMiniaturaNormAncho(configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO		, 40));
-            model.setMiniaturaNormAlto(configuration.getInt	(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO		, 40));
-            boolean cargarSubcarpetas = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, true);
-            model.setMostrarSoloCarpetaActual(!cargarSubcarpetas);
-            System.out.println("    -> Config Modelo OK.");
-        } catch (Exception e) { System.err.println("ERROR aplicando config al Modelo: " + e.getMessage()); }
-
-        // 6.2. Aplicar configuración a Botones (Enabled/Visible)
-        Map<String, JButton> botones = view.getBotonesPorNombre();
-	    if (botones != null) {
-             System.out.println("    -> Aplicando config a Botones...");
-	        botones.forEach((claveCompletaBoton, button) -> {
-                try {
-	                button.setEnabled(configuration.getBoolean(claveCompletaBoton + ".activado", true));
-	                button.setVisible(configuration.getBoolean(claveCompletaBoton + ".visible", true));
-                } catch (Exception e) { System.err.println("ERROR aplicando a Botón '" + claveCompletaBoton + "': " + e.getMessage()); }
-	        });
-             System.out.println("    -> Config Botones OK.");
-	    } else { System.err.println("WARN: Mapa de botones nulo."); }
-
-        // 6.3. Aplicar configuración a Menús (Enabled/Visible/Selected sin Action)
-        Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
-	    if (menuItems != null) {
-	        System.out.println("    -> Aplicando config a Menús...");
-	        menuItems.forEach((claveCompletaMenu, menuItem) -> {
-	             try {
-	                 menuItem.setEnabled(configuration.getBoolean(claveCompletaMenu + ".activado", true));
-	                 menuItem.setVisible(configuration.getBoolean(claveCompletaMenu + ".visible", true));
-	                 // Aplicar .seleccionado solo si es seleccionable Y NO tiene Action
-	                 boolean esSeleccionable = (menuItem instanceof JCheckBoxMenuItem || menuItem instanceof JRadioButtonMenuItem);
-	                 boolean tieneAction = (menuItem.getAction() != null);
-	                 if (esSeleccionable && !tieneAction) {
-	                      // System.out.println("      -> Aplicando .seleccionado (sin Action): " + claveCompletaMenu);
-	                      if (menuItem instanceof JCheckBoxMenuItem) { ((JCheckBoxMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false)); }
-	                      else if (menuItem instanceof JRadioButtonMenuItem) { ((JRadioButtonMenuItem) menuItem).setSelected(configuration.getBoolean(claveCompletaMenu + ".seleccionado", false)); }
-	                 }
-	             } catch (Exception e) { System.err.println("ERROR aplicando a Menú '" + claveCompletaMenu + "': " + e.getMessage()); }
-	        });
-	         System.out.println("    -> Config Menús OK.");
-	    } else { System.err.println("WARN: Mapa de menús nulo."); }
-
-        // 6.4. Aplicar estados iniciales específicos (manejados por Actions o lógica dedicada)
-        //    - El estado SELECTED de Actions (como Zoom Manual, Proporciones, Subcarpetas, Tema)
-        //      ya se establece al inicializar la Action (en initializeActions) leyendo la config.
-        //    - Solo necesitamos sincronizar la UI que NO depende directamente de la Action.
-        try {
-            // Sincronizar estado visual del botón/checkbox de Zoom Manual (si la Action no lo hace automát.)
-        	Action toggleZoomManualAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE) : null;
-            boolean zoomManualInicial = Boolean.TRUE.equals(toggleZoomManualAction.getValue(Action.SELECTED_KEY));
-            if(view != null) view.actualizarEstadoControlesZoom(zoomManualInicial, zoomManualInicial); // Habilita Reset si Zoom está activo
-
-            // Sincronizar estado visual del botón de Proporciones
-        	Action toggleProporcionesAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES) : null;
-            boolean proporcionesInicial = Boolean.TRUE.equals(toggleProporcionesAction.getValue(Action.SELECTED_KEY));
-            this.view.actualizarAspectoBotonToggle(toggleProporcionesAction, proporcionesInicial);
-
-            // Sincronizar estado visual del botón y radios de Subcarpetas
-        	Action toggleSubfoldersAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS) : null;
-            boolean subcarpetasInicial = Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY));
-            this.view.actualizarAspectoBotonToggle(toggleSubfoldersAction, subcarpetasInicial);
-            restaurarSeleccionRadiosSubcarpetas(subcarpetasInicial); // Asegurar estado visual radios
-             System.out.println("    -> Estados iniciales específicos (Zoom, Prop, Sub) aplicados a UI.");
-        } catch(Exception e) { System.err.println("ERROR aplicando estados específicos: " + e.getMessage()); }
-
-
-        System.out.println("  [Apply Config] Finalizado.");
-        
-    }// --- FIN del metodo aplicarConfiguracionInicial
-
-
     /**
      * Carga o recarga la lista de imágenes desde disco para una carpeta específica,
      * utilizando un SwingWorker para no bloquear el EDT. Muestra un diálogo de
@@ -2356,7 +1982,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          // --- SECCIÓN 2: PREPARAR UI PARA LA CARGA ---
          // 2.1. Mostrar la ruta completa en la barra de estado de la vista.
          if (view != null) {
-             view.setTextoBarraEstadoRuta(rutaCompleta.toString());
          
              // 2.2. Mostrar un indicador visual de "Cargando..." en el panel de la imagen principal.
              //      VisorView.mostrarIndicadorCargaImagenPrincipal ya resetea zoomFactorView y offsets.
@@ -3543,68 +3168,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             return;
         }
         
-        
-//        String checkBoxMenuItemConfigKey = findLongKeyForComponent(source); // Ej: "interfaz.menu.configuracion.visualizar_botones.boton_rotar_izquierda"
-//
-//        if (source instanceof JCheckBoxMenuItem &&
-//            checkBoxMenuItemConfigKey != null &&
-//            checkBoxMenuItemConfigKey.startsWith("interfaz.menu.configuracion.visualizar_botones.")) {
-//
-//            JCheckBoxMenuItem checkBox = (JCheckBoxMenuItem) source;
-//            boolean nuevoEstadoVisibleParaBotonToolbar = checkBox.isSelected(); // El estado del checkbox determina la visibilidad del botón
-//
-//            // 'command' (de e.getActionCommand()) ES la clave del BOTÓN DE LA TOOLBAR.
-//            // En UIDefinitionService, para estos checkboxes, el primer parámetro fue la clave del botón.
-//            String claveDelBotonToolbarControlado = command;
-//
-//            System.out.println("  [VC.actionPerformed] Checkbox 'Visualizar Botones Toolbar' clickeado:" +
-//                               "\n    - CheckBox Key (larga) : " + checkBoxMenuItemConfigKey +
-//                               "\n    - Controla Botón Key   : " + claveDelBotonToolbarControlado +
-//                               "\n    - Nuevo estado visible para botón: " + nuevoEstadoVisibleParaBotonToolbar);
-//
-//            // 3.1. Guardar el estado del PROPIO JCheckBoxMenuItem en la configuración
-//            //      (usando la clave larga generada por MenuBarBuilder para este JCheckBoxMenuItem)
-//            if (configuration != null) {
-//                configuration.setString(checkBoxMenuItemConfigKey + ".seleccionado", String.valueOf(nuevoEstadoVisibleParaBotonToolbar));
-//            }
-//
-//            // 3.2. Aplicar el cambio de VISIBILIDAD al BOTÓN DE LA TOOLBAR objetivo
-//            if (view != null && view.getBotonesPorNombre() != null) {
-//                JButton botonDeToolbar = view.getBotonesPorNombre().get(claveDelBotonToolbarControlado);
-//
-//                if (botonDeToolbar != null) {
-//                    // ESTA ES LA LÍNEA CLAVE PARA ACTUALIZAR LA UI DEL BOTÓN
-//                    botonDeToolbar.setVisible(nuevoEstadoVisibleParaBotonToolbar);
-//                    System.out.println("    -> Visibilidad del Botón de Toolbar '" + claveDelBotonToolbarControlado + "' establecida a: " + botonDeToolbar.isVisible());
-//
-//                    // 3.3. Guardar la preferencia de VISIBILIDAD del BOTÓN DE LA TOOLBAR
-//                    //      en la configuración, usando la clave del BOTÓN + ".visible".
-//                    if (configuration != null) {
-//                        configuration.setString(claveDelBotonToolbarControlado + ".visible", String.valueOf(nuevoEstadoVisibleParaBotonToolbar));
-//                        System.out.println("    -> Configuración de visibilidad del Botón Toolbar '" + claveDelBotonToolbarControlado + ".visible' guardada como: " + nuevoEstadoVisibleParaBotonToolbar);
-//                    }
-//
-//                    // 3.4. Revalidar y repintar el panel de la toolbar
-//                    if (view.getPanelDeBotones() != null && view.getPanelDeBotones().isVisible()) {
-//                         final JPanel toolbarPanel = view.getPanelDeBotones();
-//                         SwingUtilities.invokeLater(() -> {
-//                             toolbarPanel.revalidate();
-//                             toolbarPanel.repaint();
-//                             System.out.println("    -> Panel de la Toolbar revalidado y repintado.");
-//                         });
-//                    }
-//
-//                } else {
-//                    System.err.println("  ERROR [VC.actionPerformed]: Botón de Toolbar '" + claveDelBotonToolbarControlado +
-//                                       "' NO ENCONTRADO en view.getBotonesPorNombre(). Verificar claves en UIDefinitionService y ToolbarBuilder.");
-//                }
-//            } else {
-//                System.err.println("  ERROR [VC.actionPerformed]: VisorView o su mapa de botones (getBotonesPorNombre()) es null.");
-//            }
-//            return; // Evento manejado
-//        }
-        
-
         // 4. --- MANEJO DE OTROS COMANDOS (FALLBACK GENERAL o para ítems de menú que usan VisorController como listener directo) ---
         //    Si el código llega aquí, el evento NO FUE de un checkbox de "Visualizar Botones Toolbar".
         //    El 'command' aquí será el AppActionCommands.CMD_... si el JMenuItem fue configurado
@@ -3618,21 +3181,17 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 guardarConfiguracionActual();
                 break;
             case AppActionCommands.CMD_CONFIG_CARGAR_INICIAL:
-                System.out.println("    -> Acción: Cargar Configuración Inicial");
-                aplicarConfiguracionInicial(); // Aplica defaults a UI y Modelo
-                cargarEstadoInicialInternal(); // Recarga lista de imágenes
-                if (infoBarManager != null) infoBarManager.actualizarBarrasDeInfo(); // Refrescar barras
-                if (view != null && view.getFrame() != null) { // Revalidar y repintar
-                    SwingUtilities.invokeLater(() -> {
-                        view.getFrame().revalidate();
-                        view.getFrame().repaint();
-                    });
+            	
+            	System.out.println("    -> Acción: Restaurar Configuración por Defecto");
+                // <<< CAMBIO CLAVE >>>
+                if (this.configAppManager != null) {
+                    this.configAppManager.restaurarConfiguracionPredeterminada();
+                    // La notificación al usuario ya puede estar dentro del método del manager.
+                } else {
+                    System.err.println("ERROR: ConfigApplicationManager es nulo. No se puede restaurar la configuración.");
                 }
-                JOptionPane.showMessageDialog(view.getFrame(),
-                    "Configuración por defecto aplicada. Algunos cambios pueden requerir reiniciar la aplicación.",
-                    "Configuración Restaurada", JOptionPane.INFORMATION_MESSAGE);
                 break;
-
+            	
             // 4.2. --- Zoom ---
             case AppActionCommands.CMD_ZOOM_PERSONALIZADO: // Para "Establecer Zoom %..." del menú
                 System.out.println("    -> Acción: Establecer Zoom % desde Menú");
@@ -4091,66 +3650,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	        System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
 	    }
 	} // --- FIN del metodo guardarConfiguracionActual ---  
-     
-//  private void guardarConfiguracionActual() {
-//	    if (configuration == null || view == null || model == null) {
-//	        System.err.println("ERROR [guardarConfiguracionActual]: Dependencias nulas. No se puede guardar.");
-//	        return;
-//	    }
-//	    System.out.println("  [Guardar] Recopilando estado actual para guardar...");
-//
-//	    Map<String, String> estadoActualParaGuardar = configuration.getConfig();
-//
-//	    // Actualizar el mapa con valores del Modelo
-//	    try {
-//	        if (model.getSelectedImageKey() != null) {
-//	            estadoActualParaGuardar.put(ConfigKeys.INICIO_IMAGEN, model.getSelectedImageKey());
-//	        } else {
-//	            estadoActualParaGuardar.put(ConfigKeys.INICIO_IMAGEN, "");
-//	        }
-//	    } catch (Exception e) {
-//	        System.err.println("ERROR recopilando estado del Modelo: " + e.getMessage());
-//	    }
-//
-//	    // GUARDAR ESTADO DE LA VISTA
-//	    try {
-//	        // 1. GUARDAR ESTADO DE LOS BOTONES DE LA TOOLBAR
-//	        Map<String, JButton> botones = view.getBotonesPorNombre();
-//	        if (botones != null) {
-//	            botones.forEach((claveLargaBoton, boton) -> {
-//	                estadoActualParaGuardar.put(claveLargaBoton + ".visible", String.valueOf(boton.isVisible()));
-//	                estadoActualParaGuardar.put(claveLargaBoton + ".activado", String.valueOf(boton.isEnabled()));
-//	            });
-//	        }
-//
-//	        // 2. <<-- LÓGICA CORREGIDA PARA MENÚS -->>
-//	        Map<String, JMenuItem> menuItems = view.getMenuItemsPorNombre();
-//	        if (menuItems != null) {
-//	            menuItems.forEach((claveLargaMenu, item) -> {
-//	                // SOLO guardamos el estado de los que son seleccionables.
-//	                if (item instanceof JCheckBoxMenuItem) {
-//	                    estadoActualParaGuardar.put(claveLargaMenu + ".seleccionado", String.valueOf(((JCheckBoxMenuItem) item).isSelected()));
-//	                } else if (item instanceof JRadioButtonMenuItem) {
-//	                    estadoActualParaGuardar.put(claveLargaMenu + ".seleccionado", String.valueOf(((JRadioButtonMenuItem) item).isSelected()));
-//	                }
-//	                // IGNORAMOS el estado .activado y .visible de los menús.
-//	            });
-//	        }
-//
-//	    } catch (Exception e) {
-//	        System.err.println("ERROR recopilando estado de la Vista: " + e.getMessage());
-//	    }
-//
-//	    // Llamar al ConfigurationManager para escribir el mapa final en el archivo.
-//	    try {
-//	        System.out.println("    -> Llamando a configuration.guardarConfiguracion con " + estadoActualParaGuardar.size() + " claves...");
-//	        configuration.guardarConfiguracion(estadoActualParaGuardar);
-//	        System.out.println("  [Guardar] Configuración guardada exitosamente.");
-//	    } catch (IOException e) {
-//	        System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
-//	        e.printStackTrace();
-//	    }
-//	} // --- FIN del metodo guardarConfiguracionActual ---
      
      
 	/**
@@ -4643,55 +4142,25 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 	}
 
-	// En VisorController.java
-	public void actualizarEstadoVisualBotonMarcarYBarraEstado (boolean estaMarcada, Path rutaParaBarraEstado)
-	{
-
-		if (view == null)
-			return;
+	public void actualizarEstadoVisualBotonMarcarYBarraEstado(boolean estaMarcada, Path rutaParaBarraEstado) {
+	    if (view == null) return;
+	    
+	    // 1. Actualizar el botón de la toolbar
 	    Action toggleMarkImageAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA) : null;
-		if (toggleMarkImageAction != null)
-		{
+	    if (toggleMarkImageAction != null) {
+	        if (!Objects.equals(toggleMarkImageAction.getValue(Action.SELECTED_KEY), estaMarcada)) {
+	            toggleMarkImageAction.putValue(Action.SELECTED_KEY, estaMarcada);
+	        }
+	        this.view.actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);
+	    }
 
-			// Reafirmar el SELECTED_KEY por si la llamada vino de otro sitio que no sea la
-			// propia action
-			if (!Objects.equals(toggleMarkImageAction.getValue(Action.SELECTED_KEY), estaMarcada))
-			{
-				toggleMarkImageAction.putValue(Action.SELECTED_KEY, estaMarcada);
-			}
-			this.view.actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);
-		}
-
-		String textoRuta = "";
-
-		if (rutaParaBarraEstado != null)
-		{
-			textoRuta = rutaParaBarraEstado.toString();
-		} else if (model != null && model.getSelectedImageKey() != null)
-		{ // Fallback si no se pasó ruta
-			Path p = model.getRutaCompleta(model.getSelectedImageKey());
-			if (p != null)
-				textoRuta = p.toString();
-			else
-				textoRuta = model.getSelectedImageKey();
-		}
-
-		if (estaMarcada)
-		{
-			view.setTextoBarraEstadoRuta(textoRuta + " [MARCADA]");
-		} else
-		{
-			view.setTextoBarraEstadoRuta(textoRuta);
-		}
-
-		// System.out.println(" [Controller] Barra de estado y botón 'Marcar'
-		// actualizados. Marcada: " + estaMarcada);
-	}	  
+	    // 2. Notificar al InfoBarManager que se encargue del resto.
+	    if (this.infoBarManager != null) {
+	        this.infoBarManager.actualizarBarrasDeInfo();
+	    }
+	} // --- FIN del método ---
 	
 	
-
-	
-	  
 // ************************************************************************************************** FIN GESTION DE PROYECTOS
 // ***************************************************************************************************************************
 	  
@@ -4950,7 +4419,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      
      public ListCoordinator getListCoordinator() {return this.listCoordinator;}
 	 
-	 
+     public void setConfigApplicationManager(ConfigApplicationManager manager) { this.configAppManager = manager; }
+     public ConfigApplicationManager getConfigApplicationManager() { return this.configAppManager; }
+     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
 
@@ -5298,10 +4769,12 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         for (Action action : this.actionMap.values()) {
             if (action instanceof AplicarModoZoomAction) {
                 AplicarModoZoomAction zoomAction = (AplicarModoZoomAction) action;
-                zoomAction.sincronizarEstadoSeleccionConModelo();
                 
-             // Actualizar el aspecto visual del botón de la toolbar asociado a esta Action
-                this.view.actualizarAspectoBotonToggle(zoomAction, Boolean.TRUE.equals(zoomAction.getValue(Action.SELECTED_KEY)));
+                // 1. Sincronizar y obtener el estado en una sola llamada.
+                boolean isSelected = zoomAction.sincronizarEstadoSeleccionConModelo(); 
+                
+                // 2. Usar ese estado para actualizar la vista.
+                this.view.actualizarAspectoBotonToggle(zoomAction, isSelected);
             }
         }
         

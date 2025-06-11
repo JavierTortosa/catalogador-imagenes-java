@@ -759,6 +759,25 @@ public class VisorView extends JFrame {
             panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER);
 
             // --- SUB-SECCIÓN 4B: Sección Extrema Derecha - Mensajes de la Aplicación ---
+            JPanel panelMensajes = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 0)); // FlowLayout centrado con 5px de gap
+            panelMensajes.setOpaque(false);
+
+            // Separador visual
+            JSeparator separadorMensajes = new JSeparator(SwingConstants.VERTICAL);
+            separadorMensajes.setPreferredSize(new Dimension(2, 18));
+            if (this.uiConfig != null && this.uiConfig.colorBorde != null) {
+                separadorMensajes.setForeground(this.uiConfig.colorBorde);
+            }
+            panelMensajes.add(separadorMensajes);
+
+            // Inicializar el JLabel para mensajes (campo de instancia).
+            this.mensajesAppLabel = new JLabel(" "); // Espacio para que tenga altura inicial.
+            if (this.uiConfig != null) {
+                this.mensajesAppLabel.setForeground(this.uiConfig.colorTextoSecundario);
+            }
+            
+            panelMensajes.add(this.mensajesAppLabel);
+            
             // 4B.1. Inicializar el JLabel para mensajes (campo de instancia).
             this.mensajesAppLabel = new JLabel(" "); // Espacio para que tenga altura inicial.
             // 4B.2. Aplicar color de texto (desde uiConfig o fallback).
@@ -768,7 +787,7 @@ public class VisorView extends JFrame {
                 this.mensajesAppLabel.setForeground(Color.DARK_GRAY); // Fallback
             }
             // 4B.3. Alinear texto a la derecha.
-            this.mensajesAppLabel.setHorizontalAlignment(SwingConstants.RIGHT);
+            this.mensajesAppLabel.setHorizontalAlignment(SwingConstants.CENTER);
             // 4B.4. Darle un ancho preferido para que no colapse si el mensaje es corto.
             //       La altura se ajustará automáticamente.
             this.mensajesAppLabel.setPreferredSize(new Dimension(200, this.mensajesAppLabel.getPreferredSize().height));
@@ -1588,7 +1607,9 @@ public class VisorView extends JFrame {
         JButton botonAsociado = null;
         for (Map.Entry<String, JButton> entry : this.botonesPorNombre.entrySet()) {
             if (action.equals(entry.getValue().getAction())) {
-                botonAsociado = entry.getValue();
+            	botonAsociado = entry.getValue();
+            	
+                System.out.println("  -> ¡Botón ENCONTRADO! Clave: " + entry.getKey());
                 break;
             }
         }
@@ -2026,6 +2047,7 @@ public class VisorView extends JFrame {
         } else {
             System.err.println("WARN [VisorView.setTextoBarraEstadoRuta]: rutaCompletaArchivoLabel es null.");
         }
+        
     }
 
     /**
@@ -2074,9 +2096,8 @@ public class VisorView extends JFrame {
     public JLabel getTamanoArchivoInfoLabel() {return this.tamanoArchivoInfoLabel;}
     public JLabel getFechaArchivoInfoLabel() {return this.fechaArchivoInfoLabel;}
     public JLabel getPorcentajeZoomPersonalizadoLabel() { return this.porcentajeZoomPersonalizadoLabel; }
-//    public JButton getPorcentajeZoomPersonalizadoBoton() { return this.porcentajeZoomPersonalizadoBoton; }
-    public JButton getModoZoomActualIconoBoton() { return this.modoZoomActualIconoBoton; }
     public JLabel getMensajesAppLabel() { return this.mensajesAppLabel; }
+    public JButton getModoZoomActualIconoBoton() { return this.modoZoomActualIconoBoton; }
  	
     public JPanel getPanelBarraSuperior() {return panelInfoSuperior;}
     public JPanel getPanelBarraEstado() {return bottomStatusBar;}
