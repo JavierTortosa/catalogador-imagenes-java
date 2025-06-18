@@ -18,7 +18,8 @@ import servicios.ConfigurationManager;
 import vista.builders.PopupMenuBuilder;   // Para construir el JPopupMenu
 import vista.config.MenuItemDefinition; // Para la estructura del menú
 import vista.config.MenuItemType;     // Para definir los items del popup
-import vista.config.ViewUIConfig;       // Para pasar al PopupMenuBuilder
+import vista.theme.ThemeManager;
+//import vista.config.ViewUIConfig;       // Para pasar al PopupMenuBuilder
 
 public class HiddenButtonsAction extends AbstractAction {
 
@@ -26,7 +27,9 @@ public class HiddenButtonsAction extends AbstractAction {
 
     // private VisorView viewRef; // No es estrictamente necesario si solo usamos e.getSource()
     private Map<String, Action> actionMapRef; // Para obtener las Actions de los botones ocultos
-    private ViewUIConfig uiConfigRef;         // Para el PopupMenuBuilder
+//    private ViewUIConfig uiConfigRef;         // Para el PopupMenuBuilder
+    private ThemeManager themeManager;
+    
     // Podríamos tener una lista de los COMANDOS de los botones que podrían ir aquí
     // private List<String> overflowButtonCommands; 
     private ConfigurationManager configManagerRef;         // <--- NUEVO CAMPO
@@ -38,7 +41,7 @@ public class HiddenButtonsAction extends AbstractAction {
             String name,
             ImageIcon icon,
             Map<String, Action> actionMap, // Para obtener las actions de los botones
-            ViewUIConfig uiConfig,         // Para el builder
+            ThemeManager themeManager,         // Para el builder
             ConfigurationManager configManager,         
             ActionListener specialConfigActionListener
             // List<String> overflowButtonCommands // Opcional: lista de comandos a mostrar
@@ -47,7 +50,8 @@ public class HiddenButtonsAction extends AbstractAction {
         super(name, icon);
         // this.viewRef = view;
         this.actionMapRef = Objects.requireNonNull(actionMap, "ActionMap no puede ser nulo");
-        this.uiConfigRef = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo");
+//        this.uiConfigRef = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo");
+        this.themeManager = Objects.requireNonNull(themeManager, "ViewUIConfig no puede ser nulo");
         
         this.configManagerRef = Objects.requireNonNull(configManager);
         this.specialConfigActionListenerRef = Objects.requireNonNull(specialConfigActionListener);
@@ -59,7 +63,7 @@ public class HiddenButtonsAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (actionMapRef == null || uiConfigRef == null) {
+        if (actionMapRef == null || themeManager == null) {
             System.err.println("ERROR CRÍTICO [HiddenButtonsAction]: Dependencias nulas.");
             return;
         }
@@ -104,7 +108,7 @@ public class HiddenButtonsAction extends AbstractAction {
 
         // --- Construir y mostrar el JPopupMenu ---
         PopupMenuBuilder popupBuilder = new PopupMenuBuilder(
-        		this.uiConfigRef,
+        		this.themeManager,
                 this.configManagerRef,
                 this.specialConfigActionListenerRef
             );

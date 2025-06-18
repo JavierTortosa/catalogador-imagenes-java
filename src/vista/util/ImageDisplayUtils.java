@@ -3,72 +3,143 @@ package vista.util;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 
-import modelo.VisorModel;
-import servicios.zoom.ZoomModeEnum;
-import vista.VisorView;
-
 public class ImageDisplayUtils {
-
-	public static Image reescalarImagenParaAjustar(BufferedImage imagenOriginal, VisorModel model, VisorView view) {
-	    // --- SECCIÓN 1: VALIDACIONES --- (como las tienes)
-	    if (imagenOriginal == null || model == null || view == null || view.getEtiquetaImagen() == null) return null;
-	    int etiquetaAncho = view.getEtiquetaImagen().getWidth();
-	    int etiquetaAlto = view.getEtiquetaImagen().getHeight();
-	    if (etiquetaAncho <= 0 || etiquetaAlto <= 0) { // Añadido para ser más robusto al inicio
-	        // Si la etiqueta no tiene tamaño, no podemos hacer escalados relativos a ella.
-	        // Devolver la original para que ZoomManager decida con factor 1.0 si es DISPLAY_ORIGINAL, etc.
-	        return imagenOriginal;
-	    }
-	    int imgOriginalAncho = imagenOriginal.getWidth();
-	    int imgOriginalAlto = imagenOriginal.getHeight();
-	    if (imgOriginalAncho <= 0 || imgOriginalAlto <= 0) return null;
-
-	    // --- SECCIÓN 2: OBTENER ESTADO DEL MODELO ---
-	    boolean mantenerProporcionGlobal = model.isMantenerProporcion(); // El toggle "prop"
-	    ZoomModeEnum currentMode = model.getCurrentZoomMode();
-
-	    // --- SECCIÓN 3: DECIDIR ESCALADO BASE ---
-	    int anchoFinalBase;
-	    int altoFinalBase;
-
-	    // Si el modo de zoom NO es FIT_TO_SCREEN, ImageDisplayUtils devuelve la imagen original.
-	    // ZoomManager se encargará de calcular el factor correcto para DISPLAY_ORIGINAL, FIT_TO_WIDTH, FIT_TO_HEIGHT, etc.
-	    // aplicado a la imagen original.
-	    if (currentMode != ZoomModeEnum.FIT_TO_SCREEN) {
-	        // System.out.println("  [ImageDisplayUtils] Modo " + currentMode + ": Devolviendo original. ZoomManager calculará factor.");
-	        return imagenOriginal;
-	    }
-
-	    // Si LLEGAMOS AQUÍ, el modo es FIT_TO_SCREEN.
-	    // Aquí sí aplicamos la lógica del toggle "mantenerProporcionGlobal".
-	    if (mantenerProporcionGlobal) { // prop ON para FIT_TO_SCREEN
-	        // Ajustar para que quepa manteniendo proporción ("contain")
-	        double ratioImg = (double) imgOriginalAncho / imgOriginalAlto;
-	        double ratioEtiqueta = (double) etiquetaAncho / etiquetaAlto;
-	        if (ratioEtiqueta > ratioImg) {
-	            altoFinalBase = etiquetaAlto;
-	            anchoFinalBase = (int) (etiquetaAlto * ratioImg);
-	        } else {
-	            anchoFinalBase = etiquetaAncho;
-	            altoFinalBase = (int) (etiquetaAncho / ratioImg);
-	        }
-	        // System.out.println("  [ImageDisplayUtils] FIT_TO_SCREEN prop ON: Base ajustada proporcionalmente a: " + anchoFinalBase + "x" + altoFinalBase);
-	    } else { // prop OFF para FIT_TO_SCREEN
-	        // Estirar para llenar la etiqueta
-	        anchoFinalBase = etiquetaAncho;
-	        altoFinalBase = etiquetaAlto;
-	        // System.out.println("  [ImageDisplayUtils] FIT_TO_SCREEN prop OFF: Base estirada a: " + anchoFinalBase + "x" + altoFinalBase);
-	    }
-
-	    anchoFinalBase = Math.max(1, anchoFinalBase);
-	    altoFinalBase = Math.max(1, altoFinalBase);
-
-	    try {
-	        return imagenOriginal.getScaledInstance(anchoFinalBase, altoFinalBase, Image.SCALE_SMOOTH);
-	    } catch (Exception e) { 
-	         System.err.println("ERROR [ImageDisplayUtils.reescalarImagenParaAjustar] durante getScaledInstance: " + e.getMessage());
-	         e.printStackTrace();
-	         return null; // Devolver null si hay un error en el escalado.
-	    }
-	}
+    public static Image escalar(BufferedImage imagenOriginal, int anchoFinal, int altoFinal) {
+        if (imagenOriginal == null) return null;
+        int w = Math.max(1, anchoFinal);
+        int h = Math.max(1, altoFinal);
+        try {
+            return imagenOriginal.getScaledInstance(w, h, Image.SCALE_FAST);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
+// --- FIN de la clase ImageDisplayUtils ---
+
+//package vista.util;
+//
+//import java.awt.Image;
+//import java.awt.image.BufferedImage;
+//
+//import modelo.VisorModel;
+//import servicios.zoom.ZoomModeEnum;
+//
+//public class ImageDisplayUtils {
+//
+//    /**
+//     * Re-escala una imagen original basándose en el modo de zoom y las dimensiones
+//     * del contenedor. Esta utilidad ahora contiene toda la lógica de cálculo de
+//     * tamaño para los modos de zoom automáticos.
+//     *
+//     * @param imagenOriginal La imagen fuente.
+//     * @param model          El modelo de la aplicación, para obtener el modo de zoom y la opción de mantener proporciones.
+//     * @param containerWidth El ancho del panel contenedor.
+//     * @param containerHeight El alto del panel contenedor.
+//     * @return Una nueva instancia de Image escalada, o null si hay un error.
+//     */
+//    public static Image reescalarImagenParaAjustar(
+//        BufferedImage imagenOriginal, 
+//        VisorModel model, 
+//        int containerWidth,
+//        int containerHeight
+//    ) {
+//        // --- SECCIÓN 1: VALIDACIONES ---
+//        if (imagenOriginal == null || model == null || containerWidth <= 0 || containerHeight <= 0) {
+//            return null;
+//        }
+//        
+//        int imgOriginalAncho = imagenOriginal.getWidth();
+//        int imgOriginalAlto = imagenOriginal.getHeight();
+//        if (imgOriginalAncho <= 0 || imgOriginalAlto <= 0) {
+//            return null;
+//        }
+//
+//        // --- SECCIÓN 2: OBTENER ESTADO DEL MODELO ---
+//        boolean mantenerProporciones = model.isMantenerProporcion();
+//        ZoomModeEnum modo = model.getCurrentZoomMode();
+//        double zoomFactorManual = model.getZoomFactor(); // Para el modo MAINTAIN_CURRENT_ZOOM
+//
+//        // --- SECCIÓN 3: CÁLCULO DE DIMENSIONES FINALES BASADO EN EL MODO ---
+//        int anchoFinal;
+//        int altoFinal;
+//
+//        switch (modo) {
+//            case FIT_TO_SCREEN:
+//                if (mantenerProporciones) {
+//                    double ratioImg = (double) imgOriginalAncho / imgOriginalAlto;
+//                    double ratioContenedor = (double) containerWidth / containerHeight;
+//                    if (ratioContenedor > ratioImg) {
+//                        altoFinal = containerHeight;
+//                        anchoFinal = (int) (containerHeight * ratioImg);
+//                    } else {
+//                        anchoFinal = containerWidth;
+//                        altoFinal = (int) (containerWidth / ratioImg);
+//                    }
+//                } else { // Estirar
+//                    anchoFinal = containerWidth;
+//                    altoFinal = containerHeight;
+//                }
+//                break;
+//
+//            case FIT_TO_WIDTH:
+//                anchoFinal = containerWidth;
+//                altoFinal = mantenerProporciones ? (int) (containerWidth / ((double) imgOriginalAncho / imgOriginalAlto)) : containerHeight;
+//                break;
+//
+//            case FIT_TO_HEIGHT:
+//                altoFinal = containerHeight;
+//                anchoFinal = mantenerProporciones ? (int) (containerHeight * ((double) imgOriginalAncho / imgOriginalAlto)) : containerWidth;
+//                break;
+//            
+//            case FILL:
+//                // El modo FILL es un caso especial. Si se mantienen proporciones, es el más grande de FIT_WIDTH/HEIGHT.
+//                if (mantenerProporciones) {
+//                    double ratioImg = (double) imgOriginalAncho / imgOriginalAlto;
+//                    double ratioContenedor = (double) containerWidth / containerHeight;
+//                    if (ratioContenedor > ratioImg) { // Panel más ancho
+//                        anchoFinal = containerWidth;
+//                        altoFinal = (int) (containerWidth / ratioImg);
+//                    } else { // Panel más alto
+//                        altoFinal = containerHeight;
+//                        anchoFinal = (int) (containerHeight * ratioImg);
+//                    }
+//                } else { // Estirar para llenar
+//                    anchoFinal = containerWidth;
+//                    altoFinal = containerHeight;
+//                }
+//                break;
+//
+//            case DISPLAY_ORIGINAL:
+//                anchoFinal = imgOriginalAncho;
+//                altoFinal = imgOriginalAlto;
+//                break;
+//
+//            case MAINTAIN_CURRENT_ZOOM:
+//            case USER_SPECIFIED_PERCENTAGE: // Los tratamos igual que el modo manual
+//                anchoFinal = (int) (imgOriginalAncho * zoomFactorManual);
+//                altoFinal = (int) (imgOriginalAlto * zoomFactorManual);
+//                break;
+//
+//            default:
+//                anchoFinal = imgOriginalAncho;
+//                altoFinal = imgOriginalAlto;
+//                break;
+//        }
+//
+//        anchoFinal = Math.max(1, anchoFinal);
+//        altoFinal = Math.max(1, altoFinal);
+//
+//        // --- SECCIÓN 4: RETORNAR LA IMAGEN ESCALADA ---
+//        try {
+//            // Usamos SCALE_FAST porque es mucho más rápido y para la visualización es suficiente.
+//            // SCALE_SMOOTH puede causar ralentizaciones notorias al cambiar rápidamente de imagen.
+//            return imagenOriginal.getScaledInstance(anchoFinal, altoFinal, Image.SCALE_FAST);
+//        } catch (Exception e) { 
+//             System.err.println("ERROR [ImageDisplayUtils] durante getScaledInstance: " + e.getMessage());
+//             e.printStackTrace();
+//             return null;
+//        }
+//    } // --- FIN del metodo reescalarImagenParaAjustar ---
+//}

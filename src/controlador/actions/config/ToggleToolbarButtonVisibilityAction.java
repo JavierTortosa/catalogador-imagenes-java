@@ -47,8 +47,9 @@ public class ToggleToolbarButtonVisibilityAction extends AbstractAction {
         boolean isButtonVisible = config.getBoolean(fullButtonVisibilityKey, true);
         putValue(Action.SELECTED_KEY, isButtonVisible);
         
-        System.out.println("[ToggleToolbarButtonVisibilityAction CSTR] '" + name + "' (botón base: " + buttonKeyBase +
-                           ") inicializada. Leyendo de '" + fullButtonVisibilityKey + "'. SELECTED_KEY: " + isButtonVisible);
+        // LOG [ToggleToolbarButtonVisibilityAction CSTR] '" + name + "' (botón base: " + buttonKeyBase
+//        System.out.println("[ToggleToolbarButtonVisibilityAction CSTR] '" + name + "' (botón base: " + buttonKeyBase +
+//                           ") inicializada. Leyendo de '" + fullButtonVisibilityKey + "'. SELECTED_KEY: " + isButtonVisible);
 
     } // --- FIN del Constructor ---
 

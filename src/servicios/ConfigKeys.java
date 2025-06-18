@@ -25,16 +25,7 @@ public final class ConfigKeys {
     public static String menu(String... parts) {return buildKey(MENU, parts);}
     public static String menuState(String... parts) {return buildKey(MENU, parts) + ".seleccionado";}
     public static String toolbarVisible(String toolbarKey) {return buildKey(TOOLBAR, normalizePart(toolbarKey)) + ".visible";}
-    //public static String toolbarButtonVisible(String toolbarKey, String buttonKey) {return buildKey(TOOLBAR, normalizePart(toolbarKey), "boton", normalizePart(buttonKey)) + ".visible";}
-    
-    /**
-     * Genera la clave para la visibilidad de un botón específico en una barra.
-     * Sigue el esquema: interfaz.boton.[nombre_barra].[nombre_boton].visible
-     *
-     * @param toolbarKey El nombre de la barra (ej: "edicion").
-     * @param buttonKey El nombre del botón (ej: "rotar_derecha").
-     * @return La clave canónica.
-     */
+    public static String buttonVisible(String toolbarKey, String buttonKey) { return buildKey("interfaz.boton", toolbarKey, buttonKey, "visible");}
     public static String toolbarButtonVisible(String toolbarKey, String buttonKey) {
         return buildKey(BUTTON_PREFIX, normalizePart(toolbarKey), normalizePart(buttonKey)) + ".visible";
     }
@@ -56,18 +47,6 @@ public final class ConfigKeys {
         }
         return sb.toString();
     }
-    
-    
-    /**
-     * Helper para generar la parte de la clave de configuración a partir de un texto
-     * (típicamente el texto mostrado del menú o el comando/clave de la definición).
-     * Limpia el texto (quita espacios al inicio/fin, reemplaza espacios internos por '_',
-     * elimina caracteres no alfanuméricos excepto '_') y lo convierte a minúsculas.
-     *
-     * @param text El texto base para generar la parte de la clave.
-     * @return Una cadena segura y normalizada para usar como parte de una clave de configuración.
-     *         Si el texto de entrada es null o vacío, devuelve "unknown_key_part".
-     */
     public static String normalizePart(String text) {
         // 1. Manejar caso de entrada nula o vacía.
         if (text == null || text.isBlank()) {
@@ -114,16 +93,6 @@ public final class ConfigKeys {
     } // --- FIN del método generateKeyPart ---
     
     
-//    public static String normalizePart(String text) {
-//        if (text == null || text.isBlank()) return "unknown";
-//        String normalized = java.text.Normalizer.normalize(text, java.text.Normalizer.Form.NFD);
-//        normalized = normalized.replaceAll("\\p{InCombiningDiacriticalMarks}+", "");
-//        return normalized.trim().toLowerCase()
-//                         .replaceAll("\\s+", "_")
-//                         .replaceAll("[^a-z0-9_]", "");
-//    }
-    
-
     // --- SECCIÓN: ESTADO DE LA VENTANA ---
     public static final String WINDOW_X = "window.x";
     public static final String WINDOW_Y = "window.y";

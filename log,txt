@@ -3,32 +3,26 @@ Iniciando Visor de Imágenes V2...
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
     -> VisorModel creado e inyectado.
-Mapa de configuración por defecto inicializado con 95 claves.
+Mapa de configuración por defecto inicializado con 91 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
-Config no encontrado. Creando por defecto...
-Creando config por defecto (estructura jerárquica v2.1)...
-Archivo de configuración por defecto creado en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 95
+Configuración leída. Total claves: 133
 --- DEBUG PRE-SINCRONIZACIÓN ---
-Tamaño de DEFAULT_CONFIG: 95
-Tamaño de loadedConfig (del archivo): 95
+Tamaño de DEFAULT_CONFIG: 91
+Tamaño de loadedConfig (del archivo): 133
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
 Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
-!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1190035432
+!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1830908236
     -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración al Modelo...
     -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: Ajustar a Pantalla
-    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: Ajustar a Pantalla
-WARN: Clave 'miniaturas.tamano.seleccionada.alto' no encontrada. Usando default '60' y añadiendo a config en memoria.
-WARN: Clave 'miniaturas.tamano.normal.ancho' no encontrada. Usando default '40' y añadiendo a config en memoria.
-WARN: Clave 'miniaturas.tamano.normal.alto' no encontrada. Usando default '40' y añadiendo a config en memoria.
+    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: Ajustar a Alto
     -> Modelo: Zoom manual inicial activo (desde config 'comportamiento...'): true
-WARN: Clave 'interfaz.menu.zoom.mantener_proporciones.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+  [Model] Estado mantenerProporcion cambiado a: false
     -> Modelo: Navegación circular (desde config 'comportamiento.navegacion.circular'): false
     -> Configuración aplicada al Modelo (Miniaturas, Comportamiento).
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
@@ -47,474 +41,173 @@ WARN: Clave 'interfaz.menu.zoom.mantener_proporciones.seleccionado' no encontrad
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
 --- VisorController: Inicialización delegada completada con éxito ---
 VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
-  [AppInitializer Fase B - EDT] Iniciando creación de UI y componentes dependientes...
-[ViewUIConfig] Configuración UI creada con colores de tema.
-    B.1.bis. [EDT] ViewUIConfig INICIAL (sin actionMap) creado.
-[VisorView Constructor] Iniciando constructor principal de VisorView...
-  [VisorView Constructor] Icono de error general ('imagen-rota.png') cargado y escalado para visor principal a: 128x128
---- [VisorView] Iniciando inicializarComponentes (Modular) ---
-    [VisorView] Creando PanelInfoSuperior (v2)...
-    [VisorView] PanelInfoSuperior (v2) creado.
-  [VisorView] Panel de Controles de Fondo de Icono inicializado con 7 puntos.
-  [VisorView] Creando PanelModoNormal...
-    [VisorView] Creando PanelContenedorParaSplit (Izquierdo (Modo Normal))...
-    [VisorView] Creando PanelContenedorParaSplit (Derecho (Modo Normal))...
-    [VisorView] Configurando ComponentesDelSplitIzquierdo...
-      -> [VisorView] inicializarPanelIzquierdo...
-      -> PanelIzquierdo y ListaNombres configurados por inicializarPanelIzquierdo.
-      -> panelIzquierdo añadido a panelContenedorIzquierdoSplit.
-    [VisorView] Configurando ComponentesDelSplitDerecho...
-      -> [VisorView] inicializarEtiquetaMostrarImagen...
-      -> EtiquetaImagen configurada por inicializarEtiquetaMostrarImagen.
-      -> etiquetaImagen añadida a panelContenedorDerechoSplit.
-      -> panelControlesFondoIcono añadido a panelContenedorDerechoSplit.SOUTH.
-    [VisorView] Creando y configurando JSplitPane...
-    [VisorView] JSplitPane creado.
-    [VisorView] Configurando PanelDeMiniaturas...
-      -> [VisorView] inicializarPanelImagenesMiniatura...
-WARN: Clave 'interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-      -> PanelDeMiniaturas (scroll y lista) configurados por inicializarPanelImagenesMiniatura.
-    [VisorView] PanelDeMiniaturas configurado.
-  [VisorView] PanelModoNormal creado y ensamblado.
-    [VisorView] Creando PanelEstadoInferior (v3.1 - con controles de zoom y prueba magenta)...
-    [VisorView] PanelEstadoInferior (v3.1) creado y ensamblado.
-  [VisorView] Iniciando ensamblarUIGeneral...
-    -> Barra de Menú ensamblada.
-    -> Barra de Botones Principal ensamblada en JFrame.NORTH.
-    -> PanelInfoSuperior ensamblado en topAndCenterWrapper.NORTH.
-    -> PanelDelModoActivo ensamblado en topAndCenterWrapper.CENTER.
-    -> topAndCenterWrapper ensamblado en JFrame.CENTER.
-    -> PanelEstadoInferior ensamblado en JFrame.SOUTH.
-  [VisorView] Fin ensamblarUIGeneral.
---- [VisorView] Fin inicializarComponentes (Modular) ---
-  [VisorView Constructor] Restaurando estado de la ventana desde configuración...
-    -> Aplicando bounds guardados: java.awt.Rectangle[x=0,y=0,width=1550,height=500]
-    -> 'lastNormalBounds' inicializado a: java.awt.Rectangle[x=0,y=0,width=1550,height=500]
-  [VisorView Constructor] Estado de la ventana (tamaño/posición) restaurado desde configuración.
-    B.2. [EDT] VisorView instanciada con uiConfigInicial e inyectada en Controller.
-    B.3.1. [EDT] ZoomManager creado e inyectado.
-    B.3.2. [EDT] ViewManager creado.
-    B.3.3. [EDT] FileOperationsManager creado.
-    B.3.4. [EDT] EditionManager creado.
+--- [AppInitializer Fase B - EDT] Iniciando creación de UI en secuencia lógica ---
+  [ViewBuilder] Iniciando la construcción del frame principal COMPLETO...
+[VisorView Constructor SIMPLIFICADO] Iniciando...
+    [ViewBuilder] Creando PanelInfoSuperior...
+    [ViewBuilder] PanelInfoSuperior creado y ensamblado.
+  [ViewBuilder] Panel de Controles de Fondo de Icono creado.
+    [ViewBuilder] Creando PanelEstadoInferior...
+    [ViewBuilder] PanelEstadoInferior creado y ensamblado.
+  [ViewBuilder] Frame principal construido y ensamblado.
+  [EDT - FASE 1 & 2] Cimientos y UI principal construidos.
 [ListCoordinator] Instancia creada.
-    B.4. [EDT] ListCoordinator creado e inyectado.
+  [EDT - FASE 3] Managers de Lógica creados e inyectados.
   [ActionFactory] Inicializando todas las Actions...
-  [ToggleMenuBarAction CSTR] Leyendo 'interfaz.menu.vista.barra_de_menu.seleccionado' -> true. SELECTED_KEY puesto a: true
-WARN: Clave 'interfaz.menu.vista.barra_de_botones.seleccionado.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolBarAction CSTR] 'Barra de Botones' (clave base: interfaz.menu.vista.barra_de_botones.seleccionado, UI ID: Barra_de_Botones) inicializada. Leyendo de 'interfaz.menu.vista.barra_de_botones.seleccionado.seleccionado'. SELECTED_KEY: true
-WARN: Clave 'interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.menu.vista.imagenes_en_miniatura.seleccionado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.inferior.nombre_ruta.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado' no encontrada. Usando default 'false' y añadiendo a config en memoria.
+  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 0
+  [EDT - FASE 4] ActionFactory creada.
+  [ActionFactory] Inicializando todas las Actions...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@30c8640b
+ActionFactory: Creando ToggleSubfoldersAction@1d14ebb7
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
-[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-WARN: Clave 'interfaz.infobar.superior.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Barra de Información Superior' (clave base: interfaz.infobar.superior.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.superior.nombre_ruta.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Nombre/Ruta Archivo (Sup.)' (clave base: interfaz.infobar.superior.nombre_ruta.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.nombre_ruta.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.superior.indice_total.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Índice/Total Imágenes' (clave base: interfaz.infobar.superior.indice_total.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.indice_total.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.superior.dimensiones.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Dimensiones Originales' (clave base: interfaz.infobar.superior.dimensiones.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.dimensiones.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.superior.tamano_archivo.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Tamaño de Archivo' (clave base: interfaz.infobar.superior.tamano_archivo.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.tamano_archivo.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.superior.fecha_archivo.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Fecha de Archivo' (clave base: interfaz.infobar.superior.fecha_archivo.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.fecha_archivo.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.superior.formato_imagen.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Formato de Imagen' (clave base: interfaz.infobar.superior.formato_imagen.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.formato_imagen.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.superior.modo_zoom.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Modo de Zoom' (clave base: interfaz.infobar.superior.modo_zoom.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.modo_zoom.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.superior.zoom_real_pct.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar % Zoom Real' (clave base: interfaz.infobar.superior.zoom_real_pct.visible, UI ID: REFRESH_INFO_BAR_SUPERIOR) inicializada. Leyendo de 'interfaz.infobar.superior.zoom_real_pct.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Barra de Estado/Control Inferior' (clave base: interfaz.infobar.inferior.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.nombre_ruta.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Nombre/Ruta Archivo (Inf.)' (clave base: interfaz.infobar.inferior.nombre_ruta.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.nombre_ruta.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.icono_zm.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Zoom Manual (Inf.)' (clave base: interfaz.infobar.inferior.icono_zm.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.icono_zm.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.icono_prop.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Proporciones (Inf.)' (clave base: interfaz.infobar.inferior.icono_prop.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.icono_prop.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.icono_subc.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Icono Subcarpetas (Inf.)' (clave base: interfaz.infobar.inferior.icono_subc.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.icono_subc.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.ctrl_zoom_pct.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Control % Zoom (Inf.)' (clave base: interfaz.infobar.inferior.ctrl_zoom_pct.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.ctrl_zoom_pct.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.ctrl_modo_zoom.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Control Modo Zoom (Inf.)' (clave base: interfaz.infobar.inferior.ctrl_modo_zoom.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.ctrl_modo_zoom.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.mensajes_app.visible.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleUIElementVisibilityAction CSTR] 'Mostrar Área de Mensajes (Inf.)' (clave base: interfaz.infobar.inferior.mensajes_app.visible, UI ID: REFRESH_INFO_BAR_INFERIOR) inicializada. Leyendo de 'interfaz.infobar.inferior.mensajes_app.visible.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.infobar.inferior.nombre_ruta.formato' no encontrada. Usando default 'solo_nombre' y añadiendo a config en memoria.
-  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 66
-    B.6. [EDT] ActionFactory creada. ActionMap base obtenido (Tamaño: 66).
-[ViewUIConfig] Configuración UI creada con colores de tema.
-    B.7. [EDT] ViewUIConfig para Builders y MenuAction creado (usando actionMap de 66 actions).
-    B.7.bis. [EDT] Creando MenuAction y añadiéndola al this.actionMap...
-      -> MenuAction final añadida a this.actionMap. Tamaño actual del actionMap: 66
-    B.7.ter. [EDT] ActionMap FINAL (con MenuAction) y ViewUIConfig correspondiente inyectados en Controller y View.
-    B.8. [EDT] Lista de ContextSensitiveActions inyectada en ListCoordinator.
-    B.9. [EDT] Creando ConfigApplicationManager...
-[ConfigApplicationManager] Creando instancia...
-[ConfigApplicationManager] Instancia creada con todas las dependencias.
-    B.9. [EDT] ConfigApplicationManager creado.
-[InfoBarManager] Instancia creada. Configurando componentes...
-[InfoBarManager] Configuración de componentes finalizada.
-    B.9. [EDT] InfoBarManager creado.
-  [ZoomManager] InfoBarManager inyectado.
-    B.10. [EDT] InfoBarManager inyectado en ZoomManager.
-[VisorController] Sincronizando Actions de formato para Barra Superior...
-[VisorController] Sincronizando Actions de formato para Barra Inferior...
-    B.10.1. [EDT] Estado inicial de radios de formato InfoBar sincronizado.
-    B.11. [EDT] Construyendo UI (Menú y Barras de Herramientas)...
+[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: false (desde modelo)
+  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 67
+  [EDT - FASE 5] Actions inicializadas y mapa poblado.
+[ConfigApplicationManager] Creando instancia refactorizada...
+[ConfigApplicationManager] Instancia creada.
+  [StatusBarManager] Configurando Listeners para controles de la barra de estado...
+    -> MouseListener añadido a 'label.control.zoomPorcentaje'.
+    -> ActionListener añadido a 'button.control.modoZoom'.
+  [EDT - FASE 6 & 7] Managers de UI creados e inyectados.
 [MenuBarBuilder] ControllerGlobalActionListener establecido: controlador.VisorController
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 66 acciones.
+  [MenuBarBuilder] ActionMap recibido con 67 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Navegación' (clave base: interfaz.herramientas.navegacion, UI ID: navegacion) inicializada. Leyendo de 'interfaz.herramientas.navegacion.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.navegacion.nav_primera.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Primera Imagen' (botón base: interfaz.boton.navegacion.nav_primera) inicializada. Leyendo de 'interfaz.boton.navegacion.nav_primera.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.navegacion.nav_anterior.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Imagen Anterior' (botón base: interfaz.boton.navegacion.nav_anterior) inicializada. Leyendo de 'interfaz.boton.navegacion.nav_anterior.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.navegacion.nav_siguiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Imagen Siguiente' (botón base: interfaz.boton.navegacion.nav_siguiente) inicializada. Leyendo de 'interfaz.boton.navegacion.nav_siguiente.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.navegacion.nav_ultima.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Última Imagen' (botón base: interfaz.boton.navegacion.nav_ultima) inicializada. Leyendo de 'interfaz.boton.navegacion.nav_ultima.visible'. SELECTED_KEY: true
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Edición' (clave base: interfaz.herramientas.edicion, UI ID: edicion) inicializada. Leyendo de 'interfaz.herramientas.edicion.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.edicion.imagen_rotar_izq.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Rotar Izquierda' (botón base: interfaz.boton.edicion.imagen_rotar_izq) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_rotar_izq.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.edicion.imagen_rotar_der.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Rotar Derecha' (botón base: interfaz.boton.edicion.imagen_rotar_der) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_rotar_der.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.edicion.imagen_voltear_h.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Voltear Horizontal' (botón base: interfaz.boton.edicion.imagen_voltear_h) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_voltear_h.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.edicion.imagen_voltear_v.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Voltear Vertical' (botón base: interfaz.boton.edicion.imagen_voltear_v) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_voltear_v.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.edicion.imagen_recortar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Recortar' (botón base: interfaz.boton.edicion.imagen_recortar) inicializada. Leyendo de 'interfaz.boton.edicion.imagen_recortar.visible'. SELECTED_KEY: true
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Zoom' (clave base: interfaz.herramientas.zoom, UI ID: zoom) inicializada. Leyendo de 'interfaz.herramientas.zoom.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ajustar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Escalar para Ajustar' (botón base: interfaz.boton.zoom.zoom_tipo_ajustar) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_ajustar.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_auto.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Zoom Automático' (botón base: interfaz.boton.zoom.zoom_tipo_auto) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_auto.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ancho.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Ajustar al Ancho' (botón base: interfaz.boton.zoom.zoom_tipo_ancho) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_ancho.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_alto.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Ajustar al Alto' (botón base: interfaz.boton.zoom.zoom_tipo_alto) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_alto.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_fijo.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Zoom Actual Fijo' (botón base: interfaz.boton.zoom.zoom_tipo_fijo) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_fijo.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_especificado.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Zoom Especificado' (botón base: interfaz.boton.zoom.zoom_tipo_especificado) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_tipo_especificado.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.zoom.zoom_manual_toggle.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Activar/Desactivar Zoom Manual' (botón base: interfaz.boton.zoom.zoom_manual_toggle) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_manual_toggle.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.zoom.zoom_reset.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Resetear Zoom' (botón base: interfaz.boton.zoom.zoom_reset) inicializada. Leyendo de 'interfaz.boton.zoom.zoom_reset.visible'. SELECTED_KEY: true
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Vistas' (clave base: interfaz.herramientas.vistas, UI ID: vistas) inicializada. Leyendo de 'interfaz.herramientas.vistas.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Panel Galería' (botón base: interfaz.boton.vistas.todo_funcionalidad_pendiente) inicializada. Leyendo de 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible'. SELECTED_KEY: true
-[ToggleToolbarButtonVisibilityAction CSTR] '  Vista Grid' (botón base: interfaz.boton.vistas.todo_funcionalidad_pendiente) inicializada. Leyendo de 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible'. SELECTED_KEY: true
-[ToggleToolbarButtonVisibilityAction CSTR] '  Pantalla Completa' (botón base: interfaz.boton.vistas.todo_funcionalidad_pendiente) inicializada. Leyendo de 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Vista Lista' (botón base: interfaz.boton.vistas.vista_mostrar_dialogo_lista) inicializada. Leyendo de 'interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible'. SELECTED_KEY: true
-[ToggleToolbarButtonVisibilityAction CSTR] '  Vista Carrusel' (botón base: interfaz.boton.vistas.todo_funcionalidad_pendiente) inicializada. Leyendo de 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible'. SELECTED_KEY: true
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Proyecto' (clave base: interfaz.herramientas.proyecto, UI ID: proyecto) inicializada. Leyendo de 'interfaz.herramientas.proyecto.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.proyecto.proyecto_toggle_marca.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Marcar Imagen para Proyecto' (botón base: interfaz.boton.proyecto.proyecto_toggle_marca) inicializada. Leyendo de 'interfaz.boton.proyecto.proyecto_toggle_marca.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.proyecto.proyecto_gestionar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Mostrar/Ocultar Favoritos' (botón base: interfaz.boton.proyecto.proyecto_gestionar) inicializada. Leyendo de 'interfaz.boton.proyecto.proyecto_gestionar.visible'. SELECTED_KEY: true
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Toggles' (clave base: interfaz.herramientas.toggle, UI ID: toggle) inicializada. Leyendo de 'interfaz.herramientas.toggle.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.toggle.subcarpetas.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Incluir/Excluir Subcarpetas' (botón base: interfaz.boton.toggle.subcarpetas) inicializada. Leyendo de 'interfaz.boton.toggle.subcarpetas.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.toggle.mantener_proporciones.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Mantener Proporciones' (botón base: interfaz.boton.toggle.mantener_proporciones) inicializada. Leyendo de 'interfaz.boton.toggle.mantener_proporciones.visible'. SELECTED_KEY: true
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Utilidades' (clave base: interfaz.herramientas.utils, UI ID: utils) inicializada. Leyendo de 'interfaz.herramientas.utils.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.utils.imagen_eliminar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Eliminar Imagen' (botón base: interfaz.boton.utils.imagen_eliminar) inicializada. Leyendo de 'interfaz.boton.utils.imagen_eliminar.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.utils.especial_refrescar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Refrescar' (botón base: interfaz.boton.utils.especial_refrescar) inicializada. Leyendo de 'interfaz.boton.utils.especial_refrescar.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.utils.imagen_localizar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Abrir Ubicación' (botón base: interfaz.boton.utils.imagen_localizar) inicializada. Leyendo de 'interfaz.boton.utils.imagen_localizar.visible'. SELECTED_KEY: true
-[ToggleUIElementVisibilityAction CSTR] 'Barra de Apoyo' (clave base: interfaz.herramientas.apoyo, UI ID: apoyo) inicializada. Leyendo de 'interfaz.herramientas.apoyo.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.apoyo.archivo_abrir.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Abrir Carpeta' (botón base: interfaz.boton.apoyo.archivo_abrir) inicializada. Leyendo de 'interfaz.boton.apoyo.archivo_abrir.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.apoyo.especial_menu.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Menú Principal' (botón base: interfaz.boton.apoyo.especial_menu) inicializada. Leyendo de 'interfaz.boton.apoyo.especial_menu.visible'. SELECTED_KEY: true
-WARN: Clave 'interfaz.boton.apoyo.especial_botones_ocultos.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-[ToggleToolbarButtonVisibilityAction CSTR] '  Mostrar Botones Ocultos' (botón base: interfaz.boton.apoyo.especial_botones_ocultos) inicializada. Leyendo de 'interfaz.boton.apoyo.especial_botones_ocultos.visible'. SELECTED_KEY: true
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 158
+  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 162
 [ToolbarBuilder Constructor] Iniciando...
 [ToolbarBuilder Constructor] Finalizado.
 [ToolbarManager] Inicializando barras de herramientas...
 
 --- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
-    -> Botón 'cmd.nav.primera' creado y mapeado a clave base: interfaz.boton.movimiento.nav_primera
-    -> Botón 'cmd.nav.anterior' creado y mapeado a clave base: interfaz.boton.movimiento.nav_anterior
-    -> Botón 'cmd.nav.siguiente' creado y mapeado a clave base: interfaz.boton.movimiento.nav_siguiente
-    -> Botón 'cmd.nav.ultima' creado y mapeado a clave base: interfaz.boton.movimiento.nav_ultima
---- [ToolbarBuilder] Barra 'Navegación' construida con 4 componentes.
 
 --- [ToolbarBuilder] Construyendo barra: 'Edición' ---
-    -> Botón 'cmd.imagen.rotar.izq' creado y mapeado a clave base: interfaz.boton.edicion.imagen_rotar_izq
-    -> Botón 'cmd.imagen.rotar.der' creado y mapeado a clave base: interfaz.boton.edicion.imagen_rotar_der
-    -> Botón 'cmd.imagen.voltear.h' creado y mapeado a clave base: interfaz.boton.edicion.imagen_voltear_h
-    -> Botón 'cmd.imagen.voltear.v' creado y mapeado a clave base: interfaz.boton.edicion.imagen_voltear_v
-    -> Botón 'cmd.imagen.recortar' creado y mapeado a clave base: interfaz.boton.edicion.imagen_recortar
---- [ToolbarBuilder] Barra 'Edición' construida con 5 componentes.
 
 --- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
-    -> Botón 'cmd.zoom.tipo.ajustar' creado y mapeado a clave base: interfaz.boton.zoom.zoom_tipo_ajustar
-    -> Botón 'cmd.zoom.tipo.auto' creado y mapeado a clave base: interfaz.boton.zoom.zoom_tipo_auto
-    -> Botón 'cmd.zoom.tipo.ancho' creado y mapeado a clave base: interfaz.boton.zoom.zoom_tipo_ancho
-    -> Botón 'cmd.zoom.tipo.alto' creado y mapeado a clave base: interfaz.boton.zoom.zoom_tipo_alto
-    -> Botón 'cmd.zoom.tipo.fijo' creado y mapeado a clave base: interfaz.boton.zoom.zoom_tipo_fijo
-    -> Botón 'cmd.zoom.tipo.especificado' creado y mapeado a clave base: interfaz.boton.zoom.zoom_tipo_especificado
-    -> Botón 'cmd.zoom.manual.toggle' creado y mapeado a clave base: interfaz.boton.zoom.zoom_manual_toggle
-    -> Botón 'cmd.zoom.reset' creado y mapeado a clave base: interfaz.boton.zoom.zoom_reset
---- [ToolbarBuilder] Barra 'Zoom' construida con 8 componentes.
 
 --- [ToolbarBuilder] Construyendo barra: 'Vistas' ---
-    -> Botón 'cmd.todo.funcionalidad_pendiente' creado y mapeado a clave base: interfaz.boton.vista.todo_funcionalidad_pendiente
-    -> Botón 'cmd.todo.funcionalidad_pendiente' creado y mapeado a clave base: interfaz.boton.vista.todo_funcionalidad_pendiente
-    -> Botón 'cmd.todo.funcionalidad_pendiente' creado y mapeado a clave base: interfaz.boton.vista.todo_funcionalidad_pendiente
-    -> Botón 'cmd.vista.mostrar_dialogo_lista' creado y mapeado a clave base: interfaz.boton.vista.vista_mostrar_dialogo_lista
-    -> Botón 'cmd.todo.funcionalidad_pendiente' creado y mapeado a clave base: interfaz.boton.vista.todo_funcionalidad_pendiente
---- [ToolbarBuilder] Barra 'Vistas' construida con 5 componentes.
 
 --- [ToolbarBuilder] Construyendo barra: 'Proyecto' ---
-    -> Botón 'cmd.proyecto.toggle_marca' creado y mapeado a clave base: interfaz.boton.proyecto.proyecto_toggle_marca
-    -> Botón 'cmd.proyecto.gestionar' creado y mapeado a clave base: interfaz.boton.proyecto.proyecto_gestionar
---- [ToolbarBuilder] Barra 'Proyecto' construida con 2 componentes.
 
 --- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
-    -> Botón 'cmd.toggle.subcarpetas' creado y mapeado a clave base: interfaz.boton.toggle.subcarpetas
-    -> Botón 'cmd.toggle.mantener_proporciones' creado y mapeado a clave base: interfaz.boton.toggle.mantener_proporciones
---- [ToolbarBuilder] Barra 'Toggles' construida con 2 componentes.
 
 --- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
-    -> Botón 'cmd.imagen.eliminar' creado y mapeado a clave base: interfaz.boton.control.imagen_eliminar
-    -> Botón 'cmd.especial.refrescar' creado y mapeado a clave base: interfaz.boton.control.especial_refrescar
-    -> Botón 'cmd.imagen.localizar' creado y mapeado a clave base: interfaz.boton.control.imagen_localizar
---- [ToolbarBuilder] Barra 'Utilidades' construida con 3 componentes.
 
 --- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
-    -> Botón 'cmd.archivo.abrir' creado y mapeado a clave base: interfaz.boton.especiales.archivo_abrir
-    -> Botón 'cmd.especial.menu' creado y mapeado a clave base: interfaz.boton.especiales.especial_menu
-    -> Botón 'cmd.especial.botones_ocultos' creado y mapeado a clave base: interfaz.boton.especiales.especial_botones_ocultos
---- [ToolbarBuilder] Barra 'Apoyo' construida con 3 componentes.
+  [ToolbarManager] Registrando botones individuales...
+    -> 30 botones registrados.
 [ToolbarManager] Inicialización de barras completada.
-    B.11. [EDT] Menú y Barras de Herramientas Modulares construidos.
-    B.12. [EDT] Aplicando configuración global a través de ConfigApplicationManager...
+  [EDT - FASE 8] UI poblada con Menús y Toolbars.
+  [EDT - FASE 9] Configuración final e inicio de carga...
 --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
-  [ConfigAppManager] Aplicando configuración al Modelo...
-    -> Configuración del Modelo aplicada.
---- [ConfigApplicationManager] Aplicación de configuración global completada. ---
-    B.12.1. [EDT] Sincronizando estado visual inicial de los botones de Zoom...
-[VisorController] Sincronizando estado visual de botones/radios de Zoom con modo modelo: Ajustar a Pantalla
-  -> Config 'comportamiento.zoom.ultimo_modo_seleccionado' actualizada a: FIT_TO_SCREEN
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_especificado
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_alto
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_fijo
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_ajustar
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_auto
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_tipo_ancho
-[VisorController] Sincronización de botones/radios de zoom finalizada.
-    [EDT Internal] Asignando modelo de miniaturas a la Vista...
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 0)
-    [EDT Internal] Fin assignModeloMiniaturasToViewInternal.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Alto, Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
+[Controller Internal] Configurando Listeners de Vista...
     [EDT Internal] Estableciendo carpeta raíz inicial desde config...
   [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
       -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-[Controller Internal] Configurando Listeners de Vista...
-  -> Listener de Selección (ListSelectionListener) añadido a listaNombres.
-  -> Listener de Rueda (MouseWheelListener) para NAVEGACIÓN ÍTEM A ÍTEM añadido a listaNombres.
-  -> Listener de Selección (ListSelectionListener) añadido a listaMiniaturas.
-  -> Listeners de Zoom/Pan (Rueda, Pressed, Dragged) añadidos a etiquetaImagenPrincipal.
-  -> Listener de Rueda (MouseWheelListener) para NAVEGACIÓN ÍTEM A ÍTEM añadido a scrollListaMiniaturas.
-  -> Listener de Ratón (MouseListener) añadido a scrollListaMiniaturas para gestionar foco.
-  -> Configurando Listeners para Iconos/Controles de la Barra Inferior...
-    -> MouseListener añadido a iconoZoomManualLabel (Barra Inferior).
-    -> MouseListener añadido a iconoMantenerProporcionesLabel (Barra Inferior).
-    -> MouseListener añadido a iconoModoSubcarpetasLabel (Barra Inferior).
-[Controller Internal] Configuración de Listeners de Vista finalizada.
-  -> Configurando bindings de teclado para JLists (Principalmente Flechas)...
-    -> [EDT AppInitializer] Configurando ComponentListener para miniaturas dinámicas...
-    -> [EDT AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.
-    [Internal] Configurando Shutdown Hook...
-    [Internal] Shutdown Hook registrado en la JVM.
-  [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...
-    -> Carpeta inicial válida encontrada: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    -> Cargando lista para carpeta inicial (desde MODELO): D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    -> Clave de imagen inicial a intentar seleccionar: 
+  [EDT] Mostrando la ventana principal ANTES de la carga de la lista...
+  [EDT] Iniciando carga de estado inicial...
 
--->>> INICIO cargarListaImagenes(String) | Mantener Clave: 
-  -> Modo búsqueda: Subcarpetas (depth=MAX)
-    -> [cargarListaImagenes] Iniciando búsqueda (con subcarpetas) desde carpeta raíz del MODELO: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
-  -> [cargarListaImagenes] Creando diálogo y worker para búsqueda en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources (Relativizar a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources)
-[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  -> [cargarListaImagenes] Diálogo y Worker creados y asociados.
-  -> [cargarListaImagenes] Añadiendo PropertyChangeListener al worker...
-  -> [cargarListaImagenes] Ejecutando worker y programando muestra de diálogo...
--->>> FIN cargarListaImagenes(String) | Clave mantenida: 
-  [Load Initial State Internal] Finalizado.
-  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.proyecto.proyecto_toggle_marca
-  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
-  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.proyecto.proyecto_toggle_marca
-  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
-  [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.
---- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---
-[AppInitializer] Ejecutando sincronización final de checkboxes de botones...
-[VisorController] Sincronizando estado visual de Checkboxes de visibilidad de botones...
-[VisorController] Sincronización de checkboxes de visibilidad finalizada.
-  [Worker BG] Files.walk terminado. Archivos encontrados: 176
-  [VisorView Constructor - EDT] Divisor del JSplitPane principal establecido a 25.0%.
-  [ConfigAppManager] Aplicando configuración a la Vista (en EDT)...
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_especificado.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.movimiento.nav_anterior.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.movimiento.nav_anterior.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_alto.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.control.especial_refrescar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.control.especial_refrescar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.edicion.imagen_rotar_der.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.control.imagen_localizar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.control.imagen_localizar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.edicion.imagen_voltear_v.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.vista.vista_mostrar_dialogo_lista.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.vista.vista_mostrar_dialogo_lista.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.edicion.imagen_rotar_izq.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ajustar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ancho.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.proyecto.proyecto_toggle_marca.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.movimiento.nav_primera.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.movimiento.nav_primera.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_auto.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.zoom.zoom_reset.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.proyecto.proyecto_gestionar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.toggle.subcarpetas.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.edicion.imagen_voltear_h.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.especiales.especial_botones_ocultos.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.especiales.especial_botones_ocultos.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.control.imagen_eliminar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.control.imagen_eliminar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.especiales.especial_menu.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.especiales.especial_menu.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.zoom.zoom_manual_toggle.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.especiales.archivo_abrir.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.especiales.archivo_abrir.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.edicion.imagen_recortar.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.vista.todo_funcionalidad_pendiente.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.vista.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.toggle.mantener_proporciones.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.movimiento.nav_siguiente.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.movimiento.nav_siguiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.zoom.zoom_tipo_fijo.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.movimiento.nav_ultima.activado' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.boton.movimiento.nav_ultima.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-    -> Sincronizando estado visual inicial de botones toggle...
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.zoom.zoom_manual_toggle
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.toggle.mantener_proporciones
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.toggle.subcarpetas
+[Controller] Limpiando UI y Modelo a estado vacío...
+    [Coordinator Flag] sincronizandoUI -> true
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 0
+  -> Modelo limpiado.
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 0
+  -> Vista actualizada a estado vacío.
+[ThumbnailService] Caché de miniaturas limpiado.
+  -> Caché de miniaturas limpiado.
+    -> Sincronizando estado visual de botones toggle...
     -> Sincronización de botones toggle completada.
-    -> Configuración básica de Vista (botones/menús) aplicada.
-  [ConfigAppManager] Sincronizando UI final (en EDT)...
-    -> Sincronización de UI final completada.
-WARN: Clave 'interfaz.infobar.superior.dimensiones.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.superior.tamano_archivo.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.superior.fecha_archivo.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.superior.formato_imagen.visible' no encontrada. Usando default 'false' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.superior.modo_zoom.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.superior.zoom_real_pct.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.inferior.mensajes_app.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.inferior.icono_zm.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.inferior.icono_prop.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.inferior.icono_subc.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.inferior.ctrl_zoom_pct.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-WARN: Clave 'interfaz.infobar.inferior.ctrl_modo_zoom.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
-    [EDT Carga Lista] Mostrando diálogo de progreso...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+[Controller] Limpieza de UI y Modelo completada.
+[Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
+--- [EDT] Inicialización de UI completada y carga de archivos en segundo plano iniciada. ---
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
+  [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...
+    -> Sincronizando estado visual de botones toggle...
+  [Worker BG] Files.walk terminado. Archivos encontrados: 181
+    -> Sincronización de botones toggle completada.
+    -> Aplicando estado inicial de fondo a cuadros desde config: false
+    -> Configuración básica de Vista aplicada.
+  [ConfigAppManager] Sincronizando UI final...
+    [Coordinator Flag] sincronizandoUI -> false
 [Worker EDT] Método done() alcanzado.
-  [EDT Worker Listener] Tarea de búsqueda (BuscadorArchivosWorker) ha finalizado (DONE). Procesando resultado...
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 176
-    -> Resultado obtenido del worker: 176 archivos. Actualizando modelo y vista...
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 176
-[VisorView setListaImagenesModel] Modelo asignado a listaNombres (y potencialmente listaMiniaturas). Tamaño: 176
-    -> Flag estaCargandoLista puesto a FALSE.
-      -> [Precalentamiento] Añadidas 30 rutas iniciales para precalentar.
-    -> [VisorController] Solicitando precalentamiento DIRIGIDO para un total de 30 miniaturas.
-[Controller] Iniciando pre-calentamiento de caché para 30 miniaturas...
-[Controller] 30 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-      -> Índice final a seleccionar después de carga: 0 (intentando mantener: '')
-    -> Aplicando selección inicial programática al índice: 0
-      -> Flag seleccionInicialEnCurso puesto a TRUE.
-  [EDT Worker Listener] Procesamiento del resultado finalizado.
-      [WindowResized Timer] Ejecutando actualización de UI por redimensionamiento...
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> [Timer Fin Selección Inicial] Flag seleccionInicialEnCurso puesto a FALSE. (Índice que se intentó seleccionar: 0)
-    [Asegurar Visibilidad] Índice -1, no se hace nada.
-      [WindowResized Timer] Ejecutando actualización de UI por redimensionamiento...
-      -> [WorkerDone Doble InvokeLater] Llamando MANUALMENTE a ListCoordinator para procesar índice inicial: 0
+    WORKER HA TERMINADO. Número de archivos encontrados: 181
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 181
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 181
+>>> Coordinator: Solicitud de REINICIO y selección de índice: 0
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
 >>> Coordinator: Solicitud para procesar índice: 0 (Actual Oficial: -1)
     [Coordinator Flag] sincronizandoUI -> true
   [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: -1)
     -> Actualizando índice oficial a: 0
     -> Delegando carga de imagen al Controller para índice: 0
---> [VisorController.actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice informativo: 0)
-    [VisorController.actualizarImagenPrincipal] Lanzando tarea de carga en background para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
---> [VisorController.actualizarImagenPrincipal] Tarea de carga de imagen principal lanzada para: A-gigante de hierro.jpg
-      [BG Img Load - pool-1-thread-5] Iniciando lectura para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\A-gigante de hierro.jpg
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.proyecto.proyecto_toggle_marca
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: A-gigante de hierro.jpg
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
   [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
       [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
-        -> Índice actual en JList 'Nombres': 0
-        -> Índice ya correcto. Asegurando solo visibilidad.
-      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
+        -> Índice actual en JList 'Nombres': -1
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 0
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 0
 
 --- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 176
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 181
   [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
 --- FIN actualizarModeloYVistaMiniaturas ---
-        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: 0
 >>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
-      [BG Img Load] Lectura de imagen desde disco correcta para: A-gigante de hierro.jpg
-          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 0
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 0
+    [Coordinator Flag] sincronizandoUI -> false
     [Coordinator Flag] sincronizandoUI -> true
    -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
-  [CalcularMiniaturas DEBUG] ViewportWidth: 1526, ViewportHeight: 77, CellWidth: 50, ScrollPane Showing: true, ListaMiniaturas Showing: true
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 8
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..8]
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..15]
    -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 9. Índice relativo seleccionado: 0
-[Controller] Iniciando pre-calentamiento de caché para 9 miniaturas...
-[Controller] 9 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=450,height=66]
-[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 9)
+   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 16. Índice relativo seleccionado: 0
+[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
+[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=800,height=66]
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 16)
    -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
    -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
     [Coordinator Flag] sincronizandoUI -> false
-      [EDT Img Update - AWT-EventQueue-0] Procesando resultado de carga para clave: A-gigante de hierro.jpg
-        -> [EDT Img Update] Carga desde disco fue EXITOSA. Actualizando modelo y UI...
-        -> [EDT Img Update] Zoom manual activo. Se mantendrá zoom/pan actual para nueva imagen.
-  -> ¡Botón ENCONTRADO! Clave: interfaz.boton.proyecto.proyecto_toggle_marca
-        -> [EDT Img Update] FIN PROCESO ÉXITO (Vista refrescada, marca actualizada).
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
---- Hook de Cierre Ejecutándose ---
-  [Hook - Ventana] Guardando estado de la ventana en config...
-    -> Estado Maximized guardado en config: false
-    -> Últimos Bounds Normales guardados en config: java.awt.Rectangle[x=0,y=0,width=1550,height=500]
-  -> Llamando a guardarConfiguracionActual() desde hook...
+--- [Listener Primer Renderizado]: Panel listo (1145x236). Forzando refresco de zoom y barras de info. ---
+--- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
+--- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
-!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1190035432
+!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1830908236
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
@@ -523,120 +216,9 @@ WARN: Clave 'interfaz.infobar.inferior.ctrl_modo_zoom.visible' no encontrada. Us
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 205
-Añadiendo 110 claves nuevas:
-  Nuevo: interfaz.boton.apoyo.archivo_abrir.visible = true
-  Nuevo: interfaz.boton.apoyo.especial_botones_ocultos.visible = true
-  Nuevo: interfaz.boton.apoyo.especial_menu.visible = true
-  Nuevo: interfaz.boton.control.especial_refrescar.activado = true
-  Nuevo: interfaz.boton.control.especial_refrescar.visible = true
-  Nuevo: interfaz.boton.control.imagen_eliminar.activado = true
-  Nuevo: interfaz.boton.control.imagen_eliminar.visible = true
-  Nuevo: interfaz.boton.control.imagen_localizar.activado = true
-  Nuevo: interfaz.boton.control.imagen_localizar.visible = true
-  Nuevo: interfaz.boton.edicion.imagen_recortar.activado = true
-  Nuevo: interfaz.boton.edicion.imagen_recortar.visible = true
-  Nuevo: interfaz.boton.edicion.imagen_rotar_der.activado = true
-  Nuevo: interfaz.boton.edicion.imagen_rotar_der.visible = true
-  Nuevo: interfaz.boton.edicion.imagen_rotar_izq.activado = true
-  Nuevo: interfaz.boton.edicion.imagen_rotar_izq.visible = true
-  Nuevo: interfaz.boton.edicion.imagen_voltear_h.activado = true
-  Nuevo: interfaz.boton.edicion.imagen_voltear_h.visible = true
-  Nuevo: interfaz.boton.edicion.imagen_voltear_v.activado = true
-  Nuevo: interfaz.boton.edicion.imagen_voltear_v.visible = true
-  Nuevo: interfaz.boton.especiales.archivo_abrir.activado = true
-  Nuevo: interfaz.boton.especiales.archivo_abrir.visible = true
-  Nuevo: interfaz.boton.especiales.especial_botones_ocultos.activado = true
-  Nuevo: interfaz.boton.especiales.especial_botones_ocultos.visible = true
-  Nuevo: interfaz.boton.especiales.especial_menu.activado = true
-  Nuevo: interfaz.boton.especiales.especial_menu.visible = true
-  Nuevo: interfaz.boton.movimiento.nav_anterior.activado = true
-  Nuevo: interfaz.boton.movimiento.nav_anterior.visible = true
-  Nuevo: interfaz.boton.movimiento.nav_primera.activado = true
-  Nuevo: interfaz.boton.movimiento.nav_primera.visible = true
-  Nuevo: interfaz.boton.movimiento.nav_siguiente.activado = true
-  Nuevo: interfaz.boton.movimiento.nav_siguiente.visible = true
-  Nuevo: interfaz.boton.movimiento.nav_ultima.activado = true
-  Nuevo: interfaz.boton.movimiento.nav_ultima.visible = true
-  Nuevo: interfaz.boton.navegacion.nav_anterior.visible = true
-  Nuevo: interfaz.boton.navegacion.nav_primera.visible = true
-  Nuevo: interfaz.boton.navegacion.nav_siguiente.visible = true
-  Nuevo: interfaz.boton.navegacion.nav_ultima.visible = true
-  Nuevo: interfaz.boton.proyecto.proyecto_gestionar.activado = true
-  Nuevo: interfaz.boton.proyecto.proyecto_gestionar.visible = true
-  Nuevo: interfaz.boton.proyecto.proyecto_toggle_marca.activado = true
-  Nuevo: interfaz.boton.proyecto.proyecto_toggle_marca.visible = true
-  Nuevo: interfaz.boton.toggle.mantener_proporciones.activado = true
-  Nuevo: interfaz.boton.toggle.mantener_proporciones.visible = true
-  Nuevo: interfaz.boton.toggle.subcarpetas.activado = true
-  Nuevo: interfaz.boton.toggle.subcarpetas.visible = true
-  Nuevo: interfaz.boton.utils.especial_refrescar.visible = true
-  Nuevo: interfaz.boton.utils.imagen_eliminar.visible = true
-  Nuevo: interfaz.boton.utils.imagen_localizar.visible = true
-  Nuevo: interfaz.boton.vista.todo_funcionalidad_pendiente.activado = true
-  Nuevo: interfaz.boton.vista.todo_funcionalidad_pendiente.visible = true
-  Nuevo: interfaz.boton.vista.vista_mostrar_dialogo_lista.activado = true
-  Nuevo: interfaz.boton.vista.vista_mostrar_dialogo_lista.visible = true
-  Nuevo: interfaz.boton.vistas.todo_funcionalidad_pendiente.visible = true
-  Nuevo: interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible = true
-  Nuevo: interfaz.boton.zoom.zoom_manual_toggle.activado = true
-  Nuevo: interfaz.boton.zoom.zoom_manual_toggle.visible = true
-  Nuevo: interfaz.boton.zoom.zoom_reset.activado = true
-  Nuevo: interfaz.boton.zoom.zoom_reset.visible = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_ajustar.activado = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_ajustar.visible = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_alto.activado = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_alto.visible = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_ancho.activado = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_ancho.visible = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_auto.activado = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_auto.visible = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_especificado.activado = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_especificado.visible = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_fijo.activado = true
-  Nuevo: interfaz.boton.zoom.zoom_tipo_fijo.visible = true
-  Nuevo: interfaz.infobar.inferior.ctrl_modo_zoom.visible = true
-  Nuevo: interfaz.infobar.inferior.ctrl_modo_zoom.visible.visible = true
-  Nuevo: interfaz.infobar.inferior.ctrl_zoom_pct.visible = true
-  Nuevo: interfaz.infobar.inferior.ctrl_zoom_pct.visible.visible = true
-  Nuevo: interfaz.infobar.inferior.icono_prop.visible = true
-  Nuevo: interfaz.infobar.inferior.icono_prop.visible.visible = true
-  Nuevo: interfaz.infobar.inferior.icono_subc.visible = true
-  Nuevo: interfaz.infobar.inferior.icono_subc.visible.visible = true
-  Nuevo: interfaz.infobar.inferior.icono_zm.visible = true
-  Nuevo: interfaz.infobar.inferior.icono_zm.visible.visible = true
-  Nuevo: interfaz.infobar.inferior.mensajes_app.visible = true
-  Nuevo: interfaz.infobar.inferior.mensajes_app.visible.visible = true
-  Nuevo: interfaz.infobar.inferior.nombre_ruta.formato = solo_nombre
-  Nuevo: interfaz.infobar.inferior.nombre_ruta.visible = true
-  Nuevo: interfaz.infobar.inferior.nombre_ruta.visible.visible = true
-  Nuevo: interfaz.infobar.inferior.visible.visible = true
-  Nuevo: interfaz.infobar.superior.dimensiones.visible = true
-  Nuevo: interfaz.infobar.superior.dimensiones.visible.visible = true
-  Nuevo: interfaz.infobar.superior.fecha_archivo.visible = true
-  Nuevo: interfaz.infobar.superior.fecha_archivo.visible.visible = true
-  Nuevo: interfaz.infobar.superior.formato_imagen.visible = false
-  Nuevo: interfaz.infobar.superior.formato_imagen.visible.visible = true
-  Nuevo: interfaz.infobar.superior.indice_total.visible.visible = true
-  Nuevo: interfaz.infobar.superior.modo_zoom.visible = true
-  Nuevo: interfaz.infobar.superior.modo_zoom.visible.visible = true
-  Nuevo: interfaz.infobar.superior.nombre_ruta.visible.visible = true
-  Nuevo: interfaz.infobar.superior.tamano_archivo.visible = true
-  Nuevo: interfaz.infobar.superior.tamano_archivo.visible.visible = true
-  Nuevo: interfaz.infobar.superior.visible.visible = true
-  Nuevo: interfaz.infobar.superior.zoom_real_pct.visible = true
-  Nuevo: interfaz.infobar.superior.zoom_real_pct.visible.visible = true
-  Nuevo: interfaz.menu.vista.barra_de_botones.seleccionado.seleccionado = true
-  Nuevo: interfaz.menu.vista.imagenes_en_miniatura.seleccionado = true
-  Nuevo: interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado = false
-  Nuevo: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado = true
-  Nuevo: interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado = true
-  Nuevo: interfaz.menu.zoom.mantener_proporciones.seleccionado = true
-  Nuevo: miniaturas.tamano.normal.alto = 40
-  Nuevo: miniaturas.tamano.normal.ancho = 40
-  Nuevo: miniaturas.tamano.seleccionada.alto = 60
+Claves a guardar/actualizar: 133
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
-  [Hook - Executor] Apagando ExecutorService...
-    -> ExecutorService terminado ordenadamente.
---- Hook de Cierre Terminado ---
+  -> Apagando ExecutorService...
+  -> ExecutorService terminado ordenadamente.
+  -> Apagado limpio completado. Saliendo de la JVM con System.exit(0).

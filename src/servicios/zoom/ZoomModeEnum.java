@@ -1,30 +1,35 @@
 package servicios.zoom;
 
-//public class ZoomModesEnum
+import controlador.commands.AppActionCommands;
 
 public enum ZoomModeEnum {
-//    DISPLAY_ORIGINAL,      // zoomAutoAction
-//    FIT_TO_WIDTH,          // zoomAnchoAction
-//    FIT_TO_SCREEN,         // zoomFitAction
-	FIT_TO_SCREEN("Ajustar a Pantalla"),
-	DISPLAY_ORIGINAL("Tamaño Real (100%)"), 
-    FIT_TO_HEIGHT("Ajustar a Alto"),         // zoomAltoAction
-    FIT_TO_WIDTH("Ajustar a Ancho"),
-    MAINTAIN_CURRENT_ZOOM("Mantener Zoom Actual"), // zoomFixedAction
-    USER_SPECIFIED_PERCENTAGE("Porcentaje Personalizado"); // zoomFijadoAction
-	// ... otros modos
-	// Podrías añadir: ACTUAL_PIXELS (100%)
+//	MANUAL ("Modo Manual", AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE),
+    FIT_TO_SCREEN("Ajustar a Pantalla", AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR),
+    DISPLAY_ORIGINAL("Tamaño Real (100%)", AppActionCommands.CMD_ZOOM_TIPO_AUTO),
+    FIT_TO_HEIGHT("Ajustar a Alto", AppActionCommands.CMD_ZOOM_TIPO_ALTO),
+    FIT_TO_WIDTH("Ajustar a Ancho", AppActionCommands.CMD_ZOOM_TIPO_ANCHO),
+    FILL("Rellenar Pantalla", AppActionCommands.CMD_ZOOM_TIPO_RELLENAR),
+    MAINTAIN_CURRENT_ZOOM("Mantener Zoom Actual", AppActionCommands.CMD_ZOOM_TIPO_FIJO),
+    USER_SPECIFIED_PERCENTAGE("Porcentaje Personalizado", AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
 
     private final String nombreLegible;
+    private final String actionCommand;
 
-    ZoomModeEnum(String nombreLegible) {
+    ZoomModeEnum(String nombreLegible, String actionCommand) {
         this.nombreLegible = nombreLegible;
+        this.actionCommand = actionCommand;
     }
 
     public String getNombreLegible() {
         return nombreLegible;
     }
-    // Opcional: Sobrescribir toString() si quieres que siempre devuelva esto
-    @Override public String toString() { return nombreLegible; }
     
+    public String getAssociatedActionCommand() {
+        return actionCommand;
+    }
+
+    @Override 
+    public String toString() { 
+        return nombreLegible; 
+    }
 }

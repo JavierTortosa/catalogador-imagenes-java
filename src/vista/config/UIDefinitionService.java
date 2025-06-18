@@ -25,7 +25,6 @@ public class UIDefinitionService {
             new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, MenuItemType.ITEM, "Compartir", null),
             new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
             new MenuItemDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, MenuItemType.ITEM, "Refrescar Lista", null),
-            // new MenuItemDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, MenuItemType.ITEM, "Volver a Cargar", null), // Redundante si es la misma acción
             new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, MenuItemType.ITEM, "Recargar Imagen Actual", null),
             new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, MenuItemType.ITEM, "Descargar Imagen", null),
             new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
@@ -59,7 +58,7 @@ public class UIDefinitionService {
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, MenuItemType.RADIO_BUTTON_ITEM, "Ajustar a Alto", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, MenuItemType.RADIO_BUTTON_ITEM, "Zoom Personalizado %", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, MenuItemType.RADIO_BUTTON_ITEM, "Mantener Zoom Actual", null),
-            //new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, MenuItemType.RADIO_BUTTON_ITEM, "Escalar Para Rellenar", null), // Futuro
+            new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, MenuItemType.RADIO_BUTTON_ITEM, "Escalar Para Rellenar", null), // Futuro
             new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
         );
         List<MenuItemDefinition> zoomSubItems = List.of(
@@ -109,6 +108,7 @@ public class UIDefinitionService {
             new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST, MenuItemType.CHECKBOX_ITEM, "Lista de Archivos", null),
             new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, MenuItemType.CHECKBOX_ITEM, "Barra de Miniaturas", null),
             // new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, MenuItemType.CHECKBOX_ITEM, "Barra de Ubicación", null), // Integrado en Barra Inferior
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, MenuItemType.CHECKBOX_ITEM, "Barra de Estado", null),
             new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null),
             new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, MenuItemType.CHECKBOX_ITEM, "Fondo a Cuadros", null),
             new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, MenuItemType.CHECKBOX_ITEM, "Mantener Ventana Siempre Encima", null),
@@ -343,6 +343,8 @@ public class UIDefinitionService {
 
 
         // 7.7. Ítems finales del menú "Configuración" (Guardar, Cargar, Versión)
+//        configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR_UI, MenuItemType.ITEM, "Refrescar UI", null));
+        configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, MenuItemType.ITEM, "Refrescar UI y Lista", null));
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_GUARDAR, MenuItemType.ITEM, "Guardar Configuración Actual", null));
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_CARGAR_INICIAL, MenuItemType.ITEM, "Restaurar Configuración Inicial", null));
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
@@ -393,6 +395,7 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AUTO, "3002-Zoom_Auto_48x48.png", "Zoom Automático", "zoom"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, "3003-Ajustar_al_Ancho_48x48.png", "Ajustar al Ancho", "zoom"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, "3004-Ajustar_al_Alto_48x48.png", "Ajustar al Alto", "zoom"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, "3009-rellenar_48x48.png", "Rellenar Zoom", "zoom"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, "3006-Zoom_Fijo_48x48.png", "Zoom Actual Fijo", "zoom"),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, "3007-zoom_especifico_48x48.png", "Zoom Especificado", "zoom"), // Ojo: nombre icono
                 new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-Zoom_48x48.png", "Activar/Desactivar Zoom Manual", "zoom"),
@@ -429,8 +432,8 @@ public class UIDefinitionService {
          // --- BARRA DE PROYECTOS ---
     		List<ToolbarButtonDefinition> botonesProyecto = List.of(
 		            // TODO: Añadir comando para Mostrar Favoritos (toggle)
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "5003-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto"),
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "7003-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto") //muestra la lista dle proyecto actual
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "8001-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto"),//5003
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto") //7003  muestra la lista dle proyecto actual
 	            /*botones que faltan
 	             	proyecto nuevo
 	             	abrir proyecto
@@ -454,6 +457,7 @@ public class UIDefinitionService {
     		// botones de play, pausa, adelante, atras, temporizador, pase manual/automatico...
     		
 		// --- BARRA DE BOTONES modos ---
+    		
     		// botones para los modos de edicion, carrousel, proyectos, gestion de Datos...
     		
 		// --- BARRA DE BOTONES orden ---

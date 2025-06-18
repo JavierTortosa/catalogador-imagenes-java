@@ -6,43 +6,39 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
+import controlador.VisorController; // Importar VisorController
 import controlador.commands.AppActionCommands;
-import servicios.ProjectManager; // El servicio
-import vista.VisorView;         // Para obtener el frame padre del diálogo
+import servicios.ProjectManager;
+// No se necesita importar VisorView
 
-public class GestionarProyectoAction extends AbstractAction { // Ya no hereda de BaseVisorAction
+public class GestionarProyectoAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    private ProjectManager projectManagerServiceRef;
-    private VisorView viewRef; // Para el JOptionPane
+    private final ProjectManager projectManagerServiceRef;
+    private final VisorController controllerRef; // Referencia al controlador
 
-    // Constructor REFACTORIZADO
     public GestionarProyectoAction(
             ProjectManager projectManager,
-            VisorView view,
+            VisorController controller, // Recibe el controlador
             String name,
             ImageIcon icon) {
         super(name, icon);
-        this.projectManagerServiceRef = Objects.requireNonNull(projectManager, "ProjectManager no puede ser null en GestionarProyectoAction");
-        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null en GestionarProyectoAction");
+        this.projectManagerServiceRef = Objects.requireNonNull(projectManager, "ProjectManager no puede ser null");
+        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
 
         putValue(Action.SHORT_DESCRIPTION, "Gestionar la selección de imágenes del proyecto actual");
         putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_GESTIONAR);
-        
-        // Esta acción generalmente está siempre habilitada.
-        // setEnabled(true); // Por defecto las actions están habilitadas
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (projectManagerServiceRef == null || viewRef == null) {
-            System.err.println("ERROR CRÍTICO [GestionarProyectoAction]: ProjectManager o VisorView nulos.");
+        if (projectManagerServiceRef == null || controllerRef == null) {
+            System.err.println("ERROR CRÍTICO [GestionarProyectoAction]: ProjectManager o VisorController nulos.");
             return;
         }
-        // System.out.println("[GestionarProyectoAction actionPerformed] Comando: " + e.getActionCommand());
 
-        // Llamar al método del ProjectManager, pasándole el frame de la vista como padre
-        projectManagerServiceRef.gestionarSeleccionProyecto(viewRef.getFrame());
+        // Llamar al método del ProjectManager, pasándole el frame obtenido del controlador
+        projectManagerServiceRef.gestionarSeleccionProyecto(controllerRef.getView());
     }
-}
+} // --- FIN de la clase GestionarProyectoAction ---

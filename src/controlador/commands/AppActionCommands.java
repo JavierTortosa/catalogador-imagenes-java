@@ -107,6 +107,7 @@ public interface AppActionCommands {
 
     // --- Especiales / Otros ---
     String CMD_ESPECIAL_REFRESCAR 			= "cmd.especial.refrescar";      // Para RefreshAction (si es necesaria además de recargar lista)
+    String CMD_ESPECIAL_REFRESCAR_UI		= "cmd.especial.refrescar_ui";	//Para Refrescar la UI
     String CMD_ESPECIAL_MENU 				= "cmd.especial.menu";             // Para MenuAction (si hace algo específico)
     String CMD_ESPECIAL_BOTONES_OCULTOS 	= "cmd.especial.botones_ocultos"; // Para HiddenButtonsAction
 

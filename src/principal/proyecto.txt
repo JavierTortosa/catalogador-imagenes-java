@@ -1,6 +1,7 @@
 
-	este es un proyecto de un visualilzador/catalogador en java/swing. 
 	el github es: https://github.com/JavierTortosa/catalogador-imagenes-java.git
+	
+	este es un proyecto de un visualilzador/catalogador en java/swing. 
 	
 	Idea general:
 	Soy aprendiz de programador y me dedico bastante a menudo a hacer proyectos en 3d. 
@@ -106,170 +107,244 @@ En este punto tenemos varias herramientas:
 		Configuración de la Base de Datos/Catalogador (Futuro):
 		Ruta de la base de datos, opciones de indexación, etc.
 		Botones de Acción: "Aplicar", "Cancelar", "Restaurar Defaults".
+		
+		
+--------------------------------   		 
+   		
+Modos de trabajo
+
+	Visualizador de imagenes
+		Modos de zoom
+			Ajustar a Pantalla	
+			Ajustar a Ancho		
+			Ajustar a Alto		
+			Zoom 100%(Automático)		
+			Zoom Fijo(Mantener Actual)	
+			Zoom Específico		
+			Rellenar			
+			Zoom Manual
+			
+		Tipos de Vista			
+			Una imagen
+			Grid
+			Lista de Imagenes Guardadas
+			
+		Tipos de pantallas
+			Pantalla completa (sin bordes)
+			Carrousel
+					
+	Gestor de proyectos
+		Marcar Imagenes
+		Gestores Varios
+		
+	Catalogador de imagenes
+	
+	   		 
+--------------------------------
+
+
+| Modo de Zoom                | BMP false (Modo Normal / "Confía en mí")                                                            | BMP true (Modo Seguro / "Ayúdame a verla")                                                    |
+|-----------------------------|-----------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------|
+| Ajustar a Pantalla          | Muestra la imagen entera, sin salirse. (BMP es irrelevante)                                         | Muestra la imagen entera, sin salirse. (BMP es irrelevante)                                   |
+| Ajustar a Ancho             | La imagen se escala para ocupar el 100% del ancho del panel, manteniendo su proporción.             | Si al ajustar al ancho se sale por alto, se re-escala para que quepa entera (aplica Ajustar a Pantalla). |
+|                             | Puede salirse por alto.                                                                             |
+| Ajustar a Alto              | La imagen se escala para ocupar el 100% del alto del panel, manteniendo su proporción.              | Si al ajustar al alto se sale por ancho, se re-escala para que quepa entera (aplica Ajustar a Pantalla).  |
+|                             | Puede salirse por ancho.                                                                            |
+| Zoom 100% (Tamaño Real)     | La imagen se muestra a su tamaño real (1:1). Puede salirse.                                         | Si al 100% se sale de la pantalla, se re-escala para que quepa entera (aplica Ajustar a Pantalla).  |
+| Zoom Fijo (Mantener Actual) | Usa el zoomFactor guardado. Ignora los límites del panel.                                           | Usa el zoomFactor guardado. Ignora los límites del panel.                                     |
+| Zoom Específico             | Usa el % guardado. Ignora los límites del panel.                                                    | Usa el % guardado. Ignora los límites del panel.                                              |
+| Rellenar                    | (ÚNICO CASO DE DEFORMACIÓN) Estira para ocupar el 100% del panel.                                   | Igual que en modo normal. (BMP es irrelevante)                                                |   		 
+   		 
    		 
 --------------------------------
 
-¡Muchísimas gracias! Esta explicación es la pieza que une absolutamente todo. No es solo código, es el **"porqué"** detrás de cada línea y cada decisión de diseño. Entender que estás construyendo una herramienta para resolver un problema personal y muy específico (gestionar una gigantesca y creciente colección de modelos 3D) le da un contexto y una dimensión completamente nuevos a todo el proyecto.
-
-Ahora veo la aplicación no como un simple visor de imágenes, sino como lo que realmente es: un **centro de operaciones para tu flujo de trabajo creativo**.
-
-Esto lo cambia todo, porque ahora puedo evaluar cada decisión de diseño no en abstracto, sino preguntándome: **"¿Cómo ayuda esto a Javier a encontrar esa figura Skaven para su trofeo de Blood Bowl de forma más rápida y eficiente?"**
-
-He leído tu descripción detallada, he revisado el GitHub para tener una idea del estado actual, y ahora sí, la visión es de 360 grados.
-
----
-
-### **Plan de Acción Final y Definitivo: Refactorización de la Toolbar**
-
-Basado en TODO lo que hemos discutido (el código, tus objetivos a largo plazo, el MEGACONFIG, y la razón de ser del proyecto), aquí está el plan detallado y realista para llevar a cabo esta refactorización.
-
-**Objetivo:** Transformar la `Toolbar` monolítica en un sistema de barras de herramientas modulares, configurables y preparadas para una futura UI contextual, sentando las bases para el `ToolbarManager` y el `MEGACONFIG`.
-
----
-
-#### **Fase 1: Preparar los Cimientos (Configuración y Definición)**
-
-**Tarea 1.1: Definir las Nuevas Claves en `ConfigurationManager.java`**
-
-*   **Acción:** Añadir constantes públicas para la visibilidad de cada **barra de herramientas** y cada **botón individual** dentro de ellas. Usaremos el prefijo `interfaz.herramientas.` para mantener la consistencia.
-    *   Ej: `public static final String KEY_HERRAMIENTAS_EDICION_VISIBLE = "interfaz.herramientas.edicion.visible";`
-    *   Ej: `public static final String KEY_HERRAMIENTAS_EDICION_BOTON_ROTAR_IZQ_VISIBLE = "interfaz.herramientas.edicion.boton.rotar_izq.visible";`
-*   **Acción:** Añadir estas nuevas claves al mapa `DEFAULT_CONFIG` en `createDefaultConfigMap()`, estableciendo sus valores por defecto (ej: `true` para la mayoría).
-*   **Acción:** Añadir los comentarios correspondientes en `createDefaultGroupCommentsMap()` para que el `config.cfg` generado sea autoexplicativo.
-    *   Ej: `comments.put("interfaz.herramientas", "# ===== Visibilidad de Barras de Herramientas (Toolbars) =====");`
-    *   Ej: `comments.put("interfaz.herramientas.edicion", "# === Barra de Edición ===");`
-*   **Limpieza:** Buscar y **eliminar** las claves de configuración antiguas y redundantes (`interfaz.boton....visible` y `interfaz.menu.configuracion.visualizar_botones...`) para evitar inconsistencias.
-
-**Tarea 1.2: Redefinir la Estructura de la UI en `UIDefinitionService.java`**
-
-*   **Acción:** Crear un nuevo `record` llamado `ToolbarDefinition` (si aún no existe) que contenga la clave de la barra, su título y la lista de `ToolbarButtonDefinition` que le pertenecen. `record ToolbarDefinition(String clave, String titulo, List<ToolbarButtonDefinition> botones) {}`
-*   **Acción:** Modificar el método `generateModularToolbarStructure()` para que devuelva una `List<ToolbarDefinition>`. Cada `ToolbarDefinition` representará una de tus barras (Navegación, Edición, Zoom, etc.).
-*   **Acción:** En el menú de configuración (`generateMenuStructure`), eliminar el submenú plano "Visualizar Botones".
-*   **Acción:** Crear la nueva estructura jerárquica para el menú "Herramientas" como discutimos, con un submenú por cada barra.
-*   **Acción (Crucial):** Para cada `JCheckBoxMenuItem` que controla la visibilidad de una barra o un botón, en su `MenuItemDefinition`, el **`actionCommand` será la clave de configuración directa** que debe modificar.
-    *   Ej: `new MenuItemDefinition("interfaz.herramientas.edicion.visible", MenuItemType.CHECKBOX_ITEM, "Mostrar Barra de Edición", null);`
-
----
-
-#### **Fase 2: Implementar la Lógica de Control**
-
-**Tarea 2.1: Crear la `Action` Reutilizable (si no existe una adecuada)**
-
-*   **Acción:** Analizar la clase `ToggleUIElementVisibilityAction`. Si es adecuada, perfecto. Si no, crear una nueva clase `Action` reutilizable, por ejemplo `ToggleConfigurableElementAction`.
-*   **Lógica de la Action:** Esta `Action` no debe tener la clave de configuración "hardcodeada". La recibirá en su constructor.
-    *   `public ToggleConfigurableElementAction(String configKey, ConfigurationManager config, VisorController controller)`
-    *   Su método `actionPerformed` leerá el estado actual del componente (ej: `isSelected()`), invertirá el valor, lo guardará en `configManager.setString(configKey, ...)` y notificará al `controller` que una zona de la UI necesita refrescarse.
-
-**Tarea 2.2: Refactorizar `ActionFactory.java`**
-
-*   **Acción:** **Eliminar** la creación masiva de `ToggleUIElementVisibilityAction` para cada checkbox. La `ActionFactory` ya no será responsable de crear estas acciones de visibilidad específicas del menú "Herramientas". Esto simplificará enormemente la clase.
-
----
-
-#### **Fase 3: Construir la Nueva UI**
-
-**Tarea 3.1: Refactorizar `MenuBarBuilder.java`**
-
-*   **Acción:** Modificar la lógica de construcción de menús. Cuando encuentre un `MenuItemDefinition` para un checkbox de visibilidad de las "Herramientas", en lugar de buscar una `Action` pre-creada en `actionMap`, **instanciará una nueva `ToggleConfigurableElementAction`** al vuelo, pasándole la clave de configuración que viene en la definición.
-*   **Acción:** Asignará esta `Action` recién creada al `JCheckBoxMenuItem` y establecerá su estado inicial (`setSelected()`) leyendo el valor actual de la configuración.
-
-**Tarea 3.2: Refactorizar `ToolbarBuilder.java` para que sea una "Fábrica de Barras"**
-
-*   **Acción:** Eliminar la lógica de alineación (izquierda, centro, derecha) del `ToolbarBuilder`. Su responsabilidad ya no será crear una única barra compuesta, sino producir `JToolBar`s individuales.
-*   **Acción:** Crear un nuevo método público: `public JToolBar buildToolbar(ToolbarDefinition toolbarDef)`.
-*   **Lógica del nuevo método:**
-    1.  Creará un `new JToolBar(toolbarDef.titulo())`.
-    2.  Le asignará un nombre (`setName(toolbarDef.clave())`) para poder identificarla.
-    3.  Iterará sobre la `toolbarDef.botones()` que recibe.
-    4.  Por cada `ToolbarButtonDefinition`, creará un `JButton`, le asignará la `Action` correspondiente desde el `actionMap` (como ya hace) y lo añadirá a la `JToolBar`.
-    5.  Devolverá la `JToolBar` completamente construida.
-
-**Tarea 3.3: Modificar `VisorView.java` para albergar las nuevas barras**
-
-*   **Acción:** Añadir un `JPanel contenedorDeBarras` (con, por ejemplo, un `FlowLayout(FlowLayout.LEFT)`) que se colocará en `BorderLayout.NORTH`.
-*   **Acción:** Añadir un `Map<String, JToolBar> barrasDeHerramientas` para guardar las referencias a las barras creadas.
-*   **Acción:** Crear los métodos `addToolbar(String nombre, JToolBar barra)` y `setToolbarVisible(String nombre, boolean visible)` que discutimos.
-
----
-
-#### **Fase 4: Orquestar el Ensamblaje Final**
-
-**Tarea 4.1: Crear el `ToolbarManager.java`**
-
-*   **Acción:** Crear la nueva clase `controlador.managers.ToolbarManager`.
-*   **Responsabilidades Iniciales:**
-    *   Tendrá una referencia al `ToolbarBuilder`, `UIDefinitionService`, `VisorView` y `ConfigurationManager`.
-    *   Tendrá un método `inicializarBarrasDeHerramientas()`.
-    *   En este método, obtendrá la `List<ToolbarDefinition>` de `UIDefinitionService`.
-    *   Iterará sobre la lista. Por cada `ToolbarDefinition`:
-        1.  Consultará a `ConfigurationManager` si esa barra debe ser visible (`config.getBoolean(toolbarDef.clave() + ".visible")`).
-        2.  Llamará a `toolbarBuilder.buildToolbar(toolbarDef)` para crear la `JToolBar`.
-        3.  Llamará a `view.addToolbar(...)` para añadirla a la vista.
-        4.  Llamará a `view.setToolbarVisible(...)` para establecer su visibilidad inicial.
-
-**Tarea 4.2: Modificar `VisorController` y `AppInitializer`**
-
-*   **Acción:** En `AppInitializer`, crear una instancia del nuevo `ToolbarManager`.
-*   **Acción:** En `VisorController`, **eliminar** toda la lógica de gestión de visibilidad de botones del `actionPerformed` y de `aplicarConfigAlaVistaInternal`.
-*   **Acción:** En `VisorController`, el método `solicitarActualizacionInterfaz` recibirá un nuevo comando, ej. `"REFRESH_TOOLBARS"`. Cuando lo reciba, en lugar de hacer la lógica él mismo, llamará a un método en el `ToolbarManager`, ej. `toolbarManager.refrescarVisibilidadBarras()`.
-*   **Acción:** La llamada inicial a `toolbarManager.inicializarBarrasDeHerramientas()` se hará desde `AppInitializer` en el momento adecuado de la secuencia de arranque.
-
----
-
-Este plan es ambicioso pero descompone el problema en pasos lógicos y manejables. Aborda tus necesidades actuales, limpia el código existente y, lo más importante, construye la base sólida para tus planes futuros de UI contextual y el MEGACONFIG.
-
-
-he intentado hacer operativa la aplicacion asi como esta ahora.... y la carga de algunos botones falla... no se aun por que.... el tema es que hay que tener en cuenta esto para la carga de los botones en la construccion del nuevo toolbuilder....
-
-Conclusión y Siguiente Paso
-El problema de los iconos es un síntoma de un problema de "rutas de recursos" o de "build", no de un fallo en la lógica de Swing. Tu IconUtils es correcto.
-Lo integraremos en nuestro plan de refactorización asegurándonos de que todas las claveIcono en las nuevas ToolbarDefinition sean 100% correctas y coincidan con los nombres de archivo.
-Ahora sí, hemos cubierto todos los ángulos. Tenemos el código, el contexto del proyecto, tus objetivos a largo plazo y un problema práctico a resolver.
-
-
+pongamos un ejemplo de caso real....
+pongamos que estoy buscando imagenes para un proyecto, y encuentro una imagen como la que es estrecha y alta. ese tipo de imagenes se que corresponde a un distribuidor en concreto, pulso el boton de mostrar solo carpeta de la imagen actual, y activo el modo de zoom ajustar a lo ancho.... pero la imagen es muy grande, asi que la reduzco para verla un poco mejor a pesar de que sobresale por arriba y por abajo. las imagenes de ese distribuidor estan en una misma carpeta, por lo que se que mostrando la carpeta actual voy a ver muchas imagenes con este mismo estilo y que es muy probable que el zoom que acabo de ajustar con la rueda del raton y el modo ajustar al ancho me serviran para las siguientes imagenes... entonces aplico el zoom fijo. a partir de ahora tolas las mage3nes que vea seran con ese zoom, pero de repente me encuentro una imagen que no corresponde con el formato, asi que paso a zoom especificado, manteniendo el % de las imagenes que he estado viendo hasta ahora y puede acercar o alejar la imagen sin cambios en el %z. en cuanto pase a la siguiente se volvera a aplicar el zoom que tenemoe en el popup....
 
 --------------------------------
-
-
-
-
-
-
-**Listado de Clases Clave **
-1.  `vista.VisorView`
-2.  `controlador.VisorController`
-3.  `controlador.AppInitializer`
-4.  `modelo.VisorModel`
-5.  `controlador.managers.ZoomManager`
-6.  `controlador.ListCoordinator`
-7.  `servicios.ConfigurationManager`
-8.  `controlador.managers.InfoBarManager` (el esqueleto/versión actual)
-9.  `controlador.factory.ActionFactory`
-10. `vista.renderers.MiniaturaListCellRenderer`
-11. `vista.config.UIDefinitionService`
-12. `vista.config.MenuItemDefinition`
-13. `vista.builders.MenuBarBuilder`
-14. `controlador.managers.ViewManager`
-15. `controlador.worker.BuscadorArchivosWorker`
-16. `vista.util.IconUtils`
-17. `vista.theme.ThemeManager`
-18. `vista.theme.Tema`
-19. `controlador.actions.zoom.AplicarModoZoomAction`
-20. `controlador.actions.vista.ToggleLocationBarAction`
-21. `controlador.managers.EditionManager`
-22. `controlador.actions.toggle.ToggleProporcionesAction`
-23. `controlador.actions.toggle.ToggleSubfoldersAction`
-24. `controlador.actions.zoom.ToggleZoomManualAction`
-25. `controlador.actions.BaseVisorAction`
-26. `principal.VisorV2` (clase main)
-
----
 
 ICONOS
 
 https://www.streamlinehq.com/icons/core-duo-color
 https://www.streamlinehq.com/icons/core-duo-color/interface-essential
 
-COLORES
+
+// -------------------------------------------------------------------------
+    // --- PLAN DE IMPLEMENTACIÓN SELECCIÓN DE PROYECTO ---
+    // -------------------------------------------------------------------------
+    /*
+     * == Plan Detallado para la Funcionalidad de "Selección de Imágenes para Proyecto" ==
+     *
+     * OBJETIVO PRINCIPAL:
+     * Permitir al usuario marcar imágenes individuales de interés dentro de un directorio
+     * grande, guardar esta selección como un "proyecto", y poder ver/cargar estas
+     * selecciones posteriormente. Esto es para ayudar en proyectos de impresión 3D
+     * donde las imágenes representan los archivos STL.
+     *
+     * TERMINOLOGÍA:
+     * - "Selección de Proyecto" o "Imágenes Marcadas": El conjunto de imágenes que el usuario ha marcado.
+     * - "Archivo de Proyecto": El archivo en disco (ej. .prj, .txt) que guarda una Selección de Proyecto.
+     * - "Archivo de Selección Temporal": Un archivo por defecto donde se guardan las marcas si no se ha guardado/cargado un proyecto.
+     *
+     * ============================
+     * ITERACIÓN 1: FUNCIONALIDAD BÁSICA (Archivo Temporal Único, Marcar/Desmarcar, Ver Lista Simple)
+     * ============================
+     *
+     * 1. ProjectSelectionManager (Clase Principal):
+     *    - Campos:
+     *        - `private final Path archivoSeleccionTemporal = Paths.get(System.getProperty("user.home"), ".miVisorImagenes", "seleccion_temporal.txt");`
+     *          (Asegurar que el directorio `~/.miVisorImagenes` se cree si no existe).
+     *        - `private Set<String> clavesMarcadasEnMemoria;` (claves relativas de imágenes).
+     *    - Constructor:
+     *        - Llama a `cargarDesdeArchivo(archivoSeleccionTemporal)` para poblar `clavesMarcadasEnMemoria`.
+     *    - Métodos Privados:
+     *        - `cargarDesdeArchivo(Path rutaArchivo)`: Lee el archivo, llena `clavesMarcadasEnMemoria`. Maneja si el archivo no existe.
+     *        - `guardarAArchivo(Path rutaArchivo, Set<String> claves)`: Escribe el Set al archivo, una clave por línea.
+     *    - Métodos Públicos:
+     *        - `marcarImagen(String claveRelativa)`:
+     *            - Añade `claveRelativa` a `clavesMarcadasEnMemoria`.
+     *            - Llama a `guardarAArchivo(archivoSeleccionTemporal, clavesMarcadasEnMemoria)`.
+     *        - `desmarcarImagen(String claveRelativa)`:
+     *            - Quita `claveRelativa` de `clavesMarcadasEnMemoria`.
+     *            - Llama a `guardarAArchivo(archivoSeleccionTemporal, clavesMarcadasEnMemoria)`.
+     *        - `estaMarcada(String claveRelativa)`:
+     *            - Devuelve `clavesMarcadasEnMemoria.contains(claveRelativa)`.
+     *        - `getClavesMarcadas()`:
+     *            - Devuelve `new ArrayList<>(clavesMarcadasEnMemoria)` (o una copia inmutable).
+     *        - `alternarMarcaImagen(String claveRelativa)`:
+     *            - Si `estaMarcada`, llama a `desmarcarImagen`. Sino, llama a `marcarImagen`.
+     *            - Devuelve el nuevo estado (true si quedó marcada, false si desmarcada).
+     *
+     * 2. AppActionCommands:
+     *    - `CMD_PROYECTO_TOGGLE_MARCA = "cmd.proyecto.toggle_marca";`
+     *    - `CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO = "cmd.proyecto.mostrar_seleccion_dialogo";` // Para el JOptionPane inicial
+     *
+     * 3. Nuevas Actions (en controlador.actions.proyecto o similar):
+     *    - `ToggleMarkImageAction extends BaseVisorAction`:
+     *        - Comando: `CMD_PROYECTO_TOGGLE_MARCA`.
+     *        - Icono: `5003-marcar_imagen_48x48.png` (o el nombre final).
+     *        - Tooltip: "Marcar/Desmarcar imagen para el proyecto actual".
+     *        - `actionPerformed`:
+     *            - Obtiene `selectedImageKey` del `VisorModel`.
+     *            - Si no es null, llama a `controller.toggleMarcaImagenActual(selectedImageKey);` (nuevo método en controller).
+     *    - `ShowProjectSelectionDialogAction extends BaseVisorAction`:
+     *        - Comando: `CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO`.
+     *        - Icono: `7003-Mostrar_Favoritos_48x48.png` (o el nombre final).
+     *        - Tooltip: "Mostrar imágenes marcadas para el proyecto actual".
+     *        - `actionPerformed`:
+     *            - Llama a `controller.mostrarDialogoSeleccionProyectoActual();` (nuevo método en controller).
+     *
+     * 4. VisorController:
+     *    - Añadir campo: `private ProjectSelectionManager projectManager;` (inicializar en `AppInitializer`).
+     *    - Inicializar `toggleMarkImageAction` y `showProjectSelectionDialogAction`. Añadirlas al `actionMap`.
+     *    - Nuevo método: `public void toggleMarcaImagenActual(String claveImagen)`:
+     *        - Llama a `projectManager.alternarMarcaImagen(claveImagen)` para obtener `boolean nuevoEstadoMarcada`.
+     *        - Actualiza `toggleMarkImageAction.putValue(Action.SELECTED_KEY, nuevoEstadoMarcada);`.
+     *        - Llama a `actualizarEstadoVisualBotonMarcarYBarraEstado(nuevoEstadoMarcada);` (nuevo método).
+     *    - Nuevo método: `public void actualizarEstadoVisualBotonMarcarYBarraEstado(boolean estaMarcada)`:
+     *        - Llama a `view.actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);`.
+     *        - Actualiza `view.setTextoRuta()` para añadir/quitar "[MARCADA]".
+     *    - Nuevo método: `public void mostrarDialogoSeleccionProyectoActual()`:
+     *        - Llama a `projectManager.getClavesMarcadas()`.
+     *        - Construye un String con estas claves.
+     *        - Muestra el String en un `JOptionPane.showMessageDialog`.
+     *    - En `actualizarImagenPrincipal(int indiceSeleccionado)`:
+     *        - Después de cargar la imagen y actualizar el modelo, obtener `selectedImageKey`.
+     *        - Llamar a `boolean marcada = projectManager.estaMarcada(selectedImageKey);`.
+     *        - Llamar a `actualizarEstadoVisualBotonMarcarYBarraEstado(marcada);`.
+     *
+     * 5. UIDefinitionService:
+     *    - `generateMenuStructure()`:
+     *        - En Menú "Imagen": `new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, MenuItemType.CHECKBOX_ITEM, "Marcar para Proyecto", null)`
+     *        - En Menú "Vista" (o nuevo menú "Proyecto"): `new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO, MenuItemType.ITEM, "Ver Selección de Proyecto", null)`
+     *    - `generateToolbarStructure()`:
+     *        - Botón "Marcar": `new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "5003-marcar_imagen_48x48.png", "Marcar/Desmarcar Imagen", "control")` (o la categoría que prefieras).
+     *        - Botón "Mostrar Selección": `new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO, "7003-Mostrar_Favoritos_48x48.png", "Mostrar Imágenes Marcadas", "control")` (o la categoría que prefieras).
+     *
+     * 6. VisorView (Opcional para Iteración 1, pero bueno para el futuro):
+     *    - Si `ToggleMarkImageAction` no cambia el icono del botón directamente, `actualizarAspectoBotonToggle` podría necesitar lógica para cambiar entre icono de estrella vacía/llena.
+     *
+     * ============================
+     * ITERACIÓN 2: GESTIÓN DE PROYECTOS CON NOMBRE (Guardar Como, Abrir, Nuevo)
+     * ============================
+     *
+     * 1. ProjectSelectionManager:
+     *    - Campo: `private Path archivoProyectoActivo;` (puede ser null si es el temporal).
+     *    - Modificar constructor y métodos para usar `archivoProyectoActivo` si no es null, sino `archivoSeleccionTemporal`.
+     *    - `nuevoProyecto()`: `clavesMarcadasEnMemoria.clear(); archivoProyectoActivo = null; guardarAArchivo(archivoSeleccionTemporal, ...);` Actualizar título de ventana.
+     *    - `guardarProyectoComo(Path destino)`: `guardarAArchivo(destino, clavesMarcadasEnMemoria); archivoProyectoActivo = destino;` Actualizar título.
+     *    - `abrirProyecto(Path origen)`: `cargarDesdeArchivo(origen); archivoProyectoActivo = origen;` Actualizar título.
+     *    - `hayCambiosSinGuardar()`: Compara `clavesMarcadasEnMemoria` con el contenido de `archivoProyectoActivo` (si existe).
+     *
+     * 2. AppActionCommands:
+     *    - `CMD_PROYECTO_NUEVO`, `CMD_PROYECTO_ABRIR`, `CMD_PROYECTO_GUARDAR_COMO`, `CMD_PROYECTO_GUARDAR` (si el proyecto activo tiene nombre).
+     *
+     * 3. Nuevas Actions: `NuevoProyectoAction`, `AbrirProyectoAction`, `GuardarProyectoComoAction`, `GuardarProyectoAction`.
+     *
+     * 4. VisorController:
+     *    - Métodos para manejar estas nuevas acciones, usando `JFileChooser` para guardar/abrir.
+     *    - Lógica para "Guardar" (si `archivoProyectoActivo` no es null, guarda ahí; sino, actúa como "Guardar Como").
+     *    - Modificar `ShutdownHook`: Si `projectManager.hayCambiosSinGuardar()`, preguntar al usuario si desea guardar antes de salir. Si guarda, y es temporal, preguntar si quiere darle nombre. Si no guarda y es temporal, se podría borrar `archivoSeleccionTemporal`.
+     *    - Actualizar título de la `JFrame` (`VisorView`) para incluir el nombre del proyecto activo o "(Temporal)".
+     *
+     * 5. UIDefinitionService:
+     *    - Nuevo Menú "Proyecto" con ítems para Nuevo, Abrir, Guardar, Guardar Como.
+     *
+     * ============================
+     * ITERACIÓN 3: VISTA INTEGRADA DE SELECCIÓN DE PROYECTO (Toggle de ListModel)
+     * ============================
+     *
+     * 1. AppActionCommands:
+     *    - `CMD_PROYECTO_TOGGLE_VISTA_SELECCION = "cmd.proyecto.toggle_vista_seleccion";`
+     *
+     * 2. Nueva Action: `ToggleVistaSeleccionProyectoAction extends BaseVisorAction`.
+     *    - `actionPerformed` llama a `controller.toggleVistaSeleccionProyecto();`.
+     *    - Mantiene `Action.SELECTED_KEY` para el estado del toggle.
+     *
+     * 3. VisorModel:
+     *    - `private boolean mostrandoSeleccionProyecto = false;`
+     *    - `private DefaultListModel<String> modeloListaCarpetaOriginal;`
+     *    - `private String claveSeleccionadaEnCarpetaOriginal;`
+     *
+     * 4. VisorController:
+     *    - `toggleVistaSeleccionProyecto()`:
+     *        - Invierte `model.mostrandoSeleccionProyecto`.
+     *        - Actualiza `Action.SELECTED_KEY` de `ToggleVistaSeleccionProyectoAction`.
+     *        - Llama a `actualizarAspectoBotonToggle(...)` para el botón de la toolbar.
+     *        - Llama a `refrescarVistaPrincipalSegunModo();` (nuevo método).
+     *    - `refrescarVistaPrincipalSegunModo()`:
+     *        - Si `model.mostrandoSeleccionProyecto`:
+     *            - Guarda `model.getModeloLista()` en `model.modeloListaCarpetaOriginal`.
+     *            - Guarda `model.getSelectedImageKey()` en `model.claveSeleccionadaEnCarpetaOriginal`.
+     *            - Obtiene `projectManager.getClavesMarcadas()`.
+     *            - Crea `nuevoModeloSeleccion` a partir de esas claves.
+     *            - Llama a `model.setModeloLista(nuevoModeloSeleccion);` (¡OJO! Este método debe ser cuidadoso para no limpiar `selectedImageKey` si la clave anterior está en el nuevo modelo).
+     *            - Llama a `view.setListaImagenesModel(nuevoModeloSeleccion);` (o que `cargarListaImagenes` lo haga).
+     *            - Llama a `cargarListaImagenes(primeraClaveDeSeleccionSiExiste)`.
+     *            - Cambia título del panel izquierdo: "Selección: [Nombre Proyecto]".
+     *        - Else (volviendo a vista de carpeta):
+     *            - Llama a `model.setModeloLista(model.modeloListaCarpetaOriginal);`.
+     *            - Llama a `view.setListaImagenesModel(...)`.
+     *            - Llama a `cargarListaImagenes(model.claveSeleccionadaEnCarpetaOriginal)`.
+     *            - Cambia título del panel izquierdo: "Lista de Archivos".
+     *
+     * 5. UIDefinitionService:
+     *    - Botón en Toolbar para `CMD_PROYECTO_TOGGLE_VISTA_SELECCION`.
+     *    - Ítem de Menú (quizás `JCheckBoxMenuItem`) en "Vista" para `CMD_PROYECTO_TOGGLE_VISTA_SELECCION`.
+     *
+     * ============================
+     * CONSIDERACIONES ADICIONALES (Futuras):
+     * ============================
+     * - **Modo Grid y Marcar:** Deshabilitar `ToggleMarkImageAction` general. Añadir menú contextual en el grid.
+     * - **Rendimiento:** Si `getClavesMarcadas()` es muy grande y se llama frecuentemente para la UI, optimizar.
+     * - **Multi-selección para Marcar/Desmarcar:** En `listaNombres` o Grid.
+     * - **Internacionalización (i18n)** de todos los textos.
+     * - **Deshacer/Rehacer** para marcado/desmarcado.
+     *
+     */
+    // -------------------------------------------------------------------------
+    // --- FIN DEL PLAN DE IMPLEMENTACIÓN SELECCIÓN DE PROYECTO ---
+    // -------------------------------------------------------------------------
+}
 
 

@@ -46,7 +46,6 @@ import controlador.actions.vista.MostrarDialogoListaAction;
 import controlador.actions.vista.ToggleAlwaysOnTopAction;
 import controlador.actions.vista.ToggleCheckeredBackgroundAction;
 import controlador.actions.vista.ToggleFileListAction;
-import controlador.actions.vista.ToggleLocationBarAction;
 import controlador.actions.vista.ToggleMenuBarAction;
 import controlador.actions.vista.ToggleMiniatureTextAction;
 import controlador.actions.vista.ToggleThumbnailsAction;
@@ -69,7 +68,7 @@ import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
 import vista.config.MenuItemDefinition;
 import vista.config.UIDefinitionService;
-import vista.config.ViewUIConfig;
+//import vista.config.ViewUIConfig;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
@@ -79,21 +78,21 @@ public class ActionFactory {
     // --- SECCIÓN 1: CAMPOS DE INSTANCIA (DEPENDENCIAS INYECTADAS) ---
     // 1.1. Referencias a componentes principales
     private final VisorModel model;
-    private final VisorView view;
+    private VisorView view;
     private final ConfigurationManager configuration;
     private final IconUtils iconUtils;
     
     // 1.2. Referencias a Managers y Coordinadores
-    private final ZoomManager zoomManager;
-    private final FileOperationsManager fileOperationsManager;
-    private final ViewManager viewManager;
+    private ZoomManager zoomManager;
+    private FileOperationsManager fileOperationsManager;
+    private ViewManager viewManager;
     private final VisorController controllerRef;
     private final ThemeManager themeManager;
     
     // private final EditionManager editionManager; // Descomentar cuando se implemente y se inyecte
-    private final ListCoordinator listCoordinator;
+    private ListCoordinator listCoordinator;
     private final ProjectManager projectService; // Servicio de persistencia de proyectos
-    private final EditionManager editionManager;
+    private EditionManager editionManager;
 
     // 1.3. Mapa para obtener claves de icono
     private final Map<String, String> comandoToIconKeyMap; 
@@ -112,8 +111,6 @@ public class ActionFactory {
     private final List<ContextSensitiveAction> contextSensitiveActions;
 
     
-    private final ViewUIConfig uiConfig;
-    
     // --- SECCIÓN 2: CONSTRUCTOR ---
     /**
      * Constructor de ActionFactory.
@@ -121,45 +118,43 @@ public class ActionFactory {
      * Llama a initializeAllActions para poblar el actionMap.
      */
     public ActionFactory(
-            VisorModel model, 
+    		VisorModel model, 
             VisorView view,
             ZoomManager zoomManager, 
             FileOperationsManager fileOperationsManager,
-            EditionManager editionManager, // Descomentar cuando esté
+            EditionManager editionManager,
             ListCoordinator listCoordinator,
             IconUtils iconUtils, 
             ConfigurationManager configuration,
             ProjectManager projectService,
             Map<String, String> comandoToIconKeyMap,
-    		ViewManager viewManager,
-    		ThemeManager themeManager,
-    		ViewUIConfig uiConfig,
+            ViewManager viewManager,
+            ThemeManager themeManager,
             VisorController controller
     ){ 
         
         // 2.1. Asignar dependencias principales.
         this.model 						= Objects.requireNonNull(model, "VisorModel no puede ser null en ActionFactory");
-        this.view 						= Objects.requireNonNull(view, "VisorView no puede ser null en ActionFactory");
+        this.view =view;//						= Objects.requireNonNull(view, "VisorView no puede ser null en ActionFactory");
         this.configuration 				= Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null en ActionFactory");
         this.iconUtils 					= Objects.requireNonNull(iconUtils, "IconUtils no puede ser null en ActionFactory");
         this.controllerRef 				= Objects.requireNonNull(controller, "VisorController (controllerRef) no puede ser null en ActionFactory");
         this.themeManager 				= Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ActionFactory");
         
         // 2.2. Asignar Managers y Coordinadores.
-        this.zoomManager 				= Objects.requireNonNull(zoomManager, "ZoomManager no puede ser null en ActionFactory");
-        this.fileOperationsManager 		= Objects.requireNonNull(fileOperationsManager, "FileManager no puede ser null");
-        this.viewManager 				= Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
-        this.editionManager				= Objects.requireNonNull(editionManager, "ViewManager no puede ser null");
+        this.zoomManager = zoomManager;//				= Objects.requireNonNull(zoomManager, "ZoomManager no puede ser null en ActionFactory");
+        this.fileOperationsManager = fileOperationsManager;// 		= Objects.requireNonNull(fileOperationsManager, "FileManager no puede ser null");
+        this.viewManager = viewManager;	//			= Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
+        this.editionManager	= editionManager;//			= Objects.requireNonNull(editionManager, "ViewManager no puede ser null");
         this.contextSensitiveActions 	= new ArrayList<>(); 
         
         // this.editionManager = Objects.requireNonNull(editionManager, "EditionManager no puede ser null");
-        this.listCoordinator 			= Objects.requireNonNull(listCoordinator, "ListCoordinator no puede ser null en ActionFactory");
+        this.listCoordinator = listCoordinator;// 			= Objects.requireNonNull(listCoordinator, "ListCoordinator no puede ser null en ActionFactory");
         this.projectService 			= Objects.requireNonNull(projectService, "ProjectManager (servicio) no puede ser null");
         
         // 2.3. Asignar mapa de iconos.
         this.comandoToIconKeyMap 		= Objects.requireNonNull(comandoToIconKeyMap, "comandoToIconKeyMap no puede ser null");
         
-        this.uiConfig = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser null en ActionFactory");
 
         // 2.4. Leer dimensiones de iconos desde la configuración.
         this.iconoAncho 				= configuration.getInt("iconos.ancho", 24);
@@ -170,11 +165,21 @@ public class ActionFactory {
 
         // 2.6. Crear e inicializar todas las Actions.
         System.out.println("  [ActionFactory] Inicializando todas las Actions...");
-        initializeAllActions();
         System.out.println("  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: " + this.actionMap.size());
     }
 
 
+    public void initializeActions() {
+        System.out.println("  [ActionFactory] Inicializando todas las Actions...");
+        if (view == null || zoomManager == null || fileOperationsManager == null ||
+                editionManager == null || listCoordinator == null || viewManager == null) {
+            throw new IllegalStateException("No se pueden inicializar las acciones porque las dependencias tardías (view, zoomManager, etc.) no han sido inyectadas.");
+        }
+        initializeAllActions(); // Llama al método privado que ya tienes
+        System.out.println("  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: " + this.actionMap.size());
+    }
+    
+    
     // --- SECCIÓN 3: MÉTODO PRINCIPAL DE INICIALIZACIÓN DE ACTIONS ---
     /**
      * Crea instancias de todas las Actions de la aplicación y las registra en el actionMap.
@@ -192,7 +197,7 @@ public class ActionFactory {
         // 3.2. Crear y registrar Actions de Zoom
         Action resetZoomAct = createResetZoomAction();
         actionMap.put(AppActionCommands.CMD_ZOOM_RESET, resetZoomAct);
-        actionMap.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, createToggleZoomManualAction(resetZoomAct)); // Pasa la dependencia
+        actionMap.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, createToggleZoomManualAction());
         
         actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_AUTO, 
                 createAplicarModoZoomAction(AppActionCommands.CMD_ZOOM_TIPO_AUTO, "Zoom Automático", ZoomModeEnum.DISPLAY_ORIGINAL));
@@ -206,7 +211,8 @@ public class ActionFactory {
                 createAplicarModoZoomAction(AppActionCommands.CMD_ZOOM_TIPO_FIJO, "Zoom Fijo", ZoomModeEnum.MAINTAIN_CURRENT_ZOOM));
         actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, 
                 createAplicarModoZoomAction(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, "Zoom Especificado", ZoomModeEnum.USER_SPECIFIED_PERCENTAGE));
-        
+        actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR,
+                createAplicarModoZoomAction(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, "Escalar para Rellenar", ZoomModeEnum.FILL));
         
         // 3.3. Crear y registrar Actions de Navegación
         actionMap.put(AppActionCommands.CMD_NAV_PRIMERA, createFirstImageAction());
@@ -450,10 +456,12 @@ public class ActionFactory {
                  if (textoComponente == null) textoComponente = "(desconocido)";
 
                  String mensaje = "Funcionalidad para '" + textoComponente + "' aún no implementada.";
-                 JOptionPane.showMessageDialog(view.getFrame(), mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
+
+                 // Usamos la variable 'view' directamente como el componente padre.
+                 JOptionPane.showMessageDialog(view, mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
             }
         };
-    }
+    } // --- FIN del metodo createFuncionalidadPendienteAction ---
 
     /**
      * 4.2. Helper para obtener el ImageIcon para un comando dado.
@@ -461,7 +469,6 @@ public class ActionFactory {
     private ImageIcon getIconForCommand(String appCommand) {
         String claveIcono = this.comandoToIconKeyMap.get(appCommand);
         if (claveIcono != null && !claveIcono.isBlank()) {
-//            return this.iconUtils.getIcon(claveIcono, this.iconoAncho, this.iconoAlto);
         	return this.iconUtils.getScaledIcon(claveIcono, this.iconoAncho, this.iconoAlto);
         }
         // System.err.println("WARN [ActionFactory]: No se encontró clave de icono en comandoToIconKeyMap para el comando: " + appCommand + ". No se asignará icono a la Action.");
@@ -469,15 +476,14 @@ public class ActionFactory {
     }
 
     // --- 4.3. Métodos Create para Actions de Zoom ---
-    private Action createToggleZoomManualAction(Action resetZoomActionDependency) {
+    private Action createToggleZoomManualAction() { 
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-        return new ToggleZoomManualAction("Activar Zoom Manual", icon, this.zoomManager, resetZoomActionDependency, this.view, this.model);
+        return new ToggleZoomManualAction("Activar Zoom Manual", icon, this.zoomManager, this.controllerRef, this.model);
     }
     private Action createResetZoomAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_RESET);
-        return new ResetZoomAction("Resetear Zoom", icon, this.zoomManager, this.view);
+        return new ResetZoomAction("Resetear Zoom", icon, this.zoomManager);
     }
-    
     private Action createAplicarModoZoomAction(String commandKey, String displayName, ZoomModeEnum modo) {
         ImageIcon icon = getIconForCommand(commandKey); 
         // Pasamos this.model a AplicarModoZoomAction
@@ -539,9 +545,7 @@ public class ActionFactory {
     }
     private Action createCropAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_RECORTAR);
-        CropAction action = new CropAction(
-            // this.editionManager, // Se pasará cuando la funcionalidad esté lista
-            this.model, this.view, "Recortar", icon);
+        CropAction action = new CropAction(this.model, this.controllerRef, "Recortar", icon);
         this.contextSensitiveActions.add(action); // Registrarla
         return action;
     }
@@ -558,11 +562,11 @@ public class ActionFactory {
     private Action createRefreshAction() {
         // 1. Obtener el icono usando el comando canónico
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_REFRESCAR); 
-        return new RefreshAction("Refrescar Lista", icon, this.model);
+        return new RefreshAction("Refrescar", icon, this.controllerRef);
     }
     private Action createLocateFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
-        LocateFileAction action = new LocateFileAction(this.model, this.view, "Localizar Archivo", icon);
+        LocateFileAction action = new LocateFileAction(this.model, this.controllerRef, "Localizar Archivo", icon);
         this.contextSensitiveActions.add(action); // <<< REGISTRAR LA ACCIÓN
         return action;
     }    
@@ -571,11 +575,11 @@ public class ActionFactory {
     // (Estas actions suelen tomar VisorView y ConfigurationManager)
      
     private Action createToggleMenuBarAction() {
-        return new ToggleMenuBarAction("Barra de Menú", null, this.configuration, this.view, this.controllerRef, "interfaz.menu.vista.barra_de_menu.seleccionado", "Barra_de_Menu", AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
+    	return new ToggleMenuBarAction("Barra de Menú", null, this.configuration, this.controllerRef, "interfaz.menu.vista.barra_de_menu.seleccionado", "Barra_de_Menu", AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
     }
     private Action createToggleToolBarAction() {
-        return new ToggleToolBarAction("Barra de Botones", null, this.configuration, this.controllerRef, "interfaz.menu.vista.barra_de_botones.seleccionado", "Barra_de_Botones", AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
-    }
+        return new ToggleToolBarAction("Barra de Botones", null, this.configuration, this.controllerRef, "interfaz.menu.vista.barra_de_botones", "Barra_de_Botones", AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
+    }  
     private Action createToggleFileListAction() {
         return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.controllerRef, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
     }
@@ -584,17 +588,26 @@ public class ActionFactory {
     	return new ToggleThumbnailsAction( "Barra de Miniaturas", null, this.configuration,this.controllerRef, "interfaz.menu.vista.imagenes_en_miniatura.seleccionado", "imagenes_en_miniatura", AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
    	}
     private Action createToggleLocationBarAction() {
-        return new ToggleLocationBarAction("Linea de Ubicacion del Archivo", null, this.configuration, this.controllerRef, ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE, "REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR);
+//        return new ToggleLocationBarAction("Linea de Ubicacion del Archivo", null, this.configuration, this.controllerRef, ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE, "REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR);
+    	return new ToggleUIElementVisibilityAction( // <<< Usamos la Action genérica
+    	        this.controllerRef,
+    	        this.configuration,
+    	        "Barra de Estado", // <-- Texto más apropiado para el menú
+    	        ConfigKeys.INFOBAR_INF_VISIBLE, // <<< Clave que controla TODA la barra
+    	        "REFRESH_INFO_BAR_INFERIOR", // <<< Identificador para el refresco
+    	        AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR // Comando
+    	    );
     }
     private Action createToggleCheckeredBackgroundAction() {
-   	    return new ToggleCheckeredBackgroundAction("Fondo a Cuadros", null, this.view, this.configuration, "interfaz.menu.vista.fondo_a_cuadros.seleccionado", AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
+//   	    return new ToggleCheckeredBackgroundAction("Fondo a Cuadros", null, this.view, this.configuration, "interfaz.menu.vista.fondo_a_cuadros.seleccionado", AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
+    		return new ToggleCheckeredBackgroundAction("Fondo a Cuadros", null, this.viewManager, this.configuration, "interfaz.menu.vista.fondo_a_cuadros.seleccionado", AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
    	}
     private Action createToggleAlwaysOnTopAction() {
    	    return new ToggleAlwaysOnTopAction("Mantener Ventana Siempre Encima", null, this.view, this.configuration, "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", controlador.commands.AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
    	}
     private Action createMostrarDialogoListaAction() {
    	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA);
-   	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.view, this.model,this.controllerRef);
+   	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.controllerRef);
    	}
     private Action createToggleMiniatureTextAction() {
     	return new ToggleMiniatureTextAction("Mostrar Nombres en Miniaturas", null, this.configuration, this.view, ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT);
@@ -614,7 +627,7 @@ public class ActionFactory {
                 System.err.println("WARN [ActionFactory]: Nombre de tema interno no reconocido para ActionCommandKey: " + themeNameInternal);
                 commandKey = AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE;
         }
-        return new ToggleThemeAction(this.themeManager, this.view, themeNameInternal, displayNameForMenu, commandKey);
+        return new ToggleThemeAction(this.themeManager, this.controllerRef, themeNameInternal, displayNameForMenu, commandKey);
     }
    
     // --- 4.9. Métodos Create para Actions de Toggle Generales ---
@@ -650,21 +663,19 @@ public class ActionFactory {
     } // --- FIN del método createToggleMarkImageAction ---
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
-        return new GestionarProyectoAction(this.projectService, this.view, "Gestionar Proyectos", icon);
+        return new GestionarProyectoAction(this.projectService, this.controllerRef, "Gestionar Proyectos", icon);
     }
     
     // --- 4.11. Métodos Create para Actions Especiales ---
      private Action createMenuAction() { // Ya no necesita toggleMenuBarActionInstance como parámetro directo
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_MENU);
-         
          UIDefinitionService uiDefService = new UIDefinitionService();
          List<MenuItemDefinition> fullMenuStructure = uiDefService.generateMenuStructure();
-
-         return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.uiConfig,  this.configuration, this.controllerRef);
+         return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.themeManager, this.configuration, this.controllerRef);
      }
      private Action createHiddenButtonsAction() {
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
-         return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.uiConfig, this.configuration, this.controllerRef );
+         return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration, this.controllerRef );
      }
 
     // --- SECCIÓN 5: GETTER PARA EL ACTIONMAP ---
@@ -692,4 +703,15 @@ public class ActionFactory {
         this.actionMap.put(commandKey, action); // Modifica el mapa interno mutable
         System.out.println("  [ActionFactory] Action registrada/actualizada para comando: " + commandKey);
     }
+    
+    
+    public void setView(VisorView view) { this.view = view; }
+    public void setZoomManager(ZoomManager zoomManager) { this.zoomManager = zoomManager; }
+    public void setViewManager(ViewManager viewManager) {this.viewManager = Objects.requireNonNull(viewManager);}
+    public void setEditionManager(EditionManager editionManager) {this.editionManager = Objects.requireNonNull(editionManager);}
+    public void setListCoordinator(ListCoordinator listCoordinator) {this.listCoordinator = Objects.requireNonNull(listCoordinator);}
+    public void setFileOperationsManager(FileOperationsManager fileOperationsManager) {
+        this.fileOperationsManager = Objects.requireNonNull(fileOperationsManager, "FileOperationsManager no puede ser null en setFileOperationsManager");
+    }
+    
 }	// --- FIN de la clase ActionFactory

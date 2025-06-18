@@ -1,4 +1,5 @@
-// En controlador.actions.vista.ToggleMenuBarAction.java
+// Archivo: controlador/actions/vista/ToggleMenuBarAction.java
+
 package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;
@@ -9,95 +10,86 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 
-import controlador.VisorController; // <<<< AÑADIR IMPORT SI NO ESTÁ
+import controlador.VisorController;
+import controlador.commands.AppActionCommands;
 import servicios.ConfigurationManager;
-import vista.VisorView;
+// No se necesita importar VisorView
 
 public class ToggleMenuBarAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    private ConfigurationManager configManagerRef;
-    private String configKeyForState;
-    private String componentIdForController; 
-    private VisorView viewRef;
-    private VisorController controllerRef; 
+    private final ConfigurationManager configManagerRef;
+    private final String configKeyForState;
+    private final String componentIdForController; 
+    private final VisorController controllerRef; 
 
-    // CONSTRUCTOR ACTUALIZADO para recibir VisorController
     public ToggleMenuBarAction(String name,
                                ImageIcon icon,
-                               // ViewManager viewManager, // Ya no se necesita como parámetro directo
                                ConfigurationManager configManager,
-                               VisorView view,
-                               VisorController controller, // <<<< AÑADIR PARÁMETRO CONTROLLER
+                               VisorController controller,
                                String configKeyForSelectedState,
-                               String componentIdentifier, // Este será el uiElementIdentifier para el controller
+                               String componentIdentifier,
                                String actionCommandKey) {
         super(name, icon);
 
-        // this.viewManagerRef = Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
-        this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
-        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null");
-        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null"); // <<<< ASIGNAR CONTROLLER
-        this.configKeyForState = Objects.requireNonNull(configKeyForSelectedState, "configKeyForSelectedState no puede ser null");
-        this.componentIdForController = Objects.requireNonNull(componentIdentifier, "componentIdentifier no puede ser null");
+        this.configManagerRef = Objects.requireNonNull(configManager);
+        this.controllerRef = Objects.requireNonNull(controller);
+        this.configKeyForState = Objects.requireNonNull(configKeyForSelectedState);
+        this.componentIdForController = Objects.requireNonNull(componentIdentifier);
 
         putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar la " + name);
-        putValue(Action.ACTION_COMMAND_KEY, Objects.requireNonNull(actionCommandKey, "actionCommandKey no puede ser null"));
+        putValue(Action.ACTION_COMMAND_KEY, Objects.requireNonNull(actionCommandKey));
 
         boolean initialState = this.configManagerRef.getBoolean(this.configKeyForState, true);
         putValue(Action.SELECTED_KEY, initialState);
-        
-      //LOG
-        System.out.println("  [ToggleMenuBarAction CSTR] Leyendo '" + this.configKeyForState + "' -> " + initialState + ". SELECTED_KEY puesto a: " + initialState);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (configManagerRef == null || viewRef == null || controllerRef == null) { // Actualizar validación
-            System.err.println("ERROR CRÍTICO [ToggleMenuBarAction]: ConfigManager, ViewRef o ControllerRef nulos.");
+        if (configManagerRef == null || controllerRef == null) {
+            System.err.println("ERROR CRÍTICO [ToggleMenuBarAction]: ConfigManager o ControllerRef nulos.");
             return;
         }
 
+        // El estado seleccionado del JCheckBoxMenuItem se actualiza automáticamente.
+        // Lo leemos para saber cuál es el nuevo estado deseado.
         boolean nuevaVisibilidadComponente = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
+        
         System.out.println("[ToggleMenuBarAction actionPerformed] para: " + componentIdForController +
                            ", nuevo estado de visibilidad: " + nuevaVisibilidadComponente);
 
-        // 1. Guardar el nuevo estado en ConfigurationManager
+        // 1. Guardar el nuevo estado en la configuración.
         this.configManagerRef.setString(this.configKeyForState, String.valueOf(nuevaVisibilidadComponente));
-        System.out.println("  -> [ToggleMenuBarAction] Estado guardado en config: " + this.configKeyForState + " = " + nuevaVisibilidadComponente);
-
-        // 2. Notificar al VisorController para que actualice la UI
-        //    this.componentIdForController es el "Barra_de_Menu", "Barra_de_Botones", etc.
+        
+        // 2. Notificar al VisorController para que actualice la UI.
         this.controllerRef.solicitarActualizacionInterfaz(
             this.componentIdForController,
             this.configKeyForState,
             nuevaVisibilidadComponente
         );
 
-        // 3. Lógica específica de ToggleMenuBarAction: Actualizar visibilidad del botón "Menú Especial"
-        //    Esta lógica se mantiene aquí porque es particular de esta acción.
-        if ("Barra_de_Menu".equals(this.componentIdForController)) { // Solo si esta acción es para la barra de menú
-            Map<String, JButton> botonesToolbar = viewRef.getBotonesPorNombre();
+        // 3. Lógica específica: Actualizar visibilidad del botón "Menú Especial".
+        if ("Barra_de_Menu".equals(this.componentIdForController)) {
+            // Obtenemos el mapa de botones DESDE EL CONTROLADOR.
+            Map<String, JButton> botonesToolbar = controllerRef.getBotonesPorNombre();
+            
             if (botonesToolbar != null) {
-                String claveBotonMenuEspecial = "interfaz.boton.especiales.Menu_48x48"; // Asegúrate que esta clave es correcta
+                String claveBotonMenuEspecial = "interfaz.boton.especiales.Menu_48x48";
                 JButton botonMenuEspecial = botonesToolbar.get(claveBotonMenuEspecial);
 
                 if (botonMenuEspecial != null) {
                     boolean visibilidadBotonMenu = !nuevaVisibilidadComponente; // Inversa a la JMenuBar
                     if (botonMenuEspecial.isVisible() != visibilidadBotonMenu) {
                         botonMenuEspecial.setVisible(visibilidadBotonMenu);
-                        System.out.println("  -> [ToggleMenuBarAction] Visibilidad del botón Menu_48x48 (toolbar) actualizada a: " + visibilidadBotonMenu);
-                        // Opcional: Si la visibilidad de ESTE botón también se guarda en config y tiene su propio control,
-                        // esta lógica de guardado no iría aquí. Pero si solo depende de la JMenuBar, está bien.
-                        //configManagerRef.setString(claveBotonMenuEspecial + ".visible", String.valueOf(visibilidadBotonMenu));
+                        System.out.println("  -> [ToggleMenuBarAction] Visibilidad del botón Menu_48x48 actualizada a: " + visibilidadBotonMenu);
                     }
                 } else {
-                    System.err.println("WARN [ToggleMenuBarAction]: Botón Menu_48x48 no encontrado en la toolbar.");
+                    System.err.println("WARN [ToggleMenuBarAction]: Botón Menu_48x48 no encontrado.");
                 }
             } else {
-                 System.err.println("WARN [ToggleMenuBarAction]: Mapa de botones de la toolbar es nulo.");
+                 System.err.println("WARN [ToggleMenuBarAction]: Mapa de botones en el controlador es nulo.");
             }
         }
     }
-}
+} // --- FIN de la clase ToggleMenuBarAction ---

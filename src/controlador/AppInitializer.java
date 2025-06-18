@@ -1,11 +1,7 @@
 package controlador;
 
-import java.awt.Color;
-import java.awt.KeyboardFocusManager;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.HashMap; // Para el mapa de comando -> claveIcono
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -13,26 +9,21 @@ import java.util.function.Consumer;
 
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;  // Para el panel de la toolbar
 import javax.swing.SwingUtilities;
-import javax.swing.Timer; // Para el listener de redimensionamiento
 
-import controlador.actions.especiales.MenuAction;
-import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory; // La fábrica de Actions
-import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager; // Futuro
-import controlador.managers.InfoBarManager;
+import controlador.managers.InfobarImageManager;
+import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 // Managers
 import controlador.managers.ZoomManager;
+import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
@@ -42,12 +33,9 @@ import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
 import vista.builders.MenuBarBuilder;
 import vista.builders.ToolbarBuilder;
-import vista.config.MenuItemDefinition;
-import vista.config.ToolbarButtonDefinition;
-import vista.config.ToolbarDefinition;
+import vista.builders.ViewBuilder;
 import vista.config.UIDefinitionService;
-import vista.config.ViewUIConfig;       // Si aún la usas o la refactorizas
-import vista.theme.Tema;
+import vista.panels.ImageDisplayPanel;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
@@ -62,7 +50,6 @@ public class AppInitializer {
     // 1.1. Modelo y Servicios Base (creados fuera del EDT)
     private VisorModel model;
     private ConfigurationManager configuration;
-    private ThemeManager themeManager;
     private IconUtils iconUtils;
     private ThumbnailService servicioMiniaturas;
     private ProjectManager projectManagerService; // Servicio de persistencia de proyectos
@@ -77,10 +64,13 @@ public class AppInitializer {
     private ZoomManager zoomManager;
     private EditionManager editionManager; 
     private FileOperationsManager fileOperationsManager;
-    private InfoBarManager infoBarManager;
+    private InfobarImageManager infobarImageManager; 
+    private InfobarStatusManager statusBarManager;   
     private boolean zoomManualEstabaActivoAntesDeError = false;
     private ToolbarManager toolbarManager;
 
+    private ThemeManager themeManager;
+//    private ThumbnailService thumbnailService;
 
     
     // 1.4. Fábrica de Acciones y Mapa de Acciones (creados DENTRO del EDT)
@@ -137,6 +127,7 @@ public class AppInitializer {
             SwingUtilities.invokeLater(this::crearUIyComponentesDependientesEnEDT);
 
             System.out.println("--- AppInitializer: Inicialización base (fuera de EDT) completada. ---");
+            
             return true; // Indica éxito de la inicialización base.
 
         } catch (Exception e) {
@@ -144,6 +135,8 @@ public class AppInitializer {
             manejarErrorFatalInicializacion("Error fatal durante la inicialización base (fuera del EDT)", e);
             return false; // Indica fallo.
         }
+        
+        
     } // --- FIN del método initialize ---
 
 
@@ -331,422 +324,371 @@ public class AppInitializer {
 
 
     // --- MÉTODO PARA INICIALIZACIÓN DENTRO DEL EDT ---
+
     /**
-     * FASE B (EDT): Crea la VisorView, los Managers que dependen de la vista,
-     *               ListCoordinator, ActionFactory, y finalmente construye
-     *               la UI completa (menús, toolbars) y configura los listeners.
-     *               Este método DEBE ejecutarse en el Event Dispatch Thread.
+     * FASE B (EDT): Orquesta la creación de toda la interfaz de usuario y sus componentes dependientes,
+     * siguiendo la nueva arquitectura desacoplada.
+     * Se ejecuta en el Event Dispatch Thread para garantizar la seguridad con Swing.
      */
     private void crearUIyComponentesDependientesEnEDT() {
-        System.out.println("  [AppInitializer Fase B - EDT] Iniciando creación de UI y componentes dependientes...");
-        
         try {
-            // --- B.1. PREPARACIÓN DE VALORES INICIALES (Ej. altura panel miniaturas) ---
-            int selThumbH = (this.model != null) ? this.model.getMiniaturaSelAlto() : 60; // Default si el modelo no está o no tiene el valor
-            int calculatedMiniaturePanelHeightForController = Math.max(80, selThumbH + 40); // Mínimo 80px o basado en miniatura seleccionada
-            this.controller.setCalculatedMiniaturePanelHeight(calculatedMiniaturePanelHeightForController);
-            // Dimensiones de iconos por defecto (pueden ser de config)
-            int anchoIconoCfg = (this.configuration != null) ? this.configuration.getInt("iconos.ancho", 24) : 24;
-            int altoIconoCfg = (this.configuration != null) ? this.configuration.getInt("iconos.alto", 24) : 24;
-            Tema temaActualParaUiConfig = (this.themeManager != null) ? this.themeManager.getTemaActual() : null; // Manejar null si themeManager falla
+            System.out.println("--- [AppInitializer Fase B - EDT] Iniciando creación de UI en secuencia lógica ---");
 
-            if (temaActualParaUiConfig == null) { // Fallback si no hay tema
-                System.err.println("WARN [AppInitializer B.1]: themeManager o temaActual es null. Usando colores de fallback para ViewUIConfig.");
-                // Crear un tema de fallback o usar colores directos
-                temaActualParaUiConfig = new Tema("fallback", "Fallback", "black", /* Colores de fallback */
-                    new Color(240, 240, 240), new Color(220, 220, 220), /*...*/ Color.BLACK, Color.DARK_GRAY, 
-                    Color.GRAY, Color.DARK_GRAY, new Color(50,100,150), Color.WHITE, 
-                    new Color(200,200,200), Color.BLACK, new Color(180,180,180), new Color(150,200,250), Color.ORANGE
-                );
-            }
+            // FASE B.1: Crear ComponentRegistry y ViewBuilder
+            ComponentRegistry registry = new ComponentRegistry();
+            this.controller.setComponentRegistry(registry);
 
-            // --- B.1.bis. CREAR ViewUIConfig INICIAL (SIN ActionMap) ---
-            //      Esta instancia se usará para construir VisorView y ActionFactory (que necesita IconUtils de uiConfig).
-            //      Pasamos 'null' para el actionMap porque aún no se ha creado completamente.
-            ViewUIConfig uiConfigInicialParaVistaYFactory = new ViewUIConfig(
-                temaActualParaUiConfig.colorFondoPrincipal(), temaActualParaUiConfig.colorBotonFondoActivado(), temaActualParaUiConfig.colorBotonFondoAnimacion(),
-                anchoIconoCfg, altoIconoCfg,
-                null, // <<--- ActionMap es null aquí
-                this.iconUtils, // IconUtils ya está inicializado
-                temaActualParaUiConfig.colorFondoPrincipal(), temaActualParaUiConfig.colorFondoSecundario(), temaActualParaUiConfig.colorTextoPrimario(),
-                temaActualParaUiConfig.colorTextoSecundario(), temaActualParaUiConfig.colorBorde(), temaActualParaUiConfig.colorBordeTitulo(),
-                temaActualParaUiConfig.colorSeleccionFondo(), temaActualParaUiConfig.colorSeleccionTexto(), temaActualParaUiConfig.colorBotonFondo(),
-                temaActualParaUiConfig.colorBotonTexto(), temaActualParaUiConfig.colorBotonFondoActivado(), temaActualParaUiConfig.colorBotonFondoAnimacion(),
-                temaActualParaUiConfig.colorBordeSeleccionActiva(), this.configuration
+            ViewBuilder viewBuilder = new ViewBuilder(
+                registry, 
+                model, 
+                themeManager, 
+                configuration, 
+                controller, 
+                iconUtils, 
+                this.servicioMiniaturas
             );
-            System.out.println("    B.1.bis. [EDT] ViewUIConfig INICIAL (sin actionMap) creado.");
+            
+            // FASE B.2: Construir la UI principal y obtener la referencia a la vista
+            this.view = viewBuilder.createMainFrame();
+            this.controller.setView(this.view);
+            System.out.println("  [EDT - FASE 1 & 2] Cimientos y UI principal construidos.");
 
-            // --- B.2. CREAR VisorView CON UIConfig INICIAL ---
-            //      VisorView necesita un uiConfig para su construcción inicial (colores, IconUtils).
-            this.view = new VisorView(
-                calculatedMiniaturePanelHeightForController,
-                uiConfigInicialParaVistaYFactory, // Pasa el uiConfig sin el actionMap completo
-                this.model, 
-                this.servicioMiniaturas,
-                this.themeManager,
-                new JMenuBar(),       // Placeholder para JMenuBar
-                new JPanel(),         // Placeholder para Toolbar Panel
-                Collections.emptyMap(), // Placeholder para menuItems
-                Collections.emptyMap()  // Placeholder para botones
-            );
-            this.controller.setView(this.view); // Inyectar la Vista en el Controlador
-            System.out.println("    B.2. [EDT] VisorView instanciada con uiConfigInicial e inyectada en Controller.");
-
-            // --- B.3. CREAR MANAGERS QUE DEPENDEN DE LA VISTA Y OTRAS DEPENDENCIAS ---
-            this.zoomManager = new ZoomManager(this.model, this.view, this.configuration);
+            // FASE B.3: Crear los Managers de Lógica
+            this.zoomManager = new ZoomManager(this.model, registry, this.configuration);
             this.controller.setZoomManager(this.zoomManager);
-            System.out.println("    B.3.1. [EDT] ZoomManager creado e inyectado.");
-
-            this.viewManager = new ViewManager(this.view, this.configuration);
-            // this.controller.setViewManager(this.viewManager); // Si el controller lo necesita
-            System.out.println("    B.3.2. [EDT] ViewManager creado.");
-
-            Consumer<Path> recargarDesdeNuevaCarpetaCallback = (nuevaCarpeta) -> {
-                if (this.controller != null) {
-                    // Podrías querer actualizar model.setCarpetaRaizActual(nuevaCarpeta) aquí también
-                    // antes de llamar a cargarListaImagenes.
-                    this.controller.cargarListaImagenes(null); // Carga la nueva carpeta, seleccionando la primera imagen
-                }
-            };
-            this.fileOperationsManager = new FileOperationsManager(this.model, this.view, this.configuration, recargarDesdeNuevaCarpetaCallback);
-            // this.controller.setFileOperationsManager(this.fileOperationsManager); // Si el controller lo necesita
-            System.out.println("    B.3.3. [EDT] FileOperationsManager creado.");
             
-            if (this.editionManager == null) {
-            	this.editionManager = new EditionManager(this.model, this.view, this.zoomManager);
-            	System.out.println("    B.3.4. [EDT] EditionManager creado.");
-            }
-            
-            // --- B.4. CREAR ListCoordinator ---
-            this.listCoordinator = new ListCoordinator(this.model, this.view, this.controller);
+            this.listCoordinator = new ListCoordinator(this.model, this.view, this.controller, registry);
             this.controller.setListCoordinator(this.listCoordinator);
-            System.out.println("    B.4. [EDT] ListCoordinator creado e inyectado.");
             
-            // --- B.5. CREAR ActionFactory ---
-            UIDefinitionService uiDefSvcForIcons = new UIDefinitionService();
-            Map<String, String> comandoToIconKeyMap = new HashMap<>();
-            List<ToolbarDefinition> allToolbarDefs = uiDefSvcForIcons.generateModularToolbarStructure();
-            for (ToolbarDefinition toolbarDef : allToolbarDefs) {
-                for (ToolbarButtonDefinition buttonDef : toolbarDef.botones()) {
-                    if (buttonDef.comandoCanonico() != null && buttonDef.claveIcono() != null) {
-                        comandoToIconKeyMap.put(buttonDef.comandoCanonico(), buttonDef.claveIcono());
-                    }
-                }
-            }
+            this.viewManager = new ViewManager(this.view, this.configuration, registry);
+            viewBuilder.setViewManager(this.viewManager);
             
-            this.actionFactory = new ActionFactory(
-                this.model, this.view, this.zoomManager, this.fileOperationsManager,
-                this.editionManager, this.listCoordinator, this.iconUtils, this.configuration,
-                this.projectManagerService, 
-                comandoToIconKeyMap, 
-                this.viewManager,
-                this.themeManager, uiConfigInicialParaVistaYFactory, this.controller
-            );
+            this.editionManager = new EditionManager(this.model, this.controller, this.zoomManager);
             
-            // --- B.6. OBTENER EL MAPA DE ACCIONES BASE (MUTABLE) DESDE ActionFactory ---
-            //      Este mapa NO contendrá MenuAction si la eliminaste de ActionFactory.initializeAllActions().
-            //      Asegúrate que ActionFactory.getActionMap() devuelve el mapa mutable interno.
-            this.actionMap = this.actionFactory.getActionMap(); 
-            System.out.println("    B.6. [EDT] ActionFactory creada. ActionMap base obtenido (Tamaño: " + this.actionMap.size() + ").");
+            Consumer<Path> recargarCallback = (nuevaCarpeta) -> this.controller.cargarListaImagenes(null, null);
+            
+            this.fileOperationsManager = new FileOperationsManager(this.model, this.controller, this.configuration, recargarCallback);
+            System.out.println("  [EDT - FASE 3] Managers de Lógica creados e inyectados.");
 
-            // --- B.7. CREAR ViewUIConfig COMPLETO ---
-            //      Ahora creamos el ViewUIConfig que SÍ tendrá una referencia al actionMap (aún sin MenuAction).
-            //      Este uiConfig se usará para MenuAction y los Builders.
-            ViewUIConfig uiConfigParaBuildersYMenuAction = new ViewUIConfig(
-                temaActualParaUiConfig.colorFondoPrincipal(), temaActualParaUiConfig.colorBotonFondoActivado(), temaActualParaUiConfig.colorBotonFondoAnimacion(),
-                anchoIconoCfg, altoIconoCfg,
-                this.actionMap, // Pasa la referencia al actionMap actual (con ~65 actions)
-                this.iconUtils,
-                temaActualParaUiConfig.colorFondoPrincipal(), temaActualParaUiConfig.colorFondoSecundario(), temaActualParaUiConfig.colorTextoPrimario(),
-                temaActualParaUiConfig.colorTextoSecundario(), temaActualParaUiConfig.colorBorde(), temaActualParaUiConfig.colorBordeTitulo(),
-                temaActualParaUiConfig.colorSeleccionFondo(), temaActualParaUiConfig.colorSeleccionTexto(), temaActualParaUiConfig.colorBotonFondo(),
-                temaActualParaUiConfig.colorBotonTexto(), temaActualParaUiConfig.colorBotonFondoActivado(), temaActualParaUiConfig.colorBotonFondoAnimacion(),
-                temaActualParaUiConfig.colorBordeSeleccionActiva(), this.configuration
-            );
-            System.out.println("    B.7. [EDT] ViewUIConfig para Builders y MenuAction creado (usando actionMap de " + this.actionMap.size() + " actions).");
-
-            // --- B.7.bis. CREAR Y AÑADIR MenuAction AL this.actionMap ---
-            System.out.println("    B.7.bis. [EDT] Creando MenuAction y añadiéndola al this.actionMap...");
-            if (this.actionMap != null && uiConfigParaBuildersYMenuAction != null && this.iconUtils != null && 
-                this.view != null && this.actionFactory != null) {
-
-                UIDefinitionService uiDefSvc = new UIDefinitionService(); // Puedes reutilizar uiDefSvcForIcons si prefieres
-                List<MenuItemDefinition> menuStructure = uiDefSvc.generateMenuStructure();
-                
-                String menuActionIconKey = null;
-                Map<String, String> cmdToIconMap = this.actionFactory.getComandoToIconKeyMap();
-
-                if (cmdToIconMap != null) {
-                     menuActionIconKey = cmdToIconMap.get(AppActionCommands.CMD_ESPECIAL_MENU);
-                }
-                if (menuActionIconKey == null) { 
-                    menuActionIconKey = "6002-Menu_48x48.png"; // Fallback
-                    System.out.println("      WARN [AppInitializer B.7.bis]: Clave de icono para MenuAction no encontrada. Usando fallback: " + menuActionIconKey);
-                }
-
-                ImageIcon menuIcon = this.iconUtils.getScaledIcon(
-                    menuActionIconKey,
-                    this.actionFactory.getIconoAncho(), 
-                    this.actionFactory.getIconoAlto()   
-                );
-                if (menuIcon == null) { System.err.println("WARN [AppInitializer B.7.bis]: No se pudo cargar/escalar el icono para MenuAction: " + menuActionIconKey); }
-
-                
-                MenuAction menuActionFinal = new MenuAction(
-                	    "Menú Principal",    
-                	    menuIcon,            
-                	    menuStructure,       
-                	    this.actionMap,
-                	    uiConfigParaBuildersYMenuAction,        // ViewUIConfig
-                	    this.configuration,                   // <--- AÑADIR ConfigurationManager
-                	    this.controller                       // <--- AÑADIR VisorController (como ActionListener)
-                	);
-                
-                // Añadir la MenuAction al mapa mutable.
-                this.actionMap.put(AppActionCommands.CMD_ESPECIAL_MENU, menuActionFinal);
-                System.out.println("      -> MenuAction final añadida a this.actionMap. Tamaño actual del actionMap: " + this.actionMap.size()); // Debería ser 66
-
-            } else { 
-                System.err.println("ERROR CRÍTICO [AppInitializer B.7.bis]: No se pudo crear MenuAction por dependencias nulas.");
-            }
-            // --- FIN B.7.bis ---
-
-            // --- B.7.ter. INYECTAR EL ACTIONMAP COMPLETO y UICONFIG COMPLETO ---
-            //      Ahora this.actionMap tiene todas las actions, incluida MenuAction.
-            //      Y uiConfigParaBuildersYMenuAction referencia este actionMap completo.
-            this.controller.setActionMap(this.actionMap); // Inyectar actionMap COMPLETO en Controller
-            this.controller.setUiConfigForView(uiConfigParaBuildersYMenuAction); // Inyectar uiConfig COMPLETO en Controller
-            this.view.setUiConfig(uiConfigParaBuildersYMenuAction); // Actualizar uiConfig en Vista con el que tiene el actionMap completo
-            System.out.println("    B.7.ter. [EDT] ActionMap FINAL (con MenuAction) y ViewUIConfig correspondiente inyectados en Controller y View.");
-
-            // --- B.8. INYECTAR LISTA DE ContextSensitiveActions EN ListCoordinator ---
-            if (this.actionFactory != null) { // actionFactory debería existir
-                List<ContextSensitiveAction> sensitiveActions = this.actionFactory.getContextSensitiveActions();
-                if (this.listCoordinator != null && sensitiveActions != null) {
-                    this.listCoordinator.setContextSensitiveActions(sensitiveActions);
-                    System.out.println("    B.8. [EDT] Lista de ContextSensitiveActions inyectada en ListCoordinator.");
-                } else { 
-                	System.err.println("ERROR CRITICO: Dependencia nula al intentar inyección cruzada. [AppInitializer]");
-                }
-            } else { 
-            	System.err.println("ERROR CRITICO: Dependencia nula al intentar inyección cruzada. [AppInitializer]");
-            }
-            
-            
-         // --- B.9 CREAR ConfigApplicationManager ---
-            System.out.println("    B.9. [EDT] Creando ConfigApplicationManager...");
-            
-            ViewUIConfig uiConfigCompleto = this.controller.getUiConfigForView();
-            this.configAppManager = new ConfigApplicationManager(
-                this.model, 
-                this.view, 
-                this.configuration, 
-                this.actionMap, 
-                uiConfigCompleto
-            );
-            
-            System.out.println("    B.9. [EDT] ConfigApplicationManager creado.");
-            
-            // --- B.10. CREAR InfoBarManager ---
-            //      Asegúrate que InfoBarManager usa el uiConfigParaBuildersYMenuAction si necesita el actionMap.
-            this.infoBarManager = new InfoBarManager(this.model, this.view, uiConfigParaBuildersYMenuAction, comandoToIconKeyMap, this.projectManagerService);
-            this.controller.setInfoBarManager(this.infoBarManager);
-            System.out.println("    B.9. [EDT] InfoBarManager creado.");
-            
-            // --- B.11. INYECCIÓN CRUZADA ZoomManager <-> InfoBarManager ---
-            if (this.zoomManager != null && this.infoBarManager != null) {
-                this.zoomManager.setInfoBarManager(this.infoBarManager);
-                System.out.println("    B.10. [EDT] InfoBarManager inyectado en ZoomManager.");
-            } else {
-            	System.err.println("ERROR CRITICO: Dependencia nula al intentar inyección cruzada. [AppInitializer]");
-            }
-            
-            // Sincronizar estado inicial de radios de formato de InfoBar
-            if (this.controller != null) {
-                this.controller.sincronizarEstadoVisualInicialDeRadiosDeFormato();
-                System.out.println("    B.10.1. [EDT] Estado inicial de radios de formato InfoBar sincronizado.");
-            }
-            
-            // --- B.12. CONSTRUIR MENÚ Y TOOLBAR REALES USANDO BUILDERS ---
-            System.out.println("    B.11. [EDT] Construyendo UI (Menú y Barras de Herramientas)...");
+            // FASE B.4: Crear la ActionFactory
             UIDefinitionService uiDefSvc = new UIDefinitionService();
+            Map<String, String> comandoToIconKeyMap = new java.util.HashMap<>();
+            uiDefSvc.generateModularToolbarStructure().forEach(
+                toolbarDef -> toolbarDef.botones().forEach(
+                    buttonDef -> comandoToIconKeyMap.put(buttonDef.comandoCanonico(), buttonDef.claveIcono())
+                )
+            );
+            this.actionFactory = new ActionFactory(
+                 this.model, this.view, this.zoomManager, this.fileOperationsManager, 
+                 this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
+                 this.projectManagerService, comandoToIconKeyMap, this.viewManager, this.themeManager, this.controller
+            );
+            System.out.println("  [EDT - FASE 4] ActionFactory creada.");
+            
+            // FASE B.5: Inicializar las acciones y poblar el actionMap
+            this.actionFactory.initializeActions();
+            this.actionMap = this.actionFactory.getActionMap();
+            this.controller.setActionMap(this.actionMap);
+            this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
+            System.out.println("  [EDT - FASE 5] Actions inicializadas y mapa poblado.");
 
-            // --- Construir la Barra de Menú ---
+            // FASE B.6 & 7: Crear los Managers de UI
+            this.configAppManager = new ConfigApplicationManager(this.model, this.view, this.configuration, this.actionMap, this.themeManager, registry);
+            this.controller.setConfigApplicationManager(this.configAppManager);
+
+            this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
+            this.controller.setInfobarImageManager(this.infobarImageManager);
+
+            this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
+            this.controller.setStatusBarManager(this.statusBarManager);
+
+            this.zoomManager.setStatusBarManager(this.statusBarManager);
+            System.out.println("  [EDT - FASE 6 & 7] Managers de UI creados e inyectados.");
+            
+            // FASE B.8: Construir y Poblar Menús y Toolbars
             MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration);
             menuBuilder.setControllerGlobalActionListener(this.controller);
-            List<MenuItemDefinition> menuStructure = uiDefSvc.generateMenuStructure();
-            JMenuBar finalMenuBar = menuBuilder.buildMenuBar(menuStructure, this.actionMap);
-            this.view.setJMenuBar(finalMenuBar); // Usamos el setter directo de JFrame
-            this.view.setActualMenuItemsMap(menuBuilder.getMenuItemsMap());
+            JMenuBar finalMenuBar = menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap);
+            this.view.setJMenuBar(finalMenuBar);
+            this.controller.setMenuItemsPorNombre(menuBuilder.getMenuItemsMap());
+            menuBuilder.getMenuItemsMap().forEach(registry::register);
 
-            // --- Construir las Barras de Herramientas ---
-            ToolbarBuilder toolbarBuilder = new ToolbarBuilder(
-                this.actionMap, 
-                uiConfigParaBuildersYMenuAction.colorBotonFondo, uiConfigParaBuildersYMenuAction.colorBotonTexto,
-                uiConfigParaBuildersYMenuAction.colorBotonActivado, uiConfigParaBuildersYMenuAction.colorBotonAnimacion,
-                uiConfigParaBuildersYMenuAction.iconoAncho, uiConfigParaBuildersYMenuAction.iconoAlto,
-                uiConfigParaBuildersYMenuAction.iconUtils, 
-                this.controller
-            );
-
-            // Creamos el manager que orquestará la creación y gestión de las barras
-            ToolbarManager toolbarManager = new ToolbarManager(this.view, this.configuration, toolbarBuilder, uiDefSvc);
-
-            // Le pedimos que construya e instale todas las barras definidas en UIDefinitionService
+            ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.actionMap, this.themeManager, this.iconUtils, this.controller, configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24));
+            ToolbarManager toolbarManager = new ToolbarManager(this.configuration, toolbarBuilder, uiDefSvc, registry);
             toolbarManager.inicializarBarrasDeHerramientas();
+            this.controller.setBotonesPorNombre(toolbarBuilder.getBotonesPorNombre());
+            System.out.println("  [EDT - FASE 8] UI poblada con Menús y Toolbars.");
 
-            // Inyectamos la referencia al manager en el controlador para uso futuro
-            // this.controller.setToolbarManager(toolbarManager); // Necesitaremos añadir este setter
+            // --- FASE 9 REESTRUCTURADA Y SIMPLIFICADA ---
+            System.out.println("  [EDT - FASE 9] Configuración final e inicio de carga...");
 
-            // Actualizamos el mapa de botones en la vista (ahora contiene todos los botones de todas las barras)
-            this.view.setActualBotonesMap(toolbarBuilder.getBotonesPorNombre());
-
-            System.out.println("    B.11. [EDT] Menú y Barras de Herramientas Modulares construidos.");
-            
-            // --- B.12 (MODIFICADO): Aplicar configuración y finalizar inicialización ---
-            System.out.println("    B.12. [EDT] Aplicando configuración global a través de ConfigApplicationManager...");
             this.configAppManager.aplicarConfiguracionGlobalmente();
-            
-            System.out.println("    B.12.1. [EDT] Sincronizando estado visual inicial de los botones de Zoom...");
             this.controller.sincronizarEstadoVisualBotonesYRadiosZoom();
-            
-         // Llamamos a los métodos de inicialización restantes del Controller que NO son de aplicación de config.
-            this.controller.assignModeloMiniaturasToViewInternal();
-            this.controller.establecerCarpetaRaizDesdeConfigInternal();
-            this.controller.configurarListenersVistaInternal();
-            this.controller.interceptarAccionesTecladoListas();
-            KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
-            configurarListenerRedimensionVentanaEDT();
-            this.controller.configurarShutdownHookInternal();
+            this.controller.configurarListenersVistaInternal(); // Llama a configurarListenerDePrimerRenderizado
 
-            // La lógica de cargar la carpeta/imagen inicial se ejecuta al final, después de que todo esté configurado.
-            this.controller.cargarEstadoInicialInternal();
-
-            this.controller.setConfigApplicationManager(this.configAppManager);
-            
-            // Forzar actualización inicial del estado de todas las acciones contextuales
-            if (this.listCoordinator != null) {
-                this.listCoordinator.forzarActualizacionEstadoAcciones();
-            }
-            
-            // Sincronización inicial de la visibilidad del botón "Menú Especial" en toolbar
-            Action toggleMenuActionInstance = this.actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
-            if (toggleMenuActionInstance != null && this.view != null && this.view.getBotonesPorNombre() != null) {
-                
-            	boolean menuBarVisibleInicialmente = Boolean.TRUE.equals(toggleMenuActionInstance.getValue(Action.SELECTED_KEY));
-            	
-            	
-            	if (this.configuration != null && this.view != null) {
-            	    // Obtener la clave de config que ToggleMenuBarAction usa para guardar su estado
-            	    String menuBarSelectedConfigKey = "interfaz.menu.vista.barra_de_menu.seleccionado"; // Asegúrate que esta es la clave correcta
-            	    boolean shouldMenuBarBeVisible = this.configuration.getBoolean(menuBarSelectedConfigKey, true); // true es el default si no se encuentra
-            	    
-            	    
-//            	    System.out.println("  [AppInitializer] Leyendo directamente de config para JMenuBar: '" + menuBarSelectedConfigKey + "' -> " + shouldMenuBarBeVisible);
-            	    this.view.setJMenuBarVisible(shouldMenuBarBeVisible);
-//            	    System.out.println("  [AppInitializer] Visibilidad inicial de JMenuBar establecida a: " + shouldMenuBarBeVisible);
-
-            	    // Sincronizar Action.SELECTED_KEY (IMPORTANTE si otros componentes dependen de él después)
-            	    Action toggleMenuBarAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR) : null;
-            	    if (toggleMenuBarAction != null) {
-            	        // Forzar el SELECTED_KEY de la Action a que coincida con lo que realmente se aplicó a la vista
-            	        if (!Objects.equals(toggleMenuBarAction.getValue(Action.SELECTED_KEY), shouldMenuBarBeVisible)) {
-            	            toggleMenuBarAction.putValue(Action.SELECTED_KEY, shouldMenuBarBeVisible);
-            	            System.out.println("    -> [AppInitializer] Action.SELECTED_KEY para ToggleMenuBarAction sincronizado a: " + shouldMenuBarBeVisible);
-            	        }
-            	    }
-            	}
-            	
-            	
-            	
-            	JButton botonMenuEspecialToolbar = this.view.getBotonesPorNombre().get("interfaz.boton.especiales.Menu_48x48");
-                if (botonMenuEspecialToolbar != null) {
-                    botonMenuEspecialToolbar.setVisible(!menuBarVisibleInicialmente); // Se muestra si la JMenuBar está oculta
-                    System.out.println("    B.12.1. [EDT] Visibilidad inicial del botón Menu_48x48 (toolbar) establecida a: " + !menuBarVisibleInicialmente);
+            this.view.addWindowListener(new java.awt.event.WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                    controller.shutdownApplication();
                 }
-            }
+            });
             
-            // Forzar actualización inicial del estado de todas las acciones contextuales
-            if (this.listCoordinator != null) {
-                this.listCoordinator.forzarActualizacionEstadoAcciones();
-            }
+            // --- INICIO DE LA LÓGICA DE ARRANQUE CORREGIDA ---
+            
+            // 1. Prepara todo lo necesario para la carga
+            this.controller.establecerCarpetaRaizDesdeConfigInternal();
+            String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
 
-            System.out.println("  [AppInitializer Fase B - EDT] Inicialización de UI y componentes dependientes completada.");
-            System.out.println("--- AppInitializer: INICIALIZACIÓN GLOBAL COMPLETADA ---");
-            
-            System.out.println("[AppInitializer] Ejecutando sincronización final de checkboxes de botones...");
-            if (this.controller != null) {
-                this.controller.sincronizarEstadoVisualCheckboxesDeBotones();
+            // 2. Haz la ventana visible AHORA.
+            System.out.println("  [EDT] Mostrando la ventana principal ANTES de la carga de la lista...");
+            this.view.setVisible(true);
+
+            // 3. Ahora que la ventana es visible y los componentes tienen tamaño, inicia la carga.
+            System.out.println("  [EDT] Iniciando carga de estado inicial...");
+            if (this.model.getCarpetaRaizActual() != null) {
+                // Ya no pasamos un callback, el listener se encargará de todo.
+                this.controller.cargarListaImagenes(imagenInicialKey, null);
+            } else {
+                System.out.println("  [EDT] No hay carpeta de inicio configurada. Limpiando UI.");
+                if (controller != null) controller.limpiarUI();
             }
             
-            this.view.setVisible(true); // Hacer visible la ventana principal al final de todo
-            
+            System.out.println("--- [EDT] Inicialización de UI completada y carga de archivos en segundo plano iniciada. ---");
+
+            // --- FIN DE LA LÓGICA DE ARRANQUE CORREGIDA ---
+
         } catch (Exception e) {
-            manejarErrorFatalInicializacion("[EDT] Error fatal durante creación de UI o componentes dependientes", e);
+            manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
         }
     } // --- FIN del método crearUIyComponentesDependientesEnEDT ---
     
     
-    /**
-     * (NUEVO MÉTODO PRIVADO en AppInitializer, ejecutado en EDT)
-     * Configura un ComponentListener en la ventana principal (VisorView)
-     * para detectar cambios de tamaño y recalcular dinámicamente la cantidad
-     * de miniaturas visibles en la barra de miniaturas.
-     * Utiliza un Timer para "debouncing".
-     */
-    private void configurarListenerRedimensionVentanaEDT() {
-        // Validar que las dependencias (this.view, this.controller, this.listCoordinator) estén listas
-        if (this.view != null && this.controller != null && this.listCoordinator != null) {
-            System.out.println("    -> [EDT AppInitializer] Configurando ComponentListener para miniaturas dinámicas...");
+//***************************************************************************************************************    
+// 							--- MÉTODOS HELPER PARA CADA FASE DE INICIALIZACIÓN ---
+//***************************************************************************************************************	
+    
+    
+    private ComponentRegistry crearArquitecturaBase() {
+        System.out.println("  [B.1] Creando ComponentRegistry...");
+        ComponentRegistry registry = new ComponentRegistry();
+        this.controller.setComponentRegistry(registry);
+        return registry;
+    }
 
-            this.view.getFrame().addComponentListener(new java.awt.event.ComponentAdapter() {
-                private Timer resizeTimer; // Timer para debouncing
+    private void crearManagersDeUIeInicializarActions(ComponentRegistry registry) {
+        System.out.println("  [B.5] Creando Managers de UI e inicializando Actions...");
 
-                @Override
-                public void componentResized(java.awt.event.ComponentEvent e) {
-                    // --- Lógica de Debouncing (sin cambios) ---
-                    if (resizeTimer != null && resizeTimer.isRunning()) {
-                        resizeTimer.restart();
-                    } else {
-                        resizeTimer = new Timer(WINDOW_RESIZE_UPDATE_DELAY_MS, ae -> {
-                            // --- INICIO DEL CAMBIO ---
-                            
-                            // 1. Validar que los componentes necesarios existan
-                            if (model == null || listCoordinator == null || controller == null || zoomManager == null) {
-                                System.err.println("WARN [WindowResized Timer]: Dependencias nulas. No se puede actualizar la UI.");
-                                return;
-                            }
-                            
-                            System.out.println("      [WindowResized Timer] Ejecutando actualización de UI por redimensionamiento...");
+        // 1. Inyectar las dependencias que faltaban en ActionFactory
+        this.actionFactory.setView(this.view);
+        this.actionFactory.setZoomManager(this.zoomManager);
+        this.actionFactory.setFileOperationsManager(this.fileOperationsManager);
+        this.actionFactory.setEditionManager(this.editionManager);
+        this.actionFactory.setListCoordinator(this.listCoordinator);
+        this.actionFactory.setViewManager(this.viewManager);
+        
+        // 2. Ahora que tiene todas las dependencias, inicializar las Actions
+        this.actionFactory.initializeActions();
+        this.actionMap = this.actionFactory.getActionMap();
+        this.controller.setActionMap(this.actionMap);
+        this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
 
-                            // 2. Lógica para la IMAGEN PRINCIPAL
-                            // Si hay una imagen cargada, le pedimos al ZoomManager que reaplique el modo de zoom actual.
-                            // Esto forzará un recálculo del tamaño de la imagen basado en las nuevas dimensiones de la ventana.
-                            if (model.getCurrentImage() != null) {
-                                System.out.println("        -> Refrescando imagen principal con modo de zoom actual: " + model.getCurrentZoomMode());
-                                zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
-                                // El método aplicarModoDeZoom ya se encarga de llamar a refrescarVistaPrincipal...
-                            }
+        // 3. Crear los Managers de UI que dependen del actionMap
+        this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
+        this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
+        this.configAppManager = new ConfigApplicationManager(this.model, this.view, this.configuration, this.actionMap, this.themeManager, registry);
+        
+        // 4. Inyectar las últimas dependencias
+        this.controller.setInfobarImageManager(this.infobarImageManager);
+        this.controller.setStatusBarManager(this.statusBarManager);
+        this.controller.setConfigApplicationManager(this.configAppManager);
+        this.zoomManager.setStatusBarManager(this.statusBarManager);
+    }
+    
+    private void crearInstanciaActionFactory(UIDefinitionService uiDefSvc) {
+        System.out.println("  [B.2] Creando instancia de ActionFactory (sin inicializar acciones)...");
+        
+        // 1. Crear el mapa de comandos a iconos
+        Map<String, String> comandoToIconKeyMap = new HashMap<>();
+        uiDefSvc.generateModularToolbarStructure().forEach(
+            toolbarDef -> toolbarDef.botones().forEach(
+                buttonDef -> comandoToIconKeyMap.put(buttonDef.comandoCanonico(), buttonDef.claveIcono())
+            )
+        );
+        
+        // 2. Llamar al constructor de ActionFactory con las dependencias disponibles
+        //    y null para las que se inyectarán más tarde.
+        this.actionFactory = new ActionFactory(
+             this.model,
+             null, // view (se inyecta después)
+             null, // zoomManager (se inyecta después)
+             null, // fileOperationsManager (se inyecta después)
+             null, // editionManager (se inyecta después)
+             null, // listCoordinator (se inyecta después)
+             this.iconUtils,
+             this.configuration,
+             this.projectManagerService, 
+             comandoToIconKeyMap,
+             null, // viewManager (se inyecta después)
+             this.themeManager,
+             this.controller
+        );
+    } // --- FIN del metodo crearInstanciaActionFactory ---
+    
+    private void crearManagersDependientesDeActions(ComponentRegistry registry) {
+        System.out.println("  [B.5] Creando Managers dependientes de Actions y finalizando Actions...");
+        
+        // <<< PASO 1: INICIALIZAR LAS ACTIONS PRIMERO >>>
+        this.actionFactory.initializeActions();
+        this.actionMap = this.actionFactory.getActionMap();
+        this.controller.setActionMap(this.actionMap);
+        this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
+        
+        // <<< PASO 2: CREAR LOS MANAGERS DESPUÉS >>>
+        this.configAppManager = new ConfigApplicationManager(this.model, this.view, this.configuration, this.actionMap, this.themeManager, registry);
+        this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
+        this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
 
-                            // 3. Lógica para la BARRA DE MINIATURAS (la que ya tenías)
-                            int indiceActualOficial = listCoordinator.getIndiceOficialSeleccionado();
-                            if (indiceActualOficial != -1) {
-                                System.out.println("        -> Refrescando barra de miniaturas...");
-                                controller.actualizarModeloYVistaMiniaturas(indiceActualOficial);
-                            }
-                            
-                            // --- FIN DEL CAMBIO ---
-                        });
-                        resizeTimer.setRepeats(false);
-                        resizeTimer.start();
-                    }
-                }
-            });
-            System.out.println("    -> [EDT AppInitializer] ComponentListener para miniaturas dinámicas añadido a VisorView.");
-        } else {
-            System.err.println("ERROR [AppInitializer EDT - configurarListenerRedimensionVentana]: No se pudo añadir ComponentListener (vista, controller o listCoordinator nulos).");
-        }
-    } // --- FIN configurarListenerRedimensionVentanaEDT ---
+        // <<< PASO 3: INYECTAR LOS MANAGERS (sin cambios) >>>
+        this.controller.setConfigApplicationManager(this.configAppManager);
+        this.controller.setStatusBarManager(this.statusBarManager);
+        this.controller.setInfobarImageManager(this.infobarImageManager);
+        this.zoomManager.setStatusBarManager(this.statusBarManager);
+        
+    } // --- FIN del metodo crearManagersDependientesDeActions ---
+    
+    private void construirEsqueletoVista(ComponentRegistry registry) {
+        System.out.println("  [B.3] Usando ViewBuilder para construir el frame principal...");
+        ViewBuilder viewBuilder = new ViewBuilder(
+        								registry, 
+//        								this.actionFactory, 
+        								this.model, 
+        								this.themeManager, 
+        								this.configuration, 
+        								this.controller, 
+        								this.iconUtils, 
+        								this.servicioMiniaturas
+        );
+        this.view = viewBuilder.createMainFrame(); // Este método ahora SÓLO construye el esqueleto.
+        this.controller.setView(this.view);
+    }
+    
+    private void crearManagersIndependientes(ComponentRegistry registry) {
+        System.out.println("  [B.3] Creando Managers independientes...");
+        this.zoomManager = new ZoomManager(this.model, registry, this.configuration);
+        this.viewManager = new ViewManager(this.view, this.configuration, this.controller.getComponentRegistry());
+        this.editionManager = new EditionManager(this.model, this.controller, this.zoomManager);
+        Consumer<Path> recargarCallback = (nuevaCarpeta) -> this.controller.cargarListaImagenes(null, null);
+        this.fileOperationsManager = new FileOperationsManager(this.model, this.controller, this.configuration, recargarCallback);
+        this.listCoordinator = new ListCoordinator(this.model, this.view, this.controller, this.controller.getComponentRegistry());
+        
+        this.controller.setZoomManager(this.zoomManager);
+        this.controller.setListCoordinator(this.listCoordinator);
+    }
+    
+    private void crearManagersDeLogica(ComponentRegistry registry) { // <-- AÑADIR PARÁMETRO
+        System.out.println("  [B.3] Creando Managers de Lógica...");
+        
+        // <<< AHORA SÍ PUEDES USAR 'registry' AQUÍ >>>
+        this.zoomManager = new ZoomManager(this.model, registry, this.configuration);
+        this.viewManager = new ViewManager(this.view, this.configuration, registry);
+        this.editionManager = new EditionManager(this.model, this.controller, this.zoomManager);
+        Consumer<Path> recargarCallback = (nuevaCarpeta) -> this.controller.cargarListaImagenes(null, null);
+        this.fileOperationsManager = new FileOperationsManager(this.model, this.controller, this.configuration, recargarCallback);
+        this.listCoordinator = new ListCoordinator(this.model, this.view, this.controller, registry); // <-- TAMBIÉN AQUÍ
+        
+        this.controller.setZoomManager(this.zoomManager);
+        this.controller.setListCoordinator(this.listCoordinator);
+    }
+    
+    private void crearEInicializarActionFactory(UIDefinitionService uiDefSvc) {
+        System.out.println("  [B.3] Creando e inicializando ActionFactory y ActionMap...");
+        
+        // Crear el mapa de comandos a iconos
+        Map<String, String> comandoToIconKeyMap = new HashMap<>();
+        uiDefSvc.generateModularToolbarStructure().forEach(
+            toolbarDef -> toolbarDef.botones().forEach(
+                buttonDef -> comandoToIconKeyMap.put(buttonDef.comandoCanonico(), buttonDef.claveIcono())
+            )
+        );
+        
+        // Crear la instancia de la fábrica. Le pasamos las dependencias que ya tenemos.
+        this.actionFactory = new ActionFactory(
+             this.model,
+             this.view, 
+             this.zoomManager,
+             this.fileOperationsManager,
+             this.editionManager,
+             this.listCoordinator, 
+             this.iconUtils,
+             this.configuration,
+             this.projectManagerService, 
+             comandoToIconKeyMap,
+             this.viewManager, 
+             this.themeManager,
+             this.controller
+        );
+        
+        // ¡AHORA! Inyectamos las dependencias tardías que faltaban, si las hubiera
+        // (en tu caso, parece que ya se pasan todas en el constructor, lo cual es mejor)
+
+        // Y FINALMENTE, inicializamos las acciones
+        this.actionFactory.initializeActions();
+        this.actionMap = this.actionFactory.getActionMap();
+        this.controller.setActionMap(this.actionMap);
+        this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
+    } // --- FIN del metodo crearEInicializarActionFactory ---
+
+    private void crearManagersDeUI(ComponentRegistry registry) {
+        System.out.println("  [B.4] Creando Managers de UI (que dependen de ActionMap)...");
+        
+        // Creamos ConfigApplicationManager PRIMERO, ya que otras Actions lo necesitan.
+        this.configAppManager = new ConfigApplicationManager(this.model, this.view, this.configuration, this.actionMap, this.themeManager, registry);
+        this.controller.setConfigApplicationManager(this.configAppManager); // ¡INYECTARLO INMEDIATAMENTE!
+        
+        // Ahora creamos los otros managers de UI
+        this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
+        this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
+        
+        // Inyectar el resto de managers en el controlador
+        this.controller.setInfobarImageManager(this.infobarImageManager);
+        this.controller.setStatusBarManager(this.statusBarManager);
+        
+        // Inyectar dependencias cruzadas si es necesario
+        this.zoomManager.setStatusBarManager(this.statusBarManager);
+    } // --- FIN del metodo crearManagersDeUI ---
+
+    private void poblarUIConComponentesInteractivos(ComponentRegistry registry, UIDefinitionService uiDefSvc) {
+        System.out.println("  [B.6] Poblando la UI con menús y barras de herramientas...");
+        
+        // CREAR Y ESTABLECER LA BARRA DE MENÚ
+        MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration);
+        menuBuilder.setControllerGlobalActionListener(this.controller);
+        
+        JMenuBar finalMenuBar = menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap);
+        this.view.setJMenuBar(finalMenuBar); 
+        this.controller.setMenuItemsPorNombre(menuBuilder.getMenuItemsMap());
+        menuBuilder.getMenuItemsMap().forEach(registry::register);
+
+        int anchoIconoCfg = this.configuration.getInt("iconos.ancho", 24);
+        int altoIconoCfg = this.configuration.getInt("iconos.alto", 24);
+        ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.actionMap, this.themeManager, this.iconUtils, this.controller, anchoIconoCfg, altoIconoCfg);
+        ToolbarManager toolbarManager = new ToolbarManager(this.configuration, toolbarBuilder, uiDefSvc, registry);
+        toolbarManager.inicializarBarrasDeHerramientas();
+        this.controller.setBotonesPorNombre(toolbarBuilder.getBotonesPorNombre());
+    }
+
+    
+	
+    
+    
+//***************************************************************************************************************    
+//						--- FINAL DE LOS MÉTODOS HELPER PARA CADA FASE DE INICIALIZACIÓN ---
+//***************************************************************************************************************    
+    
+	
+    
+
+    
 
 
     /**

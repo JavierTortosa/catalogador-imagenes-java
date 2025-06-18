@@ -1,18 +1,33 @@
 package controlador.managers;
 
-import java.util.Objects;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.SwingUtilities;
 
+import controlador.utils.ComponentRegistry;
 import servicios.ConfigurationManager;
 import vista.VisorView;
+import vista.panels.ImageDisplayPanel;
 
 public class ViewManager {
 
     private VisorView view;
     private ConfigurationManager configuration;
-
-    public ViewManager(VisorView view, ConfigurationManager configuration) {
-        this.view = Objects.requireNonNull(view, "VisorView no puede ser null en ViewManager");
-        this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null en ViewManager");
+    private final ComponentRegistry registry;
+    private final ConfigurationManager config;
+    
+    /**
+     * Constructor refactorizado de ViewManager.
+     * @param view La instancia de VisorView (aún puede ser necesaria para obtener el frame principal).
+     * @param config El gestor de configuración.
+     * @param registry El registro central de componentes de la UI.
+     */
+    // <<< PASO 2: MODIFICAR EL CONSTRUCTOR >>>
+    public ViewManager(VisorView view, ConfigurationManager config, ComponentRegistry registry) {
+        // this.view = view;
+        this.config = config;
+        this.registry = registry; // Guardar la referencia
     }
 
     /**
@@ -46,23 +61,44 @@ public class ViewManager {
                 }
                 break;
             case "mostrar_ocultar_la_lista_de_archivos":
-                if (view.getPanelIzquierdo() != null && view.getPanelIzquierdo().isVisible() != nuevoEstadoVisible) {
-                    view.setFileListVisible(nuevoEstadoVisible); // Llama al método existente en VisorView
-                    cambioRealizadoEnVista = true;
+                // <<< AHORA ESTE CÓDIGO FUNCIONARÁ >>>
+                // Porque `this.registry` ya existe como campo de la clase.
+                JPanel panelIzquierdo = this.registry.get("panel.izquierdo.listaArchivos");
+                JSplitPane splitPane = this.registry.get("splitpane.main");
+
+                if (panelIzquierdo != null && splitPane != null) {
+                    if (panelIzquierdo.isVisible() != nuevoEstadoVisible) {
+                        panelIzquierdo.setVisible(nuevoEstadoVisible);
+                        if (nuevoEstadoVisible) {
+                            SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.25));
+                        }
+                        cambioRealizadoEnVista = true;
+                    }
                 }
                 break;
             case "imagenes_en_miniatura":
-                if (view.getScrollListaMiniaturas() != null && view.getScrollListaMiniaturas().isVisible() != nuevoEstadoVisible) {
-                    view.setThumbnailsVisible(nuevoEstadoVisible); // Llama al método existente en VisorView
-                    cambioRealizadoEnVista = true;
+                // 1. Obtener el JScrollPane desde el registro
+                JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+
+                if (scrollMiniaturas != null) {
+                    // 2. Comprobar si el estado actual es diferente al deseado
+                    if (scrollMiniaturas.isVisible() != nuevoEstadoVisible) {
+                        // 3. Aplicar directamente la visibilidad
+                        scrollMiniaturas.setVisible(nuevoEstadoVisible);
+                        
+                        // 4. Marcar que se hizo un cambio para el revalidate/repaint final
+                        cambioRealizadoEnVista = true;
+                    }
+                } else {
+                    System.err.println("WARN [ViewManager]: 'scroll.miniaturas' no encontrado en el registro.");
                 }
                 break;
-            case "linea_de_ubicacion_del_archivo":
-                if (view.getTextoRuta() != null && view.getTextoRuta().isVisible() != nuevoEstadoVisible) {
-                    view.setLocationBarVisible(nuevoEstadoVisible); // Llama al método existente en VisorView
-                    cambioRealizadoEnVista = true;
-                }
-                break;
+//            case "linea_de_ubicacion_del_archivo":
+//                if (view.getTextoRuta() != null && view.getTextoRuta().isVisible() != nuevoEstadoVisible) {
+//                    view.setLocationBarVisible(nuevoEstadoVisible); // Llama al método existente en VisorView
+//                    cambioRealizadoEnVista = true;
+//                }
+//                break;
             // Los casos "fondo_a_cuadros" y "mantener_ventana_siempre_encima"
             // son manejados por sus Actions específicas que llaman a métodos directos en VisorView.
             // No necesitan pasar por este método genérico si su lógica es diferente.
@@ -88,6 +124,83 @@ public class ViewManager {
         //     });
         // }
     }
+    
+    
+    /**
+     * Activa o desactiva el fondo a cuadros como opción por defecto.
+     * Esta acción es persistente y es llamada por la Action del menú.
+     * @param activar true para activar el fondo a cuadros, false para desactivarlo.
+     */
+    public void setCheckeredBackgroundEnabled(boolean activar) {
+        if (registry == null || config == null) {
+            System.err.println("ERROR [ViewManager]: Registry o ConfigurationManager nulos.");
+            return;
+        }
+
+        // 1. Guardar el estado en la configuración
+        String configKey = "interfaz.menu.vista.fondo_a_cuadros.seleccionado";
+        config.setString(configKey, String.valueOf(activar));
+        
+        // 2. Aplicar el cambio visual llamando al método del panel ejecutor
+        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+        if (displayPanel != null) {
+            displayPanel.setCheckeredBackground(activar);
+        } else {
+            System.err.println("ERROR [ViewManager]: No se pudo encontrar 'panel.display.imagen' en el registro.");
+        }
+    } // --- Fin del método setCheckeredBackgroundEnabled ---
+
+    /**
+     * Establece un color de fondo sólido para la SESIÓN ACTUAL.
+     * Este método es llamado por los "puntos de color".
+     * @param color El color a aplicar.
+     */
+    public void setSessionBackgroundColor(java.awt.Color color) {
+        if (registry == null) return;
+        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+        if (displayPanel != null) {
+            displayPanel.setSolidBackgroundColor(color);
+        }
+    } // --- Fin del método setSessionBackgroundColor ---
+
+    /**
+     * Establece el fondo a cuadros para la SESIÓN ACTUAL.
+     * Este método es llamado por el "punto de color" de cuadros.
+     */
+    public void setSessionCheckeredBackground() {
+        if (registry == null) return;
+        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+        if (displayPanel != null) {
+            displayPanel.setCheckeredBackground(true);
+        }
+    } // --- Fin del método setSessionCheckeredBackground ---
+    
+    /**
+     * Abre un JColorChooser para que el usuario elija un color de fondo personalizado para la SESIÓN ACTUAL.
+     */
+    public void requestCustomBackgroundColor() {
+        if (registry == null) return;
+
+        // Necesitamos un componente padre para el diálogo, lo obtenemos del registro.
+        // Asumo que el JFrame principal está registrado con la clave "frame.main".
+        javax.swing.JFrame mainFrame = registry.get("frame.main"); 
+        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+
+        if (displayPanel == null || mainFrame == null) {
+            System.err.println("ERROR [ViewManager]: No se puede abrir JColorChooser, falta 'frame.main' o 'panel.display.imagen' en el registro.");
+            return;
+        }
+        
+        // El color actual se puede obtener del propio panel, pero getBackground() podría
+        // no ser fiable si el panel es opaco. Es mejor tener un getter para el color sólido.
+        // Por ahora, asumimos que getBackground() funciona.
+        java.awt.Color colorActual = displayPanel.getBackground();
+        java.awt.Color colorElegido = javax.swing.JColorChooser.showDialog(mainFrame, "Seleccionar Color de Fondo", colorActual);
+        
+        if (colorElegido != null) {
+            setSessionBackgroundColor(colorElegido);
+        }
+    } // --- Fin del método requestCustomBackgroundColor ---
 
     // Aquí podrías añadir métodos para cambiar tema, etc. en el futuro.
     // public void aplicarTema(String nombreTema) { ... }

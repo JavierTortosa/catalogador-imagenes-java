@@ -1,3 +1,5 @@
+// Archivo: controlador/managers/FileOperationsManager.java
+
 package controlador.managers;
 
 import java.io.File;
@@ -5,191 +7,125 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
-import java.util.function.Consumer; // Para el callback
+import java.util.function.Consumer;
 
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import controlador.VisorController; // <-- NUEVO IMPORT
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
-import vista.VisorView;
+// No se necesita importar VisorView
 
 public class FileOperationsManager {
 
-    private VisorModel model;
-    private VisorView view;
-    private ConfigurationManager configuration;
-    private Consumer<Path> onNuevaCarpetaSeleccionadaCallback; // Callback para notificar al Controller
+    private final VisorModel model;
+    private final VisorController controller; // <-- CAMBIO
+    private final ConfigurationManager configuration;
+    private final Consumer<Path> onNuevaCarpetaSeleccionadaCallback;
 
-    public FileOperationsManager(VisorModel model, 
-                       VisorView view, 
-                       ConfigurationManager configuration,
-                       Consumer<Path> onNuevaCarpetaSeleccionadaCallback) {
-        this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en FileManager");
-        this.view = Objects.requireNonNull(view, "VisorView no puede ser null en FileManager");
-        this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null en FileManager");
-        this.onNuevaCarpetaSeleccionadaCallback = Objects.requireNonNull(onNuevaCarpetaSeleccionadaCallback, "Callback no puede ser null");
+    public FileOperationsManager(
+        VisorModel model, 
+        VisorController controller, // <-- CAMBIO
+        ConfigurationManager configuration,
+        Consumer<Path> onNuevaCarpetaSeleccionadaCallback) {
+        
+        this.model = Objects.requireNonNull(model);
+        this.controller = Objects.requireNonNull(controller); // <-- CAMBIO
+        this.configuration = Objects.requireNonNull(configuration);
+        this.onNuevaCarpetaSeleccionadaCallback = Objects.requireNonNull(onNuevaCarpetaSeleccionadaCallback);
     }
 
-    /**
-     * Muestra un diálogo para que el usuario seleccione una nueva carpeta raíz.
-     * Si se selecciona una carpeta válida y diferente a la actual,
-     * actualiza el modelo, la configuración y luego invoca el callback
-     * para que el sistema principal recargue la lista de imágenes.
-     */
     public void solicitarSeleccionNuevaCarpeta() {
         System.out.println("[FileManager] Iniciando selección de nueva carpeta...");
-
+        JFrame mainFrame = controller.getView(); // Obtener el frame una sola vez
+        
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         fileChooser.setDialogTitle("Seleccionar Nueva Carpeta de Imágenes");
 
-        // Establecer directorio inicial del JFileChooser
-        Path dirActual = model.getCarpetaRaizActual(); // Asumiendo que VisorModel tiene este getter
+        Path dirActual = model.getCarpetaRaizActual();
         if (dirActual != null && Files.isDirectory(dirActual)) {
             fileChooser.setCurrentDirectory(dirActual.toFile());
         } else {
-            String dirConfig = configuration.getString(ConfigurationManager.KEY_INICIO_CARPETA, null); // Asume que tienes esta constante
+            String dirConfig = configuration.getString(ConfigurationManager.KEY_INICIO_CARPETA, null);
             if (dirConfig != null) {
                 File f = new File(dirConfig);
-                if (f.isDirectory()) {
-                    fileChooser.setCurrentDirectory(f);
-                }
+                if (f.isDirectory()) fileChooser.setCurrentDirectory(f);
             }
         }
 
-        int resultado = fileChooser.showOpenDialog(this.view.getFrame());
+        int resultado = fileChooser.showOpenDialog(mainFrame);
 
         if (resultado == JFileChooser.APPROVE_OPTION) {
             File carpetaSeleccionadaFile = fileChooser.getSelectedFile();
             if (carpetaSeleccionadaFile != null && carpetaSeleccionadaFile.isDirectory()) {
                 Path nuevaCarpetaPath = carpetaSeleccionadaFile.toPath();
-                
                 if (!nuevaCarpetaPath.equals(model.getCarpetaRaizActual())) {
-                    System.out.println("  [FileManager] Nueva carpeta seleccionada: " + nuevaCarpetaPath);
-                    
-                    // Actualizar modelo
-                    model.setCarpetaRaizActual(nuevaCarpetaPath); // Asumiendo que VisorModel tiene este setter
-                    
-                    // Actualizar configuración
+                    model.setCarpetaRaizActual(nuevaCarpetaPath);
                     configuration.setString(ConfigurationManager.KEY_INICIO_CARPETA, nuevaCarpetaPath.toAbsolutePath().toString());
                     try {
                         configuration.guardarConfiguracion(configuration.getConfigMap());
                     } catch (IOException e) {
-                        System.err.println("ERROR [FileManager] al guardar config tras seleccionar nueva carpeta: " + e.getMessage());
-                        // No es fatal para la operación actual, pero sí para la persistencia.
-                        JOptionPane.showMessageDialog(this.view.getFrame(), 
-                                                      "No se pudo guardar la nueva carpeta en la configuración.", 
-                                                      "Error de Configuración", JOptionPane.WARNING_MESSAGE);
+                        System.err.println("ERROR [FileManager] al guardar config: " + e.getMessage());
+                        JOptionPane.showMessageDialog(mainFrame, "No se pudo guardar la nueva carpeta en la configuración.", "Error de Configuración", JOptionPane.WARNING_MESSAGE);
                     }
-                    
-                    // Invocar el callback para que el VisorController recargue la lista
-                    this.onNuevaCarpetaSeleccionadaCallback.accept(nuevaCarpetaPath); // El Path es informativo, el controller ya lo sabe por el modelo
-
+                    this.onNuevaCarpetaSeleccionadaCallback.accept(nuevaCarpetaPath);
                 } else {
-                    System.out.println("  [FileManager] La carpeta seleccionada es la misma que la actual.");
-                    JOptionPane.showMessageDialog(this.view.getFrame(),
-                                                  "La carpeta seleccionada ya es la carpeta actual.",
-                                                  "Información", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(mainFrame, "La carpeta seleccionada ya es la carpeta actual.", "Información", JOptionPane.INFORMATION_MESSAGE);
                 }
             } else {
-                System.err.println("  [FileManager] Selección inválida o no es un directorio.");
-                 JOptionPane.showMessageDialog(this.view.getFrame(), 
-                                             "La selección no es una carpeta válida.", 
-                                             "Selección Inválida", 
-                                             JOptionPane.WARNING_MESSAGE);
+                 JOptionPane.showMessageDialog(mainFrame, "La selección no es una carpeta válida.", "Selección Inválida", JOptionPane.WARNING_MESSAGE);
             }
         } else {
             System.out.println("  [FileManager] Selección de carpeta cancelada.");
         }
     }
-    
-    
- // En src/controlador/managers/FileOperationsManager.java
- // ... (constructor y solicitarSeleccionNuevaCarpeta() como antes) ...
 
-     /**
-      * Intenta borrar la imagen actualmente seleccionada en el VisorModel.
-      * Pide confirmación al usuario. Si se confirma y el borrado es exitoso,
-      * invoca el callback onNuevaCarpetaSeleccionadaCallback (reutilizado aquí para
-      * indicar que la lista debe recargarse/actualizarse).
-      */
-     public void borrarArchivoSeleccionado() {
-         System.out.println("[FileOperationsManager] Iniciando borrado de archivo seleccionado...");
+    public void borrarArchivoSeleccionado() {
+        System.out.println("[FileOperationsManager] Iniciando borrado...");
+        JFrame mainFrame = controller.getView(); // Obtener el frame una sola vez
 
-         if (model == null || view == null || configuration == null || onNuevaCarpetaSeleccionadaCallback == null) {
-             System.err.println("ERROR CRÍTICO [FileOperationsManager.borrarArchivoSeleccionado]: Dependencias nulas.");
-             return;
-         }
+        if (model == null) return;
 
-         String claveImagenSeleccionada = model.getSelectedImageKey();
-         if (claveImagenSeleccionada == null) {
-             JOptionPane.showMessageDialog(view.getFrame(), "No hay ninguna imagen seleccionada para eliminar.", "Eliminar Imagen", JOptionPane.INFORMATION_MESSAGE);
-             return;
-         }
+        String claveImagenSeleccionada = model.getSelectedImageKey();
+        if (claveImagenSeleccionada == null) {
+            JOptionPane.showMessageDialog(mainFrame, "No hay ninguna imagen seleccionada para eliminar.", "Eliminar Imagen", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
 
-         Path rutaCompleta = model.getRutaCompleta(claveImagenSeleccionada);
-         if (rutaCompleta == null) {
-             JOptionPane.showMessageDialog(view.getFrame(), "No se pudo encontrar la ruta del archivo seleccionado.", "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
-             System.err.println("  [FileOperationsManager] No se pudo obtener ruta para clave: " + claveImagenSeleccionada);
-             return;
-         }
+        Path rutaCompleta = model.getRutaCompleta(claveImagenSeleccionada);
+        if (rutaCompleta == null) {
+            JOptionPane.showMessageDialog(mainFrame, "No se pudo encontrar la ruta del archivo seleccionado.", "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
 
-         int confirm = JOptionPane.showConfirmDialog(
-             view.getFrame(),
-             "¿Está seguro de que desea eliminar el archivo?\n" + rutaCompleta.getFileName().toString() +
-             "\nEsta acción no se puede deshacer.",
-             "Confirmar Eliminación",
-             JOptionPane.YES_NO_OPTION,
-             JOptionPane.WARNING_MESSAGE
-         );
+        int confirm = JOptionPane.showConfirmDialog(
+            mainFrame,
+            "¿Está seguro de que desea eliminar el archivo?\n" + rutaCompleta.getFileName().toString(),
+            "Confirmar Eliminación",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
 
-         if (confirm == JOptionPane.YES_OPTION) {
-             System.out.println("  [FileOperationsManager] Usuario confirmó eliminación para: " + rutaCompleta);
-             boolean borradoExitoso = false;
-             try {
-                 File archivoABorrar = rutaCompleta.toFile();
-                 if (archivoABorrar.exists()) {
-                     borradoExitoso = Files.deleteIfExists(rutaCompleta); // Usar Files.deleteIfExists
-                 } else {
-                     System.err.println("  [FileOperationsManager] El archivo a borrar no existe: " + rutaCompleta);
-                 }
-             } catch (SecurityException se) {
-                 System.err.println("ERROR [FileOperationsManager]: Excepción de seguridad al borrar: " + se.getMessage());
-                 JOptionPane.showMessageDialog(view.getFrame(), "No se tienen permisos para eliminar el archivo.", "Error de Permisos", JOptionPane.ERROR_MESSAGE);
-                 return;
-             } catch (IOException ioEx) {
-                 System.err.println("ERROR [FileOperationsManager]: IOException al borrar: " + ioEx.getMessage());
-                 JOptionPane.showMessageDialog(view.getFrame(), "Error de E/S al eliminar el archivo.", "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
-                 return;
-             } catch (Exception ex) {
-                 System.err.println("ERROR [FileOperationsManager]: Excepción inesperada al borrar: " + ex.getMessage());
-                 ex.printStackTrace();
-                 JOptionPane.showMessageDialog(view.getFrame(), "Ocurrió un error inesperado al eliminar el archivo.", "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
-                 return;
-             }
-
-             if (borradoExitoso) {
-                 System.out.println("  [FileOperationsManager] Archivo borrado: " + rutaCompleta);
-                 JOptionPane.showMessageDialog(view.getFrame(), "Archivo eliminado correctamente.", "Eliminación Exitosa", JOptionPane.INFORMATION_MESSAGE);
-                 
-                 // Notificar que la lista necesita ser actualizada.
-                 // El path es solo informativo, el VisorController recargará la lista actual.
-                 this.onNuevaCarpetaSeleccionadaCallback.accept(rutaCompleta); 
-             } else {
-                 System.err.println("  [FileOperationsManager] No se pudo borrar el archivo (Files.deleteIfExists devolvió false): " + rutaCompleta);
-                 JOptionPane.showMessageDialog(view.getFrame(), "No se pudo eliminar el archivo.", "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
-             }
-         } else {
-             System.out.println("  [FileOperationsManager] Eliminación cancelada por el usuario.");
-         }
-     }
-
-    
-    // Aquí irían futuros métodos como:
-    // public void refrescarListaActual() { ... }
-    // public void borrarArchivo(Path archivoABorrar) { ... }
-}
-
-
-
+        if (confirm == JOptionPane.YES_OPTION) {
+            try {
+                boolean borradoExitoso = Files.deleteIfExists(rutaCompleta);
+                if (borradoExitoso) {
+                    System.out.println("  [FileOperationsManager] Archivo borrado: " + rutaCompleta);
+                    JOptionPane.showMessageDialog(mainFrame, "Archivo eliminado correctamente.", "Eliminación Exitosa", JOptionPane.INFORMATION_MESSAGE);
+                    this.onNuevaCarpetaSeleccionadaCallback.accept(rutaCompleta);
+                } else {
+                    System.err.println("  [FileOperationsManager] No se pudo borrar el archivo: " + rutaCompleta);
+                    JOptionPane.showMessageDialog(mainFrame, "No se pudo eliminar el archivo.", "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (Exception ex) {
+                System.err.println("ERROR [FileOperationsManager] al borrar: " + ex.getMessage());
+                JOptionPane.showMessageDialog(mainFrame, "Ocurrió un error al eliminar el archivo:\n" + ex.getMessage(), "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            System.out.println("  [FileOperationsManager] Eliminación cancelada por el usuario.");
+        }
+    }
+} // --- FIN de la clase FileOperationsManager ---

@@ -17,6 +17,7 @@ import servicios.ConfigurationManager;
 import vista.builders.PopupMenuBuilder;   // Para construir el JPopupMenu
 import vista.config.MenuItemDefinition; // Para la estructura del menú
 import vista.config.ViewUIConfig;       // Para pasar al PopupMenuBuilder
+import vista.theme.ThemeManager;
 
 public class MenuAction extends AbstractAction {
 
@@ -24,9 +25,10 @@ public class MenuAction extends AbstractAction {
 
     private List<MenuItemDefinition> menuStructureToDisplay; // La estructura COMPLETA del menú principal
     private Map<String, Action> actionMapRef;              // El actionMap completo
-    private ViewUIConfig uiConfigRef;                      // Para el PopupMenuBuilder
+//    private ViewUIConfig uiConfigRef;                      // Para el PopupMenuBuilder
     private ConfigurationManager configManagerRef;         // 
     private ActionListener specialConfigActionListenerRef; //
+    private ThemeManager themeManager;
     
     
     // Constructor REFACTORIZADO
@@ -35,7 +37,8 @@ public class MenuAction extends AbstractAction {
             ImageIcon icon,
             List<MenuItemDefinition> fullMenuStructure,
             Map<String, Action> actionMap,
-            ViewUIConfig uiConfig,
+//            ViewUIConfig uiConfig,
+            ThemeManager themeManager,
             ConfigurationManager configManager,
             ActionListener specialConfigActionListener
     ) {
@@ -43,7 +46,7 @@ public class MenuAction extends AbstractAction {
         // this.viewRef = view; // Ya no es necesario si solo usamos e.getSource()
         this.menuStructureToDisplay = Objects.requireNonNull(fullMenuStructure, "La estructura del menú no puede ser nula");
         this.actionMapRef = Objects.requireNonNull(actionMap, "ActionMap no puede ser nulo");
-        this.uiConfigRef = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo");
+        this.themeManager = Objects.requireNonNull(themeManager, "ViewUIConfig no puede ser nulo");
         this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser nulo en MenuAction");
         this.specialConfigActionListenerRef = Objects.requireNonNull(specialConfigActionListener, "specialConfigActionListener (VisorController) no puede ser nulo en MenuAction");
         
@@ -53,7 +56,7 @@ public class MenuAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (menuStructureToDisplay == null || actionMapRef == null || uiConfigRef == null) {
+        if (menuStructureToDisplay == null || actionMapRef == null || themeManager == null) {
             System.err.println("ERROR CRÍTICO [MenuAction]: Dependencias para construir el menú nulas.");
             return;
         }
@@ -70,7 +73,7 @@ public class MenuAction extends AbstractAction {
         // Crear el JPopupMenu usando el PopupMenuBuilder
         // El PopupMenuBuilder necesita poder manejar la estructura jerárquica completa
         // tal como lo hace MenuBarBuilder.
-        PopupMenuBuilder popupBuilder = new PopupMenuBuilder(this.uiConfigRef, this.configManagerRef, this.specialConfigActionListenerRef);
+        PopupMenuBuilder popupBuilder = new PopupMenuBuilder(this.themeManager, this.configManagerRef, this.specialConfigActionListenerRef);
         JPopupMenu popupMenu = popupBuilder.buildPopupMenuWithNestedMenus(this.menuStructureToDisplay, this.actionMapRef);
 
         // Mostrar el menú emergente en la posición del botón que invocó la acción

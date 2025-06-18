@@ -1,4 +1,4 @@
-package controlador; // o controlador.navegacion
+package controlador; 
 
 import java.awt.event.ActionEvent;
 import java.util.Collections;
@@ -16,6 +16,7 @@ import javax.swing.SwingUtilities; // Para invokeLater en sincronizarListaUI
 
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
+import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
 import vista.VisorView;
@@ -26,6 +27,7 @@ public class ListCoordinator {
     private final VisorModel model;
     private final VisorView view;
     private final VisorController controller; // Para delegar carga de imagen
+    private final ComponentRegistry registry;
     private List<ContextSensitiveAction> contextSensitiveActions = Collections.emptyList();
     
     // --- Estado Interno ---
@@ -43,11 +45,12 @@ public class ListCoordinator {
      * @param view La vista principal.
      * @param controller El controlador principal.
      */
-    public ListCoordinator(VisorModel model, VisorView view, VisorController controller) {
+    public ListCoordinator(VisorModel model, VisorView view, VisorController controller, ComponentRegistry registry) {
         // Validar que las referencias no sean nulas
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null");
         this.view = Objects.requireNonNull(view, "VisorView no puede ser null");
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null");
+        this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null");
         
         if (this.controller.getConfigurationManager() != null) {
             this.pageScrollIncrement = this.controller.getConfigurationManager().getInt(
@@ -74,9 +77,7 @@ public class ListCoordinator {
                          + " (Oficial actual: " + this.indiceOficialSeleccionado + ")");
 
         // 1. Validar Índice Deseado
-        if (indiceDeseado < -1 || // -1 es válido para deselección
-            (indiceDeseado >= 0 && indiceDeseado >= model.getModeloLista().getSize()))
-        {
+        if (indiceDeseado < -1 || (indiceDeseado >= 0 && indiceDeseado >= model.getModeloLista().getSize())) {
             System.err.println("    -> Índice inválido. Ignorando selección.");
             return; // Índice fuera de rango
         }
@@ -84,12 +85,10 @@ public class ListCoordinator {
         // 2. Evitar Trabajo Redundante/Bucles
         if (indiceDeseado == this.indiceOficialSeleccionado) {
             System.out.println("    -> Índice deseado ya es el oficial. No se hace nada.");
-            // Asegurar visibilidad por si acaso (ej. al refrescar)
-             asegurarVisibilidadAmbasListasSiVisibles(indiceDeseado);
+            asegurarVisibilidadAmbasListasSiVisibles(indiceDeseado);
             return;
         }
         
-        // 3. Evitar bucles si ya estamos sincronizando programáticamente
         if (sincronizandoUI) {
             System.out.println("    -> Ignorando selección (sincronizandoUI=true).");
             return;
@@ -102,32 +101,35 @@ public class ListCoordinator {
         // 5. Actualizar Modelo (Clave seleccionada) y Cargar Imagen Principal (Delegado al Controller)
         if (indiceDeseado != -1) {
              String claveSeleccionada = model.getModeloLista().getElementAt(indiceDeseado);
-             // Actualizar clave en el modelo ANTES de pedir carga
              model.setSelectedImageKey(claveSeleccionada);
-             // Pedir al controller que maneje la carga y visualización
-             controller.actualizarImagenPrincipal(indiceDeseado); // Controller llamará a mostrar...
+             controller.actualizarImagenPrincipal(indiceDeseado);
         } else {
-             // Si el índice es -1 (deselección), limpiar la imagen
              model.setSelectedImageKey(null);
-             controller.limpiarUI(); // Limpiar UI completamente
+             controller.limpiarUI();
         }
 
         // 6. Sincronizar UI de las Listas (Selección y Visibilidad)
-        sincronizarListaUI(view.getListaNombres(), indiceDeseado);
-        // Para miniaturas, llamamos al método del controller que maneja la ventana deslizante
+        
+        // <<< CAMBIO: Obtener la lista de nombres desde el registro >>>
+        JList<String> listaNombres = registry.get("list.nombresArchivo");
+        sincronizarListaUI(listaNombres, indiceDeseado);
 
+        // Actualizar la vista de miniaturas
         if (indiceDeseado != -1) {
              controller.actualizarModeloYVistaMiniaturas(indiceDeseado);
         } else {
              // Si deseleccionamos, limpiar también el modelo de miniaturas
-             if (controller.getModeloMiniaturas() != null) controller.getModeloMiniaturas().clear(); // Acceso directo (quizás necesita getter)
-             if (view.getListaMiniaturas() != null) view.getListaMiniaturas().repaint();
+             if (controller.getModeloMiniaturas() != null) {
+                 controller.getModeloMiniaturas().clear();
+             }
+             // <<< CAMBIO: Obtener la lista de miniaturas desde el registro para repintar >>>
+             JList<String> listaMiniaturas = registry.get("list.miniaturas");
+             if (listaMiniaturas != null) {
+                 listaMiniaturas.repaint();
+             }
         }
-
-
         
         System.out.println("  [ListCoordinator] Selección procesada para índice: " + indiceDeseado);
-        
     } // --- FIN seleccionarImagenPorIndice
 
 
@@ -395,235 +397,152 @@ public class ListCoordinator {
      *
      * @param indice El índice (0-based, relativo al modelo PRINCIPAL) a hacer visible.
      */
-     public void asegurarVisibilidadAmbasListasSiVisibles(final int indice) 
-     {
-         // --- 1. VALIDACIÓN INICIAL ---
+    public void asegurarVisibilidadAmbasListasSiVisibles(final int indice) {
+        // 1. Validación inicial y log
+        if (indice < 0) {
+            return;
+        }
+        System.out.println("    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: " + indice);
+
+        // 2. Ejecución en EDT
+        if (!SwingUtilities.isEventDispatchThread()) {
+            SwingUtilities.invokeLater(() -> asegurarVisibilidadAmbasListasSiVisibles(indice));
+            return;
+        }
+
+        // --- LÓGICA DENTRO DEL EDT ---
+
+        // 3. Asegurar visibilidad en listaNombres
+        JList<String> listaNombres = registry.get("list.nombresArchivo");
+        JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
+
+        if (listaNombres != null && panelIzquierdo != null && panelIzquierdo.isShowing()) {
+            ListModel<?> modelNom = listaNombres.getModel();
+            if (modelNom != null && indice < modelNom.getSize()) {
+                try {
+                    listaNombres.ensureIndexIsVisible(indice);
+                } catch (Exception ex) {
+                    System.err.println("ERROR [Asegurar Visibilidad Nombres EDT] para índice " + indice + ": " + ex.getMessage());
+                }
+            }
+        }
+
+        // 4. Asegurar visibilidad en listaMiniaturas
+        JList<String> listaMiniaturas = registry.get("list.miniaturas");
+        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+
+        if (listaMiniaturas != null && scrollMiniaturas != null && scrollMiniaturas.isShowing()) {
+            ListModel<String> modelMin = listaMiniaturas.getModel();
+            
+            // Traducir el índice principal al índice relativo del modelo de miniaturas
+            int indiceRelativo = -1;
+            if (model != null && model.getModeloLista() != null && indice < model.getModeloLista().getSize() && modelMin != null) {
+                String clavePrincipal = model.getModeloLista().getElementAt(indice);
+                if (clavePrincipal != null) {
+                    for (int i = 0; i < modelMin.getSize(); i++) {
+                        if (clavePrincipal.equals(modelMin.getElementAt(i))) {
+                            indiceRelativo = i;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // Si se encontró un índice relativo válido, asegurar su visibilidad
+            if (indiceRelativo != -1) {
+                try {
+                    listaMiniaturas.ensureIndexIsVisible(indiceRelativo);
+                } catch (Exception ex) {
+                    System.err.println("ERROR [Asegurar Visibilidad Miniaturas EDT] para índice relativo " + indiceRelativo + ": " + ex.getMessage());
+                }
+            }
+        }
+
+        System.out.println("    [Asegurar Visibilidad] Fin del proceso para índice principal: " + indice);
+    } // --- FIN asegurarVisibilidadAmbasListasSiVisibles ---
+
+
+     /**
+      * Punto de entrada principal para procesar una nueva selección o navegación.
+      * Se encarga de la validación inicial, manejo del flag de sincronización,
+      * actualización del estado interno y actualización de TODA la UI necesaria.
+      *
+      * @param indice Índice (0-based) en el modelo PRINCIPAL a seleccionar.
+      *               Puede ser -1 para limpiar la selección.
+      */
+     public synchronized void seleccionarIndiceYActualizarUICompleta(int indice) {
+         // --- 1. LOG INICIAL Y VALIDACIÓN PREVIA ---
+         System.out.println(">>> Coordinator: Solicitud para procesar índice: " + indice + " (Actual Oficial: " + indiceOficialSeleccionado + ")");
+
+         int total = (model != null && model.getModeloLista() != null) ? model.getModeloLista().getSize() : 0;
          
-    	 // 1.1. Comprobar si el índice es válido (-1 no necesita visibilidad).
-         if (indice < 0) {
-              System.out.println("    [Asegurar Visibilidad] Índice -1, no se hace nada.");
+         if (indice < -1 || (indice >= 0 && total == 0) || (indice >= total && total > 0)) {
+              System.err.println("    -> Índice inválido (" + indice + ") para tamaño de lista (" + total + "). Ignorando.");
               return;
          }
          
-         // 1.2. Log informativo
-         System.out.println("    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: " + indice);
-
-         // --- 2. EJECUCIÓN EN EDT ---
-         
-         // 2.1. Usar invokeLater para asegurar que se ejecuta en el hilo de eventos.
-         if (!SwingUtilities.isEventDispatchThread()) {
-             SwingUtilities.invokeLater(() -> asegurarVisibilidadAmbasListasSiVisibles(indice));
+         if (indice == this.indiceOficialSeleccionado) {
+             System.out.println("    -> Ignorando (mismo índice ya seleccionado oficialmente).");
              return;
          }
 
-         // --- 3. LÓGICA DENTRO DEL EDT ---
-         
-         // 3.1. Validar que la vista exista
-         if (view == null) {
-             System.err.println("ERROR [Asegurar Visibilidad EDT]: Vista es null.");
+         if (sincronizandoUI) {
+             System.out.println("    -> Ignorando (operación de sincronización ya en curso).");
              return;
          }
 
-         // 3.2. Asegurar visibilidad en listaNombres
-         
-         // 3.2.1. Obtener referencias a la lista y su panel contenedor
-         JList<String> listaNom = view.getListaNombres();
-         JPanel pIzq = view.getPanelIzquierdo();
+         // --- 2. ACTIVAR FLAG DE SINCRONIZACIÓN ---
+         setSincronizandoUI(true);
 
-         // 3.2.2. Comprobar si la lista y el panel existen y son visibles
-         if (listaNom != null && pIzq != null && pIzq.isShowing()) { // Usar isShowing() es más robusto
-         
-        	 // 3.2.3. Obtener modelo actual de la lista de nombres
-             ListModel<?> modelNom = listaNom.getModel();
-             
-             // 3.2.4. Validar índice contra el tamaño del modelo actual
-             if (modelNom != null && indice < modelNom.getSize()) {
-             
-            	 // 3.2.5. Log y llamada a ensureIndexIsVisible
-                 System.out.println("      -> Asegurando visibilidad en Nombres para índice " + indice);
-                 try {
-                     listaNom.ensureIndexIsVisible(indice);
-                 } catch (Exception ex) {
-                     System.err.println("ERROR [Asegurar Visibilidad Nombres EDT] para índice " + indice + ": " + ex.getMessage());
+         try {
+             // --- 3. PROCESAR SELECCIÓN INTERNA ---
+             boolean cambio = seleccionarImagenInterno(indice);
+
+             // --- 4. ACTUALIZAR VISTAS (SI HUBO CAMBIO) ---
+             if (cambio) {
+                 // 4.1. Sincronizar la JList de Nombres VISUALMENTE
+                 JList<String> listaNombres = registry.get("list.nombresArchivo");
+                 sincronizarListaUI(listaNombres, indice);
+
+                 // 4.2. Sincronizar/Actualizar la JList de Miniaturas
+                 if (controller != null) {
+                     controller.actualizarModeloYVistaMiniaturas(indice);
+                 } else {
+                      System.err.println("ERROR CRÍTICO [UI Completa]: Controller es null. No se pueden actualizar miniaturas.");
                  }
-             } else {
-                 System.out.println("WARN [Asegurar Visibilidad Nombres EDT]: Índice " + indice + " fuera de rango para modelo Nombres.");
-             }
-         } else {
-             System.out.println("      -> Omitiendo visibilidad Nombres (lista/panel nulo o no visible).");
-         }
 
-         // 3.3. Asegurar visibilidad en listaMiniaturas (más complejo)
-         
-         // 3.3.1. Obtener referencias a la lista de miniaturas y su scrollpane
-         JList<String> listaMin = view.getListaMiniaturas();
-         JScrollPane scrollMinis = view.getScrollListaMiniaturas();
-
-         // 3.3.2. Comprobar si la lista y el scrollpane existen y son visibles
-         if (listaMin != null && scrollMinis != null && scrollMinis.isShowing()) { // Usar isShowing()
-         
-        	 // 3.3.3. Obtener modelo actual de la lista de miniaturas
-             ListModel<String> modelMin = listaMin.getModel();
-             
-             // 3.3.4. TRADUCIR el índice principal al índice RELATIVO en el modelo de miniaturas
-             int indiceRelativo = -1;
-             if (model != null && model.getModeloLista() != null && indice < model.getModeloLista().getSize() && modelMin != null) {
-             
-            	 // 3.3.4.1. Obtener la clave del modelo principal
-                 String clavePrincipal = model.getModeloLista().getElementAt(indice);
-                 
-                 // 3.3.4.2. Buscar esa clave en el modelo de miniaturas actual
-                 if (clavePrincipal != null) {
-                     for (int i = 0; i < modelMin.getSize(); i++) {
-                         String claveMini = modelMin.getElementAt(i);
-                         if (clavePrincipal.equals(claveMini)) {
-                             indiceRelativo = i;
-                             break; // Encontrado
-                         }
-                     }
-                 }
-             }
-
-             // 3.3.5. Si se encontró un índice relativo válido
-             if (indiceRelativo != -1) {
-                 
-            	 // 3.3.6. Log y llamada a ensureIndexIsVisible con el índice RELATIVO
-                 System.out.println("      -> Asegurando visibilidad en Miniaturas para índice relativo " + indiceRelativo + " (Principal " + indice + ")");
-                 try {
-                     listaMin.ensureIndexIsVisible(indiceRelativo);
-                 } catch (Exception ex) {
-                     System.err.println("ERROR [Asegurar Visibilidad Miniaturas EDT] para índice relativo " + indiceRelativo + ": " + ex.getMessage());
-                 }
-             } else {
-                 
-            	 // 3.3.7. Log si no se encontró el índice relativo (la clave no está en la ventana actual)
-                 System.out.println("WARN [Asegurar Visibilidad Miniaturas EDT]: No se encontró índice relativo para índice principal " + indice);
-             }
-         } else {
-              System.out.println("      -> Omitiendo visibilidad Miniaturas (lista/scroll nulo o no visible).");
-         }
-
-         // 3.4. Log final
-         System.out.println("    [Asegurar Visibilidad] Fin del proceso para índice principal: " + indice);
-
-     } // --- FIN asegurarVisibilidadAmbasListasSiVisibles ---
-
-
-    /**
-     * Punto de entrada principal para procesar una nueva selección o navegación.
-     * Se encarga de la validación inicial, manejo del flag de sincronización,
-     * actualización del estado interno y actualización de TODA la UI necesaria.
-     *
-     * @param indice Índice (0-based) en el modelo PRINCIPAL a seleccionar.
-     *               Puede ser -1 para limpiar la selección.
-     */
-    public synchronized void seleccionarIndiceYActualizarUICompleta(int indice) 
-    {
-        // --- 1. LOG INICIAL Y VALIDACIÓN PREVIA ---
-        System.out.println(">>> Coordinator: Solicitud para procesar índice: " + indice + " (Actual Oficial: " + indiceOficialSeleccionado + ")");
-    
-        // 1.1. Validar índice contra el modelo principal
-        int total = (model != null && model.getModeloLista() != null) ? model.getModeloLista().getSize() : 0;
-        
-        if (indice < -1 || (indice >= 0 && total == 0) || (indice >= total && total > 0)) {
-             System.err.println("    -> Índice inválido (" + indice + ") para tamaño de lista (" + total + "). Ignorando.");
-             return;
-        }
-        
-        // 1.2. Comprobar si el índice deseado es el mismo que ya está seleccionado oficialmente
-        if (indice == this.indiceOficialSeleccionado) {
-            System.out.println("    -> Ignorando (mismo índice ya seleccionado oficialmente).");
-            
-            // Si el índice no cambió, no necesitamos asegurar visibilidad aquí necesariamente,
-            // Si la llamada vino de un clic repetido, la UI ya está donde debe.
-            //FIXME estudiar por si se refresca la pantalla 
-            // Si vino de refresh, tal vez sí sería útil, pero complica la lógica.
-            
-            return;
-        }
-        // 1.3. Comprobar si ya hay una operación de sincronización en curso
-        if (sincronizandoUI) {
-//            System.out.println("    -> Ignorando (operación de sincronización ya en curso).");
-            return;
-        }
-
-        // --- 2. ACTIVAR FLAG DE SINCRONIZACIÓN ---
-        setSincronizandoUI(true); // Activar ANTES de cualquier cambio
-
-        // --- 3. BLOQUE PRINCIPAL DE PROCESAMIENTO (TRY-FINALLY) ---
-        try {
-        	
-            // 3.1. PROCESAR SELECCIÓN INTERNA
-            //      Actualiza modelo (índice, clave) y solicita carga/limpieza de imagen principal.
-            boolean cambio = seleccionarImagenInterno(indice);
-
-            // 3.2. ACTUALIZAR VISTAS (SI HUBO CAMBIO)
-            if (cambio) {
-//                System.out.println("      -> [UI Completa] Actualizando UI (Nombres y Miniaturas) para índice " + indice);
-
-                // 3.2.1. Sincronizar la JList de Nombres VISUALMENTE
-                //         (Llama a setSelectedIndex/ensureIndexIsVisible internamente)
-                //         El listener será ignorado por el flag.
-                sincronizarListaUI(view.getListaNombres(), indice);
-
-                // 3.2.2. Sincronizar/Actualizar la JList de Miniaturas
-                //         (Reconstruye modelo ventana deslizante y actualiza JList)
-                //         El listener será ignorado por el flag.
-                if (controller != null) {
-                    controller.actualizarModeloYVistaMiniaturas(indice); // <-- ESTO PUEDE CORROMPER EL SHARED SELECTION MODEL
-                } else {
-                     System.err.println("ERROR CRÍTICO [UI Completa]: Controller es null. No se pueden actualizar miniaturas.");
-                }
-
-                // 3.2.3. RESTAURAR EL ÍNDICE CORRECTO EN EL SHARED SELECTION MODEL
-                //        Después de que actualizarModeloYVistaMiniaturas potencialmente lo
-                //        cambiara con un índice relativo, lo forzamos de vuelta al
-                //        índice principal correcto. Hacemos esto ANTES de liberar el flag.
-                if (indice != -1 && view != null && view.getListaNombres() != null) { // Solo si el índice es válido y listaNombres existe
-                     // Obtener el modelo de selección compartido (desde listaNombres es seguro)
-                     javax.swing.ListSelectionModel sharedSelectionModel = view.getListaNombres().getSelectionModel();
-                     
+                 // 4.3. CORRECCIÓN DEL SHARED SELECTION MODEL
+                 // Después de que `actualizarModeloYVistaMiniaturas` potencialmente desincronice
+                 // el modelo de selección, lo forzamos de vuelta al índice principal correcto.
+                 if (listaNombres != null) {
+                     javax.swing.ListSelectionModel sharedSelectionModel = listaNombres.getSelectionModel();
                      if (sharedSelectionModel != null) {
-                          // Comprobar si el índice actual del shared model es diferente al oficial
-
-                    	 if (sharedSelectionModel.getLeadSelectionIndex() != this.indiceOficialSeleccionado) {
-//                              System.out.println("        -> [CORRECCIÓN] Restaurando sharedSelectionModel al índice principal oficial: " + this.indiceOficialSeleccionado);
-                              // Establecer el intervalo de selección al índice oficial correcto
-                              // Esto también podría disparar el listener, pero el flag aún está activo.
-                              sharedSelectionModel.setSelectionInterval(this.indiceOficialSeleccionado, this.indiceOficialSeleccionado);
-                          } else {
-                              // Ya estaba correcto, no es necesario setSelectionInterval que podría disparar eventos extra
-                              System.out.println("        -> [CORRECCIÓN] sharedSelectionModel ya estaba en el índice correcto: " + this.indiceOficialSeleccionado);
-                          }
-                     } else { 
-                    	 System.err.println("ERROR CRÍTICO [UI Completa]: No se pudo obtener sharedSelectionModel para corrección."); 
+                         if (indice != -1) {
+                             // Si el índice actual no es el que debería ser, lo corregimos.
+                             if (sharedSelectionModel.getLeadSelectionIndex() != this.indiceOficialSeleccionado) {
+                                 sharedSelectionModel.setSelectionInterval(this.indiceOficialSeleccionado, this.indiceOficialSeleccionado);
+                             }
+                         } else {
+                             // Si el índice es -1 (deseleccionar) y el modelo de selección no está vacío, lo limpiamos.
+                             if (!sharedSelectionModel.isSelectionEmpty()) {
+                                 sharedSelectionModel.clearSelection();
+                             }
+                         }
+                     } else {
+                         System.err.println("ERROR CRÍTICO [UI Completa]: No se pudo obtener sharedSelectionModel para corrección.");
                      }
-                } else if (indice == -1 && view != null && view.getListaNombres() != null){
-                     // Si la selección fue -1 (limpiar), asegurarse de que el shared model también lo esté.
-                     javax.swing.ListSelectionModel sharedSelectionModel = view.getListaNombres().getSelectionModel();
-                     if (sharedSelectionModel != null && !sharedSelectionModel.isSelectionEmpty()) 
-                     {
-//                          System.out.println("        -> [CORRECCIÓN] Limpiando sharedSelectionModel (-1).");
-                          sharedSelectionModel.clearSelection();
-                     }
-                }
-                
-                // 3.2.4. La llamada a ensureIndexIsVisible ahora está DENTRO de sincronizarListaUI y actualizarModeloYVistaMiniaturas
-                //        No necesitamos una llamada adicional aquí.
+                 } else {
+                     System.err.println("ERROR CRÍTICO [UI Completa]: 'list.nombresArchivo' no encontrada en el registro para corrección.");
+                 }
+             }
+         } finally {
+             // --- 5. DESACTIVAR FLAG DE SINCRONIZACIÓN ---
+             SwingUtilities.invokeLater(() -> setSincronizandoUI(false));
+         }
 
-            } else {
-                 //System.out.println("      -> [UI Completa] No hubo cambio interno, no se actualiza UI adicionalmente.");
-                 // No es necesario asegurar visibilidad aquí si no hubo cambio.
-            }
-        } finally {
-            // --- 4. DESACTIVAR FLAG DE SINCRONIZACIÓN ---
-            SwingUtilities.invokeLater(() -> setSincronizandoUI(false));
-        } // Fin del bloque try-finally
-
-        // --- 5. LOG FINAL DEL MÉTODO ---
-        System.out.println(">>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(" + indice + ")");
-
-    } // --- FIN seleccionarIndiceYActualizarUICompleta ---    
+         // --- 6. LOG FINAL ---
+         System.out.println(">>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(" + indice + ")");
+     } // --- FIN seleccionarIndiceYActualizarUICompleta ---    
     
     
     /**
@@ -788,6 +707,53 @@ public class ListCoordinator {
     
     
     /**
+     * Reinicia el estado del coordinador y procede a seleccionar un nuevo índice.
+     * Este es el punto de entrada recomendado después de una recarga completa de la lista de imágenes.
+     * @param indiceDeseado El índice a seleccionar después del reinicio.
+     */
+    public synchronized void reiniciarYSeleccionarIndice(int indiceDeseado) {
+        System.out.println(">>> Coordinator: Solicitud de REINICIO y selección de índice: " + indiceDeseado);
+        
+        // 1. Reiniciar el estado interno del coordinador.
+        this.indiceOficialSeleccionado = -1;
+        
+        // 2. Limpiar la selección de las listas en la UI por si acaso.
+        JList<String> listaNombres = registry.get("list.nombresArchivo");
+        if (listaNombres != null) {
+            listaNombres.clearSelection();
+        }
+        JList<String> listaMiniaturas = registry.get("list.miniaturas");
+        if (listaMiniaturas != null) {
+            listaMiniaturas.clearSelection();
+        }
+        
+        // 3. Forzar actualización del estado 'enabled' de las acciones.
+        forzarActualizacionEstadoAcciones();
+        
+        // 4. Proceder con la selección normal desde un estado limpio.
+        seleccionarIndiceYActualizarUICompleta(indiceDeseado);
+
+    } // --- Fin del método reiniciarYSeleccionarIndice ---
+    
+    
+    /**
+     * Unifica la navegación de la rueda del ratón. Llama a seleccionarSiguiente()
+     * o seleccionarAnterior() basándose en la dirección de la rotación de la rueda.
+     *
+     * @param wheelRotation El valor de getWheelRotation() del MouseWheelEvent.
+     *                      Un valor negativo significa "rueda hacia arriba" (anterior).
+     *                      Un valor positivo significa "rueda hacia abajo" (siguiente).
+     */
+    public void seleccionarSiguienteOAnterior(int wheelRotation) {
+        if (wheelRotation < 0) {
+            seleccionarAnterior();
+        } else {
+            seleccionarSiguiente();
+        }
+    }
+    // --- FIN del metodo seleccionarSiguienteOAnterior ---
+    
+    /**
      * HELPER INTERNO: Procesa la selección y actualiza UI SIN manejar el flag
      * sincronizandoUI directamente (asume que la responsabilidad recae en
      * los métodos que lo llaman o en los métodos de sincronización de UI).
@@ -821,7 +787,7 @@ public class ListCoordinator {
             //      Llama al método `sincronizarListaUI` pasándole la lista de nombres
             //      y el índice oficial que AHORA tiene el coordinador.
             //      `sincronizarListaUI` se encargará de activar/desactivar su propio flag.
-            sincronizarListaUI(view.getListaNombres(), this.indiceOficialSeleccionado);
+            JList<String> listaNombres = registry.get("list.nombresArchivo"); sincronizarListaUI(listaNombres, this.indiceOficialSeleccionado);
 
             // 2.4. Sincronizar/Actualizar la JList de Miniaturas.
             // 2.4.1. Verificar que el controlador exista.
@@ -873,22 +839,24 @@ public class ListCoordinator {
      */
     private void sincronizarListaUI (JList<String> lista, int indice) 
     {
-        // --- 1. VALIDACIÓN INICIAL ---
-        // 1.1. Comprobar si la referencia a la JList es válida.
-        if (lista == null) {
-            System.err.println("ERROR [Sync UI Interno]: La JList proporcionada es null. No se puede sincronizar.");
-            return; // Salir si no hay lista
-        }
+    	if (lista == null) {
+    	    System.err.println("ERROR [Sync UI Interno]: La JList proporcionada es null.");
+    	    return;
+    	}
 
-        // 1.2. Determinar el nombre de la lista para logs
-        String nombreListaDeterminado = "Desconocida"; // Variable temporal
-        if (view != null) { // Solo si la vista existe
-            if (lista == view.getListaNombres()) {
-                 nombreListaDeterminado = "Nombres";
-            } else if (lista == view.getListaMiniaturas()) {
-                 nombreListaDeterminado = "Miniaturas";
-            }
-        }
+    	// 1.2. Determinar el nombre de la lista para logs
+    	String nombreListaDeterminado = "Desconocida";
+
+    	// <<< INICIO DEL CAMBIO >>>
+    	// Obtenemos ambas listas del registro para poder compararlas
+    	JList<String> listaNombresDesdeRegistro = registry.get("list.nombresArchivo");
+    	JList<String> listaMiniaturasDesdeRegistro = registry.get("list.miniaturas");
+
+    	if (lista == listaNombresDesdeRegistro) {
+    	    nombreListaDeterminado = "Nombres";
+    	} else if (lista == listaMiniaturasDesdeRegistro) {
+    	    nombreListaDeterminado = "Miniaturas";
+    	}
         
         // 1.2.1 Declarar la variable como final para usarla en las lambdas
         final String nombreLista = nombreListaDeterminado;
@@ -1131,7 +1099,7 @@ public class ListCoordinator {
             //         Llama al método interno que hace setSelectedIndex/ensureIndexIsVisible en listaNombres.
             //         Esta llamada manejará el flag `sincronizandoUI` internamente.
             System.out.println("    -> Llamando a sincronizarListaUI(Nombres, " + this.indiceOficialSeleccionado + ")");
-            sincronizarListaUI(view.getListaNombres(), this.indiceOficialSeleccionado); // Usa el índice oficial actualizado
+            JList<String> listaNombres = registry.get("list.nombresArchivo"); sincronizarListaUI(listaNombres, this.indiceOficialSeleccionado); // Usa el índice oficial actualizado
 
             // 2.2.2. (Opcional pero recomendado) Re-Actualizar la Ventana Deslizante de Miniaturas.
             //          Aunque la selección vino de las miniaturas, el rango visible podría necesitar
@@ -1264,7 +1232,7 @@ public class ListCoordinator {
      * Navega directamente a un índice específico en la lista principal (listaNombres).
      * Valida el índice proporcionado antes de intentar cambiar la selección.
      * Si el índice es válido y diferente al actual, actualiza la selección
-     * en la JList de nombres (view.getListaNombres()), lo que a su vez
+     * en la JList de nombres (registry.get("list.nombresArchivo")), lo que a su vez
      * disparará el ListSelectionListener para cargar la nueva imagen y sincronizar
      * la lista de miniaturas.
      *
@@ -1273,7 +1241,7 @@ public class ListCoordinator {
      */
     public void navegarAIndice(int index) {
         // 1. Validar dependencias y estado
-        if (model == null || view == null || view.getListaNombres() == null || model.getModeloLista() == null) {
+        if (model == null || view == null || registry.get("list.nombresArchivo") == null || model.getModeloLista() == null) {
             System.err.println("WARN [navegarAIndice]: Modelo, Vista o ListaNombres no inicializados.");
             return;
         }
@@ -1291,30 +1259,31 @@ public class ListCoordinator {
             return; // Índice inválido
         }
 
-        // 3. Obtener índice actual y comparar
-        int indiceActual = view.getListaNombres().getSelectedIndex();
+     // 3. Obtener el componente JList y su índice actual desde el registro
+        JList<String> listaNombres = registry.get("list.nombresArchivo");
+        if (listaNombres == null) {
+            System.err.println("ERROR [navegarAIndice]: El componente 'list.nombresArchivo' no se encontró en el registro.");
+            return;
+        }
+        int indiceActual = listaNombres.getSelectedIndex();
 
         // 4. Actualizar selección en la Vista si el índice es diferente
         if (index != indiceActual) {
             System.out.println("[navegarAIndice] Navegando a índice: " + index);
-            view.getListaNombres().setSelectedIndex(index);
+            
+            // Aquí es donde se podría simplificar. En lugar de manipular directamente la JList,
+            // es mejor usar el método central del coordinador que ya se encarga de todo.
+            // Esto asegura que se actualicen la imagen principal, las miniaturas y todo lo demás.
+            seleccionarIndiceYActualizarUICompleta(index);
 
-             JPanel pIzq = view.getPanelIzquierdo();
-             if(pIzq != null && pIzq.isVisible()) {
-                  view.getListaNombres().ensureIndexIsVisible(index);
-             }
-             // Asegurar visibilidad en la lista de miniaturas si es visible
-             JScrollPane scrollMinis = view.getScrollListaMiniaturas();
-             JList<String> listaMinis = view.getListaMiniaturas();
-             if (scrollMinis != null && scrollMinis.isVisible() && listaMinis != null) {
-                  listaMinis.ensureIndexIsVisible(index);
-             }
+            // El código que tenías para 'ensureIndexIsVisible' ya está dentro de 
+            // seleccionarIndiceYActualizarUICompleta -> sincronizarListaUI y actualizarModeloYVistaMiniaturas.
+            // Así que ya no es necesario duplicarlo aquí. La llamada de arriba es suficiente.
 
         } else {
             System.out.println("[navegarAIndice] El índice solicitado (" + index + ") ya es el actual. No se hace nada.");
-        }
-
-    } // --- FIN navegarAIndice ---
+        } 
+    }// --- FIN navegarAIndice ---
     
     
     /**

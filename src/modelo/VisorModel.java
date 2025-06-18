@@ -22,6 +22,7 @@ public class VisorModel
 	private Map<String, Path> rutaCompletaMap; // Mapa de claves a rutas completas
 	private BufferedImage currentImage; // Imagen original actualmente cargada
 	private String selectedImageKey; // Clave (ruta relativa) de la imagen seleccionada
+	private boolean checkeredBackgroundAsDefault = false; 
 
 	// --- Estado de Visualización/Interacción ---
 	private int imageOffsetX;
@@ -110,6 +111,37 @@ public class VisorModel
     }
 	
 	
+    /**
+     * Devuelve si el fondo a cuadros está configurado como la opción por defecto.
+     * @return true si el fondo por defecto es a cuadros, false en caso contrario.
+     */
+    public boolean isFondoACuadrosPorDefecto() {
+        return this.checkeredBackgroundAsDefault;
+    } // --- Fin del método isFondoACuadrosPorDefecto ---
+
+   
+    public void addImageOffsetY (int deltaY)
+	{
+
+		this.imageOffsetY += deltaY;
+
+	}
+
+	public void resetZoomState ()
+	{
+
+		this.zoomFactor = 1.0;
+		this.imageOffsetX = 0;
+		this.imageOffsetY = 0;
+	}
+	
+	public void addImageOffsetX (int deltaX)
+	{
+
+		this.imageOffsetX += deltaX;
+
+	}
+	
 	// --- Getters y Setters (o métodos de modificación) ---
 
 	public DefaultListModel<String> getModeloLista ()
@@ -150,12 +182,7 @@ public class VisorModel
 
 	}
 
-	public void setRutaCompletaMap (Map<String, Path> nuevoMapa)
-	{
-
-		this.rutaCompletaMap = nuevoMapa;
-
-	}
+	public void setRutaCompletaMap (Map<String, Path> nuevoMapa){this.rutaCompletaMap = nuevoMapa;}
 
 	public void limpiarRutaCompletaMap ()
 	{
@@ -163,13 +190,7 @@ public class VisorModel
 		this.rutaCompletaMap.clear();
 
 	}
-
-	public Path getRutaCompleta (String key)
-	{
-
-		return rutaCompletaMap.get(key);
-
-	}
+	public Path getRutaCompleta (String key){return rutaCompletaMap.get(key);}
 
 	public void putRutaCompleta (String key, Path path)
 	{
@@ -177,34 +198,11 @@ public class VisorModel
 		rutaCompletaMap.put(key, path);
 
 	}
-
-	public BufferedImage getCurrentImage ()
-	{
-
-		return currentImage;
-
-	}
-
-	public void setCurrentImage (BufferedImage currentImage)
-	{
-
-		this.currentImage = currentImage;
-
-	}
-
-	public String getSelectedImageKey ()
-	{
-
-		return selectedImageKey;
-
-	}
-
-	public void setSelectedImageKey (String selectedImageKey)
-	{
-
-		this.selectedImageKey = selectedImageKey;
-
-	}
+	
+	public BufferedImage getCurrentImage (){return currentImage;}
+	public void setCurrentImage (BufferedImage currentImage){this.currentImage = currentImage;}
+	public String getSelectedImageKey (){return selectedImageKey;}
+	public void setSelectedImageKey (String selectedImageKey){this.selectedImageKey = selectedImageKey;}
 
 	public boolean isZoomHabilitado ()
 	{
@@ -226,175 +224,29 @@ public class VisorModel
 
 	}
 
-	public double getZoomFactor ()
-	{
-
-		return zoomFactor;
-
-	}
-
-	public void setZoomFactor (double zoomFactor)
-	{
-
-		// Aplicar límites aquí si se desea
-		this.zoomFactor = Math.max(0.1, Math.min(zoomFactor, 10.0));
-
-	}
-
-	public int getImageOffsetX ()
-	{
-
-		return imageOffsetX;
-
-	}
-
-	public void setImageOffsetX (int imageOffsetX)
-	{
-
-		this.imageOffsetX = imageOffsetX;
-
-	}
-
-	public void addImageOffsetX (int deltaX)
-	{
-
-		this.imageOffsetX += deltaX;
-
-	}
-
-	public int getImageOffsetY ()
-	{
-
-		return imageOffsetY;
-
-	}
-
-	public void setImageOffsetY (int imageOffsetY)
-	{
-
-		this.imageOffsetY = imageOffsetY;
-
-	}
-
-	public void addImageOffsetY (int deltaY)
-	{
-
-		this.imageOffsetY += deltaY;
-
-	}
-
-	public void resetZoomState ()
-	{
-
-		this.zoomFactor = 1.0;
-		this.imageOffsetX = 0;
-		this.imageOffsetY = 0;
-
-	}
-
-	public boolean isMostrarSoloCarpetaActual ()
-	{
-
-		return mostrarSoloCarpetaActual;
-
-	}
-
-	public void setMostrarSoloCarpetaActual (boolean mostrarSoloCarpetaActual)
-	{
-
-		this.mostrarSoloCarpetaActual = mostrarSoloCarpetaActual;
-
-	}
+	public double getZoomFactor (){return zoomFactor;}
+	public void setZoomFactor (double zoomFactor){this.zoomFactor = Math.max(0.1, Math.min(zoomFactor, 10.0));}
+	public int getImageOffsetX (){return imageOffsetX;}
+	public void setImageOffsetX (int imageOffsetX){this.imageOffsetX = imageOffsetX;}
+	public int getImageOffsetY (){return imageOffsetY;}
+	public void setImageOffsetY (int imageOffsetY){this.imageOffsetY = imageOffsetY;	}
+	public boolean isMostrarSoloCarpetaActual (){return mostrarSoloCarpetaActual;}
+	public void setMostrarSoloCarpetaActual (boolean mostrarSoloCarpetaActual){this.mostrarSoloCarpetaActual = mostrarSoloCarpetaActual;}
 
 	// --- Getters/Setters para configuración ---
-	public int getMiniaturasAntes ()
-	{
-
-		return miniaturasAntes;
-
-	}
-
-	public void setMiniaturasAntes (int val)
-	{
-
-		this.miniaturasAntes = val;
-
-	}
-
-	public int getMiniaturasDespues ()
-	{
-
-		return miniaturasDespues;
-
-	}
-
-	public void setMiniaturasDespues (int val)
-	{
-
-		this.miniaturasDespues = val;
-
-	}
-
-	public int getMiniaturaSelAncho ()
-	{
-
-		return miniaturaSelAncho;
-
-	}
-
-	public void setMiniaturaSelAncho (int val)
-	{
-
-		this.miniaturaSelAncho = val;
-
-	}
-
-	public int getMiniaturaSelAlto ()
-	{
-
-		return miniaturaSelAlto;
-
-	}
-
-	public void setMiniaturaSelAlto (int val)
-	{
-
-		this.miniaturaSelAlto = val;
-
-	}
-
-	public int getMiniaturaNormAncho ()
-	{
-		
-		return miniaturaNormAncho;
-
-	}
-
-	public void setMiniaturaNormAncho (int val)
-	{
-		
-		this.miniaturaNormAncho = val;
-
-	}
-
-	public int getMiniaturaNormAlto ()
-	{
-
-		return miniaturaNormAlto;
-
-	}
-
-	public void setMiniaturaNormAlto (int val)
-	{
-
-		this.miniaturaNormAlto = val;
-
-	}
-
-	
-	public boolean isMantenerProporcion() {
-        return mantenerProporcion;
-    }
+	public int getMiniaturasAntes (){return miniaturasAntes;}
+	public void setMiniaturasAntes (int val)	{this.miniaturasAntes = val;}
+	public int getMiniaturasDespues (){return miniaturasDespues;}
+	public void setMiniaturasDespues (int val){this.miniaturasDespues = val;}
+	public int getMiniaturaSelAncho (){return miniaturaSelAncho;}
+	public void setMiniaturaSelAncho (int val){this.miniaturaSelAncho = val;}
+	public int getMiniaturaSelAlto (){return miniaturaSelAlto;}
+	public void setMiniaturaSelAlto (int val){this.miniaturaSelAlto = val;}
+	public int getMiniaturaNormAncho ()	{return miniaturaNormAncho;}
+	public void setMiniaturaNormAncho (int val)	{this.miniaturaNormAncho = val;}
+	public int getMiniaturaNormAlto (){return miniaturaNormAlto;}
+	public void setMiniaturaNormAlto (int val){this.miniaturaNormAlto = val;}
+	public boolean isMantenerProporcion() {return mantenerProporcion;}
 
     public void setMantenerProporcion(boolean mantenerProporcion) {
         if (this.mantenerProporcion != mantenerProporcion) { // Solo cambiar si es diferente
@@ -406,6 +258,18 @@ public class VisorModel
     }
 
 
+    /**
+     * Establece si el fondo a cuadros debe ser la opción por defecto.
+     * @param isDefault true para que el fondo a cuadros sea el defecto.
+     */
+    public void setFondoACuadrosPorDefecto(boolean isDefault) {
+        if (this.checkeredBackgroundAsDefault != isDefault) {
+            this.checkeredBackgroundAsDefault = isDefault;
+            System.out.println("[VisorModel] Fondo a cuadros por defecto establecido a: " + isDefault);
+        }
+    } // --- Fin del método setFondoACuadrosPorDefecto ---
+    
+    
 // **************************************************************************************************************** ZOOM
     
  // En VisorModel.java (Opcional, si lo ves necesario)
@@ -450,6 +314,9 @@ public class VisorModel
             // ListCoordinator lo usará al tomar decisiones de navegación.
         }
     }
+    
+    
+    
     
 } //fin VisorModel
 

@@ -18,34 +18,47 @@ import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
 import vista.config.MenuItemType;
 import vista.config.ViewUIConfig;
+import vista.theme.Tema;
+import vista.theme.ThemeManager;
 
 public class PopupMenuBuilder {
-    private ViewUIConfig uiConfig;
+//    private ViewUIConfig uiConfig;
+	private ThemeManager themeManager;
     private ButtonGroup currentRadioGroup;
     private ConfigurationManager configManagerRef;         
     private ActionListener specialConfigActionListenerRef; 
 
     // --- CONSTRUCTOR MODIFICADO ---
     public PopupMenuBuilder(
-            ViewUIConfig uiConfig,
+    		ThemeManager themeManager,
+//            ViewUIConfig uiConfig,
             ConfigurationManager configManager,         
             ActionListener specialConfigActionListener  
     ) {
-        this.uiConfig = Objects.requireNonNull(uiConfig, "ViewUIConfig no puede ser nulo en PopupMenuBuilder");
+        this.themeManager = Objects.requireNonNull(themeManager, "ViewUIConfig no puede ser nulo en PopupMenuBuilder");
         this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser nulo en PopupMenuBuilder");
         this.specialConfigActionListenerRef = Objects.requireNonNull(specialConfigActionListener, "specialConfigActionListener no puede ser nulo en PopupMenuBuilder");
     }
 
     public JPopupMenu buildPopupMenuWithNestedMenus(List<MenuItemDefinition> definitions, Map<String, Action> actionMap) {
-        JPopupMenu popupMenu = new JPopupMenu();
-        if (uiConfig != null) {
-            popupMenu.setBackground(uiConfig.colorFondoSecundario);
+    	JPopupMenu popupMenu = new JPopupMenu();
+    	
+    	Tema temaActual = themeManager.getTemaActual();
+    	if (temaActual != null) {
+            popupMenu.setBackground(temaActual.colorFondoSecundario());
         }
-        addItemsToMenuComponent(popupMenu, definitions, actionMap);
+    	
+        addItemsToMenuComponent(popupMenu, definitions, actionMap, temaActual);
         return popupMenu;
     }
 
-    private void addItemsToMenuComponent(JComponent parentMenuComponent, List<MenuItemDefinition> items, Map<String, Action> actionMap) {
+    private void addItemsToMenuComponent(
+    		JComponent parentMenuComponent, 
+    		List<MenuItemDefinition> items, 
+    		Map<String, Action> actionMap,
+    		Tema temaActual
+    		) {
+    	
         for (MenuItemDefinition def : items) {
             MenuItemType type = def.tipo();
             String comandoOClave = def.actionCommand(); // Clave de la definición (puede ser AppActionCommand o clave de config)
@@ -185,7 +198,7 @@ public class PopupMenuBuilder {
                     // subMenu.setAction(action); // Si fuera necesario, pero menuItem.setAction() no funciona bien para JMenu para texto
                     
                     if (def.subItems() != null && !def.subItems().isEmpty()) {
-                        addItemsToMenuComponent(subMenu, def.subItems(), actionMap); // Llamada recursiva
+                        addItemsToMenuComponent(subMenu, def.subItems(), actionMap, temaActual); // Llamada recursiva
                     }
                     break;
                 default:
@@ -196,7 +209,8 @@ public class PopupMenuBuilder {
 
             // Añadir el menuItem al componente padre SI se creó uno
             if (menuItem != null) {
-                applyMenuItemStyle(menuItem); // Aplicar estilo ANTES de añadirlo
+            	
+            	applyMenuItemStyle(menuItem, temaActual); // Aplicar estilo ANTES de añadirlo
                 if (parentMenuComponent instanceof JMenu) {
                     ((JMenu) parentMenuComponent).add(menuItem);
                 } else if (parentMenuComponent instanceof JPopupMenu) {
@@ -206,11 +220,11 @@ public class PopupMenuBuilder {
         }
     }
     
-    private void applyMenuItemStyle(JMenuItem menuItem) {
-        if (uiConfig != null && menuItem != null) {
-            menuItem.setBackground(uiConfig.colorFondoSecundario);
-            menuItem.setForeground(uiConfig.colorTextoPrimario);
+    private void applyMenuItemStyle(JMenuItem menuItem, Tema tema) {
+        if (tema != null && menuItem != null) {
+            menuItem.setBackground(tema.colorFondoSecundario());
+            menuItem.setForeground(tema.colorTextoPrimario());
         }
-    }
+    } // --- Fin del método applyMenuItemStyle ---
 } // --- FIN de la clase PopupMenuBuilder
 

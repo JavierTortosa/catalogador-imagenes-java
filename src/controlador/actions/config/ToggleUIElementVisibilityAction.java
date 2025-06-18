@@ -17,60 +17,72 @@ public class ToggleUIElementVisibilityAction extends AbstractAction {
     private final String uiElementIdentifier;
 
     /**
-     * Constructor MODIFICADO para una Action que alterna la visibilidad de un elemento de UI.
-     * AHORA espera la clave de configuración BASE y añade el sufijo ".visible" internamente.
+     * Constructor MODIFICADO y ROBUSTO para una Action que alterna la visibilidad de un elemento de UI.
+     * AHORA, maneja correctamente tanto claves base como claves que ya incluyen el sufijo ".visible".
      *
      * @param controller        Referencia al VisorController para notificar actualizaciones de UI.
      * @param configManager     El gestor de configuración para leer/guardar el estado.
      * @param name              El texto que se mostrará en el JCheckBoxMenuItem.
-     * @param configKeyBase     La clave BASE en ConfigurationManager (ej. "interfaz.herramientas.edicion").
+     * @param configKey         La clave de configuración para la visibilidad. Puede ser la clave base 
+     *                          (ej. "interfaz.herramientas.edicion") o la clave completa 
+     *                          (ej. "interfaz.herramientas.edicion.visible").
      * @param uiElementId       Un identificador único para este elemento de UI (ej. "edicion").
      * @param actionCommandKey  El comando canónico asociado a esta Action.
      */
-    public ToggleUIElementVisibilityAction(	VisorController controller, 
-    										ConfigurationManager configManager,
-    										String name, 
-    										String configKeyBase, // <<< CAMBIO 2: Nombre del parámetro
-    										String uiElementId, 
-    										String actionCommandKey) {
-    	
+    public ToggleUIElementVisibilityAction( VisorController controller, 
+                                            ConfigurationManager configManager,
+                                            String name, 
+                                            String configKey, // <-- Renombrado para más claridad
+                                            String uiElementId, 
+                                            String actionCommandKey) {
+        
         super(name);
         this.controller = controller;
         this.configManager = configManager;
-        // --- CAMBIO 1: Asignar al nuevo campo ---
-        this.configKeyBase = configKeyBase;
         this.uiElementIdentifier = uiElementId;
+
+        // --- LÓGICA DE CORRECCIÓN ---
+        // Determinar la clave de visibilidad completa y la clave base.
+        if (configKey != null && configKey.endsWith(".visible")) {
+            // Si la clave ya termina en .visible, la usamos tal cual.
+            this.configKeyBase = configKey; 
+        } else {
+            // Si no, asumimos que es una clave base y le añadimos el sufijo.
+            this.configKeyBase = (configKey != null) ? configKey + ".visible" : null;
+        }
+        
+        // Validar que no acabemos con una clave nula
+        if (this.configKeyBase == null) {
+            System.err.println("ERROR CRÍTICO [ToggleUIElementVisibilityAction CSTR] para '" + name + "': La clave de configuración es nula.");
+            // Podríamos deshabilitar la acción o lanzar una excepción aquí.
+            // Por ahora, continuará, pero probablemente fallará más adelante.
+        }
+        // --- FIN LÓGICA DE CORRECCIÓN ---
 
         putValue(Action.ACTION_COMMAND_KEY, actionCommandKey);
         putValue(Action.SHORT_DESCRIPTION, "Mostrar/Ocultar " + name);
 
-        // --- CAMBIO 2: Construir la clave completa para leer el estado inicial ---
-        String fullVisibilityKey = this.configKeyBase + ".visible";
-        boolean isCurrentlyVisible = configManager.getBoolean(fullVisibilityKey, true); // true como default
+        // Usar la clave base (que ahora sabemos que es la correcta) para leer el estado inicial.
+        boolean isCurrentlyVisible = configManager.getBoolean(this.configKeyBase, true); // true como default
         putValue(Action.SELECTED_KEY, isCurrentlyVisible);
-
-        System.out.println("[ToggleUIElementVisibilityAction CSTR] '" + name + "' (clave base: " + configKeyBase +
-                           ", UI ID: " + uiElementId + ") inicializada. Leyendo de '" + fullVisibilityKey + "'. SELECTED_KEY: " + isCurrentlyVisible);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         boolean nuevoEstadoVisible = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
 
-        // --- CAMBIO 3: Construir la clave completa para guardar el nuevo estado ---
-        String fullVisibilityKey = this.configKeyBase + ".visible";
-        configManager.setString(fullVisibilityKey, String.valueOf(nuevoEstadoVisible));
+        // Usar la clave base (que ya es la clave de visibilidad completa) para guardar.
+        configManager.setString(this.configKeyBase, String.valueOf(nuevoEstadoVisible));
 
         System.out.println("[ToggleUIElementVisibilityAction] '" + getValue(Action.NAME) +
                            "' toggled. Nueva visibilidad: " + nuevoEstadoVisible +
-                           ". Clave config actualizada: " + fullVisibilityKey);
+                           ". Clave config actualizada: " + this.configKeyBase);
 
         // Notificar al VisorController
         if (controller != null) {
-        	// Se pasa el uiIdentifier (ej. "edicion") y la clave COMPLETA que se modificó
-        	controller.solicitarActualizacionInterfaz(uiElementIdentifier, fullVisibilityKey, nuevoEstadoVisible);
+            controller.solicitarActualizacionInterfaz(uiElementIdentifier, this.configKeyBase, nuevoEstadoVisible);
         } else {
             System.err.println("ERROR [ToggleUIElementVisibilityAction]: VisorController es null.");
         }
-    }
-} // --- FIN de la clase ToggleUIElementVisibilityAction ---
+    } 
+}// --- FIN de la clase ToggleUIElementVisibilityAction ---
