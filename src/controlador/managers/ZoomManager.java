@@ -4,10 +4,11 @@ import java.awt.Image;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
-import java.util.List;
 import java.util.Objects;
+
 import javax.swing.SwingUtilities;
 
+import controlador.ListCoordinator;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
@@ -26,6 +27,7 @@ public class ZoomManager {
     private final ConfigurationManager configuration;
     private InfobarStatusManager statusBarManager;
     private int lastMouseX, lastMouseY;
+    private ListCoordinator listCoordinator;
 
     public ZoomManager(VisorModel model, ComponentRegistry registry, ConfigurationManager configuration) {
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null");
@@ -101,34 +103,50 @@ public class ZoomManager {
 	  * El zoom con Ctrl+Rueda activa implícitamente el Modo Paneo.
 	  * CORRECCIÓN: Asegura que el InfobarManager se actualice para reflejar el nuevo % de zoom.
 	  */
-	 public void manejarRuedaInteracciona(MouseWheelEvent e) {
-	     // La interacción solo es posible si el Modo Paneo está activado.
-	     if (!model.isZoomHabilitado()) {
-	         return; // No hacer nada si el paneo está desactivado.
-	     }
-	
-	     if (e.isControlDown()) {
-	         ZoomModeEnum modoBasePrevio = model.getCurrentZoomMode();
-	         
-	         double incrementoFijo = 0.1;
-	         double zoomActual = model.getZoomFactor();
-	         double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual + incrementoFijo : zoomActual - incrementoFijo;
-	         nuevoZoom = Math.max(0.01, Math.min(nuevoZoom, 50.0));
-	         
-	         if (modoBasePrevio == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
-	             configuration.setZoomPersonalizadoPorcentaje(nuevoZoom * 100);
-	         }
-	         
-	         model.setZoomFactor(nuevoZoom);
-	         refrescarVistaSincrono(); // Este método ya llama a statusBarManager.actualizar() al final
-	
-	     } else if (e.isShiftDown()) {
-	         aplicarPan(0, -e.getWheelRotation() * 30);
-	     } else if (e.isAltDown()) {
-	         aplicarPan(-e.getWheelRotation() * 30, 0);
-	     }
-	 }
-	 // --- FIN del metodo manejarRuedaInteracciona ---
+    public void manejarRuedaInteracciona(java.awt.event.MouseWheelEvent e) {
+        if (!model.isZoomHabilitado()) {
+            // Si el modo paneo no está activo, no hacemos nada aquí.
+            // La lógica de navegación ya está en el listener del VisorController.
+            return;
+        }
+
+        // --- Modo Paneo ACTIVADO ---
+        if (e.isControlDown() && e.isAltDown()) {
+            // Combinación para PageUp/PageDown
+            if (listCoordinator != null) {
+                if (e.getWheelRotation() < 0) {
+                    listCoordinator.seleccionarBloqueAnterior();
+                } else {
+                    listCoordinator.seleccionarBloqueSiguiente();
+                }
+            }
+        } else if (e.isControlDown()) {
+            // Lógica de ZOOM
+            double zoomActual = model.getZoomFactor();
+            double scaleFactor = 1.1;
+            double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual * scaleFactor : zoomActual / scaleFactor;
+            nuevoZoom = Math.max(0.01, Math.min(nuevoZoom, 50.0));
+            
+            // ... (el resto de la lógica de zoom inteligente se mantiene igual si la implementaste)
+
+            model.setZoomFactor(nuevoZoom);
+
+            if (model.getCurrentZoomMode() == servicios.zoom.ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
+                configuration.setZoomPersonalizadoPorcentaje(nuevoZoom * 100);
+                if (statusBarManager != null) statusBarManager.actualizar();
+            }
+            refrescarVistaSincrono();
+
+        } else if (e.isShiftDown()) {
+            // Paneo VERTICAL
+            aplicarPan(0, -e.getWheelRotation() * 30);
+        } else if (e.isAltDown()) {
+            // Paneo HORIZONTAL
+            aplicarPan(-e.getWheelRotation() * 30, 0);
+        } 
+        // Si no se cumple ninguna condición (rueda sola), el listener del VisorController ya se encarga de la navegación.
+        // No necesitamos un caso 'else' aquí.
+    } // --- Fin del método manejarRuedaInteracciona ---
 
     public void iniciarPaneo(MouseEvent e) {
         if (model != null && SwingUtilities.isLeftMouseButton(e) && model.isZoomHabilitado()) {
@@ -256,10 +274,9 @@ public class ZoomManager {
     }
     // --- FIN del metodo _calcularFactorDeZoom ---
     
-    public void setStatusBarManager(InfobarStatusManager manager) { 
-        this.statusBarManager = manager; 
-    }
-    // --- FIN del metodo setStatusBarManager ---
+    public void setStatusBarManager(InfobarStatusManager manager) {this.statusBarManager = manager; }
+    public void setListCoordinator(ListCoordinator listCoordinator) {this.listCoordinator = listCoordinator;}
+    
 }
 // --- FIN de la clase ZoomManager ---
 

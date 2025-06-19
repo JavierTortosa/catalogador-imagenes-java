@@ -334,42 +334,36 @@ public class AppInitializer {
         try {
             System.out.println("--- [AppInitializer Fase B - EDT] Iniciando creación de UI en secuencia lógica ---");
 
-            // FASE B.1: Crear ComponentRegistry y ViewBuilder
             ComponentRegistry registry = new ComponentRegistry();
             this.controller.setComponentRegistry(registry);
 
-            ViewBuilder viewBuilder = new ViewBuilder(
-                registry, 
-                model, 
-                themeManager, 
-                configuration, 
-                controller, 
-                iconUtils, 
-                this.servicioMiniaturas
-            );
+            ViewBuilder viewBuilder = new ViewBuilder(registry, model, themeManager, configuration, controller, iconUtils, this.servicioMiniaturas);
             
-            // FASE B.2: Construir la UI principal y obtener la referencia a la vista
             this.view = viewBuilder.createMainFrame();
             this.controller.setView(this.view);
             System.out.println("  [EDT - FASE 1 & 2] Cimientos y UI principal construidos.");
 
-            // FASE B.3: Crear los Managers de Lógica
+            // --- FASE B.3: Crear los Managers de Lógica ---
             this.zoomManager = new ZoomManager(this.model, registry, this.configuration);
             this.controller.setZoomManager(this.zoomManager);
             
             this.listCoordinator = new ListCoordinator(this.model, this.view, this.controller, registry);
             this.controller.setListCoordinator(this.listCoordinator);
             
-            this.viewManager = new ViewManager(this.view, this.configuration, registry);
-            viewBuilder.setViewManager(this.viewManager);
+            // --- INICIO DE LA LÍNEA AÑADIDA ---
+            this.zoomManager.setListCoordinator(this.listCoordinator);
+            // --- FIN DE LA LÍNEA AÑADIDA ---
             
+            this.viewManager = new ViewManager(this.view, this.configuration, registry);
             this.editionManager = new EditionManager(this.model, this.controller, this.zoomManager);
             
-            Consumer<Path> recargarCallback = (nuevaCarpeta) -> this.controller.cargarListaImagenes(null, null);
+            java.util.function.Consumer<Path> recargarCallback = (nuevaCarpeta) -> this.controller.cargarListaImagenes(null, null);
             
             this.fileOperationsManager = new FileOperationsManager(this.model, this.controller, this.configuration, recargarCallback);
             System.out.println("  [EDT - FASE 3] Managers de Lógica creados e inyectados.");
 
+            // ... (el resto del método se mantiene igual que en tu código) ...
+            
             // FASE B.4: Crear la ActionFactory
             UIDefinitionService uiDefSvc = new UIDefinitionService();
             Map<String, String> comandoToIconKeyMap = new java.util.HashMap<>();
@@ -378,14 +372,10 @@ public class AppInitializer {
                     buttonDef -> comandoToIconKeyMap.put(buttonDef.comandoCanonico(), buttonDef.claveIcono())
                 )
             );
-            this.actionFactory = new ActionFactory(
-                 this.model, this.view, this.zoomManager, this.fileOperationsManager, 
-                 this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
-                 this.projectManagerService, comandoToIconKeyMap, this.viewManager, this.themeManager, this.controller
-            );
+            this.actionFactory = new ActionFactory(this.model, this.view, this.zoomManager, this.fileOperationsManager, this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, this.projectManagerService, comandoToIconKeyMap, this.viewManager, this.themeManager, this.controller);
             System.out.println("  [EDT - FASE 4] ActionFactory creada.");
             
-            // FASE B.5: Inicializar las acciones y poblar el actionMap
+            // FASE B.5: Inicializar las acciones
             this.actionFactory.initializeActions();
             this.actionMap = this.actionFactory.getActionMap();
             this.controller.setActionMap(this.actionMap);
@@ -419,13 +409,13 @@ public class AppInitializer {
             this.controller.setBotonesPorNombre(toolbarBuilder.getBotonesPorNombre());
             System.out.println("  [EDT - FASE 8] UI poblada con Menús y Toolbars.");
 
-            // --- FASE 9 REESTRUCTURADA Y SIMPLIFICADA ---
+            // FASE B.9: Configuración final e inicio
             System.out.println("  [EDT - FASE 9] Configuración final e inicio de carga...");
-
             this.configAppManager.aplicarConfiguracionGlobalmente();
             this.controller.sincronizarEstadoVisualBotonesYRadiosZoom();
-            this.controller.configurarListenersVistaInternal(); // Llama a configurarListenerDePrimerRenderizado
-
+            this.controller.configurarListenersVistaInternal();
+            java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
+            this.controller.configurarAtajosTecladoGlobales();
             this.view.addWindowListener(new java.awt.event.WindowAdapter() {
                 @Override
                 public void windowClosing(java.awt.event.WindowEvent windowEvent) {
@@ -433,29 +423,18 @@ public class AppInitializer {
                 }
             });
             
-            // --- INICIO DE LA LÓGICA DE ARRANQUE CORREGIDA ---
-            
-            // 1. Prepara todo lo necesario para la carga
             this.controller.establecerCarpetaRaizDesdeConfigInternal();
             String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
-
-            // 2. Haz la ventana visible AHORA.
             System.out.println("  [EDT] Mostrando la ventana principal ANTES de la carga de la lista...");
             this.view.setVisible(true);
-
-            // 3. Ahora que la ventana es visible y los componentes tienen tamaño, inicia la carga.
             System.out.println("  [EDT] Iniciando carga de estado inicial...");
             if (this.model.getCarpetaRaizActual() != null) {
-                // Ya no pasamos un callback, el listener se encargará de todo.
                 this.controller.cargarListaImagenes(imagenInicialKey, null);
             } else {
-                System.out.println("  [EDT] No hay carpeta de inicio configurada. Limpiando UI.");
                 if (controller != null) controller.limpiarUI();
             }
             
             System.out.println("--- [EDT] Inicialización de UI completada y carga de archivos en segundo plano iniciada. ---");
-
-            // --- FIN DE LA LÓGICA DE ARRANQUE CORREGIDA ---
 
         } catch (Exception e) {
             manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);

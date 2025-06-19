@@ -163,8 +163,35 @@ public class InfobarStatusManager {
     }
 
     private void actualizarMensajeDeEstado() {
-        // ... (Tu código actual para el mensaje "MARCADA")
-    }
+        JLabel mensajesLabel = registry.get("label.estado.mensajes");
+        if (mensajesLabel == null) {
+            return;
+        }
+
+        // 1. Obtener la ruta de la imagen actual desde el modelo.
+        Path rutaActual = null;
+        if (model != null && model.getSelectedImageKey() != null) {
+            rutaActual = model.getRutaCompleta(model.getSelectedImageKey());
+        }
+
+        // 2. Comprobar si la imagen está marcada usando el ProjectManager.
+        boolean estaMarcada = false;
+        if (rutaActual != null && projectService != null) {
+            estaMarcada = projectService.estaMarcada(rutaActual);
+        }
+
+        // 3. Actualizar el texto y el color del JLabel.
+        if (estaMarcada) {
+            mensajesLabel.setText("[MARCADA]");
+            // Usar un color que destaque, por ejemplo el de un botón activado
+            if (themeManager != null) {
+                mensajesLabel.setForeground(themeManager.getTemaActual().colorBotonFondoActivado()); 
+            }
+        } else {
+            // Si no está marcada, limpiamos el mensaje.
+            mensajesLabel.setText(" "); // Un espacio para mantener la altura del panel.
+        }
+    } // --- Fin del método actualizarMensajeDeEstado ---
 
     private void configurarListenersControles() {
         System.out.println("  [StatusBarManager] Configurando Listeners para controles de la barra de estado...");

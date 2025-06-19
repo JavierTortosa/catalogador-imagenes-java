@@ -20,9 +20,8 @@ ConfigurationManager inicializado.
     -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración al Modelo...
     -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: Ajustar a Pantalla
-    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: Ajustar a Alto
+    -> Modelo: Modo de zoom actual (desde ultimo_modo_seleccionado) establecido a: Ajustar a Pantalla
     -> Modelo: Zoom manual inicial activo (desde config 'comportamiento...'): true
-  [Model] Estado mantenerProporcion cambiado a: false
     -> Modelo: Navegación circular (desde config 'comportamiento.navegacion.circular'): false
     -> Configuración aplicada al Modelo (Miniaturas, Comportamiento).
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
@@ -59,10 +58,10 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   [ActionFactory] Inicializando todas las Actions...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@1d14ebb7
+ActionFactory: Creando ToggleSubfoldersAction@790b461a
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
-[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: false (desde modelo)
+[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 67
   [EDT - FASE 5] Actions inicializadas y mapa poblado.
 [ConfigApplicationManager] Creando instancia refactorizada...
@@ -103,9 +102,11 @@ ActionFactory: Creando ToggleSubfoldersAction@1d14ebb7
   [EDT - FASE 8] UI poblada con Menús y Toolbars.
   [EDT - FASE 9] Configuración final e inicio de carga...
 --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Alto, Permiso Manual: true
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
 [VisorController] Sincronización de UI de Zoom completada.
 [Controller Internal] Configurando Listeners de Vista...
+  [Controller] Configurando atajos de teclado globales...
+  -> Atajos de teclado globales configurados para teclado estándar y numérico.
     [EDT Internal] Estableciendo carpeta raíz inicial desde config...
   [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
       -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
@@ -138,19 +139,19 @@ ActionFactory: Creando ToggleSubfoldersAction@1d14ebb7
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
   [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...
     -> Sincronizando estado visual de botones toggle...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 181
     -> Sincronización de botones toggle completada.
     -> Aplicando estado inicial de fondo a cuadros desde config: false
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
+  [Worker BG] Files.walk terminado. Archivos encontrados: 186
     [Coordinator Flag] sincronizandoUI -> false
 [Worker EDT] Método done() alcanzado.
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 181
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 181
-[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 181
+    WORKER HA TERMINADO. Número de archivos encontrados: 186
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 186
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 186
 >>> Coordinator: Solicitud de REINICIO y selección de índice: 0
   [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
     -> Sincronizando estado visual de botones toggle...
@@ -176,10 +177,11 @@ ActionFactory: Creando ToggleSubfoldersAction@1d14ebb7
       [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 0
 
 --- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 181
+  [actualizarMiniaturas] Tamaño modeloPrincipal: 186
   [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
 --- FIN actualizarModeloYVistaMiniaturas ---
 >>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
   [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
     -> Sincronizando estado visual de botones toggle...
     -> Sincronización de botones toggle completada.
@@ -205,6 +207,23 @@ ActionFactory: Creando ToggleSubfoldersAction@1d14ebb7
     [Coordinator Flag] sincronizandoUI -> false
 --- [Listener Primer Renderizado]: Panel listo (1145x236). Forzando refresco de zoom y barras de info. ---
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Tamaño Real (100%), Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Ancho, Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Alto, Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Rellenar Pantalla, Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
+[ZoomManager] Capturado nuevo Zoom Fijo: 95.90277777777777%
+[VisorController] Sincronizando UI de Zoom. Modo: Mantener Zoom Actual, Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: false
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1830908236
