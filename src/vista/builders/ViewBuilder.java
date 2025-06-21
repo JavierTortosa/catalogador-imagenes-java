@@ -1,12 +1,10 @@
 package vista.builders;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -16,7 +14,6 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -55,7 +52,6 @@ public class ViewBuilder {
 
     // --- Dependencias Clave ---
     private final ComponentRegistry registry;
-//    private final ActionFactory actionFactory;
     private final VisorModel model;
     private final ThemeManager themeManager;
     private final ConfigurationManager configuration;
@@ -63,6 +59,7 @@ public class ViewBuilder {
     private final IconUtils iconUtils;         // Para builders de UI
     private final UIDefinitionService uiDefService; // Para definiciones de UI
     private final ThumbnailService thumbnailService;
+    private final ProjectBuilder projectBuilder;
     private ViewManager viewManager;
     
     public ViewBuilder(
@@ -73,7 +70,9 @@ public class ViewBuilder {
             ConfigurationManager configuration,
             VisorController controller,
             IconUtils iconUtils,
-            ThumbnailService thumbnailService
+            ThumbnailService thumbnailService,
+            ProjectBuilder projectBuilder
+//            ,ViewManager viewManager 
         ){
         this.registry = registry;
 //        this.actionFactory = actionFactory;
@@ -84,89 +83,71 @@ public class ViewBuilder {
         this.iconUtils = iconUtils;
         this.uiDefService = new UIDefinitionService();
         this.thumbnailService = Objects.requireNonNull(thumbnailService);
+        this.projectBuilder = Objects.requireNonNull(projectBuilder, "ProjectBuilder no puede ser null");
+//        this.viewManager = Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
     } // --- Fin del constructor ViewBuilder ---
 
- // DENTRO DE LA CLASE ViewBuilder.java
-
-    
 
     /**
-     * Método principal que crea, ensambla y devuelve la ventana principal de la aplicación.
-     * Orquesta la llamada a todos los métodos privados de construcción y ensambla
-     * la jerarquía de componentes completa.
+     * MÉTODO MODIFICADO: Ahora construye la UI principal con una estructura de CardLayout
+     * para manejar múltiples vistas (Visualizador, Proyectos, etc.).
      */
     public VisorView createMainFrame() {
-        System.out.println("  [ViewBuilder] Iniciando la construcción del frame principal COMPLETO...");
+        System.out.println("  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...");
 
         // --- FASE 1: Crear el contenedor principal (VisorView) ---
-        //    El constructor de VisorView ya está simplificado.
         VisorView mainFrame = new VisorView(
-        	    100,
-        	    this.model,
-        	    this.thumbnailService,
-        	    this.themeManager,
-        	    this.configuration,
-        	    this.registry,
-        	    this.iconUtils
-        	);
-        
-        
+            100, // miniaturaPanelHeight, que podría ser obsoleto o redefinido
+            this.model,
+            this.thumbnailService,
+            this.themeManager,
+            this.configuration,
+            this.registry,
+            this.iconUtils
+        );
         registry.register("frame.main", mainFrame);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setLayout(new BorderLayout());
 
-     // --- FASE 2: CONSTRUIR Y ENSAMBLAR LAS PIEZAS DE LA UI ---
+        // --- FASE 2: CONSTRUIR Y ENSAMBLAR LAS PIEZAS DE LA UI ---
         
-        // 2a. Construir la Barra de Menú y establecerla en el frame.
-//        mainFrame.setJMenuBar(createMenuBar());
-        
-        // 2b. Construir el panel que contendrá la(s) barra(s) de herramientas.
-        //     Este panel se añade a un contenedor norte para agruparlo con la barra de info.
+        // --- 2a. ZONA NORTE (Barras de herramientas e info) ---
+        // Esta zona es común a todas las vistas, por lo que se añade directamente al JFrame.
         JPanel toolbarContainer = createToolbarContainer();
-        
-        // 2c. Construir la barra de información superior.
         JPanel topInfoPanel = createTopInfoPanel();
-        
-        // 2d. Crear un panel "wrapper" para el norte, que contendrá tanto las
-        //     barras de herramientas como la barra de información superior, una encima de la otra.
         JPanel northWrapper = new JPanel(new BorderLayout());
-        northWrapper.add(toolbarContainer, BorderLayout.NORTH); // Toolbars arriba del todo
-        northWrapper.add(topInfoPanel, BorderLayout.CENTER);     // Barra de info justo debajo
-        
-        // 2e. Añadir el wrapper completo a la zona NORTE del frame principal.
+        northWrapper.add(toolbarContainer, BorderLayout.NORTH);
+        northWrapper.add(topInfoPanel, BorderLayout.CENTER);
         mainFrame.add(northWrapper, BorderLayout.NORTH);
         
-        // 2f. Construir el panel de contenido principal (el que tiene el JSplitPane).
-        JPanel mainContentPanel = createMainContentPanel();
-        
-        // 2g. Añadir el contenido principal a la zona CENTRAL del frame.
-        mainFrame.add(mainContentPanel, BorderLayout.CENTER);
-
-        // 2h. Construir la barra de estado inferior.
+        // --- 2b. ZONA SUR (Barra de estado) ---
+        // También es común a todas las vistas.
         JPanel bottomStatusBar = createBottomStatusBar();
-
-        // 2i. Añadir la barra de estado a la zona SUR del frame.
         mainFrame.add(bottomStatusBar, BorderLayout.SOUTH);
         
+        // --- 2c. ZONA CENTRAL (El Contenedor de Vistas con CardLayout) ---
+        // Este panel usará CardLayout para cambiar entre la vista del visualizador y la de proyectos.
+        JPanel vistasContainer = new JPanel(new CardLayout());
+        registry.register("container.vistas", vistasContainer);
+
+        // -- Construir la tarjeta/vista del "Visualizador" --
+        // Delegamos su construcción a un método helper para mantener el código limpio.
+        JPanel panelVisualizador = createVisualizadorViewPanel();
         
-//        //    Cada método `create...` construye una parte y el `mainFrame.add` la coloca.
-//        
-//        // 2a. Barra de Menú (se establece, no se añade con `add`)
-//        mainFrame.setJMenuBar(createMenuBar());
-//
-//        // 2b. Panel Norte (contiene toolbars y la barra de info superior)
-//        JPanel northPanel = new JPanel(new BorderLayout());
-//        northPanel.add(createToolbarContainer(), BorderLayout.NORTH);
-//        northPanel.add(createTopInfoPanel(), BorderLayout.SOUTH);
-//        mainFrame.add(northPanel, BorderLayout.NORTH);
-//
-//        // 2c. Contenido Central (el JSplitPane con todo su interior)
-//        mainFrame.add(createMainContentPanel(), BorderLayout.CENTER);
-//
-//        // 2d. Barra de Estado Inferior
-//        mainFrame.add(createBottomStatusBar(), BorderLayout.SOUTH);
-        
+        // -- Construir la tarjeta/vista de "Proyectos" --
+        // Delegamos su construcción al ProjectBuilder que recibimos en el constructor.
+        JPanel panelProyectos = this.projectBuilder.buildProjectViewPanel();
+
+        // -- Añadir las tarjetas al contenedor --
+        // Les damos nombres únicos en mayúsculas para usarlos como identificadores.
+        vistasContainer.add(panelVisualizador, "VISTA_VISUALIZADOR");
+        vistasContainer.add(panelProyectos, "VISTA_PROYECTOS");
+
+        // -- Añadir el contenedor de vistas al centro del JFrame --
+        mainFrame.add(vistasContainer, BorderLayout.CENTER);
+
         // --- FASE 3: Lógica de configuración final de la ventana ---
+        // (Esta parte no cambia)
         int x = configuration.getInt(ConfigKeys.WINDOW_X, -1);
         int y = configuration.getInt(ConfigKeys.WINDOW_Y, -1);
         int w = configuration.getInt(ConfigKeys.WINDOW_WIDTH, 1280);
@@ -183,11 +164,12 @@ public class ViewBuilder {
             SwingUtilities.invokeLater(() -> mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH));
         }
         
-        // Ajustar el divisor del JSplitPane después de que la ventana se haya dimensionado
+        // ¡IMPORTANTE! La lógica del divisor del JSplitPane AHORA debe ejecutarse
+        // después de que el panel del visualizador (y por tanto el splitpane) sea visible.
+        // Lo dejamos aquí, ya que la vista del visualizador es la que se muestra por defecto.
         SwingUtilities.invokeLater(() -> {
             JSplitPane splitPane = registry.get("splitpane.main");
             if (splitPane != null) {
-                // Nota: La clave para la posición del divisor debería estar en ConfigKeys
                 double dividerLocation = configuration.getDouble("ui.splitpane.main.dividerLocation", 0.25);
                 splitPane.setDividerLocation(dividerLocation);
             }
@@ -195,25 +177,26 @@ public class ViewBuilder {
 
         System.out.println("  [ViewBuilder] Frame principal construido y ensamblado.");
         return mainFrame;
-
-    } // --- Fin del método createMainFrame ---
+    }
     
+    /**
+     * NUEVO MÉTODO HELPER: Construye y devuelve el panel completo para la vista "Visualizador".
+     * Contiene la lógica que antes estaba en el centro del JFrame.
+     */
+    private JPanel createVisualizadorViewPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        
+        // El método createMainContentPanel() ahora es redundante.
+        // Ensamblamos sus partes directamente aquí.
+        panel.add(createMainSplitPane(), BorderLayout.CENTER);
+        panel.add(createThumbnailScrollPane(), BorderLayout.SOUTH);
+        
+        return panel;
+    }
+
 
     // --- MÉTODOS DE CONSTRUCCIÓN PRIVADOS ---
 
-//    private JMenuBar createMenuBar() {
-//        MenuBarBuilder menuBuilder = new MenuBarBuilder(controller, configuration);
-//        menuBuilder.setControllerGlobalActionListener(this.controller);
-//        JMenuBar menuBar = menuBuilder.buildMenuBar(uiDefService.generateMenuStructure(), actionFactory.getActionMap());
-//        registry.register("menubar.main", menuBar);
-//
-//        // Registrar todos los JMenuItems individuales que el builder creó
-//        menuBuilder.getMenuItemsMap().forEach((key, item) -> {
-//            registry.register(key, item);
-//        });
-//
-//        return menuBar;
-//    } // --- Fin del método createMenuBar ---
 
     private JPanel createToolbarContainer() {
         JPanel toolbarContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
@@ -226,28 +209,6 @@ public class ViewBuilder {
         return toolbarContainer;
     } // --- Fin del método createToolbarContainer ---
     
-    private JPanel createCenterWrapper() {
-        JPanel wrapper = new JPanel(new BorderLayout());
-        wrapper.setOpaque(true);
-        wrapper.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
-        registry.register("wrapper.center", wrapper);
-
-        wrapper.add(createTopInfoPanel(), BorderLayout.NORTH);
-        wrapper.add(createMainContentPanel(), BorderLayout.CENTER);
-        
-        return wrapper;
-    } // --- Fin del método createCenterWrapper ---
-
-    private JPanel createMainContentPanel() {
-        JPanel panel = new JPanel(new BorderLayout());
-        panel.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
-        registry.register("panel.modo.visualizador", panel);
-
-        panel.add(createMainSplitPane(), BorderLayout.CENTER);
-        panel.add(createThumbnailScrollPane(), BorderLayout.SOUTH);
-        
-        return panel;
-    } // --- Fin del método createMainContentPanel ---
     
     private JSplitPane createMainSplitPane() {
         JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createLeftSplitComponent(), createRightSplitComponent());
@@ -320,97 +281,6 @@ public class ViewBuilder {
 
         return scrollPane;
     } // --- FIN del metodo createThumbnailScrollPane ---
-    
-    
-//    /**
-//     * Inicializa la etiqueta principal donde se mostrará la imagen.
-//     * Configura this.etiquetaImagen.
-//     */
-//    private JLabel inicializarEtiquetaMostrarImagen() {
-//        System.out.println("      -> [VisorView] inicializarEtiquetaMostrarImagen...");
-//        // >>> COPIA AQUÍ TU CÓDIGO DE inicializarEtiquetaMostrarImagen <<<
-//        
-//        JLabel etiquetaImagen = new JLabel() { 
-//            private static final long serialVersionUID = 1L;
-//            
-//            
-//            //TEST
-//            @Override
-//            protected void paintComponent(Graphics g) {
-//            	Tema temaActual = VisorView.this.themeManagerRef.getTemaActual();
-//                // ---- DIBUJA TU FONDO PRIMERO ----
-//                int width = getWidth();
-//                int height = getHeight();
-//
-//                if (fondoACuadrosActivado) {
-//                    Graphics2D g2dFondo = (Graphics2D) g.create();
-//                    try {
-//                        for (int row = 0; row < height; row += TAMANO_CUADRO) {
-//                            for (int col = 0; col < width; col += TAMANO_CUADRO) {
-//                                g2dFondo.setColor(
-//                                        (((row / TAMANO_CUADRO) % 2) == ((col / TAMANO_CUADRO) % 2)) ? colorCuadroClaro
-//                                                : colorCuadroOscuro);
-//                                g2dFondo.fillRect(col, row, TAMANO_CUADRO, TAMANO_CUADRO);
-//                            }
-//                        }
-//                    } finally {
-//                        g2dFondo.dispose();
-//                    }
-//                } else {
-//                    // Si no es fondo a cuadros, y quieres un color de fondo sólido específico
-//                    // que tú controlas, píntalo. Si quieres el fondo por defecto del JLabel,
-//                    // entonces setOpaque(true) y deja que el super lo pinte.
-//                    // Asumiendo que quieres tu propio color de fondo sólido:
-//                    if (temaActual != null) { // O el color que uses como fondo de visor
-//                        g.setColor(temaActual.colorFondoSecundario());
-//                    } else {
-//                        g.setColor(Color.DARK_GRAY); // Tu fallback
-//                    }
-//                    g.fillRect(0, 0, width, height);
-//                }
-//
-//                // ---- AHORA LLAMA AL SUPER (para que dibuje icono/texto encima de tu fondo) ----
-//                super.paintComponent(g);
-//
-//                // ---- LUEGO DIBUJA LA IMAGEN REESCALADA (si existe, encima de todo) ----
-//                if (imagenReescaladaView != null) {
-//                    Graphics2D g2dImagen = (Graphics2D) g.create();
-//                    try {
-//                        g2dImagen.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-//                        // ... resto de tus hints ...
-//                        
-//                        int baseW = imagenReescaladaView.getWidth(null);
-//                        int baseH = imagenReescaladaView.getHeight(null);
-//
-//                        if (baseW > 0 && baseH > 0) {
-//                            int finalW = (int) (baseW * zoomFactorView);
-//                            int finalH = (int) (baseH * zoomFactorView);
-//                            int drawX = (width - finalW) / 2 + imageOffsetXView;
-//                            int drawY = (height - finalH) / 2 + imageOffsetYView;
-//                            g2dImagen.drawImage(imagenReescaladaView, drawX, drawY, finalW, finalH, null);
-//                        }
-//                    } finally {
-//                        g2dImagen.dispose();
-//                    }
-//                }
-//                
-//            }// FIN del paintComponent
-//            
-//        }; // Fin JLabel anónimo
-//
-//        Tema temaActual = this.themeManagerRef.getTemaActual();
-//        this.etiquetaImagen.setHorizontalAlignment(SwingConstants.CENTER);
-//        this.etiquetaImagen.setVerticalAlignment(SwingConstants.CENTER);
-//        this.etiquetaImagen.setOpaque(false); // Importante: NO opaco para que el fondo pintado se vea
-//        if (temaActual != null) {
-//            this.etiquetaImagen.setBackground(temaActual.colorFondoSecundario()); // Color base si no es a cuadros
-//            this.etiquetaImagen.setForeground(temaActual.colorTextoPrimario());   // Color para texto "Cargando"
-//        } else {
-//            this.etiquetaImagen.setBackground(Color.DARK_GRAY); // Fallback
-//            this.etiquetaImagen.setForeground(Color.WHITE);     // Fallback
-//        }
-//        System.out.println("      -> EtiquetaImagen configurada por inicializarEtiquetaMostrarImagen.");
-//    } // FIN del metodo inicializarEtiquetaMostrarImagen
     
     
     private JPanel createRightSplitComponent() {
@@ -631,14 +501,6 @@ public class ViewBuilder {
         
     } // --- Fin del método createTopInfoPanel ---
 
-//    // He movido el método de crear separadores aquí también para que sea autónomo
-//    private JSeparator createSeparatorForInfoBar() {
-//        JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
-//        Dimension d = new Dimension(2, 18); // Altura fija para consistencia
-//        separator.setPreferredSize(d);
-//        return separator;
-//    } // --- Fin del metodo createSeparatorForInfoBar ---
-    
     
     /**
      * Método helper para aplicar una configuración estándar a los JLabels
@@ -652,6 +514,9 @@ public class ViewBuilder {
         label.setToolTipText(tooltip);
     } // --- Fin del método configurarIndicadorLabel ---
 
+    
+    
+    
     
 // **************************************************************************************************** PUNTOS DE COLOR DEL FONDO
     
@@ -802,97 +667,15 @@ public class ViewBuilder {
         return punto;
     } // --- Fin del método crearPuntoSelectorFondo ---
     
-//    private JPanel crearPuntoSelectorFondo(
-//            final Color colorQueAplicaAlPreview,
-//            String tooltip,
-//            final boolean esSelectorCuadros,
-//            final boolean esSelectorPersonalizado,
-//            String identificadorPunto,
-//            final Color colorParaPintarElSelectorPropio,
-//            final Border bordeNormal,
-//            final Border bordePuntoSeleccionado) {
-//
-//        final JPanel punto = new JPanel() {
-//            private static final long serialVersionUID = 1L;
-//            @Override
-//            protected void paintComponent(Graphics g) {
-//                super.paintComponent(g);
-//                if (esSelectorCuadros && isVisible()) {
-//                    Graphics2D g2d = (Graphics2D) g.create();
-//                    int w = getWidth(); int h = getHeight();
-//                    int tamCuadroPunto = Math.max(2, Math.min(w, h) / 4);
-//                    for (int row = 0; row < h; row += tamCuadroPunto) {
-//                        for (int col = 0; col < w; col += tamCuadroPunto) {
-//                            g2d.setColor((((row / tamCuadroPunto) % 2) == ((col / tamCuadroPunto) % 2)) ? Color.WHITE : Color.LIGHT_GRAY);
-//                            g2d.fillRect(col, row, tamCuadroPunto, tamCuadroPunto);
-//                        }
-//                    }
-//                    g2d.dispose();
-//                }
-//            }
-//        };
-//        punto.setPreferredSize(new Dimension(16, 16));
-//        punto.setToolTipText(tooltip);
-//        punto.setBorder(bordeNormal);
-//        punto.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-//        punto.setName(identificadorPunto);
-//        punto.setOpaque(true);
-//
-//        if (esSelectorPersonalizado) {
-//            punto.setLayout(new BorderLayout());
-//            punto.setBackground(new Color(220, 220, 220));
-//            if (this.iconUtils != null) {
-//                ImageIcon paletteIcon = this.iconUtils.getScaledCommonIcon("Paint-Palette--Streamline-Core.png", 10, 10);
-//                if (paletteIcon != null) punto.add(new JLabel(paletteIcon), BorderLayout.CENTER);
-//            }
-//        } else if (esSelectorCuadros) {
-//            punto.setBackground(Color.LIGHT_GRAY);
-//        } else {
-//            punto.setBackground(colorParaPintarElSelectorPropio != null ? colorParaPintarElSelectorPropio : colorQueAplicaAlPreview);
-//        }
-//
-//        // --- MOUSE LISTENER CORREGIDO ---
-//        punto.addMouseListener(new java.awt.event.MouseAdapter() {
-//            @Override
-//            public void mouseClicked(java.awt.event.MouseEvent e) {
-//                // 1. Obtener el panel de visualización directamente del registro.
-//                ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-//                if (displayPanel == null) {
-//                    System.err.println("ERROR [ViewBuilder]: 'panel.display.imagen' no encontrado en el registro.");
-//                    return;
-//                }
-//                
-//                // 2. Lógica para resaltar el punto clicado
-//                JPanel parentContainer = (JPanel) punto.getParent();
-//                for (Component comp : parentContainer.getComponents()) {
-//                    if (comp instanceof JPanel) ((JPanel) comp).setBorder(bordeNormal);
-//                }
-//                punto.setBorder(bordePuntoSeleccionado);
-//                
-//                // 3. Lógica para aplicar el cambio de fondo, llamando a los métodos de ImageDisplayPanel
-//                if (esSelectorPersonalizado) {
-//                    Color colorActual = displayPanel.getBackground();
-//                    Color colorElegido = JColorChooser.showDialog(SwingUtilities.getWindowAncestor(punto), "Seleccionar Color de Fondo", colorActual);
-//                    if (colorElegido != null) {
-//                        displayPanel.setSolidBackgroundColor(colorElegido);
-//                    }
-//                } else if (esSelectorCuadros) {
-//                    displayPanel.setCheckeredBackground(true);
-//                } else {
-//                    displayPanel.setSolidBackgroundColor(colorQueAplicaAlPreview);
-//                }
-//            }
-//        });
-//        // --- FIN MOUSE LISTENER ---
-//
-//        return punto;
-//    } // --- FIN del metodo crearPuntoSelectorFondo ---
+
 
     
 // ************************************************************************************************* FIN PUNTOS DE COLOR DEL FONDO
     
 // ************************************************************************************************** GETTERS Y SETTERS
     
-    public void setViewManager(ViewManager viewManager) {this.viewManager = viewManager;} 
-    
+    //public void setViewManager(ViewManager viewManager) {this.viewManager = viewManager;} 
+    public void setViewManager(ViewManager viewManager) {
+        this.viewManager = Objects.requireNonNull(viewManager, "ViewManager no puede ser null en el setter");
+    }
 } // --- Fin de la clase ViewBuilder ---

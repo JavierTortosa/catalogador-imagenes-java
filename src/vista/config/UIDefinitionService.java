@@ -407,9 +407,10 @@ public class UIDefinitionService {
     		 List<ToolbarButtonDefinition> botonesVistas = List.of( 
 	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4001-Panel-Galeria_48x48.png", "Panel Galería", "vista"),
 	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4002-Grid_48x48.png", "Vista Grid", "vista"),
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4006-Polaroid48x48.png", "Vista Polaroid", "vista"),
 	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4003-Pantalla_Completa_48x48.png", "Pantalla Completa", "vista"),
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, "4004-Lista_48x48.png", "Vista Lista", "vista"),
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4005-Carrousel_48x48.png", "Vista Carrusel", "vista")
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4005-Carrousel_48x48.png", "Vista Carrusel", "vista"),
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, "4004-Lista_48x48.png", "Vista Lista", "vista")
 	         );
 			 
              
@@ -433,7 +434,9 @@ public class UIDefinitionService {
     		List<ToolbarButtonDefinition> botonesProyecto = List.of(
 		            // TODO: Añadir comando para Mostrar Favoritos (toggle)
 	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "8001-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto"),//5003
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto") //7003  muestra la lista dle proyecto actual
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto"), //7003  muestra la lista dle proyecto actual
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, "8003-visualizador_48x48.png", "Modo Visualizador", "proyecto"),
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "8004-datos_48x48.png", "Modo Datos", "proyecto")
 	            /*botones que faltan
 	             	proyecto nuevo
 	             	abrir proyecto

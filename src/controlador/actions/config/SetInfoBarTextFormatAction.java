@@ -2,18 +2,19 @@ package controlador.actions.config;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
 
 import controlador.VisorController;
+import controlador.managers.ViewManager;
 import servicios.ConfigurationManager;
 
 public class SetInfoBarTextFormatAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    private final VisorController controllerRef;
+    private final ViewManager viewManager;
     private final ConfigurationManager configManagerRef;
     private final String configKeyForFormatStorage; // La clave donde se guarda el formato (ej. KEY_..._NOMBRE_RUTA_FORMATO)
     private final String formatValueThisActionRepresents; // El valor que esta Action guarda (ej. "solo_nombre")
@@ -30,7 +31,7 @@ public class SetInfoBarTextFormatAction extends AbstractAction {
      * @param uiElementId       El identificador de la zona de UI a refrescar.
      * @param actionCommandKey  El comando canónico para esta acción.
      */
-    public SetInfoBarTextFormatAction(VisorController controller,
+    public SetInfoBarTextFormatAction(ViewManager viewManager,
                                       ConfigurationManager configManager,
                                       String name,
                                       String configKeyFormat,
@@ -38,7 +39,7 @@ public class SetInfoBarTextFormatAction extends AbstractAction {
                                       String uiElementId,
                                       String actionCommandKey) {
         super(name);
-        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
+        this.viewManager = Objects.requireNonNull(viewManager, "VisorController no puede ser null");
         this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
         this.configKeyForFormatStorage = Objects.requireNonNull(configKeyFormat, "configKeyForFormatStorage no puede ser null");
         this.formatValueThisActionRepresents = Objects.requireNonNull(formatValue, "formatValueThisActionRepresents no puede ser null");
@@ -53,8 +54,8 @@ public class SetInfoBarTextFormatAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (controllerRef == null || configManagerRef == null) {
-            System.err.println("ERROR CRÍTICO [SetInfoBarTextFormatAction]: Controller o ConfigManager nulos.");
+        if (viewManager == null || configManagerRef == null) {
+            System.err.println("ERROR CRÍTICO [SetInfoBarTextFormatAction]: viewManager o ConfigManager nulos.");
             return;
         }
 
@@ -88,7 +89,7 @@ public class SetInfoBarTextFormatAction extends AbstractAction {
         //    sincronizarSelectedKeyConConfig(); // Para asegurar que esta esté true.
 
         // 4. Notificar al VisorController para que refresque la barra de información
-        controllerRef.solicitarActualizacionInterfaz(
+        viewManager.solicitarActualizacionUI(
             this.uiElementIdentifierToRefresh,
             this.configKeyForFormatStorage, // Pasamos la clave de config afectada
             true // El 'true' aquí es menos relevante, ya que InfoBarManager reconstruirá
@@ -97,9 +98,9 @@ public class SetInfoBarTextFormatAction extends AbstractAction {
         // 5. Pedir al VisorController que resincronice TODAS las actions de formato para esta barra
         //    para que los JRadioButtonMenuItems reflejen correctamente el estado de la config.
         if (uiElementIdentifierToRefresh.equals("REFRESH_INFO_BAR_SUPERIOR")) {
-            controllerRef.sincronizarAccionesFormatoBarraSuperior();
+            viewManager.sincronizarAccionesFormatoBarraSuperior();
         } else if (uiElementIdentifierToRefresh.equals("REFRESH_INFO_BAR_INFERIOR")) {
-            controllerRef.sincronizarAccionesFormatoBarraInferior();
+        	viewManager.sincronizarAccionesFormatoBarraInferior();
         }
     }
 

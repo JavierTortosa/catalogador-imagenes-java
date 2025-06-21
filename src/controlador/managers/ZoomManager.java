@@ -2,7 +2,6 @@ package controlador.managers;
 
 import java.awt.Image;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 
@@ -99,54 +98,77 @@ public class ZoomManager {
     // --- FIN del metodo aplicarModoDeZoom ---
     
     /**
-	  * Maneja la interacción de la rueda del ratón. 
-	  * El zoom con Ctrl+Rueda activa implícitamente el Modo Paneo.
-	  * CORRECCIÓN: Asegura que el InfobarManager se actualice para reflejar el nuevo % de zoom.
-	  */
+     * Maneja la interacción de la rueda del ratón cuando el modo paneo está activo.
+     * REFACTORIZADO para usar Ctrl+Shift para Zoom y Ctrl/Shift para Paneo.
+     *
+     * @param e El evento de la rueda del ratón.
+     */
     public void manejarRuedaInteracciona(java.awt.event.MouseWheelEvent e) {
         if (!model.isZoomHabilitado()) {
-            // Si el modo paneo no está activo, no hacemos nada aquí.
-            // La lógica de navegación ya está en el listener del VisorController.
+            // Guarda de seguridad, no debería ser llamado si el modo paneo está inactivo.
             return;
         }
 
-        // --- Modo Paneo ACTIVADO ---
-        if (e.isControlDown() && e.isAltDown()) {
-            // Combinación para PageUp/PageDown
-            if (listCoordinator != null) {
-                if (e.getWheelRotation() < 0) {
-                    listCoordinator.seleccionarBloqueAnterior();
-                } else {
-                    listCoordinator.seleccionarBloqueSiguiente();
-                }
-            }
-        } else if (e.isControlDown()) {
-            // Lógica de ZOOM
+        // --- LÓGICA DE DECISIÓN DE ACCIÓN ---
+
+        if (e.isControlDown() && e.isShiftDown()) {
+            // CASO 1: ZOOM (Ctrl + Shift + Rueda)
             double zoomActual = model.getZoomFactor();
-            double scaleFactor = 1.1;
+            double scaleFactor = 1.1; // Factor de escalado
             double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual * scaleFactor : zoomActual / scaleFactor;
+            
+            // Limitar el zoom a un rango razonable
             nuevoZoom = Math.max(0.01, Math.min(nuevoZoom, 50.0));
             
-            // ... (el resto de la lógica de zoom inteligente se mantiene igual si la implementaste)
-
             model.setZoomFactor(nuevoZoom);
 
+            // Si el modo actual es "Fijo", actualizamos el valor guardado
             if (model.getCurrentZoomMode() == servicios.zoom.ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
                 configuration.setZoomPersonalizadoPorcentaje(nuevoZoom * 100);
                 if (statusBarManager != null) statusBarManager.actualizar();
             }
+            
             refrescarVistaSincrono();
 
-        } else if (e.isShiftDown()) {
-            // Paneo VERTICAL
-            aplicarPan(0, -e.getWheelRotation() * 30);
-        } else if (e.isAltDown()) {
-            // Paneo HORIZONTAL
+        } else if (e.isControlDown()) {
+            // CASO 2: PANEO HORIZONTAL (Ctrl + Rueda)
+            // Un valor negativo en getWheelRotation es "hacia arriba/izquierda"
             aplicarPan(-e.getWheelRotation() * 30, 0);
-        } 
-        // Si no se cumple ninguna condición (rueda sola), el listener del VisorController ya se encarga de la navegación.
-        // No necesitamos un caso 'else' aquí.
+
+        } else if (e.isShiftDown()) {
+            // CASO 3: PANEO VERTICAL (Shift + Rueda)
+            // Un valor negativo en getWheelRotation es "hacia arriba"
+            aplicarPan(0, -e.getWheelRotation() * 30);
+        }
+        
+        // NOTA: La rueda sola y Ctrl+Alt se manejan en el VisorController.
+        
     } // --- Fin del método manejarRuedaInteracciona ---
+    
+    /**
+     * Realiza una operación de zoom simple. Ya no maneja lógica de teclas.
+     * Es llamado por el controlador principal.
+     * @param e El evento de la rueda del ratón.
+     */
+    public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
+        if (!model.isZoomHabilitado()) {
+            return;
+        }
+
+        double zoomActual = model.getZoomFactor();
+        double scaleFactor = 1.1;
+        double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual * scaleFactor : zoomActual / scaleFactor;
+        nuevoZoom = Math.max(0.01, Math.min(nuevoZoom, 50.0));
+        
+        model.setZoomFactor(nuevoZoom);
+
+        if (model.getCurrentZoomMode() == servicios.zoom.ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
+            configuration.setZoomPersonalizadoPorcentaje(nuevoZoom * 100);
+            if (statusBarManager != null) statusBarManager.actualizar();
+        }
+        
+        refrescarVistaSincrono();
+    }
 
     public void iniciarPaneo(MouseEvent e) {
         if (model != null && SwingUtilities.isLeftMouseButton(e) && model.isZoomHabilitado()) {

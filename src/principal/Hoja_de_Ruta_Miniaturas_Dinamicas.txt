@@ -1,0 +1,110 @@
+================================================================================
+PLAN DE IMPLEMENTACIÓN: REDIMENSIONAMIENTO DINÁMICO Y MEJORAS DE UI
+================================================================================
+
+OBJETIVO PRINCIPAL:
+Hacer que la interfaz del "Visualizador" sea totalmente responsiva. La barra de
+miniaturas y la imagen principal deben adaptarse de forma inteligente al cambiar
+el tamaño de la ventana, mejorando la usabilidad y el aprovechamiento del espacio.
+
+TERMINOLOGÍA:
+- "ComponentListener": El oyente de eventos de Swing que detectará el redimensionamiento.
+- "Timer Debounce": Un temporizador para evitar la sobrecarga de actualizaciones durante el redimensionamiento.
+- "Vista Visualizador": La "tarjeta" del CardLayout que contiene el JSplitPane y las miniaturas.
+- "Barra Salvavidas": Una JToolBar especial a la derecha con botones "anti-rotura".
+
+==================================================
+FASE 1: Reestructurar la UI (El Andamiaje)
+==================================================
+Propósito: Preparar la estructura de la UI para que soporte la nueva lógica de
+barras de herramientas flexibles y la configuración de celdas de miniaturas.
+
+1.1. Modificar la Nomenclatura de Configuración para Miniaturas:
+   - Clases a modificar: `ConfigurationManager.java` (en `createDefaultConfigMap`), `MiniaturaListCellRenderer.java`.
+   - Tarea:
+     - Renombrar las claves en `config.cfg` para mayor claridad:
+       - `miniaturas.tamano.normal.ancho` -> `miniaturas.imagen.normal.ancho`
+       - `miniaturas.tamano.normal.alto` -> `miniaturas.imagen.normal.alto`
+       - `miniaturas.tamano.seleccionada.ancho` -> `miniaturas.imagen.seleccionada.ancho`
+       - `miniaturas.tamano.seleccionada.alto` -> `miniaturas.imagen.seleccionada.alto`
+     - Añadir una nueva clave para controlar el ancho total de la celda:
+       - `miniaturas.tamano.celda.ancho = 120` (valor por defecto)
+     - `MiniaturaListCellRenderer` deberá leer esta nueva clave para establecer su `fixedCellWidth` y las claves de `imagen` para solicitar las miniaturas al servicio.
+
+1.2. Implementar Layout de Barras de Herramientas de 3 Secciones:
+   - Clases a modificar: `ViewBuilder.java`, `ToolbarBuilder.java`.
+   - Tarea:
+     - En `ViewBuilder`, el `JPanel` que contiene las barras de herramientas (`northWrapper` o similar) usará un `BorderLayout`.
+     - Se crearán dos contenedores de barras de herramientas:
+       - `mainToolbarContainer` (con `FlowLayout.LEFT`), que se añadirá al `BorderLayout.CENTER`.
+       - `emergencyToolbar` (una `JToolBar` con `FlowLayout.RIGHT`), que se añadirá al `BorderLayout.EAST`.
+     - `ToolbarBuilder` será modificado para recibir ambos contenedores (o para tener un método que le indique en qué barra colocar cada botón según una nueva propiedad en `ToolbarButtonDefinition`, ej. `posicion: "centro" | "emergencia"`).
+
+===============================================================
+FASE 2: Implementar la Lógica de Redimensionamiento Dinámico
+===============================================================
+Propósito: Implementar el núcleo de la funcionalidad. El sistema debe detectar
+cambios de tamaño y reaccionar actualizando las vistas.
+
+2.1. Crear el ComponentListener y el Timer de "Debounce":
+   - Clase a modificar: `VisorController.java`.
+   - Tarea:
+     - Añadir un campo `private javax.swing.Timer resizeTimer;`.
+     - Crear un método privado `configurarListenerDeRedimensionamiento()`.
+     - Dentro de este método:
+       - Se obtendrá el `ImageDisplayPanel` del `registry`.
+       - Se inicializará el `resizeTimer` con un delay (ej. 250ms) y un `ActionListener` que llamará a un nuevo método `_ejecutarActualizacionesDeRedimensionamiento()`. El timer se configurará para no repetirse (`setRepeats(false)`).
+       - Se creará un `ComponentListener` (como `ComponentAdapter`).
+       - En el `componentResized()` de este listener, la única acción será llamar a `resizeTimer.restart()`.
+       - Se añadirá el `ComponentListener` al `ImageDisplayPanel`.
+
+2.2. Implementar el Método de Actualización Central:
+   - Clase a modificar: `VisorController.java`.
+   - Tarea:
+     - Crear el método privado `_ejecutarActualizacionesDeRedimensionamiento()`.
+     - Este método contendrá las llamadas a los managers:
+       - `listCoordinator.actualizarModeloYVistaMiniaturas(listCoordinator.getIndiceOficialSeleccionado());`
+       - `zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());`
+       - `viewManager.gestionarVisibilidadPanelNombresPorAncho();` (nuevo método en ViewManager).
+
+2.3. Modificar la Lógica de Cálculo de Miniaturas:
+   - Clase a modificar: `VisorController.java`.
+   - Tarea:
+     - El método `calcularNumMiniaturasDinamicas()` será modificado.
+     - Su nueva lógica será:
+       1. Obtener el ancho del `JViewport` del `scroll.miniaturas`.
+       2. Obtener el ancho de la celda desde `config.cfg` (`miniaturas.tamano.celda.ancho`).
+       3. Calcular cuántas celdas caben: `totalVisibles = viewportWidth / cellWidth`.
+       4. Calcular miniaturas a cada lado: `laterales = totalVisibles - 1`, `antes = laterales / 2`, `despues = laterales - antes`.
+       5. Devolver `new RangoMiniaturasCalculado(antes, despues)`.
+
+2.4. Activar el Sistema:
+   - Clase a modificar: `AppInitializer.java`.
+   - Tarea:
+     - En `crearUIyComponentesDependientesEnEDT()`, después de que toda la UI esté construida y los managers creados (al final, antes de `setVisible(true)`), se llamará al nuevo método del controlador:
+       - `controller.configurarListenerDeRedimensionamiento();`
+
+==================================================
+FASE 3: Implementar la Lógica de UI Contextual
+==================================================
+Propósito: Añadir los detalles de "UX inteligente" que hemos definido.
+
+3.1. Ocultación Automática del Panel de Nombres:
+   - Clase a modificar: `ViewManager.java`, `ConfigurationManager.java`.
+   - Tarea:
+     - Añadir nueva clave al config: `ui.panel_nombres.ancho_minimo_ocultar = 600`.
+     - Crear nuevo método en `ViewManager`: `gestionarVisibilidadPanelNombresPorAncho()`.
+     - Este método leerá el ancho actual del `JFrame` y la clave del config. Si el ancho es menor que el umbral, llamará a `solicitarActualizacionUI("mostrar_ocultar_la_lista_de_archivos", ..., false)`. Si es mayor, la volverá a mostrar (respetando la configuración original del usuario).
+
+3.2. Gestión de la Barra "Salvavidas":
+   - Clase a modificar: `ViewManager.java`.
+   - Tarea:
+     - Modificar el método `solicitarActualizacionUI`.
+     - Cuando se reciba una orden para ocultar la `JMenuBar` (`uiElementId = "Barra_de_Menu"`), se debe hacer visible el botón `...especial_menu` en la barra salvavidas.
+     - Cuando se reciba una orden para ocultar una `JToolBar` principal, se debe hacer visible el botón `...especial_botones_ocultos`.
+     - La lógica inversa se aplicará cuando se vuelvan a mostrar.
+
+3.3. Opción de Ancho de Celda Dinámico (Para el futuro, no en esta implementación):
+   - Se añadiría un `JCheckBoxMenuItem` "Ajustar Ancho de Celda Automáticamente".
+   - El `MiniaturaListCellRenderer` leería esta opción. Si está activa y los nombres están ocultos, usaría un ancho de celda reducido.
+   - La `Action` que oculta/muestra los nombres tendría que disparar un refresco completo de la barra de miniaturas.

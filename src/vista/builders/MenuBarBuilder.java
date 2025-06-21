@@ -22,6 +22,7 @@ import controlador.VisorController;
 import controlador.actions.config.ToggleToolbarButtonVisibilityAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
 import controlador.commands.AppActionCommands; // Asumo que lo necesitas para algún log o comparación, aunque no directamente aquí
+import controlador.managers.ViewManager;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
@@ -39,19 +40,23 @@ public class MenuBarBuilder {
     private ButtonGroup currentButtonGroup = null;
     private ActionListener controllerGlobalActionListener; // Para ítems sin Action propia
 
-    // Prefijo base para las claves de configuración del menú
+    // --- Prefijo base para las claves de configuración del menú
     private final String CONFIG_KEY_PREFIX = "interfaz.menu";
+    
+    // --- Clases internas
     private final ConfigurationManager configuration;
     private final VisorController controllerRef;
+    private final ViewManager viewManager;
 
     /**
      * Constructor simplificado. Inicializa las estructuras internas.
      */
-    public MenuBarBuilder(VisorController controller, ConfigurationManager config) {
+    public MenuBarBuilder(VisorController controller, ConfigurationManager config, ViewManager viewManager) {
         this.menuItemsPorNombre = new HashMap<>();
         this.menuBar = new JMenuBar();
         this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
         this.configuration = Objects.requireNonNull(config, "ConfigurationManager no puede ser null");
+        this.viewManager = Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
         // actionMap y controllerGlobalActionListener se recibirán/establecerán externamente.
         // currentButtonGroup se inicializa a null y se gestiona durante la construcción.
     }
@@ -193,7 +198,7 @@ public class MenuBarBuilder {
                     
                     // Creamos la Action al vuelo para este menú.
                     Action toggleAction = new ToggleUIElementVisibilityAction(
-                        this.controllerRef,
+                        this.viewManager,
                         this.configuration,
                         itemDef.textoMostrado(),
                         actionCommand, // La clave de config a modificar (...visible)
@@ -252,7 +257,7 @@ public class MenuBarBuilder {
                     Action toggleAction = new ToggleToolbarButtonVisibilityAction(
                         itemDef.textoMostrado(),
                         this.configuration,
-                        this.controllerRef,
+                        this.viewManager,
                         menuKeyBase,      // Clave base del menú
                         buttonKeyBase,    // Clave base del botón
                         toolbarId
@@ -279,7 +284,7 @@ public class MenuBarBuilder {
                 
                 // Se crea la Action pasándole la CLAVE BASE
                 Action toggleBarAction = new ToggleUIElementVisibilityAction(
-                    this.controllerRef,
+                    this.viewManager,
                     this.configuration,
                     itemDef.textoMostrado(),
                     toolbarKeyBase, // <<< Se pasa la clave BASE

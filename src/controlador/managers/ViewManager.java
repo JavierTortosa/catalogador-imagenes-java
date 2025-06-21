@@ -1,14 +1,27 @@
 package controlador.managers;
 
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.util.Map;
+
+import javax.swing.Action;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 
+import controlador.actions.config.SetInfoBarTextFormatAction;
+import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import servicios.ConfigurationManager;
 import vista.VisorView;
 import vista.panels.ImageDisplayPanel;
+import vista.theme.Tema;
+import vista.theme.ThemeManager;
 
 public class ViewManager {
 
@@ -16,6 +29,9 @@ public class ViewManager {
     private ConfigurationManager configuration;
     private final ComponentRegistry registry;
     private final ConfigurationManager config;
+    private ThemeManager themeManager;
+    private Map<String, Action> actionMap;
+    private Map<String, JButton> botonesPorNombre;
     
     /**
      * Constructor refactorizado de ViewManager.
@@ -202,6 +218,270 @@ public class ViewManager {
         }
     } // --- Fin del método requestCustomBackgroundColor ---
 
+    
+    /**
+     * MÉTODO MIGRADO Y CENTRALIZADO: Punto de entrada para solicitar actualizaciones
+     * de visibilidad de componentes de la UI. Es llamado por las Actions.
+     *
+     * @param uiElementId El identificador del componente o zona a actualizar.
+     * @param configKey La clave de configuración que cambió (puede ser null).
+     * @param nuevoEstado El nuevo estado de visibilidad (true para visible, false para oculto).
+     */
+    public void solicitarActualizacionUI(String uiElementId, String configKey, boolean nuevoEstado) {
+        System.out.println("[ViewManager] Solicitud de actualización para UI: '" + uiElementId + "' -> " + nuevoEstado);
+        
+        if (registry == null) {
+            System.err.println("  ERROR: ComponentRegistry es nulo en ViewManager.");
+            return;
+        }
+        
+        boolean necesitaRevalidateGeneral = false;
+        JFrame mainFrame = (JFrame) registry.get("frame.main");
+        if (mainFrame == null) {
+            System.err.println("  ERROR: El frame principal no está en el registro.");
+            return;
+        }
+
+        switch (uiElementId) {
+            case "Barra_de_Menu":
+                JMenuBar menuBar = mainFrame.getJMenuBar();
+                if (menuBar != null && menuBar.isVisible() != nuevoEstado) {
+                    menuBar.setVisible(nuevoEstado);
+                    necesitaRevalidateGeneral = true;
+                }
+                
+                boolean visibilidadBotonEspecial = !nuevoEstado;
+                setBotonMenuEspecialVisible(visibilidadBotonEspecial);
+                
+                break;
+            
+            case "Barra_de_Botones": // Maneja el contenedor principal de toolbars
+                JPanel toolbarContainer = registry.get("container.toolbars");
+                if(toolbarContainer != null && toolbarContainer.isVisible() != nuevoEstado) {
+                    toolbarContainer.setVisible(nuevoEstado);
+                    necesitaRevalidateGeneral = true;
+                }
+                break;
+
+            case "mostrar_ocultar_la_lista_de_archivos":
+                JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
+                if (panelIzquierdo != null && panelIzquierdo.isVisible() != nuevoEstado) {
+                    panelIzquierdo.setVisible(nuevoEstado);
+                    ajustarDivisorSplitPane(nuevoEstado);
+                    necesitaRevalidateGeneral = true;
+                }
+                break;
+
+            case "imagenes_en_miniatura":
+                JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+                if (scrollMiniaturas != null && scrollMiniaturas.isVisible() != nuevoEstado) {
+                    scrollMiniaturas.setVisible(nuevoEstado);
+                    necesitaRevalidateGeneral = true;
+                }
+                break;
+
+            default:
+                // Caso para manejar toolbars individuales por su nombre/ID
+                Component comp = registry.get(uiElementId);
+                if (comp instanceof JToolBar) {
+                    JToolBar toolbar = (JToolBar) comp;
+                    if (toolbar.isVisible() != nuevoEstado) {
+                        toolbar.setVisible(nuevoEstado);
+                        // Revalidar solo el contenedor de toolbars es más eficiente
+                        revalidateToolbarContainer();
+                    }
+                } else {
+                     System.err.println("  WARN [ViewManager]: uiElementId no reconocido o no manejado: '" + uiElementId + "'");
+                }
+                break;
+        }
+
+        if (necesitaRevalidateGeneral) {
+            SwingUtilities.invokeLater(() -> {
+                mainFrame.revalidate();
+                mainFrame.repaint();
+            });
+        }
+    } // --- FIN del metodo solicitarActualizacionUI ---
+
+    /**
+     * MÉTODO MIGRADO: Helper para revalidar el contenedor de las barras de herramientas.
+     * Se mantiene público por si se necesita desde fuera, pero su uso principal es interno.
+     */
+    public void revalidateToolbarContainer() {
+        JPanel toolbarContainer = registry.get("container.toolbars");
+        if (toolbarContainer != null) {
+            toolbarContainer.revalidate();
+            toolbarContainer.repaint();
+        } else {
+            System.err.println("WARN [ViewManager]: 'container.toolbars' no encontrado.");
+        }
+    }
+
+    /**
+     * MÉTODO MIGRADO: Orquesta un refresco completo de la apariencia de la UI aplicando el tema actual.
+     */
+    public void ejecutarRefrescoCompletoUI() {
+        System.out.println("\n--- [ViewManager] Ejecutando Refresco Completo de la UI ---");
+        // Este método necesitará una referencia al ThemeManager, que ya tiene.
+        // También necesitará acceso a los componentes, que obtiene del registry.
+        // La implementación exacta dependerá de cómo tu ThemeApplier funcione.
+        // Asumiendo un `ThemeApplier` que toma el registro y el tema:
+        
+        // ThemeApplier themeApplier = new ThemeApplier(registry);
+        // Tema temaActual = themeManager.getTemaActual();
+        // SwingUtilities.invokeLater(() -> {
+        //     themeApplier.applyTheme(temaActual);
+        //     JFrame frame = registry.get("frame.main");
+        //     if(frame != null) {
+        //        frame.revalidate();
+        //        frame.repaint();
+        //     }
+        // });
+        
+        // Por ahora, lo dejamos como un placeholder si no tienes el ThemeApplier
+        System.out.println("  -> Lógica de refresco de tema a implementar aquí.");
+    }
+
+    /**
+     * MÉTODO MIGRADO: Restablece el fondo del visor a su estado POR DEFECTO, 
+     * según lo define la configuración.
+     */
+    public void refrescarFondoAlPorDefecto() {
+        System.out.println("[ViewManager] Refrescando fondo al estado por defecto...");
+
+        if (registry == null || config == null || themeManager == null) {
+            System.err.println("  ERROR: Dependencias nulas (registry, config o themeManager).");
+            return;
+        }
+
+        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+        if (displayPanel == null) {
+            System.err.println("  ERROR: 'panel.display.imagen' no encontrado en el registro.");
+            return;
+        }
+
+        // 1. Leer el estado por defecto desde la configuración.
+        String configKey = "interfaz.menu.vista.fondo_a_cuadros.seleccionado";
+        boolean esCuadrosPorDefecto = config.getBoolean(configKey, false);
+
+        // 2. Aplicar el estado al panel de visualización.
+        if (esCuadrosPorDefecto) {
+            System.out.println("  -> El defecto es fondo a cuadros. Aplicando.");
+            displayPanel.setCheckeredBackground(true);
+        } else {
+            // Si no, el defecto es el color de fondo secundario del tema actual.
+            Tema temaActual = themeManager.getTemaActual();
+            System.out.println("  -> El defecto es color de tema. Aplicando color: " + temaActual.colorFondoSecundario());
+            displayPanel.setSolidBackgroundColor(temaActual.colorFondoSecundario());
+        }
+    } // --- FIN del metodo refrescarFondoAlPorDefecto ---
+
+    
+    // --- Métodos Helper Privados para la nueva lógica ---
+    
+    private boolean actualizarComponenteIndividual(String configKey, boolean nuevoEstado) {
+        // Intenta encontrar el componente en los mapas de la vista (que deberían estar en el registry o pasados)
+        // Esta parte es compleja sin ver cómo se registran los botones.
+        // Asumiremos que el componente se busca y se actualiza aquí.
+        // Por ahora, retornamos false para que el switch principal se ejecute.
+        // TODO: Implementar la búsqueda del botón/menú por configKey y actualizar su visibilidad.
+        return false;
+    }
+    
+    private void ajustarDivisorSplitPane(boolean panelVisible) {
+        JSplitPane splitPane = registry.get("splitpane.main");
+        if (splitPane != null) {
+            if (panelVisible) {
+                SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.25));
+            } else {
+                // No es necesario, al ocultar el componente, el split pane se ajusta solo.
+                // splitPane.resetToPreferredSizes();
+            }
+        }
+    }
+    
+    /**
+     * MÉTODO MOVIDO: Sincroniza las Actions de formato para la barra superior.
+     */
+    public void sincronizarAccionesFormatoBarraSuperior() {
+        if (this.actionMap == null) return;
+        Action action1 = this.actionMap.get(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_SOLO_NOMBRE);
+        if (action1 instanceof SetInfoBarTextFormatAction) {
+            ((SetInfoBarTextFormatAction) action1).sincronizarSelectedKeyConConfig();
+        }
+        Action action2 = this.actionMap.get(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_RUTA_COMPLETA);
+        if (action2 instanceof SetInfoBarTextFormatAction) {
+            ((SetInfoBarTextFormatAction) action2).sincronizarSelectedKeyConConfig();
+        }
+    }
+
+    /**
+     * MÉTODO MOVIDO: Sincroniza las Actions de formato para la barra inferior.
+     */
+    public void sincronizarAccionesFormatoBarraInferior() {
+        if (this.actionMap == null) return;
+        Action action1 = this.actionMap.get(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE);
+        if (action1 instanceof SetInfoBarTextFormatAction) {
+            ((SetInfoBarTextFormatAction) action1).sincronizarSelectedKeyConConfig();
+        }
+        Action action2 = this.actionMap.get(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA);
+        if (action2 instanceof SetInfoBarTextFormatAction) {
+            ((SetInfoBarTextFormatAction) action2).sincronizarSelectedKeyConConfig();
+        }
+    }
+    
+    /**
+     * MÉTODO MOVIDO: Sincroniza el estado visual inicial de todos los radios de formato.
+     */
+    public void sincronizarEstadoVisualInicialDeRadiosDeFormato() {
+        System.out.println("[ViewManager] Sincronizando Actions de formato...");
+        sincronizarAccionesFormatoBarraSuperior();
+        sincronizarAccionesFormatoBarraInferior();
+    }
+    
+    public void setBotonMenuEspecialVisible(boolean visible) {
+        if (this.botonesPorNombre == null) return;
+        
+        JButton boton = this.botonesPorNombre.get("interfaz.boton.especiales.Menu_48x48");
+
+        if (boton != null) {
+            if (boton.isVisible() != visible) {
+                boton.setVisible(visible);
+                revalidateToolbarContainer(); // Revalidamos para que el cambio se vea
+            }
+        }
+    }
+    
+    /**
+     * Cambia la vista activa en el contenedor principal de vistas.
+     * @param nombreVista El identificador de la vista a mostrar (ej. "VISTA_VISUALIZADOR").
+     */
+    public void cambiarAVista(String nombreVista) {
+        if (registry == null) {
+            System.err.println("ERROR [ViewManager]: Registry es nulo, no se puede cambiar de vista.");
+            return;
+        }
+        
+        // Obtenemos el panel que usa CardLayout desde el registro
+        JPanel vistasContainer = registry.get("container.vistas");
+        
+        if (vistasContainer != null && vistasContainer.getLayout() instanceof CardLayout) {
+            CardLayout cl = (CardLayout) vistasContainer.getLayout();
+            
+            // Le decimos al CardLayout que muestre la "tarjeta" con el nombre que nos han pasado
+            cl.show(vistasContainer, nombreVista);
+            
+            System.out.println("[ViewManager] Vista cambiada a: " + nombreVista);
+        } else {
+            System.err.println("ERROR [ViewManager]: No se encontró 'container.vistas' o no usa CardLayout.");
+        }
+    }
+    
     // Aquí podrías añadir métodos para cambiar tema, etc. en el futuro.
     // public void aplicarTema(String nombreTema) { ... }
+    
+    public void setActionMap(Map<String, Action> actionMap) {this.actionMap = actionMap;}
+    public void setBotonesPorNombre(Map<String, JButton> botones) {this.botonesPorNombre = botones;}
+    public void setView(VisorView view) {this.view = view;}
 } // FIN de la clase ViewManager

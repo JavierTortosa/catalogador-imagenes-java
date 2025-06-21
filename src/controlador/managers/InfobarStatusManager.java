@@ -43,7 +43,8 @@ public class InfobarStatusManager {
     private final Map<String, Action> actionMap;
     private final IconUtils iconUtils;
     private final UIDefinitionService uiDefService;
-
+    private javax.swing.Timer mensajeTemporalTimer;
+    
     public InfobarStatusManager(
             VisorModel model, 
             ComponentRegistry registry, 
@@ -73,18 +74,66 @@ public class InfobarStatusManager {
         }
     }
 
-    public void mostrarMensajeTemporal(String mensaje) {
+    /**
+     * Muestra un mensaje en la etiqueta de estado de la aplicación.
+     * Este mensaje permanecerá visible hasta que se llame a limpiarMensaje()
+     * o se muestre otro mensaje.
+     *
+     * @param mensaje El texto a mostrar.
+     */
+    public void mostrarMensaje(String mensaje) {
         if (registry == null) return;
-        SwingUtilities.invokeLater(() -> {
-            JLabel label = registry.get("label.estado.mensajes");
-            if (label != null) {
-                label.setText(mensaje != null ? " " + mensaje + " " : " ");
-                Tema temaActual = themeManager.getTemaActual();
-                label.setForeground(temaActual.colorTextoPrimario()); 
-                label.setBackground(temaActual.colorBotonFondoActivado().darker());
-                label.setOpaque(true);
-            }
+        JLabel mensajesAppLabel = registry.get("label.estado.mensajes");
+        if (mensajesAppLabel != null) {
+            mensajesAppLabel.setText(" " + mensaje + " "); // Añadir padding
+        }
+    }
+    
+    /**
+     * Muestra un mensaje en la etiqueta de estado durante un tiempo determinado
+     * y luego lo borra automáticamente.
+     *
+     * @param mensaje El texto a mostrar.
+     * @param delayMs El tiempo en milisegundos que el mensaje será visible.
+     */
+    public void mostrarMensajeTemporal(String mensaje, int delayMs) {
+        if (registry == null) return;
+        JLabel mensajesAppLabel = registry.get("label.estado.mensajes");
+        if (mensajesAppLabel == null) return;
+
+        // Mostrar el mensaje inmediatamente
+        mostrarMensaje(mensaje);
+
+        // Si ya hay un timer en marcha, lo detenemos para empezar de nuevo
+        if (mensajeTemporalTimer != null && mensajeTemporalTimer.isRunning()) {
+            mensajeTemporalTimer.stop();
+        }
+
+        // Creamos o reconfiguramos el timer para que borre el mensaje después del delay
+        mensajeTemporalTimer = new javax.swing.Timer(delayMs, e -> {
+            // Esta acción se ejecuta cuando el timer termina
+            limpiarMensaje();
         });
+        
+        mensajeTemporalTimer.setRepeats(false); // Queremos que se ejecute solo una vez
+        mensajeTemporalTimer.start(); // Iniciar la cuenta atrás
+    }
+
+    /**
+     * Limpia el texto de la etiqueta de mensajes de la barra de estado,
+     * dejándola con un espacio en blanco.
+     */
+    public void limpiarMensaje() {
+        if (registry == null) return;
+        JLabel mensajesAppLabel = registry.get("label.estado.mensajes");
+        if (mensajesAppLabel != null) {
+            // Comprobar si hay un timer y detenerlo, para evitar que un
+            // mensaje antiguo borre uno nuevo que se haya puesto manualmente.
+            if (mensajeTemporalTimer != null && mensajeTemporalTimer.isRunning()) {
+                mensajeTemporalTimer.stop();
+            }
+            mensajesAppLabel.setText(" "); // Dejar un espacio para mantener la altura
+        }
     }
     
     private void actualizarBarraEstado() {

@@ -3,13 +3,13 @@ Iniciando Visor de Imágenes V2...
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
     -> VisorModel creado e inyectado.
-Mapa de configuración por defecto inicializado con 91 claves.
+Mapa de configuración por defecto inicializado con 93 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 133
+Configuración leída. Total claves: 137
 --- DEBUG PRE-SINCRONIZACIÓN ---
-Tamaño de DEFAULT_CONFIG: 91
-Tamaño de loadedConfig (del archivo): 133
+Tamaño de DEFAULT_CONFIG: 93
+Tamaño de loadedConfig (del archivo): 137
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
@@ -40,43 +40,38 @@ ConfigurationManager inicializado.
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
 --- VisorController: Inicialización delegada completada con éxito ---
 VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
---- [AppInitializer Fase B - EDT] Iniciando creación de UI en secuencia lógica ---
-  [ViewBuilder] Iniciando la construcción del frame principal COMPLETO...
+--- [AppInitializer Fase B - EDT] Iniciando creación de UI (Orden Lógico Estable)...
+  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
 [VisorView Constructor SIMPLIFICADO] Iniciando...
     [ViewBuilder] Creando PanelInfoSuperior...
     [ViewBuilder] PanelInfoSuperior creado y ensamblado.
-  [ViewBuilder] Panel de Controles de Fondo de Icono creado.
     [ViewBuilder] Creando PanelEstadoInferior...
     [ViewBuilder] PanelEstadoInferior creado y ensamblado.
+  [ViewBuilder] Panel de Controles de Fondo de Icono creado.
   [ViewBuilder] Frame principal construido y ensamblado.
-  [EDT - FASE 1 & 2] Cimientos y UI principal construidos.
 [ListCoordinator] Instancia creada.
-  [EDT - FASE 3] Managers de Lógica creados e inyectados.
   [ActionFactory] Inicializando todas las Actions...
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 0
-  [EDT - FASE 4] ActionFactory creada.
   [ActionFactory] Inicializando todas las Actions...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@790b461a
+ActionFactory: Creando ToggleSubfoldersAction@31f50cde
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 67
-  [EDT - FASE 5] Actions inicializadas y mapa poblado.
+  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 68
 [ConfigApplicationManager] Creando instancia refactorizada...
 [ConfigApplicationManager] Instancia creada.
   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
-  [EDT - FASE 6 & 7] Managers de UI creados e inyectados.
 [MenuBarBuilder] ControllerGlobalActionListener establecido: controlador.VisorController
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 67 acciones.
+  [MenuBarBuilder] ActionMap recibido con 68 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 162
+  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 165
 [ToolbarBuilder Constructor] Iniciando...
 [ToolbarBuilder Constructor] Finalizado.
 [ToolbarManager] Inicializando barras de herramientas...
@@ -97,22 +92,15 @@ ActionFactory: Creando ToggleSubfoldersAction@790b461a
 
 --- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
   [ToolbarManager] Registrando botones individuales...
-    -> 30 botones registrados.
+    -> 32 botones registrados.
 [ToolbarManager] Inicialización de barras completada.
-  [EDT - FASE 8] UI poblada con Menús y Toolbars.
-  [EDT - FASE 9] Configuración final e inicio de carga...
 --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
-[VisorController] Sincronización de UI de Zoom completada.
-[Controller Internal] Configurando Listeners de Vista...
-  [Controller] Configurando atajos de teclado globales...
-  -> Atajos de teclado globales configurados para teclado estándar y numérico.
+[Controller Internal] Configurando Listeners (Reconstrucción)...
+[Controller Internal] Listeners de Vista configurados.
     [EDT Internal] Estableciendo carpeta raíz inicial desde config...
   [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
       -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-  [EDT] Mostrando la ventana principal ANTES de la carga de la lista...
-  [EDT] Iniciando carga de estado inicial...
 
 -->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
@@ -135,7 +123,7 @@ ActionFactory: Creando ToggleSubfoldersAction@790b461a
   [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
---- [EDT] Inicialización de UI completada y carga de archivos en segundo plano iniciada. ---
+--- [EDT] Inicialización de UI completada. ---
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
   [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...
     -> Sincronizando estado visual de botones toggle...
@@ -143,15 +131,15 @@ ActionFactory: Creando ToggleSubfoldersAction@790b461a
     -> Aplicando estado inicial de fondo a cuadros desde config: false
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
-  [Worker BG] Files.walk terminado. Archivos encontrados: 186
+  [Worker BG] Files.walk terminado. Archivos encontrados: 201
     [Coordinator Flag] sincronizandoUI -> false
 [Worker EDT] Método done() alcanzado.
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 186
-[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 186
-[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 186
+    WORKER HA TERMINADO. Número de archivos encontrados: 201
+[Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 201
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 201
 >>> Coordinator: Solicitud de REINICIO y selección de índice: 0
   [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
     -> Sincronizando estado visual de botones toggle...
@@ -176,10 +164,8 @@ ActionFactory: Creando ToggleSubfoldersAction@790b461a
           -> Estableciendo índice seleccionado a 0
       [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 0
 
---- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: 0
-  [actualizarMiniaturas] Tamaño modeloPrincipal: 186
-  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: 0
---- FIN actualizarModeloYVistaMiniaturas ---
+--- [LC Refactor] Orquestando actualización para índice: 0
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
 >>> Coordinator: Fin seleccionarIndiceYActualizarUICompleta(0)
     -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
   [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
@@ -190,40 +176,15 @@ ActionFactory: Creando ToggleSubfoldersAction@790b461a
             -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 0
     [Coordinator Flag] sincronizandoUI -> false
     [Coordinator Flag] sincronizandoUI -> true
-   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: 8, Despues: 15
-   -> [EDT Miniaturas Update] Rango final en modelo principal: [0..15]
-   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...
-   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: 16. Índice relativo seleccionado: 0
+   -> [EDT] Rango final en modelo principal: [0..15]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 16
 [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
 [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: java.awt.Dimension[width=800,height=66]
 [VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 16)
-   -> [EDT Miniaturas Update] setSelectedIndex(0) en JList miniaturas.
-   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.
     [Coordinator Flag] sincronizandoUI -> false
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
---- [Listener Primer Renderizado]: Panel listo (1145x236). Forzando refresco de zoom y barras de info. ---
---- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
-[VisorController] Sincronizando UI de Zoom. Modo: Tamaño Real (100%), Permiso Manual: true
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Ancho, Permiso Manual: true
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Alto, Permiso Manual: true
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Rellenar Pantalla, Permiso Manual: true
-[VisorController] Sincronización de UI de Zoom completada.
-[ZoomManager] Capturado nuevo Zoom Fijo: 95.90277777777777%
-[VisorController] Sincronizando UI de Zoom. Modo: Mantener Zoom Actual, Permiso Manual: true
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: false
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
-[VisorController] Sincronización de UI de Zoom completada.
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1830908236
@@ -235,7 +196,7 @@ ActionFactory: Creando ToggleSubfoldersAction@790b461a
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 133
+Claves a guardar/actualizar: 137
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

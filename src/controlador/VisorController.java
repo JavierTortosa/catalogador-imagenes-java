@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 // --- Imports Esenciales ---
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
@@ -51,18 +50,16 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;     // Placeholder
 import javax.swing.JList;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
-import controlador.actions.config.SetInfoBarTextFormatAction;
 import controlador.actions.config.SetSubfolderReadModeAction;
 import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
@@ -73,6 +70,7 @@ import controlador.commands.AppActionCommands;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
+import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.BuscadorArchivosWorker;
@@ -83,19 +81,13 @@ import servicios.ConfigurationManager;
 import servicios.ProjectManager;
 import servicios.image.ThumbnailService;
 import servicios.zoom.ZoomModeEnum;
-import utils.StringUtils;
 import vista.VisorView;
-import vista.config.UIDefinitionService;
 import vista.config.ViewUIConfig;
 import vista.dialogos.ProgresoCargaDialog;
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
-import vista.theme.Tema;
-import vista.theme.ThemeApplier;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
-
-//import servicios.zoom.ZoomModeEnum;
 
 
 /**
@@ -105,10 +97,10 @@ import vista.util.IconUtils;
 public class VisorController implements ActionListener, ClipboardOwner, KeyEventDispatcher {
 
     // --- 1. Referencias a Componentes del Sistema ---
-	private StringUtils stringUtils;				// Utilidades de Strings y log dinamico con dynamicLogç
 
 	public VisorModel model;						// El modelo de datos principal de la aplicación
     public VisorView view;							// Clase principal de la Interfaz Grafica
+    private ViewManager viewManager;
     private ConfigurationManager configuration;		// Gestor del archivo de configuracion
     private IconUtils iconUtils;					// utilidad para cargar y gestionar iconos de la aplicación
     private ThemeManager themeManager;				// Gestor de tema visual de la interfaz
@@ -127,13 +119,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private ExecutorService executorService;		 
     
     // --- 2. Estado Interno del Controlador ---
-    private int lastMouseX, lastMouseY;
     private Future<?> cargaImagenesFuture;
     // private Future<?> cargaMiniaturasFuture; // Eliminado
     private Future<?> cargaImagenPrincipalFuture;
-//    private Path carpetaRaizActual = null;
     private volatile boolean estaCargandoLista = false;
-    private volatile boolean seleccionInicialEnCurso = false; // Flag para ignorar listener durante selección inicial
     
     private DefaultListModel<String> modeloMiniaturas;
     
@@ -143,8 +132,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     public static final int DEFAULT_MINIATURAS_ANTES_FALLBACK = 8;
     public static final int DEFAULT_MINIATURAS_DESPUES_FALLBACK = 8;
     
-    
-    private boolean zoomManualEstabaActivoAntesDeError = false;
     
     private ConfigApplicationManager configAppManager;
     
@@ -438,106 +425,101 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	} // --- FIN cargarEstadoInicialInternal ---
  
 	
+	// EN LA CLASE: controlador.VisorController.java
+
 	/**
-     * Configura todos los listeners de la aplicación, asegurando que la UI se
-     * actualice en tiempo real tras la interacción del usuario.
+     * Configura todos los listeners. Versión reconstruida para evitar bucles.
      */
-	void configurarListenersVistaInternal() {
-        if (view == null || listCoordinator == null || model == null || registry == null) {
+    void configurarListenersVistaInternal() {
+        if (view == null || listCoordinator == null || model == null || registry == null || zoomManager == null) {
             System.err.println("WARN [configurarListenersVistaInternal]: Dependencias críticas nulas. Abortando.");
             return;
         }
-        System.out.println("[Controller Internal] Configurando Listeners de Vista...");
+        System.out.println("[Controller Internal] Configurando Listeners (Reconstrucción)...");
 
-        // --- SECCIÓN 1: LISTENERS DE SELECCIÓN DE LISTAS ---
+        // --- LISTENERS DE SELECCIÓN (SIMPLIFICADOS) ---
         JList<String> listaNombres = registry.get("list.nombresArchivo");
         if (listaNombres != null) {
-            for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners()) {
-                listaNombres.removeListSelectionListener(lsl);
-            }
+            for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners()) listaNombres.removeListSelectionListener(lsl);
             listaNombres.addListSelectionListener(e -> {
-                // ¡CONDICIÓN MODIFICADA!
-                if (!e.getValueIsAdjusting() && listCoordinator != null && !listCoordinator.isSincronizandoUI() && !cargaInicialEnCurso) {
-                    listCoordinator.seleccionarDesdeNombres(listaNombres.getSelectedIndex());
+                if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
+                    listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
                 }
             });
         }
         JList<String> listaMiniaturas = registry.get("list.miniaturas");
         if (listaMiniaturas != null) {
-            for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners()) {
-                listaMiniaturas.removeListSelectionListener(lsl);
-            }
+            for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners()) listaMiniaturas.removeListSelectionListener(lsl);
             listaMiniaturas.addListSelectionListener(e -> {
-                 // ¡CONDICIÓN MODIFICADA!
-                 if (!e.getValueIsAdjusting() && listCoordinator != null && !listCoordinator.isSincronizandoUI() && !cargaInicialEnCurso) {
+                 if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
                     int indiceRelativo = listaMiniaturas.getSelectedIndex();
                     if (indiceRelativo != -1) {
                         String clave = listaMiniaturas.getModel().getElementAt(indiceRelativo);
                         int indicePrincipal = model.getModeloLista().indexOf(clave);
-                        listCoordinator.seleccionarDesdeMiniaturas(indicePrincipal);
+                        listCoordinator.seleccionarImagenPorIndice(indicePrincipal);
                     }
                  }
             });
         }
-
-        // --- SECCIÓN 2: LISTENERS DE RATÓN PARA IMAGEN PRINCIPAL (CON LA ACTUALIZACIÓN DE BARRAS) ---
         
-        JLabel etiquetaImagenPrincipal = registry.get("label.imagenPrincipal");
-        if (etiquetaImagenPrincipal != null) {
-            // Limpiamos listeners para evitar duplicados si se llama a este método más de una vez.
-            for(java.awt.event.MouseWheelListener l : etiquetaImagenPrincipal.getMouseWheelListeners()) etiquetaImagenPrincipal.removeMouseWheelListener(l);
-            for(java.awt.event.MouseListener l : etiquetaImagenPrincipal.getMouseListeners()) etiquetaImagenPrincipal.removeMouseListener(l);
-            for(java.awt.event.MouseMotionListener l : etiquetaImagenPrincipal.getMouseMotionListeners()) etiquetaImagenPrincipal.removeMouseMotionListener(l);
+        // --- LISTENER DE RUEDA MAESTRO ---
+        java.awt.event.MouseWheelListener masterWheelListener = e -> {
+            boolean sobreLaImagen = e.getComponent() == registry.get("label.imagenPrincipal");
 
-            // --- Listener para la rueda del ratón ---
-            etiquetaImagenPrincipal.addMouseWheelListener(e -> {
-                // Si el Modo Paneo está desactivado, la rueda navega entre imágenes.
-                if (!model.isZoomHabilitado()) {
-                    listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
-                    return; // Salimos, no hay más que hacer.
-                }
-
-                // Si el Modo Paneo SÍ está activo, la rueda gestiona zoom y paneo.
-                zoomManager.manejarRuedaInteracciona(e);
-                
-                // 2. Si NO se usó ningún modificador, la rueda sigue navegando.
-                if (!e.isControlDown() && !e.isShiftDown() && !e.isAltDown()) {
-                    listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
-                }
-                
-                // 3. Actualizar las barras de información después de cualquier interacción
-                // Tras la interacción, notificamos a las barras para que se actualicen.
-                if (infobarImageManager != null) infobarImageManager.actualizar();
-                if (statusBarManager != null) statusBarManager.actualizar();
-            });
-
-            // --- Listener para los clics (iniciar paneo) ---
-            etiquetaImagenPrincipal.addMouseListener(new MouseAdapter() {
-                public void mousePressed(java.awt.event.MouseEvent e) {
-                    if (model.isZoomHabilitado()) {
-                        zoomManager.iniciarPaneo(e);
-                    }
-                }
-            });
+            // --- LÓGICA DE DECISIÓN ---
+            if (e.isControlDown() && e.isAltDown()) {
+                if (e.getWheelRotation() < 0) listCoordinator.seleccionarBloqueAnterior();
+                else listCoordinator.seleccionarBloqueSiguiente();
             
-            // --- Listener para el arrastre (continuar paneo) ---
-            etiquetaImagenPrincipal.addMouseMotionListener(new MouseMotionAdapter() {
-                public void mouseDragged(java.awt.event.MouseEvent e) {
-                    if (model.isZoomHabilitado()) {
-                        zoomManager.continuarPaneo(e);
-                        
-                        // --- AÑADIDO CLAVE ---
-                        // También actualizamos las barras durante el paneo.
-                        if (infobarImageManager != null) infobarImageManager.actualizar();
-                        if (statusBarManager != null) statusBarManager.actualizar();
-                    }
+            } else if (sobreLaImagen && model.isZoomHabilitado()) {
+                // Si estamos sobre la imagen y el modo paneo está activo...
+                if (e.isControlDown() && e.isShiftDown()) {
+                    zoomManager.aplicarZoomConRueda(e);
+                } else if (e.isControlDown()) {
+                    zoomManager.aplicarPan(0, e.getWheelRotation() * 30); // Paneo Horizontal Invertido
+                } else if (e.isShiftDown()) {
+                    zoomManager.aplicarPan(-e.getWheelRotation() * 30, 0); // Paneo Vertical Invertido
+                } else {
+                    listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
+                }
+            } else {
+                // En cualquier otro caso (sobre listas, o sobre imagen con paneo off)
+                listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
+            }
+            e.consume();
+        };
+
+        // --- ASIGNACIÓN DE LISTENERS ---
+        JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
+        Component scrollMiniaturas = registry.get("scroll.miniaturas");
+        Component[] componentesConRueda = { listaNombres, scrollMiniaturas, etiquetaImagen };
+
+        for (Component c : componentesConRueda) {
+            if (c != null) {
+                for (java.awt.event.MouseWheelListener l : c.getMouseWheelListeners()) c.removeMouseWheelListener(l);
+                c.addMouseWheelListener(masterWheelListener);
+            }
+        }
+        
+        // Listeners de clic para paneo (sin cambios)
+        if (etiquetaImagen != null) {
+            for(java.awt.event.MouseListener ml : etiquetaImagen.getMouseListeners()) etiquetaImagen.removeMouseListener(ml);
+            for(java.awt.event.MouseMotionListener mml : etiquetaImagen.getMouseMotionListeners()) etiquetaImagen.removeMouseMotionListener(mml);
+            
+            etiquetaImagen.addMouseListener(new MouseAdapter() {
+                public void mousePressed(java.awt.event.MouseEvent ev) {
+                    if (model.isZoomHabilitado()) zoomManager.iniciarPaneo(ev);
+                }
+            });
+            etiquetaImagen.addMouseMotionListener(new MouseMotionAdapter() {
+                public void mouseDragged(java.awt.event.MouseEvent ev) {
+                    if (model.isZoomHabilitado()) zoomManager.continuarPaneo(ev);
                 }
             });
         }
         
-        configurarListenerDePrimerRenderizado();
+        System.out.println("[Controller Internal] Listeners de Vista configurados.");
     }
-    // --- FIN del metodo configurarListenersVistaInternal ---
 	
     
     /**
@@ -576,225 +558,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             }
         });
     } // --- FIN del metodo configurarListenerDePrimerRenderizado ---
-    
-    
-    /**
-     * Método llamado por Actions (como ToggleUIElementVisibilityAction o las Actions
-     * para mostrar/ocultar MenuBar, ToolBar, etc.) para notificar que el estado de
-     * visibilidad de un elemento o zona de la UI ha cambiado y que la vista necesita
-     * ser actualizada.
-     *
-     * @param uiElementIdentifier El identificador de la zona, panel o componente principal
-     *                            de la UI que necesita ser actualizado. Ejemplos:
-     *                            "REFRESH_INFO_BAR_SUPERIOR", "Barra_de_Menu".
-     * @param configKey           (Principalmente informativo) La clave de configuración específica
-     *                            que fue modificada por la Action que originó la llamada.
-     * @param nuevoEstadoVisible  El nuevo estado booleano (ej. true para visible) que la Action
-     *                            ya guardó en la configuración. Este valor SE USA para los
-     *                            componentes principales de la UI.
-     */
-    public void solicitarActualizacionInterfaz(String uiElementIdentifier, String configKey, boolean nuevoEstadoVisible) {
-        // 0. --- LOG DE ENTRADA Y VALIDACIÓN DE DEPENDENCIAS ---
-        System.out.println(
-            "[VisorController.solicitarActualizacionInterfaz] Solicitud recibida." +
-            "\n  UI Element Identifier: '" + uiElementIdentifier + "'" +
-            (configKey != null ? "\n  Config Key Afectada: '" + configKey + "'" : "") +
-            "\n  Nuevo Estado Lógico (desde Action): " + nuevoEstadoVisible
-        );
-
-        if (view == null) {
-            System.err.println("  ERROR CRÍTICO [VisorController.solicitarActualizacionInterfaz]: VisorView es null. No se puede proceder.");
-            return;
-        }
-        if (uiElementIdentifier == null || uiElementIdentifier.trim().isEmpty()) {
-            System.err.println("  WARN [VisorController.solicitarActualizacionInterfaz]: uiElementIdentifier es nulo o vacío.");
-            return;
-        }
-
-        boolean necesitaRevalidateRepaintGeneralDelFrame = false;
-        
-        // Manejo específico para la visibilidad de botones individuales en toolbars.
-        if (configKey != null && configKey.startsWith("interfaz.boton.")) {
-            // La configKey es del tipo "interfaz.boton.edicion.imagen_rotar_izq.visible"
-            // Extraemos la clave base para buscar el botón en el mapa.
-            String buttonBaseKey = configKey.replace(".visible", "");
-            
-            System.out.println("  -> Solicitud detectada para botón de toolbar. Clave Base: '" + buttonBaseKey + "'");
-
-            if (this.botonesPorNombre != null) {
-                JButton botonAfectado = this.botonesPorNombre.get(buttonBaseKey);
-
-                if (botonAfectado != null) {
-                    // ¡ACCIÓN CLAVE! Aplicar el cambio de visibilidad al componente Swing.
-                    botonAfectado.setVisible(nuevoEstadoVisible);
-                    System.out.println("    -> Visibilidad del JButton '" + buttonBaseKey + "' establecida a: " + nuevoEstadoVisible);
-
-                    // Revalidar el contenedor de la toolbar para que se ajuste.
-                    this.revalidateToolbarContainer();
-                    System.out.println("    -> Contenedor de toolbars revalidado.");
-
-                    // La solicitud ha sido manejada completamente.
-                    return; // Salir del método.
-                } else {
-                    System.err.println("  ERROR: No se encontró el botón con clave base '" + buttonBaseKey + "' en el mapa de la vista.");
-                }
-            } else {
-                System.err.println("  ERROR: El mapa de botones en la vista es nulo.");
-            }
-        }
-        
-        UIDefinitionService uiDefs = new UIDefinitionService();
-        List<String> toolbarKeys = uiDefs.getToolbarKeys();
-
-        // Comprobar si el uiElementIdentifier corresponde a una barra de herramientas.
-        if (toolbarKeys.contains(uiElementIdentifier)) {
-            System.out.println("  -> Solicitud detectada para barra de herramientas completa. UI ID: '" + uiElementIdentifier + "'");
-
-            if (view != null && view.getToolbars() != null) {
-                // Obtener la JToolBar específica del mapa de la vista.
-                JToolBar toolbarAfectada = view.getToolbars().get(uiElementIdentifier);
-
-                if (toolbarAfectada != null) {
-                    // ¡ACCIÓN CLAVE! Aplicar el cambio de visibilidad a la JToolBar.
-                    toolbarAfectada.setVisible(nuevoEstadoVisible);
-                    System.out.println("    -> Visibilidad de la JToolBar '" + uiElementIdentifier + "' establecida a: " + nuevoEstadoVisible);
-                    
-                    // Revalidar el contenedor para que el espacio se ajuste.
-                    this.revalidateToolbarContainer();
-                    necesitaRevalidateRepaintGeneralDelFrame = true;
-
-                } else {
-                    System.err.println("  ERROR: No se encontró la JToolBar con ID '" + uiElementIdentifier + "' en el mapa de la vista.");
-                }
-            } else {
-                System.err.println("  ERROR: Vista o mapa de toolbars nulo.");
-            }
-        
-        } else {
-        
-        // 3. --- DESPACHO DE LA SOLICITUD BASADO EN uiElementIdentifier ---
-        switch (uiElementIdentifier) {
-            // 2.1. CASOS PARA LAS BARRAS DE INFORMACIÓN:
-            case "REFRESH_INFO_BAR_SUPERIOR":
-            	System.out.println("  -> [VisorController] UI ID para InfoBar Superior. Delegando a infobarImageManager.");
-            	if (infobarImageManager != null) {
-                    infobarImageManager.actualizar();
-                }
-            	break;
-            	
-            case "REFRESH_INFO_BAR_INFERIOR":
-            	System.out.println("  -> [VisorController] UI ID para InfoBar Inferior. Delegando a StatusBarManager.");
-                if (statusBarManager != null) {
-                    statusBarManager.actualizar();
-                }
-                break;
-
-            // 2.2. CASOS PARA OTROS COMPONENTES PRINCIPALES DE LA UI:
-            case "Barra_de_Menu": // uiElementIdentifier usado por ToggleMenuBarAction
-                System.out.println("  -> [VisorController] UI ID: Barra_de_Menu. Visibilidad a: " + nuevoEstadoVisible);
-                if (view.getJMenuBar() != null && view.getJMenuBar().isVisible() != nuevoEstadoVisible) {
-                    view.setJMenuBarVisible(nuevoEstadoVisible);
-                    necesitaRevalidateRepaintGeneralDelFrame = true;
-                }
-                break;
-
-            case "Barra_de_Botones": // uiElementIdentifier usado por ToggleToolBarAction
-                System.out.println("  -> [VisorController] UI ID: Barra_de_Botones. Visibilidad a: " + nuevoEstadoVisible);
-                if (view.getPanelDeBotones() != null && view.getPanelDeBotones().isVisible() != nuevoEstadoVisible) {
-                    view.setToolBarVisible(nuevoEstadoVisible);
-                    necesitaRevalidateRepaintGeneralDelFrame = true;
-                }
-                break;
-                
-            case AppActionCommands.CMD_REFRESH_TOOLBARS:
-                System.out.println("  -> [VisorController] UI ID: REFRESH_TOOLBARS. Delegando a ToolbarManager...");
-                // if (toolbarManager != null) {
-                //    toolbarManager.refrescarVisibilidadBarras();
-                // }
-                break;
-
-            case "mostrar_ocultar_la_lista_de_archivos":
-                System.out.println("  -> [VisorController] UI ID: mostrar_ocultar_la_lista_de_archivos. Visibilidad a: " + nuevoEstadoVisible);
-                
-                // <<< INICIO DEL CAMBIO >>>
-                
-                // 1. Obtener el panel desde el registro.
-                JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
-
-                if (panelIzquierdo != null) {
-                    if (panelIzquierdo.isVisible() != nuevoEstadoVisible) {
-                        panelIzquierdo.setVisible(nuevoEstadoVisible);
-                        
-                        // Lógica del divisor del SplitPane
-                        JSplitPane splitPane = registry.get("splitpane.main");
-                        if (splitPane != null) {
-                            if (nuevoEstadoVisible) {
-                                SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.25));
-                            } else {
-                                splitPane.resetToPreferredSizes();
-                            }
-                        }
-                        
-                        necesitaRevalidateRepaintGeneralDelFrame = true;
-                    } else {
-                        System.out.println("  -> El panel de lista de archivos ya está en el estado de visibilidad deseado.");
-                    }
-                } else {
-                    System.err.println("  ERROR: 'panel.izquierdo.listaArchivos' no encontrado en el registro.");
-                }
-                // <<< FIN DEL CAMBIO >>>
-                break;
-
-            case "imagenes_en_miniatura":
-                System.out.println("  -> [VisorController] UI ID: imagenes_en_miniatura. Visibilidad a: " + nuevoEstadoVisible);
-                
-                // 1. Obtener el JScrollPane desde el registro.
-                JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-
-                if (scrollMiniaturas != null) {
-                    if (scrollMiniaturas.isVisible() != nuevoEstadoVisible) {
-                        scrollMiniaturas.setVisible(nuevoEstadoVisible);
-                        necesitaRevalidateRepaintGeneralDelFrame = true;
-                    } else {
-                         System.out.println("  -> El panel de miniaturas ya está en el estado de visibilidad deseado.");
-                    }
-                } else {
-                    System.err.println("  ERROR: 'scroll.miniaturas' no encontrado en el registro.");
-                }
-                break;
-            
-            // Este caso se activa si ToggleLocationBarAction usa "linea_de_ubicacion_del_archivo" como uiElementId.
-            // Si ToggleLocationBarAction fue modificada para usar "REFRESH_INFO_BAR_INFERIOR",
-            // entonces este 'case' específico ya no es necesario aquí.
-            // Por coherencia con el menú "Vista", lo mantenemos, asumiendo que puede ser un panel diferente
-            // o que decidiste mantener este uiElementId específico para ella.
-
-
-            // 2.3. CASO POR DEFECTO:
-            default:
-                System.err.println("  WARN [VisorController.solicitarActualizacionInterfaz]: uiElementIdentifier no reconocido: '" +
-                                   uiElementIdentifier + "'. No se realizó acción de UI específica.");
-                break;
-	        }
-	    }
-
-     // 3. --- REVALIDACIÓN Y REPINTADO DEL FRAME (SI ES NECESARIO) ---
-        if (necesitaRevalidateRepaintGeneralDelFrame && view != null) {
-            System.out.println("  -> [VisorController] Programando revalidate y repaint del frame principal.");
-            
-            // Usamos la variable 'view' directamente, ya que es el JFrame.
-            javax.swing.SwingUtilities.invokeLater(() -> {
-                if (view != null) { // Doble chequeo por si se cierra la app mientras el invokeLater espera
-                    view.revalidate();
-                    view.repaint();
-                }
-            });
-        }
-
-
-        // 4. --- LOG FINAL ---
-        System.out.println("[VisorController.solicitarActualizacionInterfaz] Procesamiento finalizado para UI ID: " + uiElementIdentifier);
-    }// FIN del metodo solicitarActualizacionInterfaz
     
     
     /**
@@ -1073,6 +836,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
         // --- 2. ESTABLECER FLAGS DE ESTADO ---
         this.estaCargandoLista = true;
+        
+        if (estaCargandoLista == true) {estaCargandoLista=true;}
+        
         this.cargaInicialEnCurso = true; // <-- ¡NUEVO! Bloquea los listeners de usuario
 
         // --- 3. CANCELAR TAREAS ANTERIORES ---
@@ -1215,6 +981,30 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // *************************************************************************************************************** NAVEGACION
     
 	
+    void configurarFocusListenerMenu() {
+        if (view == null) return;
+        JMenuBar menuBar = view.getJMenuBar();
+        if (menuBar != null) {
+            menuBar.addFocusListener(new java.awt.event.FocusAdapter() {
+                @Override
+                public void focusGained(java.awt.event.FocusEvent e) {
+                    System.out.println("--- [FocusListener] JMenuBar GANÓ el foco (forzado). ---");
+                    if (menuBar.getMenuCount() > 0) menuBar.getMenu(0).setSelected(true);
+                    if (statusBarManager != null) statusBarManager.mostrarMensajeTemporal("Navegación por menú activada (pulsa Alt o Esc para salir)", 4000);
+                }
+                @Override
+                public void focusLost(java.awt.event.FocusEvent e) {
+                    System.out.println("--- [FocusListener] JMenuBar PERDIÓ el foco. ---");
+                    if (menuBar.getMenuCount() > 0) {
+                        if (menuBar.getMenu(0).isSelected()) menuBar.getMenu(0).setSelected(false);
+                    }
+                    if (statusBarManager != null) statusBarManager.limpiarMensaje();
+                }
+            });
+        }
+    }
+    
+    
     /**
      * Configura los bindings de teclado personalizados para las JList, enfocándose
      * principalmente en las flechas direccionales. Las teclas HOME, END, PAGE_UP, PAGE_DOWN
@@ -1268,58 +1058,72 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
     
     /**
-     * Intercepta eventos de teclado a nivel global ANTES de que lleguen
-     * al componente enfocado. Se utiliza para manejar específicamente
-     * HOME, END, PAGE_UP, PAGE_DOWN cuando el foco está en el área
-     * de la lista de miniaturas, anulando el comportamiento por defecto
-     * del JScrollPane.
+     * Intercepta eventos de teclado.
+     * VERSIÓN F: Intercepta ALT para simular un clic en el menú y dar feedback.
      *
      * @param e El KeyEvent a procesar.
-     * @return true si el evento fue consumido (manejado aquí), false para
-     *         permitir que el evento continúe su procesamiento normal.
+     * @return true si el evento fue consumido, false para continuar.
      */
     @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
-        // Solo nos interesan los eventos de tecla presionada
         if (e.getID() != KeyEvent.KEY_PRESSED) {
             return false;
         }
 
-        if (listCoordinator == null || registry == null) {
-            return false; // No podemos hacer nada sin el coordinador o el registro
+        // --- MANEJO ESPECIAL Y SEGURO DE LA TECLA ALT ---
+        if (e.getKeyCode() == KeyEvent.VK_ALT) {
+            if (view != null && view.getJMenuBar() != null) {
+                JMenuBar menuBar = view.getJMenuBar();
+                
+                // Comprobamos si algún menú ya está abierto (seleccionado)
+                if (menuBar.isSelected()) {
+                    // Si ya hay un menú abierto, cerramos la selección actual.
+                    // Esto simula el efecto "toggle" de la tecla Alt.
+                    menuBar.getSelectionModel().clearSelection();
+                    System.out.println("--- [Dispatcher] ALT: Menú ya activo. Cerrando selección.");
+                } else {
+                    // Si no hay ningún menú activo, activamos el primero.
+                    if (menuBar.getMenuCount() > 0) {
+                        JMenu primerMenu = menuBar.getMenu(0); // Obtenemos el menú "Archivo"
+                        if (primerMenu != null) {
+                            System.out.println("--- [Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
+                            primerMenu.doClick(); // Simula un clic del ratón, abriendo el menú.
+                        }
+                    }
+                }
+                
+                e.consume(); // Consumimos el evento ALT para evitar conflictos.
+                return true; // Indicamos que ya lo hemos manejado.
+            }
         }
-
-        // Obtener el componente con el foco actual
+        
+        if (listCoordinator == null || registry == null) {
+            return false;
+        }
+        
+        // ... (el resto del método para las teclas de navegación se mantiene igual)
         java.awt.Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (focusOwner == null) {
             return false;
         }
 
-        // --- Comprobar si el foco está en CUALQUIERA de nuestras áreas de interés ---
         JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
         JList<String> listaNombres = registry.get("list.nombresArchivo");
 
         boolean focoEnAreaMiniaturas = scrollMiniaturas != null && SwingUtilities.isDescendingFrom(focusOwner, scrollMiniaturas);
         boolean focoEnListaNombres = listaNombres != null && SwingUtilities.isDescendingFrom(focusOwner, listaNombres);
 
-        // Si el foco está en cualquiera de las dos áreas, nosotros tomamos el control de la navegación
         if (focoEnAreaMiniaturas || focoEnListaNombres) {
             boolean consumed = false;
-
             switch (e.getKeyCode()) {
-                // Navegación simple
-                case KeyEvent.VK_UP:
-                case KeyEvent.VK_LEFT:
+                case KeyEvent.VK_UP: case KeyEvent.VK_LEFT:
                     listCoordinator.seleccionarAnterior();
                     consumed = true;
                     break;
-                case KeyEvent.VK_DOWN:
-                case KeyEvent.VK_RIGHT:
+                case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT:
                     listCoordinator.seleccionarSiguiente();
                     consumed = true;
                     break;
-                
-                // Navegación a extremos
                 case KeyEvent.VK_HOME:
                     listCoordinator.seleccionarPrimero();
                     consumed = true;
@@ -1328,8 +1132,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                     listCoordinator.seleccionarUltimo();
                     consumed = true;
                     break;
-                
-                // Navegación por bloques
                 case KeyEvent.VK_PAGE_UP:
                     listCoordinator.seleccionarBloqueAnterior();
                     consumed = true;
@@ -1339,20 +1141,15 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                     consumed = true;
                     break;
             }
-
             if (consumed) {
-                // ¡Importante! Consumir el evento para que Swing (JScrollPane, etc.) no lo procese.
                 e.consume();
-                return true; // Indica que hemos manejado el evento y nadie más debe hacerlo.
+                return true;
             }
         }
-
-        // Si no era una tecla de navegación o el foco no estaba en nuestras listas,
-        // dejamos que el evento siga su curso normal.
+        
         return false;
-    } // --- FIN del metodo dispatchKeyEvent ---
+    }// --- FIN del metodo dispatchKeyEvent ---
     
-	
 
     /**
      * Navega a la imagen anterior o siguiente en la lista principal.
@@ -1520,8 +1317,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         };
 
         // 3. Ejecutar las partes síncronas del refresco.
-        ejecutarRefrescoUI(); 
-        refrescarFondoAlPorDefecto();
+        if (this.viewManager != null) {
+            this.viewManager.ejecutarRefrescoCompletoUI();
+        }
+        
+        if (this.viewManager != null) {
+            this.viewManager.refrescarFondoAlPorDefecto();
+        }
         // TODO: Lógica para resaltar el punto de color.
 
         // 4. Iniciar la recarga de la lista, pasando la acción de finalización.
@@ -1708,33 +1510,33 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     } // --- FIN limpiarUI ---		
    
     
-     /**
-      * Restablece el fondo del visor a su estado POR DEFECTO, según lo define el modelo.
-      * Lee si el fondo por defecto debe ser a cuadros o el color del tema actual
-      * y da la orden correspondiente al ImageDisplayPanel.
-      */
-     public void refrescarFondoAlPorDefecto() {
-         if (registry == null || model == null || themeManager == null) {
-             System.err.println("WARN [refrescarFondoAlPorDefecto]: Dependencias nulas (registry, model o themeManager).");
-             return;
-         }
-
-         ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-         if (displayPanel == null) {
-             System.err.println("ERROR [refrescarFondoAlPorDefecto]: 'panel.display.imagen' no encontrado en el registro.");
-             return;
-         }
-
-         // Lee el estado por defecto desde el modelo
-         if (model.isFondoACuadrosPorDefecto()) {
-             // Si el defecto es a cuadros, le da esa orden al panel
-             displayPanel.setCheckeredBackground(true);
-         } else {
-             // Si no, obtiene el color del tema actual y se lo pasa al panel
-             Color colorTema = themeManager.getTemaActual().colorFondoSecundario();
-             displayPanel.setSolidBackgroundColor(colorTema);
-         }
-     } // --- Fin del método refrescarFondoAlPorDefecto ---
+//     /**
+//      * Restablece el fondo del visor a su estado POR DEFECTO, según lo define el modelo.
+//      * Lee si el fondo por defecto debe ser a cuadros o el color del tema actual
+//      * y da la orden correspondiente al ImageDisplayPanel.
+//      */
+//     public void refrescarFondoAlPorDefecto() {
+//         if (registry == null || model == null || themeManager == null) {
+//             System.err.println("WARN [refrescarFondoAlPorDefecto]: Dependencias nulas (registry, model o themeManager).");
+//             return;
+//         }
+//
+//         ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+//         if (displayPanel == null) {
+//             System.err.println("ERROR [refrescarFondoAlPorDefecto]: 'panel.display.imagen' no encontrado en el registro.");
+//             return;
+//         }
+//
+//         // Lee el estado por defecto desde el modelo
+//         if (model.isFondoACuadrosPorDefecto()) {
+//             // Si el defecto es a cuadros, le da esa orden al panel
+//             displayPanel.setCheckeredBackground(true);
+//         } else {
+//             // Si no, obtiene el color del tema actual y se lo pasa al panel
+//             Color colorTema = themeManager.getTemaActual().colorFondoSecundario();
+//             displayPanel.setSolidBackgroundColor(colorTema);
+//         }
+//     } // --- Fin del método refrescarFondoAlPorDefecto ---
      
 // *********************************************************************************************************** FIN DE UTILIDAD  
 // ***************************************************************************************************************************    
@@ -1828,7 +1630,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
       * @param rutas La lista de objetos Path correspondientes a todas las imágenes
       *              cargadas actualmente en el modelo principal.
       */
-     private void precalentarCacheMiniaturasAsync(List<Path> rutas) {
+     public void precalentarCacheMiniaturasAsync(List<Path> rutas) {
          // 1. Validar dependencias y entrada
          if (servicioMiniaturas == null) {
               System.err.println("ERROR [Precalentar Cache]: ThumbnailService es nulo.");
@@ -2745,8 +2547,13 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 mostrarVersion();
                 break;
             case AppActionCommands.CMD_ESPECIAL_REFRESCAR_UI:
-            	System.out.println("    -> Acción: Refrescar UI");
-            	ejecutarRefrescoUI();
+            	System.out.println("    -> Acción: Refrescar UI (Delegando a ViewManager)");
+                if (this.viewManager != null) {
+                    this.viewManager.ejecutarRefrescoCompletoUI();
+                } else {
+                    System.err.println("ERROR: ViewManager es nulo. No se puede refrescar la UI.");
+                }
+                break;
                 
             // 4.6. --- Default Case ---
             default:
@@ -2762,53 +2569,53 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     } // --- FIN actionPerformed ---
 	
 
-    /**
-     * Orquesta un refresco completo de la interfaz de usuario.
-     * Es llamado por la acción del menú "Refrescar UI".
-     * Utiliza el ComponentRegistry y el ThemeApplier existentes para aplicar
-     * el tema actual y repintar los componentes.
-     */
-    private void ejecutarRefrescoUI() {
-        System.out.println("\n--- [VisorController] INICIANDO REFRESCO COMPLETO DE LA UI ---");
-
-        // 1. Validar que las dependencias de la nueva arquitectura existan.
-        //    El 'registry' y el 'themeManager' son inyectados por AppInitializer.
-        if (this.registry == null || this.themeManager == null) {
-            System.err.println("ERROR: ComponentRegistry o ThemeManager son nulos. No se puede refrescar la UI.");
-            return;
-        }
-
-        // 2. Crear una instancia de ThemeApplier al momento.
-        //    Le pasamos el registro que el controlador ya posee.
-        ThemeApplier themeApplier = new ThemeApplier(this.registry);
-
-        // 3. Obtener el tema que debe estar activo.
-        Tema temaParaAplicar = this.themeManager.getTemaActual();
-
-        // 4. Programar la aplicación del tema en el EDT.
-        SwingUtilities.invokeLater(() -> {
-            System.out.println("-> Aplicando tema '" + temaParaAplicar.nombreDisplay() + "' a la UI existente...");
-            
-            // 4a. El ThemeApplier aplica los colores a los componentes "simples".
-            themeApplier.applyTheme(temaParaAplicar);
-            
-            // 4b. Forzamos un refresco de los renderers "inteligentes".
-            //     La vista todavía puede tener métodos para estas operaciones complejas.
-            if (this.view != null) {
-                this.view.solicitarRefrescoRenderersMiniaturas();
-                // Si tienes un método similar para la lista de nombres, llámalo aquí también.
-                // this.view.solicitarRefrescoRendererNombres();
-            }
-            
-            // 4c. Forzar revalidación y repintado de toda la ventana.
-            if (this.view != null) {
-                this.view.revalidate();
-                this.view.repaint();
-            }
-            
-            System.out.println("--- REFRESCO DE UI COMPLETADO ---");
-        });
-    } // --- Fin del método ejecutarRefrescoUI ---
+//    /**
+//     * Orquesta un refresco completo de la interfaz de usuario.
+//     * Es llamado por la acción del menú "Refrescar UI".
+//     * Utiliza el ComponentRegistry y el ThemeApplier existentes para aplicar
+//     * el tema actual y repintar los componentes.
+//     */
+//    private void ejecutarRefrescoUI_() {
+//        System.out.println("\n--- [VisorController] INICIANDO REFRESCO COMPLETO DE LA UI ---");
+//
+//        // 1. Validar que las dependencias de la nueva arquitectura existan.
+//        //    El 'registry' y el 'themeManager' son inyectados por AppInitializer.
+//        if (this.registry == null || this.themeManager == null) {
+//            System.err.println("ERROR: ComponentRegistry o ThemeManager son nulos. No se puede refrescar la UI.");
+//            return;
+//        }
+//
+//        // 2. Crear una instancia de ThemeApplier al momento.
+//        //    Le pasamos el registro que el controlador ya posee.
+//        ThemeApplier themeApplier = new ThemeApplier(this.registry);
+//
+//        // 3. Obtener el tema que debe estar activo.
+//        Tema temaParaAplicar = this.themeManager.getTemaActual();
+//
+//        // 4. Programar la aplicación del tema en el EDT.
+//        SwingUtilities.invokeLater(() -> {
+//            System.out.println("-> Aplicando tema '" + temaParaAplicar.nombreDisplay() + "' a la UI existente...");
+//            
+//            // 4a. El ThemeApplier aplica los colores a los componentes "simples".
+//            themeApplier.applyTheme(temaParaAplicar);
+//            
+//            // 4b. Forzamos un refresco de los renderers "inteligentes".
+//            //     La vista todavía puede tener métodos para estas operaciones complejas.
+//            if (this.view != null) {
+//                this.view.solicitarRefrescoRenderersMiniaturas();
+//                // Si tienes un método similar para la lista de nombres, llámalo aquí también.
+//                // this.view.solicitarRefrescoRendererNombres();
+//            }
+//            
+//            // 4c. Forzar revalidación y repintado de toda la ventana.
+//            if (this.view != null) {
+//                this.view.revalidate();
+//                this.view.repaint();
+//            }
+//            
+//            System.out.println("--- REFRESCO DE UI COMPLETADO ---");
+//        });
+//    } // --- Fin del método ejecutarRefrescoUI ---
 
 
     /**
@@ -3152,279 +2959,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	} // --- FIN del metodo guardarConfiguracionActual ---  
      
      
-	/**
-	 * Calcula el rango de miniaturas a mostrar basándose en la selección principal,
-	 * reconstruye el modelo de datos específico para la JList de miniaturas
-	 * (`this.modeloMiniaturas`), y actualiza la vista (JList) en el EDT para
-	 * reflejar el nuevo rango y seleccionar el elemento correcto. Utiliza un modelo
-	 * temporal para evitar modificar el modelo en uso por la JList directamente,
-	 * previniendo así eventos de deselección inesperados. También pre-calienta el
-	 * caché para las miniaturas del nuevo rango.
-	 *
-	 * @param indiceSeleccionadoPrincipal Índice (0-based) en el modelo PRINCIPAL
-	 *                                    (`model.getModeloLista()`).
-	 */
-     public void actualizarModeloYVistaMiniaturas(int indiceSeleccionadoPrincipal) {
-    	 
-    	 //FIXME separar o juntar la lista miniaturas para que se ajusten al ancho de pantalla disponible
-    	 //FIXME cambiar cantidad de miniaturas visibles segun espacio disponible
-
-         // --- SECCIÓN 1: VALIDACIONES INICIALES Y PREPARACIÓN (Fuera del EDT) ---
-
-         // 1.1. Log de inicio del método.
-         System.out.println("\n--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: " + indiceSeleccionadoPrincipal);
-
-         // 1.2. Validar dependencias críticas del controlador (modelo, vista, coordinador).
-         //      Si alguna falta, no se puede proceder.
-         if (model == null || model.getModeloLista() == null || view == null || registry.get("list.miniaturas") == null || listCoordinator == null) {
-             System.err.println("WARN [actualizarMiniaturas]: Dependencias nulas (Modelo, Vista, ListaMiniaturas o Coordinator). Abortando.");
-             return;
-         }
-         
-         // 1.2.2. --- NUEVA SECCIÓN: VALIDACIÓN DE REDUNDANCIA ---
-         JList<String> listaMiniaturasActual = registry.get("list.miniaturas");
-         if (listaMiniaturasActual.getModel().getSize() > 0) {
-             int indiceRelativoActual = listaMiniaturasActual.getSelectedIndex();
-             if (indiceRelativoActual != -1) {
-                 try {
-                     String claveSeleccionadaEnMiniaturas = listaMiniaturasActual.getModel().getElementAt(indiceRelativoActual);
-                     String claveDeseadaEnModeloPrincipal = model.getModeloLista().getElementAt(indiceSeleccionadoPrincipal);
-                     
-                     // Si la clave ya seleccionada en la lista de miniaturas es la misma que la que queremos seleccionar,
-                     // y el número de miniaturas visibles no ha cambiado drásticamente (heurística),
-                     // entonces no hacemos nada.
-                     if (claveSeleccionadaEnMiniaturas.equals(claveDeseadaEnModeloPrincipal)) {
-                         System.out.println("  -> [actualizarMiniaturas] La selección ya es correcta. Se omite la actualización redundante.");
-                         listCoordinator.asegurarVisibilidadAmbasListasSiVisibles(indiceSeleccionadoPrincipal); // Solo aseguramos visibilidad
-                         return; // ¡Salimos para evitar el trabajo doble!
-                     }
-                 } catch (ArrayIndexOutOfBoundsException e) {
-                     // Puede pasar si los modelos están desincronizados. Continuamos para corregirlo.
-                     System.err.println("WARN [actualizarMiniaturas]: Inconsistencia de índice detectada. Procediendo a reconstruir miniaturas.");
-                 }
-             }
-         }
-         // --- FIN NUEVA SECCIÓN ---
-         
-
-         // 1.3. Obtener el modelo principal de datos y su tamaño.
-         final DefaultListModel<String> modeloPrincipal = model.getModeloLista(); // 'final' para acceso en lambda
-         final int totalPrincipal = modeloPrincipal.getSize();                     // 'final' para acceso en lambda
-         System.out.println("  [actualizarMiniaturas] Tamaño modeloPrincipal: " + totalPrincipal);
-
-         // 1.4. Manejar caso de lista principal vacía o índice principal inválido.
-         //      Si no hay datos o el índice no es válido, se programa una limpieza de la UI de miniaturas y se sale.
-         if (totalPrincipal == 0 || indiceSeleccionadoPrincipal < 0 || indiceSeleccionadoPrincipal >= totalPrincipal) {
-             System.out.println("  [actualizarMiniaturas] Índice principal inválido o lista principal vacía. Limpiando UI de miniaturas y saliendo.");
-
-             SwingUtilities.invokeLater(() -> {
-                 if (view != null && registry.get("list.miniaturas") != null && listCoordinator != null) {
-                     listCoordinator.setSincronizandoUI(true); // Proteger la UI
-                     try {
-                         JList<String> lMini = registry.get("list.miniaturas");
-                         // Establecer un tamaño preferido mínimo para evitar colapso visual.
-                         lMini.setPreferredSize(new Dimension(
-                             lMini.getFixedCellWidth() > 0 ? lMini.getFixedCellWidth() : 50,
-                             lMini.getFixedCellHeight() > 0 ? lMini.getFixedCellHeight() : 50
-                         ));
-                         view.setModeloListaMiniaturas(new DefaultListModel<>()); // Asignar modelo vacío
-                         if (lMini.getParent() != null) {
-                             lMini.getParent().revalidate(); // Revalidar el contenedor del wrapper
-                         }
-                         lMini.clearSelection();
-                         lMini.repaint();
-                     } finally {
-                         // Asegurar que el flag se desactive, incluso con errores, en un invokeLater anidado.
-                         SwingUtilities.invokeLater(() -> {
-                             if (listCoordinator != null) listCoordinator.setSincronizandoUI(false);
-                         });
-                     }
-                 }
-             });
-             System.out.println("--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---");
-             return;
-         }
-
-         // 1.5. (Fuera del EDT aún) Preparar lista de todas las rutas para un precalentamiento general si se desea.
-         //      Esto es opcional y podría hacerse de forma más selectiva.
-         // List<Path> todasLasRutasParaPrecalentar = new ArrayList<>();
-         // for (int i = 0; i < totalPrincipal; i++) {
-         //     Path ruta = model.getRutaCompleta(modeloPrincipal.getElementAt(i));
-         //     if (ruta != null) todasLasRutasParaPrecalentar.add(ruta);
-         // }
-         // precalentarCacheMiniaturasAsync(todasLasRutasParaPrecalentar); // Podría ser demasiado si la lista es enorme.
-
-         // --- SECCIÓN 2: PROGRAMAR ACTUALIZACIÓN DE UI EN EL EVENT DISPATCH THREAD (EDT) ---
-         //      Toda la lógica de cálculo de rango, construcción del modelo de miniaturas,
-         //      y actualización de la JList se hará dentro del invokeLater.
-
-         // 2.1. Declarar variables finales para que sean accesibles dentro de la lambda.
-         final int finalIndiceSeleccionadoPrincipal = indiceSeleccionadoPrincipal;
-         System.out.println("  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: " + finalIndiceSeleccionadoPrincipal);
-
-         SwingUtilities.invokeLater(() -> { // Inicio de la lambda que se ejecuta en el EDT
-
-             // --- SECCIÓN 3: VALIDACIONES Y PREPARACIÓN DENTRO DEL EDT ---
-
-             // 3.1. Log de inicio de la ejecución en el EDT.
-             //System.out.println("   -> [EDT Miniaturas Update] Ejecutando actualización UI...");
-
-             // 3.2. Re-validar dependencias críticas (Vista, JList de miniaturas, Coordinador) DENTRO del EDT.
-             //      Es una buena práctica por si el estado de la aplicación hubiera cambiado.
-             if (view == null || registry.get("list.miniaturas") == null || listCoordinator == null || model == null) {
-                 System.err.println("ERROR [actualizarMiniaturas EDT]: Dependencias nulas en invokeLater. Abortando.");
-                 return;
-             }
-
-             // 3.3. Establecer flag para evitar bucles de eventos de selección.
-             listCoordinator.setSincronizandoUI(true);
-             System.out.println("   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.");
-
-             try { // Bloque try-finally para asegurar que el flag sincronizandoUI se desactive.
-
-                 // --- SECCIÓN 4: CÁLCULO DINÁMICO DEL RANGO DE MINIATURAS (DENTRO DEL EDT) ---
-
-                 // 4.1. Llamar a `calcularNumMiniaturasDinamicas()`. Este método ahora leerá
-                 //      las dimensiones del viewport del JScrollPane en el EDT, que deberían ser las más actuales.
-                 RangoMiniaturasCalculado rangoDinamico = calcularNumMiniaturasDinamicas();
-                 int miniAntesDinamicas = rangoDinamico.antes;
-                 int miniDespuesDinamicas = rangoDinamico.despues;
-                 System.out.println("   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: " + miniAntesDinamicas + ", Despues: " + miniDespuesDinamicas);
-
-                 // 4.2. Calcular los índices de inicio y fin del rango en el modelo PRINCIPAL
-                 //      usando los valores dinámicos obtenidos.
-                 int inicioRango = Math.max(0, finalIndiceSeleccionadoPrincipal - miniAntesDinamicas);
-                 int finRango = Math.min(totalPrincipal - 1, finalIndiceSeleccionadoPrincipal + miniDespuesDinamicas);
-                 System.out.println("   -> [EDT Miniaturas Update] Rango final en modelo principal: [" + inicioRango + ".." + finRango + "]");
-
-
-                 // --- SECCIÓN 5: CONSTRUCCIÓN DEL NUEVO MODELO PARA LA JLIST DE MINIATURAS (DENTRO DEL EDT) ---
-
-                 // 5.1. Crear un nuevo `DefaultListModel` que contendrá solo las claves de las miniaturas a mostrar.
-                 DefaultListModel<String> nuevoModeloParaLaVista = new DefaultListModel<>();
-                 // 5.2. Inicializar el índice que estará seleccionado DENTRO de este nuevo modelo de miniaturas.
-                 int indiceRelativoSeleccionadoEnNuevoModelo = -1;
-                 // 5.3. Preparar lista de Paths para el precalentamiento selectivo del caché.
-                 List<Path> rutasEnRangoVisible = new ArrayList<>();
-
-                 System.out.println("   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...");
-                 // 5.4. Iterar sobre el rango calculado y poblar el nuevo modelo.
-                 for (int i = inicioRango; i <= finRango; i++) {
-                     String clave = modeloPrincipal.getElementAt(i); // Obtener clave del modelo principal
-                     nuevoModeloParaLaVista.addElement(clave);       // Añadir al nuevo modelo de miniaturas
-
-                     Path ruta = model.getRutaCompleta(clave);
-                     if (ruta != null) {
-                         rutasEnRangoVisible.add(ruta); // Añadir a la lista para precalentar
-                     }
-
-                     // 5.5. Si el índice actual (i) del modelo principal es el que queremos seleccionar,
-                     //      calcular su posición RELATIVA en el `nuevoModeloParaLaVista`.
-                     if (i == finalIndiceSeleccionadoPrincipal) {
-                         indiceRelativoSeleccionadoEnNuevoModelo = nuevoModeloParaLaVista.getSize() - 1;
-                     }
-                 }
-                 System.out.println("   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: "
-                                  + nuevoModeloParaLaVista.getSize() + ". Índice relativo seleccionado: " + indiceRelativoSeleccionadoEnNuevoModelo);
-
-                 // --- SECCIÓN 6: PRE-CALENTAMIENTO SELECTIVO DEL CACHÉ DE MINIATURAS (DENTRO DEL EDT, PERO LANZA TAREAS BG) ---
-                 //      Llamar a precalentar solo para las miniaturas que estarán en el rango visible.
-                 precalentarCacheMiniaturasAsync(rutasEnRangoVisible);
-
-
-                 // --- SECCIÓN 7: ACTUALIZACIÓN DE LA JLIST DE MINIATURAS EN LA VISTA (DENTRO DEL EDT) ---
-                 JList<String> listaMiniaturasEnVista = registry.get("list.miniaturas");
-
-                 // 7.1. Actualizar el `PreferredSize` de la `JList` de miniaturas ANTES de cambiar su modelo.
-                 //      Esto es crucial para que el `FlowLayout` del panel wrapper (`wrapperListaMiniaturas`)
-                 //      pueda centrar la `JList` correctamente si esta es más estrecha que el wrapper.
-                 int cellWidthActual = listaMiniaturasEnVista.getFixedCellWidth();
-                 int cellHeightActual = listaMiniaturasEnVista.getFixedCellHeight();
-
-                 if (cellWidthActual > 0 && cellHeightActual > 0) { // Solo si las celdas tienen tamaño válido
-                     int numItemsEnNuevoModelo = nuevoModeloParaLaVista.getSize();
-                     int nuevoAnchoPreferido = numItemsEnNuevoModelo * cellWidthActual;
-                     // Asegurar un ancho mínimo si el modelo está vacío (para evitar colapso a 0)
-                     if (numItemsEnNuevoModelo == 0) {
-                         nuevoAnchoPreferido = cellWidthActual;
-                     }
-                     Dimension nuevoTamanoPreferido = new Dimension(nuevoAnchoPreferido, cellHeightActual);
-
-                     // Cambiar el PreferredSize solo si es diferente, para evitar revalidaciones innecesarias.
-                     if (!nuevoTamanoPreferido.equals(listaMiniaturasEnVista.getPreferredSize())) {
-                         listaMiniaturasEnVista.setPreferredSize(nuevoTamanoPreferido);
-                         System.out.println("   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: " + nuevoTamanoPreferido);
-
-                         // Revalidar el panel contenedor de la JList (el wrapper con FlowLayout)
-                         // para que el FlowLayout se reajuste.
-                         if (listaMiniaturasEnVista.getParent() != null) {
-                             listaMiniaturasEnVista.getParent().revalidate();
-                         }
-                     }
-                 }
-
-                 // 7.2. Asignar el nuevo modelo de datos (`nuevoModeloParaLaVista`) a la `JList`.
-                 //      Hacerlo solo si el modelo es realmente diferente para evitar eventos extra.
-                 if (listaMiniaturasEnVista.getModel() != nuevoModeloParaLaVista) {
-                     view.setModeloListaMiniaturas(nuevoModeloParaLaVista);
-                     // El método setModeloListaMiniaturas en VisorView ya debería imprimir su propio log.
-                 }
-
-                 // 7.3. Establecer la selección en la `JList` de miniaturas.
-                 //      Usar el `indiceRelativoSeleccionadoEnNuevoModelo` calculado anteriormente.
-                 if (indiceRelativoSeleccionadoEnNuevoModelo >= 0 &&
-                     indiceRelativoSeleccionadoEnNuevoModelo < nuevoModeloParaLaVista.getSize()) {
-                     // Cambiar la selección solo si es diferente a la actual en la JList
-                     if (listaMiniaturasEnVista.getSelectedIndex() != indiceRelativoSeleccionadoEnNuevoModelo) {
-                         listaMiniaturasEnVista.setSelectedIndex(indiceRelativoSeleccionadoEnNuevoModelo);
-                         System.out.println("   -> [EDT Miniaturas Update] setSelectedIndex(" + indiceRelativoSeleccionadoEnNuevoModelo + ") en JList miniaturas.");
-                     }
-                 } else {
-                     // Si el índice relativo no es válido (ej. lista vacía), limpiar la selección.
-                     if (listaMiniaturasEnVista.getSelectedIndex() != -1) {
-                         listaMiniaturasEnVista.clearSelection();
-                     }
-                     System.err.println("WARN [actualizarMiniaturas EDT]: Índice relativo inválido para selección en JList: " + indiceRelativoSeleccionadoEnNuevoModelo);
-                 }
-
-                 // 7.4. Asegurar visibilidad del ítem seleccionado y repintar.
-                 //      Llamar a ensureIndexIsVisible DESPUÉS de que el layout haya tenido oportunidad de ajustarse.
-                 //      Un invokeLater anidado puede ayudar aquí, pero primero probemos sin él.
-                 //      El repintado es importante para que los cambios sean visibles.
-                 if (indiceRelativoSeleccionadoEnNuevoModelo != -1) {
-                     try {
-                         listaMiniaturasEnVista.ensureIndexIsVisible(indiceRelativoSeleccionadoEnNuevoModelo);
-                     } catch (Exception ex) {
-                         System.err.println("ERROR ensureIndexIsVisible(Miniaturas): " + ex.getMessage());
-                     }
-                 }
-                 listaMiniaturasEnVista.repaint();
-
-             } finally {
-                 // --- SECCIÓN 8: DESACTIVACIÓN DEL FLAG DE SINCRONIZACIÓN (DENTRO DEL EDT) ---
-                 // 8.1. Usar un invokeLater anidado para asegurar que se desactive después
-                 //      de que todos los eventos de cambio de modelo/selección se hayan procesado.
-                 SwingUtilities.invokeLater(() -> {
-                     if (listCoordinator != null) {
-                         listCoordinator.setSincronizandoUI(false);
-                         // El método setSincronizandoUI ya tiene su propio log.
-                     }
-                 });
-             } // Fin del bloque try-finally principal del EDT
-
-             // 3.4. Log final de la ejecución en el EDT.
-             System.out.println("   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.");
-
-         }); // Fin del SwingUtilities.invokeLater principal
-
-         // --- SECCIÓN 9: LOG FINAL DEL MÉTODO (Fuera del EDT) ---
-         System.out.println("--- FIN actualizarModeloYVistaMiniaturas ---");
-
-     } // --- Fin del metodo actualizarModeloYVistaMiniaturas
-     
-     
-      
-
      /**
       * Calcula dinámicamente el número de miniaturas a mostrar antes y después de la
       * miniatura central, basándose en el ancho disponible del viewport del JScrollPane
@@ -3993,6 +3527,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     
     public ExecutorService getExecutorService() {return this.executorService;}
     
+    public void setViewManager(ViewManager viewManager) {this.viewManager = viewManager;}
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
@@ -4285,49 +3820,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     }
     
     
-    public void sincronizarAccionesFormatoBarraSuperior() {
-        System.out.println("[VisorController] Sincronizando Actions de formato para Barra Superior...");
-        if (actionMap == null) return;
-
-        String[] comandosFormatoSuperior = {
-            AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_SOLO_NOMBRE,
-            AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_RUTA_COMPLETA
-        };
-
-        for (String cmd : comandosFormatoSuperior) {
-            Action action = actionMap.get(cmd);
-            if (action instanceof SetInfoBarTextFormatAction) {
-                ((SetInfoBarTextFormatAction) action).sincronizarSelectedKeyConConfig();
-            }
-        }
-    }
-
-    public void sincronizarAccionesFormatoBarraInferior() {
-        System.out.println("[VisorController] Sincronizando Actions de formato para Barra Inferior...");
-        if (actionMap == null) return;
-
-        String[] comandosFormatoInferior = {
-            AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE,
-            AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA
-        };
-
-        for (String cmd : comandosFormatoInferior) {
-            Action action = actionMap.get(cmd);
-            if (action instanceof SetInfoBarTextFormatAction) {
-                ((SetInfoBarTextFormatAction) action).sincronizarSelectedKeyConConfig();
-            }
-        }
-    }
-
-
-    // --- En AppInitializer, o en un método de inicialización DENTRO de VisorController que AppInitializer llame:
-    //     Después de que todas las Actions se han creado y el actionMap está poblado.
-    /*package-private*/ void sincronizarEstadoVisualInicialDeRadiosDeFormato() {
-        sincronizarAccionesFormatoBarraSuperior();
-        sincronizarAccionesFormatoBarraInferior();
-    }
-    
-    
     /**
      * REFACTORIZADO: Configura un listener que se dispara UNA SOLA VEZ, cuando la
      * ventana principal es mostrada y tiene dimensiones válidas por primera vez.
@@ -4402,3 +3894,4 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 
 
+//solicitarActualizacionInterfaz

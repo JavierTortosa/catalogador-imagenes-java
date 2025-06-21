@@ -43,6 +43,7 @@ import controlador.actions.toggle.ToggleNavegacionCircularAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.vista.MostrarDialogoListaAction;
+import controlador.actions.vista.SwitchToVisualizadorAction;
 import controlador.actions.vista.ToggleAlwaysOnTopAction;
 import controlador.actions.vista.ToggleCheckeredBackgroundAction;
 import controlador.actions.vista.ToggleFileListAction;
@@ -245,6 +246,8 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, createToggleAlwaysOnTopAction());
         actionMap.put(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, createMostrarDialogoListaAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, createToggleMiniatureTextAction());
+        
+        
 
         // 3.7. Crear y registrar Actions de Tema
         actionMap.put(AppActionCommands.CMD_TEMA_CLEAR, createToggleThemeAction("clear", "Tema Clear"));
@@ -267,6 +270,7 @@ public class ActionFactory {
         // 3.9. Crear y registrar Actions de Proyecto
         actionMap.put(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, createToggleMarkImageAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_GESTIONAR, createGestionarProyectoAction());
+        actionMap.put(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, createSwitchToVisualizadorAction());
         
         // 3.10. Crear y registrar Actions Especiales
         actionMap.put(AppActionCommands.CMD_ESPECIAL_MENU, createMenuAction());
@@ -278,62 +282,62 @@ public class ActionFactory {
 
         // Visibilidad del PANEL COMPLETO de la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_VISIBLE,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Barra de Información Superior",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Barra de Información Superior",
             		ConfigKeys.INFOBAR_SUP_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR", 
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_VISIBLE));
 
         // Visibilidad del componente Nombre/Ruta en la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_NOMBRE_RUTA,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Nombre/Ruta Archivo (Sup.)",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Nombre/Ruta Archivo (Sup.)",
             		ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR", 
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_NOMBRE_RUTA
             ));
 
         // Visibilidad del componente Índice/Total en la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_INDICE_TOTAL,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Índice/Total Imágenes",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Índice/Total Imágenes",
             		ConfigKeys.INFOBAR_SUP_INDICE_TOTAL_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_INDICE_TOTAL
             ));
 
         // Visibilidad del componente Dimensiones en la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_DIMENSIONES,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Dimensiones Originales",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Dimensiones Originales",
             		ConfigKeys.INFOBAR_SUP_DIMENSIONES_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR",
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_DIMENSIONES
             ));
 
         // Visibilidad del componente Tamaño de Archivo en la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_TAMANO_ARCHIVO,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Tamaño de Archivo",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Tamaño de Archivo",
             		ConfigKeys.INFOBAR_SUP_TAMANO_ARCHIVO_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR",
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_TAMANO_ARCHIVO
             ));
 
         // Visibilidad del componente Fecha de Archivo en la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FECHA_ARCHIVO,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Fecha de Archivo",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Fecha de Archivo",
             		ConfigKeys.INFOBAR_SUP_FECHA_ARCHIVO_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FECHA_ARCHIVO
             ));
 
         // Visibilidad del componente Formato de Imagen en la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FORMATO_IMAGEN,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Formato de Imagen",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Formato de Imagen",
             		ConfigKeys.INFOBAR_SUP_FORMATO_IMAGEN_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FORMATO_IMAGEN
             ));
 
         // Visibilidad del componente Modo de Zoom en la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_MODO_ZOOM,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Modo de Zoom",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Modo de Zoom",
             		ConfigKeys.INFOBAR_SUP_MODO_ZOOM_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_MODO_ZOOM
             ));
 
         // Visibilidad del componente % Zoom Real en la Barra Superior
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_ZOOM_REAL_PCT,
-            new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar % Zoom Real",
+            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar % Zoom Real",
             		ConfigKeys.INFOBAR_SUP_ZOOM_REAL_PCT_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
                 AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_ZOOM_REAL_PCT
             ));
@@ -341,7 +345,7 @@ public class ActionFactory {
      // --- ACCIONES PARA CONFIGURAR FORMATO DE TEXTO EN BARRA SUPERIOR (RADIO BUTTONS) ---
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_SOLO_NOMBRE,
             new SetInfoBarTextFormatAction(
-                this.controllerRef, this.configuration, "Solo Nombre de Archivo", // Texto del JRadioButtonMenuItem
+                this.viewManager, this.configuration, "Solo Nombre de Archivo", // Texto del JRadioButtonMenuItem
                 ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO, // Clave donde se guarda "solo_nombre" o "ruta_completa"
                 "solo_nombre", // Valor que esta Action establece
                 "REFRESH_INFO_BAR_SUPERIOR", // Zona a refrescar
@@ -349,7 +353,7 @@ public class ActionFactory {
             ));
         actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_RUTA_COMPLETA,
             new SetInfoBarTextFormatAction(
-                this.controllerRef, this.configuration, "Ruta Completa y Nombre",
+                this.viewManager, this.configuration, "Ruta Completa y Nombre",
                 ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO,
                 "ruta_completa",
                 "REFRESH_INFO_BAR_SUPERIOR",
@@ -360,56 +364,56 @@ public class ActionFactory {
 
      // Visibilidad del PANEL COMPLETO de la Barra Inferior
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_VISIBLE,
-         new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Barra de Estado/Control Inferior",
+         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Barra de Estado/Control Inferior",
              ConfigKeys.INFOBAR_INF_VISIBLE, "REFRESH_INFO_BAR_INFERIOR", 
              AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_VISIBLE
          ));
 
      // Visibilidad del componente Nombre/Ruta en la Barra Inferior
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_NOMBRE_RUTA,
-         new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Nombre/Ruta Archivo (Inf.)",
+         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Nombre/Ruta Archivo (Inf.)",
         		 ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
              AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_NOMBRE_RUTA
          ));
 
      // Visibilidad del Icono Zoom Manual en la Barra Inferior
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_ZM,
-         new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Icono Zoom Manual (Inf.)",
+         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Zoom Manual (Inf.)",
         		 ConfigKeys.INFOBAR_INF_ICONO_ZM_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
              AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_ZM
          ));
 
      // Visibilidad del Icono Proporciones en la Barra Inferior
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_PROP,
-         new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Icono Proporciones (Inf.)",
+         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Proporciones (Inf.)",
         		 ConfigKeys.INFOBAR_INF_ICONO_PROP_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
              AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_PROP
          ));
 
      // Visibilidad del Icono Subcarpetas en la Barra Inferior
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_SUBC,
-         new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Icono Subcarpetas (Inf.)",
+         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Subcarpetas (Inf.)",
         		 ConfigKeys.INFOBAR_INF_ICONO_SUBC_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
              AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_SUBC
          ));
 
      // Visibilidad del Control % Zoom en la Barra Inferior
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_ZOOM_PCT,
-         new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Control % Zoom (Inf.)",
+         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Control % Zoom (Inf.)",
         		 ConfigKeys.INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE, "REFRESH_INFO_BAR_INFERIOR",
              AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_ZOOM_PCT
          ));
 
      // Visibilidad del Control Modo Zoom en la Barra Inferior
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_MODO_ZOOM,
-         new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Control Modo Zoom (Inf.)",
+         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Control Modo Zoom (Inf.)",
         		 ConfigKeys.INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
              AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_MODO_ZOOM
          ));
 
      // Visibilidad de Mensajes Aplicación en la Barra Inferior
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_MENSAJES_APP,
-         new ToggleUIElementVisibilityAction(this.controllerRef, this.configuration, "Mostrar Área de Mensajes (Inf.)",
+         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Área de Mensajes (Inf.)",
         		 ConfigKeys.INFOBAR_INF_MENSAJES_APP_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
              AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_MENSAJES_APP
          ));
@@ -417,7 +421,7 @@ public class ActionFactory {
   // --- ACCIONES PARA CONFIGURAR FORMATO DE TEXTO EN BARRA INFERIOR (RADIO BUTTONS) ---
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE,
          new SetInfoBarTextFormatAction(
-             this.controllerRef, this.configuration, "Solo Nombre de Archivo",
+             this.viewManager, this.configuration, "Solo Nombre de Archivo",
              ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_FORMATO,
              "solo_nombre",
              "REFRESH_INFO_BAR_INFERIOR",
@@ -425,7 +429,7 @@ public class ActionFactory {
          ));
      actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA,
          new SetInfoBarTextFormatAction(
-             this.controllerRef, this.configuration, "Ruta Completa y Nombre",
+             this.viewManager, this.configuration, "Ruta Completa y Nombre",
              ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_FORMATO,
              "ruta_completa",
              "REFRESH_INFO_BAR_INFERIOR",
@@ -575,22 +579,22 @@ public class ActionFactory {
     // (Estas actions suelen tomar VisorView y ConfigurationManager)
      
     private Action createToggleMenuBarAction() {
-    	return new ToggleMenuBarAction("Barra de Menú", null, this.configuration, this.controllerRef, "interfaz.menu.vista.barra_de_menu.seleccionado", "Barra_de_Menu", AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
+    	return new ToggleMenuBarAction("Barra de Menú", null, this.configuration, this.viewManager, "interfaz.menu.vista.barra_de_menu.seleccionado", "Barra_de_Menu", AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
     }
     private Action createToggleToolBarAction() {
-        return new ToggleToolBarAction("Barra de Botones", null, this.configuration, this.controllerRef, "interfaz.menu.vista.barra_de_botones", "Barra_de_Botones", AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
+        return new ToggleToolBarAction("Barra de Botones", null, this.configuration, this.viewManager, "interfaz.menu.vista.barra_de_botones", "Barra_de_Botones", AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
     }  
     private Action createToggleFileListAction() {
-        return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.controllerRef, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+        return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.viewManager, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
     }
     private Action createToggleThumbnailsAction() {
    	    //return new ToggleThumbnailsAction("Imagenes en Miniatura", null, this.viewManager, this.configuration, "interfaz.menu.vista.imagenes_en_miniatura.seleccionado", "imagenes_en_miniatura", AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
-    	return new ToggleThumbnailsAction( "Barra de Miniaturas", null, this.configuration,this.controllerRef, "interfaz.menu.vista.imagenes_en_miniatura.seleccionado", "imagenes_en_miniatura", AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
+    	return new ToggleThumbnailsAction( "Barra de Miniaturas", null, this.configuration, this.viewManager, "interfaz.menu.vista.imagenes_en_miniatura.seleccionado", "imagenes_en_miniatura", AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
    	}
     private Action createToggleLocationBarAction() {
 //        return new ToggleLocationBarAction("Linea de Ubicacion del Archivo", null, this.configuration, this.controllerRef, ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE, "REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR);
     	return new ToggleUIElementVisibilityAction( // <<< Usamos la Action genérica
-    	        this.controllerRef,
+    	        this.viewManager,
     	        this.configuration,
     	        "Barra de Estado", // <-- Texto más apropiado para el menú
     	        ConfigKeys.INFOBAR_INF_VISIBLE, // <<< Clave que controla TODA la barra
@@ -611,6 +615,10 @@ public class ActionFactory {
    	}
     private Action createToggleMiniatureTextAction() {
     	return new ToggleMiniatureTextAction("Mostrar Nombres en Miniaturas", null, this.configuration, this.view, ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT);
+    }
+    private Action createSwitchToVisualizadorAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR); 
+        return new SwitchToVisualizadorAction("Visualizador", icon, this.viewManager);
     }
    	 	
 
@@ -663,7 +671,7 @@ public class ActionFactory {
     } // --- FIN del método createToggleMarkImageAction ---
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
-        return new GestionarProyectoAction(this.projectService, this.controllerRef, "Gestionar Proyectos", icon);
+        return new GestionarProyectoAction(this.projectService, this.viewManager, "Gestionar Proyectos", icon);
     }
     
     // --- 4.11. Métodos Create para Actions Especiales ---

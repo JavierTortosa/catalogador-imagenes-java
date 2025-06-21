@@ -163,6 +163,26 @@ pongamos que estoy buscando imagenes para un proyecto, y encuentro una imagen co
 
 --------------------------------
 
+te voy a pasar la clase de inicio... desde ahi parte todo, quiero que vayas recorriendo el flujo del programa y me vayas pidiendo las clases que vayas necesitando inspeccionar....
+
+a la hora de trabajar:
+-te lo voy a decir asi, NO QUIERO, REPITO, NO QUIERO QUE ASUMAS EL FUNCIONAMIENTO DE NINGUNA CLASE NI METODO, TE PROHIBO TOTAL Y TERMINANTEMENTE QUE ASUMAS QUE UNA CLASE HACE ALGO O QUE DEBERIA CONTENER UN METODO O CUALQUIER INTENTO DE ASUMIR QUE ALGO ESTA SIN COMPROBARLO PRIMERO.... esta es la unica y mayor premisa que quiero que cumplas a rajatabla....ok?
+-quiero que seas lo mas exacto posible, prefiero una respuesta clara y correcta antes que una respuesta rapida.
+-quiero que me des metodos o bloques de codigo completos. no me valen lineas sueltas. los metodos tienen suficientes comentarios como para que me digas sustituye el bloque tal o por lo menos quiero que me des la linea de antes y despues del bloque de codigo que me das para modificar
+- me gustaria que añadieras al final de cada metodo y cada clase añadas un comentario de fin de clase o lo que sea...
+
+problemas y soluciones
+1. primero te explico el problema
+2. propones que puede ser 
+3. CUANDO ESTEMOS DE ACUERDO EN EL QUE PUEDE SER
+4. miramos como abordar el problema
+5. CUANDO ESTEMOS DE ACUERDO EN EL COMO 
+6. empezamos a aplicar la solucion. clase a clase, metodo a metodo.... NO ME DES LOS CAMBIOS DE 20 CLASES DE GOLPE
+
+creo que esto es todo mi temario imperativo y me gustaria que lo siguieras lo mas filemente posible
+
+-----------------------------------
+
 ICONOS
 
 https://www.streamlinehq.com/icons/core-duo-color

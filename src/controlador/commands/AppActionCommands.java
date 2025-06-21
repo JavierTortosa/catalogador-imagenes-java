@@ -85,7 +85,8 @@ public interface AppActionCommands {
     String CMD_VISTA_MOSTRAR_DIALOGO_LISTA 	= "cmd.vista.mostrar_dialogo_lista";	// Para el menú sin Action directa
 
     String CMD_VISTA_TOGGLE_MINIATURE_TEXT 	= "cmd.vista.toggle_miniature_text"; 	//Muestra el texto del nombre de las miniaturas
-
+    String CMD_VISTA_SWITCH_TO_VISUALIZADOR = "cmd.vista.switch_to_visualizador";
+    
     // --- Comportamiento/Toggles Generales ---
     String CMD_TOGGLE_SUBCARPETAS 			= "cmd.toggle.subcarpetas";             // Para ToggleSubfoldersAction
     String CMD_TOGGLE_MANTENER_PROPORCIONES = "cmd.toggle.mantener_proporciones"; 	// Para ToggleProporcionesAction
