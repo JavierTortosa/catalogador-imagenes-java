@@ -1,4 +1,3 @@
-// En controlador.actions.edicion.RotateRightAction.java
 package controlador.actions.edicion;
 
 import java.awt.event.ActionEvent;
@@ -8,21 +7,21 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import controlador.commands.AppActionCommands;      // <<< IMPORTAR
+import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
-import controlador.managers.EditionManager;       // <<< IMPORTAR
-import modelo.VisorModel;                       // <<< IMPORTAR
+import controlador.managers.interfaces.IEditionManager;
+import modelo.VisorModel;                       
 
 public class RotateRightAction extends AbstractAction implements ContextSensitiveAction { // <<< CAMBIAR HERENCIA E IMPLEMENTAR
 
     private static final long serialVersionUID = 1L; // Considera generar uno nuevo
 
-    private EditionManager editionManagerRef;
+    private IEditionManager editionManagerRef;
     private VisorModel modelRef; // Para updateEnabledState
 
     // Constructor REFACTORIZADO
     public RotateRightAction(
-            EditionManager editionManager,
+            IEditionManager editionManager,
             VisorModel model, // Para gestionar su estado enabled
             String name,
             ImageIcon icon) {

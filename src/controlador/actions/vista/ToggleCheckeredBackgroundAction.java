@@ -2,11 +2,12 @@ package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import controlador.managers.ViewManager; // <-- NUEVA DEPENDENCIA
+import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
 public class ToggleCheckeredBackgroundAction extends AbstractAction {
@@ -14,14 +15,14 @@ public class ToggleCheckeredBackgroundAction extends AbstractAction {
     private static final long serialVersionUID = 3L; // Versión incrementada
 
     // --- DEPENDENCIAS ---
-    private final ViewManager viewManager;
+    private final IViewManager viewManager;
     private final ConfigurationManager configManagerRef;
     private final String configKeyForState;
 
     // --- CONSTRUCTOR MODIFICADO ---
     public ToggleCheckeredBackgroundAction(String name,
                                            ImageIcon icon,
-                                           ViewManager viewManager, // <-- AHORA RECIBE ViewManager
+                                           IViewManager viewManager, // <-- AHORA RECIBE ViewManager
                                            ConfigurationManager configManager,
                                            String configKeyForSelectedState,
                                            String actionCommandKey) {

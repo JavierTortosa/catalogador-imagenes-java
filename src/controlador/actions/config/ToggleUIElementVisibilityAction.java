@@ -5,15 +5,14 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
-import controlador.VisorController;
-import controlador.managers.ViewManager;
+import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
 public class ToggleUIElementVisibilityAction extends AbstractAction {
     private static final long serialVersionUID = 1L;
 
 //    private final VisorController controller;
-    private final ViewManager viewManager;
+    private final IViewManager viewManager;
     private final ConfigurationManager configManager;
     // --- CAMBIO 1: Renombrar el campo para mayor claridad ---
     private final String configKeyBase; // Antes: configKeyForVisibilityState
@@ -32,7 +31,7 @@ public class ToggleUIElementVisibilityAction extends AbstractAction {
      * @param uiElementId       Un identificador único para este elemento de UI (ej. "edicion").
      * @param actionCommandKey  El comando canónico asociado a esta Action.
      */
-    public ToggleUIElementVisibilityAction( ViewManager viewManager, 
+    public ToggleUIElementVisibilityAction( IViewManager viewManager, 
                                             ConfigurationManager configManager,
                                             String name, 
                                             String configKey, // <-- Renombrado para más claridad

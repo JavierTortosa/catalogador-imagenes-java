@@ -1,4 +1,3 @@
-// En src/controlador/actions/navegacion/FirstImageAction.java
 package controlador.actions.navegacion;
 
 import java.awt.event.ActionEvent;
@@ -6,17 +5,17 @@ import java.util.Objects; // Para Objects.requireNonNull
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.ListCoordinator; // Nueva dependencia
+import controlador.managers.interfaces.IListCoordinator;
 import controlador.commands.AppActionCommands;
 
 public class NextImageAction extends AbstractAction { // Ya no hereda de BaseVisorAction
 
     private static final long serialVersionUID = 1L; // Genera uno si es necesario
 
-    private ListCoordinator listCoordinator;
+    private IListCoordinator listCoordinator;
 
     // Constructor Refactorizado
-    public NextImageAction(ListCoordinator listCoordinator, String displayName, ImageIcon icon) {
+    public NextImageAction(IListCoordinator listCoordinator, String displayName, ImageIcon icon) {
         super(displayName, icon); // Nombre para menú/tooltip, e icono
         this.listCoordinator = Objects.requireNonNull(listCoordinator, "ListCoordinator no puede ser null en NextImageAction");
 

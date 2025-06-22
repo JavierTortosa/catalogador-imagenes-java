@@ -22,7 +22,7 @@ import vista.util.IconUtils;
 public class ToolbarBuilder {
 
     // --- Dependencias Clave ---
-    private final Map<String, Action> actionMap;
+    private Map<String, Action> actionMap;
     private final ThemeManager themeManager;
     private final IconUtils iconUtils;
     private final VisorController controllerRef;
@@ -36,26 +36,50 @@ public class ToolbarBuilder {
 
     // --- CONSTRUCTOR REFACTORIZADO Y CORREGIDO ---
     public ToolbarBuilder(
-            Map<String, Action> actionMap,
             ThemeManager themeManager,
             IconUtils iconUtils,
             VisorController controller,
-            int iconoAncho,   // <<< NUEVO PARÁMETRO
-            int iconoAlto     // <<< NUEVO PARÁMETRO
+            int iconoAncho,
+            int iconoAlto
     ) {
         System.out.println("[ToolbarBuilder Constructor] Iniciando...");
-        this.actionMap = Objects.requireNonNull(actionMap);
         this.themeManager = Objects.requireNonNull(themeManager);
         this.iconUtils = Objects.requireNonNull(iconUtils);
         this.controllerRef = Objects.requireNonNull(controller);
         
-        // Guardar los tamaños de los iconos
         this.iconoAncho = (iconoAncho > 0) ? iconoAncho : 24;
         this.iconoAlto = (iconoAlto > 0) ? iconoAlto : 24;
+        
+        // El actionMap se inyectará después. Lo inicializamos a un mapa vacío
+        // para evitar NullPointerExceptions si se llama a algún método antes del cableado.
+        this.actionMap = new HashMap<>();
         
         this.botonesPorNombre = new HashMap<>();
         System.out.println("[ToolbarBuilder Constructor] Finalizado.");
     } // --- Fin del constructor ToolbarBuilder ---
+    
+    
+//    public ToolbarBuilder(
+//            Map<String, Action> actionMap,
+//            ThemeManager themeManager,
+//            IconUtils iconUtils,
+//            VisorController controller,
+//            int iconoAncho,   // <<< NUEVO PARÁMETRO
+//            int iconoAlto     // <<< NUEVO PARÁMETRO
+//    ) {
+//        System.out.println("[ToolbarBuilder Constructor] Iniciando...");
+//        this.actionMap = Objects.requireNonNull(actionMap);
+//        this.themeManager = Objects.requireNonNull(themeManager);
+//        this.iconUtils = Objects.requireNonNull(iconUtils);
+//        this.controllerRef = Objects.requireNonNull(controller);
+//        
+//        // Guardar los tamaños de los iconos
+//        this.iconoAncho = (iconoAncho > 0) ? iconoAncho : 24;
+//        this.iconoAlto = (iconoAlto > 0) ? iconoAlto : 24;
+//        
+//        this.botonesPorNombre = new HashMap<>();
+//        System.out.println("[ToolbarBuilder Constructor] Finalizado.");
+//    } // --- Fin del constructor ToolbarBuilder ---
 
     public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) {
         // ... (este método no necesita cambios) ...
@@ -136,5 +160,15 @@ public class ToolbarBuilder {
     public Map<String, JButton> getBotonesPorNombre() {
         return Collections.unmodifiableMap(this.botonesPorNombre);
     }
+    
+    
+    /**
+     * Inyecta el mapa de acciones de la aplicación.
+     * @param actionMap El mapa de acciones (comando -> Action).
+     */
+    public void setActionMap(Map<String, Action> actionMap) {
+        this.actionMap = Objects.requireNonNull(actionMap);
+    } // --- Fin del método setActionMap ---
+    
 
 } // --- Fin de la clase ToolbarBuilder ---

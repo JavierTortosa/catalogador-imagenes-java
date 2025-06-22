@@ -19,18 +19,19 @@ import javax.swing.SwingUtilities; // Para invokeLater en sincronizarListaUI
 
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
+import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
 import vista.VisorView;
 
-public class ListCoordinator {
+public class ListCoordinator implements IListCoordinator{
 
     // --- Referencias a otros componentes ---
-    private final VisorModel model;
-    private final VisorView view;
-    private final VisorController controller; // Para delegar carga de imagen
-    private final ComponentRegistry registry;
+	private VisorModel model;
+	private VisorView view;
+	private VisorController controller; // Para delegar carga de imagen
+	private ComponentRegistry registry;
     private List<ContextSensitiveAction> contextSensitiveActions = Collections.emptyList();
     
     // --- Estado Interno ---
@@ -48,24 +49,10 @@ public class ListCoordinator {
      * @param view La vista principal.
      * @param controller El controlador principal.
      */
-    public ListCoordinator(VisorModel model, VisorView view, VisorController controller, ComponentRegistry registry) {
-        // Validar que las referencias no sean nulas
-        this.model = Objects.requireNonNull(model, "VisorModel no puede ser null");
-        this.view = Objects.requireNonNull(view, "VisorView no puede ser null");
-        this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null");
-        this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null");
-        
-        if (this.controller.getConfigurationManager() != null) {
-            this.pageScrollIncrement = this.controller.getConfigurationManager().getInt(
-                ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10
-            );
-        } else {
-            this.pageScrollIncrement = 10; // Fallback
-            // AQUI DEBERIA GUARDAR EN MEMORIA EL VALOR DEL SALTO
-        }
-        
-        System.out.println("[ListCoordinator] Instancia creada.");
-    } //--- FIN ListCoordinator
+    public ListCoordinator() {
+        this.pageScrollIncrement = 10; // Valor por defecto
+        System.out.println("[ListCoordinator] Instancia creada con constructor vacío.");
+    } //--- FIN ListCoordinator (constructor) ---
     
     
 
@@ -159,7 +146,7 @@ public class ListCoordinator {
             System.out.println("    -> Lista de imágenes vacía. No hay nada a qué navegar.");
             // No es necesario llamar a seleccionarIndiceYActualizarUICompleta_Helper si no hay nada.
             // El estado de los botones se actualizará porque el índice oficial no cambiará de -1.
-            forzarActualizacionEstadoNavegacion(); // Asegura que los botones reflejen la lista vacía
+            forzarActualizacionEstadoAcciones(); // Asegura que los botones reflejen la lista vacía
             return;
         }
 
@@ -189,7 +176,7 @@ public class ListCoordinator {
                     // Aunque no cambie el índice, es bueno asegurar la visibilidad
                     asegurarVisibilidadAmbasListasSiVisibles(indiceActual);
                     // El estado de los botones de navegación ya debería ser correcto, pero forzamos por si acaso.
-                    forzarActualizacionEstadoNavegacion();
+                    forzarActualizacionEstadoAcciones();
                     return; // Salir, no se llama al helper de actualización completa.
                 }
                 // Si no estaba en el primero pero el cálculo dio <0, se queda en el primero.
@@ -209,7 +196,7 @@ public class ListCoordinator {
             System.out.println("    -> No hubo cambio efectivo en el índice. Índice oficial permanece: " + this.indiceOficialSeleccionado);
             asegurarVisibilidadAmbasListasSiVisibles(this.indiceOficialSeleccionado);
             // Forzar actualización de botones por si acaso (aunque seleccionarIndiceYActualizarUICompleta_Helper ya lo haría)
-            forzarActualizacionEstadoNavegacion();
+            forzarActualizacionEstadoAcciones();
         }
         System.out.println(">>> Coordinator: Fin seleccionarAnterior. Índice Oficial Final: " + this.indiceOficialSeleccionado);
     }// --- FIN seleccionarAnterior ---
@@ -285,7 +272,7 @@ public class ListCoordinator {
 
         if (totalImagenes == 0) {
             System.out.println("    -> Lista de imágenes vacía. No hay nada a qué navegar.");
-            forzarActualizacionEstadoNavegacion();
+            forzarActualizacionEstadoAcciones();
             return;
         }
 
@@ -312,7 +299,7 @@ public class ListCoordinator {
                 if (indiceActual == totalImagenes - 1) {
                     System.out.println("    -> Ya en el último ítem y navegación no circular. No hay cambio de índice.");
                     asegurarVisibilidadAmbasListasSiVisibles(indiceActual);
-                    forzarActualizacionEstadoNavegacion();
+                    forzarActualizacionEstadoAcciones();
                     return; // Salir, no se llama al helper.
                 }
                 // Si no estaba en el último pero el cálculo dio >= total, se queda en el último.
@@ -328,7 +315,7 @@ public class ListCoordinator {
         } else {
             System.out.println("    -> No hubo cambio efectivo en el índice. Índice oficial permanece: " + this.indiceOficialSeleccionado);
             asegurarVisibilidadAmbasListasSiVisibles(this.indiceOficialSeleccionado);
-            forzarActualizacionEstadoNavegacion();
+            forzarActualizacionEstadoAcciones();
         }
         System.out.println(">>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: " + this.indiceOficialSeleccionado);
     }// --- FIN seleccionarSiguiente ---
@@ -927,276 +914,6 @@ public class ListCoordinator {
     
     
     
-
-    
-//    /**
-//	 * Calcula el rango de miniaturas a mostrar basándose en la selección principal,
-//	 * reconstruye el modelo de datos específico para la JList de miniaturas
-//	 * (`this.modeloMiniaturas`), y actualiza la vista (JList) en el EDT para
-//	 * reflejar el nuevo rango y seleccionar el elemento correcto. Utiliza un modelo
-//	 * temporal para evitar modificar el modelo en uso por la JList directamente,
-//	 * previniendo así eventos de deselección inesperados. También pre-calienta el
-//	 * caché para las miniaturas del nuevo rango.
-//	 *
-//	 * @param indiceSeleccionadoPrincipal Índice (0-based) en el modelo PRINCIPAL
-//	 *                                    (`model.getModeloLista()`).
-//	 */
-//     public void actualizarModeloYVistaMiniaturas(int indiceSeleccionadoPrincipal) {
-//    	 
-//    	 //FIXME separar o juntar la lista miniaturas para que se ajusten al ancho de pantalla disponible
-//    	 //FIXME cambiar cantidad de miniaturas visibles segun espacio disponible
-//
-//         // --- SECCIÓN 1: VALIDACIONES INICIALES Y PREPARACIÓN (Fuera del EDT) ---
-//
-//         // 1.1. Log de inicio del método.
-//         System.out.println("\n--- INICIO actualizarModeloYVistaMiniaturas --- Índice Principal Recibido: " + indiceSeleccionadoPrincipal);
-//
-//         // 1.2. Validar dependencias críticas del controlador (modelo, vista, coordinador).
-//         //      Si alguna falta, no se puede proceder.
-//         if (model == null || model.getModeloLista() == null || view == null || registry.get("list.miniaturas") == null) {
-//             System.err.println("WARN [actualizarMiniaturas]: Dependencias nulas (Modelo, Vista, ListaMiniaturas o Coordinator). Abortando.");
-//             return;
-//         }
-//         
-//         // 1.2.2. --- NUEVA SECCIÓN: VALIDACIÓN DE REDUNDANCIA ---
-//         JList<String> listaMiniaturasActual = registry.get("list.miniaturas");
-//         if (listaMiniaturasActual.getModel().getSize() > 0) {
-//             int indiceRelativoActual = listaMiniaturasActual.getSelectedIndex();
-//             if (indiceRelativoActual != -1) {
-//                 try {
-//                     String claveSeleccionadaEnMiniaturas = listaMiniaturasActual.getModel().getElementAt(indiceRelativoActual);
-//                     String claveDeseadaEnModeloPrincipal = model.getModeloLista().getElementAt(indiceSeleccionadoPrincipal);
-//                     
-//                     // Si la clave ya seleccionada en la lista de miniaturas es la misma que la que queremos seleccionar,
-//                     // y el número de miniaturas visibles no ha cambiado drásticamente (heurística),
-//                     // entonces no hacemos nada.
-//                     if (claveSeleccionadaEnMiniaturas.equals(claveDeseadaEnModeloPrincipal)) {
-//                         System.out.println("  -> [actualizarMiniaturas] La selección ya es correcta. Se omite la actualización redundante.");
-//                         asegurarVisibilidadAmbasListasSiVisibles(indiceSeleccionadoPrincipal); // Solo aseguramos visibilidad
-//                         return; // ¡Salimos para evitar el trabajo doble!
-//                     }
-//                 } catch (ArrayIndexOutOfBoundsException e) {
-//                     // Puede pasar si los modelos están desincronizados. Continuamos para corregirlo.
-//                     System.err.println("WARN [actualizarMiniaturas]: Inconsistencia de índice detectada. Procediendo a reconstruir miniaturas.");
-//                 }
-//             }
-//         }
-//         // --- FIN NUEVA SECCIÓN ---
-//         
-//
-//         // 1.3. Obtener el modelo principal de datos y su tamaño.
-//         final DefaultListModel<String> modeloPrincipal = model.getModeloLista(); // 'final' para acceso en lambda
-//         final int totalPrincipal = modeloPrincipal.getSize();                     // 'final' para acceso en lambda
-//         System.out.println("  [actualizarMiniaturas] Tamaño modeloPrincipal: " + totalPrincipal);
-//
-//         // 1.4. Manejar caso de lista principal vacía o índice principal inválido.
-//         //      Si no hay datos o el índice no es válido, se programa una limpieza de la UI de miniaturas y se sale.
-//         if (totalPrincipal == 0 || indiceSeleccionadoPrincipal < 0 || indiceSeleccionadoPrincipal >= totalPrincipal) {
-//             System.out.println("  [actualizarMiniaturas] Índice principal inválido o lista principal vacía. Limpiando UI de miniaturas y saliendo.");
-//
-//             SwingUtilities.invokeLater(() -> {
-//                 if (view != null && registry.get("list.miniaturas") != null) {
-//                     setSincronizandoUI(true); // Proteger la UI
-//                     try {
-//                         JList<String> lMini = registry.get("list.miniaturas");
-//                         // Establecer un tamaño preferido mínimo para evitar colapso visual.
-//                         lMini.setPreferredSize(new Dimension(
-//                             lMini.getFixedCellWidth() > 0 ? lMini.getFixedCellWidth() : 50,
-//                             lMini.getFixedCellHeight() > 0 ? lMini.getFixedCellHeight() : 50
-//                         ));
-//                         view.setModeloListaMiniaturas(new DefaultListModel<>()); // Asignar modelo vacío
-//                         if (lMini.getParent() != null) {
-//                             lMini.getParent().revalidate(); // Revalidar el contenedor del wrapper
-//                         }
-//                         lMini.clearSelection();
-//                         lMini.repaint();
-//                     } finally {
-//                         // Asegurar que el flag se desactive, incluso con errores, en un invokeLater anidado.
-//                         SwingUtilities.invokeLater(() -> {
-//                             setSincronizandoUI(false);
-//                         });
-//                     }
-//                 }
-//             });
-//             System.out.println("--- FIN actualizarModeloYVistaMiniaturas (Caso Vacío/Inválido) ---");
-//             return;
-//         }
-//
-//         // 1.5. (Fuera del EDT aún) Preparar lista de todas las rutas para un precalentamiento general si se desea.
-//         //      Esto es opcional y podría hacerse de forma más selectiva.
-//         // List<Path> todasLasRutasParaPrecalentar = new ArrayList<>();
-//         // for (int i = 0; i < totalPrincipal; i++) {
-//         //     Path ruta = model.getRutaCompleta(modeloPrincipal.getElementAt(i));
-//         //     if (ruta != null) todasLasRutasParaPrecalentar.add(ruta);
-//         // }
-//         // precalentarCacheMiniaturasAsync(todasLasRutasParaPrecalentar); // Podría ser demasiado si la lista es enorme.
-//
-//         // --- SECCIÓN 2: PROGRAMAR ACTUALIZACIÓN DE UI EN EL EVENT DISPATCH THREAD (EDT) ---
-//         //      Toda la lógica de cálculo de rango, construcción del modelo de miniaturas,
-//         //      y actualización de la JList se hará dentro del invokeLater.
-//
-//         // 2.1. Declarar variables finales para que sean accesibles dentro de la lambda.
-//         final int finalIndiceSeleccionadoPrincipal = indiceSeleccionadoPrincipal;
-//         System.out.println("  [actualizarMiniaturas] Programando actualización de UI en EDT para índice principal: " + finalIndiceSeleccionadoPrincipal);
-//
-//         SwingUtilities.invokeLater(() -> { // Inicio de la lambda que se ejecuta en el EDT
-//
-//             // --- SECCIÓN 3: VALIDACIONES Y PREPARACIÓN DENTRO DEL EDT ---
-//
-//             // 3.1. Log de inicio de la ejecución en el EDT.
-//             //System.out.println("   -> [EDT Miniaturas Update] Ejecutando actualización UI...");
-//
-//             // 3.2. Re-validar dependencias críticas (Vista, JList de miniaturas, Coordinador) DENTRO del EDT.
-//             //      Es una buena práctica por si el estado de la aplicación hubiera cambiado.
-//             if (view == null || registry.get("list.miniaturas") == null || model == null) {
-//                 System.err.println("ERROR [actualizarMiniaturas EDT]: Dependencias nulas en invokeLater. Abortando.");
-//                 return;
-//             }
-//
-//             // 3.3. Establecer flag para evitar bucles de eventos de selección.
-//             setSincronizandoUI(true);
-//             System.out.println("   -> [EDT Miniaturas Update] Flag sincronizandoUI puesto a TRUE.");
-//
-//             try { // Bloque try-finally para asegurar que el flag sincronizandoUI se desactive.
-//
-//                 // --- SECCIÓN 4: CÁLCULO DINÁMICO DEL RANGO DE MINIATURAS (DENTRO DEL EDT) ---
-//
-//                 // 4.1. Llamar a `calcularNumMiniaturasDinamicas()`. Este método ahora leerá
-//                 //      las dimensiones del viewport del JScrollPane en el EDT, que deberían ser las más actuales.
-//                 RangoMiniaturasCalculado rangoDinamico = controller.calcularNumMiniaturasDinamicas();
-//                 int miniAntesDinamicas = rangoDinamico.antes;
-//                 int miniDespuesDinamicas = rangoDinamico.despues;
-//                 System.out.println("   -> [EDT Miniaturas Update] Rango dinámico calculado -> Antes: " + miniAntesDinamicas + ", Despues: " + miniDespuesDinamicas);
-//
-//                 // 4.2. Calcular los índices de inicio y fin del rango en el modelo PRINCIPAL
-//                 //      usando los valores dinámicos obtenidos.
-//                 int inicioRango = Math.max(0, finalIndiceSeleccionadoPrincipal - miniAntesDinamicas);
-//                 int finRango = Math.min(totalPrincipal - 1, finalIndiceSeleccionadoPrincipal + miniDespuesDinamicas);
-//                 System.out.println("   -> [EDT Miniaturas Update] Rango final en modelo principal: [" + inicioRango + ".." + finRango + "]");
-//
-//
-//                 // --- SECCIÓN 5: CONSTRUCCIÓN DEL NUEVO MODELO PARA LA JLIST DE MINIATURAS (DENTRO DEL EDT) ---
-//
-//                 // 5.1. Crear un nuevo `DefaultListModel` que contendrá solo las claves de las miniaturas a mostrar.
-//                 DefaultListModel<String> nuevoModeloParaLaVista = new DefaultListModel<>();
-//                 // 5.2. Inicializar el índice que estará seleccionado DENTRO de este nuevo modelo de miniaturas.
-//                 int indiceRelativoSeleccionadoEnNuevoModelo = -1;
-//                 // 5.3. Preparar lista de Paths para el precalentamiento selectivo del caché.
-//                 List<Path> rutasEnRangoVisible = new ArrayList<>();
-//
-//                 System.out.println("   -> [EDT Miniaturas Update] Llenando nuevo modelo de miniaturas...");
-//                 // 5.4. Iterar sobre el rango calculado y poblar el nuevo modelo.
-//                 for (int i = inicioRango; i <= finRango; i++) {
-//                     String clave = modeloPrincipal.getElementAt(i); // Obtener clave del modelo principal
-//                     nuevoModeloParaLaVista.addElement(clave);       // Añadir al nuevo modelo de miniaturas
-//
-//                     Path ruta = model.getRutaCompleta(clave);
-//                     if (ruta != null) {
-//                         rutasEnRangoVisible.add(ruta); // Añadir a la lista para precalentar
-//                     }
-//
-//                     // 5.5. Si el índice actual (i) del modelo principal es el que queremos seleccionar,
-//                     //      calcular su posición RELATIVA en el `nuevoModeloParaLaVista`.
-//                     if (i == finalIndiceSeleccionadoPrincipal) {
-//                         indiceRelativoSeleccionadoEnNuevoModelo = nuevoModeloParaLaVista.getSize() - 1;
-//                     }
-//                 }
-//                 System.out.println("   -> [EDT Miniaturas Update] Nuevo modelo de miniaturas llenado. Tamaño: "
-//                                  + nuevoModeloParaLaVista.getSize() + ". Índice relativo seleccionado: " + indiceRelativoSeleccionadoEnNuevoModelo);
-//
-//                 // --- SECCIÓN 6: PRE-CALENTAMIENTO SELECTIVO DEL CACHÉ DE MINIATURAS (DENTRO DEL EDT, PERO LANZA TAREAS BG) ---
-//                 //      Llamar a precalentar solo para las miniaturas que estarán en el rango visible.
-//                 controller.precalentarCacheMiniaturasAsync(rutasEnRangoVisible);
-//
-//
-//                 // --- SECCIÓN 7: ACTUALIZACIÓN DE LA JLIST DE MINIATURAS EN LA VISTA (DENTRO DEL EDT) ---
-//                 JList<String> listaMiniaturasEnVista = registry.get("list.miniaturas");
-//
-//                 // 7.1. Actualizar el `PreferredSize` de la `JList` de miniaturas ANTES de cambiar su modelo.
-//                 //      Esto es crucial para que el `FlowLayout` del panel wrapper (`wrapperListaMiniaturas`)
-//                 //      pueda centrar la `JList` correctamente si esta es más estrecha que el wrapper.
-//                 int cellWidthActual = listaMiniaturasEnVista.getFixedCellWidth();
-//                 int cellHeightActual = listaMiniaturasEnVista.getFixedCellHeight();
-//
-//                 if (cellWidthActual > 0 && cellHeightActual > 0) { // Solo si las celdas tienen tamaño válido
-//                     int numItemsEnNuevoModelo = nuevoModeloParaLaVista.getSize();
-//                     int nuevoAnchoPreferido = numItemsEnNuevoModelo * cellWidthActual;
-//                     // Asegurar un ancho mínimo si el modelo está vacío (para evitar colapso a 0)
-//                     if (numItemsEnNuevoModelo == 0) {
-//                         nuevoAnchoPreferido = cellWidthActual;
-//                     }
-//                     Dimension nuevoTamanoPreferido = new Dimension(nuevoAnchoPreferido, cellHeightActual);
-//
-//                     // Cambiar el PreferredSize solo si es diferente, para evitar revalidaciones innecesarias.
-//                     if (!nuevoTamanoPreferido.equals(listaMiniaturasEnVista.getPreferredSize())) {
-//                         listaMiniaturasEnVista.setPreferredSize(nuevoTamanoPreferido);
-//                         System.out.println("   -> [EDT Miniaturas Update] PreferredSize de JList miniaturas actualizado a: " + nuevoTamanoPreferido);
-//
-//                         // Revalidar el panel contenedor de la JList (el wrapper con FlowLayout)
-//                         // para que el FlowLayout se reajuste.
-//                         if (listaMiniaturasEnVista.getParent() != null) {
-//                             listaMiniaturasEnVista.getParent().revalidate();
-//                         }
-//                     }
-//                 }
-//
-//                 // 7.2. Asignar el nuevo modelo de datos (`nuevoModeloParaLaVista`) a la `JList`.
-//                 //      Hacerlo solo si el modelo es realmente diferente para evitar eventos extra.
-//                 if (listaMiniaturasEnVista.getModel() != nuevoModeloParaLaVista) {
-//                     view.setModeloListaMiniaturas(nuevoModeloParaLaVista);
-//                     // El método setModeloListaMiniaturas en VisorView ya debería imprimir su propio log.
-//                 }
-//
-//                 // 7.3. Establecer la selección en la `JList` de miniaturas.
-//                 //      Usar el `indiceRelativoSeleccionadoEnNuevoModelo` calculado anteriormente.
-//                 if (indiceRelativoSeleccionadoEnNuevoModelo >= 0 &&
-//                     indiceRelativoSeleccionadoEnNuevoModelo < nuevoModeloParaLaVista.getSize()) {
-//                     // Cambiar la selección solo si es diferente a la actual en la JList
-//                     if (listaMiniaturasEnVista.getSelectedIndex() != indiceRelativoSeleccionadoEnNuevoModelo) {
-//                         listaMiniaturasEnVista.setSelectedIndex(indiceRelativoSeleccionadoEnNuevoModelo);
-//                         System.out.println("   -> [EDT Miniaturas Update] setSelectedIndex(" + indiceRelativoSeleccionadoEnNuevoModelo + ") en JList miniaturas.");
-//                     }
-//                 } else {
-//                     // Si el índice relativo no es válido (ej. lista vacía), limpiar la selección.
-//                     if (listaMiniaturasEnVista.getSelectedIndex() != -1) {
-//                         listaMiniaturasEnVista.clearSelection();
-//                     }
-//                     System.err.println("WARN [actualizarMiniaturas EDT]: Índice relativo inválido para selección en JList: " + indiceRelativoSeleccionadoEnNuevoModelo);
-//                 }
-//
-//                 // 7.4. Asegurar visibilidad del ítem seleccionado y repintar.
-//                 //      Llamar a ensureIndexIsVisible DESPUÉS de que el layout haya tenido oportunidad de ajustarse.
-//                 //      Un invokeLater anidado puede ayudar aquí, pero primero probemos sin él.
-//                 //      El repintado es importante para que los cambios sean visibles.
-//                 if (indiceRelativoSeleccionadoEnNuevoModelo != -1) {
-//                     try {
-//                         listaMiniaturasEnVista.ensureIndexIsVisible(indiceRelativoSeleccionadoEnNuevoModelo);
-//                     } catch (Exception ex) {
-//                         System.err.println("ERROR ensureIndexIsVisible(Miniaturas): " + ex.getMessage());
-//                     }
-//                 }
-//                 listaMiniaturasEnVista.repaint();
-//
-//             } finally {
-//                 // --- SECCIÓN 8: DESACTIVACIÓN DEL FLAG DE SINCRONIZACIÓN (DENTRO DEL EDT) ---
-//                 // 8.1. Usar un invokeLater anidado para asegurar que se desactive después
-//                 //      de que todos los eventos de cambio de modelo/selección se hayan procesado.
-//                 SwingUtilities.invokeLater(() -> {
-//                         setSincronizandoUI(false);
-//                         // El método setSincronizandoUI ya tiene su propio log.
-//                 });
-//             } // Fin del bloque try-finally principal del EDT
-//
-//             // 3.4. Log final de la ejecución en el EDT.
-//             System.out.println("   -> [EDT Miniaturas Update] FIN Ejecución actualización UI.");
-//
-//         }); // Fin del SwingUtilities.invokeLater principal
-//
-//         // --- SECCIÓN 9: LOG FINAL DEL MÉTODO (Fuera del EDT) ---
-//         System.out.println("--- FIN actualizarModeloYVistaMiniaturas ---");
-//
-//     } // --- Fin del metodo actualizarModeloYVistaMiniaturas
-    
     
 // ************************************************************************** FIN ACTUALIZACION BARRA DE MINIATURAS    
     
@@ -1355,11 +1072,11 @@ public class ListCoordinator {
     } // --- FIN sincronizarListaUI ---    
     
     
-    public synchronized void forzarActualizacionEstadoNavegacion() {
-        System.out.println("  [ListCoordinator] Forzando actualización del estado enabled de navegación.");
-        actualizarEstadoEnabledAccionesNavegacion();
-        actualizarEstadoDeTodasLasAccionesContextuales();
-    }    
+//    public synchronized void forzarActualizacionEstadoNavegacion() {
+//        System.out.println("  [ListCoordinator] Forzando actualización del estado enabled de navegación.");
+//        actualizarEstadoEnabledAccionesNavegacion();
+//        actualizarEstadoDeTodasLasAccionesContextuales();
+//    }    
     
     
     /**
@@ -1598,14 +1315,12 @@ public class ListCoordinator {
         return sincronizandoUI;
     }
 
-    
-    //FIXME hacer este metodo private
-    synchronized void setSincronizandoUI(boolean sincronizando) { // Setter
-         System.out.println("    [Coordinator Flag] sincronizandoUI -> " + sincronizando); // Log útil
+    @Override
+    public synchronized void setSincronizandoUI(boolean sincronizando) {
+        System.out.println("    [Coordinator Flag] sincronizandoUI -> " + sincronizando);
         this.sincronizandoUI = sincronizando;
-    }
+    } // --- Fin del método setSincronizandoUI ---
 
-    
     /**
      * Navega directamente a un índice específico en la lista principal (listaNombres).
      * Valida el índice proporcionado antes de intentar cambiar la selección.
@@ -1735,13 +1450,37 @@ public class ListCoordinator {
     }
     
     
+    @Override
     public synchronized void forzarActualizacionEstadoAcciones() {
         System.out.println("  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...");
         actualizarEstadoEnabledAccionesNavegacion();
         actualizarEstadoDeTodasLasAccionesContextuales();
         System.out.println("  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.");
-    }
+    } // --- Fin del método forzarActualizacionEstadoAcciones ---
     
+    
+ // --- INICIO DE LA MODIFICACIÓN: Setters para inyección de dependencias ---
+    public void setModel(VisorModel model) {
+        this.model = Objects.requireNonNull(model, "VisorModel no puede ser null");
+    }
+
+    public void setView(VisorView view) {
+        this.view = Objects.requireNonNull(view, "VisorView no puede ser null");
+    }
+
+    public void setController(VisorController controller) {
+        this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null");
+        // Una vez que tenemos el controlador, podemos obtener la configuración
+        if (this.controller.getConfigurationManager() != null) {
+            this.pageScrollIncrement = this.controller.getConfigurationManager().getInt(
+                ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10
+            );
+        }
+    }
+
+    public void setRegistry(ComponentRegistry registry) {
+        this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null");
+    }
     
 }    
     

@@ -1,0 +1,186 @@
+================================================================================
+PLAN DE IMPLEMENTACIÓN: MEJORA DE RENDIMIENTO Y FLUIDEZ (LA FASE DE "MANEJO")
+================================================================================
+
+OBJETIVO PRINCIPAL:
+Transformar la experiencia de usuario del visualizador de "funcional" a "excepcional". Se busca eliminar cualquier latencia en las interacciones núcleo (zoom, paneo) y asegurar la estabilidad de la aplicación a largo plazo mediante una gestión de memoria inteligente.
+
+TERMINOLOGÍA:
+- "AffineTransform": Objeto de Java 2D que representa una transformación geométrica (escalado, traslación, rotación). Se aplicará al `Graphics2D` para un renderizado acelerado por hardware.
+- "LruCache": (Least Recently Used Cache) Una estructura de datos que almacena un número limitado de elementos, descartando automáticamente los menos usados cuando se alcanza el límite.
+- "ImageDisplayPanel": El `JPanel` personalizado responsable de pintar la imagen principal.
+- "ThumbnailService": El servicio responsable de generar y cachear las miniaturas.
+
+======================================================================
+FASE 1: FLUIDEZ INSTANTÁNEA - REFACTORIZACIÓN A `AFFINETRANSFORM`
+======================================================================
+Propósito: Reemplazar el re-escalado de imágenes basado en CPU (`ImageDisplayUtils.escalar`) por un renderizado basado en transformaciones de `Graphics2D`, resultando en un zoom y paneo instantáneos.
+
+1.1. Modificar `VisorModel` para almacenar la transformación:
+   - Clase a modificar: `modelo/VisorModel.java`
+   - Tarea:
+     - Los campos `zoomFactor`, `imageOffsetX`, `imageOffsetY` ya existen y son suficientes. No se requieren cambios en el modelo.
+
+1.2. Modificar `ImageDisplayPanel` para renderizar con `AffineTransform`:
+   - Clase a modificar: `vista/panels/ImageDisplayPanel.java`
+   - Tarea:
+     - Eliminar el campo `private Image imagenEscalada;`.
+     - Añadir un campo `private BufferedImage imagenOriginal;`.
+     - Renombrar el método `setImagenEscalada(...)` a `setImagen(BufferedImage imagenOriginal)`. Su única función será guardar la imagen original en el nuevo campo y llamar a `repaint()`.
+     - Sobrescribir el método `paintComponent(Graphics g)` con la siguiente lógica:
+       1. Llamar a `super.paintComponent(g)`.
+       2. Comprobar si `imagenOriginal` es nula. Si lo es, mostrar mensaje de "cargando" y salir.
+       3. Crear una instancia de `Graphics2D` a partir de `g`.
+       4. Opcional: Activar `RenderingHints` para mejorar la calidad del escalado (ej. `KEY_INTERPOLATION`, `VALUE_INTERPOLATION_BILINEAR`).
+       5. Crear una nueva `AffineTransform`.
+       6. Aplicar la traslación del paneo al `AffineTransform` usando los offsets del `VisorModel`.
+       7. Aplicar el escalado del zoom al `AffineTransform` usando el `zoomFactor` del `VisorModel`.
+       8. Dibujar la `imagenOriginal` (no la escalada) usando el método `g2d.drawImage(imagenOriginal, at, null)`.
+       9. Llamar a `g2d.dispose()`.
+
+1.3. Adaptar `ZoomManager` y `VisorController` para usar la nueva lógica:
+   - Clases a modificar: `controlador/managers/ZoomManager.java`, `controlador/VisorController.java`
+   - Tarea:
+     - En `ZoomManager.refrescarVistaSincrono()`:
+       - Eliminar la creación y escalado de la imagen.
+       - El método solo debe obtener el `ImageDisplayPanel` del registro y llamar a su método `repaint()`.
+     - En `VisorController.actualizarImagenPrincipal()`:
+       - Dentro del `SwingWorker`, cuando se obtiene el `BufferedImage` cargado (`finalImagenCargada`), este se debe pasar directamente al `ImageDisplayPanel` usando su nuevo método `setImagen(finalImagenCargada)`, además de guardarlo en el modelo con `model.setCurrentImage(...)`.
+
+=======================================================================
+FASE 2: ESTABILIDAD A LARGO PLAZO - IMPLEMENTAR `LRUCACHE`
+=======================================================================
+Propósito: Reemplazar el `Map` ilimitado del `ThumbnailService` por un `LruCache` para controlar el uso de memoria y prevenir ralentizaciones y errores `OutOfMemoryError` en sesiones largas.
+
+2.1. Crear la clase `LruCache`:
+   - Clase a crear: `servicios/cache/LruCache.java` (o en un paquete similar).
+   - Tarea:
+     - Crear una nueva clase pública y genérica: `public class LruCache<K, V> extends LinkedHashMap<K, V>`.
+     - Añadir un campo `private final int maxSize;`.
+     - Implementar un constructor que acepte `maxSize`, llame a `super(maxSize, 0.75f, true)` y guarde el tamaño máximo.
+     - Sobrescribir el método `protected boolean removeEldestEntry(Map.Entry<K, V> eldest)` para que devuelva `size() > maxSize`.
+
+2.2. Integrar `LruCache` en `ThumbnailService`:
+   - Clase a modificar: `servicios/image/ThumbnailService.java`.
+   - Tarea:
+     - En `ConfigurationManager`, añadir una nueva clave por defecto: `cache.miniaturas.max_size = 200`.
+     - En el constructor de `ThumbnailService`, leer este valor de la configuración.
+     - Cambiar la inicialización de los mapas de caché:
+       - **Antes:** `this.cacheMiniaturasNormales = new HashMap<>();`
+       - **Después:** `this.cacheMiniaturasNormales = new LruCache<>(tamañoLeidoDeConfig);`
+     - Aplicar el mismo cambio para cualquier otro caché de miniaturas que exista (ej. para miniaturas seleccionadas).
+     - El resto del código del servicio (`put`, `get`) no necesita cambios, ya que `LruCache` se comporta como un `Map`.
+
+=======================================================================
+FIN DEL PLAN
+=======================================================================
+
+
+======================================================================
+HOJA DE RUTA COMPLETA DEL PROYECTO: VISOR/CATALOGADOR 3D
+======================================================================
+
+FILOSOFÍA DEL PROYECTO: 
+Construir una herramienta de nivel profesional para la búsqueda y gestión de referencias visuales 3D. La prioridad es: 1º Fluidez y Estabilidad, 2º Funcionalidad Clave, 3º Inteligencia de UI y Pulido.
+
+---
+
+----------------------------------------------------------------------
+ETAPA 1: MEJORAR EL MANEJO (LA BASE DE RENDIMIENTO)
+----------------------------------------------------------------------
+
+Objetivo: Crear una experiencia de visualización núcleo que sea instantánea, fluida y estable, sin importar la cantidad de imágenes.
+
+FASE 1.1: FLUIDEZ INSTANTÁNEA - REFACTORIZACIÓN A `AFFINETRANSFORM`
+- Propósito: Eliminar la latencia en el zoom y paneo.
+- Tareas:
+  1. Modificar `ImageDisplayPanel` para que renderice la imagen original usando `AffineTransform` en su método `paintComponent`.
+  2. Eliminar el re-escalado de imagen por CPU (`ImageDisplayUtils.escalar`) del flujo de `ZoomManager` y `VisorController`.
+  3. El `VisorController` pasará el `BufferedImage` original directamente al `ImageDisplayPanel`. `ZoomManager` solo tendrá que solicitar un `repaint()`.
+
+FASE 1.2: ESTABILIDAD A LARGO PLAZO - IMPLEMENTAR `LRUCACHE`
+- Propósito: Controlar el uso de memoria para prevenir errores y ralentizaciones.
+- Tareas:
+  1. Crear una clase `LruCache` genérica que extienda `LinkedHashMap`.
+  2. En `ThumbnailService`, reemplazar los `HashMap` de los cachés por instancias del nuevo `LruCache`.
+  3. Añadir una clave en `config.cfg` para que el tamaño máximo del caché sea configurable (ej. `cache.miniaturas.max_size = 200`).
+
+---
+
+----------------------------------------------------------------------
+ETAPA 2: MEJORAR LOS PROYECTOS (LA FUNCIONALIDAD CLAVE MVP)
+----------------------------------------------------------------------
+
+Objetivo: Implementar la primera versión del Gestor de Proyectos, permitiendo al usuario agrupar imágenes de referencia de forma persistente.
+
+FASE 2.1: MARCADO Y PERSISTENCIA TEMPORAL
+- Propósito: Permitir la selección de imágenes para un proyecto.
+- Tareas:
+  1. Implementar la `Action` "Marcar/Desmarcar para Proyecto".
+  2. Crear un `ProjectManager` que, al marcar una imagen, añada su ruta a un archivo temporal (ej. `seleccion_actual.txt`). Al desmarcar, la elimina.
+  3. El `ProjectManager` debe poder leer este archivo temporal para saber qué imágenes están marcadas.
+
+FASE 2.2: VISTA DE PROYECTO
+- Propósito: Visualizar las imágenes marcadas.
+- Tareas:
+  1. Crear un `ProjectBuilder` que construya el panel para la vista de proyectos.
+  2. La `Action` "Ver Proyecto" llamará a `viewManager.cambiarAVista("VISTA_PROYECTOS")`.
+  3. Al entrar en esta vista, el modelo de la lista se poblará leyendo las rutas del archivo TXT del `ProjectManager`.
+
+FASE 2.3: GUARDADO DE PROYECTOS
+- Propósito: Permitir guardar y cargar diferentes proyectos.
+- Tareas:
+  1. Implementar las `Actions` "Guardar Proyecto Como..." y "Abrir Proyecto".
+  2. "Guardar Proyecto" pedirá un nombre al usuario y copiará el `seleccion_actual.txt` a un archivo con ese nombre (ej. `trofeo_blood_bowl.proj`).
+  3. "Abrir Proyecto" permitirá al usuario seleccionar un archivo `.proj` y copiará su contenido al `seleccion_actual.txt`, refrescando la vista de proyecto.
+
+---
+
+----------------------------------------------------------------------
+ETAPA 3: MEJORAR LA APLICACIÓN (LA UI INTELIGENTE Y PULIDA)
+----------------------------------------------------------------------
+
+Objetivo: Hacer que la interfaz sea más adaptable, inteligente y agradable de usar.
+
+FASE 3.1: IMPLEMENTAR LÓGICA DE UI RESPONSIVA
+- Propósito: Que la UI se adapte al tamaño de la ventana.
+- Tareas:
+  1. Implementar el patrón `ComponentListener` + `Timer` "debounce" en `VisorController` para detectar el fin del redimensionamiento.
+  2. El `Timer` llamará a un método que orqueste la actualización de las vistas (miniaturas y zoom).
+  3. Modificar `calcularNumMiniaturasDinamicas` para que el cálculo se base en el ancho de la celda definido en la configuración.
+
+FASE 3.2: IMPLEMENTAR LÓGICA DE UI CONTEXTUAL
+- Propósito: Añadir detalles de UX que mejoren la usabilidad.
+- Tareas:
+  1. En `ViewManager`, implementar la ocultación automática del panel de nombres de archivo si la ventana es demasiado estrecha.
+  2. Implementar la "Barra Salvavidas" en `ViewBuilder` y la lógica en `ViewManager` para mostrar botones de emergencia cuando sus contrapartes principales (barra de menú, etc.) se ocultan.
+
+---
+
+----------------------------------------------------------------------
+ETAPA 4: FUNCIONALIDAD AVANZADA (EL SIGUIENTE NIVEL)
+----------------------------------------------------------------------
+
+Objetivo: Evolucionar la aplicación de un visor a una completa herramienta de gestión y búsqueda.
+
+FASE 4.1: BÚSQUEDA POR TEXTO EFICIENTE
+- Propósito: Permitir filtrar la lista de archivos en tiempo real.
+- Tareas:
+  1. Añadir un `JTextField` a la UI para la búsqueda.
+  2. Usar un `DocumentListener` y la clase `RowFilter` para filtrar la `JList` de nombres sin modificar el modelo de datos subyacente.
+
+FASE 4.2: EL CATALOGADOR (BASE DE DATOS)
+- Propósito: Implementar un sistema de etiquetado (tags) para una búsqueda semántica.
+- Tareas:
+  1. Investigar e integrar una base de datos embebida (recomendación: SQLite).
+  2. Crear un `CatalogService` para abstraer las operaciones con la base de datos (añadir tag, buscar por tag, etc.).
+  3. Diseñar una UI para añadir y gestionar tags en la imagen seleccionada.
+  4. Modificar la lógica de búsqueda para que pueda consultar al `CatalogService`.
+
+FASE 4.3: OTROS MODOS DE VISUALIZACIÓN
+- Propósito: Añadir más formas de visualizar las colecciones.
+- Tareas:
+  1. Vista de Grid: Crear una nueva "tarjeta" en el `CardLayout` que muestre las imágenes en una cuadrícula.
+  2. Modo Carrusel/Presentación: Implementar una funcionalidad que avance automáticamente a la siguiente imagen cada X segundos.
+
+---

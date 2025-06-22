@@ -17,29 +17,43 @@ import java.util.Set;
 
 import javax.swing.JOptionPane;
 
-public class ProjectManager {
+import controlador.managers.interfaces.IProjectManager;
 
-    private Path archivoSeleccionActualPath; // Ruta al archivo .txt que guarda la selección actual
-    private Set<Path> rutasAbsolutasMarcadas; // Almacena los Path absolutos de las imágenes marcadas
-    private final ConfigurationManager configManager;
+public class ProjectManager implements IProjectManager {
 
-    public ProjectManager(ConfigurationManager configManager) {
-        this.configManager = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null en ProjectManager");
+    private Path archivoSeleccionActualPath;
+    private Set<Path> rutasAbsolutasMarcadas;
+    private ConfigurationManager configManager;
+
+    /**
+     * Constructor refactorizado. Ahora es un constructor simple, sin parámetros.
+     * Las dependencias se inyectan a través de setters.
+     */
+    public ProjectManager() {
         this.rutasAbsolutasMarcadas = new HashSet<>();
-        inicializarRutaArchivoSeleccion(); // Determina y carga el archivo de selección por defecto
-        System.out.println("[ProjectManager] Instancia creada. Selección actual desde: " + this.archivoSeleccionActualPath.toAbsolutePath());
+    } // --- Fin del método ProjectManager (constructor) ---
+
+    /**
+     * Inicializa el manager después de que las dependencias han sido inyectadas.
+     * Debe ser llamado desde AppInitializer.
+     */
+    public void initialize() {
+        if (this.configManager == null) {
+            throw new IllegalStateException("ProjectManager no puede inicializarse sin ConfigurationManager.");
+        }
+        inicializarRutaArchivoSeleccion();
+        System.out.println("[ProjectManager] Instancia inicializada. Selección actual desde: " + (this.archivoSeleccionActualPath != null ? this.archivoSeleccionActualPath.toAbsolutePath() : "N/A"));
         System.out.println("  -> Imágenes marcadas inicialmente: " + this.rutasAbsolutasMarcadas.size());
-    }
+    } // --- Fin del método initialize ---
 
     private void inicializarRutaArchivoSeleccion() {
         String carpetaBaseProyectosStr = this.configManager.getString(
-        		ConfigKeys.PROYECTOS_CARPETA_BASE,
-            ".project_selections" // Default si la clave no está en config
+            ConfigKeys.PROYECTOS_CARPETA_BASE,
+            ".project_selections"
         );
         Path carpetaBaseProyectos = Paths.get(carpetaBaseProyectosStr);
 
         if (!carpetaBaseProyectos.isAbsolute()) {
-            // Si es relativa, resolver desde el home del usuario para consistencia
             String userHome = System.getProperty("user.home");
             carpetaBaseProyectos = Paths.get(userHome, ".miVisorImagenesApp", carpetaBaseProyectosStr).toAbsolutePath();
         }
@@ -56,22 +70,22 @@ public class ProjectManager {
         }
 
         String nombreArchivoSeleccion = this.configManager.getString(
-        		ConfigKeys.PROYECTOS_ARCHIVO_TEMPORAL,
-            "seleccion_actual_rutas.txt" // Default si la clave no está en config
+            ConfigKeys.PROYECTOS_ARCHIVO_TEMPORAL,
+            "seleccion_actual_rutas.txt"
         );
         this.archivoSeleccionActualPath = carpetaBaseProyectos.resolve(nombreArchivoSeleccion);
-        cargarDesdeArchivo(this.archivoSeleccionActualPath); // Cargar al inicializar
-    }
+        cargarDesdeArchivo(this.archivoSeleccionActualPath);
+    } // --- Fin del método inicializarRutaArchivoSeleccion ---
 
     private void cargarDesdeArchivo(Path rutaArchivo) {
-        this.rutasAbsolutasMarcadas.clear(); // Limpiar antes de cargar
+        this.rutasAbsolutasMarcadas.clear();
         if (Files.exists(rutaArchivo) && Files.isReadable(rutaArchivo)) {
             try (BufferedReader reader = Files.newBufferedReader(rutaArchivo)) {
                 String linea;
                 int count = 0;
                 while ((linea = reader.readLine()) != null) {
                     String rutaStr = linea.trim();
-                    if (!rutaStr.isEmpty() && !rutaStr.startsWith("#")) { // Ignorar comentarios y vacías
+                    if (!rutaStr.isEmpty() && !rutaStr.startsWith("#")) {
                         try {
                             this.rutasAbsolutasMarcadas.add(Paths.get(rutaStr));
                             count++;
@@ -87,9 +101,9 @@ public class ProjectManager {
         } else {
             System.out.println("  [ProjectManager] Archivo de selección no encontrado o no legible: " + rutaArchivo + ". Se iniciará con selección vacía.");
         }
-    }
+    } // --- Fin del método cargarDesdeArchivo ---
 
-    private void guardarAArchivo() { // Ya no necesita parámetros, usa los campos de instancia
+    private void guardarAArchivo() {
         if (this.archivoSeleccionActualPath == null) {
             System.err.println("ERROR [PM guardar]: archivoSeleccionActualPath es null. No se puede guardar.");
             return;
@@ -100,7 +114,7 @@ public class ProjectManager {
             writer.write("# VisorImagenes - Selección de Proyecto (Rutas Absolutas)");
             writer.newLine();
             for (Path ruta : this.rutasAbsolutasMarcadas) {
-                writer.write(ruta.toString().replace("\\", "/")); // Normalizar a / para consistencia
+                writer.write(ruta.toString().replace("\\", "/"));
                 writer.newLine();
             }
             System.out.println("  [ProjectManager] Selección guardada en " + this.archivoSeleccionActualPath +
@@ -109,22 +123,16 @@ public class ProjectManager {
             System.err.println("ERROR [ProjectManager]: No se pudo guardar el archivo de selección: " +
                                this.archivoSeleccionActualPath + " - " + e.getMessage());
         }
-    }
+    } // --- Fin del método guardarAArchivo ---
 
-
-    /**
-     * Devuelve una lista de los Paths absolutos de todas las imágenes marcadas.
-     * @return Una nueva lista de Paths (ordenada).
-     */
+    @Override
     public List<Path> getImagenesMarcadas() {
         List<Path> sortedList = new ArrayList<>(this.rutasAbsolutasMarcadas);
-        // Ordenar Paths es un poco más complejo si quieres un orden natural de sistema de archivos
-        // Por ahora, un sort estándar de Path (que compara lexicográficamente sus strings)
         Collections.sort(sortedList);
         return sortedList;
-    }
+    } // --- Fin del método getImagenesMarcadas ---
 
-    // Placeholder para la gestión de proyectos
+    @Override
     public void gestionarSeleccionProyecto(Component parentComponent) {
         String message = "Funcionalidad para gestionar la selección de imágenes del proyecto (marcar, ver, guardar, cargar) aún no implementada.\n\n" +
                          "Actualmente se usa: " + (this.archivoSeleccionActualPath != null ? this.archivoSeleccionActualPath.toAbsolutePath() : "Ninguno") +
@@ -134,51 +142,54 @@ public class ProjectManager {
                                       "Gestión de Selección de Proyecto (Pendiente)",
                                       JOptionPane.INFORMATION_MESSAGE);
         System.out.println("[ProjectManager] Diálogo placeholder 'gestionarSeleccionProyecto' mostrado.");
-    }
-
+    } // --- Fin del método gestionarSeleccionProyecto ---
     
-    public void marcarImagenInterno(Path rutaAbsoluta) { // Renombrado a interno para evitar confusión
+    @Override
+    public void marcarImagenInterno(Path rutaAbsoluta) {
         if (rutaAbsoluta == null) return;
         if (this.rutasAbsolutasMarcadas.add(rutaAbsoluta)) {
             guardarAArchivo();
             System.out.println("  [ProjectManager] Imagen marcada (ruta abs): " + rutaAbsoluta);
         }
-    }
+    } // --- Fin del método marcarImagenInterno ---
 
-    public void desmarcarImagenInterno(Path rutaAbsoluta) { // Renombrado a interno
+    @Override
+    public void desmarcarImagenInterno(Path rutaAbsoluta) {
         if (rutaAbsoluta == null) return;
         if (this.rutasAbsolutasMarcadas.remove(rutaAbsoluta)) {
             guardarAArchivo();
             System.out.println("  [ProjectManager] Imagen desmarcada (ruta abs): " + rutaAbsoluta);
         }
-    }
-
-    /**
-     * Verifica si una imagen (dada por su Path absoluto) está actualmente marcada.
-     * @param rutaAbsolutaImagen El Path absoluto de la imagen a verificar.
-     * @return true si la imagen está marcada, false en caso contrario.
-     */    
+    } // --- Fin del método desmarcarImagenInterno ---
+    
+    @Override
     public boolean estaMarcada(Path rutaAbsolutaImagen) {
         if (rutaAbsolutaImagen == null) return false;
         return this.rutasAbsolutasMarcadas.contains(rutaAbsolutaImagen);
-    }
+    } // --- Fin del método estaMarcada ---
 
-    /**
-     * Alterna el estado de marca de una imagen (dada por su Path absoluto).
-     * @param rutaAbsolutaImagen El Path absoluto de la imagen.
-     * @return true si la imagen quedó marcada, false si quedó desmarcada.
-     */
+    @Override
     public boolean alternarMarcaImagen(Path rutaAbsolutaImagen) {
         if (rutaAbsolutaImagen == null) return false;
         boolean estabaMarcada = estaMarcada(rutaAbsolutaImagen);
         if (estabaMarcada) {
-            desmarcarImagenInterno(rutaAbsolutaImagen); // Llama al interno
-            return false; // Ahora está desmarcada
+            desmarcarImagenInterno(rutaAbsolutaImagen);
+            return false;
         } else {
-            marcarImagenInterno(rutaAbsolutaImagen);   // Llama al interno
-            return true;  // Ahora está marcada
+            marcarImagenInterno(rutaAbsolutaImagen);
+            return true;
         }
-    }
+    } // --- Fin del método alternarMarcaImagen ---
+
+    /**
+     * Inyecta el gestor de configuración.
+     * @param configManager La instancia de ConfigurationManager.
+     */
+    public void setConfigManager(ConfigurationManager configManager) {
+        this.configManager = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null en ProjectManager");
+    } // --- Fin del método setConfigManager ---
+
+} // --- FIN de la clase ProjectManager ---
 
 
     // -------------------------------------------------------------------------
@@ -357,4 +368,3 @@ public class ProjectManager {
     // -------------------------------------------------------------------------
     // --- FIN MEGACOMENTARIO ---
     // -------------------------------------------------------------------------
-}

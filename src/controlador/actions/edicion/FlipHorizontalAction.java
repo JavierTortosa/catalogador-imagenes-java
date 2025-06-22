@@ -10,18 +10,18 @@ import javax.swing.ImageIcon;
 
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
-import controlador.managers.EditionManager;
+import controlador.managers.interfaces.IEditionManager;
 import modelo.VisorModel;
 
 public class FlipHorizontalAction extends AbstractAction implements ContextSensitiveAction {
 
     private static final long serialVersionUID = 1L; // Considera generar uno nuevo
 
-    private EditionManager editionManagerRef;
+    private IEditionManager editionManagerRef;
     private VisorModel modelRef;
 
     public FlipHorizontalAction(
-            EditionManager editionManager,
+            IEditionManager editionManager,
             VisorModel model,
             String name,
             ImageIcon icon) {

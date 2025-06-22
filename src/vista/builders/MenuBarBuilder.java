@@ -23,6 +23,7 @@ import controlador.actions.config.ToggleToolbarButtonVisibilityAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
 import controlador.commands.AppActionCommands; // Asumo que lo necesitas para algún log o comparación, aunque no directamente aquí
 import controlador.managers.ViewManager;
+import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
@@ -46,20 +47,20 @@ public class MenuBarBuilder {
     // --- Clases internas
     private final ConfigurationManager configuration;
     private final VisorController controllerRef;
-    private final ViewManager viewManager;
+    private final IViewManager viewManager;
 
     /**
      * Constructor simplificado. Inicializa las estructuras internas.
      */
-    public MenuBarBuilder(VisorController controller, ConfigurationManager config, ViewManager viewManager) {
+    public MenuBarBuilder(VisorController controller, ConfigurationManager config, IViewManager viewManager) {
         this.menuItemsPorNombre = new HashMap<>();
         this.menuBar = new JMenuBar();
         this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
         this.configuration = Objects.requireNonNull(config, "ConfigurationManager no puede ser null");
-        this.viewManager = Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
+        this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null");
         // actionMap y controllerGlobalActionListener se recibirán/establecerán externamente.
         // currentButtonGroup se inicializa a null y se gestiona durante la construcción.
-    }
+    } // --- Fin del método MenuBarBuilder (constructor) ---
 
     /**
      * Establece el ActionListener global que se usará para los JMenuItems

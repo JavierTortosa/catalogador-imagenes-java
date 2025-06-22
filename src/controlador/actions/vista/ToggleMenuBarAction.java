@@ -1,16 +1,14 @@
 package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;
-import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 
-import controlador.VisorController;
-import controlador.managers.ViewManager;
+//import controlador.managers.ViewManager;
+import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 // No se necesita importar VisorView
 
@@ -21,12 +19,12 @@ public class ToggleMenuBarAction extends AbstractAction {
     private final ConfigurationManager configManagerRef;
     private final String configKeyForState;
     private final String componentIdForController; 
-    private final ViewManager viewManager;  
+    private final IViewManager viewManager;  
 
     public ToggleMenuBarAction(String name,
                                ImageIcon icon,
                                ConfigurationManager configManager,
-                               ViewManager viewManager,
+                               IViewManager viewManager,
                                String configKeyForSelectedState,
                                String componentIdentifier,
                                String actionCommandKey) {

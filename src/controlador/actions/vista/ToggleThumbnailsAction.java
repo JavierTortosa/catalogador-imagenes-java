@@ -7,12 +7,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import controlador.VisorController;
-import controlador.managers.ViewManager;
+import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
-// Ya no necesitamos ViewManager aquí si el controller hace el despacho
-// import controlador.managers.ViewManager;
-// import vista.VisorView; // No es necesaria si el controller/manager maneja la vista
 
 public class ToggleThumbnailsAction extends AbstractAction {
 
@@ -22,14 +18,14 @@ public class ToggleThumbnailsAction extends AbstractAction {
     private ConfigurationManager configManagerRef;
     private String configKeyForState;
     private String uiElementIdentifierForController; // Este es el ID que el controller usará
-    private ViewManager viewManager; // <<<< AÑADIR REFERENCIA AL CONTROLLER
+    private IViewManager viewManager; // <<<< AÑADIR REFERENCIA AL CONTROLLER
 
     // CONSTRUCTOR MODIFICADO
     public ToggleThumbnailsAction(String name,
                                ImageIcon icon,
                                // ViewManager viewManager, // Ya no se pasa directamente
                                ConfigurationManager configManager,
-                               ViewManager viewManager, // <<<< AÑADIR PARÁMETRO CONTROLLER
+                               IViewManager viewManager, // <<<< AÑADIR PARÁMETRO CONTROLLER
                                String configKeyForSelectedState,
                                String uiElementId, // Renombrado para claridad
                                String actionCommandKey) {

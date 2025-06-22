@@ -6,17 +6,17 @@ import java.util.Objects; // Para Objects.requireNonNull
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.ListCoordinator; // Nueva dependencia
+import controlador.managers.interfaces.IListCoordinator;
 import controlador.commands.AppActionCommands;
 
 public class FirstImageAction extends AbstractAction { // Ya no hereda de BaseVisorAction
 
     private static final long serialVersionUID = 1L; // Genera uno si es necesario
 
-    private ListCoordinator listCoordinator;
+    private IListCoordinator listCoordinator;
 
     // Constructor Refactorizado
-    public FirstImageAction(ListCoordinator listCoordinator, String displayName, ImageIcon icon) {
+    public FirstImageAction(IListCoordinator listCoordinator, String displayName, ImageIcon icon) {
         super(displayName, icon); // Nombre para menú/tooltip, e icono
         this.listCoordinator = Objects.requireNonNull(listCoordinator, "ListCoordinator no puede ser null en FirstImageAction");
 

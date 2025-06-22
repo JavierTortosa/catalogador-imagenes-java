@@ -6,7 +6,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 import controlador.VisorController;
-import controlador.managers.ZoomManager;
+import controlador.managers.interfaces.IZoomManager;
 import modelo.VisorModel;
 import servicios.zoom.ZoomModeEnum; 
 
@@ -15,12 +15,12 @@ public class AplicarModoZoomAction extends AbstractAction {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private ZoomManager zoomManager;
+	private IZoomManager zoomManager;
     private VisorModel modelRef;
     private VisorController controllerRef; 
     private ZoomModeEnum modoDeZoomQueRepresentaEstaAction;
 
-    public AplicarModoZoomAction(ZoomManager zoomManager, VisorModel model, VisorController controller, String name, ImageIcon icon, ZoomModeEnum modo, String actionCommandKey) {
+    public AplicarModoZoomAction(IZoomManager zoomManager, VisorModel model, VisorController controller, String name, ImageIcon icon, ZoomModeEnum modo, String actionCommandKey) {
         super(name, icon);
         this.zoomManager = Objects.requireNonNull(zoomManager);
         this.modelRef = Objects.requireNonNull(model);

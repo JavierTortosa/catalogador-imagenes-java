@@ -1,7 +1,6 @@
 package controlador;
 
 import java.awt.BorderLayout;
-// --- Imports Esenciales ---
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
@@ -47,7 +46,7 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;     // Placeholder
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -71,7 +70,8 @@ import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ViewManager;
-import controlador.managers.ZoomManager;
+import controlador.managers.interfaces.IListCoordinator;
+import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.BuscadorArchivosWorker;
 // --- Imports de Modelo, Servicios y Vista ---
@@ -105,9 +105,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private IconUtils iconUtils;					// utilidad para cargar y gestionar iconos de la aplicación
     private ThemeManager themeManager;				// Gestor de tema visual de la interfaz
     private ThumbnailService servicioMiniaturas;	// Servicio para gestionar las miniaturas
-    private ListCoordinator listCoordinator;		// El coordinador para la selección y navegación en las listas
+    private IListCoordinator listCoordinator;		// El coordinador para la selección y navegación en las listas
     private ProjectManager projectManager;			// Gestor de proyectos (imagenes favoritas)
-    private ZoomManager zoomManager;				// Responsable de los metodos de zoom
+    private IZoomManager zoomManager;				// Responsable de los metodos de zoom
     private ComponentRegistry registry;
     private InfobarImageManager infobarImageManager; 
     private InfobarStatusManager statusBarManager;
@@ -527,7 +527,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      * Espera a que el panel de la imagen tenga un tamaño válido y haya una imagen cargada,
      * y entonces fuerza un refresco del zoom y de las barras de información.
      */
-    private void configurarListenerDePrimerRenderizado() {
+    /*public-package*/ void configurarListenerDePrimerRenderizado() {
         ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
         if (displayPanel == null) {
             System.err.println("WARN [configurarListenerDePrimerRenderizado]: ImageDisplayPanel no encontrado en el registro.");
@@ -537,16 +537,18 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         displayPanel.addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
             public void componentResized(java.awt.event.ComponentEvent e) {
-                // Se activa cuando el panel es redimensionado, lo que incluye la primera vez que obtiene un tamaño.
                 if (displayPanel.getWidth() > 0 && displayPanel.getHeight() > 0 && model != null && model.getCurrentImage() != null) {
                     
-                    System.out.println("--- [Listener Primer Renderizado]: Panel listo (" + displayPanel.getWidth() + "x" + displayPanel.getHeight() + "). Forzando refresco de zoom y barras de info. ---");
+                    System.out.println("--- [Listener Primer Renderizado]: Panel listo (" + displayPanel.getWidth() + "x" + displayPanel.getHeight() + "). Forzando refresco de zoom y UI. ---");
                     
                     if (zoomManager != null) {
-                        // 1. Calcula y aplica el zoom correcto en el modelo
-                        zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
+                        // 1. Llama al método de zoom, PASANDO EL CALLBACK para sincronizar la UI.
+                        zoomManager.aplicarModoDeZoom(
+                            model.getCurrentZoomMode(), 
+                            VisorController.this::sincronizarEstadoVisualBotonesYRadiosZoom
+                        );
 
-                        // 2. Notifica a las barras para que lean el nuevo estado de zoom correcto
+                        // 2. Notifica a las barras para que lean el nuevo estado de zoom.
                         if (infobarImageManager != null) infobarImageManager.actualizar();
                         if (statusBarManager != null) statusBarManager.actualizar();
                     }
@@ -906,10 +908,17 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                         Map<String, Path> mapaResultado = worker.get();
                         if (mapaResultado != null) {
                             System.out.println("    WORKER HA TERMINADO. Número de archivos encontrados: " + mapaResultado.size());
-                            DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
+                            
+                            
                             List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
-                            java.util.Collections.sort(clavesOrdenadas);
-                            clavesOrdenadas.forEach(nuevoModeloListaPrincipal::addElement);
+                            System.out.println("    -> Ordenando " + clavesOrdenadas.size() + " claves...");
+                            java.util.Collections.sort(clavesOrdenadas); // El ordenamiento sigue siendo necesario
+
+                            System.out.println("    -> Creando modelo de lista en bloque...");
+                            java.util.Vector<String> vectorDeClaves = new java.util.Vector<>(clavesOrdenadas);
+                            DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
+                            nuevoModeloListaPrincipal.addAll(vectorDeClaves); // Usamos addAll, disponible en Java 11+ o creando el vector.
+                            System.out.println("    -> Modelo creado. Actualizando el modelo principal de la aplicación...");
                             
                             model.actualizarListaCompleta(nuevoModeloListaPrincipal, mapaResultado);
                             if (view != null) {
@@ -1510,33 +1519,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     } // --- FIN limpiarUI ---		
    
     
-//     /**
-//      * Restablece el fondo del visor a su estado POR DEFECTO, según lo define el modelo.
-//      * Lee si el fondo por defecto debe ser a cuadros o el color del tema actual
-//      * y da la orden correspondiente al ImageDisplayPanel.
-//      */
-//     public void refrescarFondoAlPorDefecto() {
-//         if (registry == null || model == null || themeManager == null) {
-//             System.err.println("WARN [refrescarFondoAlPorDefecto]: Dependencias nulas (registry, model o themeManager).");
-//             return;
-//         }
-//
-//         ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-//         if (displayPanel == null) {
-//             System.err.println("ERROR [refrescarFondoAlPorDefecto]: 'panel.display.imagen' no encontrado en el registro.");
-//             return;
-//         }
-//
-//         // Lee el estado por defecto desde el modelo
-//         if (model.isFondoACuadrosPorDefecto()) {
-//             // Si el defecto es a cuadros, le da esa orden al panel
-//             displayPanel.setCheckeredBackground(true);
-//         } else {
-//             // Si no, obtiene el color del tema actual y se lo pasa al panel
-//             Color colorTema = themeManager.getTemaActual().colorFondoSecundario();
-//             displayPanel.setSolidBackgroundColor(colorTema);
-//         }
-//     } // --- Fin del método refrescarFondoAlPorDefecto ---
+
      
 // *********************************************************************************************************** FIN DE UTILIDAD  
 // ***************************************************************************************************************************    
@@ -2569,53 +2552,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     } // --- FIN actionPerformed ---
 	
 
-//    /**
-//     * Orquesta un refresco completo de la interfaz de usuario.
-//     * Es llamado por la acción del menú "Refrescar UI".
-//     * Utiliza el ComponentRegistry y el ThemeApplier existentes para aplicar
-//     * el tema actual y repintar los componentes.
-//     */
-//    private void ejecutarRefrescoUI_() {
-//        System.out.println("\n--- [VisorController] INICIANDO REFRESCO COMPLETO DE LA UI ---");
-//
-//        // 1. Validar que las dependencias de la nueva arquitectura existan.
-//        //    El 'registry' y el 'themeManager' son inyectados por AppInitializer.
-//        if (this.registry == null || this.themeManager == null) {
-//            System.err.println("ERROR: ComponentRegistry o ThemeManager son nulos. No se puede refrescar la UI.");
-//            return;
-//        }
-//
-//        // 2. Crear una instancia de ThemeApplier al momento.
-//        //    Le pasamos el registro que el controlador ya posee.
-//        ThemeApplier themeApplier = new ThemeApplier(this.registry);
-//
-//        // 3. Obtener el tema que debe estar activo.
-//        Tema temaParaAplicar = this.themeManager.getTemaActual();
-//
-//        // 4. Programar la aplicación del tema en el EDT.
-//        SwingUtilities.invokeLater(() -> {
-//            System.out.println("-> Aplicando tema '" + temaParaAplicar.nombreDisplay() + "' a la UI existente...");
-//            
-//            // 4a. El ThemeApplier aplica los colores a los componentes "simples".
-//            themeApplier.applyTheme(temaParaAplicar);
-//            
-//            // 4b. Forzamos un refresco de los renderers "inteligentes".
-//            //     La vista todavía puede tener métodos para estas operaciones complejas.
-//            if (this.view != null) {
-//                this.view.solicitarRefrescoRenderersMiniaturas();
-//                // Si tienes un método similar para la lista de nombres, llámalo aquí también.
-//                // this.view.solicitarRefrescoRendererNombres();
-//            }
-//            
-//            // 4c. Forzar revalidación y repintado de toda la ventana.
-//            if (this.view != null) {
-//                this.view.revalidate();
-//                this.view.repaint();
-//            }
-//            
-//            System.out.println("--- REFRESCO DE UI COMPLETADO ---");
-//        });
-//    } // --- Fin del método ejecutarRefrescoUI ---
+
 
 
     /**
@@ -3032,55 +2969,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     	    return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
     	}// --- FIN del metodo calcularNumMiniaturasDinamicas ---
      
-     
-	  public void navegarSiguienteViaCoordinador() {
-	      if (listCoordinator != null) {
-	          listCoordinator.seleccionarSiguiente();
-	      } else {
-	          System.err.println("Error: ListCoordinator es null al intentar navegar siguiente.");
-	      }
-	  }
-
-	  public void navegarAnteriorViaCoordinador() {
-	      if (listCoordinator != null) {
-	          listCoordinator.seleccionarAnterior();
-	      } else {
-	          System.err.println("Error: ListCoordinator es null al intentar navegar anterior.");
-	      }
-	  }
-
-	  public void navegarPrimeroViaCoordinador() {
-	      if (listCoordinator != null) {
-	          listCoordinator.seleccionarPrimero();
-	      } else {
-	          System.err.println("Error: ListCoordinator es null al intentar navegar primero.");
-	      }
-	  }
-
-	  public void navegarUltimoViaCoordinador() {
-	      if (listCoordinator != null) {
-	          listCoordinator.seleccionarUltimo();
-	      } else {
-	          System.err.println("Error: ListCoordinator es null al intentar navegar último.");
-	      }
-	  }
-
-	// Si también tienes actions para PageUp/PageDown que llaman a ListCoordinator:
-	public void navegarBloqueSiguienteViaCoordinador() {
-	    if (listCoordinator != null) {
-	        listCoordinator.seleccionarBloqueSiguiente();
-	    } else {
-	         System.err.println("Error: ListCoordinator es null al intentar navegar bloque siguiente.");
-	    }
-	}
-
-	public void navegarBloqueAnteriorViaCoordinador() {
-	    if (listCoordinator != null) {
-	        listCoordinator.seleccionarBloqueAnterior();
-	    } else {
-	         System.err.println("Error: ListCoordinator es null al intentar navegar bloque anterior.");
-	    }
-	}	  
 
 // ***************************************************************************** FIN METODOS DE MOVIMIENTO CON LISTCOORDINATOR
 // ***************************************************************************************************************************
@@ -3201,11 +3089,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	public void setUiConfigForView(ViewUIConfig uiConfigForView) { this.uiConfigForView = uiConfigForView; }
 	public void setCalculatedMiniaturePanelHeight(int calculatedMiniaturePanelHeight) { this.calculatedMiniaturePanelHeight = calculatedMiniaturePanelHeight; }
 	public void setView(VisorView view) { this.view = view; }
-	public void setListCoordinator(ListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
+	public void setListCoordinator(IListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
 	public void setModeloMiniaturas(DefaultListModel<String> modeloMiniaturas) { this.modeloMiniaturas = modeloMiniaturas;}
 	
 	
-	public void setZoomManager(ZoomManager zoomManager) {
+	public void setZoomManager(IZoomManager zoomManager) {
 	    this.zoomManager = zoomManager;
 	}		
 
@@ -3361,7 +3249,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     public ConfigurationManager getConfigurationManager() { return configuration; }
      
      
-    public ListCoordinator getListCoordinator() {return this.listCoordinator;}
+    public IListCoordinator getListCoordinator() {return this.listCoordinator;}
 	 
     public void setConfigApplicationManager(ConfigApplicationManager manager) { this.configAppManager = manager; }
     public ConfigApplicationManager getConfigApplicationManager() { return this.configAppManager; }
@@ -3406,7 +3294,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         }
 
         //    b) El estado de los botones de navegación
-        getListCoordinator().forzarActualizacionEstadoNavegacion();
+        getListCoordinator().forzarActualizacionEstadoAcciones();
         System.out.println("    -> Forzada actualización del estado de botones de navegación.");
 
         System.out.println("[VisorController setNavegacionCircularLogicaYUi] Proceso completado.");
@@ -3894,4 +3782,3 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 
 
-//solicitarActualizacionInterfaz

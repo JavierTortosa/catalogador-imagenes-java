@@ -15,7 +15,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
 // --- SECCIÓN 0.1: IMPORTS DE COMPONENTES DEL SISTEMA ---
-import controlador.ListCoordinator;
+
 import controlador.VisorController;
 import controlador.actions.archivo.DeleteAction;
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
@@ -57,14 +57,19 @@ import controlador.actions.zoom.ToggleZoomManualAction;
 import controlador.commands.AppActionCommands;
 import controlador.imagen.LocateFileAction;
 import controlador.interfaces.ContextSensitiveAction;
-import controlador.managers.EditionManager;
+
+
 import controlador.managers.FileOperationsManager;
-import controlador.managers.ViewManager;
-import controlador.managers.ZoomManager;
+
+import controlador.managers.interfaces.IEditionManager;
+import controlador.managers.interfaces.IListCoordinator;
+import controlador.managers.interfaces.IProjectManager;
+import controlador.managers.interfaces.IViewManager;
+import controlador.managers.interfaces.IZoomManager;
+
 import modelo.VisorModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
-import servicios.ProjectManager; // El servicio de persistencia de proyectos
 import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
 import vista.config.MenuItemDefinition;
@@ -84,16 +89,16 @@ public class ActionFactory {
     private final IconUtils iconUtils;
     
     // 1.2. Referencias a Managers y Coordinadores
-    private ZoomManager zoomManager;
     private FileOperationsManager fileOperationsManager;
-    private ViewManager viewManager;
+    private IZoomManager zoomManager;
+    private IViewManager viewManager;
     private final VisorController controllerRef;
     private final ThemeManager themeManager;
     
     // private final EditionManager editionManager; // Descomentar cuando se implemente y se inyecte
-    private ListCoordinator listCoordinator;
-    private final ProjectManager projectService; // Servicio de persistencia de proyectos
-    private EditionManager editionManager;
+    private final IProjectManager projectService; // Servicio de persistencia de proyectos
+    private IListCoordinator listCoordinator;
+    private IEditionManager editionManager;
 
     // 1.3. Mapa para obtener claves de icono
     private final Map<String, String> comandoToIconKeyMap; 
@@ -121,15 +126,15 @@ public class ActionFactory {
     public ActionFactory(
     		VisorModel model, 
             VisorView view,
-            ZoomManager zoomManager, 
+            IZoomManager zoomManager, 
             FileOperationsManager fileOperationsManager,
-            EditionManager editionManager,
-            ListCoordinator listCoordinator,
+            IEditionManager editionManager,
+            IListCoordinator listCoordinator,
             IconUtils iconUtils, 
             ConfigurationManager configuration,
-            ProjectManager projectService,
+            IProjectManager projectService,
             Map<String, String> comandoToIconKeyMap,
-            ViewManager viewManager,
+            IViewManager viewManager,
             ThemeManager themeManager,
             VisorController controller
     ){ 
@@ -150,8 +155,8 @@ public class ActionFactory {
         this.contextSensitiveActions 	= new ArrayList<>(); 
         
         // this.editionManager = Objects.requireNonNull(editionManager, "EditionManager no puede ser null");
-        this.listCoordinator = listCoordinator;// 			= Objects.requireNonNull(listCoordinator, "ListCoordinator no puede ser null en ActionFactory");
-        this.projectService 			= Objects.requireNonNull(projectService, "ProjectManager (servicio) no puede ser null");
+        this.listCoordinator 			= Objects.requireNonNull(listCoordinator, "IListCoordinator no puede ser null en ActionFactory");
+        this.projectService 			= Objects.requireNonNull(projectService, "IProjectManager (servicio) no puede ser null");
         
         // 2.3. Asignar mapa de iconos.
         this.comandoToIconKeyMap 		= Objects.requireNonNull(comandoToIconKeyMap, "comandoToIconKeyMap no puede ser null");
@@ -549,10 +554,11 @@ public class ActionFactory {
     }
     private Action createCropAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_RECORTAR);
-        CropAction action = new CropAction(this.model, this.controllerRef, "Recortar", icon);
+        CropAction action = new CropAction(this.editionManager, this.model, "Recortar", icon);
+        
         this.contextSensitiveActions.add(action); // Registrarla
         return action;
-    }
+    } // --- Fin del método createCropAction ---
 
     // --- 4.6. Métodos Create para Actions de Archivo (usarán FileOperationsManager o lógica interna) ---
     private Action createOpenFileAction() {
@@ -714,10 +720,10 @@ public class ActionFactory {
     
     
     public void setView(VisorView view) { this.view = view; }
-    public void setZoomManager(ZoomManager zoomManager) { this.zoomManager = zoomManager; }
-    public void setViewManager(ViewManager viewManager) {this.viewManager = Objects.requireNonNull(viewManager);}
-    public void setEditionManager(EditionManager editionManager) {this.editionManager = Objects.requireNonNull(editionManager);}
-    public void setListCoordinator(ListCoordinator listCoordinator) {this.listCoordinator = Objects.requireNonNull(listCoordinator);}
+    public void setZoomManager(IZoomManager zoomManager) { this.zoomManager = zoomManager; }
+    public void setViewManager(IViewManager viewManager) {this.viewManager = Objects.requireNonNull(viewManager);}
+    public void setEditionManager(IEditionManager editionManager) {this.editionManager = Objects.requireNonNull(editionManager);}
+    public void setListCoordinator(IListCoordinator listCoordinator) {this.listCoordinator = Objects.requireNonNull(listCoordinator);}
     public void setFileOperationsManager(FileOperationsManager fileOperationsManager) {
         this.fileOperationsManager = Objects.requireNonNull(fileOperationsManager, "FileOperationsManager no puede ser null en setFileOperationsManager");
     }

@@ -2,17 +2,19 @@ package controlador.actions.vista;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import controlador.managers.ViewManager;
+
+import controlador.managers.interfaces.IViewManager;
 
 public class SwitchToVisualizadorAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
-    private final ViewManager viewManager;
+    private final IViewManager viewManager;
 
-    public SwitchToVisualizadorAction(String name, ImageIcon icon, ViewManager viewManager) {
+    public SwitchToVisualizadorAction(String name, ImageIcon icon, IViewManager viewManager) {
         super(name, icon);
         this.viewManager = Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
         putValue(Action.SHORT_DESCRIPTION, "Volver a la vista del Visualizador de Imágenes");

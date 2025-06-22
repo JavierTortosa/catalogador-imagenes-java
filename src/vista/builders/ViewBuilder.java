@@ -28,7 +28,9 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 import controlador.VisorController;
-import controlador.managers.ViewManager;
+// --- INICIO DE LA MODIFICACIÓN: Importar la interfaz en lugar de la clase ---
+import controlador.managers.interfaces.IViewManager;
+// --- FIN DE LA MODIFICACIÓN ---
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -43,11 +45,6 @@ import vista.theme.Tema;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
-/**
- * Fábrica responsable de construir la interfaz gráfica principal de la aplicación.
- * Centraliza la creación y el ensamblaje de todos los componentes de la UI,
- * registrándolos en un ComponentRegistry para su posterior manipulación.
- */
 public class ViewBuilder {
 
     // --- Dependencias Clave ---
@@ -55,16 +52,19 @@ public class ViewBuilder {
     private final VisorModel model;
     private final ThemeManager themeManager;
     private final ConfigurationManager configuration;
-    private final VisorController controller; // Para listeners de fallback
-    private final IconUtils iconUtils;         // Para builders de UI
-    private final UIDefinitionService uiDefService; // Para definiciones de UI
+    private final VisorController controller;
+    private final IconUtils iconUtils;
+    private final UIDefinitionService uiDefService;
     private final ThumbnailService thumbnailService;
     private final ProjectBuilder projectBuilder;
-    private ViewManager viewManager;
+
+    // --- INICIO DE LA MODIFICACIÓN: El campo ahora es de tipo IViewManager ---
+    private IViewManager viewManager;
+    // --- FIN DE LA MODIFICACIÓN ---
     
+    // --- INICIO DE LA MODIFICACIÓN: Constructor simplificado ---
     public ViewBuilder(
             ComponentRegistry registry,
-//            ActionFactory actionFactory,
             VisorModel model,
             ThemeManager themeManager,
             ConfigurationManager configuration,
@@ -72,10 +72,8 @@ public class ViewBuilder {
             IconUtils iconUtils,
             ThumbnailService thumbnailService,
             ProjectBuilder projectBuilder
-//            ,ViewManager viewManager 
         ){
         this.registry = registry;
-//        this.actionFactory = actionFactory;
         this.model = model;
         this.themeManager = themeManager;
         this.configuration = configuration;
@@ -84,20 +82,17 @@ public class ViewBuilder {
         this.uiDefService = new UIDefinitionService();
         this.thumbnailService = Objects.requireNonNull(thumbnailService);
         this.projectBuilder = Objects.requireNonNull(projectBuilder, "ProjectBuilder no puede ser null");
-//        this.viewManager = Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
+        // El viewManager ya no se inyecta aquí. Se inyectará a través del setter.
     } // --- Fin del constructor ViewBuilder ---
+    // --- FIN DE LA MODIFICACIÓN ---
 
 
-    /**
-     * MÉTODO MODIFICADO: Ahora construye la UI principal con una estructura de CardLayout
-     * para manejar múltiples vistas (Visualizador, Proyectos, etc.).
-     */
     public VisorView createMainFrame() {
         System.out.println("  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...");
 
         // --- FASE 1: Crear el contenedor principal (VisorView) ---
         VisorView mainFrame = new VisorView(
-            100, // miniaturaPanelHeight, que podría ser obsoleto o redefinido
+            100,
             this.model,
             this.thumbnailService,
             this.themeManager,
@@ -111,8 +106,6 @@ public class ViewBuilder {
 
         // --- FASE 2: CONSTRUIR Y ENSAMBLAR LAS PIEZAS DE LA UI ---
         
-        // --- 2a. ZONA NORTE (Barras de herramientas e info) ---
-        // Esta zona es común a todas las vistas, por lo que se añade directamente al JFrame.
         JPanel toolbarContainer = createToolbarContainer();
         JPanel topInfoPanel = createTopInfoPanel();
         JPanel northWrapper = new JPanel(new BorderLayout());
@@ -120,34 +113,21 @@ public class ViewBuilder {
         northWrapper.add(topInfoPanel, BorderLayout.CENTER);
         mainFrame.add(northWrapper, BorderLayout.NORTH);
         
-        // --- 2b. ZONA SUR (Barra de estado) ---
-        // También es común a todas las vistas.
         JPanel bottomStatusBar = createBottomStatusBar();
         mainFrame.add(bottomStatusBar, BorderLayout.SOUTH);
         
-        // --- 2c. ZONA CENTRAL (El Contenedor de Vistas con CardLayout) ---
-        // Este panel usará CardLayout para cambiar entre la vista del visualizador y la de proyectos.
         JPanel vistasContainer = new JPanel(new CardLayout());
         registry.register("container.vistas", vistasContainer);
 
-        // -- Construir la tarjeta/vista del "Visualizador" --
-        // Delegamos su construcción a un método helper para mantener el código limpio.
         JPanel panelVisualizador = createVisualizadorViewPanel();
-        
-        // -- Construir la tarjeta/vista de "Proyectos" --
-        // Delegamos su construcción al ProjectBuilder que recibimos en el constructor.
         JPanel panelProyectos = this.projectBuilder.buildProjectViewPanel();
 
-        // -- Añadir las tarjetas al contenedor --
-        // Les damos nombres únicos en mayúsculas para usarlos como identificadores.
         vistasContainer.add(panelVisualizador, "VISTA_VISUALIZADOR");
         vistasContainer.add(panelProyectos, "VISTA_PROYECTOS");
 
-        // -- Añadir el contenedor de vistas al centro del JFrame --
         mainFrame.add(vistasContainer, BorderLayout.CENTER);
 
         // --- FASE 3: Lógica de configuración final de la ventana ---
-        // (Esta parte no cambia)
         int x = configuration.getInt(ConfigKeys.WINDOW_X, -1);
         int y = configuration.getInt(ConfigKeys.WINDOW_Y, -1);
         int w = configuration.getInt(ConfigKeys.WINDOW_WIDTH, 1280);
@@ -164,9 +144,6 @@ public class ViewBuilder {
             SwingUtilities.invokeLater(() -> mainFrame.setExtendedState(JFrame.MAXIMIZED_BOTH));
         }
         
-        // ¡IMPORTANTE! La lógica del divisor del JSplitPane AHORA debe ejecutarse
-        // después de que el panel del visualizador (y por tanto el splitpane) sea visible.
-        // Lo dejamos aquí, ya que la vista del visualizador es la que se muestra por defecto.
         SwingUtilities.invokeLater(() -> {
             JSplitPane splitPane = registry.get("splitpane.main");
             if (splitPane != null) {
@@ -177,35 +154,22 @@ public class ViewBuilder {
 
         System.out.println("  [ViewBuilder] Frame principal construido y ensamblado.");
         return mainFrame;
-    }
+    } // --- Fin del método createMainFrame ---
     
-    /**
-     * NUEVO MÉTODO HELPER: Construye y devuelve el panel completo para la vista "Visualizador".
-     * Contiene la lógica que antes estaba en el centro del JFrame.
-     */
     private JPanel createVisualizadorViewPanel() {
         JPanel panel = new JPanel(new BorderLayout());
         
-        // El método createMainContentPanel() ahora es redundante.
-        // Ensamblamos sus partes directamente aquí.
         panel.add(createMainSplitPane(), BorderLayout.CENTER);
         panel.add(createThumbnailScrollPane(), BorderLayout.SOUTH);
         
         return panel;
-    }
-
-
-    // --- MÉTODOS DE CONSTRUCCIÓN PRIVADOS ---
+    } // --- Fin del método createVisualizadorViewPanel ---
 
 
     private JPanel createToolbarContainer() {
         JPanel toolbarContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
         toolbarContainer.setOpaque(false);
         registry.register("container.toolbars", toolbarContainer);
-
-        // La población real de las JToolBar la haría un ToolbarManager, que se crearía
-        // en el AppInitializer y usaría este contenedor. El ViewBuilder solo crea el contenedor.
-        
         return toolbarContainer;
     } // --- Fin del método createToolbarContainer ---
     
@@ -230,7 +194,6 @@ public class ViewBuilder {
 
         JList<String> fileList = new JList<>(model.getModeloLista());
         fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        // Construimos la JList con el renderer "inteligente" que depende del ThemeManager
         fileList.setCellRenderer(new NombreArchivoRenderer(themeManager));
         registry.register("list.nombresArchivo", fileList);
 
@@ -243,16 +206,13 @@ public class ViewBuilder {
     } // --- Fin del método createLeftSplitComponent ---
 
     private JScrollPane createThumbnailScrollPane() {
-        // La JList ahora se obtiene del registro, porque VisorView ya la tiene
         JList<String> thumbnailList = registry.get("list.miniaturas");
         
-        // Si no existe, es un error, pero creamos una para evitar NullPointerException
         if (thumbnailList == null) {
             thumbnailList = new JList<>();
             registry.register("list.miniaturas", thumbnailList);
         }
         
-        // Configurar el renderer con las dependencias del builder
         MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
             this.thumbnailService,
             this.model,
@@ -268,7 +228,6 @@ public class ViewBuilder {
         thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
         thumbnailList.setVisibleRowCount(-1);
 
-        // El resto del ensamblaje del panel
         JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
         wrapper.setOpaque(false);
         wrapper.add(thumbnailList);
@@ -282,47 +241,33 @@ public class ViewBuilder {
         return scrollPane;
     } // --- FIN del metodo createThumbnailScrollPane ---
     
-    
     private JPanel createRightSplitComponent() {
         JPanel rightPanel = new JPanel(new BorderLayout());
         rightPanel.setBackground(themeManager.getTemaActual().colorFondoSecundario());
         registry.register("panel.derecho.visor", rightPanel);
 
-        // 1. Crear el panel de visualización de la imagen
         ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager);
         registry.register("panel.display.imagen", imageDisplayPanel);
         registry.register("label.imagenPrincipal", imageDisplayPanel.getInternalLabel());
         
-        // Creamos un borde similar al de la lista de archivos para ver los límites.
-        TitledBorder border = BorderFactory.createTitledBorder(""); // Le damos un título
+        TitledBorder border = BorderFactory.createTitledBorder("");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
         imageDisplayPanel.setBorder(border);
         
-        
         rightPanel.add(imageDisplayPanel, BorderLayout.CENTER);
 
-        // 2. Crear el panel de controles de fondo
         JPanel backgroundControlsPanel = createBackgroundControlPanel();
         
-        // 3. Crear un panel "wrapper" para alinear los controles a la derecha
         JPanel southWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
         southWrapper.setOpaque(false);
         southWrapper.add(backgroundControlsPanel);
 
-        // 4. Añadir el wrapper con los controles a la zona SUR del panel derecho.
         rightPanel.add(southWrapper, BorderLayout.SOUTH);
 
         return rightPanel;
     } // --- FIN del metodo createRightSplitComponent ---
     
-
-    /**
-     * Crea, ensambla y registra el panel de la barra de estado inferior y todos sus componentes.
-     * @return El JPanel configurado para la barra de estado inferior.
-     */
     private JPanel createBottomStatusBar() {
-        System.out.println("    [ViewBuilder] Creando PanelEstadoInferior...");
-
         JPanel bottomStatusBar = new JPanel(new BorderLayout(5, 0));
         registry.register("panel.estado.inferior", bottomStatusBar);
 
@@ -334,7 +279,6 @@ public class ViewBuilder {
         Border paddingInterno = BorderFactory.createEmptyBorder(2, 5, 2, 5);
         bottomStatusBar.setBorder(BorderFactory.createCompoundBorder(lineaExterna, paddingInterno));
 
-        // --- Sección Izquierda/Centro (Ruta del archivo) ---
         JLabel rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
         registry.register("label.estado.ruta", rutaCompletaArchivoLabel);
         rutaCompletaArchivoLabel.setForeground(tema.colorTextoPrimario());
@@ -344,11 +288,9 @@ public class ViewBuilder {
         panelRuta.add(rutaCompletaArchivoLabel, BorderLayout.CENTER);
         bottomStatusBar.add(panelRuta, BorderLayout.CENTER);
 
-        // --- Sección Derecha (Controles y Mensajes) ---
         JPanel panelDerechoContenedor = new JPanel(new BorderLayout(5, 0));
         panelDerechoContenedor.setOpaque(false);
 
-        // --- Sub-sección de Controles ---
         JPanel panelControlesInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
         panelControlesInferior.setOpaque(false);
         registry.register("panel.estado.controles", panelControlesInferior);
@@ -373,13 +315,10 @@ public class ViewBuilder {
 
         JLabel porcentajeZoomLabel = new JLabel("Z: 100%");
         registry.register("label.control.zoomPorcentaje", porcentajeZoomLabel);
-        // ... (configuración adicional para este label si es necesaria)
-
+        
         JButton modoZoomBoton = new JButton();
         registry.register("button.control.modoZoom", modoZoomBoton);
-        // ... (configuración para este botón)
         
-        // Ensamblar controles
         panelControlesInferior.add(iconoZoomManualLabel);
         panelControlesInferior.add(iconoMantenerProporcionesLabel);
         panelControlesInferior.add(iconoModoSubcarpetasLabel);
@@ -389,7 +328,6 @@ public class ViewBuilder {
         
         panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER);
 
-        // --- Sub-sección de Mensajes ---
         JLabel mensajesAppLabel = new JLabel(" ");
         registry.register("label.estado.mensajes", mensajesAppLabel);
         mensajesAppLabel.setForeground(tema.colorTextoSecundario());
@@ -399,25 +337,13 @@ public class ViewBuilder {
 
         bottomStatusBar.add(panelDerechoContenedor, BorderLayout.EAST);
 
-        System.out.println("    [ViewBuilder] PanelEstadoInferior creado y ensamblado.");
         return bottomStatusBar;
-        
     } // --- Fin del método createBottomStatusBar ---
     
-    
-
-    /**
-     * Crea, ensambla y registra el panel de información superior y todos sus componentes.
-     * @return El JPanel configurado para la barra de información superior.
-     */
     private JPanel createTopInfoPanel() {
-        System.out.println("    [ViewBuilder] Creando PanelInfoSuperior...");
-        
-        // 1. Crear el panel principal y registrarlo
         JPanel panel = new JPanel(new GridBagLayout());
         registry.register("panel.info.superior", panel);
 
-        // 2. Configurar la apariencia base del panel
         Tema tema = themeManager.getTemaActual();
         
         Border paddingParaContenido = BorderFactory.createEmptyBorder(3, 5, 3, 5);
@@ -431,7 +357,6 @@ public class ViewBuilder {
         gbc.anchor = GridBagConstraints.LINE_START;
         gbc.insets = new Insets(0, 3, 0, 3);
 
-        // 3. Crear y registrar los componentes (como variables locales)
         JLabel nombreArchivoInfoLabel = new JLabel("Archivo: N/A");
         registry.register("label.info.nombreArchivo", nombreArchivoInfoLabel);
 
@@ -457,7 +382,6 @@ public class ViewBuilder {
         registry.register("label.info.formatoImagen", formatoImagenInfoLabel);
         formatoImagenInfoLabel.setToolTipText("Formato del archivo de imagen actual");
 
-        // Aplicar color de texto a todos los labels
         Color colorTextoInfo = tema.colorTextoSecundario();
         nombreArchivoInfoLabel.setForeground(colorTextoInfo);
         indiceTotalInfoLabel.setForeground(colorTextoInfo);
@@ -468,7 +392,6 @@ public class ViewBuilder {
         porcentajeZoomVisualRealInfoLabel.setForeground(colorTextoInfo);
         formatoImagenInfoLabel.setForeground(colorTextoInfo);
 
-        // 4. Ensamblaje con GridBagLayout
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE;
         panel.add(nombreArchivoInfoLabel, gbc);
 
@@ -496,16 +419,9 @@ public class ViewBuilder {
         gbc.gridx = 14; panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
         gbc.gridx = 15; panel.add(formatoImagenInfoLabel, gbc);
         
-        System.out.println("    [ViewBuilder] PanelInfoSuperior creado y ensamblado.");
         return panel;
-        
     } // --- Fin del método createTopInfoPanel ---
 
-    
-    /**
-     * Método helper para aplicar una configuración estándar a los JLabels
-     * que actúan como indicadores en la barra de estado.
-     */
     private void configurarIndicadorLabel(JLabel label, Dimension dim, String tooltip) {
         label.setOpaque(true);
         label.setHorizontalAlignment(SwingConstants.CENTER);
@@ -514,12 +430,6 @@ public class ViewBuilder {
         label.setToolTipText(tooltip);
     } // --- Fin del método configurarIndicadorLabel ---
 
-    
-    
-    
-    
-// **************************************************************************************************** PUNTOS DE COLOR DEL FONDO
-    
     private Color aclararColor(Color colorOriginal, int cantidadAclarar) {
         if (colorOriginal == null) return Color.LIGHT_GRAY;
         int r = Math.min(255, colorOriginal.getRed() + cantidadAclarar);
@@ -536,18 +446,13 @@ public class ViewBuilder {
         return new Color(r, g, b);
     } // --- FIN del metodo oscurecerColor ---
 
-    /**
-     * Crea el panel que contiene los selectores de color para el fondo del visor.
-     * Este método ahora pertenece al ViewBuilder.
-     * @return El JPanel con los controles de color.
-     */
     private JPanel createBackgroundControlPanel() {
         if (this.themeManager == null || this.iconUtils == null) {
             System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ThemeManager o IconUtils son nulos.");
             return new JPanel();
         }
 
-        JPanel panelControlesFondoIcono = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 1)); // ALINEADO A LA DERECHA
+        JPanel panelControlesFondoIcono = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 1));
         panelControlesFondoIcono.setOpaque(false);
         registry.register("panel.controles.fondo", panelControlesFondoIcono);
 
@@ -579,7 +484,6 @@ public class ViewBuilder {
         JPanel puntoPersonalizado = crearPuntoSelectorFondo(null, "Seleccionar Color Personalizado...", false, true, "personalizado", null, bordePuntoNormal, bordePuntoSeleccionado);
         panelControlesFondoIcono.add(puntoPersonalizado);
         
-        System.out.println("  [ViewBuilder] Panel de Controles de Fondo de Icono creado.");
         return panelControlesFondoIcono;
     } // --- FIN del metodo createBackgroundControlPanel ---
 
@@ -593,7 +497,6 @@ public class ViewBuilder {
             final javax.swing.border.Border bordeNormal,
             final javax.swing.border.Border bordePuntoSeleccionado) {
 
-        // --- La creación del JPanel 'punto' se mantiene exactamente igual ---
         final JPanel punto = new JPanel() {
             private static final long serialVersionUID = 1L;
             @Override
@@ -632,27 +535,21 @@ public class ViewBuilder {
         } else {
             punto.setBackground(colorParaPintarElSelectorPropio != null ? colorParaPintarElSelectorPropio : colorQueAplicaAlPreview);
         }
-        // --- Fin de la creación del JPanel 'punto' ---
 
-
-        // --- INICIO DEL CÓDIGO MODIFICADO ---
         punto.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
             public void mouseClicked(java.awt.event.MouseEvent e) {
-                // Asegurarse de que el ViewManager ha sido inyectado
                 if (ViewBuilder.this.viewManager == null) {
                     System.err.println("ERROR [ViewBuilder]: ViewManager no ha sido inyectado. No se puede cambiar el fondo.");
                     return;
                 }
                 
-                // Lógica de resalte (responsabilidad de la vista)
                 JPanel parentContainer = (JPanel) punto.getParent();
                 for (java.awt.Component comp : parentContainer.getComponents()) {
                     if (comp instanceof JPanel) ((JPanel) comp).setBorder(bordeNormal);
                 }
                 punto.setBorder(bordePuntoSeleccionado);
                 
-                // Notificar al ViewManager para que ejecute la acción
                 if (esSelectorPersonalizado) {
                     ViewBuilder.this.viewManager.requestCustomBackgroundColor();
                 } else if (esSelectorCuadros) {
@@ -662,20 +559,16 @@ public class ViewBuilder {
                 }
             }
         });
-        // --- FIN DEL CÓDIGO MODIFICADO ---
-
+        
         return punto;
     } // --- Fin del método crearPuntoSelectorFondo ---
     
+    // --- INICIO DE LA MODIFICACIÓN: El setter ahora acepta IViewManager ---
+    public void setViewManager(IViewManager viewManager) {
+        this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null en el setter");
+    } // --- Fin del método setViewManager ---
+    // --- FIN DE LA MODIFICACIÓN ---
 
-
-    
-// ************************************************************************************************* FIN PUNTOS DE COLOR DEL FONDO
-    
-// ************************************************************************************************** GETTERS Y SETTERS
-    
-    //public void setViewManager(ViewManager viewManager) {this.viewManager = viewManager;} 
-    public void setViewManager(ViewManager viewManager) {
-        this.viewManager = Objects.requireNonNull(viewManager, "ViewManager no puede ser null en el setter");
-    }
 } // --- Fin de la clase ViewBuilder ---
+
+

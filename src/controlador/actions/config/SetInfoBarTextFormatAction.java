@@ -6,15 +6,15 @@ import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
-import controlador.VisorController;
-import controlador.managers.ViewManager;
+//import controlador.managers.ViewManager;
+import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
 public class SetInfoBarTextFormatAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    private final ViewManager viewManager;
+    private final IViewManager viewManager;
     private final ConfigurationManager configManagerRef;
     private final String configKeyForFormatStorage; // La clave donde se guarda el formato (ej. KEY_..._NOMBRE_RUTA_FORMATO)
     private final String formatValueThisActionRepresents; // El valor que esta Action guarda (ej. "solo_nombre")
@@ -31,7 +31,7 @@ public class SetInfoBarTextFormatAction extends AbstractAction {
      * @param uiElementId       El identificador de la zona de UI a refrescar.
      * @param actionCommandKey  El comando canónico para esta acción.
      */
-    public SetInfoBarTextFormatAction(ViewManager viewManager,
+    public SetInfoBarTextFormatAction(IViewManager viewManager,
                                       ConfigurationManager configManager,
                                       String name,
                                       String configKeyFormat,

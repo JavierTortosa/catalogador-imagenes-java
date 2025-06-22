@@ -5,18 +5,21 @@ Iniciando Visor de Imágenes V2...
     -> VisorModel creado e inyectado.
 Mapa de configuración por defecto inicializado con 93 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
+Config no encontrado. Creando por defecto...
+Creando config por defecto (estructura jerárquica v2.1)...
+Archivo de configuración por defecto creado en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 137
+Configuración leída. Total claves: 93
 --- DEBUG PRE-SINCRONIZACIÓN ---
 Tamaño de DEFAULT_CONFIG: 93
-Tamaño de loadedConfig (del archivo): 137
+Tamaño de loadedConfig (del archivo): 93
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
 Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
-!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1830908236
+!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1681433494
     -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración al Modelo...
     -> Modo de zoom inicial del modelo (comportamiento.display.zoom.initial_mode) establecido desde config a: Ajustar a Pantalla
@@ -31,49 +34,79 @@ ConfigurationManager inicializado.
 [ThumbnailService] Servicio inicializado. Caché de miniaturas creado.
     -> ThumbnailService y Modelo para JList de Miniaturas creados e inyectados.
     -> ExecutorService (FixedThreadPool con 8 hilos) creado e inyectado.
-  [AppInitializer Fase A.4] Inicializando Servicio de Proyectos...
-  [ProjectManager] Cargadas 2 rutas absolutas desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-[ProjectManager] Instancia creada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-  -> Imágenes marcadas inicialmente: 2
-    -> ProjectManager (servicio) creado e inyectado.
+  [AppInitializer Fase A.4] Creando instancia de ProjectManager...
+    -> Instancia de ProjectManager (servicio) creada.
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
 --- VisorController: Inicialización delegada completada con éxito ---
 VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
---- [AppInitializer Fase B - EDT] Iniciando creación de UI (Orden Lógico Estable)...
-  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
-[VisorView Constructor SIMPLIFICADO] Iniciando...
-    [ViewBuilder] Creando PanelInfoSuperior...
-    [ViewBuilder] PanelInfoSuperior creado y ensamblado.
-    [ViewBuilder] Creando PanelEstadoInferior...
-    [ViewBuilder] PanelEstadoInferior creado y ensamblado.
-  [ViewBuilder] Panel de Controles de Fondo de Icono creado.
-  [ViewBuilder] Frame principal construido y ensamblado.
-[ListCoordinator] Instancia creada.
+--- [AppInitializer Fase B - EDT] Reorganizando la inicialización en bloques... ---
+  -> BLOQUE 1: Creando todas las instancias...
+[ListCoordinator] Instancia creada con constructor vacío.
   [ActionFactory] Inicializando todas las Actions...
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 0
+[ConfigApplicationManager] Creando instancia refactorizada...
+[ConfigApplicationManager] Instancia creada.
+[ToolbarBuilder Constructor] Iniciando...
+[ToolbarBuilder Constructor] Finalizado.
+  -> BLOQUE 2: Cableando dependencias pre-UI...
+[MenuBarBuilder] ControllerGlobalActionListener establecido: controlador.VisorController
+  -> BLOQUE 3: Ejecutando lógica de arranque...
+  [ProjectManager] Cargadas 2 rutas absolutas desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
+[ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
+  -> Imágenes marcadas inicialmente: 2
+  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
+[VisorView Constructor SIMPLIFICADO] Iniciando...
+  [ViewBuilder] Frame principal construido y ensamblado.
   [ActionFactory] Inicializando todas las Actions...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@31f50cde
+ActionFactory: Creando ToggleSubfoldersAction@33d56db0
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
   [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 68
-[ConfigApplicationManager] Creando instancia refactorizada...
-[ConfigApplicationManager] Instancia creada.
   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
-[MenuBarBuilder] ControllerGlobalActionListener establecido: controlador.VisorController
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
   [MenuBarBuilder] ActionMap recibido con 68 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
+WARN: Clave 'interfaz.boton.navegacion.nav_primera.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.navegacion.nav_anterior.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.navegacion.nav_siguiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.navegacion.nav_ultima.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_rotar_izq.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_rotar_der.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_voltear_h.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_voltear_v.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_recortar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ajustar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_auto.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ancho.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_alto.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_rellenar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_fijo.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_especificado.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_manual_toggle.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_reset.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.proyecto_toggle_marca.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.proyecto_gestionar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.vista_switch_to_visualizador.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.toggle.subcarpetas.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.toggle.mantener_proporciones.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.utils.imagen_eliminar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.utils.especial_refrescar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.utils.imagen_localizar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.apoyo.archivo_abrir.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.apoyo.especial_menu.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.apoyo.especial_botones_ocultos.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 165
-[ToolbarBuilder Constructor] Iniciando...
-[ToolbarBuilder Constructor] Finalizado.
 [ToolbarManager] Inicializando barras de herramientas...
 
 --- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
@@ -101,8 +134,28 @@ ActionFactory: Creando ToggleSubfoldersAction@31f50cde
   [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
       -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+--- [EDT] Inicialización de UI completada. Carga de datos programada. ---
+  [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...
+WARN: Clave 'interfaz.boton.movimiento.nav_anterior.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_primera.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.especial_botones_ocultos.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_ultima.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.especial_refrescar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.vista_mostrar_dialogo_lista.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.imagen_localizar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.imagen_eliminar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.especial_menu.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_siguiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.archivo_abrir.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+    -> Aplicando estado inicial de fondo a cuadros desde config: false
+    -> Configuración básica de Vista aplicada.
+  [ConfigAppManager] Sincronizando UI final...
+  -> [EDT Post-Visibilidad] Lanzando carga de imágenes...
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: 
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -123,14 +176,7 @@ ActionFactory: Creando ToggleSubfoldersAction@31f50cde
   [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
---- [EDT] Inicialización de UI completada. ---
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-  [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-    -> Aplicando estado inicial de fondo a cuadros desde config: false
-    -> Configuración básica de Vista aplicada.
-  [ConfigAppManager] Sincronizando UI final...
   [Worker BG] Files.walk terminado. Archivos encontrados: 201
     [Coordinator Flag] sincronizandoUI -> false
 [Worker EDT] Método done() alcanzado.
@@ -138,6 +184,9 @@ ActionFactory: Creando ToggleSubfoldersAction@31f50cde
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
     WORKER HA TERMINADO. Número de archivos encontrados: 201
+    -> Ordenando 201 claves...
+    -> Creando modelo de lista en bloque...
+    -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Lista y mapa de rutas reemplazados. Nuevo tamaño lista: 201
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 201
 >>> Coordinator: Solicitud de REINICIO y selección de índice: 0
@@ -185,9 +234,1944 @@ ActionFactory: Creando ToggleSubfoldersAction@31f50cde
     [Coordinator Flag] sincronizandoUI -> false
   -> Solicitando repintado inicial de listaMiniaturas.
     [Coordinator Flag] sincronizandoUI -> false
+--- [Listener Primer Renderizado]: Panel listo (1145x236). Forzando refresco de zoom y UI. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
+[VisorController] Sincronización de UI de Zoom completada.
+--- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
+  [ListCoordinator] Solicitud para seleccionar índice: 1 (Oficial actual: 0)
+    -> Actualizando índice oficial a: 1
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice: 1)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 1
+        -> Índice actual en JList 'Nombres': 1
+        -> Índice ya correcto. Asegurando solo visibilidad.
+      [Sync UI Interno] Fin (sin cambio de selección) para lista 'Nombres'.
+
+--- [LC Refactor] Orquestando actualización para índice: 1
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+  [ListCoordinator] Selección procesada para índice: 1
+          -> [EDT Visibilidad Solo Nombres] Asegurando visibilidad para índice 1
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..16]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 17
+[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
+[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 17)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+>>> Coordinator: Solicitud de Navegación -> SIGUIENTE (Índice Oficial Actual: 1)
+    -> Llamando a helper interno para procesar nuevo índice oficial: 2
+  [ListCoordinator Interno] Procesando índice: 2 (Oficial actual: 1)
+    -> Actualizando índice oficial a: 2
+    -> Delegando carga de imagen al Controller para índice: 2
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: Hero_Pack_____Miniature_jpg.jpg
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 2
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 2
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 2
+        -> Índice actual en JList 'Nombres': 1
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 2
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 2
+
+--- [LC Refactor] Orquestando actualización para índice: 2
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 2
+>>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: 2
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 2
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..17]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 18
+[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
+[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 18)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+>>> Coordinator: Solicitud de Navegación -> SIGUIENTE (Índice Oficial Actual: 2)
+    -> Llamando a helper interno para procesar nuevo índice oficial: 3
+  [ListCoordinator Interno] Procesando índice: 3 (Oficial actual: 2)
+    -> Actualizando índice oficial a: 3
+    -> Delegando carga de imagen al Controller para índice: 3
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: Land of The Frost.jpg
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 3
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 3
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 3
+        -> Índice actual en JList 'Nombres': 2
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 3
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 3
+
+--- [LC Refactor] Orquestando actualización para índice: 3
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 3
+>>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: 3
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 3
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..18]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 19
+[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 19)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+>>> Coordinator: Solicitud de Navegación -> SIGUIENTE (Índice Oficial Actual: 3)
+    -> Llamando a helper interno para procesar nuevo índice oficial: 4
+  [ListCoordinator Interno] Procesando índice: 4 (Oficial actual: 3)
+    -> Actualizando índice oficial a: 4
+    -> Delegando carga de imagen al Controller para índice: 4
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: bam september.jpg
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 4
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 4
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 4
+        -> Índice actual en JList 'Nombres': 3
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 4
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 4
+
+--- [LC Refactor] Orquestando actualización para índice: 4
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 4
+>>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: 4
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 4
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..19]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 20
+[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
+[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 20)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+>>> Coordinator: Solicitud de Navegación -> SIGUIENTE (Índice Oficial Actual: 4)
+    -> Llamando a helper interno para procesar nuevo índice oficial: 5
+  [ListCoordinator Interno] Procesando índice: 5 (Oficial actual: 4)
+    -> Actualizando índice oficial a: 5
+    -> Delegando carga de imagen al Controller para índice: 5
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: cyberpunk-city-anime-girl-5k-0e-1.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 5
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 5
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 5
+        -> Índice actual en JList 'Nombres': 4
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 5
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 5
+
+--- [LC Refactor] Orquestando actualización para índice: 5
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 5
+>>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: 5
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 5
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..20]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 21
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 21)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+>>> Coordinator: Solicitud de Navegación -> SIGUIENTE (Índice Oficial Actual: 5)
+    -> Llamando a helper interno para procesar nuevo índice oficial: 6
+  [ListCoordinator Interno] Procesando índice: 6 (Oficial actual: 5)
+    -> Actualizando índice oficial a: 6
+    -> Delegando carga de imagen al Controller para índice: 6
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: cyberpunk-city-anime-girl-5k-0e.jpg
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 6
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 6
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 6
+        -> Índice actual en JList 'Nombres': 5
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 6
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 6
+
+--- [LC Refactor] Orquestando actualización para índice: 6
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 6
+>>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: 6
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 6
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..21]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 22
+[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
+[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 22)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Solicitud de Navegación -> SIGUIENTE (Índice Oficial Actual: 6)
+    -> Llamando a helper interno para procesar nuevo índice oficial: 7
+  [ListCoordinator Interno] Procesando índice: 7 (Oficial actual: 6)
+    -> Actualizando índice oficial a: 7
+    -> Delegando carga de imagen al Controller para índice: 7
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/1001-Primera_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 7
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 7
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 7
+        -> Índice actual en JList 'Nombres': 6
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 7
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 7
+
+--- [LC Refactor] Orquestando actualización para índice: 7
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 7
+>>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: 7
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 7
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..22]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 23
+[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
+[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 23)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Solicitud de Navegación -> SIGUIENTE (Índice Oficial Actual: 7)
+    -> Llamando a helper interno para procesar nuevo índice oficial: 8
+  [ListCoordinator Interno] Procesando índice: 8 (Oficial actual: 7)
+    -> Actualizando índice oficial a: 8
+    -> Delegando carga de imagen al Controller para índice: 8
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/1002-Anterior_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 8
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 8
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 8
+        -> Índice actual en JList 'Nombres': 7
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 8
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 8
+
+--- [LC Refactor] Orquestando actualización para índice: 8
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 8
+>>> Coordinator: Fin seleccionarSiguiente. Índice Oficial Final: 8
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 8
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..23]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 8)
+    -> Llamando a helper interno para procesar índice: 18
+  [ListCoordinator Interno] Procesando índice: 18 (Oficial actual: 8)
+    -> Actualizando índice oficial a: 18
+    -> Delegando carga de imagen al Controller para índice: 18
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3002-zoom_auto_48x48.png' (Índice: 18)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/3002-zoom_auto_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 18
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 18
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 18
+        -> Índice actual en JList 'Nombres': 8
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 18
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 18
+
+--- [LC Refactor] Orquestando actualización para índice: 18
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 18
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 18
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [10..33]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 18)
+    -> Llamando a helper interno para procesar índice: 28
+  [ListCoordinator Interno] Procesando índice: 28 (Oficial actual: 18)
+    -> Actualizando índice oficial a: 28
+    -> Delegando carga de imagen al Controller para índice: 28
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/4003-pantalla_completa_48x48.png' (Índice: 28)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/4003-pantalla_completa_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 28
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 28
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 28
+        -> Índice actual en JList 'Nombres': 18
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 28
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 28
+
+--- [LC Refactor] Orquestando actualización para índice: 28
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 28
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 28
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [20..43]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 28)
+    -> Llamando a helper interno para procesar índice: 38
+  [ListCoordinator Interno] Procesando índice: 38 (Oficial actual: 28)
+    -> Actualizando índice oficial a: 38
+    -> Delegando carga de imagen al Controller para índice: 38
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/7002-Mantener_Proporciones_48x48.png' (Índice: 38)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/7002-Mantener_Proporciones_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 38
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 38
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 38
+        -> Índice actual en JList 'Nombres': 28
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 38
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 38
+
+--- [LC Refactor] Orquestando actualización para índice: 38
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 38
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 38
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [30..53]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 38)
+    -> Llamando a helper interno para procesar índice: 48
+  [ListCoordinator Interno] Procesando índice: 48 (Oficial actual: 38)
+    -> Actualizando índice oficial a: 48
+    -> Delegando carga de imagen al Controller para índice: 48
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/blue/20001-zoom_al_cursor_48x48.png' (Índice: 48)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/blue/20001-zoom_al_cursor_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 48
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 48
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 48
+        -> Índice actual en JList 'Nombres': 38
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 48
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 48
+
+--- [LC Refactor] Orquestando actualización para índice: 48
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 48
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 48
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [40..63]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 48)
+    -> Llamando a helper interno para procesar índice: 58
+  [ListCoordinator Interno] Procesando índice: 58 (Oficial actual: 48)
+    -> Actualizando índice oficial a: 58
+    -> Delegando carga de imagen al Controller para índice: 58
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/blue/3005-escalar_para_ajustar_48x48.png' (Índice: 58)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/blue/3005-escalar_para_ajustar_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 58
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 58
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 58
+        -> Índice actual en JList 'Nombres': 48
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 58
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 58
+
+--- [LC Refactor] Orquestando actualización para índice: 58
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 58
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 58
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [50..73]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 58)
+    -> Llamando a helper interno para procesar índice: 68
+  [ListCoordinator Interno] Procesando índice: 68 (Oficial actual: 58)
+    -> Actualizando índice oficial a: 68
+    -> Delegando carga de imagen al Controller para índice: 68
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/blue/4006-Polaroid48x48.png' (Índice: 68)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/blue/4006-Polaroid48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 68
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 68
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 68
+        -> Índice actual en JList 'Nombres': 58
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 68
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 68
+
+--- [LC Refactor] Orquestando actualización para índice: 68
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 68
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 68
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [60..83]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 68)
+    -> Llamando a helper interno para procesar índice: 78
+  [ListCoordinator Interno] Procesando índice: 78 (Oficial actual: 68)
+    -> Actualizando índice oficial a: 78
+    -> Delegando carga de imagen al Controller para índice: 78
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/blue/8002-Mostrar_Favoritos_48x48.png' (Índice: 78)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/blue/8002-Mostrar_Favoritos_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 78
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 78
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 78
+        -> Índice actual en JList 'Nombres': 68
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 78
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 78
+
+--- [LC Refactor] Orquestando actualización para índice: 78
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 78
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 78
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [70..93]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 78)
+    -> Llamando a helper interno para procesar índice: 88
+  [ListCoordinator Interno] Procesando índice: 88 (Oficial actual: 78)
+    -> Actualizando índice oficial a: 88
+    -> Delegando carga de imagen al Controller para índice: 88
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/green/1003-Siguiente_48x48.png' (Índice: 88)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/green/1003-Siguiente_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 88
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 88
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 88
+        -> Índice actual en JList 'Nombres': 78
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 88
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 88
+
+--- [LC Refactor] Orquestando actualización para índice: 88
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 88
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 88
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [80..103]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 88)
+    -> Llamando a helper interno para procesar índice: 98
+  [ListCoordinator Interno] Procesando índice: 98 (Oficial actual: 88)
+    -> Actualizando índice oficial a: 98
+    -> Delegando carga de imagen al Controller para índice: 98
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/green/3003-ajustar_al_ancho_48x48.png' (Índice: 98)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/green/3003-ajustar_al_ancho_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 98
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 98
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 98
+        -> Índice actual en JList 'Nombres': 88
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 98
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 98
+
+--- [LC Refactor] Orquestando actualización para índice: 98
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 98
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 98
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [90..113]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 98)
+    -> Llamando a helper interno para procesar índice: 108
+  [ListCoordinator Interno] Procesando índice: 108 (Oficial actual: 98)
+    -> Actualizando índice oficial a: 108
+    -> Delegando carga de imagen al Controller para índice: 108
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/green/4004-lista_48x48.png' (Índice: 108)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/green/4004-lista_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 108
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 108
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 108
+        -> Índice actual en JList 'Nombres': 98
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 108
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 108
+
+--- [LC Refactor] Orquestando actualización para índice: 108
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 108
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 108
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [100..123]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 108)
+    -> Llamando a helper interno para procesar índice: 118
+  [ListCoordinator Interno] Procesando índice: 118 (Oficial actual: 108)
+    -> Actualizando índice oficial a: 118
+    -> Delegando carga de imagen al Controller para índice: 118
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/green/7004-Ubicacion_de_Archivo_48x48.png' (Índice: 118)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/green/7004-Ubicacion_de_Archivo_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 118
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 118
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 118
+        -> Índice actual en JList 'Nombres': 108
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 118
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 118
+
+--- [LC Refactor] Orquestando actualización para índice: 118
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 118
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 118
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [110..133]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 118)
+    -> Llamando a helper interno para procesar índice: 128
+  [ListCoordinator Interno] Procesando índice: 128 (Oficial actual: 118)
+    -> Actualizando índice oficial a: 128
+    -> Delegando carga de imagen al Controller para índice: 128
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/orange/2001-rotar_izquierda_48x48.png' (Índice: 128)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/orange/2001-rotar_izquierda_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 128
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 128
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 128
+        -> Índice actual en JList 'Nombres': 118
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 128
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 128
+
+--- [LC Refactor] Orquestando actualización para índice: 128
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 128
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 128
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [120..143]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 128)
+    -> Llamando a helper interno para procesar índice: 138
+  [ListCoordinator Interno] Procesando índice: 138 (Oficial actual: 128)
+    -> Actualizando índice oficial a: 138
+    -> Delegando carga de imagen al Controller para índice: 138
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/orange/3006-zoom_fijo_48x48.png' (Índice: 138)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/orange/3006-zoom_fijo_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 138
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 138
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 138
+        -> Índice actual en JList 'Nombres': 128
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 138
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 138
+
+--- [LC Refactor] Orquestando actualización para índice: 138
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 138
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 138
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [130..153]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 138)
+    -> Llamando a helper interno para procesar índice: 148
+  [ListCoordinator Interno] Procesando índice: 148 (Oficial actual: 138)
+    -> Actualizando índice oficial a: 148
+    -> Delegando carga de imagen al Controller para índice: 148
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/orange/5001-refrescar_48x48.png' (Índice: 148)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/orange/5001-refrescar_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 148
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 148
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 148
+        -> Índice actual en JList 'Nombres': 138
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 148
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 148
+
+--- [LC Refactor] Orquestando actualización para índice: 148
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 148
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 148
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [140..163]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 148)
+    -> Llamando a helper interno para procesar índice: 158
+  [ListCoordinator Interno] Procesando índice: 158 (Oficial actual: 148)
+    -> Actualizando índice oficial a: 158
+    -> Delegando carga de imagen al Controller para índice: 158
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/orange/8001-marcar_imagen_48x48.png' (Índice: 158)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/orange/8001-marcar_imagen_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 158
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 158
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 158
+        -> Índice actual en JList 'Nombres': 148
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 158
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 158
+
+--- [LC Refactor] Orquestando actualización para índice: 158
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 158
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 158
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [150..173]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 158)
+    -> Llamando a helper interno para procesar índice: 168
+  [ListCoordinator Interno] Procesando índice: 168 (Oficial actual: 158)
+    -> Actualizando índice oficial a: 168
+    -> Delegando carga de imagen al Controller para índice: 168
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/white/2002-rotar_derecha_48x48.png' (Índice: 168)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/white/2002-rotar_derecha_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 168
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 168
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 168
+        -> Índice actual en JList 'Nombres': 158
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 168
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 168
+
+--- [LC Refactor] Orquestando actualización para índice: 168
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 168
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 168
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [160..183]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 168)
+    -> Llamando a helper interno para procesar índice: 178
+  [ListCoordinator Interno] Procesando índice: 178 (Oficial actual: 168)
+    -> Actualizando índice oficial a: 178
+    -> Delegando carga de imagen al Controller para índice: 178
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/white/3007-zoom_especifico_48x48.png' (Índice: 178)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/white/3007-zoom_especifico_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 178
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 178
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 178
+        -> Índice actual en JList 'Nombres': 168
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 178
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 178
+
+--- [LC Refactor] Orquestando actualización para índice: 178
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 178
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 178
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [170..193]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 178)
+    -> Llamando a helper interno para procesar índice: 188
+  [ListCoordinator Interno] Procesando índice: 188 (Oficial actual: 178)
+    -> Actualizando índice oficial a: 188
+    -> Delegando carga de imagen al Controller para índice: 188
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/white/5004-borrar_48x48.png' (Índice: 188)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/white/5004-borrar_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 188
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 188
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 188
+        -> Índice actual en JList 'Nombres': 178
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 188
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 188
+
+--- [LC Refactor] Orquestando actualización para índice: 188
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 188
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 188
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [180..200]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 21
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 21)
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+>>> Coordinator: Navegación -> Bloque Siguiente (Actual Oficial: 188)
+    -> Llamando a helper interno para procesar índice: 198
+  [ListCoordinator Interno] Procesando índice: 198 (Oficial actual: 188)
+    -> Actualizando índice oficial a: 198
+    -> Delegando carga de imagen al Controller para índice: 198
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/white/8004-datos_48x48.png' (Índice: 198)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/white/8004-datos_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 198
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 198
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 198
+        -> Índice actual en JList 'Nombres': 188
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 198
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 198
+
+--- [LC Refactor] Orquestando actualización para índice: 198
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 198
+>>> Coordinator: Fin seleccionarBloqueSiguiente
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 198
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [190..200]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 11
+[Controller] Iniciando pre-calentamiento de caché para 11 miniaturas...
+[Controller] 11 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 11)
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 198)
+    -> Llamando a helper interno para procesar índice: 188
+  [ListCoordinator Interno] Procesando índice: 188 (Oficial actual: 198)
+    -> Actualizando índice oficial a: 188
+    -> Delegando carga de imagen al Controller para índice: 188
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/white/5004-borrar_48x48.png' (Índice: 188)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/white/5004-borrar_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 188
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 188
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 188
+        -> Índice actual en JList 'Nombres': 198
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 188
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 188
+
+--- [LC Refactor] Orquestando actualización para índice: 188
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 188
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 188
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [180..200]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 21
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 21)
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\no vale.jpg
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 188)
+    -> Llamando a helper interno para procesar índice: 178
+  [ListCoordinator Interno] Procesando índice: 178 (Oficial actual: 188)
+    -> Actualizando índice oficial a: 178
+    -> Delegando carga de imagen al Controller para índice: 178
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/white/3007-zoom_especifico_48x48.png' (Índice: 178)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/white/3007-zoom_especifico_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 178
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 178
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 178
+        -> Índice actual en JList 'Nombres': 188
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 178
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 178
+
+--- [LC Refactor] Orquestando actualización para índice: 178
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 178
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 178
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [170..193]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 178)
+    -> Llamando a helper interno para procesar índice: 168
+  [ListCoordinator Interno] Procesando índice: 168 (Oficial actual: 178)
+    -> Actualizando índice oficial a: 168
+    -> Delegando carga de imagen al Controller para índice: 168
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/white/2002-rotar_derecha_48x48.png' (Índice: 168)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/white/2002-rotar_derecha_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 168
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 168
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 168
+        -> Índice actual en JList 'Nombres': 178
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 168
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 168
+
+--- [LC Refactor] Orquestando actualización para índice: 168
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 168
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 168
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [160..183]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 168)
+    -> Llamando a helper interno para procesar índice: 158
+  [ListCoordinator Interno] Procesando índice: 158 (Oficial actual: 168)
+    -> Actualizando índice oficial a: 158
+    -> Delegando carga de imagen al Controller para índice: 158
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/orange/8001-marcar_imagen_48x48.png' (Índice: 158)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/orange/8001-marcar_imagen_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 158
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 158
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 158
+        -> Índice actual en JList 'Nombres': 168
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 158
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 158
+
+--- [LC Refactor] Orquestando actualización para índice: 158
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 158
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 158
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [150..173]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 158)
+    -> Llamando a helper interno para procesar índice: 148
+  [ListCoordinator Interno] Procesando índice: 148 (Oficial actual: 158)
+    -> Actualizando índice oficial a: 148
+    -> Delegando carga de imagen al Controller para índice: 148
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/orange/5001-refrescar_48x48.png' (Índice: 148)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/orange/5001-refrescar_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 148
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 148
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 148
+        -> Índice actual en JList 'Nombres': 158
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 148
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 148
+
+--- [LC Refactor] Orquestando actualización para índice: 148
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 148
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 148
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [140..163]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 148)
+    -> Llamando a helper interno para procesar índice: 138
+  [ListCoordinator Interno] Procesando índice: 138 (Oficial actual: 148)
+    -> Actualizando índice oficial a: 138
+    -> Delegando carga de imagen al Controller para índice: 138
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/orange/3006-zoom_fijo_48x48.png' (Índice: 138)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/orange/3006-zoom_fijo_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 138
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 138
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 138
+        -> Índice actual en JList 'Nombres': 148
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 138
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 138
+
+--- [LC Refactor] Orquestando actualización para índice: 138
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 138
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 138
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [130..153]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 138)
+    -> Llamando a helper interno para procesar índice: 128
+  [ListCoordinator Interno] Procesando índice: 128 (Oficial actual: 138)
+    -> Actualizando índice oficial a: 128
+    -> Delegando carga de imagen al Controller para índice: 128
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/orange/2001-rotar_izquierda_48x48.png' (Índice: 128)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/orange/2001-rotar_izquierda_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 128
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 128
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 128
+        -> Índice actual en JList 'Nombres': 138
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 128
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 128
+
+--- [LC Refactor] Orquestando actualización para índice: 128
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 128
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 128
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [120..143]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 128)
+    -> Llamando a helper interno para procesar índice: 118
+  [ListCoordinator Interno] Procesando índice: 118 (Oficial actual: 128)
+    -> Actualizando índice oficial a: 118
+    -> Delegando carga de imagen al Controller para índice: 118
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/green/7004-Ubicacion_de_Archivo_48x48.png' (Índice: 118)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/green/7004-Ubicacion_de_Archivo_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 118
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 118
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 118
+        -> Índice actual en JList 'Nombres': 128
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 118
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 118
+
+--- [LC Refactor] Orquestando actualización para índice: 118
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 118
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 118
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [110..133]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 118)
+    -> Llamando a helper interno para procesar índice: 108
+  [ListCoordinator Interno] Procesando índice: 108 (Oficial actual: 118)
+    -> Actualizando índice oficial a: 108
+    -> Delegando carga de imagen al Controller para índice: 108
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/green/4004-lista_48x48.png' (Índice: 108)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/green/4004-lista_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 108
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 108
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 108
+        -> Índice actual en JList 'Nombres': 118
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 108
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 108
+
+--- [LC Refactor] Orquestando actualización para índice: 108
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 108
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 108
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [100..123]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 108)
+    -> Llamando a helper interno para procesar índice: 98
+  [ListCoordinator Interno] Procesando índice: 98 (Oficial actual: 108)
+    -> Actualizando índice oficial a: 98
+    -> Delegando carga de imagen al Controller para índice: 98
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/green/3003-ajustar_al_ancho_48x48.png' (Índice: 98)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/green/3003-ajustar_al_ancho_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 98
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 98
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 98
+        -> Índice actual en JList 'Nombres': 108
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 98
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 98
+
+--- [LC Refactor] Orquestando actualización para índice: 98
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 98
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 98
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [90..113]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 98)
+    -> Llamando a helper interno para procesar índice: 88
+  [ListCoordinator Interno] Procesando índice: 88 (Oficial actual: 98)
+    -> Actualizando índice oficial a: 88
+    -> Delegando carga de imagen al Controller para índice: 88
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/green/1003-Siguiente_48x48.png' (Índice: 88)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/green/1003-Siguiente_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 88
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 88
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 88
+        -> Índice actual en JList 'Nombres': 98
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 88
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 88
+
+--- [LC Refactor] Orquestando actualización para índice: 88
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 88
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 88
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [80..103]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 88)
+    -> Llamando a helper interno para procesar índice: 78
+  [ListCoordinator Interno] Procesando índice: 78 (Oficial actual: 88)
+    -> Actualizando índice oficial a: 78
+    -> Delegando carga de imagen al Controller para índice: 78
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/blue/8002-Mostrar_Favoritos_48x48.png' (Índice: 78)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/blue/8002-Mostrar_Favoritos_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 78
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 78
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 78
+        -> Índice actual en JList 'Nombres': 88
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 78
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 78
+
+--- [LC Refactor] Orquestando actualización para índice: 78
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 78
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 78
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [70..93]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 78)
+    -> Llamando a helper interno para procesar índice: 68
+  [ListCoordinator Interno] Procesando índice: 68 (Oficial actual: 78)
+    -> Actualizando índice oficial a: 68
+    -> Delegando carga de imagen al Controller para índice: 68
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/blue/4006-Polaroid48x48.png' (Índice: 68)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/blue/4006-Polaroid48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 68
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 68
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 68
+        -> Índice actual en JList 'Nombres': 78
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 68
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 68
+
+--- [LC Refactor] Orquestando actualización para índice: 68
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 68
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 68
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [60..83]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 68)
+    -> Llamando a helper interno para procesar índice: 58
+  [ListCoordinator Interno] Procesando índice: 58 (Oficial actual: 68)
+    -> Actualizando índice oficial a: 58
+    -> Delegando carga de imagen al Controller para índice: 58
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/blue/3005-escalar_para_ajustar_48x48.png' (Índice: 58)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/blue/3005-escalar_para_ajustar_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 58
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 58
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 58
+        -> Índice actual en JList 'Nombres': 68
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 58
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 58
+
+--- [LC Refactor] Orquestando actualización para índice: 58
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 58
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 58
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [50..73]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 58)
+    -> Llamando a helper interno para procesar índice: 48
+  [ListCoordinator Interno] Procesando índice: 48 (Oficial actual: 58)
+    -> Actualizando índice oficial a: 48
+    -> Delegando carga de imagen al Controller para índice: 48
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/blue/20001-zoom_al_cursor_48x48.png' (Índice: 48)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/blue/20001-zoom_al_cursor_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 48
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 48
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 48
+        -> Índice actual en JList 'Nombres': 58
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 48
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 48
+
+--- [LC Refactor] Orquestando actualización para índice: 48
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 48
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 48
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [40..63]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 48)
+    -> Llamando a helper interno para procesar índice: 38
+  [ListCoordinator Interno] Procesando índice: 38 (Oficial actual: 48)
+    -> Actualizando índice oficial a: 38
+    -> Delegando carga de imagen al Controller para índice: 38
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/7002-Mantener_Proporciones_48x48.png' (Índice: 38)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/7002-Mantener_Proporciones_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 38
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 38
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 38
+        -> Índice actual en JList 'Nombres': 48
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 38
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 38
+
+--- [LC Refactor] Orquestando actualización para índice: 38
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 38
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 38
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [30..53]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 38)
+    -> Llamando a helper interno para procesar índice: 28
+  [ListCoordinator Interno] Procesando índice: 28 (Oficial actual: 38)
+    -> Actualizando índice oficial a: 28
+    -> Delegando carga de imagen al Controller para índice: 28
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/4003-pantalla_completa_48x48.png' (Índice: 28)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/4003-pantalla_completa_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 28
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 28
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 28
+        -> Índice actual en JList 'Nombres': 38
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 28
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 28
+
+--- [LC Refactor] Orquestando actualización para índice: 28
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 28
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 28
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [20..43]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 28)
+    -> Llamando a helper interno para procesar índice: 18
+  [ListCoordinator Interno] Procesando índice: 18 (Oficial actual: 28)
+    -> Actualizando índice oficial a: 18
+    -> Delegando carga de imagen al Controller para índice: 18
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3002-zoom_auto_48x48.png' (Índice: 18)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/3002-zoom_auto_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 18
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 18
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 18
+        -> Índice actual en JList 'Nombres': 28
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 18
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 18
+
+--- [LC Refactor] Orquestando actualización para índice: 18
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 18
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 18
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [10..33]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 18)
+    -> Llamando a helper interno para procesar índice: 8
+  [ListCoordinator Interno] Procesando índice: 8 (Oficial actual: 18)
+    -> Actualizando índice oficial a: 8
+    -> Delegando carga de imagen al Controller para índice: 8
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: iconos/black/1002-Anterior_48x48.png
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 8
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 8
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 8
+        -> Índice actual en JList 'Nombres': 18
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 8
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 8
+
+--- [LC Refactor] Orquestando actualización para índice: 8
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 8
+>>> Coordinator: Fin seleccionarBloqueAnterior
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 8
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..23]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 24
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 24)
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 8)
+    -> Llamando a helper interno para procesar índice: 0
+  [ListCoordinator Interno] Procesando índice: 0 (Oficial actual: 8)
+    -> Actualizando índice oficial a: 0
+    -> Delegando carga de imagen al Controller para índice: 0
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
+--> [actualizarImagenPrincipal] Tarea de carga lanzada para: A-gigante de hierro.jpg
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ListCoordinator Interno] Procesamiento interno finalizado para índice: 0
+      -> [Helper Interno] Cambio detectado. Actualizando UI (Nombres y Miniaturas) para índice 0
+      [Sync UI Interno] Iniciando sincronización para lista 'Nombres' al índice: 0
+        -> Índice actual en JList 'Nombres': 8
+        -> Índice diferente. Iniciando cambio de selección...
+    [Coordinator Flag] sincronizandoUI -> true
+          -> Estableciendo índice seleccionado a 0
+      [Sync UI Interno] Fin sincronización para lista 'Nombres', índice 0
+
+--- [LC Refactor] Orquestando actualización para índice: 0
+--- [LC Refactor] Tarea de actualización de UI programada. FIN ---
+      -> [Helper Interno] Fin del procesamiento para índice solicitado: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+            -> [EDT Visibilidad Nombres] Asegurando visibilidad para índice 0
+    [Coordinator Flag] sincronizandoUI -> false
+    [Coordinator Flag] sincronizandoUI -> true
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+   -> [EDT] Rango final en modelo principal: [0..15]
+   -> [EDT] Nuevo modelo de miniaturas construido. Tamaño: 16
+[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
+[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: 16)
+    -> [Uso Normal] Re-aplicando modo de zoom actual: Ajustar a Pantalla
+  [ListCoordinator] Forzando actualización del estado 'enabled' de todas las acciones...
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ListCoordinator] Actualización de estado 'enabled' de acciones completada.
+  -> Solicitando repintado inicial de listaMiniaturas.
+    [Coordinator Flag] sincronizandoUI -> false
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
+>>> Coordinator: Navegación -> Bloque Anterior (Actual Oficial: 0)
+    -> No hay cambio de índice (ya está en el primer bloque o al inicio).
+    [Asegurar Visibilidad] Solicitud para asegurar visibilidad del índice principal: 0
+    [Asegurar Visibilidad] Fin del proceso para índice principal: 0
+>>> Coordinator: Fin seleccionarBloqueAnterior
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
-!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1830908236
+!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1681433494
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
@@ -197,6 +2181,51 @@ ActionFactory: Creando ToggleSubfoldersAction@31f50cde
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
 Claves a guardar/actualizar: 137
+Añadiendo 44 claves nuevas:
+  Nuevo: interfaz.boton.apoyo.archivo_abrir.visible = true
+  Nuevo: interfaz.boton.apoyo.especial_botones_ocultos.visible = true
+  Nuevo: interfaz.boton.apoyo.especial_menu.visible = true
+  Nuevo: interfaz.boton.control.especial_refrescar.visible = true
+  Nuevo: interfaz.boton.control.imagen_eliminar.visible = true
+  Nuevo: interfaz.boton.control.imagen_localizar.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_recortar.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_rotar_der.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_rotar_izq.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_voltear_h.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_voltear_v.visible = true
+  Nuevo: interfaz.boton.especiales.archivo_abrir.visible = true
+  Nuevo: interfaz.boton.especiales.especial_botones_ocultos.visible = true
+  Nuevo: interfaz.boton.especiales.especial_menu.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_anterior.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_primera.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_siguiente.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_ultima.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_anterior.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_primera.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_siguiente.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_ultima.visible = true
+  Nuevo: interfaz.boton.proyecto.proyecto_gestionar.visible = true
+  Nuevo: interfaz.boton.proyecto.proyecto_toggle_marca.visible = true
+  Nuevo: interfaz.boton.proyecto.todo_funcionalidad_pendiente.visible = true
+  Nuevo: interfaz.boton.proyecto.vista_switch_to_visualizador.visible = true
+  Nuevo: interfaz.boton.toggle.mantener_proporciones.visible = true
+  Nuevo: interfaz.boton.toggle.subcarpetas.visible = true
+  Nuevo: interfaz.boton.utils.especial_refrescar.visible = true
+  Nuevo: interfaz.boton.utils.imagen_eliminar.visible = true
+  Nuevo: interfaz.boton.utils.imagen_localizar.visible = true
+  Nuevo: interfaz.boton.vista.todo_funcionalidad_pendiente.visible = true
+  Nuevo: interfaz.boton.vista.vista_mostrar_dialogo_lista.visible = true
+  Nuevo: interfaz.boton.vistas.todo_funcionalidad_pendiente.visible = true
+  Nuevo: interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_manual_toggle.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_reset.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_ajustar.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_alto.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_ancho.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_auto.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_especificado.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_fijo.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_rellenar.visible = true
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

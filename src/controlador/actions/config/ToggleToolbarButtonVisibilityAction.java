@@ -6,8 +6,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
 
-import controlador.VisorController;
 import controlador.managers.ViewManager;
+import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
 /**
@@ -19,7 +19,7 @@ import servicios.ConfigurationManager;
 public class ToggleToolbarButtonVisibilityAction extends AbstractAction {
     
     private final ConfigurationManager config;
-    private final ViewManager viewManager;
+    private final IViewManager viewManager;
     // --- CAMBIO 1: Renombrar campos para reflejar que son claves BASE ---
     private final String menuConfigKeyBase;        // Clave BASE del menú (ej: ...menu.configuracion.herramientas...)
     private final String buttonConfigKeyBase;      // Clave BASE del botón (ej: ...boton.edicion.imagen_rotar_izq)
@@ -35,7 +35,7 @@ public class ToggleToolbarButtonVisibilityAction extends AbstractAction {
      * @param buttonKeyBase    La clave de configuración BASE para el botón de la toolbar.
      * @param toolbarId        El identificador de la toolbar que contiene el botón.
      */
-    public ToggleToolbarButtonVisibilityAction(String name, ConfigurationManager config, ViewManager viewManager, String menuKeyBase, String buttonKeyBase, String toolbarId) {
+    public ToggleToolbarButtonVisibilityAction(String name, ConfigurationManager config, IViewManager viewManager, String menuKeyBase, String buttonKeyBase, String toolbarId) {
         super(name);
         this.config = config;
         this.viewManager = viewManager;

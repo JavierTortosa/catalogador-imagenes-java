@@ -28,20 +28,20 @@ public class ConfigApplicationManager {
     // --- DEPENDENCIAS REFACTORIZADAS ---
     private final VisorModel model;
     private final ConfigurationManager config;
-    private final Map<String, Action> actionMap;
     private final ThemeManager themeManager;
     private final ComponentRegistry registry;
-
+    private Map<String, Action> actionMap;
+    private VisorView view;
+    
     // --- ESTADO ---
     private final Map<String, String> configAlInicio;
     
 
     // --- CONSTRUCTOR REFACTORIZADO ---
+    
     public ConfigApplicationManager(
             VisorModel model, 
-            VisorView view, // Se mantiene temporalmente para el padre del JOptionPane
             ConfigurationManager config, 
-            Map<String, Action> actionMap, 
             ThemeManager themeManager,
             ComponentRegistry registry
             ) {
@@ -50,14 +50,37 @@ public class ConfigApplicationManager {
         
         this.model = Objects.requireNonNull(model);
         this.config = Objects.requireNonNull(config);
-        this.actionMap = Objects.requireNonNull(actionMap);
         this.themeManager = Objects.requireNonNull(themeManager);
         this.registry = Objects.requireNonNull(registry);
-        // this.view se mantiene temporalmente para los diálogos.
+        
+        // 'view' y 'actionMap' serán nulos aquí. Se inyectarán después.
+        this.actionMap = new HashMap<>(); // Inicializar a un mapa vacío para evitar NullPointerException
 
         this.configAlInicio = new HashMap<>(config.getConfigMap());
         System.out.println("[ConfigApplicationManager] Instancia creada.");
     } // --- Fin del Constructor ---
+    
+//    public ConfigApplicationManager(
+//            VisorModel model, 
+//            VisorView view, // Se mantiene temporalmente para el padre del JOptionPane
+//            ConfigurationManager config, 
+//            Map<String, Action> actionMap, 
+//            ThemeManager themeManager,
+//            ComponentRegistry registry
+//            ) {
+//        
+//        System.out.println("[ConfigApplicationManager] Creando instancia refactorizada...");
+//        
+//        this.model = Objects.requireNonNull(model);
+//        this.config = Objects.requireNonNull(config);
+//        this.actionMap = Objects.requireNonNull(actionMap);
+//        this.themeManager = Objects.requireNonNull(themeManager);
+//        this.registry = Objects.requireNonNull(registry);
+//        // this.view se mantiene temporalmente para los diálogos.
+//
+//        this.configAlInicio = new HashMap<>(config.getConfigMap());
+//        System.out.println("[ConfigApplicationManager] Instancia creada.");
+//    } // --- Fin del Constructor ---
 
     // --- MÉTODOS PÚBLICOS ---
      
@@ -341,7 +364,21 @@ public class ConfigApplicationManager {
         
     } // --- FIN del metodo actualizarAspectoBotonToggle ---
     
+    /**
+     * Inyecta la instancia principal de la vista.
+     * @param view La instancia de VisorView.
+     */
+    public void setView(VisorView view) {
+        this.view = view;
+    } // --- Fin del método setView ---
 
+    /**
+     * Inyecta el mapa de acciones de la aplicación.
+     * @param actionMap El mapa de acciones (comando -> Action).
+     */
+    public void setActionMap(Map<String, Action> actionMap) {
+        this.actionMap = Objects.requireNonNull(actionMap);
+    } // --- Fin del método setActionMap ---
     
 	
 } // --- FIN de la clase ConfigApplicationManager ---

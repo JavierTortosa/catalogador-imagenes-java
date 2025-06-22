@@ -7,7 +7,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import controlador.VisorController;
 import controlador.commands.AppActionCommands;
-import controlador.managers.ZoomManager;
+import controlador.managers.interfaces.IZoomManager;
 import modelo.VisorModel;
 
 public class ToggleZoomManualAction extends AbstractAction {
@@ -15,11 +15,11 @@ public class ToggleZoomManualAction extends AbstractAction {
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private final ZoomManager zoomManager;
+	private final IZoomManager zoomManager;
     private final VisorController controllerRef;
     private final VisorModel modelRef;
 
-    public ToggleZoomManualAction(String name, ImageIcon icon, ZoomManager zoomManager, VisorController controller, VisorModel model) {
+    public ToggleZoomManualAction(String name, ImageIcon icon, IZoomManager zoomManager, VisorController controller, VisorModel model) {
         super(name, icon);
         this.zoomManager = Objects.requireNonNull(zoomManager);
         this.modelRef = Objects.requireNonNull(model);

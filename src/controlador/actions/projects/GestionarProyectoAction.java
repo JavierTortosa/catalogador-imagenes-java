@@ -2,47 +2,42 @@ package controlador.actions.projects;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
-
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import controlador.VisorController; // Importar VisorController
 import controlador.commands.AppActionCommands;
-import controlador.managers.ViewManager;
-import servicios.ProjectManager;
-// No se necesita importar VisorView
+import controlador.managers.interfaces.IProjectManager;
+import controlador.managers.interfaces.IViewManager;
 
 public class GestionarProyectoAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    private final ProjectManager projectManagerServiceRef;
-    private final ViewManager viewManager; 
+    private final IProjectManager projectManager;
+    private final IViewManager viewManager; 
 
     public GestionarProyectoAction(
-            ProjectManager projectManager,
-            ViewManager viewManager, // Recibe el controlador
+            IProjectManager projectManager,
+            IViewManager viewManager,
             String name,
             ImageIcon icon) 
     {
-    	
         super(name, icon);
-        this.projectManagerServiceRef = Objects.requireNonNull(projectManager, "ProjectManager no puede ser null");
-        this.viewManager = Objects.requireNonNull(viewManager, "viewManager no puede ser null");
+        this.projectManager = Objects.requireNonNull(projectManager, "IProjectManager no puede ser null");
+        this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null");
 
         putValue(Action.SHORT_DESCRIPTION, "Gestionar la selección de imágenes del proyecto actual");
         putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_GESTIONAR);
-    }
+    } // --- Fin del método GestionarProyectoAction (constructor) ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (projectManagerServiceRef == null || viewManager == null) {
-            System.err.println("ERROR CRÍTICO [GestionarProyectoAction]: ProjectManager o VisorController nulos.");
+        if (projectManager == null || viewManager == null) {
+            System.err.println("ERROR CRÍTICO [GestionarProyectoAction]: Dependencias nulas.");
             return;
         }
-
-        // Llamar al método del ProjectManager, pasándole el frame obtenido del controlador
         viewManager.cambiarAVista("VISTA_PROYECTOS");
-    }
+    } // --- Fin del método actionPerformed ---
+
 } // --- FIN de la clase GestionarProyectoAction ---

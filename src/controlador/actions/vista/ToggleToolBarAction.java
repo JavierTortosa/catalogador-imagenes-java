@@ -7,8 +7,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import controlador.VisorController;
-import controlador.managers.ViewManager;
+//import controlador.managers.ViewManager;
+import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
 public class ToggleToolBarAction extends AbstractAction {
@@ -18,12 +18,12 @@ public class ToggleToolBarAction extends AbstractAction {
     private final ConfigurationManager configManagerRef;
     private final String configKeyForState; // Clave completa con .seleccionado
     private final String uiElementIdentifierForController;
-    private final ViewManager viewManager;
+    private final IViewManager viewManager;
 
     public ToggleToolBarAction(String name,
                                ImageIcon icon,
                                ConfigurationManager configManager,
-                               ViewManager viewManager,
+                               IViewManager viewManager,
                                String configKeyBase, // Recibe la clave base
                                String uiElementId,
                                String actionCommandKey) {

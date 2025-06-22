@@ -1,5 +1,3 @@
-// Archivo: controlador/managers/FileOperationsManager.java
-
 package controlador.managers;
 
 import java.io.File;
@@ -13,33 +11,34 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import controlador.VisorController; // <-- NUEVO IMPORT
+import controlador.VisorController;
+import controlador.managers.interfaces.IFileOperationsManager; // <-- AÑADIR IMPORT
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
-// No se necesita importar VisorView
 
-public class FileOperationsManager {
+public class FileOperationsManager implements IFileOperationsManager { // <-- IMPLEMENTAR INTERFAZ
 
-    private final VisorModel model;
-    private final VisorController controller; // <-- CAMBIO
-    private final ConfigurationManager configuration;
-    private final Consumer<Path> onNuevaCarpetaSeleccionadaCallback;
+    // --- INICIO DE LA MODIFICACIÓN: Campos para dependencias ---
+    private VisorModel model;
+    private VisorController controller;
+    private ConfigurationManager configuration;
+    private Consumer<Path> onNuevaCarpetaSeleccionadaCallback;
+    // --- FIN DE LA MODIFICACIÓN ---
 
-    public FileOperationsManager(
-        VisorModel model, 
-        VisorController controller, // <-- CAMBIO
-        ConfigurationManager configuration,
-        Consumer<Path> onNuevaCarpetaSeleccionadaCallback) {
-        
-        this.model = Objects.requireNonNull(model);
-        this.controller = Objects.requireNonNull(controller); // <-- CAMBIO
-        this.configuration = Objects.requireNonNull(configuration);
-        this.onNuevaCarpetaSeleccionadaCallback = Objects.requireNonNull(onNuevaCarpetaSeleccionadaCallback);
+    // --- INICIO DE LA MODIFICACIÓN: Constructor vacío ---
+    public FileOperationsManager() {
+        // Constructor vacío.
     }
+    // --- FIN DE LA MODIFICACIÓN ---
 
+    @Override
     public void solicitarSeleccionNuevaCarpeta() {
+        if (controller == null || model == null || configuration == null || onNuevaCarpetaSeleccionadaCallback == null) {
+             System.err.println("ERROR [FileManager]: Dependencias no inyectadas. No se puede abrir selector.");
+             return;
+        }
         System.out.println("[FileManager] Iniciando selección de nueva carpeta...");
-        JFrame mainFrame = controller.getView(); // Obtener el frame una sola vez
+        JFrame mainFrame = controller.getView();
         
         JFileChooser fileChooser = new JFileChooser();
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
@@ -66,6 +65,8 @@ public class FileOperationsManager {
                     model.setCarpetaRaizActual(nuevaCarpetaPath);
                     configuration.setString(ConfigurationManager.KEY_INICIO_CARPETA, nuevaCarpetaPath.toAbsolutePath().toString());
                     try {
+                        // OJO: Esta línea podría ser problemática. Un manager no debería guardar toda la config.
+                        // Idealmente, el controlador orquestaría el guardado. Por ahora se mantiene.
                         configuration.guardarConfiguracion(configuration.getConfigMap());
                     } catch (IOException e) {
                         System.err.println("ERROR [FileManager] al guardar config: " + e.getMessage());
@@ -81,13 +82,16 @@ public class FileOperationsManager {
         } else {
             System.out.println("  [FileManager] Selección de carpeta cancelada.");
         }
-    }
+    } // --- Fin del método solicitarSeleccionNuevaCarpeta ---
 
+    @Override
     public void borrarArchivoSeleccionado() {
+        if (controller == null || model == null) {
+             System.err.println("ERROR [FileManager]: Dependencias no inyectadas. No se puede borrar.");
+             return;
+        }
         System.out.println("[FileOperationsManager] Iniciando borrado...");
-        JFrame mainFrame = controller.getView(); // Obtener el frame una sola vez
-
-        if (model == null) return;
+        JFrame mainFrame = controller.getView();
 
         String claveImagenSeleccionada = model.getSelectedImageKey();
         if (claveImagenSeleccionada == null) {
@@ -127,5 +131,24 @@ public class FileOperationsManager {
         } else {
             System.out.println("  [FileOperationsManager] Eliminación cancelada por el usuario.");
         }
+    } // --- Fin del método borrarArchivoSeleccionado ---
+
+    // --- INICIO DE LA MODIFICACIÓN: Setters para inyección de dependencias ---
+    public void setModel(VisorModel model) {
+        this.model = Objects.requireNonNull(model);
     }
+
+    public void setController(VisorController controller) {
+        this.controller = Objects.requireNonNull(controller);
+    }
+
+    public void setConfiguration(ConfigurationManager configuration) {
+        this.configuration = Objects.requireNonNull(configuration);
+    }
+    
+    public void setOnNuevaCarpetaSeleccionadaCallback(Consumer<Path> callback) {
+        this.onNuevaCarpetaSeleccionadaCallback = Objects.requireNonNull(callback);
+    }
+    // --- FIN DE LA MODIFICACIÓN ---
+
 } // --- FIN de la clase FileOperationsManager ---
