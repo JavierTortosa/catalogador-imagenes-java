@@ -28,20 +28,17 @@ public class ZoomManager implements IZoomManager {
 // --- FIN DE LA MODIFICACIÓN ---
 
     // --- INICIO DE LA MODIFICACIÓN: Campos para dependencias ---
-    private VisorModel model;
+	private VisorModel model;
     private ComponentRegistry registry;
     private ConfigurationManager configuration;
     private InfobarStatusManager statusBarManager;
     private ListCoordinator listCoordinator;
-    // --- FIN DE LA MODIFICACIÓN ---
 
     private int lastMouseX, lastMouseY;
 
-    // --- INICIO DE LA MODIFICACIÓN: Constructor vacío ---
     public ZoomManager() {
         // El constructor ahora está vacío.
     } // --- Fin del constructor de ZoomManager ---
-    // --- FIN DE LA MODIFICACIÓN ---
 
     // =================================================================================
     // MÉTODOS PÚBLICOS
@@ -56,12 +53,12 @@ public class ZoomManager implements IZoomManager {
         if (statusBarManager != null) statusBarManager.actualizar();
     } // --- FIN del metodo setPermisoManual ---
     
+    // Este método delega la llamada a la versión con el callback, pasando null.
     @Override
     public void aplicarModoDeZoom(ZoomModeEnum modo) {
         aplicarModoDeZoom(modo, null);
-    } // --- Fin del método aplicarModoDeZoom (modificado) ---
-
-    // Implementar el nuevo método de la interfaz
+    } // --- Fin del método aplicarModoDeZoom (sin callback) ---    
+    
     @Override
     public void aplicarModoDeZoom(ZoomModeEnum modo, Runnable onComplete) {
         if (model == null || model.getCurrentImage() == null) {
@@ -83,32 +80,81 @@ public class ZoomManager implements IZoomManager {
 
         model.setCurrentZoomMode(modo);
 
-        if (modo == ZoomModeEnum.FILL) {
-            BufferedImage imgOriginal = model.getCurrentImage();
-            Image imagenEscalada = ImageDisplayUtils.escalar(imgOriginal, displayPanel.getWidth(), displayPanel.getHeight());
-            double factorPromedio = ((double) displayPanel.getWidth() / imgOriginal.getWidth() + (double) displayPanel.getHeight() / imgOriginal.getHeight()) / 2.0;
-            model.setZoomFactor(factorPromedio);
-            model.resetPan();
-            displayPanel.setImagenEscalada(imagenEscalada, model.getImageOffsetX(), model.getImageOffsetY());
-            if (statusBarManager != null) statusBarManager.actualizar();
-            
-            if (onComplete != null) {
-                onComplete.run();
-            }
-            return; 
-        }
+        // Se elimina el caso especial para FILL, ya que _calcularFactorDeZoom ahora lo maneja
+        // y el refresco es genérico. Si necesitaras una lógica de paneo especial para FILL,
+        // se añadiría aquí, pero el escalado ya no.
 
         double nuevoFactor = _calcularFactorDeZoom(modo);
         model.setZoomFactor(nuevoFactor);
         model.resetPan();
         
-        refrescarVistaSincrono();
+        refrescarVistaSincrono(); // <-- Esta llamada ahora es muy ligera.
+
+        // Notificar a la barra de estado del cambio.
+        if (statusBarManager != null) {
+            statusBarManager.actualizar();
+        }
 
         // Ejecutar el callback al final de toda la operación
         if (onComplete != null) {
             onComplete.run();
         }
     } // --- Fin del método aplicarModoDeZoom (con callback) ---
+    
+    
+//    @Override
+//    public void aplicarModoDeZoom(ZoomModeEnum modo) {
+//        aplicarModoDeZoom(modo, null);
+//    } // --- Fin del método aplicarModoDeZoom (modificado) ---
+//
+//    // Implementar el nuevo método de la interfaz
+//    @Override
+//    public void aplicarModoDeZoom(ZoomModeEnum modo, Runnable onComplete) {
+//        if (model == null || model.getCurrentImage() == null) {
+//            if (onComplete != null) onComplete.run();
+//            return;
+//        }
+//        
+//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+//        if (displayPanel == null || displayPanel.getWidth() <= 0) {
+//            if (onComplete != null) onComplete.run();
+//            return;
+//        }
+//
+//        if (modo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
+//            double factorActual = model.getZoomFactor();
+//            configuration.setZoomPersonalizadoPorcentaje(factorActual * 100);
+//            System.out.println("[ZoomManager] Capturado nuevo Zoom Fijo: " + (factorActual * 100) + "%");
+//        }
+//
+//        model.setCurrentZoomMode(modo);
+//
+//        if (modo == ZoomModeEnum.FILL) {
+//            BufferedImage imgOriginal = model.getCurrentImage();
+//            Image imagenEscalada = ImageDisplayUtils.escalar(imgOriginal, displayPanel.getWidth(), displayPanel.getHeight());
+//            double factorPromedio = ((double) displayPanel.getWidth() / imgOriginal.getWidth() + (double) displayPanel.getHeight() / imgOriginal.getHeight()) / 2.0;
+//            model.setZoomFactor(factorPromedio);
+//            model.resetPan();
+//            displayPanel.setImagenEscalada(imagenEscalada, model.getImageOffsetX(), model.getImageOffsetY());
+//            if (statusBarManager != null) statusBarManager.actualizar();
+//            
+//            if (onComplete != null) {
+//                onComplete.run();
+//            }
+//            return; 
+//        }
+//
+//        double nuevoFactor = _calcularFactorDeZoom(modo);
+//        model.setZoomFactor(nuevoFactor);
+//        model.resetPan();
+//        
+//        refrescarVistaSincrono();
+//
+//        // Ejecutar el callback al final de toda la operación
+//        if (onComplete != null) {
+//            onComplete.run();
+//        }
+//    } // --- Fin del método aplicarModoDeZoom (con callback) ---
     
     @Override
     public void manejarRuedaInteracciona(java.awt.event.MouseWheelEvent e) {
@@ -189,27 +235,47 @@ public class ZoomManager implements IZoomManager {
         }
     } // --- Fin del método aplicarPan ---
     
+    
     @Override
     public void refrescarVistaSincrono() {
-        if (model == null || registry == null || model.getCurrentImage() == null) return;
+        if (registry == null) {
+            System.err.println("WARN [ZoomManager.refrescarVistaSincrono]: Registry es nulo.");
+            return;
+        }
         
         ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-        if (displayPanel == null) return;
-        
-        BufferedImage imgOriginal = model.getCurrentImage();
-        double zoomFactor = model.getZoomFactor();
-        
-        int nuevoAncho = (int)(imgOriginal.getWidth() * zoomFactor);
-        int nuevoAlto = (int)(imgOriginal.getHeight() * zoomFactor);
-        
-        Image imagenEscalada = ImageDisplayUtils.escalar(imgOriginal, nuevoAncho, nuevoAlto);
-        displayPanel.setImagenEscalada(imagenEscalada, model.getImageOffsetX(), model.getImageOffsetY());
-    } // --- FIN del metodo refrescarVistaSincrono ---
+        if (displayPanel != null) {
+            // El panel ya tiene acceso al modelo y sabe cómo pintarse a sí mismo
+            // con la transformación correcta. Solo necesita que le digamos CUÁNDO.
+            displayPanel.repaint();
+        } else {
+            System.err.println("WARN [ZoomManager.refrescarVistaSincrono]: 'panel.display.imagen' no encontrado en el registro.");
+        }
+    } // --- Fin del método refrescarVistaSincrono ---
+    
+    
+//    @Override
+//    public void refrescarVistaSincrono() {
+//        if (model == null || registry == null || model.getCurrentImage() == null) return;
+//        
+//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+//        if (displayPanel == null) return;
+//        
+//        BufferedImage imgOriginal = model.getCurrentImage();
+//        double zoomFactor = model.getZoomFactor();
+//        
+//        int nuevoAncho = (int)(imgOriginal.getWidth() * zoomFactor);
+//        int nuevoAlto = (int)(imgOriginal.getHeight() * zoomFactor);
+//        
+//        Image imagenEscalada = ImageDisplayUtils.escalar(imgOriginal, nuevoAncho, nuevoAlto);
+//        displayPanel.setImagenEscalada(imagenEscalada, model.getImageOffsetX(), model.getImageOffsetY());
+//    } // --- FIN del metodo refrescarVistaSincrono ---
 
     // =================================================================================
     // MÉTODOS PRIVADOS
     // =================================================================================
 
+    
     private double _calcularFactorDeZoom(ZoomModeEnum modo) {
         if (modo == null) return 1.0;
 
@@ -235,6 +301,13 @@ public class ZoomManager implements IZoomManager {
                 
             case FIT_TO_SCREEN:
                 return Math.min((double) panelW / imgW, (double) panelH / imgH);
+            
+            case FILL: // <--- NUEVO CASO MANEJADO AQUÍ
+                // Devuelve el factor de escala más GRANDE para que la imagen rellene el panel.
+                // Esto ignorará la proporción si es necesario, pero el panel se encargará de estirarla.
+                // Si `mantenerProporcion` estuviera activado, este modo no debería ser una opción
+                // o debería comportarse como FIT_TO_SCREEN. Por ahora, asumimos que ignora la proporción.
+                return Math.max((double) panelW / imgW, (double) panelH / imgH);
 
             case FIT_TO_WIDTH:
                 factorIntencional = (double) panelW / imgW;
@@ -268,7 +341,68 @@ public class ZoomManager implements IZoomManager {
             default:
                 return model.getZoomFactor(); 
         }
-    } // --- FIN del metodo _calcularFactorDeZoom ---
+    } // --- Fin del método _calcularFactorDeZoom ---
+    
+    
+//    private double _calcularFactorDeZoom(ZoomModeEnum modo) {
+//        if (modo == null) return 1.0;
+//
+//        BufferedImage img = model.getCurrentImage();
+//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+//        
+//        if (img == null || displayPanel == null) return 1.0;
+//
+//        int imgW = img.getWidth();
+//        int imgH = img.getHeight();
+//        int panelW = displayPanel.getWidth();
+//        int panelH = displayPanel.getHeight();
+//        
+//        if (imgW <= 0 || imgH <= 0 || panelW <= 0 || panelH <= 0) return 1.0;
+//
+//        boolean modoSeguroActivado = model.isMantenerProporcion();
+//        double factorIntencional;
+//
+//        switch (modo) {
+//            case MAINTAIN_CURRENT_ZOOM:
+//            case USER_SPECIFIED_PERCENTAGE:
+//                return configuration.getZoomPersonalizadoPorcentaje() / 100.0;
+//                
+//            case FIT_TO_SCREEN:
+//                return Math.min((double) panelW / imgW, (double) panelH / imgH);
+//
+//            case FIT_TO_WIDTH:
+//                factorIntencional = (double) panelW / imgW;
+//                if (modoSeguroActivado) {
+//                    int altoProyectado = (int) (imgH * factorIntencional);
+//                    if (altoProyectado > panelH) {
+//                        return Math.min((double) panelW / imgW, (double) panelH / imgH);
+//                    }
+//                }
+//                return factorIntencional;
+//
+//            case FIT_TO_HEIGHT:
+//                factorIntencional = (double) panelH / imgH;
+//                if (modoSeguroActivado) {
+//                    int anchoProyectado = (int) (imgW * factorIntencional);
+//                    if (anchoProyectado > panelW) {
+//                        return Math.min((double) panelW / imgW, (double) panelH / imgH);
+//                    }
+//                }
+//                return factorIntencional;
+//
+//            case DISPLAY_ORIGINAL:
+//                factorIntencional = 1.0;
+//                if (modoSeguroActivado) {
+//                    if (imgW > panelW || imgH > panelH) {
+//                        return Math.min((double) panelW / imgW, (double) panelH / imgH);
+//                    }
+//                }
+//                return factorIntencional;
+//                
+//            default:
+//                return model.getZoomFactor(); 
+//        }
+//    } // --- FIN del metodo _calcularFactorDeZoom ---
     
     // --- INICIO DE LA MODIFICACIÓN: Setters para inyección de dependencias ---
     @Override
@@ -293,6 +427,8 @@ public class ZoomManager implements IZoomManager {
         this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null");
     } // --- Fin del método setConfiguration ---
     // --- FIN DE LA MODIFICACIÓN ---
+
+	
     
 } // --- FIN de la clase ZoomManager ---
 

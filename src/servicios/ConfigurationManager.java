@@ -582,6 +582,7 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO, "FIT_TO_SCREEN");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO, "100.0");
 	    
+	    
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, "false");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, "true");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, "10");
@@ -609,6 +610,7 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO, "60");
 	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, "40");
 	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, "40");
+	    defaults.put(ConfigKeys.MINIATURAS_CACHE_MAX_SIZE, "200");
 	    
 	    // --- 3. ESTADOS DE MENÚS (CHECKBOXES Y RADIOS) ---
 	    defaults.put(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, "true");

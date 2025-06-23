@@ -114,31 +114,8 @@ En este punto tenemos varias herramientas:
 Modos de trabajo
 
 	Visualizador de imagenes
-		Modos de zoom
-			Ajustar a Pantalla	
-			Ajustar a Ancho		
-			Ajustar a Alto		
-			Zoom 100%(Automático)		
-			Zoom Fijo(Mantener Actual)	
-			Zoom Específico		
-			Rellenar			
-			Zoom Manual
-			
-		Tipos de Vista			
-			Una imagen
-			Grid
-			Lista de Imagenes Guardadas
-			
-		Tipos de pantallas
-			Pantalla completa (sin bordes)
-			Carrousel
-					
 	Gestor de proyectos
-		Marcar Imagenes
-		Gestores Varios
-		
 	Catalogador de imagenes
-	
 	   		 
 --------------------------------
 

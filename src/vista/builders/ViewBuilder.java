@@ -246,7 +246,7 @@ public class ViewBuilder {
         rightPanel.setBackground(themeManager.getTemaActual().colorFondoSecundario());
         registry.register("panel.derecho.visor", rightPanel);
 
-        ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager);
+        ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
         registry.register("panel.display.imagen", imageDisplayPanel);
         registry.register("label.imagenPrincipal", imageDisplayPanel.getInternalLabel());
         

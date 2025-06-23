@@ -157,6 +157,7 @@ public final class ConfigKeys {
     public static final String MINIATURAS_TAMANO_SEL_ALTO = "miniaturas.tamano.seleccionada.alto";
     public static final String MINIATURAS_TAMANO_NORM_ANCHO = "miniaturas.tamano.normal.ancho";
     public static final String MINIATURAS_TAMANO_NORM_ALTO = "miniaturas.tamano.normal.alto";
+    public static final String MINIATURAS_CACHE_MAX_SIZE = "miniaturas.cache.tamano.maximo";
 //    public static final String MINIATURAS_MOSTRAR_NOMBRES = "miniaturas.ui.mostrar_nombres";
 
     

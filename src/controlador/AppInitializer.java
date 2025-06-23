@@ -322,324 +322,345 @@ public class AppInitializer {
 
     // --- MÉTODO PARA INICIALIZACIÓN DENTRO DEL EDT ---
 
+ // Dentro de la clase controlador.AppInitializer
 
-	// Este es tu método reorganizado, con la mejora de rendimiento al final.
-	// La lógica de creación y cableado es la tuya, que ya es correcta.
-	
-	private void crearUIyComponentesDependientesEnEDT() {
-	    try {
-	        System.out.println("--- [AppInitializer Fase B - EDT] Reorganizando la inicialización en bloques... ---");
-	
-	        //======================================================================
-	        // BLOQUE 1: CREACIÓN DE TODAS LAS INSTANCIAS (SIN CABLEAR)
-	        //======================================================================
-	        System.out.println("  -> BLOQUE 1: Creando todas las instancias...");
-	        
-	        ComponentRegistry registry = new ComponentRegistry();
-	        this.zoomManager = new ZoomManager();
-	        this.editionManager = new EditionManager();
-	        this.viewManager = new ViewManager();
-	        this.listCoordinator = new ListCoordinator();
-	        this.fileOperationsManager = new FileOperationsManager();
-	        
-	        ProjectBuilder projectBuilder = new ProjectBuilder(registry, this.model);
-	        ViewBuilder viewBuilder = new ViewBuilder(
-	            registry, this.model, this.themeManager, this.configuration,
-	            this.controller, this.iconUtils, this.servicioMiniaturas,
-	            projectBuilder
-	        );
-	
-	        UIDefinitionService uiDefSvc = new UIDefinitionService();
-	        Map<String, String> iconMap = new java.util.HashMap<>();
-	        
-	        // Se crea ActionFactory con dependencias que ya existen, pasando null para la 'view' que aún no se ha creado.
-	        this.actionFactory = new ActionFactory(
-	             this.model, null, this.zoomManager, this.fileOperationsManager, 
-	             this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
-	             this.projectManagerService, iconMap, this.viewManager, this.themeManager, this.controller
-	        );
-	        
-	        this.configAppManager = new ConfigApplicationManager(this.model, this.configuration, this.themeManager, registry);
-	        this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
-	
-	        MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager);
-	        ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.themeManager, this.iconUtils, this.controller, configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24));
-	        ToolbarManager toolbarManager = new ToolbarManager(this.configuration, toolbarBuilder, uiDefSvc, registry);
-	        
-	        //======================================================================
-	        // BLOQUE 2: CABLEADO (INYECCIÓN DE DEPENDENCIAS PRE-UI)
-	        //======================================================================
-	        System.out.println("  -> BLOQUE 2: Cableando dependencias pre-UI...");
-	
-	        this.controller.setComponentRegistry(registry);
-	
-	        if (this.projectManagerService != null) {
-	            this.projectManagerService.setConfigManager(this.configuration);
-	            this.controller.setProjectManager(this.projectManagerService);
-	        }
-	
-	        this.zoomManager.setModel(this.model);
-	        this.zoomManager.setRegistry(registry);
-	        this.zoomManager.setConfiguration(this.configuration);
-	
-	        this.editionManager.setModel(this.model);
-	        this.editionManager.setController(this.controller);
-	        this.editionManager.setZoomManager(this.zoomManager);
-	
-	        this.viewManager.setConfiguration(this.configuration);
-	        this.viewManager.setRegistry(registry);
-	        this.viewManager.setThemeManager(this.themeManager);
-	
-	        this.listCoordinator.setModel(this.model);
-	        this.listCoordinator.setController(this.controller);
-	        this.listCoordinator.setRegistry(registry);
-	
-	        java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.controller.cargarListaImagenes(null, null);
-	        this.fileOperationsManager.setModel(this.model);
-	        this.fileOperationsManager.setController(this.controller);
-	        this.fileOperationsManager.setConfiguration(this.configuration);
-	        this.fileOperationsManager.setOnNuevaCarpetaSeleccionadaCallback(onFolderSelectedCallback);
-	        
-	        viewBuilder.setViewManager(this.viewManager);
-	        menuBuilder.setControllerGlobalActionListener(this.controller);
-	        
-	        //======================================================================
-	        // BLOQUE 3: EJECUCIÓN Y ARRANQUE (POST-CABLEADO)
-	        //======================================================================
-	        System.out.println("  -> BLOQUE 3: Ejecutando lógica de arranque...");
-	        
-	        // 3.1. Inicializar servicios que necesitaban dependencias
-	        if (this.projectManagerService != null) {
-	            this.projectManagerService.initialize();
-	        }
-	
-	        // 3.2. Construir la UI principal. A partir de aquí, 'this.view' existe.
-	        this.view = viewBuilder.createMainFrame();
-	
-	        // 3.3. CABLEADO FINAL: Inyectar las dependencias que necesitaban la 'view'.
-	        this.actionFactory.setView(this.view); // <-- ¡Aquí se resuelve la dependencia!
-	        this.configAppManager.setView(this.view);
-	        this.viewManager.setView(this.view);
-	        this.listCoordinator.setView(this.view);
-	        this.controller.setView(this.view);
-	
-	        // 3.4. Ahora que ActionFactory está completa, podemos inicializar las acciones y obtener el actionMap.
-	        uiDefSvc.generateModularToolbarStructure().forEach(td -> td.botones().forEach(bd -> iconMap.put(bd.comandoCanonico(), bd.claveIcono())));
-	        this.actionFactory.initializeActions(); // <-- Ahora es seguro llamar a esto
-	        this.actionMap = this.actionFactory.getActionMap();
-	
-	        // 3.5. CABLEADO FINAL: Inyectar el 'actionMap' a los componentes que lo necesitan.
-	        this.configAppManager.setActionMap(this.actionMap);
-	        this.viewManager.setActionMap(this.actionMap);
-	        this.controller.setActionMap(this.actionMap);
-	        toolbarBuilder.setActionMap(this.actionMap);
-	        
-	        // 3.6. CABLEADO FINAL: Resto de interconexiones entre managers.
-	        this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
-	        this.controller.setZoomManager(this.zoomManager);
-	        this.controller.setListCoordinator(this.listCoordinator);
-	        this.controller.setViewManager(this.viewManager);
-	        this.controller.setConfigApplicationManager(configAppManager);
-	        this.controller.setInfobarImageManager(infobarImageManager);
-	        this.controller.setStatusBarManager(statusBarManager);
-	        this.zoomManager.setStatusBarManager(this.statusBarManager);
-	        this.zoomManager.setListCoordinator(this.listCoordinator);
-	        this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
-	
-	        // 3.7. Poblar la UI con los datos/componentes finales
-	        this.view.setJMenuBar(menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap));
-	        this.controller.setMenuItemsPorNombre(menuBuilder.getMenuItemsMap());
-	        menuBuilder.getMenuItemsMap().forEach(registry::register);
-	        
-	        toolbarManager.inicializarBarrasDeHerramientas();
-	        Map<String, javax.swing.JButton> botones = toolbarBuilder.getBotonesPorNombre();
-	        this.controller.setBotonesPorNombre(botones);
-	        this.viewManager.setBotonesPorNombre(botones);
-	        
-	        // 3.8. Configuración final de listeners
-	        this.configAppManager.aplicarConfiguracionGlobalmente();
-	        this.controller.configurarListenersVistaInternal();
-	        java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
-	        this.view.addWindowListener(new java.awt.event.WindowAdapter() {
-	            public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
-	        });
-	        
-	        this.controller.configurarListenerDePrimerRenderizado();
-	        this.controller.establecerCarpetaRaizDesdeConfigInternal();
-	        
-	        // --- INICIO DE LA MEJORA DE RENDIMIENTO ---
-	
-	        // 3.9. HACER VISIBLE LA VENTANA. En este punto la UI está vacía pero responde.
-	        // Esta es una operación rápida para el EDT.
-	        this.view.setVisible(true);
-	        
-	        // 3.10. PROGRAMAR LA CARGA PESADA EN UN EVENTO POSTERIOR DEL EDT.
-	        //       Usamos invokeLater para darle tiempo al EDT a procesar el setVisible(true)
-	        //       y pintar la ventana antes de empezar a buscar archivos.
-	        SwingUtilities.invokeLater(() -> {
-	            String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
-	            if (this.model.getCarpetaRaizActual() != null) {
-	                System.out.println("  -> [EDT Post-Visibilidad] Lanzando carga de imágenes...");
-	                this.controller.cargarListaImagenes(imagenInicialKey, null);
-	            } else {
-	                // Si no hay carpeta, simplemente limpiamos la UI (acción rápida).
-	                this.controller.limpiarUI();
-	            }
-	        });
-	
-	        // --- FIN DE LA MEJORA ---
-	        
-	        System.out.println("--- [EDT] Inicialización de UI completada. Carga de datos programada. ---");
-	
-	    } catch (Exception e) {
-	        manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
-	        e.printStackTrace();
-	    }
-}
+    private void crearUIyComponentesDependientesEnEDT() {
+        try {
+            System.out.println("--- [AppInitializer Fase B - EDT] Reorganizando la inicialización en bloques... ---");
+
+            //======================================================================
+            // BLOQUE 1: CREACIÓN DE TODAS LAS INSTANCIAS (SIN CABLEAR)
+            //======================================================================
+            System.out.println("  -> BLOQUE 1: Creando todas las instancias...");
+            
+            ComponentRegistry registry = new ComponentRegistry();
+            this.zoomManager = new ZoomManager();
+            this.editionManager = new EditionManager();
+            this.viewManager = new ViewManager();
+            this.listCoordinator = new ListCoordinator();
+            this.fileOperationsManager = new FileOperationsManager();
+            
+            ProjectBuilder projectBuilder = new ProjectBuilder(registry, this.model);
+            ViewBuilder viewBuilder = new ViewBuilder(
+                registry, this.model, this.themeManager, this.configuration,
+                this.controller, this.iconUtils, this.servicioMiniaturas,
+                projectBuilder
+            );
+
+            UIDefinitionService uiDefSvc = new UIDefinitionService();
+            Map<String, String> iconMap = new java.util.HashMap<>();
+            
+            this.actionFactory = new ActionFactory(
+                 this.model, null, this.zoomManager, this.fileOperationsManager, 
+                 this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
+                 this.projectManagerService, iconMap, this.viewManager, this.themeManager, this.controller
+            );
+            
+            this.configAppManager = new ConfigApplicationManager(this.model, this.configuration, this.themeManager, registry);
+            this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
+
+            MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager);
+            ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.themeManager, this.iconUtils, this.controller, configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24));
+            ToolbarManager toolbarManager = new ToolbarManager(this.configuration, toolbarBuilder, uiDefSvc, registry);
+            
+            //======================================================================
+            // BLOQUE 2: CABLEADO (INYECCIÓN DE DEPENDENCIAS PRE-UI)
+            //======================================================================
+            System.out.println("  -> BLOQUE 2: Cableando dependencias pre-UI...");
+
+            this.controller.setComponentRegistry(registry);
+
+            if (this.projectManagerService != null) {
+                this.projectManagerService.setConfigManager(this.configuration);
+                this.controller.setProjectManager(this.projectManagerService);
+            }
+
+            this.zoomManager.setModel(this.model);
+            this.zoomManager.setRegistry(registry);
+            this.zoomManager.setConfiguration(this.configuration);
+
+            this.editionManager.setModel(this.model);
+            this.editionManager.setController(this.controller);
+            this.editionManager.setZoomManager(this.zoomManager);
+
+            this.viewManager.setConfiguration(this.configuration);
+            this.viewManager.setRegistry(registry);
+            this.viewManager.setThemeManager(this.themeManager);
+
+            this.listCoordinator.setModel(this.model);
+            this.listCoordinator.setController(this.controller);
+            this.listCoordinator.setRegistry(registry);
+
+            java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.controller.cargarListaImagenes(null, null);
+            this.fileOperationsManager.setModel(this.model);
+            this.fileOperationsManager.setController(this.controller);
+            this.fileOperationsManager.setConfiguration(this.configuration);
+            this.fileOperationsManager.setOnNuevaCarpetaSeleccionadaCallback(onFolderSelectedCallback);
+            
+            viewBuilder.setViewManager(this.viewManager);
+            menuBuilder.setControllerGlobalActionListener(this.controller);
+            
+            //======================================================================
+            // BLOQUE 3: EJECUCIÓN Y ARRANQUE (POST-CABLEADO)
+            //======================================================================
+            System.out.println("  -> BLOQUE 3: Ejecutando lógica de arranque...");
+            
+            if (this.projectManagerService != null) {
+                this.projectManagerService.initialize();
+            }
+
+            this.view = viewBuilder.createMainFrame();
+
+            this.actionFactory.setView(this.view);
+            this.configAppManager.setView(this.view);
+            this.viewManager.setView(this.view);
+            this.listCoordinator.setView(this.view);
+            this.controller.setView(this.view);
+
+            uiDefSvc.generateModularToolbarStructure().forEach(td -> td.botones().forEach(bd -> iconMap.put(bd.comandoCanonico(), bd.claveIcono())));
+            this.actionFactory.initializeActions();
+            this.actionMap = this.actionFactory.getActionMap();
+
+            this.configAppManager.setActionMap(this.actionMap);
+            this.viewManager.setActionMap(this.actionMap);
+            this.controller.setActionMap(this.actionMap);
+            toolbarBuilder.setActionMap(this.actionMap);
+            
+            this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
+            this.controller.setZoomManager(this.zoomManager);
+            this.controller.setListCoordinator(this.listCoordinator);
+            this.controller.setViewManager(this.viewManager);
+            this.controller.setConfigApplicationManager(configAppManager);
+            this.controller.setInfobarImageManager(infobarImageManager);
+            this.controller.setStatusBarManager(statusBarManager);
+            this.zoomManager.setStatusBarManager(this.statusBarManager);
+            this.zoomManager.setListCoordinator(this.listCoordinator);
+            this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
+
+            this.view.setJMenuBar(menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap));
+            this.controller.setMenuItemsPorNombre(menuBuilder.getMenuItemsMap());
+            menuBuilder.getMenuItemsMap().forEach(registry::register);
+            
+            toolbarManager.inicializarBarrasDeHerramientas();
+            Map<String, javax.swing.JButton> botones = toolbarBuilder.getBotonesPorNombre();
+            this.controller.setBotonesPorNombre(botones);
+            this.viewManager.setBotonesPorNombre(botones);
+            
+            // --- INICIO DE LA MODIFICACIÓN ---
+            // Se añade la llamada para configurar los atajos de teclado globales.
+            // Este es el lugar correcto, después de que la vista y el actionMap han sido
+            // creados e inyectados en el controlador.
+            this.controller.configurarAtajosTecladoGlobales();
+            // --- FIN DE LA MODIFICACIÓN ---
+
+            this.configAppManager.aplicarConfiguracionGlobalmente();
+            this.controller.configurarListenersVistaInternal();
+            java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
+            this.view.addWindowListener(new java.awt.event.WindowAdapter() {
+                public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
+            });
+            
+            this.controller.configurarListenerDePrimerRenderizado();
+            this.controller.establecerCarpetaRaizDesdeConfigInternal();
+            
+            this.view.setVisible(true);
+            
+            SwingUtilities.invokeLater(() -> {
+                String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
+                if (this.model.getCarpetaRaizActual() != null) {
+                    System.out.println("  -> [EDT Post-Visibilidad] Lanzando carga de imágenes...");
+                    this.controller.cargarListaImagenes(imagenInicialKey, null);
+                } else {
+                    this.controller.limpiarUI();
+                }
+            });
+
+            System.out.println("--- [EDT] Inicialización de UI completada. Carga de datos programada. ---");
+
+        } catch (Exception e) {
+            manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
+            e.printStackTrace();
+        }
+    } // --- Fin del método crearUIyComponentesDependientesEnEDT ---
+    
+
+//	// Este es tu método reorganizado, con la mejora de rendimiento al final.
+//	// La lógica de creación y cableado es la tuya, que ya es correcta.
+//	
+//	private void crearUIyComponentesDependientesEnEDT() {
+//	    try {
+//	        System.out.println("--- [AppInitializer Fase B - EDT] Reorganizando la inicialización en bloques... ---");
+//	
+//	        //======================================================================
+//	        // BLOQUE 1: CREACIÓN DE TODAS LAS INSTANCIAS (SIN CABLEAR)
+//	        //======================================================================
+//	        System.out.println("  -> BLOQUE 1: Creando todas las instancias...");
+//	        
+//	        ComponentRegistry registry = new ComponentRegistry();
+//	        this.zoomManager = new ZoomManager();
+//	        this.editionManager = new EditionManager();
+//	        this.viewManager = new ViewManager();
+//	        this.listCoordinator = new ListCoordinator();
+//	        this.fileOperationsManager = new FileOperationsManager();
+//	        
+//	        ProjectBuilder projectBuilder = new ProjectBuilder(registry, this.model);
+//	        ViewBuilder viewBuilder = new ViewBuilder(
+//	            registry, this.model, this.themeManager, this.configuration,
+//	            this.controller, this.iconUtils, this.servicioMiniaturas,
+//	            projectBuilder
+//	        );
+//	
+//	        UIDefinitionService uiDefSvc = new UIDefinitionService();
+//	        Map<String, String> iconMap = new java.util.HashMap<>();
+//	        
+//	        // Se crea ActionFactory con dependencias que ya existen, pasando null para la 'view' que aún no se ha creado.
+//	        this.actionFactory = new ActionFactory(
+//	             this.model, null, this.zoomManager, this.fileOperationsManager, 
+//	             this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
+//	             this.projectManagerService, iconMap, this.viewManager, this.themeManager, this.controller
+//	        );
+//	        
+//	        this.configAppManager = new ConfigApplicationManager(this.model, this.configuration, this.themeManager, registry);
+//	        this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
+//	
+//	        MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager);
+//	        ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.themeManager, this.iconUtils, this.controller, configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24));
+//	        ToolbarManager toolbarManager = new ToolbarManager(this.configuration, toolbarBuilder, uiDefSvc, registry);
+//	        
+//	        //======================================================================
+//	        // BLOQUE 2: CABLEADO (INYECCIÓN DE DEPENDENCIAS PRE-UI)
+//	        //======================================================================
+//	        System.out.println("  -> BLOQUE 2: Cableando dependencias pre-UI...");
+//	
+//	        this.controller.setComponentRegistry(registry);
+//	
+//	        if (this.projectManagerService != null) {
+//	            this.projectManagerService.setConfigManager(this.configuration);
+//	            this.controller.setProjectManager(this.projectManagerService);
+//	        }
+//	
+//	        this.zoomManager.setModel(this.model);
+//	        this.zoomManager.setRegistry(registry);
+//	        this.zoomManager.setConfiguration(this.configuration);
+//	
+//	        this.editionManager.setModel(this.model);
+//	        this.editionManager.setController(this.controller);
+//	        this.editionManager.setZoomManager(this.zoomManager);
+//	
+//	        this.viewManager.setConfiguration(this.configuration);
+//	        this.viewManager.setRegistry(registry);
+//	        this.viewManager.setThemeManager(this.themeManager);
+//	
+//	        this.listCoordinator.setModel(this.model);
+//	        this.listCoordinator.setController(this.controller);
+//	        this.listCoordinator.setRegistry(registry);
+//	
+//	        java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.controller.cargarListaImagenes(null, null);
+//	        this.fileOperationsManager.setModel(this.model);
+//	        this.fileOperationsManager.setController(this.controller);
+//	        this.fileOperationsManager.setConfiguration(this.configuration);
+//	        this.fileOperationsManager.setOnNuevaCarpetaSeleccionadaCallback(onFolderSelectedCallback);
+//	        
+//	        viewBuilder.setViewManager(this.viewManager);
+//	        menuBuilder.setControllerGlobalActionListener(this.controller);
+//	        
+//	        //======================================================================
+//	        // BLOQUE 3: EJECUCIÓN Y ARRANQUE (POST-CABLEADO)
+//	        //======================================================================
+//	        System.out.println("  -> BLOQUE 3: Ejecutando lógica de arranque...");
+//	        
+//	        // 3.1. Inicializar servicios que necesitaban dependencias
+//	        if (this.projectManagerService != null) {
+//	            this.projectManagerService.initialize();
+//	        }
+//	
+//	        // 3.2. Construir la UI principal. A partir de aquí, 'this.view' existe.
+//	        this.view = viewBuilder.createMainFrame();
+//	
+//	        // 3.3. CABLEADO FINAL: Inyectar las dependencias que necesitaban la 'view'.
+//	        this.actionFactory.setView(this.view); // <-- ¡Aquí se resuelve la dependencia!
+//	        this.configAppManager.setView(this.view);
+//	        this.viewManager.setView(this.view);
+//	        this.listCoordinator.setView(this.view);
+//	        this.controller.setView(this.view);
+//	
+//	        // 3.4. Ahora que ActionFactory está completa, podemos inicializar las acciones y obtener el actionMap.
+//	        uiDefSvc.generateModularToolbarStructure().forEach(td -> td.botones().forEach(bd -> iconMap.put(bd.comandoCanonico(), bd.claveIcono())));
+//	        this.actionFactory.initializeActions(); // <-- Ahora es seguro llamar a esto
+//	        this.actionMap = this.actionFactory.getActionMap();
+//	
+//	        // 3.5. CABLEADO FINAL: Inyectar el 'actionMap' a los componentes que lo necesitan.
+//	        this.configAppManager.setActionMap(this.actionMap);
+//	        this.viewManager.setActionMap(this.actionMap);
+//	        this.controller.setActionMap(this.actionMap);
+//	        toolbarBuilder.setActionMap(this.actionMap);
+//	        
+//	        // 3.6. CABLEADO FINAL: Resto de interconexiones entre managers.
+//	        this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
+//	        this.controller.setZoomManager(this.zoomManager);
+//	        this.controller.setListCoordinator(this.listCoordinator);
+//	        this.controller.setViewManager(this.viewManager);
+//	        this.controller.setConfigApplicationManager(configAppManager);
+//	        this.controller.setInfobarImageManager(infobarImageManager);
+//	        this.controller.setStatusBarManager(statusBarManager);
+//	        this.zoomManager.setStatusBarManager(this.statusBarManager);
+//	        this.zoomManager.setListCoordinator(this.listCoordinator);
+//	        this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
+//	
+//	        // 3.7. Poblar la UI con los datos/componentes finales
+//	        this.view.setJMenuBar(menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap));
+//	        this.controller.setMenuItemsPorNombre(menuBuilder.getMenuItemsMap());
+//	        menuBuilder.getMenuItemsMap().forEach(registry::register);
+//	        
+//	        toolbarManager.inicializarBarrasDeHerramientas();
+//	        Map<String, javax.swing.JButton> botones = toolbarBuilder.getBotonesPorNombre();
+//	        this.controller.setBotonesPorNombre(botones);
+//	        this.viewManager.setBotonesPorNombre(botones);
+//	        
+//	        // 3.8. Configuración final de listeners
+//	        this.configAppManager.aplicarConfiguracionGlobalmente();
+//	        this.controller.configurarListenersVistaInternal();
+//	        java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
+//	        this.view.addWindowListener(new java.awt.event.WindowAdapter() {
+//	            public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
+//	        });
+//	        
+//	        this.controller.configurarListenerDePrimerRenderizado();
+//	        this.controller.establecerCarpetaRaizDesdeConfigInternal();
+//	        
+//	        // --- INICIO DE LA MEJORA DE RENDIMIENTO ---
+//	
+//	        // 3.9. HACER VISIBLE LA VENTANA. En este punto la UI está vacía pero responde.
+//	        // Esta es una operación rápida para el EDT.
+//	        this.view.setVisible(true);
+//	        
+//	        // 3.10. PROGRAMAR LA CARGA PESADA EN UN EVENTO POSTERIOR DEL EDT.
+//	        //       Usamos invokeLater para darle tiempo al EDT a procesar el setVisible(true)
+//	        //       y pintar la ventana antes de empezar a buscar archivos.
+//	        SwingUtilities.invokeLater(() -> {
+//	            String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
+//	            if (this.model.getCarpetaRaizActual() != null) {
+//	                System.out.println("  -> [EDT Post-Visibilidad] Lanzando carga de imágenes...");
+//	                this.controller.cargarListaImagenes(imagenInicialKey, null);
+//	            } else {
+//	                // Si no hay carpeta, simplemente limpiamos la UI (acción rápida).
+//	                this.controller.limpiarUI();
+//	            }
+//	        });
+//	
+//	        // --- FIN DE LA MEJORA ---
+//	        
+//	        System.out.println("--- [EDT] Inicialización de UI completada. Carga de datos programada. ---");
+//	
+//	      } catch (Exception e) {
+//	          manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
+//	          e.printStackTrace();
+//	      }
+//	  } // --- Fin del método crearUIyComponentesDependientesEnEDT ---
+
 
     
     
-//    private void crearUIyComponentesDependientesEnEDT() {
-//        try {
-//            System.out.println("--- [AppInitializer Fase B - EDT] Iniciando creación de UI (Orden Lógico Estable)...");
-//
-//            // --- FASE 1: Crear componentes base y managers SIN dependencias de UI complejas ---
-//            ComponentRegistry registry = new ComponentRegistry();
-//            this.controller.setComponentRegistry(registry);
-//
-//            if (this.projectManagerService != null) {
-//                System.out.println("  -> Cableando e inicializando ProjectManager...");
-//                this.projectManagerService.setConfigManager(this.configuration);
-//                this.projectManagerService.initialize();
-//                this.controller.setProjectManager(this.projectManagerService);
-//            }
-//
-//            this.zoomManager = new ZoomManager();
-//            this.zoomManager.setModel(this.model);
-//            this.zoomManager.setRegistry(registry);
-//            this.zoomManager.setConfiguration(this.configuration);
-//
-//            this.editionManager = new EditionManager();
-//            this.editionManager.setModel(this.model);
-//            this.editionManager.setController(this.controller);
-//            this.editionManager.setZoomManager(this.zoomManager);
-//
-//            // --- FASE 2: Crear ViewManager ---
-//            this.viewManager = new ViewManager();
-//            this.viewManager.setConfiguration(this.configuration);
-//            this.viewManager.setRegistry(registry);
-//            this.viewManager.setThemeManager(this.themeManager);
-//            
-//            // --- FASE 3: Crear los Builders ---
-//            ProjectBuilder projectBuilder = new ProjectBuilder(registry, this.model);
-//            ViewBuilder viewBuilder = new ViewBuilder(
-//                registry, this.model, this.themeManager, this.configuration,
-//                this.controller, this.iconUtils, this.servicioMiniaturas,
-//                projectBuilder
-//            );
-//            viewBuilder.setViewManager(this.viewManager);
-//
-//            // --- FASE 4: Construir la Vista y los componentes que dependen de ella ---
-//            this.view = viewBuilder.createMainFrame();
-//            
-//            this.viewManager.setView(this.view);
-//            this.listCoordinator = new ListCoordinator(); // Usa constructor vacío
-//            this.listCoordinator.setModel(this.model);
-//            this.listCoordinator.setView(this.view);
-//            this.listCoordinator.setController(this.controller);
-//            this.listCoordinator.setRegistry(registry);
-//            
-//            // --- FASE 5: Crear la Fábrica de Acciones (y sus dependencias) ---
-//            UIDefinitionService uiDefSvc = new UIDefinitionService();
-//            Map<String, String> iconMap = new java.util.HashMap<>();
-//            uiDefSvc.generateModularToolbarStructure().forEach(td -> td.botones().forEach(bd -> iconMap.put(bd.comandoCanonico(), bd.claveIcono())));
-//            
-//            // --- INICIO DE LA MODIFICACIÓN ---
-//            // La línea original era:
-//            // java.util.function.Consumer<java.nio.file.Path> cb = (p) -> this.controller.cargarListaImagenes(null, null);
-//            // this.fileOperationsManager = new FileOperationsManager(this.model, this.controller, this.configuration, cb);
-//            // La reemplazamos por el patrón "Crear -> Cablear"
-//
-//            java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.controller.cargarListaImagenes(null, null);
-//
-//            this.fileOperationsManager = new FileOperationsManager();
-//            this.fileOperationsManager.setModel(this.model);
-//            this.fileOperationsManager.setController(this.controller);
-//            this.fileOperationsManager.setConfiguration(this.configuration);
-//            this.fileOperationsManager.setOnNuevaCarpetaSeleccionadaCallback(onFolderSelectedCallback);
-//            // --- FIN DE LA MODIFICACIÓN ---
-//
-//            this.actionFactory = new ActionFactory(
-//                 this.model, this.view, this.zoomManager, this.fileOperationsManager, 
-//                 this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
-//                 this.projectManagerService, iconMap, this.viewManager, this.themeManager, this.controller
-//            );
-//            this.actionFactory.initializeActions();
-//            this.actionMap = this.actionFactory.getActionMap();
-//            
-//            this.viewManager.setActionMap(this.actionMap);
-//
-//            // --- FASE 6: Cableado Final y Arranque ---
-//            this.controller.setView(this.view);
-//            this.controller.setZoomManager(this.zoomManager);
-//            this.controller.setListCoordinator(this.listCoordinator);
-//            this.controller.setViewManager(this.viewManager);
-//            this.controller.setActionMap(this.actionMap);
-//            
-//            this.zoomManager.setListCoordinator(this.listCoordinator);
-//            
-//            this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
-//            
-//            this.configAppManager = new ConfigApplicationManager(this.model, this.view, this.configuration, this.actionMap, this.themeManager, registry);
-//            this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
-//            this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
-//            this.controller.setConfigApplicationManager(configAppManager);
-//            this.controller.setInfobarImageManager(infobarImageManager);
-//            this.controller.setStatusBarManager(statusBarManager);
-//
-//            this.zoomManager.setStatusBarManager(statusBarManager);
-//
-//            MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager);
-//            menuBuilder.setControllerGlobalActionListener(this.controller);
-//            this.view.setJMenuBar(menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap));
-//            this.controller.setMenuItemsPorNombre(menuBuilder.getMenuItemsMap());
-//            menuBuilder.getMenuItemsMap().forEach(registry::register);
-//
-//            ToolbarBuilder toolbarBuilder = new ToolbarBuilder(this.actionMap, this.themeManager, this.iconUtils, this.controller, configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24));
-//            ToolbarManager toolbarManager = new ToolbarManager(this.configuration, toolbarBuilder, uiDefSvc, registry);
-//            toolbarManager.inicializarBarrasDeHerramientas();
-//            Map<String, javax.swing.JButton> botones = toolbarBuilder.getBotonesPorNombre();
-//            this.controller.setBotonesPorNombre(botones);
-//            
-//            this.viewManager.setBotonesPorNombre(botones);
-//
-//            this.configAppManager.aplicarConfiguracionGlobalmente();
-//            this.controller.configurarListenersVistaInternal();
-//            java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
-//            this.view.addWindowListener(new java.awt.event.WindowAdapter() {
-//                public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
-//            });
-//            
-//            this.controller.configurarListenerDePrimerRenderizado();
-//            
-//            this.controller.establecerCarpetaRaizDesdeConfigInternal();
-//            String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
-//            
-//            this.view.setVisible(true);
-//            
-//            if (this.model.getCarpetaRaizActual() != null) {
-//                this.controller.cargarListaImagenes(imagenInicialKey, null);
-//            } else {
-//                this.controller.limpiarUI();
-//            }
-//            
-//            System.out.println("--- [EDT] Inicialización de UI completada. ---");
-//
-//        } catch (Exception e) {
-//            manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
-//            e.printStackTrace();
-//        }
-//    } // --- Fin del método crearUIyComponentesDependientesEnEDT ---
     
 
 
