@@ -14,6 +14,7 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
+import controlador.GeneralController;
 import controlador.ProjectController;
 
 // --- SECCIÓN 0.1: IMPORTS DE COMPONENTES DEL SISTEMA ---
@@ -90,7 +91,10 @@ public class ActionFactory {
     private FileOperationsManager fileOperationsManager;
     private IZoomManager zoomManager;
     private IViewManager viewManager;
-    private final VisorController controllerRef;
+
+//        private final VisorController controllerRef;
+    private final GeneralController generalController;
+    
     private final ProjectController projectControllerRef;
     private final ThemeManager themeManager;
     
@@ -119,8 +123,22 @@ public class ActionFactory {
     // --- SECCIÓN 2: CONSTRUCTOR ---
     /**
      * Constructor de ActionFactory.
-     * Recibe todas las dependencias necesarias para crear las Actions.
-     * Llama a initializeAllActions para poblar el actionMap.
+     * Recibe todas las dependencias necesarias para crear las acciones.
+     *
+     * @param model El modelo principal de la aplicación.
+     * @param view La vista principal (JFrame).
+     * @param zoomManager El gestor de zoom.
+     * @param fileOperationsManager El gestor de operaciones de archivo.
+     * @param editionManager El gestor de edición.
+     * @param listCoordinator El coordinador de listas.
+     * @param iconUtils La utilidad para cargar iconos.
+     * @param configuration El gestor de configuración.
+     * @param projectManager El gestor de proyectos.
+     * @param iconMap Un mapa para registrar las claves de los iconos.
+     * @param viewManager El gestor de la vista.
+     * @param themeManager El gestor de temas.
+     * @param generalController El controlador general de la aplicación.
+     * @param projectController El controlador específico del modo proyecto.
      */
     public ActionFactory(
     		VisorModel model, 
@@ -135,7 +153,10 @@ public class ActionFactory {
             Map<String, String> comandoToIconKeyMap,
             IViewManager viewManager,
             ThemeManager themeManager,
-            VisorController controller,
+            
+            GeneralController generalController,
+//            VisorController controller,
+            
             ProjectController projectController
     ){ 
         
@@ -144,7 +165,10 @@ public class ActionFactory {
         this.view =view;//						= Objects.requireNonNull(view, "VisorView no puede ser null en ActionFactory");
         this.configuration 				= Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null en ActionFactory");
         this.iconUtils 					= Objects.requireNonNull(iconUtils, "IconUtils no puede ser null en ActionFactory");
-        this.controllerRef 				= Objects.requireNonNull(controller, "VisorController (controllerRef) no puede ser null en ActionFactory");
+        
+//        this.controllerRef 				= Objects.requireNonNull(controller, "VisorController (controllerRef) no puede ser null en ActionFactory");
+        this.generalController			= Objects.requireNonNull(generalController, "GeneralController no puede ser null en ActionFactory");
+        
         this.themeManager 				= Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ActionFactory");
         this.projectControllerRef       = Objects.requireNonNull(projectController);
         
@@ -488,7 +512,7 @@ public class ActionFactory {
     // --- 4.3. Métodos Create para Actions de Zoom ---
     private Action createToggleZoomManualAction() { 
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-        return new ToggleZoomManualAction("Activar Zoom Manual", icon, this.zoomManager, this.controllerRef, this.model);
+        return new ToggleZoomManualAction("Activar Zoom Manual", icon, this.zoomManager, this.generalController.getVisorController(), this.model);
     }
     private Action createResetZoomAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_RESET);
@@ -497,7 +521,7 @@ public class ActionFactory {
     private Action createAplicarModoZoomAction(String commandKey, String displayName, ZoomModeEnum modo) {
         ImageIcon icon = getIconForCommand(commandKey); 
         // Pasamos this.model a AplicarModoZoomAction
-        return new AplicarModoZoomAction(this.zoomManager, this.model, this.controllerRef, displayName, icon, modo, commandKey);
+        return new AplicarModoZoomAction(this.zoomManager, this.model, this.generalController.getVisorController(), displayName, icon, modo, commandKey);
     }
     
     // --- 4.4. Métodos Create para Actions de Navegación ---
@@ -518,7 +542,7 @@ public class ActionFactory {
         return new LastImageAction(this.listCoordinator, "Última Imagen", icon);
     }
     private Action createToggleNavegacionCircularAction() {
-        return new ToggleNavegacionCircularAction("Alternar Navegación Circular", null, this.configuration, this.model, this.controllerRef, ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR,AppActionCommands.CMD_TOGGLE_WRAP_AROUND);
+        return new ToggleNavegacionCircularAction("Alternar Navegación Circular", null, this.configuration, this.model, this.generalController.getVisorController(), ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR,AppActionCommands.CMD_TOGGLE_WRAP_AROUND);
     }
 
 
@@ -573,11 +597,11 @@ public class ActionFactory {
     private Action createRefreshAction() {
         // 1. Obtener el icono usando el comando canónico
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_REFRESCAR); 
-        return new RefreshAction("Refrescar", icon, this.controllerRef);
+        return new RefreshAction("Refrescar", icon, this.generalController.getVisorController());
     }
     private Action createLocateFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
-        LocateFileAction action = new LocateFileAction(this.model, this.controllerRef, "Localizar Archivo", icon);
+        LocateFileAction action = new LocateFileAction(this.model, this.generalController.getVisorController(), "Localizar Archivo", icon);
         this.contextSensitiveActions.add(action); // <<< REGISTRAR LA ACCIÓN
         return action;
     }    
@@ -618,14 +642,14 @@ public class ActionFactory {
    	}
     private Action createMostrarDialogoListaAction() {
    	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA);
-   	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.controllerRef);
+   	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.generalController.getVisorController());
    	}
     private Action createToggleMiniatureTextAction() {
     	return new ToggleMiniatureTextAction("Mostrar Nombres en Miniaturas", null, this.configuration, this.view, ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT);
     }
     private Action createSwitchToVisualizadorAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR); 
-        return new SwitchToVisualizadorAction("Visualizador", icon, this.controllerRef);
+        return new SwitchToVisualizadorAction("Visualizador", icon, this.generalController);
     }
    	 	
 
@@ -642,47 +666,47 @@ public class ActionFactory {
                 System.err.println("WARN [ActionFactory]: Nombre de tema interno no reconocido para ActionCommandKey: " + themeNameInternal);
                 commandKey = AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE;
         }
-        return new ToggleThemeAction(this.themeManager, this.controllerRef, themeNameInternal, displayNameForMenu, commandKey);
+        return new ToggleThemeAction(this.themeManager, this.generalController.getVisorController(), themeNameInternal, displayNameForMenu, commandKey);
     }
    
     // --- 4.9. Métodos Create para Actions de Toggle Generales ---
     private Action createToggleSubfoldersAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        ToggleSubfoldersAction action = new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.configuration, this.model, this.controllerRef);
+        ToggleSubfoldersAction action = new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.configuration, this.model, this.generalController.getVisorController());
         System.out.println("ActionFactory: Creando ToggleSubfoldersAction@" + Integer.toHexString(System.identityHashCode(action))); // Log de la instancia creada
         return action;
     }
     private Action createSetSubfolderReadModeAction(String commandKey, String displayName, boolean representaModoIncluirSubcarpetas) {
     	ImageIcon icon = null; 
-    	return new SetSubfolderReadModeAction(displayName, icon, this.controllerRef, this.model,representaModoIncluirSubcarpetas, commandKey);
+    	return new SetSubfolderReadModeAction(displayName, icon, this.generalController.getVisorController(), this.model,representaModoIncluirSubcarpetas, commandKey);
     }    
     private Action createToggleProporcionesAction() {
     ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
-    return new ToggleProporcionesAction("Mantener Proporciones", icon, this.model, this.controllerRef);
+    return new ToggleProporcionesAction("Mantener Proporciones", icon, this.model, this.generalController.getVisorController());
     }
    
     // --- 4.10. Métodos Create para Actions de Proyecto ---
     private Action createToggleMarkImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-        ToggleMarkImageAction action = new ToggleMarkImageAction(this.controllerRef, "Marcar/Desmarcar para Proyecto", icon);
+        ToggleMarkImageAction action = new ToggleMarkImageAction(this.generalController.getVisorController(), "Marcar/Desmarcar para Proyecto", icon);
         this.contextSensitiveActions.add(action);
         return action;
     } // --- FIN del método createToggleMarkImageAction ---
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
-        return new GestionarProyectoAction(this.projectControllerRef, "Ver Proyecto", icon);
+        return new GestionarProyectoAction(this.generalController, "Ver Proyecto", icon);
     }
     
     // --- 4.11. Métodos Create para Actions Especiales ---
-     private Action createMenuAction() { // Ya no necesita toggleMenuBarActionInstance como parámetro directo
+     private Action createMenuAction() { 
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_MENU);
          UIDefinitionService uiDefService = new UIDefinitionService();
          List<MenuItemDefinition> fullMenuStructure = uiDefService.generateMenuStructure();
-         return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.themeManager, this.configuration, this.controllerRef);
+         return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.themeManager, this.configuration, this.generalController.getVisorController());
      }
      private Action createHiddenButtonsAction() {
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
-         return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration, this.controllerRef );
+         return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration, this.generalController.getVisorController() );
      }
 
     // --- SECCIÓN 5: GETTER PARA EL ACTIONMAP ---

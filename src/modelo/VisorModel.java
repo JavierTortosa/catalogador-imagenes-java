@@ -69,8 +69,6 @@ public class VisorModel {
         
         this.currentImage = null;
         
-        // Inicialización de configuración global
-//        this.mantenerProporcion = true;
     } // --- Fin del método VisorModel (constructor) ---
 
     // --- GESTIÓN DE MODO Y CONTEXTO ---

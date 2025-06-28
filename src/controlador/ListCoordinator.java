@@ -216,46 +216,6 @@ public class ListCoordinator implements IListCoordinator {
     } // --- Fin del método actualizarModeloYVistaMiniaturas (CORREGIDO) ---
     
 
-//    private void actualizarModeloYVistaMiniaturas(int indiceSeleccionadoPrincipal) {
-//        if (model == null || controller == null || registry.get("list.miniaturas") == null) return;
-//        if (indiceSeleccionadoPrincipal < 0) {
-//            if (controller.getModeloMiniaturas() != null) controller.getModeloMiniaturas().clear();
-//            return;
-//        }
-//
-//        DefaultListModel<String> modeloPrincipal = model.getModeloLista();
-//        if (indiceSeleccionadoPrincipal >= modeloPrincipal.getSize()) return;
-//
-//        VisorController.RangoMiniaturasCalculado rango = controller.calcularNumMiniaturasDinamicas();
-//        int inicio = Math.max(0, indiceSeleccionadoPrincipal - rango.antes);
-//        int fin = Math.min(modeloPrincipal.getSize() - 1, indiceSeleccionadoPrincipal + rango.despues);
-//        
-//        DefaultListModel<String> nuevoModeloMiniaturas = new DefaultListModel<>();
-//        List<Path> rutasEnRango = new ArrayList<>();
-//        for (int i = inicio; i <= fin; i++) {
-//            String clave = modeloPrincipal.getElementAt(i);
-//            nuevoModeloMiniaturas.addElement(clave);
-//            rutasEnRango.add(model.getRutaCompleta(clave));
-//        }
-//        
-//        controller.precalentarCacheMiniaturasAsync(rutasEnRango);
-//        
-//        
-//        JList<String> listaMiniaturas = registry.get("list.miniaturas");
-//        int indiceRelativo = indiceSeleccionadoPrincipal - inicio;
-//        
-//        // --- INICIO DE LA CORRECCIÓN ---
-//        DefaultListModel<String> modeloDestino = controller.getModeloMiniaturas();
-//        if (modeloDestino != null) {
-//            modeloDestino.clear();
-//            // Iteramos sobre el modelo nuevo y añadimos cada elemento al modelo destino.
-//            for (int i = 0; i < nuevoModeloMiniaturas.size(); i++) {
-//                modeloDestino.addElement(nuevoModeloMiniaturas.getElementAt(i));
-//            }
-//        }
-//        
-//        sincronizarListaUI(listaMiniaturas, indiceRelativo);
-//    } // --- Fin del método actualizarModeloYVistaMiniaturas ---
     
     @Override
     public synchronized void forzarActualizacionEstadoAcciones() {

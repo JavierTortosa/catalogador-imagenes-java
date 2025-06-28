@@ -64,7 +64,7 @@ public class InfobarStatusManager {
         this.uiDefService = new UIDefinitionService();
         
         configurarListenersControles();
-    }
+    }// --- Fin del constructor --- 
 
     public void actualizar() {
         if (!SwingUtilities.isEventDispatchThread()) {
@@ -72,7 +72,7 @@ public class InfobarStatusManager {
         } else {
             actualizarBarraEstado();
         }
-    }
+    }// --- Fin del método actualizar ---
 
     /**
      * Muestra un mensaje en la etiqueta de estado de la aplicación.
@@ -87,7 +87,7 @@ public class InfobarStatusManager {
         if (mensajesAppLabel != null) {
             mensajesAppLabel.setText(" " + mensaje + " "); // Añadir padding
         }
-    }
+    }// --- Fin del método mostrarMensaje ---
     
     /**
      * Muestra un mensaje en la etiqueta de estado durante un tiempo determinado
@@ -117,7 +117,7 @@ public class InfobarStatusManager {
         
         mensajeTemporalTimer.setRepeats(false); // Queremos que se ejecute solo una vez
         mensajeTemporalTimer.start(); // Iniciar la cuenta atrás
-    }
+    }// --- Fin del método mostrarMensajeTemporal ---
 
     /**
      * Limpia el texto de la etiqueta de mensajes de la barra de estado,
@@ -134,7 +134,7 @@ public class InfobarStatusManager {
             }
             mensajesAppLabel.setText(" "); // Dejar un espacio para mantener la altura
         }
-    }
+    } // --- Fin del método limpiarMensaje ---
     
     private void actualizarBarraEstado() {
         JPanel panelBarraInferior = registry.get("panel.estado.inferior");
@@ -149,7 +149,7 @@ public class InfobarStatusManager {
         actualizarMensajeDeEstado();
         panelBarraInferior.revalidate();
         panelBarraInferior.repaint();
-    }
+    }// --- Fin del método actualizarBarraEstado ---
 
     private void actualizarRutaArchivoInferior() {
         JLabel label = registry.get("label.estado.ruta");
@@ -170,13 +170,18 @@ public class InfobarStatusManager {
             label.setText(textoRutaDisplay);
             label.setToolTipText(textoRutaDisplay);
         }
-    }
+    }// --- Fin del método actualizarRutaArchivoInferior ---
 
     private void actualizarIndicadoresDeEstado() {
-        actualizarUnIndicador("label.indicador.zoomManual", ConfigKeys.INFOBAR_INF_ICONO_ZM_VISIBLE, model.isZoomHabilitado(), "Zoom Manual");
-        actualizarUnIndicador("label.indicador.proporciones", ConfigKeys.INFOBAR_INF_ICONO_PROP_VISIBLE, model.isMantenerProporcion(), "Mantener Proporciones");
-        actualizarUnIndicador("label.indicador.subcarpetas", ConfigKeys.INFOBAR_INF_ICONO_SUBC_VISIBLE, !model.isMostrarSoloCarpetaActual(), "Incluir Subcarpetas");
-    }
+        // Determinamos si los controles que dependen del modo Visualizador deben estar habilitados.
+        boolean enModoVisualizador = (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR);
+
+        actualizarUnIndicador("label.indicador.zoomManual", ConfigKeys.INFOBAR_INF_ICONO_ZM_VISIBLE, model.isZoomHabilitado(), "Zoom Manual", true); // El zoom manual siempre está disponible
+        actualizarUnIndicador("label.indicador.proporciones", ConfigKeys.INFOBAR_INF_ICONO_PROP_VISIBLE, model.isMantenerProporcion(), "Mantener Proporciones", true); // Las proporciones también
+        
+        // El indicador de subcarpetas SOLO está habilitado en modo Visualizador.
+        actualizarUnIndicador("label.indicador.subcarpetas", ConfigKeys.INFOBAR_INF_ICONO_SUBC_VISIBLE, !model.isMostrarSoloCarpetaActual(), "Incluir Subcarpetas", enModoVisualizador);
+    } // --- Fin del método actualizarIndicadoresDeEstado ---
 
     private void actualizarControlesDeZoom() {
         // Actualizar el JLabel del Porcentaje
@@ -209,7 +214,7 @@ public class InfobarStatusManager {
                 }
             }
         }
-    }
+    }// --- Fin del métodoactualizarControlesDeZoom
 
     private void actualizarMensajeDeEstado() {
         JLabel mensajesLabel = registry.get("label.estado.mensajes");
@@ -265,7 +270,7 @@ public class InfobarStatusManager {
             modoZoomBoton.addActionListener(e -> mostrarMenuModosZoom(modoZoomBoton));
             System.out.println("    -> ActionListener añadido a 'button.control.modoZoom'.");
         }
-    }
+    }// --- Fin del métodoconfigurarListenersControles
 
     private void mostrarMenuPorcentajes(Component invoker) {
         JPopupMenu menu = new JPopupMenu();
@@ -289,7 +294,7 @@ public class InfobarStatusManager {
         });
         menu.add(otrosItem);
         menu.show(invoker, 0, -invoker.getHeight());
-    }
+    }// --- Fin del métodomostrarMenuPorcentajes
     
     private void mostrarMenuModosZoom(Component invoker) {
         JPopupMenu menu = new JPopupMenu();
@@ -308,7 +313,7 @@ public class InfobarStatusManager {
             }
         }
         menu.show(invoker, 0, -menu.getPreferredSize().height);
-    }
+    }// --- Fin del métodomostrarMenuModosZoom
     
     private void aplicarZoomPersonalizado(double porcentaje) {
         configuration.setZoomPersonalizadoPorcentaje(porcentaje);
@@ -316,7 +321,7 @@ public class InfobarStatusManager {
         if (accionZoomEspec != null) {
             accionZoomEspec.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
         }
-    }
+    }// --- Fin del métodoaplicarZoomPersonalizado
 
     private void configurarListenerParaIndicador(String componentKey, String actionCommand) {
         JLabel label = registry.get(componentKey);
@@ -329,20 +334,31 @@ public class InfobarStatusManager {
                 @Override public void mouseExited(MouseEvent e) { label.setCursor(java.awt.Cursor.getDefaultCursor()); }
             });
         }
-    }
+    }// --- Fin del métodoconfigurarListenerParaIndicador
     
-    private void actualizarUnIndicador(String key, String configKeyVisible, boolean activo, String tooltipPrefix) {
+    private void actualizarUnIndicador(String key, String configKeyVisible, boolean activo, String tooltipPrefix, boolean habilitado) {
         JLabel label = registry.get(key);
         if (label != null) {
             boolean esVisible = configuration.getBoolean(configKeyVisible, true);
             if(label.isVisible() != esVisible) label.setVisible(esVisible);
+            
+            // La lógica de habilitación se aplica independientemente de la visibilidad.
+            label.setEnabled(habilitado);
+
             if(esVisible) {
                 Tema tema = themeManager.getTemaActual();
-                label.setToolTipText(tooltipPrefix + ": " + (activo ? "Activado" : "Desactivado"));
-                label.setBackground(activo ? tema.colorBotonFondoActivado() : tema.colorFondoSecundario());
+                
+                if (habilitado) {
+                    label.setToolTipText(tooltipPrefix + ": " + (activo ? "Activado" : "Desactivado"));
+                    label.setBackground(activo ? tema.colorBotonFondoActivado() : tema.colorFondoSecundario());
+                } else {
+                    // Si está deshabilitado, ponemos un tooltip indicándolo y un color neutro.
+                    label.setToolTipText(tooltipPrefix + " (No disponible en este modo)");
+                    label.setBackground(tema.colorFondoSecundario()); // O un color grisáceo específico para deshabilitados.
+                }
             }
         }
-    }
+    } // --- Fin del método actualizarUnIndicador ---
 
     private String getIconKeyForZoomMode(ZoomModeEnum modo) {
         String command = modo.getAssociatedActionCommand();
@@ -357,5 +373,6 @@ public class InfobarStatusManager {
             }
         }
         return null; // No se encontró el icono
-    }
-}
+    }// --- Fin del métodogetIconKeyForZoomMode ---
+    
+}// --- Fin de la clase InfobarStatusManager ---

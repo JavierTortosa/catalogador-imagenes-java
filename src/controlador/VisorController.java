@@ -3041,68 +3041,68 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
 	
 	
-	public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
-        VisorModel.WorkMode modoActual = model.getCurrentWorkMode();
-        if (modoActual == modoDestino) return;
-
-        System.out.println("\n--- INICIANDO TRANSICIÓN DE MODO: " + modoActual + " -> " + modoDestino + " ---");
-
-        if (modoDestino == VisorModel.WorkMode.PROYECTO) {
-            if (!projectController.prepararDatosProyecto()) {
-                sincronizarEstadoBotonesDeModo();
-                System.out.println("--- TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
-                return;
-            }
-        }
-        
-        salirModo(modoActual);
-        model.setCurrentWorkMode(modoDestino);
-        entrarModo(modoDestino);
-
-        System.out.println("--- TRANSICIÓN DE MODO COMPLETADA a " + modoDestino + " ---\n");
-    } // --- Fin del método cambiarModoDeTrabajo ---
+//	public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
+//        VisorModel.WorkMode modoActual = model.getCurrentWorkMode();
+//        if (modoActual == modoDestino) return;
+//
+//        System.out.println("\n--- INICIANDO TRANSICIÓN DE MODO: " + modoActual + " -> " + modoDestino + " ---");
+//
+//        if (modoDestino == VisorModel.WorkMode.PROYECTO) {
+//            if (!projectController.prepararDatosProyecto()) {
+//                sincronizarEstadoBotonesDeModo();
+//                System.out.println("--- TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
+//                return;
+//            }
+//        }
+//        
+//        salirModo(modoActual);
+//        model.setCurrentWorkMode(modoDestino);
+//        entrarModo(modoDestino);
+//
+//        System.out.println("--- TRANSICIÓN DE MODO COMPLETADA a " + modoDestino + " ---\n");
+//    } // --- Fin del método cambiarModoDeTrabajo ---
 	
 	
 
 
-    /**
-     * Realiza las tareas de "limpieza" o "desactivación" de un modo antes de abandonarlo.
-     * @param modoQueSeAbandona El modo que estamos dejando.
-     */
-	private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
-        System.out.println("  -> Saliendo del modo: " + modoQueSeAbandona);
-        Action toggleSubcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        if (toggleSubcarpetasAction != null) {
-            toggleSubcarpetasAction.setEnabled(true);
-        }
-    } // --- Fin del método salirModo ---
+//    /**
+//     * Realiza las tareas de "limpieza" o "desactivación" de un modo antes de abandonarlo.
+//     * @param modoQueSeAbandona El modo que estamos dejando.
+//     */
+//	private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
+//        System.out.println("  -> Saliendo del modo: " + modoQueSeAbandona);
+//        Action toggleSubcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+//        if (toggleSubcarpetasAction != null) {
+//            toggleSubcarpetasAction.setEnabled(true);
+//        }
+//    } // --- Fin del método salirModo ---
 
-    /**
-     * Realiza las tareas de "configuración" y "restauración" de la UI para un modo
-     * en el que estamos entrando.
-     * @param modoAlQueSeEntra El nuevo modo activo.
-     */
-	private void entrarModo(VisorModel.WorkMode modoAlQueSeEntra) {
-        System.out.println("  -> Entrando en modo: " + modoAlQueSeEntra);
-        switch (modoAlQueSeEntra) {
-            case VISUALIZADOR:
-                restaurarUiVisualizador();
-                break;
-            case PROYECTO:
-                projectController.activarVistaProyecto();
-                restaurarUiGenericaParaModoProyecto();
-                break;
-        }
-        viewManager.cambiarAVista(modoAlQueSeEntra == VisorModel.WorkMode.PROYECTO ? "VISTA_PROYECTOS" : "VISTA_VISUALIZADOR");
-        sincronizarEstadoBotonesDeModo();
-    } // --- Fin del método entrarModo ---
+//    /**
+//     * Realiza las tareas de "configuración" y "restauración" de la UI para un modo
+//     * en el que estamos entrando.
+//     * @param modoAlQueSeEntra El nuevo modo activo.
+//     */
+//	private void entrarModo(VisorModel.WorkMode modoAlQueSeEntra) {
+//        System.out.println("  -> Entrando en modo: " + modoAlQueSeEntra);
+//        switch (modoAlQueSeEntra) {
+//            case VISUALIZADOR:
+//                restaurarUiVisualizador();
+//                break;
+//            case PROYECTO:
+//                projectController.activarVistaProyecto();
+//                restaurarUiGenericaParaModoProyecto();
+//                break;
+//        }
+//        viewManager.cambiarAVista(modoAlQueSeEntra == VisorModel.WorkMode.PROYECTO ? "VISTA_PROYECTOS" : "VISTA_VISUALIZADOR");
+//        sincronizarEstadoBotonesDeModo();
+//    } // --- Fin del método entrarModo ---
 	
 	
 	/**
      * Restaura toda la UI específica del modo VISUALIZADOR, leyendo el estado
      * desde el contexto correspondiente en el VisorModel.
      */
-	private void restaurarUiVisualizador() {
+	public void restaurarUiVisualizador() {
         System.out.println("    -> Restaurando UI para el modo VISUALIZADOR...");
         
         JList<String> listaNombres = registry.get("list.nombresArchivo");
@@ -3160,72 +3160,72 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              System.err.println("ERROR: ListCoordinator es null al restaurar UI del visualizador.");
         }
         
-        restaurarUiGenerica();
+//        restaurarUiGenerica();
     } // --- Fin del método restaurarUiVisualizador ---
 	
 
-    /**
-     * Restaura los elementos de la UI que son comunes o necesitan ser
-     * sincronizados al entrar en un modo.
-     */
-	private void restaurarUiGenerica() {
-        System.out.println("      -> Restaurando UI genérica (Zoom, Toggles)...");
-        sincronizarEstadoVisualBotonesYRadiosZoom();
-        sincronizarControlesSubcarpetas();
-        sincronizarUiControlesProporciones(model.isMantenerProporcion());
-    } // --- Fin del método restaurarUiGenerica ---
+//    /**
+//     * Restaura los elementos de la UI que son comunes o necesitan ser
+//     * sincronizados al entrar en un modo.
+//     */
+//	private void restaurarUiGenerica() {
+//        System.out.println("      -> Restaurando UI genérica (Zoom, Toggles)...");
+//        sincronizarEstadoVisualBotonesYRadiosZoom();
+//        sincronizarControlesSubcarpetas();
+//        sincronizarUiControlesProporciones(model.isMantenerProporcion());
+//    } // --- Fin del método restaurarUiGenerica ---
 
-    /**
-     * Restaura la UI para el modo proyecto. Es similar a la genérica, pero
-     * deshabilita los controles que no aplican.
-     */
-	private void restaurarUiGenericaParaModoProyecto() {
-        System.out.println("      -> Restaurando UI genérica para el modo PROYECTO...");
-        restaurarUiGenerica();
-        
-        Action toggleSubcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        if (toggleSubcarpetasAction != null) {
-            toggleSubcarpetasAction.setEnabled(false);
-        }
-    } // --- Fin del método restaurarUiGenericaParaModoProyecto ---
+//    /**
+//     * Restaura la UI para el modo proyecto. Es similar a la genérica, pero
+//     * deshabilita los controles que no aplican.
+//     */
+//	private void restaurarUiGenericaParaModoProyecto() {
+//        System.out.println("      -> Restaurando UI genérica para el modo PROYECTO...");
+//        restaurarUiGenerica();
+//        
+//        Action toggleSubcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+//        if (toggleSubcarpetasAction != null) {
+//            toggleSubcarpetasAction.setEnabled(false);
+//        }
+//    } // --- Fin del método restaurarUiGenericaParaModoProyecto ---
 
     // --- FIN DE LA SECCIÓN DE GESTIÓN DE MODOS ---
 	
 	
 	
 	
-	/**
-	 * Sincroniza el estado visual de los botones de modo de trabajo (Visualizador, Proyecto, etc.).
-	 * Asegura que solo el botón del modo activo esté seleccionado.
-	 */
-	public void sincronizarEstadoBotonesDeModo() {
-	    if (actionMap == null || model == null) {
-	        System.err.println("WARN [sincronizarEstadoBotonesDeModo]: ActionMap o Model nulos.");
-	        return;
-	    }
-
-	    // Determina qué acción corresponde al modo activo.
-	    String comandoModoActivo = model.isEnModoProyecto()
-	                               ? AppActionCommands.CMD_PROYECTO_GESTIONAR
-	                               : AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
-
-	    // Lista de todos los comandos de modo para iterar
-	    List<String> comandosDeModo = List.of(
-	        AppActionCommands.CMD_PROYECTO_GESTIONAR,
-	        AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,
-	        "cmd.funcionalidad.pendiente" // Comando del botón "Modo Datos"
-	    );
-
-	    // Itera y actualiza el estado de cada Action.
-	    // El ButtonGroup se encargará de la parte visual automáticamente.
-	    for (String comando : comandosDeModo) {
-	        Action action = actionMap.get(comando);
-	        if (action != null) {
-	            action.putValue(Action.SELECTED_KEY, comando.equals(comandoModoActivo));
-	        }
-	    }
-	    System.out.println("[Controller] Sincronizados botones de modo. Activo: " + comandoModoActivo);
-	} // --- Fin del método sincronizarEstadoBotonesDeModo ---
+//	/**
+//	 * Sincroniza el estado visual de los botones de modo de trabajo (Visualizador, Proyecto, etc.).
+//	 * Asegura que solo el botón del modo activo esté seleccionado.
+//	 */
+//	public void sincronizarEstadoBotonesDeModo() {
+//	    if (actionMap == null || model == null) {
+//	        System.err.println("WARN [sincronizarEstadoBotonesDeModo]: ActionMap o Model nulos.");
+//	        return;
+//	    }
+//
+//	    // Determina qué acción corresponde al modo activo.
+//	    String comandoModoActivo = model.isEnModoProyecto()
+//	                               ? AppActionCommands.CMD_PROYECTO_GESTIONAR
+//	                               : AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
+//
+//	    // Lista de todos los comandos de modo para iterar
+//	    List<String> comandosDeModo = List.of(
+//	        AppActionCommands.CMD_PROYECTO_GESTIONAR,
+//	        AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,
+//	        "cmd.funcionalidad.pendiente" // Comando del botón "Modo Datos"
+//	    );
+//
+//	    // Itera y actualiza el estado de cada Action.
+//	    // El ButtonGroup se encargará de la parte visual automáticamente.
+//	    for (String comando : comandosDeModo) {
+//	        Action action = actionMap.get(comando);
+//	        if (action != null) {
+//	            action.putValue(Action.SELECTED_KEY, comando.equals(comandoModoActivo));
+//	        }
+//	    }
+//	    System.out.println("[Controller] Sincronizados botones de modo. Activo: " + comandoModoActivo);
+//	} // --- Fin del método sincronizarEstadoBotonesDeModo ---
 	
 	
 	public void toggleMarcaImagenActual (boolean marcarDeseado)
@@ -3413,24 +3413,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	
 	// Getters
     
-//    public DefaultListModel<String> getModeloMiniaturas() { //nuevo
-//        if (this.view != null) {
-//            // Asumiendo que has añadido el getter en VisorView
-//            return this.view.getModeloListaMiniaturas();
-//        }
-//        // Este caso solo debería ocurrir durante la inicialización temprana, antes de que la vista se cree.
-//        System.err.println("WARN [getModeloMiniaturas]: Se intentó obtener el modelo de miniaturas pero la Vista es nula.");
-//        return null; 
-//    } // --- Fin del método getModeloMiniaturas ---
-    
-    
-//    public DefaultListModel<String> getModeloMiniaturas() {
-//        if (view != null) {
-//            return view.getModeloListaMiniaturas();
-//        }
-//        return null; 
-//    }
-
     /**
      * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
      * Es un método seguro que comprueba la existencia del modelo y su lista interna.
@@ -4001,7 +3983,18 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      
 // ************************************************************************FIN CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
 // ***************************************************************************************************************************    
-    
+
+     
+/*
+ * borrar metodos 
+cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino)
+salirModo(VisorModel.WorkMode modoQueSeAbandona)
+entrarModo(VisorModel.WorkMode modoAlQueSeEntra)
+restaurarUiGenerica()
+restaurarUiGenericaParaModoProyecto()
+sincronizarEstadoBotonesDeModo()     
+ */
+     
 } // --- FIN CLASE VisorController ---
 
 

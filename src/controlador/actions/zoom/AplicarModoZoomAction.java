@@ -46,5 +46,5 @@ public class AplicarModoZoomAction extends AbstractAction {
     public ZoomModeEnum getModoAsociado() {
         return modoDeZoomQueRepresentaEstaAction;
     }
-}
+}// --- FIN de la clase AplicarModoZoomAction ---
 

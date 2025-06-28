@@ -433,10 +433,10 @@ public class UIDefinitionService {
          // --- BARRA DE PROYECTOS ---
     		List<ToolbarButtonDefinition> botonesProyecto = List.of(
 		            // TODO: Añadir comando para Mostrar Favoritos (toggle)
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "8001-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto"),//5003
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto", ButtonType.TOGGLE),
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, "8003-visualizador_48x48.png", "Modo Visualizador", "proyecto", ButtonType.TOGGLE),
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "8004-datos_48x48.png", "Modo Datos", "proyecto", ButtonType.TOGGLE)
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "8001-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto"),
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, "8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto"),// ButtonType.TOGGLE),
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, "8003-visualizador_48x48.png", "Modo Visualizador", "proyecto"),// ButtonType.TOGGLE),
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "8004-datos_48x48.png", "Modo Datos", "proyecto")// ButtonType.TOGGLE)
 	            /*botones que faltan
 	             	proyecto nuevo
 	             	abrir proyecto

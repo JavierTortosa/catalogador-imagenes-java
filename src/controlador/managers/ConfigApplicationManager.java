@@ -60,27 +60,6 @@ public class ConfigApplicationManager {
         System.out.println("[ConfigApplicationManager] Instancia creada.");
     } // --- Fin del Constructor ---
     
-//    public ConfigApplicationManager(
-//            VisorModel model, 
-//            VisorView view, // Se mantiene temporalmente para el padre del JOptionPane
-//            ConfigurationManager config, 
-//            Map<String, Action> actionMap, 
-//            ThemeManager themeManager,
-//            ComponentRegistry registry
-//            ) {
-//        
-//        System.out.println("[ConfigApplicationManager] Creando instancia refactorizada...");
-//        
-//        this.model = Objects.requireNonNull(model);
-//        this.config = Objects.requireNonNull(config);
-//        this.actionMap = Objects.requireNonNull(actionMap);
-//        this.themeManager = Objects.requireNonNull(themeManager);
-//        this.registry = Objects.requireNonNull(registry);
-//        // this.view se mantiene temporalmente para los diálogos.
-//
-//        this.configAlInicio = new HashMap<>(config.getConfigMap());
-//        System.out.println("[ConfigApplicationManager] Instancia creada.");
-//    } // --- Fin del Constructor ---
 
     // --- MÉTODOS PÚBLICOS ---
      

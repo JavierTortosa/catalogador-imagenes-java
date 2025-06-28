@@ -310,85 +310,6 @@ private JScrollPane createThumbnailScrollPane() {
         return scrollPane;
     } // --- Fin del método createThumbnailScrollPane ---
 
-
-
-    
-    
-//    private JScrollPane createThumbnailScrollPane() {
-//        // 1. OBTENER EL MODELO CORRECTO DESDE EL CONTROLADOR
-//        DefaultListModel<String> modeloCorrecto = this.controller.getModeloMiniaturas();
-//
-//        // 2. CREAR LA JLIST USANDO ESE MODELO
-//        JList<String> thumbnailList = new JList<>(modeloCorrecto);
-//        
-//        // 3. REGISTRAR LA JLIST
-//        registry.register("list.miniaturas", thumbnailList);
-//
-//        // 4. CONFIGURAR LA JLIST Y SU RENDERER
-//        MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
-//            this.thumbnailService,
-//            this.model,
-//            this.themeManager,
-//            this.iconUtils,
-//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40),
-//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, 40),
-//            configuration.getBoolean(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, true)
-//        );
-//        thumbnailList.setCellRenderer(renderer);
-//        thumbnailList.setFixedCellWidth(renderer.getAnchoCalculadaDeCelda());
-//        thumbnailList.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
-//        thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-//        thumbnailList.setVisibleRowCount(-1);
-//
-//        // 5. METER LA JLIST DIRECTAMENTE EN EL SCROLLPANE
-//        JScrollPane scrollPane = new JScrollPane(thumbnailList);
-//        
-//        // 6. CONFIGURAR EL SCROLLPANE
-//        TitledBorder border = BorderFactory.createTitledBorder("Miniaturas");
-//        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-//        scrollPane.setBorder(border);
-//        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-//        registry.register("scroll.miniaturas", scrollPane);
-//
-//        return scrollPane;
-//    } // --- Fin del método createThumbnailScrollPane ---
-    
-    
-//    private JScrollPane createThumbnailScrollPane() {
-//        JList<String> thumbnailList = registry.get("list.miniaturas");
-//        
-//        if (thumbnailList == null) {
-//            thumbnailList = new JList<>();
-//            registry.register("list.miniaturas", thumbnailList);
-//        }
-//        
-//        MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
-//            this.thumbnailService,
-//            this.model,
-//            this.themeManager,
-//            this.iconUtils,
-//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40),
-//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, 40),
-//            configuration.getBoolean(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, true)
-//        );
-//        thumbnailList.setCellRenderer(renderer);
-//        thumbnailList.setFixedCellWidth(renderer.getAnchoCalculadaDeCelda());
-//        thumbnailList.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
-//        thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-//        thumbnailList.setVisibleRowCount(-1);
-//
-//        JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-//        wrapper.setOpaque(false);
-//        wrapper.add(thumbnailList);
-//        
-//        JScrollPane scrollPane = new JScrollPane(wrapper);
-//        TitledBorder border = BorderFactory.createTitledBorder("Miniaturas");
-//        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-//        scrollPane.setBorder(border);
-//        registry.register("scroll.miniaturas", scrollPane);
-//
-//        return scrollPane;
-//    } // --- FIN del metodo createThumbnailScrollPane ---
     
     private JPanel createRightSplitComponent() {
         JPanel rightPanel = new JPanel(new BorderLayout());
@@ -716,7 +637,6 @@ private JScrollPane createThumbnailScrollPane() {
     public void setViewManager(IViewManager viewManager) {
         this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null en el setter");
     } // --- Fin del método setViewManager ---
-    // --- FIN DE LA MODIFICACIÓN ---
 
 } // --- Fin de la clase ViewBuilder ---
 

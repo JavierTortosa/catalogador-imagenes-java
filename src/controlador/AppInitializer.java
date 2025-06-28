@@ -52,6 +52,7 @@ public class AppInitializer {
     private ThumbnailService servicioMiniaturas;
     private ProjectManager projectManagerService; // Servicio de persistencia de proyectos
     private VisorController controllerRefParaNotificacion; 
+    private GeneralController generalController;
     private ConfigApplicationManager configAppManager;
     
     // 1.2. Componentes de UI y Coordinadores (creados DENTRO del EDT)
@@ -276,67 +277,6 @@ public class AppInitializer {
     } // --- Fin del método inicializarServiciosEsenciales ---
     
     
-//    /**
-//     * FASE A.3: Inicializa servicios esenciales que no dependen directamente de la UI:
-//     *           ThemeManager, IconUtils, ExecutorService, y ThumbnailService.
-//     *           Inyecta estas dependencias en el VisorController.
-//     * @return true si la inicialización de esta fase fue exitosa, false si falló.
-//     */
-//    private boolean inicializarServiciosEsenciales() {
-//         System.out.println("  [AppInitializer Fase A.3] Inicializando Servicios Esenciales...");
-//         try {
-//             // A.3.1. ThemeManager (depende de ConfigurationManager)
-//             this.themeManager = new ThemeManager(this.configuration);
-//             this.controller.setThemeManager(this.themeManager);
-//             System.out.println("    -> ThemeManager creado e inyectado.");
-//
-//             
-//             if (this.themeManager != null && this.controller != null) {
-//                 this.themeManager.setControllerParaNotificacion(this.controller);
-//             } else {
-//                 // Esto sería un error de inicialización muy grave
-//                 System.err.println("ERROR CRÍTICO en AppInitializer: ThemeManager o this.controller nulos al intentar inyección cruzada.");
-//             }
-//             
-//             
-//             // A.3.2. IconUtils (depende de ThemeManager)
-//             this.iconUtils = new IconUtils(this.themeManager);
-//             this.controller.setIconUtils(this.iconUtils);
-//             System.out.println("    -> IconUtils creado e inyectado.");
-//
-//             // A.3.3. ThumbnailService (servicio para generar/cachear miniaturas)
-//             this.servicioMiniaturas = new ThumbnailService();
-//             this.controller.setServicioMiniaturas(this.servicioMiniaturas);
-//             
-//             //LOG ThumbnailService y Modelo para JList de Miniaturas creados e inyectados
-//             System.out.println("    -> ThumbnailService y Modelo para JList de Miniaturas creados e inyectados.");
-//             
-//             
-////             // El DefaultListModel para las miniaturas se crea en el controller o aquí y se pasa.
-////             // VisorController ya tiene 'private DefaultListModel<String> modeloMiniaturas;'
-////             // Aquí lo instanciamos si no lo hace el controller, y se lo pasamos.
-////             // Por coherencia, AppInitializer lo crea y lo pasa.
-////             DefaultListModel<String> modeloParaMiniaturasJList = new DefaultListModel<>();
-////             
-////             // LOG !! DEBUG AppInitializer: Creado modeloMiniaturas con hashCode
-////             System.out.println("!!! DEBUG AppInitializer: Creado modeloMiniaturas con hashCode: " + System.identityHashCode(modeloParaMiniaturasJList));
-////             
-////             this.controller.setModeloMiniaturas(modeloParaMiniaturasJList); // Inyectar el modelo en el controller
-//             System.out.println("    -> ThumbnailService y Modelo para JList de Miniaturas creados e inyectados.");
-//
-//             // A.3.4. ExecutorService (para tareas en segundo plano)
-//             // Usar un pool de hilos de tamaño fijo, adaptable al número de procesadores.
-//             int numThreads = Math.max(2, Runtime.getRuntime().availableProcessors() / 2); // Mínimo 2, o mitad de cores
-//             this.controller.setExecutorService(Executors.newFixedThreadPool(numThreads));
-//             System.out.println("    -> ExecutorService (FixedThreadPool con " + numThreads + " hilos) creado e inyectado.");
-//
-//             return true; // Éxito de la fase
-//         } catch (Exception e) {
-//             manejarErrorFatalInicializacion("Error inicializando servicios esenciales", e);
-//             return false;
-//         }
-//    }
-
     /**
      * FASE A.4: Prepara el servicio de gestión de proyectos (ProjectManager).
      * Ahora solo crea la instancia. El cableado y la inicialización se harán más tarde.
@@ -363,8 +303,7 @@ public class AppInitializer {
 
     // --- MÉTODO PARA INICIALIZACIÓN DENTRO DEL EDT ---
 
-
-
+    
     private void crearUIyComponentesDependientesEnEDT() {
         try {
             System.out.println("--- [AppInitializer Fase B - EDT] Reorganizando la inicialización en bloques... ---");
@@ -375,6 +314,10 @@ public class AppInitializer {
             System.out.println("  -> BLOQUE 1: Creando todas las instancias...");
             
             ComponentRegistry registry = new ComponentRegistry();
+            
+            // --- CAMBIO: Crear el GeneralController ---
+            this.generalController = new GeneralController();
+            
             this.zoomManager = new ZoomManager();
             this.editionManager = new EditionManager();
             this.viewManager = new ViewManager();
@@ -383,26 +326,28 @@ public class AppInitializer {
             
             this.projectController = new ProjectController();
             ProjectBuilder projectBuilder = new ProjectBuilder(registry, this.model, this.themeManager);
-
             
             DefaultListModel<String> modeloMiniaturas = this.controller.getModeloMiniaturas();
+            
             ViewBuilder viewBuilder = new ViewBuilder(
                 registry, this.model, this.themeManager, this.configuration,
                 this.controller, this.iconUtils, this.servicioMiniaturas,
-                projectBuilder, modeloMiniaturas
+                projectBuilder,
+                modeloMiniaturas
             );
 
             UIDefinitionService uiDefSvc = new UIDefinitionService();
             Map<String, String> iconMap = new java.util.HashMap<>();
             
-            // --- INICIO DE LA MODIFICACIÓN ---
+            // --- CAMBIO: La ActionFactory ahora recibe el GeneralController ---
+            // Le pasamos el generalController en lugar del visorController para la gestión de modos.
             this.actionFactory = new ActionFactory(
                  this.model, null, this.zoomManager, this.fileOperationsManager, 
                  this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
                  this.projectManagerService, iconMap, this.viewManager, this.themeManager, 
-                 this.controller, this.projectController // <--- Añadimos el nuevo controlador
+                 this.generalController, // <-- SE INYECTA EL GENERALCONTROLLER
+                 this.projectController
             );
-            // --- FIN DE LA MODIFICACIÓN ---
             
             this.configAppManager = new ConfigApplicationManager(this.model, this.configuration, this.themeManager, registry);
             this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
@@ -439,15 +384,22 @@ public class AppInitializer {
             this.listCoordinator.setController(this.controller);
             this.listCoordinator.setRegistry(registry);
 
-            // --- Cableado de ProjectController ---
             this.projectController.setProjectManager(this.projectManagerService);
             this.projectController.setViewManager(this.viewManager);
             this.projectController.setRegistry(registry);
             this.projectController.setZoomManager(this.zoomManager); 
             this.projectController.setModel(this.model); 
             this.projectController.setController(this.controller);
-            // Le pasamos la referencia al VisorController para que pueda comunicarse con él si es necesario
             this.controller.setProjectController(this.projectController);
+
+            // --- CAMBIO: Cableado del GeneralController ---
+            this.generalController.setModel(this.model);
+            this.generalController.setViewManager(this.viewManager);
+            this.generalController.setVisorController(this.controller);
+            this.generalController.setProjectController(this.projectController);
+            this.generalController.setConfigApplicationManager(this.configAppManager);
+            
+            // El actionMap se inyectará más adelante, después de crearlo.
 
             java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.controller.cargarListaImagenes(null, null);
             this.fileOperationsManager.setModel(this.model);
@@ -474,7 +426,7 @@ public class AppInitializer {
             this.viewManager.setView(this.view);
             this.listCoordinator.setView(this.view);
             this.controller.setView(this.view);
-            this.projectController.setView(this.view); // Inyectamos la vista en el ProjectController
+            this.projectController.setView(this.view);
             
             uiDefSvc.generateModularToolbarStructure().forEach(td -> td.botones().forEach(bd -> iconMap.put(bd.comandoCanonico(), bd.claveIcono())));
             this.actionFactory.initializeActions();
@@ -483,7 +435,11 @@ public class AppInitializer {
             this.configAppManager.setActionMap(this.actionMap);
             this.viewManager.setActionMap(this.actionMap);
             this.controller.setActionMap(this.actionMap);
-            this.projectController.setActionMap(this.actionMap); // Inyectamos el actionMap
+            this.projectController.setActionMap(this.actionMap);
+            
+            // --- CAMBIO: Inyectar el ActionMap en el GeneralController ---
+            this.generalController.setActionMap(this.actionMap);
+            
             toolbarBuilder.setActionMap(this.actionMap);
             
             this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
@@ -496,6 +452,8 @@ public class AppInitializer {
             this.zoomManager.setStatusBarManager(this.statusBarManager);
             this.zoomManager.setListCoordinator(this.listCoordinator);
             this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
+            
+            this.generalController.setStatusBarManager(this.statusBarManager);
 
             this.view.setJMenuBar(menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap));
             this.controller.setMenuItemsPorNombre(menuBuilder.getMenuItemsMap());
@@ -509,7 +467,10 @@ public class AppInitializer {
             this.controller.configurarAtajosTecladoGlobales();
             this.configAppManager.aplicarConfiguracionGlobalmente();
             this.controller.configurarListenersVistaInternal();
-            this.projectController.configurarListeners(); // <-- Nuevo: configurar listeners del ProjectController
+            this.projectController.configurarListeners();
+            
+            // --- CAMBIO: Llamar al initialize del GeneralController ---
+            this.generalController.initialize();
             
             java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
             this.view.addWindowListener(new java.awt.event.WindowAdapter() {
@@ -538,6 +499,8 @@ public class AppInitializer {
             e.printStackTrace();
         }
     } // --- Fin del método crearUIyComponentesDependientesEnEDT ---
+
+
     
     
 //***************************************************************************************************************    

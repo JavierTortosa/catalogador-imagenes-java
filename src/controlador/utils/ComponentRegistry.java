@@ -150,4 +150,4 @@ public class ComponentRegistry {
     } // --- FIN del metodo getAllComponentsOfType ---
     
     
-}
+}// --- FIN de la clase ComponentRegistry ---

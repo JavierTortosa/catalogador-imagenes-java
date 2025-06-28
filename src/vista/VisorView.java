@@ -2,32 +2,18 @@ package vista;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Cursor;
-import java.awt.Dimension;
-import java.awt.FlowLayout;
-// Imports para el paintComponent de etiquetaImagen (si está aquí)
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Rectangle;
-import java.awt.RenderingHints;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JColorChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -39,7 +25,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.Timer;
 import javax.swing.border.Border; // Para crearSeparadorVerticalBarraInfo y otros bordes
 import javax.swing.border.TitledBorder; // Para panelIzquierdo
 
@@ -58,50 +43,13 @@ public class VisorView extends JFrame {
 
     private static final long serialVersionUID = 4L; // Incrementado por refactorización mayor
 
-    // --- CAMPOS DE INSTANCIA PARA COMPONENTES UI PRINCIPALES ---
-    // Paneles Contenedores Principales
-//    private JPanel panelModoVisualizadorActual; 
-//    private JPanel panelInfoSuperior;
-//    private JPanel bottomStatusBar; 
-//    private JLabel formatoImagenInfoLabel; // Para mostrar el formato de la imagen 
-
-    // Componentes del Modo Normal/Detalle
-//    private JSplitPane splitPane;
-//    private JPanel panelContenedorIzquierdoSplit;
-//    private JPanel panelContenedorDerechoSplit;
-//    private JPanel panelIzquierdo; 
-//    private JList<String> listaNombres;
-//    private JLabel etiquetaImagen;
+    
     private JScrollPane scrollListaMiniaturas;
-//    private JList<String> listaMiniaturas;
 
     // Componentes Comunes (Barras, etc.)
     private JPanel panelDeBotones;        
-//    private JPanel contenedorDeBarras; // El nuevo panel que contendrá las JToolBar
     private Map<String, JToolBar> barrasDeHerramientas;
 
-    // Componentes de las Barras de Información
-//    private JLabel nombreArchivoInfoLabel;
-//    private JLabel indiceTotalInfoLabel;
-//    private JLabel dimensionesOriginalesInfoLabel;
-//    private JLabel modoZoomNombreInfoLabel;
-//    private JLabel tamanoArchivoInfoLabel; 
-//    private JLabel fechaArchivoInfoLabel;   
-//    private JLabel porcentajeZoomVisualRealInfoLabel;
-//    private JLabel indicadorZoomManualInfoLabel;
-//    private JLabel indicadorMantenerPropInfoLabel;
-//    private JLabel indicadorSubcarpetasInfoLabel;
-//    private JLabel porcentajeZoomPersonalizadoLabel;
-    
-    // Componentes de la Barra de Estado Inferior (bottomStatusBar)
-//    private JLabel rutaCompletaArchivoLabel; 
-//    private JLabel mensajesAppLabel;
-//    private JTextField textoRuta; // Usado como fallback temporalmente en crearPanelEstadoInferior
-//	private JLabel iconoZoomManualLabel;
-//	private JLabel iconoMantenerProporcionesLabel;
-//	private JLabel iconoModoSubcarpetasLabel;
-//	private JButton modoZoomActualIconoBoton;
-    
     
     // --- REFERENCIAS EXTERNAS Y CONFIGURACIÓN ---
 //    private final ViewUIConfig uiConfig;
@@ -236,152 +184,7 @@ public class VisorView extends JFrame {
     } // --- FIN del constructor VisorView ---
     
     
-//    public VisorViewOLD(
-//    	    int miniaturaPanelHeight,
-//    	    VisorModel modelo,
-//    	    ThumbnailService servicioThumbs,
-//    	    ThemeManager themeManager,
-//    	    ConfigurationManager configurationManager,
-//    	    ComponentRegistry registry,
-//    	    IconUtils iconUtils
-//    	) {
-//    	    super("Visor/Catalogador de Imágenes");
-//    	    System.out.println("[VisorView Constructor SIMPLIFICADO] Iniciando...");
-//
-//    	    // --- 1. ASIGNACIÓN DE DEPENDENCIAS ESENCIALES ---
-//    	    this.model = Objects.requireNonNull(modelo);
-//    	    this.servicioThumbs = Objects.requireNonNull(servicioThumbs);
-//    	    this.themeManagerRef = Objects.requireNonNull(themeManager);
-//    	    this.configurationManagerRef = Objects.requireNonNull(configurationManager);
-//    	    this.registry = Objects.requireNonNull(registry);
-//    	    this.iconUtilsRef = Objects.requireNonNull(iconUtils);
-//    	    this.miniaturaScrollPaneHeight = miniaturaPanelHeight > 0 ? miniaturaPanelHeight : 100;
-//    	    
-//    	    
-//    	    // Inicializar mapas vacíos. Se poblarán desde fuera.
-//    	    this.menuItemsPorNombre = new HashMap<>();
-//    	    this.barrasDeHerramientas = new HashMap<>();
-//    	    
-//    	    
-//    	    // --- 2. CONFIGURACIÓN BÁSICA DEL JFRAME ---
-//    	    setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-//    	    setLayout(new BorderLayout());
-//    	    Tema temaActual = this.themeManagerRef.getTemaActual();
-//    	    getContentPane().setBackground(temaActual.colorFondoPrincipal());
-//
-//    	    // --- 3. INICIALIZAR COMPONENTES QUE SÍ PERTENECEN A VisorView ---
-//    	    // Solo la etiqueta de la imagen y los controles de fondo del visor
-//    	    inicializarEtiquetaMostrarImagen(); 
-//    	    inicializarPanelControlesFondoIcono();
-//        
-//        
-//
-//        // --- 5. RESTAURAR ESTADO DE LA VENTANA (TAMAÑO, POSICIÓN, MAXIMIZADO) ---
-//        // --- CAMBIO INICIO: Lógica refactorizada para restaurar el estado de la ventana ---
-//        if (this.configurationManagerRef != null) {
-//            System.out.println("  [VisorView Constructor] Restaurando estado de la ventana desde configuración...");
-//            
-//            // --- PASO A: Leer SIEMPRE los bounds normales (x, y, ancho, alto) ---
-//            //   Estos valores definen el estado de la ventana cuando NO está maximizada.
-//            int x = this.configurationManagerRef.getInt(ConfigKeys.WINDOW_X, -1);
-//            int y = this.configurationManagerRef.getInt(ConfigKeys.WINDOW_Y, -1);
-//            int w = this.configurationManagerRef.getInt(ConfigKeys.WINDOW_WIDTH, 1280);
-//            int h = this.configurationManagerRef.getInt(ConfigKeys.WINDOW_HEIGHT, 720);
-//            
-//            // --- PASO B: Establecer SIEMPRE los bounds normales en el JFrame ---
-//            //   Esto asegura que el JFrame sepa a qué tamaño y posición volver cuando se restaure.
-//            if (w > 50 && h > 50 && x != -1 && y != -1) {
-//                // Si tenemos valores guardados y válidos, los aplicamos.
-//                System.out.println("    -> Aplicando bounds guardados: " + new Rectangle(x,y,w,h));
-//                setBounds(x, y, w, h);
-//            } else {
-//                // Si no, aplicamos los valores por defecto y centramos la ventana.
-//                System.out.println("    -> Usando bounds por defecto y centrando.");
-//                setSize(w, h);
-//                setLocationRelativeTo(null);
-//            }
-//            
-//            // --- PASO C: Inicializar 'lastNormalBounds' con los bounds que acabamos de establecer ---
-//            //   Ahora 'getBounds()' devolverá los valores correctos que hemos aplicado.
-//            this.lastNormalBounds = getBounds();
-//            System.out.println("    -> 'lastNormalBounds' inicializado a: " + this.lastNormalBounds);
-//            
-//            // --- PASO D: Leer y aplicar el estado maximizado DESPUÉS de haber establecido los bounds normales ---
-//            boolean wasMaximized = this.configurationManagerRef.getBoolean(ConfigKeys.WINDOW_MAXIMIZED, false);
-//            if (wasMaximized) {
-//                System.out.println("    -> La configuración indica que la ventana debe iniciar maximizada. Aplicando estado...");
-//                // Usamos SwingUtilities.invokeLater para dar tiempo a Swing a procesar los bounds
-//                // antes de intentar maximizar. Es una práctica más segura.
-//                SwingUtilities.invokeLater(() -> {
-//                    setExtendedState(JFrame.MAXIMIZED_BOTH);
-//                });
-//            }
-//            
-//            System.out.println("  [VisorView Constructor] Estado de la ventana (tamaño/posición) restaurado desde configuración.");
-//            
-//        } else {
-//            // --- Fallback si ConfigurationManager no está disponible ---
-//            setSize(1280, 720);
-//            setLocationRelativeTo(null);
-//            // Es crucial inicializar lastNormalBounds también en el caso de fallback.
-//            this.lastNormalBounds = getBounds();
-//            System.err.println("WARN [VisorView Constructor]: uiConfig.configurationManager es null. Usando tamaño/posición de ventana por defecto.");
-//        }
-//        // --- CAMBIO FIN ---
-//        
-//        // --- COMPONENTLISTENER (sin cambios, ya estaba bien) ---
-//        this.addComponentListener(new ComponentAdapter() {
-//        	
-//        	this.registry.register("label.imagenPrincipal", this.etiquetaImagen);
-//        	
-//            @Override
-//            public void componentMoved(ComponentEvent e) {
-//                if (getExtendedState() == JFrame.NORMAL) {
-//                    lastNormalBounds = getBounds();
-//                }
-//            }
-//            @Override
-//            public void componentResized(ComponentEvent e) {
-//                if (getExtendedState() == JFrame.NORMAL) {
-//                    lastNormalBounds = getBounds();
-//                }
-//            }
-//        });
-//        
-//        // --- 6. AJUSTE FINAL DEL DIVISOR DEL JSPLITPANE  ---
-//        
-//    }
-    
-    
-//    public void configurarEstadoInicialUI() {
-//        if (this.panelControlesFondoIcono != null && this.configurationManagerRef != null && this.themeManagerRef != null) {
-//            
-//            boolean esCuadrosActual = this.isFondoACuadrosActivado();
-//            
-//            JPanel puntoAResaltar = null;
-//            if (esCuadrosActual) {
-//                if (this.listaPuntosDeColor.size() >= 6) {
-//                    puntoAResaltar = this.listaPuntosDeColor.get(this.listaPuntosDeColor.size() - 2);
-//                }
-//            } else {
-//                String temaActualNombre = this.themeManagerRef.getTemaActual().nombreInterno();
-//                for(JPanel punto : this.listaPuntosDeColor) {
-//                    if (punto.getName().equals(temaActualNombre)) {
-//                        puntoAResaltar = punto;
-//                        break;
-//                    }
-//                }
-//            }
-//            
-//            if (puntoAResaltar != null) {
-//                actualizarResaltadoPuntosDeColor(puntoAResaltar);
-//            } else if (!esCuadrosActual) {
-//                if (!this.listaPuntosDeColor.isEmpty()) {
-//                   actualizarResaltadoPuntosDeColor(this.listaPuntosDeColor.get(this.listaPuntosDeColor.size() - 1));
-//                }
-//            }
-//        }
-//    }
+
     
      /**
       * Devuelve los últimos bounds conocidos de la ventana cuando estaba en estado normal (no maximizada).
@@ -399,50 +202,6 @@ public class VisorView extends JFrame {
          return this.lastNormalBounds; 
      }
      
-    
-    
-
-    
-    
-
-    
-    
-
-
-   
-
-   
-
-
-//    /**
-//     * Crea un JSeparator vertical para usar en la barra de información.
-//     * @return Un JSeparator configurado.
-//     */
-//    private JSeparator crearSeparadorVerticalBarraInfo() {
-//        JSeparator separator = new JSeparator(SwingConstants.VERTICAL);
-//        Dimension d = separator.getPreferredSize();
-//        // Intentar basar la altura en la métrica de la fuente de un label de referencia
-//        // Es importante que this.nombreArchivoInfoLabel ya esté inicializado cuando se llama esto
-//        if (this.nombreArchivoInfoLabel != null && this.nombreArchivoInfoLabel.getFont() != null) {
-//            FontMetrics fm = this.nombreArchivoInfoLabel.getFontMetrics(this.nombreArchivoInfoLabel.getFont());
-//            // Una altura un poco mayor que la de la fuente puede quedar bien
-//            d.height = fm.getHeight() + fm.getDescent() + 2; 
-//        } else {
-//            // Fallback si el label de referencia no está listo (debería estarlo)
-//            d.height = 16;
-//        }
-//        d.width = 2; // Ancho fijo para el separador
-//        separator.setPreferredSize(d);
-//        return separator;
-//    }
-
-
-    
-
-    
-
-    
-    
     
 	/**
 	 * Muestra una indicación de error en el área principal de visualización de imágenes (etiquetaImagen).
@@ -682,14 +441,6 @@ public class VisorView extends JFrame {
     }
 
     
-//    public void setThumbnailsVisible(boolean visible) {
-//        if (this.scrollListaMiniaturas != null && this.scrollListaMiniaturas.isVisible() != visible) {
-//            this.scrollListaMiniaturas.setVisible(visible);
-//            SwingUtilities.invokeLater(this::revalidateFrame);
-//        }
-//    }
-
-    
     private void revalidateFrame() {
         this.revalidate();
         this.repaint();
@@ -828,21 +579,6 @@ public class VisorView extends JFrame {
     } // --- FIN del metodo solicitarRefrescoRenderersMiniaturas ---
     
     
-    
-    
-    
-    
-
-    
-//    public void addToolbar(String nombre, JToolBar barra) {
-//        if (nombre == null || barra == null) return;
-//        this.barrasDeHerramientas.put(nombre, barra);
-//        this.contenedorDeBarras.add(barra);
-//    }
-
-//    
-    
-    
     public void addListaNombresSelectionListener(javax.swing.event.ListSelectionListener listener) {
         JList<String> listaNombres = registry.get("list.nombresArchivo");
         if (listaNombres != null) {
@@ -883,8 +619,6 @@ public class VisorView extends JFrame {
     public Image getImagenReescaladaView() {
         return this.imagenReescaladaView;
     }
-    
-    
 
    
     // Getters para la barra de botones

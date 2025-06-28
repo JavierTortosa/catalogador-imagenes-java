@@ -269,6 +269,7 @@ public class ProjectController {
         }.execute();
     }// --- FIN del metodo actualizarImagenVistaProyecto ---
 
+    
     // --- Setters (sin cambios) ---
     public void setProjectManager(IProjectManager projectManager) {this.projectManager = Objects.requireNonNull(projectManager);}
     public void setViewManager(IViewManager viewManager) { this.viewManager = Objects.requireNonNull(viewManager); }
