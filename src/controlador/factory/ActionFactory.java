@@ -14,6 +14,8 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
+import controlador.ProjectController;
+
 // --- SECCIÓN 0.1: IMPORTS DE COMPONENTES DEL SISTEMA ---
 
 import controlador.VisorController;
@@ -57,16 +59,12 @@ import controlador.actions.zoom.ToggleZoomManualAction;
 import controlador.commands.AppActionCommands;
 import controlador.imagen.LocateFileAction;
 import controlador.interfaces.ContextSensitiveAction;
-
-
 import controlador.managers.FileOperationsManager;
-
 import controlador.managers.interfaces.IEditionManager;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
-
 import modelo.VisorModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
@@ -93,6 +91,7 @@ public class ActionFactory {
     private IZoomManager zoomManager;
     private IViewManager viewManager;
     private final VisorController controllerRef;
+    private final ProjectController projectControllerRef;
     private final ThemeManager themeManager;
     
     // private final EditionManager editionManager; // Descomentar cuando se implemente y se inyecte
@@ -136,7 +135,8 @@ public class ActionFactory {
             Map<String, String> comandoToIconKeyMap,
             IViewManager viewManager,
             ThemeManager themeManager,
-            VisorController controller
+            VisorController controller,
+            ProjectController projectController
     ){ 
         
         // 2.1. Asignar dependencias principales.
@@ -146,6 +146,7 @@ public class ActionFactory {
         this.iconUtils 					= Objects.requireNonNull(iconUtils, "IconUtils no puede ser null en ActionFactory");
         this.controllerRef 				= Objects.requireNonNull(controller, "VisorController (controllerRef) no puede ser null en ActionFactory");
         this.themeManager 				= Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ActionFactory");
+        this.projectControllerRef       = Objects.requireNonNull(projectController);
         
         // 2.2. Asignar Managers y Coordinadores.
         this.zoomManager = zoomManager;//				= Objects.requireNonNull(zoomManager, "ZoomManager no puede ser null en ActionFactory");
@@ -624,7 +625,7 @@ public class ActionFactory {
     }
     private Action createSwitchToVisualizadorAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR); 
-        return new SwitchToVisualizadorAction("Visualizador", icon, this.viewManager);
+        return new SwitchToVisualizadorAction("Visualizador", icon, this.controllerRef);
     }
    	 	
 
@@ -669,7 +670,7 @@ public class ActionFactory {
     } // --- FIN del método createToggleMarkImageAction ---
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
-        return new GestionarProyectoAction(this.projectService, this.viewManager, "Gestionar Proyectos", icon);
+        return new GestionarProyectoAction(this.projectControllerRef, "Ver Proyecto", icon);
     }
     
     // --- 4.11. Métodos Create para Actions Especiales ---

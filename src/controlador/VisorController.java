@@ -111,6 +111,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private ComponentRegistry registry;
     private InfobarImageManager infobarImageManager; 
     private InfobarStatusManager statusBarManager;
+    private ProjectController projectController;
 
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
@@ -1345,11 +1346,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
     /**
      * Inicia el proceso de carga y visualización de la imagen principal.
-     * Llamado por ListCoordinator después de actualizar el índice oficial, o
-     * cuando se necesita refrescar la imagen por otras razones.
-     * Este método valida el estado, prepara la UI, y lanza una tarea en segundo
-     * plano para leer la imagen del disco, actualizando la UI en el EDT al finalizar.
-     *
+     * ¡¡¡CORREGIDO para no llamar a limpiarUI()!!!
      * @param indiceSeleccionado El índice de la imagen a mostrar en el modelo principal.
      */
     public void actualizarImagenPrincipal(int indiceSeleccionado) {
@@ -1358,11 +1355,30 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             return;
         }
 
-        if (indiceSeleccionado == -1 || model.getSelectedImageKey() == null) {
-            limpiarUI();
-            if (listCoordinator != null) listCoordinator.forzarActualizacionEstadoAcciones();
+        ImageDisplayPanel displayPanel = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO)
+                                       ? registry.get("panel.proyecto.display")
+                                       : registry.get("panel.display.imagen");
+        
+        if (displayPanel == null) {
+            System.err.println("ERROR CRÍTICO: No se encontró el panel de display activo.");
             return;
         }
+
+     // --- INICIO DE LA CORRECCIÓN ---
+        if (indiceSeleccionado == -1) {
+            // Si no hay selección, solo limpiamos el panel de la imagen y el modelo de la imagen.
+            if (displayPanel != null) {
+                displayPanel.limpiar();
+            }
+            model.setCurrentImage(null);
+            model.setSelectedImageKey(null); // Asegurarnos de que el modelo refleja la no selección
+            
+            if (listCoordinator != null) listCoordinator.forzarActualizacionEstadoAcciones();
+            
+            System.out.println("--> [actualizarImagenPrincipal] Limpiando panel de imagen por índice -1.");
+            return;
+        }
+        // --- FIN DE LA CORRECCIÓN ---
         
         String archivoSeleccionadoKey = model.getSelectedImageKey();
         System.out.println("--> [actualizarImagenPrincipal] Iniciando carga para clave: '" + archivoSeleccionadoKey + "' (Índice: " + indiceSeleccionado + ")");
@@ -1374,19 +1390,12 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         Path rutaCompleta = model.getRutaCompleta(archivoSeleccionadoKey);
 
         if (rutaCompleta == null) {
-            System.err.println("ERROR [actualizarImagenPrincipal]: No se pudo encontrar la ruta para la clave: " + archivoSeleccionadoKey);
-            ImageDisplayPanel panelError = registry.get("panel.display.imagen");
-            if (panelError != null) {
-                 panelError.mostrarError("Ruta no encontrada para:\n" + archivoSeleccionadoKey, null);
-            }
+            displayPanel.mostrarError("Ruta no encontrada para:\n" + archivoSeleccionadoKey, null);
             return;
         }
         
-        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-        if (displayPanel != null) {
-            displayPanel.mostrarCargando("Cargando: " + rutaCompleta.getFileName() + "...");
-        }
-
+        displayPanel.mostrarCargando("Cargando: " + rutaCompleta.getFileName() + "...");
+        
         final String finalKeyParaWorker = archivoSeleccionadoKey;
         final Path finalPathParaWorker = rutaCompleta;
 
@@ -1407,46 +1416,32 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             }
 
             SwingUtilities.invokeLater(() -> {
-                if (!finalKeyParaWorker.equals(model.getSelectedImageKey())) {
+                // Doble chequeo por si el contexto cambió mientras se cargaba la imagen
+                if (!Objects.equals(archivoSeleccionadoKey, model.getSelectedImageKey())) {
                     return;
                 }
-
+                
                 if (view == null || model == null || zoomManager == null || registry == null || projectManager == null) return;
                 
-                ImageDisplayPanel panel = registry.get("panel.display.imagen");
-
                 if (finalImagenCargada != null) {
                     model.setCurrentImage(finalImagenCargada);
-                    
-                    if (panel != null) {
-                        panel.setImagen(finalImagenCargada);
-                    }
+                    displayPanel.setImagen(finalImagenCargada);
 
                     if (!cargaInicialEnCurso) {
                         zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
                     } else {
-                        if (panel != null) {
-                            panel.repaint();
-                        }
+                        displayPanel.repaint();
                     }
 
-                    // --- INICIO DE LA MODIFICACIÓN ---
-                    // Sincronizar el estado de la marca para la nueva imagen
                     boolean estaMarcada = projectManager.estaMarcada(finalPathParaWorker);
                     actualizarEstadoVisualBotonMarcarYBarraEstado(estaMarcada, finalPathParaWorker);
-                    // --- FIN DE LA MODIFICACIÓN ---
 
                 } else { 
                     model.setCurrentImage(null);
-                    
-                    if (panel != null) {
-                        panel.setImagen(null);
-                        if (iconUtils != null) {
-                             ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
-                             panel.mostrarError("Error al cargar:\n" + finalPathParaWorker.getFileName().toString(), errorIcon);
-                        }
+                    if (iconUtils != null) {
+                         ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
+                         displayPanel.mostrarError("Error al cargar:\n" + finalPathParaWorker.getFileName().toString(), errorIcon);
                     }
-                    // --- AÑADIDO: Asegurarse de que el botón de marcar se desactive en caso de error ---
                     actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
                 }
 
@@ -1455,126 +1450,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 if (listCoordinator != null) listCoordinator.forzarActualizacionEstadoAcciones();
             });
         });
-        
-        System.out.println("--> [actualizarImagenPrincipal] Tarea de carga lanzada para: " + archivoSeleccionadoKey);
-    } // --- FIN del metodo actualizarImagenPrincipal ---
-    
-
-//    /**
-//     * Inicia el proceso de carga y visualización de la imagen principal.
-//     * Llamado por ListCoordinator después de actualizar el índice oficial, o
-//     * cuando se necesita refrescar la imagen por otras razones.
-//     * Este método valida el estado, prepara la UI, y lanza una tarea en segundo
-//     * plano para leer la imagen del disco, actualizando la UI en el EDT al finalizar.
-//     *
-//     * @param indiceSeleccionado El índice de la imagen a mostrar en el modelo principal.
-//     */
-//    public void actualizarImagenPrincipal(int indiceSeleccionado) {
-//        if (view == null || model == null || executorService == null || executorService.isShutdown() || registry == null) {
-//            System.err.println("WARN [actualizarImagenPrincipal]: Dependencias no listas.");
-//            return;
-//        }
-//
-//        if (indiceSeleccionado == -1 || model.getSelectedImageKey() == null) {
-//            limpiarUI();
-//            if (listCoordinator != null) listCoordinator.forzarActualizacionEstadoAcciones();
-//            return;
-//        }
-//        
-//        String archivoSeleccionadoKey = model.getSelectedImageKey();
-//        System.out.println("--> [actualizarImagenPrincipal] Iniciando carga para clave: '" + archivoSeleccionadoKey + "' (Índice: " + indiceSeleccionado + ")");
-//
-//        if (cargaImagenPrincipalFuture != null && !cargaImagenPrincipalFuture.isDone()) {
-//            cargaImagenPrincipalFuture.cancel(true);
-//        }
-//
-//        Path rutaCompleta = model.getRutaCompleta(archivoSeleccionadoKey);
-//
-//        if (rutaCompleta == null) {
-//            System.err.println("ERROR [actualizarImagenPrincipal]: No se pudo encontrar la ruta para la clave: " + archivoSeleccionadoKey);
-//            ImageDisplayPanel panelError = registry.get("panel.display.imagen");
-//            if (panelError != null) {
-//                 panelError.mostrarError("Ruta no encontrada para:\n" + archivoSeleccionadoKey, null);
-//            }
-//            return;
-//        }
-//        
-//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-//        if (displayPanel != null) {
-//            displayPanel.mostrarCargando("Cargando: " + rutaCompleta.getFileName() + "...");
-//        }
-//
-//        final String finalKeyParaWorker = archivoSeleccionadoKey;
-//        final Path finalPathParaWorker = rutaCompleta;
-//
-//        cargaImagenPrincipalFuture = executorService.submit(() -> {
-//            BufferedImage imagenCargadaDesdeDisco = null;
-//            try {
-//                if (!Files.exists(finalPathParaWorker)) throw new IOException("El archivo no existe: " + finalPathParaWorker);
-//                imagenCargadaDesdeDisco = ImageIO.read(finalPathParaWorker.toFile());
-//                if (imagenCargadaDesdeDisco == null) throw new IOException("Formato no soportado o archivo inválido.");
-//            } catch (Exception ex) {
-//                System.err.println("Error al cargar la imagen: " + ex.getMessage());
-//            }
-//
-//            final BufferedImage finalImagenCargada = imagenCargadaDesdeDisco;
-//
-//            if (Thread.currentThread().isInterrupted()) {
-//                return;
-//            }
-//
-//            SwingUtilities.invokeLater(() -> {
-//                if (!finalKeyParaWorker.equals(model.getSelectedImageKey())) {
-//                    return;
-//                }
-//
-//                if (view == null || model == null || zoomManager == null || registry == null) return;
-//                
-//                ImageDisplayPanel panel = registry.get("panel.display.imagen");
-//
-//                if (finalImagenCargada != null) {
-//                    model.setCurrentImage(finalImagenCargada);
-//                    
-//                    if (panel != null) {
-//                        panel.setImagen(finalImagenCargada);
-//                    }
-//
-//                    if (!cargaInicialEnCurso) {
-//                        zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
-//                    } else {
-//                        if (panel != null) {
-//                            panel.repaint();
-//                        }
-//                    }
-//
-//                    // --- INICIO DE LA MODIFICACIÓN ---
-//                    // Al cambiar de imagen, siempre sincronizamos el estado visual del botón de marcar.
-//                    boolean estaMarcada = projectManager.estaMarcada(finalPathParaWorker);
-//                    actualizarEstadoVisualBotonMarcarYBarraEstado(estaMarcada, finalPathParaWorker);
-//                    // --- FIN DE LA MODIFICACIÓN ---
-//
-//                } else { 
-//                    model.setCurrentImage(null);
-//                    
-//                    if (panel != null) {
-//                        panel.setImagen(null);
-//                        if (iconUtils != null) {
-//                             ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
-//                             panel.mostrarError("Error al cargar:\n" + finalPathParaWorker.getFileName().toString(), errorIcon);
-//                        }
-//                    }
-//                    // --- AÑADIDO: Asegurarse de que el botón de marcar se desactive en caso de error ---
-//                    actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
-//                }
-//
-//                if (infobarImageManager != null) infobarImageManager.actualizar();
-//                if (statusBarManager != null) statusBarManager.actualizar();
-//                if (listCoordinator != null) listCoordinator.forzarActualizacionEstadoAcciones();
-//            });
-//        });
-//        
-//        System.out.println("--> [actualizarImagenPrincipal] Tarea de carga lanzada para: " + archivoSeleccionadoKey);
-//    } // --- FIN del metodo actualizarImagenPrincipal ---
+    } // --- Fin del método actualizarImagenPrincipal ---
     
     
     public void limpiarUI() {
@@ -1586,24 +1462,27 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
         try {
             if (model != null) {
-                model.actualizarListaCompleta(new DefaultListModel<>(), new HashMap<>());
-                model.setCurrentImage(null);
-                model.setSelectedImageKey(null);
-                model.resetZoomState();
-                System.out.println("  -> Modelo limpiado.");
+                // INICIO DEL CAMBIO
+                // NO llamar a model.actualizarListaCompleta aquí para evitar borrar
+                // los datos del ListContext actual. Solo limpiar la imagen y la selección.
+                model.setCurrentImage(null); // Limpiar la imagen mostrada
+                model.setSelectedImageKey(null); // Deseleccionar cualquier imagen en el contexto actual
+                model.resetZoomState(); // Resetear el zoom del contexto actual
+                System.out.println("  -> Estado de imagen y selección en modelo limpiado.");
+                // FIN DEL CAMBIO
             }
 
             if (view != null) {
-                if (model != null) {
-                    view.setListaImagenesModel(model.getModeloLista());
-                } else {
-                    view.setListaImagenesModel(new DefaultListModel<>());
-                }
+                // INICIO DEL CAMBIO
+                // Si la JList está vinculada a un modelo que NO se limpia aquí,
+                // entonces la vista no necesita que le asignemos un modelo vacío.
+                // Simplemente limpiar la imagen mostrada.
                 view.limpiarImagenMostrada();
+                // FIN DEL CAMBIO
                 if (this.modeloMiniaturas != null) {
-                    this.modeloMiniaturas.clear();
+                    this.modeloMiniaturas.clear(); // Esto sí puede limpiarse, es el modelo de la ventana deslizante
                 }
-                System.out.println("  -> Vista actualizada a estado vacío.");
+                System.out.println("  -> Vista actualizada a estado vacío (imagen principal y miniaturas).");
             }
 
             if (servicioMiniaturas != null) {
@@ -1636,7 +1515,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         }
        
         System.out.println("[Controller] Limpieza de UI y Modelo completada.");
-    } // --- FIN limpiarUI ---		
+    } // --- FIN limpiarUI ---
+    
+    
+
    
     
 
@@ -3096,7 +2978,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ****************************************************************************************************** GESTION DE PROYECTOS
 // ***************************************************************************************************************************	  
 	  
-	  
+	 
+     
+     
+     
 	/**
 	 * Actualiza el estado visual de los componentes relacionados con la marca de proyecto.
 	 * Este método se asegura de que el estado de la Action, el botón de la toolbar
@@ -3113,10 +2998,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	    //    Esto actualizará automáticamente cualquier JCheckBoxMenuItem asociado.
 	    Action toggleMarkImageAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
 	    if (toggleMarkImageAction != null) {
-	        // Solo cambiar si es diferente para evitar eventos innecesarios.
-	        if (!Objects.equals(toggleMarkImageAction.getValue(Action.SELECTED_KEY), estaMarcada)) {
-	            toggleMarkImageAction.putValue(Action.SELECTED_KEY, estaMarcada);
-	        }
+	        // Esto asegura que los componentes que usan la Action (como JCheckBoxMenuItem) se actualicen.
+	        toggleMarkImageAction.putValue(Action.SELECTED_KEY, estaMarcada);
 	    }
 
 	    // --- 2. Sincronizar el Botón de la Toolbar (a través del ConfigManager y el ThemeApplier) ---
@@ -3142,82 +3025,209 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	/**
 	 * Orquesta la operación de alternar el estado de marca de la imagen actual.
 	 * Este es el punto de entrada llamado por la Action correspondiente.
-	 * Se encarga de la lógica de negocio y de la actualización completa de la UI.
 	 */
 	public void solicitudAlternarMarcaDeImagenActual() {
 	    System.out.println("[Controller] Solicitud para alternar marca de imagen actual...");
-	    
-	    if (model == null || projectManager == null) {
-	        System.err.println("ERROR CRÍTICO [solicitudAlternarMarca]: Modelo o ProjectManager nulos.");
-	        return;
-	    }
+	    if (model == null || projectManager == null) { return; }
 	    
 	    String claveActual = model.getSelectedImageKey();
-	    if (claveActual == null || claveActual.isEmpty()) {
-	        System.out.println("  -> No hay imagen seleccionada para marcar/desmarcar.");
-	        return;
-	    }
+	    if (claveActual == null || claveActual.isEmpty()) { return; }
 
 	    Path rutaAbsoluta = model.getRutaCompleta(claveActual);
-	    if (rutaAbsoluta == null) {
-	        System.err.println("ERROR [solicitudAlternarMarca]: No se pudo obtener ruta absoluta para la clave: " + claveActual);
-	        return;
-	    }
+	    if (rutaAbsoluta == null) { return; }
 
-	    // Delegar la lógica de negocio al ProjectManager y obtener el nuevo estado.
 	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
-	    System.out.println("  -> Lógica de negocio ejecutada. Nuevo estado 'marcada': " + estaAhoraMarcada);
-
-	    // Orquestar la actualización de la UI.
 	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
-	    
 	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
 	
 	
-//	/**
-//	 * Orquesta la operación de alternar el estado de marca de la imagen actual.
-//	 * Este es el punto de entrada llamado por la Action correspondiente.
-//	 * Se encarga de la lógica de negocio y de la actualización completa de la UI.
-//	 */
-//	public void solicitudAlternarMarcaDeImagenActual() {
-//	    System.out.println("[Controller] Solicitud para alternar marca de imagen actual...");
-//	    
-//	    // --- 1. Validar dependencias y estado actual ---
-//	    if (model == null || projectManager == null) {
-//	        System.err.println("ERROR CRÍTICO [solicitudAlternarMarca]: Modelo o ProjectManager nulos.");
-//	        return;
-//	    }
-//	    
-//	    String claveActual = model.getSelectedImageKey();
-//	    if (claveActual == null || claveActual.isEmpty()) {
-//	        System.out.println("  -> No hay imagen seleccionada para marcar/desmarcar.");
-//	        // Aseguramos que la UI esté desmarcada si no hay imagen
-//	        actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
-//	        return;
-//	    }
-//
-//	    Path rutaAbsoluta = model.getRutaCompleta(claveActual);
-//	    if (rutaAbsoluta == null) {
-//	        System.err.println("ERROR [solicitudAlternarMarca]: No se pudo obtener ruta absoluta para la clave: " + claveActual);
-//	        actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
-//	        return;
-//	    }
-//
-//	    // --- 2. Delegar la lógica de negocio al ProjectManager ---
-//	    // El método alternarMarcaImagen ya se encarga de añadir/quitar y guardar en el archivo.
-//	    // Y nos devuelve el nuevo estado de la imagen (true si quedó marcada, false si no).
-//	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
-//	    
-//	    System.out.println("  -> Lógica de negocio ejecutada. Nuevo estado 'marcada': " + estaAhoraMarcada);
-//
-//	    // --- 3. Orquestar la actualización de la UI ---
-//	    // Llamamos al método helper que centraliza la actualización de todos los componentes visuales.
-//	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
-//	    
-//	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
+	public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
+        VisorModel.WorkMode modoActual = model.getCurrentWorkMode();
+        if (modoActual == modoDestino) return;
+
+        System.out.println("\n--- INICIANDO TRANSICIÓN DE MODO: " + modoActual + " -> " + modoDestino + " ---");
+
+        if (modoDestino == VisorModel.WorkMode.PROYECTO) {
+            if (!projectController.prepararDatosProyecto()) {
+                sincronizarEstadoBotonesDeModo();
+                System.out.println("--- TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
+                return;
+            }
+        }
+        
+        salirModo(modoActual);
+        model.setCurrentWorkMode(modoDestino);
+        entrarModo(modoDestino);
+
+        System.out.println("--- TRANSICIÓN DE MODO COMPLETADA a " + modoDestino + " ---\n");
+    } // --- Fin del método cambiarModoDeTrabajo ---
+	
 	
 
-	// <--- Este método se conserva como un helper, pero ya no es el punto de entrada principal para la Action ---
+
+    /**
+     * Realiza las tareas de "limpieza" o "desactivación" de un modo antes de abandonarlo.
+     * @param modoQueSeAbandona El modo que estamos dejando.
+     */
+	private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
+        System.out.println("  -> Saliendo del modo: " + modoQueSeAbandona);
+        Action toggleSubcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+        if (toggleSubcarpetasAction != null) {
+            toggleSubcarpetasAction.setEnabled(true);
+        }
+    } // --- Fin del método salirModo ---
+
+    /**
+     * Realiza las tareas de "configuración" y "restauración" de la UI para un modo
+     * en el que estamos entrando.
+     * @param modoAlQueSeEntra El nuevo modo activo.
+     */
+	private void entrarModo(VisorModel.WorkMode modoAlQueSeEntra) {
+        System.out.println("  -> Entrando en modo: " + modoAlQueSeEntra);
+        switch (modoAlQueSeEntra) {
+            case VISUALIZADOR:
+                restaurarUiVisualizador();
+                break;
+            case PROYECTO:
+                projectController.activarVistaProyecto();
+                restaurarUiGenericaParaModoProyecto();
+                break;
+        }
+        viewManager.cambiarAVista(modoAlQueSeEntra == VisorModel.WorkMode.PROYECTO ? "VISTA_PROYECTOS" : "VISTA_VISUALIZADOR");
+        sincronizarEstadoBotonesDeModo();
+    } // --- Fin del método entrarModo ---
+	
+	
+	/**
+     * Restaura toda la UI específica del modo VISUALIZADOR, leyendo el estado
+     * desde el contexto correspondiente en el VisorModel.
+     */
+	private void restaurarUiVisualizador() {
+        System.out.println("    -> Restaurando UI para el modo VISUALIZADOR...");
+        
+        JList<String> listaNombres = registry.get("list.nombresArchivo");
+        DefaultListModel<String> modeloVisualizador = model.getModeloLista(); // Este es el ListModel del visualizadorListContext
+
+        // INICIO DEL CAMBIO
+        // Deshabilitar temporalmente el ListSelectionListener para evitar que se dispare
+        // cuando JList.setModel() limpia internamente la selección.
+        // Capturar los listeners existentes para poder re-añadirlos.
+        javax.swing.event.ListSelectionListener[] listeners = null;
+        if (listaNombres != null) {
+            listeners = listaNombres.getListSelectionListeners();
+            for (javax.swing.event.ListSelectionListener l : listeners) {
+                listaNombres.removeListSelectionListener(l);
+            }
+        }
+        // FIN DEL CAMBIO
+        
+        if (listaNombres != null) {
+            listaNombres.setModel(modeloVisualizador); // Asignar el modelo de la lista del visualizador
+            System.out.println("      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: " + modeloVisualizador.getSize());
+        }
+
+        // INICIO DEL CAMBIO
+        // Re-añadir los listeners después de setModel()
+        if (listaNombres != null && listeners != null) {
+            for (javax.swing.event.ListSelectionListener l : listeners) {
+                listaNombres.addListSelectionListener(l);
+            }
+        }
+        // FIN DEL CAMBIO
+
+        JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
+        if(panelIzquierdo != null && panelIzquierdo.getBorder() instanceof javax.swing.border.TitledBorder) {
+            ((javax.swing.border.TitledBorder)panelIzquierdo.getBorder()).setTitle("Archivos: " + modeloVisualizador.getSize());
+            panelIzquierdo.repaint();
+        }
+        
+        String claveGuardada = model.getSelectedImageKey();
+        System.out.println("### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: '" + claveGuardada + "'");
+        int indiceARestaurar = (claveGuardada != null) ? modeloVisualizador.indexOf(claveGuardada) : -1;
+        
+        // La lógica de fallback a 0 es correcta si la clave no se encuentra o no hay nada seleccionado.
+        if (indiceARestaurar == -1 && !modeloVisualizador.isEmpty()) {
+            indiceARestaurar = 0;
+        }
+
+        // Llamar al coordinador para establecer la selección y disparar la carga de la imagen.
+        // Aquí NO necesitamos limpiar la selección de la JList de nombres de nuevo,
+        // ya lo hicimos indirectamente con setModel(), y el ListCoordinator.reiniciarYSeleccionarIndice
+        // ya tiene lógica para limpiar y luego seleccionar.
+        if (listCoordinator != null) {
+            listCoordinator.reiniciarYSeleccionarIndice(indiceARestaurar);
+        } else {
+             System.err.println("ERROR: ListCoordinator es null al restaurar UI del visualizador.");
+        }
+        
+        restaurarUiGenerica();
+    } // --- Fin del método restaurarUiVisualizador ---
+	
+
+    /**
+     * Restaura los elementos de la UI que son comunes o necesitan ser
+     * sincronizados al entrar en un modo.
+     */
+	private void restaurarUiGenerica() {
+        System.out.println("      -> Restaurando UI genérica (Zoom, Toggles)...");
+        sincronizarEstadoVisualBotonesYRadiosZoom();
+        sincronizarControlesSubcarpetas();
+        sincronizarUiControlesProporciones(model.isMantenerProporcion());
+    } // --- Fin del método restaurarUiGenerica ---
+
+    /**
+     * Restaura la UI para el modo proyecto. Es similar a la genérica, pero
+     * deshabilita los controles que no aplican.
+     */
+	private void restaurarUiGenericaParaModoProyecto() {
+        System.out.println("      -> Restaurando UI genérica para el modo PROYECTO...");
+        restaurarUiGenerica();
+        
+        Action toggleSubcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+        if (toggleSubcarpetasAction != null) {
+            toggleSubcarpetasAction.setEnabled(false);
+        }
+    } // --- Fin del método restaurarUiGenericaParaModoProyecto ---
+
+    // --- FIN DE LA SECCIÓN DE GESTIÓN DE MODOS ---
+	
+	
+	
+	
+	/**
+	 * Sincroniza el estado visual de los botones de modo de trabajo (Visualizador, Proyecto, etc.).
+	 * Asegura que solo el botón del modo activo esté seleccionado.
+	 */
+	public void sincronizarEstadoBotonesDeModo() {
+	    if (actionMap == null || model == null) {
+	        System.err.println("WARN [sincronizarEstadoBotonesDeModo]: ActionMap o Model nulos.");
+	        return;
+	    }
+
+	    // Determina qué acción corresponde al modo activo.
+	    String comandoModoActivo = model.isEnModoProyecto()
+	                               ? AppActionCommands.CMD_PROYECTO_GESTIONAR
+	                               : AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
+
+	    // Lista de todos los comandos de modo para iterar
+	    List<String> comandosDeModo = List.of(
+	        AppActionCommands.CMD_PROYECTO_GESTIONAR,
+	        AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,
+	        "cmd.funcionalidad.pendiente" // Comando del botón "Modo Datos"
+	    );
+
+	    // Itera y actualiza el estado de cada Action.
+	    // El ButtonGroup se encargará de la parte visual automáticamente.
+	    for (String comando : comandosDeModo) {
+	        Action action = actionMap.get(comando);
+	        if (action != null) {
+	            action.putValue(Action.SELECTED_KEY, comando.equals(comandoModoActivo));
+	        }
+	    }
+	    System.out.println("[Controller] Sincronizados botones de modo. Activo: " + comandoModoActivo);
+	} // --- Fin del método sincronizarEstadoBotonesDeModo ---
+	
+	
 	public void toggleMarcaImagenActual (boolean marcarDeseado)
 	{
 	    Action toggleMarkImageAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA) : null;
@@ -3279,8 +3289,14 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	public void setCalculatedMiniaturePanelHeight(int calculatedMiniaturePanelHeight) { this.calculatedMiniaturePanelHeight = calculatedMiniaturePanelHeight; }
 	public void setView(VisorView view) { this.view = view; }
 	public void setListCoordinator(IListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
-	public void setModeloMiniaturas(DefaultListModel<String> modeloMiniaturas) { this.modeloMiniaturas = modeloMiniaturas;}
 	
+	public DefaultListModel<String> getModeloMiniaturas()	{ return this.modeloMiniaturas; }
+	public void setModeloMiniaturas(DefaultListModel<String> modeloMiniaturas) {
+	    this.modeloMiniaturas = Objects.requireNonNull(modeloMiniaturas, 
+	            "El modelo de miniaturas no puede ser inyectado como nulo en VisorController.");
+	    
+	    System.out.println("  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: " + System.identityHashCode(this.modeloMiniaturas));
+	} // --- Fin del método setModeloMiniaturas ---
 	
 	public void setZoomManager(IZoomManager zoomManager) {
 	    this.zoomManager = zoomManager;
@@ -3396,7 +3412,24 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 	
 	// Getters
-	public DefaultListModel<String> getModeloMiniaturas () { return modeloMiniaturas; }
+    
+//    public DefaultListModel<String> getModeloMiniaturas() { //nuevo
+//        if (this.view != null) {
+//            // Asumiendo que has añadido el getter en VisorView
+//            return this.view.getModeloListaMiniaturas();
+//        }
+//        // Este caso solo debería ocurrir durante la inicialización temprana, antes de que la vista se cree.
+//        System.err.println("WARN [getModeloMiniaturas]: Se intentó obtener el modelo de miniaturas pero la Vista es nula.");
+//        return null; 
+//    } // --- Fin del método getModeloMiniaturas ---
+    
+    
+//    public DefaultListModel<String> getModeloMiniaturas() {
+//        if (view != null) {
+//            return view.getModeloListaMiniaturas();
+//        }
+//        return null; 
+//    }
 
     /**
      * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
@@ -3605,6 +3638,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     public ExecutorService getExecutorService() {return this.executorService;}
     
     public void setViewManager(ViewManager viewManager) {this.viewManager = viewManager;}
+    
+    public void setProjectController(ProjectController projectController) {this.projectController = Objects.requireNonNull(projectController);}
+
+    
+
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
@@ -3877,78 +3915,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         
     } // --- FIN del metodo sincronizarEstadoVisualBotonesYRadiosZoom ---
     
-
-//    public void sincronizarEstadoVisualBotonesYRadiosZoom() {
-//        if (this.actionMap == null || this.model == null || this.configAppManager == null) {
-//            System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: Dependencias nulas.");
-//            return;
-//        }
-//        
-//        ZoomModeEnum modoActivo = model.getCurrentZoomMode();
-//        boolean permisoManualActivo = model.isZoomHabilitado();
-//        System.out.println("[VisorController] Sincronizando UI de Zoom. Modo: " + modoActivo + ", Permiso Manual: " + permisoManualActivo);
-//
-//        if (modoActivo == null) return;
-//
-//        // Guardar el último modo en la configuración en memoria
-//        if (configuration != null) {
-//            configuration.setString(
-//                ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO,
-//                modoActivo.name()
-//            );
-//        }
-//        
-//        // Lista de todos los comandos de acción para los modos de zoom
-//        java.util.List<String> zoomModeCommands = java.util.List.of(
-//            AppActionCommands.CMD_ZOOM_TIPO_AUTO,
-//            AppActionCommands.CMD_ZOOM_TIPO_ANCHO,
-//            AppActionCommands.CMD_ZOOM_TIPO_ALTO,
-//            AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR,
-//            AppActionCommands.CMD_ZOOM_TIPO_FIJO,
-//            AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO,
-//            AppActionCommands.CMD_ZOOM_TIPO_RELLENAR
-//        );
-//
-//        // Iterar sobre los comandos y actualizar cada Action y su botón asociado
-//        for (String command : zoomModeCommands) {
-//            Action action = actionMap.get(command);
-//            if (action instanceof AplicarModoZoomAction) {
-//                AplicarModoZoomAction zoomAction = (AplicarModoZoomAction) action;
-//                
-//                boolean isSelected = zoomAction.getModoAsociado() == modoActivo;
-//                
-//                action.putValue(Action.SELECTED_KEY, isSelected);
-//                this.configAppManager.actualizarAspectoBotonToggle(action, isSelected);
-//            }
-//            
-//            
-//        }
-//        
-//        // Sincronizar la Action de Reset
-//        Action resetAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
-//        if (resetAction != null) {
-//            boolean zoomNoEsDefault = Math.abs(model.getZoomFactor() - 1.0) > 0.001;
-//            boolean panNoEsDefault = model.getImageOffsetX() != 0 || model.getImageOffsetY() != 0;
-//            resetAction.setEnabled(permisoManualActivo || zoomNoEsDefault || panNoEsDefault);
-//        }
-//        
-//        // Sincronizar el Toggle de Permiso Manual
-//        Action toggleManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-//        if(toggleManualAction instanceof ToggleZoomManualAction){
-//            ((ToggleZoomManualAction)toggleManualAction).sincronizarEstadoConModelo();
-//            configAppManager.actualizarAspectoBotonToggle(toggleManualAction, permisoManualActivo);
-//        }
-//        
-//        // Actualizar las barras de información
-//        if (infobarImageManager != null) infobarImageManager.actualizar();
-//        if (statusBarManager != null) statusBarManager.actualizar();
-//        
-//        System.out.println("[VisorController] Sincronización de UI de Zoom completada.");
-//        
-//        
-//    }
-//    // --- FIN del metodo sincronizarEstadoVisualBotonesYRadiosZoom ---
-    
     
     public void notificarCambioEstadoZoomManual() {
         System.out.println("[VisorController] Notificado cambio de estado de zoom manual. Actualizando barras...");
@@ -4010,6 +3976,10 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         }
     }
     
+    
+    
+    
+    
 // ********************************************************************************************* FIN METODOS DE SINCRONIZACION
 // ***************************************************************************************************************************    
     
@@ -4033,7 +4003,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ***************************************************************************************************************************    
     
 } // --- FIN CLASE VisorController ---
-
 
 
 

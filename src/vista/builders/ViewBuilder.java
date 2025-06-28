@@ -12,6 +12,7 @@ import java.util.Objects;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -57,6 +58,7 @@ public class ViewBuilder {
     private final UIDefinitionService uiDefService;
     private final ThumbnailService thumbnailService;
     private final ProjectBuilder projectBuilder;
+    private final DefaultListModel<String> modeloMiniaturas;
 
     // --- INICIO DE LA MODIFICACIÓN: El campo ahora es de tipo IViewManager ---
     private IViewManager viewManager;
@@ -71,7 +73,8 @@ public class ViewBuilder {
             VisorController controller,
             IconUtils iconUtils,
             ThumbnailService thumbnailService,
-            ProjectBuilder projectBuilder
+            ProjectBuilder projectBuilder,
+            DefaultListModel<String> modeloMiniaturas
         ){
         this.registry = registry;
         this.model = model;
@@ -83,8 +86,9 @@ public class ViewBuilder {
         this.thumbnailService = Objects.requireNonNull(thumbnailService);
         this.projectBuilder = Objects.requireNonNull(projectBuilder, "ProjectBuilder no puede ser null");
         // El viewManager ya no se inyecta aquí. Se inyectará a través del setter.
+        this.modeloMiniaturas = Objects.requireNonNull(modeloMiniaturas, "El modelo de miniaturas no puede ser null en el constructor de ViewBuilder.");
+        
     } // --- Fin del constructor ViewBuilder ---
-    // --- FIN DE LA MODIFICACIÓN ---
 
 
     public VisorView createMainFrame() {
@@ -160,6 +164,16 @@ public class ViewBuilder {
         JPanel panel = new JPanel(new BorderLayout());
         
         panel.add(createMainSplitPane(), BorderLayout.CENTER);
+        
+        // LOG DEBUG ViewBuilder: La JList tiene asignado un modelo con hashCode
+        // *** AÑADIR ESTE BLOQUE DE DEBUG ***
+        JList<String> listaDebug = registry.get("list.miniaturas");
+        if(listaDebug != null && listaDebug.getModel() != null) {
+            System.out.println("!!! DEBUG ViewBuilder: La JList tiene asignado un modelo con hashCode: " + System.identityHashCode(listaDebug.getModel()));
+        } else {
+            System.out.println("!!! DEBUG ViewBuilder: La JList o su modelo son NULOS en este punto.");
+        }
+        
         panel.add(createThumbnailScrollPane(), BorderLayout.SOUTH);
         
         return panel;
@@ -205,14 +219,69 @@ public class ViewBuilder {
         return panelIzquierdo;
     } // --- Fin del método createLeftSplitComponent ---
 
-    private JScrollPane createThumbnailScrollPane() {
-        JList<String> thumbnailList = registry.get("list.miniaturas");
+    
+//******************************************************************************************* metodo que funciona independiente    
+//    private JScrollPane createThumbnailScrollPane() {
+//        System.out.println("--- PRUEBA DE AISLAMIENTO: createThumbnailScrollPane ---");
+//
+//        // 1. CREAMOS UN MODELO NUEVO AQUÍ MISMO. NO PUEDE SER NULL.
+//        DefaultListModel<String> modeloDePrueba = new DefaultListModel<>();
+//        
+//        // 2. LE AÑADIMOS DATOS DE PRUEBA PARA VER SI SE PINTA ALGO
+//        modeloDePrueba.addElement("prueba1.jpg");
+//        modeloDePrueba.addElement("prueba2.jpg");
+//        modeloDePrueba.addElement("prueba3.jpg");
+//        System.out.println("    -> Modelo de prueba creado con " + modeloDePrueba.getSize() + " elementos.");
+//
+//        // 3. CREAMOS LA JLIST CON ESTE MODELO LOCAL Y SEGURO
+//        JList<String> thumbnailList = new JList<>(modeloDePrueba);
+//        registry.register("list.miniaturas", thumbnailList);
+//        System.out.println("    -> JList creada y registrada.");
+//        
+//        // 4. CREAMOS UN RENDERER. USAMOS LA MISMA LÓGICA
+//        MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
+//            this.thumbnailService,
+//            this.model,
+//            this.themeManager,
+//            this.iconUtils,
+//            40, // Valores fijos para la prueba
+//            40,
+//            true
+//        );
+//        thumbnailList.setCellRenderer(renderer);
+//        thumbnailList.setFixedCellWidth(renderer.getAnchoCalculadaDeCelda());
+//        thumbnailList.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
+//        thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+//        thumbnailList.setVisibleRowCount(-1);
+//        System.out.println("    -> Renderer y configuración de JList aplicados.");
+//
+//        // 5. METEMOS LA JLIST DIRECTAMENTE EN EL SCROLLPANE
+//        JScrollPane scrollPane = new JScrollPane(thumbnailList);
+//        
+//        // 6. CONFIGURAMOS EL SCROLLPANE
+//        TitledBorder border = BorderFactory.createTitledBorder("Miniaturas (MODO PRUEBA)");
+//        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
+//        scrollPane.setBorder(border);
+//        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+//        registry.register("scroll.miniaturas", scrollPane);
+//        System.out.println("    -> JScrollPane creado y configurado. Fin de la prueba.");
+//
+//        return scrollPane;
+//    }
+//*******************************************************************************************************    
+    
+    
+private JScrollPane createThumbnailScrollPane() {
         
-        if (thumbnailList == null) {
-            thumbnailList = new JList<>();
-            registry.register("list.miniaturas", thumbnailList);
-        }
+        // 1. OBTENER EL MODELO CORRECTO DESDE EL CAMPO DE LA CLASE
+        //    Ya no se lo pedimos al controlador, usamos el modelo que nos inyectaron
+        //    en el constructor.
+        JList<String> thumbnailList = new JList<>(this.modeloMiniaturas);
         
+        // 2. REGISTRAR LA JLIST
+        registry.register("list.miniaturas", thumbnailList);
+
+        // 3. CONFIGURAR LA JLIST Y SU RENDERER (Lógica sin cambios)
         MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
             this.thumbnailService,
             this.model,
@@ -228,18 +297,98 @@ public class ViewBuilder {
         thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
         thumbnailList.setVisibleRowCount(-1);
 
-        JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
-        wrapper.setOpaque(false);
-        wrapper.add(thumbnailList);
+        // 4. METER LA JLIST DIRECTAMENTE EN EL SCROLLPANE
+        JScrollPane scrollPane = new JScrollPane(thumbnailList);
         
-        JScrollPane scrollPane = new JScrollPane(wrapper);
+        // 5. CONFIGURAR EL SCROLLPANE
         TitledBorder border = BorderFactory.createTitledBorder("Miniaturas");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
         scrollPane.setBorder(border);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
         registry.register("scroll.miniaturas", scrollPane);
 
         return scrollPane;
-    } // --- FIN del metodo createThumbnailScrollPane ---
+    } // --- Fin del método createThumbnailScrollPane ---
+
+
+
+    
+    
+//    private JScrollPane createThumbnailScrollPane() {
+//        // 1. OBTENER EL MODELO CORRECTO DESDE EL CONTROLADOR
+//        DefaultListModel<String> modeloCorrecto = this.controller.getModeloMiniaturas();
+//
+//        // 2. CREAR LA JLIST USANDO ESE MODELO
+//        JList<String> thumbnailList = new JList<>(modeloCorrecto);
+//        
+//        // 3. REGISTRAR LA JLIST
+//        registry.register("list.miniaturas", thumbnailList);
+//
+//        // 4. CONFIGURAR LA JLIST Y SU RENDERER
+//        MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
+//            this.thumbnailService,
+//            this.model,
+//            this.themeManager,
+//            this.iconUtils,
+//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40),
+//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, 40),
+//            configuration.getBoolean(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, true)
+//        );
+//        thumbnailList.setCellRenderer(renderer);
+//        thumbnailList.setFixedCellWidth(renderer.getAnchoCalculadaDeCelda());
+//        thumbnailList.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
+//        thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+//        thumbnailList.setVisibleRowCount(-1);
+//
+//        // 5. METER LA JLIST DIRECTAMENTE EN EL SCROLLPANE
+//        JScrollPane scrollPane = new JScrollPane(thumbnailList);
+//        
+//        // 6. CONFIGURAR EL SCROLLPANE
+//        TitledBorder border = BorderFactory.createTitledBorder("Miniaturas");
+//        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
+//        scrollPane.setBorder(border);
+//        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
+//        registry.register("scroll.miniaturas", scrollPane);
+//
+//        return scrollPane;
+//    } // --- Fin del método createThumbnailScrollPane ---
+    
+    
+//    private JScrollPane createThumbnailScrollPane() {
+//        JList<String> thumbnailList = registry.get("list.miniaturas");
+//        
+//        if (thumbnailList == null) {
+//            thumbnailList = new JList<>();
+//            registry.register("list.miniaturas", thumbnailList);
+//        }
+//        
+//        MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
+//            this.thumbnailService,
+//            this.model,
+//            this.themeManager,
+//            this.iconUtils,
+//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40),
+//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, 40),
+//            configuration.getBoolean(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, true)
+//        );
+//        thumbnailList.setCellRenderer(renderer);
+//        thumbnailList.setFixedCellWidth(renderer.getAnchoCalculadaDeCelda());
+//        thumbnailList.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
+//        thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+//        thumbnailList.setVisibleRowCount(-1);
+//
+//        JPanel wrapper = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+//        wrapper.setOpaque(false);
+//        wrapper.add(thumbnailList);
+//        
+//        JScrollPane scrollPane = new JScrollPane(wrapper);
+//        TitledBorder border = BorderFactory.createTitledBorder("Miniaturas");
+//        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
+//        scrollPane.setBorder(border);
+//        registry.register("scroll.miniaturas", scrollPane);
+//
+//        return scrollPane;
+//    } // --- FIN del metodo createThumbnailScrollPane ---
     
     private JPanel createRightSplitComponent() {
         JPanel rightPanel = new JPanel(new BorderLayout());

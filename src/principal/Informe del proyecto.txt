@@ -1,0 +1,115 @@
+
+PROYECTO DE APLICACIÓN: VISOR Y CATALOGADOR DE IMÁGENES STL
+
+Fecha de consolidación del informe: 2025-06-24
+
+============================================================
+1. INTRODUCCIÓN GENERAL
+============================================================
+La aplicación no es un simple visor de imágenes sino una herramienta avanzada de organización, depuración, filtrado, edición y exportación de recursos gráficos vinculados a archivos STL comprimidos en ZIPs.
+
+Objetivo principal: 
+- Optimizar el flujo de trabajo visual y documental con mas de 26000 imágenes y archivos comprimidos, facilitando la búsqueda, etiquetado y uso de los recursos 3D.
+
+============================================================
+2. MODOS PRINCIPALES
+============================================================
+
+[1] MODO VISUALIZADOR
+- Visualización "polaroid": imagen por imagen.
+- Visualización rápida (grid): permite vista general estilo galería.
+- Visualización tipo carrusel: navegación rápida para revisión inicial de novedades.
+- Filtro por tags (muy importante).
+- Opción para ver carpeta actual o carpeta + subcarpetas de la imagen actual.
+- Navegación entre carpetas con botones de subir/bajar nivel.
+- Breadcrumb visible opcional (ruta navegable por niveles).
+
+[2] MODO PROYECTO
+- Permite trabajar en proyectos concretos.
+- Cada proyecto puede tener múltiples imágenes asociadas, con tags comunes.
+- Asignación de tags por lote desde un proyecto.
+- Selección múltiple de archivos para aplicar tags simultáneamente.
+- Exportación del proyecto:
+  - Copia imágenes + zip asociados + txt con info a una carpeta de trabajo.
+  - Si no se encuentra ZIP, puede avisar o ignorar el ítem.
+  - Posibilidad de marcar imágenes/zips para futura exportación.
+
+[3] MODO EDICIÓN
+- Herramientas mínimas necesarias:
+  - Recorte de parte de la imagen.
+  - Guardado como nueva imagen con nombre personalizado.
+  - Posibilidad de asociarla a un ZIP existente.
+  - Flip horizontal/vertical.
+  - Rotación.
+  - Pegar imagen recortada sobre otra (collage básico).
+  - Guardar como nuevo recurso o sobreescribir.
+- Objetivo: aislar modelos individuales dentro de una imagen múltiple.
+
+[4] MODO DATOS
+- Base de datos que relaciona imágenes, carpetas y metadatos.
+- Cada carpeta puede usarse como TAG automático.
+- Posibilidad de renombrar tags (por ejemplo: "ugni-20111" → "ugni").
+- Sistema de asimilación/tagging masivo desde estructura de carpetas.
+- Filtro parcial por tags (búsqueda por fragmento del nombre).
+- Base de datos debe reflejar cambios de ubicación (estructura dinámica).
+- El menú y los botones del modo datos deben adaptarse a estos cambios.
+- Posible sincronización con estructura física de carpetas.
+
+============================================================
+3. FUNCIONES TRANSVERSALES
+============================================================
+
+[1] SISTEMA DE TAGS
+- Cada imagen puede tener uno o más tags.
+- Tags se pueden aplicar individualmente o en lote.
+- Tags pueden derivar de estructura de carpetas.
+- Se pueden renombrar, fusionar o reasignar.
+
+[2] SISTEMA DE EXPORTACIÓN
+- Al pulsar “Exportar”, se copia:
+  - TXT del proyecto.
+  - Imágenes seleccionadas.
+  - ZIPs asociados a las imágenes.
+- Opción para marcar imágenes para exportar previamente.
+- Sin ZIP asociado, se ignora o se notifica al usuario.
+- Alternativa: botón ya existente para abrir carpeta con explorador.
+
+[3] HISTORIAL DE CAMBIOS (opcional)
+- Registro de acciones:
+  - Tags aplicados.
+  - Cambios de nombre.
+  - Cambios de carpeta.
+  - Exportaciones.
+- Puede activarse/desactivarse.
+- Guardado como log interno o JSON.
+
+[4] SISTEMA DE ORDENACIÓN
+- Orden global (configurable): por nombre, fecha, tamaño, etc.
+- Orden temporal (solo en la sesión actual): modificable desde interfaz.
+- Visualización del criterio de orden activo.
+
+[5] NAVEGACIÓN POR CARPETAS
+- Dos botones principales:
+  - Bajar (entrar en subcarpeta de la imagen actual).
+  - Subir (ver carpeta superior).
+- Alternativa breadcrumb: clic sobre ruta tipo /cine/starWars/droides/
+
+============================================================
+4. OPCIONES ADICIONALES FUTURAS
+============================================================
+
+- Modo OCR (opcional): detección de texto en imágenes.
+- Multiusuario (para futuras versiones).
+- Detección de espacio de color (RGB/CMYK) para uso general.
+- Modo de revisión de novedades (previsualización rápida mensual).
+
+============================================================
+5. CONSIDERACIONES FINALES
+============================================================
+
+- Este documento representa una guía de desarrollo y diseño funcional.
+- El objetivo es mantener el foco en la utilidad real, evitando funciones superfluas.
+- Cada modo tiene sentido como parte de un flujo de trabajo integrado.
+- Se prioriza la flexibilidad (visualización, exploración, edición) y la velocidad de trabajo.
+
+Fin del documento.

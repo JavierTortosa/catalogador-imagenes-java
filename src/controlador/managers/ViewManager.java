@@ -24,18 +24,14 @@ import vista.panels.ImageDisplayPanel;
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
 
-// --- INICIO DE LA MODIFICACIÓN: Implementa IViewManager ---
 public class ViewManager implements IViewManager {
-// --- FIN DE LA MODIFICACIÓN ---
 
-    // --- INICIO DE LA MODIFICACIÓN: Campos privados para dependencias ---
     private VisorView view;
     private ConfigurationManager configuration;
     private ComponentRegistry registry;
     private ThemeManager themeManager;
     private Map<String, Action> actionMap;
     private Map<String, JButton> botonesPorNombre;
-    // --- FIN DE LA MODIFICACIÓN ---
     
     /**
      * Constructor refactorizado de ViewManager.

@@ -141,7 +141,7 @@ public class VisorView extends JFrame {
     private final ComponentRegistry registry;
     private JLabel etiquetaImagen; 
     
-    
+    private DefaultListModel<String> modeloListaMiniaturas;
     
     
     /**
@@ -178,6 +178,7 @@ public class VisorView extends JFrame {
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null");
         this.iconUtilsRef = Objects.requireNonNull(iconUtils, "IconUtils no puede ser null");
         this.miniaturaScrollPaneHeight = miniaturaPanelHeight;
+        this.modeloListaMiniaturas = new DefaultListModel<>();
 
         // Inicializar mapas vacíos. Se poblarán desde fuera.
         this.menuItemsPorNombre = new HashMap<>();
@@ -890,7 +891,7 @@ public class VisorView extends JFrame {
     public JPanel getPanelDeBotones() {return this.panelDeBotones; }
     public Map<String, JToolBar> getToolbars() {return this.barrasDeHerramientas;}
     public boolean isFondoACuadrosActivado() {return this.fondoACuadrosActivado;}
- 	
+	public DefaultListModel<String> getModeloListaMiniaturas(){ return this.modeloListaMiniaturas; }
     
     
 } // Fin clase VisorView

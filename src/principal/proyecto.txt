@@ -108,7 +108,23 @@ En este punto tenemos varias herramientas:
 		Ruta de la base de datos, opciones de indexación, etc.
 		Botones de Acción: "Aplicar", "Cancelar", "Restaurar Defaults".
 		
+	--- Diseño de la UI
+	
+		La interfaz esta diseñada sobre un cardLayout que proporciona que cada modo tenga su interfaz como si fueran las paginas de un libro
+		Sobre esta pagina estan establecidos unos paneles vacios para que en el futuro config podamos asignar el componente final al panel que queramos
+		La barra de botones esta compuesta por varias toolbars independientes para poder ver la toolbar pertinente segun lo que estemos haciendo
 		
+	--- Diseño de las Listas
+		
+		Dado el gran volumen de imagnes, necesitamos formas de ver la mayor cantidad de imagnes en el menor tiempo posible y para eso tenemos las 2 listas, una de nombres y otra de miniaturas
+		La lista de nombres contiene la lista completa de nombres que estamos viendo pero la lista de miniaturas solo esta mostrando una cantidad concreta en cada momento porque hacer 26000 miniaturas es una locura
+		Como la lista de nombres y la de miniaturas funcionan de forma diferente, la lista de miniaturas se crea de forma manual, creando una miniatura y añadiendola a la barra de miniaturas
+		Cuando nos movemos por esta lista de miniaturas, lo que estamos haciendo es eliminar la miniatura que ya no se ve y añadiendo una nueva (al principio o al final segun convenga)
+		Para sincronizar las 2 listas, lo que tenemos es una lista principal que es la que realmente tiene la informacion del disco y la deriva a las 2 listas (miniaturas y nombres) y con un metodo lo sincronizamos todo
+		Ademas para ayudarnos al desplazamiento de las miniaturas, usamos un scrollPane que nos da los medios para el desplazamiento, pero no contiene las miniaturas, sino el panel que creamos nosotros
+		Tambien se creo un cache para que algunas de las miniaturas se fabriquen mientras estamos viendo las que estan en pantalla y asi agilizamos la barra de miniaturas
+		En una version mas avanzada, se añadio que las miniaturas visibles fuera variable, de manera que se vean el maximo de miniaturas posible segun el ancho de la aplicacion
+	
 --------------------------------   		 
    		
 Modos de trabajo
@@ -116,6 +132,9 @@ Modos de trabajo
 	Visualizador de imagenes
 	Gestor de proyectos
 	Catalogador de imagenes
+	Carrousel
+	Edicion
+	
 	   		 
 --------------------------------
 
@@ -140,6 +159,27 @@ pongamos que estoy buscando imagenes para un proyecto, y encuentro una imagen co
 
 --------------------------------
 
+pongamos otro uso real para que veas como funcionan los modos como si todo funcionase y todo estuviera terminado....
+me piden que haga 6 trofeos para un torneo de blood bowl. el torneo es la Parabellum Cup, en honor a un bar que empezo con esto de los torneos y su logo eran unos skaven jugando... por lo tanto el tema principal es Skavens...
+
+vale. abrimos el programa y nos enfrentamos a 26000 imagenes. con la ayuda de la base de datos del modo Datos, tenemos las imagenes con unas etiquetas (TAGS)
+vale. como el tema es skaven, aplicamos un filtro positivo en "SKAVEN", de las 26000 ya solo se nos muestran 5000....
+ahora aplicamos otro filtro "BIG GUY" para que nos enseñe las ratas mas gordas y lustrosas para nuestros trofeos, ahora se muestran 2000. porque solo se muestran de las 26000 imagenes las que son skaven y big guy
+vamos mirando imagen por imagen y vamos marcando las que nos pueden interesar.... total seleccionamos 20, por ej.
+vamos al modo proyecto, y empezamos a mirar las imagenes que hemos seleccionado, y empezamos a ver algunas seleccionadas que no nos convencen, las marcamos para desechar (que sera otra lista que es previa al borrado de estas marcas)
+necesitamos en total 6, pero de las 20 que hemos seleccionado solo nos han convencido 4. entonces volvemos al modo visualizador
+ahora aplicamos un filtro negativo "BIG GUY" ahora no queremos que se muestren los big guys,
+ahora nos vamos a la carpeta de "juegos de mese/bloodBowl" vemos que las imagenes de skaven ya las habiamos visto y no nos han convencido, pues aplicamos otro filtro negativo de "SKAVEN" ahora solo se muestran las imagenes de la carpeta "Juegos de mesa/blooBowl" que no son ni skaven ni big guy.... ves por donde voy
+encontramos una imagen que se llama "motosierra ratuna" esta no estaba con los skaven ni con los big guy por eso no la habiamos visto y ahora si la vemos....
+como esta encontramos unas cuantas mas.... vamos al modo proyecto donde aun conservamos las candidatas que nos han convencido y las que no y ademas tambien estan las nuevas imagenes.... en este mismo momento todas las imagenes que estoy viendo son del mismo tema, skaven, pero unas tienen el tag y otras no.... pues pulso mi opcion de añadir tag en bloque y todas las que yo quiera tendran el nuevo tag "SKAVEN"....
+una vez que he conseguido mis 6 imagenes puedo pulsar el boton de "busqueda y rescate" para que el programa se pasee por las 26000 imagenes y copie el archivo de imagen con el archivo comprimido que la acompaña a la carpeta que se le indique para modificar los stl, preprar los archivos de impresion, etc.....
+
+el modo proyecto, ademas de reviar las imagenes con mas detenimiento, ya no tengo 26000 para mirar, solo tengo 40.... por lo tanto el modo zoom y el paneo son mas cruciales que en el modo visualizador.
+por otro lado, el modo proyecto es una muy buena herramienta que complementa el modo datos, porque mientras estoy gestionando el proyecto actual, puedo añadir un tag comun a las imagenes que tengo marcadas "Todas estas imagenes tienen el tag " SKAVEN", y no solo eso sino que luego ademas puedo seleccionar un grupo para decir "este grupo que tengo marcado tienen el tag "CON ESPADA" por decir algo... estas otras "CON ARCO" lo que sea.... tags que me ayuden a aplicar filtros en las imagnees para no tener que buscar entre las 26000 imagenes que se dicen pronto.... (la semana que viene seguramente llegare a las 27000) que eso es otro tema que habra que abordar en su momento....
+me explico?
+
+--------------------------------
+
 te voy a pasar la clase de inicio... desde ahi parte todo, quiero que vayas recorriendo el flujo del programa y me vayas pidiendo las clases que vayas necesitando inspeccionar....
 
 a la hora de trabajar:
@@ -149,12 +189,12 @@ a la hora de trabajar:
 - me gustaria que añadieras al final de cada metodo y cada clase añadas un comentario de fin de clase o lo que sea...
 
 problemas y soluciones
-1. primero te explico el problema
-2. propones que puede ser 
-3. CUANDO ESTEMOS DE ACUERDO EN EL QUE PUEDE SER
-4. miramos como abordar el problema
-5. CUANDO ESTEMOS DE ACUERDO EN EL COMO 
-6. empezamos a aplicar la solucion. clase a clase, metodo a metodo.... NO ME DES LOS CAMBIOS DE 20 CLASES DE GOLPE
+1. primero te explico el problema y no pasamos al siguiente punto hasta que estemos de acuerdo
+2. propones que puede ser y no pasamos al siguiente punto hasta que estemos de acuerdo
+3. miramos como abordar el problema y no pasamos al siguiente punto hasta que estemos de acuerdo
+4. empezamos a aplicar la solucion. clase a clase, metodo a metodo.... NO ME DES LOS CAMBIOS DE 20 CLASES DE GOLPE
+
+me gustaria que al final de las clases y los metodos pusieras el comentario de fin
 
 creo que esto es todo mi temario imperativo y me gustaria que lo siguieras lo mas filemente posible
 
