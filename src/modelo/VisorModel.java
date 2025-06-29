@@ -160,12 +160,16 @@ public class VisorModel {
     // El resto del código no necesita saber de contextos, solo usa estos métodos.
     
     public DefaultListModel<String> getModeloLista() { 
-        // --- INICIO CÓDIGO DEPURACIÓN ---
-        ListContext ctx = getCurrentListContext();
-        System.out.println("### DEBUG MODELO: getModeloLista() llamado en modo " + this.currentWorkMode + 
-                           ". Devolviendo modelo de ListContext@" + Integer.toHexString(ctx.hashCode()) +
-                           " con tamaño: " + ctx.getModeloLista().getSize());
-        // --- FIN CÓDIGO DEPURACIÓN ---
+    	
+    	ListContext ctx = getCurrentListContext();
+    	
+//    	// LOG ### DEBUG MODELO: getModeloLista() llamado en modo
+//        // --- INICIO CÓDIGO DEPURACIÓN ---
+//        System.out.println("### DEBUG MODELO: getModeloLista() llamado en modo " + this.currentWorkMode + 
+//                           ". Devolviendo modelo de ListContext@" + Integer.toHexString(ctx.hashCode()) +
+//                           " con tamaño: " + ctx.getModeloLista().getSize());
+//        // --- FIN CÓDIGO DEPURACIÓN ---
+        
         return ctx.getModeloLista(); 
     }
     

@@ -247,6 +247,10 @@ public class InfobarImageManager {
     
     
     private void actualizarPorcentajeZoom() {
+    	
+    	// LOG ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO"
+    	System.out.println("### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO");
+    	
         JLabel label = registry.get("label.info.porcentajeZoom");
         if (label == null) return;
 

@@ -1,10 +1,12 @@
 package vista.config;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import controlador.commands.AppActionCommands;
+import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 
 public class UIDefinitionService {
@@ -470,14 +472,14 @@ public class UIDefinitionService {
     		// filtrado por extension (bmp, gif, png...), filtros por tags, filtros por letra inicial...
         
         return List.of(
-        		new ToolbarDefinition("navegacion", "Navegación", botonesNavegacion),
-                new ToolbarDefinition("edicion", "Edición", botonesEdicion), //esta barra deberia ir con varias barras añadidas
-                new ToolbarDefinition("zoom", "Zoom", botonesZoom),
-                new ToolbarDefinition("vistas","Vistas", botonesVistas),
-                new ToolbarDefinition("proyecto","Proyecto", botonesProyecto),
-                new ToolbarDefinition("toggle","Toggles", botonesToggle),
-                new ToolbarDefinition("utils","Utilidades", botonesUtils),
-                new ToolbarDefinition("apoyo","Apoyo", botonesApoyo)
+                new ToolbarDefinition("navegacion", "Navegación", 	10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesNavegacion),
+                new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion),
+                new ToolbarDefinition("zoom", 		"Zoom", 		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesZoom),
+                new ToolbarDefinition("vistas",		"Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVistas),
+                new ToolbarDefinition("proyecto",	"Proyecto", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesProyecto),
+                new ToolbarDefinition("toggle",		"Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle),
+                new ToolbarDefinition("utils",		"Utilidades", 	70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils),
+                new ToolbarDefinition("apoyo", 		"Apoyo", 		80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesApoyo)
                 //new ToolbarDefinition("carrousel","Carrousel", botonesCarrousel)
                 //new ToolbarDefinition("modos","Modos", botonesModos)
                 //new ToolbarDefinition("orden","Orden", botonesOrden)

@@ -53,7 +53,6 @@ public class ImageDisplayPanel extends JPanel {
         return this.internalLabel;
     } // --- Fin del método getInternalLabel ---
 
-    // <--- MODIFICADO: El método paintComponent ha sido reescrito completamente ---
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -88,21 +87,38 @@ public class ImageDisplayPanel extends JPanel {
             
             AffineTransform at = new AffineTransform();
             
-            // --- INICIO DE LA LÓGICA CORREGIDA ---
 
-            // 1. Centrar la imagen en el panel. Esta es la posición base.
-            double xBase = (double) (panelAncho - imagenOriginal.getWidth() * model.getZoomFactor()) / 2;
-            double yBase = (double) (panelAlto - imagenOriginal.getHeight() * model.getZoomFactor()) / 2;
-            at.translate(xBase, yBase);
+            // --- LÓGICA DE ESCALADO ---
             
-            // 2. Aplicar el PANEO. El offset del modelo se suma a la posición base.
-            //    Este translate ocurre en el espacio de coordenadas del PANEL, no de la imagen.
-            at.translate(model.getImageOffsetX(), model.getImageOffsetY());
-            
-            // 3. Aplicar el ZOOM.
-            at.scale(model.getZoomFactor(), model.getZoomFactor());
+            double scaleX, scaleY;
 
-            // --- FIN DE LA LÓGICA CORREGIDA ---
+            // Comprobamos el modo de zoom actual desde el modelo
+            if (model.getCurrentZoomMode() == servicios.zoom.ZoomModeEnum.FILL) {
+                // MODO RELLENAR: Calculamos factores X e Y independientes para deformar la imagen.
+                scaleX = (double) panelAncho / imagenOriginal.getWidth();
+                scaleY = (double) panelAlto / imagenOriginal.getHeight();
+                
+                // En este modo, no hay paneo ni centrado, la imagen ocupa todo el panel.
+                // El translate y scale se combinan en una sola operación.
+                at.scale(scaleX, scaleY);
+                
+            } else {
+                // PARA TODOS LOS DEMÁS MODOS: Usamos la lógica original que mantiene la proporción.
+                scaleX = model.getZoomFactor();
+                scaleY = model.getZoomFactor();
+                
+                // 1. Centrar la imagen en el panel.
+                double xBase = (double) (panelAncho - imagenOriginal.getWidth() * scaleX) / 2;
+                double yBase = (double) (panelAlto - imagenOriginal.getHeight() * scaleY) / 2;
+                at.translate(xBase, yBase);
+                
+                // 2. Aplicar el PANEO.
+                at.translate(model.getImageOffsetX(), model.getImageOffsetY());
+                
+                // 3. Aplicar el ZOOM.
+                at.scale(scaleX, scaleY);
+            }
+            // --- FIN DE LA LÓGICA DE ESCALADO ---
 
             // Dibuja la imagen ORIGINAL, aplicando la transformación calculada
             g2d.drawImage(this.imagenOriginal, at, null);

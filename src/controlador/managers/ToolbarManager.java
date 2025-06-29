@@ -1,14 +1,22 @@
 package controlador.managers;
 
+import java.awt.event.HierarchyEvent;
+import java.awt.event.HierarchyListener;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import javax.swing.JButton; // <<< AÑADIR IMPORT
+import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 
-import controlador.utils.ComponentRegistry; // <<< AÑADIR IMPORT
+import controlador.utils.ComponentRegistry;
+import modelo.VisorModel;
+import modelo.VisorModel.WorkMode;
 import servicios.ConfigurationManager;
 import vista.builders.ToolbarBuilder;
 import vista.config.ToolbarDefinition;
@@ -17,77 +25,148 @@ import vista.config.UIDefinitionService;
 public class ToolbarManager {
 
     // --- Dependencias Clave ---
-//    private final VisorView view;
     private final ConfigurationManager config;
     private final ToolbarBuilder toolbarBuilder;
     private final UIDefinitionService uiDefService;
-    private final ComponentRegistry registry; // <<< AÑADIR CAMPO PARA EL REGISTRO
+    private final ComponentRegistry registry;
+    private final VisorModel model;
 
     // --- Estado Interno ---
-    private final Map<String, JToolBar> managedToolbars = new HashMap<>();
+    private final Map<String, JToolBar> toolbarInstances = new HashMap<>();
+    private volatile boolean reconstruyendo = false; // <-- volatile para asegurar visibilidad entre hilos
 
-    // --- CONSTRUCTOR REFACTORIZADO ---
+    // --- CONSTRUCTOR ---
     public ToolbarManager(
-//            VisorView view, 
             ConfigurationManager config, 
             ToolbarBuilder builder, 
             UIDefinitionService uiDefService,
-            ComponentRegistry registry // <<< AÑADIR PARÁMETRO
+            ComponentRegistry registry,
+            VisorModel model
     ) {
-//        this.view = view;
         this.config = config;
         this.toolbarBuilder = builder;
         this.uiDefService = uiDefService;
-        this.registry = registry; // <<< ASIGNAR DEPENDENCIA
+        this.registry = registry;
+        this.model = model;
     } // --- Fin del constructor ToolbarManager ---
 
-    /**
-     * Construye todas las barras de herramientas modulares, las añade a la vista,
-     * registra sus componentes y establece su visibilidad inicial.
-     */
     public void inicializarBarrasDeHerramientas() {
-        System.out.println("[ToolbarManager] Inicializando barras de herramientas...");
-
-        // <<< NUEVO: Obtener el panel contenedor desde el registro >>>
-        JPanel toolbarContainer = registry.get("container.toolbars");
-        if (toolbarContainer == null) {
-            System.err.println("ERROR CRÍTICO [ToolbarManager]: No se encontró 'container.toolbars' en el registro.");
-            return;
-        }
-
+        System.out.println("[ToolbarManager] FASE 1: Creando instancias de barras de herramientas...");
         List<ToolbarDefinition> todasLasBarras = uiDefService.generateModularToolbarStructure();
 
         for (ToolbarDefinition def : todasLasBarras) {
             JToolBar toolbar = toolbarBuilder.buildSingleToolbar(def);
-            managedToolbars.put(def.claveBarra(), toolbar);
+            addReattachListener(toolbar);
+            toolbarInstances.put(def.claveBarra(), toolbar);
             registry.register("toolbar." + def.claveBarra(), toolbar);
-            
-            // <<< CAMBIO: Añadir la barra directamente al contenedor >>>
-            toolbarContainer.add(toolbar);
-
-            String configKey = "interfaz.herramientas." + def.claveBarra() + ".visible";
-            boolean esVisible = config.getBoolean(configKey, true);
-            toolbar.setVisible(esVisible);
         }
         
         System.out.println("  [ToolbarManager] Registrando botones individuales...");
         Map<String, JButton> botonesCreados = toolbarBuilder.getBotonesPorNombre();
         botonesCreados.forEach(registry::register);
         System.out.println("    -> " + botonesCreados.size() + " botones registrados.");
-
-        // <<< CAMBIO: Revalidar el contenedor directamente >>>
-        toolbarContainer.revalidate();
-        toolbarContainer.repaint();
-        
-        System.out.println("[ToolbarManager] Inicialización de barras completada.");
+        System.out.println("[ToolbarManager] Creación de instancias de barras completada.");
     } // --- Fin del método inicializarBarrasDeHerramientas ---
 
+    public void reconstruirContenedorDeToolbars(WorkMode modoActual) {
+        if (reconstruyendo) {
+            return; // La guarda original sigue siendo útil para llamadas síncronas.
+        }
+        
+        this.reconstruyendo = true;
+        try {
+            System.out.println("[ToolbarManager] FASE 2: Reconstruyendo contenedor de toolbars para el modo: " + modoActual);
+            
+            JPanel toolbarContainer = registry.get("container.toolbars");
+            if (toolbarContainer == null) {
+                System.err.println("ERROR CRÍTICO [ToolbarManager]: No se encontró 'container.toolbars' en el registro.");
+                return;
+            }
+    
+            toolbarContainer.removeAll();
+            
+            List<ToolbarDefinition> todasLasDefiniciones = new ArrayList<>(uiDefService.generateModularToolbarStructure());
+            todasLasDefiniciones.sort(Comparator.comparingInt(ToolbarDefinition::orden));
+            
+            for (ToolbarDefinition def : todasLasDefiniciones) {
+                if (def.modosVisibles().contains(modoActual)) {
+                    JToolBar toolbar = toolbarInstances.get(def.claveBarra());
+                    if (toolbar != null) {
+                        if (toolbar.getParent() == null || toolbar.getParent() == toolbarContainer) {
+                             toolbarContainer.add(toolbar);
+                             
+                             String configKey = "interfaz.herramientas." + def.claveBarra() + ".visible";
+                             boolean esVisible = config.getBoolean(configKey, true);
+                             toolbar.setVisible(esVisible);
+                        }
+                    }
+                }
+            }
+            
+            toolbarContainer.revalidate();
+            toolbarContainer.repaint();
+            System.out.println("  [ToolbarManager] Contenedor de toolbars reconstruido.");
+
+        } finally {
+            this.reconstruyendo = false;
+        }
+    } // --- fin del método reconstruirContenedorDeToolbars ---
+
     /**
-     * Refresca la visibilidad de todas las barras de herramientas gestionadas
-     * leyendo su estado actual desde la configuración.
+     * Añade un listener a una JToolBar que detecta cuándo su padre cambia.
+     */
+    private void addReattachListener(JToolBar toolbar) {
+        // --- CAMBIO: La lógica del listener se ha modificado ---
+        toolbar.addHierarchyListener(new HierarchyListener() {
+            @Override
+            public void hierarchyChanged(HierarchyEvent e) {
+                if ((e.getChangeFlags() & HierarchyEvent.PARENT_CHANGED) != 0) {
+                    // Solo encolamos una nueva reconstrucción si NO hay una ya en progreso.
+                    // Esto rompe el bucle de eventos.
+                    if (!isReconstruyendo()) {
+                        System.out.println("  [HierarchyListener] Detectado cambio de padre en: " + toolbar.getName() + ". Solicitando reconstrucción.");
+                        SwingUtilities.invokeLater(() -> {
+                            reconstruirContenedorDeToolbars(model.getCurrentWorkMode());
+                        });
+                    } else {
+                        System.out.println("  [HierarchyListener] Detectado cambio de padre en: " + toolbar.getName() + ". IGNORADO (reconstrucción en progreso).");
+                    }
+                }
+            }
+        });
+    } // --- fin del método addReattachListener ---
+
+    /**
+     * --- MÉTODO NUEVO ---
+     * Devuelve de forma segura el estado del flag de reconstrucción.
+     * @return true si una reconstrucción está actualmente en progreso.
+     */
+    public boolean isReconstruyendo() {
+        return this.reconstruyendo;
+    } // --- fin del método isReconstruyendo ---
+
+    /**
+     * Refresca la visibilidad de todas las barras de herramientas gestionadas.
      */
     public void refrescarVisibilidadBarras() {
-        // ... (este método no necesita cambios, ya funciona bien) ...
+        System.out.println("[ToolbarManager] Refrescando visibilidad de barras...");
+        for (Map.Entry<String, JToolBar> entry : toolbarInstances.entrySet()) {
+            String claveBarra = entry.getKey();
+            JToolBar toolbar = entry.getValue();
+            
+            String configKey = "interfaz.herramientas." + claveBarra + ".visible";
+            boolean esVisible = config.getBoolean(configKey, true);
+            
+            if (toolbar.isVisible() != esVisible) {
+                toolbar.setVisible(esVisible);
+            }
+        }
+        
+        JPanel toolbarContainer = registry.get("container.toolbars");
+        if (toolbarContainer != null) {
+            toolbarContainer.revalidate();
+            toolbarContainer.repaint();
+        }
     } // --- Fin del método refrescarVisibilidadBarras ---
 
 } // --- Fin de la clase ToolbarManager ---

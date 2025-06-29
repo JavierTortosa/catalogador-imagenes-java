@@ -16,7 +16,7 @@ loadedConfig contiene 'salto_bloque'?: true
 Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
-!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 758705033
+!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1604839423
     -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
 [VisorModel] Inicializando estado por defecto de todos los contextos...
@@ -29,8 +29,8 @@ ConfigurationManager inicializado.
     -> IconUtils creado e inyectado.
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
     -> ThumbnailService creado e inyectado.
-    -> Modelo para JList de Miniaturas creado. HashCode: 1940447180
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 1940447180
+    -> Modelo para JList de Miniaturas creado. HashCode: 245565335
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 245565335
     -> ExecutorService (FixedThreadPool con 8 hilos) creado e inyectado.
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
     -> Instancia de ProjectManager (servicio) creada.
@@ -55,13 +55,12 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   -> Imágenes marcadas inicialmente: 4
   [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
 [VisorView Constructor SIMPLIFICADO] Iniciando...
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 0
 !!! DEBUG ViewBuilder: La JList o su modelo son NULOS en este punto.
   [ViewBuilder] Frame principal construido y ensamblado.
   [ActionFactory] Inicializando todas las Actions...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@7d893463
+ActionFactory: Creando ToggleSubfoldersAction@1d64ef6b
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
@@ -75,7 +74,7 @@ ActionFactory: Creando ToggleSubfoldersAction@7d893463
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 165
-[ToolbarManager] Inicializando barras de herramientas...
+[ToolbarManager] FASE 1: Creando instancias de barras de herramientas...
 
 --- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
 
@@ -94,7 +93,17 @@ ActionFactory: Creando ToggleSubfoldersAction@7d893463
 --- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
   [ToolbarManager] Registrando botones individuales...
     -> 32 botones registrados.
-[ToolbarManager] Inicialización de barras completada.
+[ToolbarManager] Creación de instancias de barras completada.
+[ToolbarManager] FASE 2: Reconstruyendo contenedor de toolbars para el modo: VISUALIZADOR
+  [HierarchyListener] Detectado cambio de padre en: navegacion. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: edicion. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: zoom. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: vistas. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: proyecto. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: toggle. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: utils. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: apoyo. IGNORADO (reconstrucción en progreso).
+  [ToolbarManager] Contenedor de toolbars reconstruido.
   [Controller] Configurando atajos de teclado globales...
   -> Atajos de teclado globales configurados para teclado estándar y numérico.
 --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
@@ -127,9 +136,7 @@ ActionFactory: Creando ToggleSubfoldersAction@7d893463
     -> Sincronizando estado visual de botones toggle...
     -> Sincronización de botones toggle completada.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 0
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 0
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 0
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
@@ -143,46 +150,121 @@ ActionFactory: Creando ToggleSubfoldersAction@7d893463
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@69ca4727: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@69ca4727 actualizado. Nuevo tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
+### DEBUG CONTEXT: ListContext@29f9178a: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@29f9178a actualizado. Nuevo tamaño: 201
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1940447180
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 245565335
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
 [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
   -> Solicitando repintado inicial de listaMiniaturas.
     -> Sincronizando estado visual de botones toggle...
     -> Sincronización de botones toggle completada.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
---- [Listener Primer Renderizado]: Panel listo (1145x232). Forzando refresco de zoom y UI. ---
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+--- [Listener Primer Renderizado]: Panel listo (1145x236). Forzando refresco de zoom y UI. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [VisorController] Sincronización de UI de Zoom completada.
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
-### DEBUG MODELO: getModeloLista() llamado en modo VISUALIZADOR. Devolviendo modelo de ListContext@69ca4727 con tamaño: 201
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
+
+--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
+  [ProjectController] Preparando datos para el modo proyecto...
+### DEBUG CONTEXT: ListContext@72ca65a6: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@72ca65a6 actualizado. Nuevo tamaño: 4
+    -> Datos del proyecto preparados en proyectoListContext.
+  [GeneralController] Saliendo del modo: VISUALIZADOR
+[Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
+  [GeneralController] Entrando en modo: PROYECTO
+  [ProjectController] Activando la UI de la vista de proyecto...
+### DEBUG: Restaurando selección del proyecto. Clave guardada en contexto PROYECTO: 'null'
+  [ProjectController] Actualizando imagen de proyecto para la clave: A-gigante de hierro.jpg
+  [ProjectController] UI de la vista de proyecto activada.
+  [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
+  [GeneralController] Estado de la UI actualizado.
+[ViewManager] Vista cambiada a: VISTA_PROYECTOS
+[ToolbarManager] FASE 2: Reconstruyendo contenedor de toolbars para el modo: PROYECTO
+  [HierarchyListener] Detectado cambio de padre en: apoyo. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: utils. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: toggle. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: proyecto. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: vistas. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: zoom. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: edicion. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: navegacion. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: navegacion. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: zoom. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: proyecto. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: utils. IGNORADO (reconstrucción en progreso).
+  [HierarchyListener] Detectado cambio de padre en: apoyo. IGNORADO (reconstrucción en progreso).
+  [ToolbarManager] Contenedor de toolbars reconstruido.
+[GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
+--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
+
+[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
-!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 758705033
+!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1604839423
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg

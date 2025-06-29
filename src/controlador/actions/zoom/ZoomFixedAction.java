@@ -1,48 +1,51 @@
+// EN: controlador.actions.zoom.ZoomFixedAction.java
+
 package controlador.actions.zoom;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
 
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
 import controlador.VisorController;
 import controlador.actions.BaseVisorAction;
-import vista.util.IconUtils;
+import controlador.managers.interfaces.IZoomManager;
+import servicios.zoom.ZoomModeEnum;
 
+public class ZoomFixedAction extends BaseVisorAction {
 
-public class ZoomFixedAction extends BaseVisorAction
-{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
+    private final IZoomManager zoomManager;
 
-	public ZoomFixedAction (VisorController controller, IconUtils iconUtils, int width, int height) 
-	{
-		super("Fijar Zoom Actual", controller);
-	
-		// Cargar icono usando IconUtils
-        // Asegúrate que el nombre del archivo PNG sea correcto
-        ImageIcon icon = iconUtils.getScaledIcon("3006-zoom_fijo_48x48.png", width, height);
-        if (icon != null) {
-            putValue(Action.SMALL_ICON, icon);
+    /**
+     * Constructor para la acción que activa el modo "Zoom Fijo".
+     * @param controller El controlador principal.
+     * @param zoomManager El gestor de zoom.
+     * @param icon El icono para el botón/menú.
+     */
+    public ZoomFixedAction(VisorController controller, IZoomManager zoomManager, ImageIcon icon) {
+        // Llamamos al constructor de la clase base.
+        super("Zoom Fijo", controller);
+        
+        // Asignamos las dependencias.
+        this.zoomManager = Objects.requireNonNull(zoomManager, "ZoomManager no puede ser nulo");
+        
+        // Configuramos las propiedades de la Action.
+        putValue(Action.SMALL_ICON, icon);
+        putValue(Action.SHORT_DESCRIPTION, "Fija el nivel de zoom actual para las siguientes imágenes");
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (controller != null && zoomManager != null) {
+            // 1. Llama al ZoomManager para aplicar la lógica del modo "Zoom Fijo".
+            zoomManager.aplicarModoDeZoom(ZoomModeEnum.MAINTAIN_CURRENT_ZOOM);
+            
+            // 2. Llama al Controller para que sincronice toda la UI de zoom.
+            controller.sincronizarEstadoVisualBotonesYRadiosZoom();
         } else {
-            System.err.println("WARN [ZoomFixedAction]: No se pudo cargar el icono 3006-zoom_fijo_48x48.png");
-            putValue(Action.NAME, "<->"); // Texto fallback
+            System.err.println("Error: Controller o ZoomManager son nulos en ZoomFixedAction");
         }
-	}
-
-	@Override
-	public void actionPerformed (ActionEvent e)
-	{
-		if (controller != null) {
-            controller.logActionInfo(e);
-            // Llamar a un método en VisorController que implemente la lógica del Zoom 
-            // Ejemplo: controller.aplicarZoomAutomatico();
-            System.out.println("TODO: Llamar a controller.aplicarZoomFixed() en ZoomFixedAction");
-        } else {
-            System.err.println("Error: Controller es null en ZoomFixedAction");
-        }
-	}
-}
-
+    }
+} // --- fin de la clase ZoomFixedAction ---

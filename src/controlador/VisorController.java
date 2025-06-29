@@ -426,101 +426,229 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	} // --- FIN cargarEstadoInicialInternal ---
  
 	
-	// EN LA CLASE: controlador.VisorController.java
 
 	/**
-     * Configura todos los listeners. Versión reconstruida para evitar bucles.
-     */
-    void configurarListenersVistaInternal() {
-        if (view == null || listCoordinator == null || model == null || registry == null || zoomManager == null) {
-            System.err.println("WARN [configurarListenersVistaInternal]: Dependencias críticas nulas. Abortando.");
-            return;
-        }
-        System.out.println("[Controller Internal] Configurando Listeners (Reconstrucción)...");
+	 * Configura todos los listeners. Versión reconstruida para evitar bucles.
+	 */
+	void configurarListenersVistaInternal()
+	{
 
-        // --- LISTENERS DE SELECCIÓN (SIMPLIFICADOS) ---
-        JList<String> listaNombres = registry.get("list.nombresArchivo");
-        if (listaNombres != null) {
-            for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners()) listaNombres.removeListSelectionListener(lsl);
-            listaNombres.addListSelectionListener(e -> {
-                if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
-                    listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
-                }
-            });
-        }
-        JList<String> listaMiniaturas = registry.get("list.miniaturas");
-        if (listaMiniaturas != null) {
-            for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners()) listaMiniaturas.removeListSelectionListener(lsl);
-            listaMiniaturas.addListSelectionListener(e -> {
-                 if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
-                    int indiceRelativo = listaMiniaturas.getSelectedIndex();
-                    if (indiceRelativo != -1) {
-                        String clave = listaMiniaturas.getModel().getElementAt(indiceRelativo);
-                        int indicePrincipal = model.getModeloLista().indexOf(clave);
-                        listCoordinator.seleccionarImagenPorIndice(indicePrincipal);
-                    }
-                 }
-            });
-        }
-        
-        // --- LISTENER DE RUEDA MAESTRO ---
-        java.awt.event.MouseWheelListener masterWheelListener = e -> {
-            boolean sobreLaImagen = e.getComponent() == registry.get("label.imagenPrincipal");
+		if (view == null || listCoordinator == null || model == null || registry == null || zoomManager == null)
+		{
+			System.err.println("WARN [configurarListenersVistaInternal]: Dependencias críticas nulas. Abortando.");
+			return;
+		}
+		System.out.println("[Controller Internal] Configurando Listeners (Reconstrucción)...");
 
-            // --- LÓGICA DE DECISIÓN ---
-            if (e.isControlDown() && e.isAltDown()) {
-                if (e.getWheelRotation() < 0) listCoordinator.seleccionarBloqueAnterior();
-                else listCoordinator.seleccionarBloqueSiguiente();
-            
-            } else if (sobreLaImagen && model.isZoomHabilitado()) {
-                // Si estamos sobre la imagen y el modo paneo está activo...
-                if (e.isControlDown() && e.isShiftDown()) {
-                    zoomManager.aplicarZoomConRueda(e);
-                } else if (e.isControlDown()) {
-                    zoomManager.aplicarPan(0, e.getWheelRotation() * 30); // Paneo Horizontal Invertido
-                } else if (e.isShiftDown()) {
-                    zoomManager.aplicarPan(-e.getWheelRotation() * 30, 0); // Paneo Vertical Invertido
-                } else {
-                    listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
-                }
-            } else {
-                // En cualquier otro caso (sobre listas, o sobre imagen con paneo off)
-                listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
-            }
-            e.consume();
-        };
+		// --- LISTENERS DE SELECCIÓN (SIMPLIFICADOS) ---
+		JList<String> listaNombres = registry.get("list.nombresArchivo");
 
-        // --- ASIGNACIÓN DE LISTENERS ---
-        JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
-        Component scrollMiniaturas = registry.get("scroll.miniaturas");
-        Component[] componentesConRueda = { listaNombres, scrollMiniaturas, etiquetaImagen };
+		if (listaNombres != null)
+		{
+			for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners())
+				listaNombres.removeListSelectionListener(lsl);
+			listaNombres.addListSelectionListener(e -> {
 
-        for (Component c : componentesConRueda) {
-            if (c != null) {
-                for (java.awt.event.MouseWheelListener l : c.getMouseWheelListeners()) c.removeMouseWheelListener(l);
-                c.addMouseWheelListener(masterWheelListener);
-            }
-        }
-        
-        // Listeners de clic para paneo (sin cambios)
-        if (etiquetaImagen != null) {
-            for(java.awt.event.MouseListener ml : etiquetaImagen.getMouseListeners()) etiquetaImagen.removeMouseListener(ml);
-            for(java.awt.event.MouseMotionListener mml : etiquetaImagen.getMouseMotionListeners()) etiquetaImagen.removeMouseMotionListener(mml);
-            
-            etiquetaImagen.addMouseListener(new MouseAdapter() {
-                public void mousePressed(java.awt.event.MouseEvent ev) {
-                    if (model.isZoomHabilitado()) zoomManager.iniciarPaneo(ev);
-                }
-            });
-            etiquetaImagen.addMouseMotionListener(new MouseMotionAdapter() {
-                public void mouseDragged(java.awt.event.MouseEvent ev) {
-                    if (model.isZoomHabilitado()) zoomManager.continuarPaneo(ev);
-                }
-            });
-        }
-        
-        System.out.println("[Controller Internal] Listeners de Vista configurados.");
-    }
+				if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI())
+				{
+					listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
+				}
+			});
+		}
+		JList<String> listaMiniaturas = registry.get("list.miniaturas");
+
+		if (listaMiniaturas != null)
+		{
+			for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners())
+				listaMiniaturas.removeListSelectionListener(lsl);
+			listaMiniaturas.addListSelectionListener(e -> {
+
+				if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI())
+				{
+					int indiceRelativo = listaMiniaturas.getSelectedIndex();
+
+					if (indiceRelativo != -1)
+					{
+						String clave = listaMiniaturas.getModel().getElementAt(indiceRelativo);
+						int indicePrincipal = model.getModeloLista().indexOf(clave);
+						listCoordinator.seleccionarImagenPorIndice(indicePrincipal);
+					}
+				}
+			});
+		}
+
+		
+		// --- LISTENER DE RUEDA MAESTRO ---
+		java.awt.event.MouseWheelListener masterWheelListener = e -> {
+		    boolean sobreLaImagen = e.getComponent() == registry.get("label.imagenPrincipal");
+
+		    if (e.isControlDown() && e.isAltDown()) {
+		        if (e.getWheelRotation() < 0) listCoordinator.seleccionarBloqueAnterior();
+		        else listCoordinator.seleccionarBloqueSiguiente();
+		    
+		    } else if (sobreLaImagen && model.isZoomHabilitado()) {
+		        
+		        // Lógica de Zoom y Paneo
+		        if (e.isControlDown() && !e.isShiftDown()) {
+		            zoomManager.aplicarPan(0, e.getWheelRotation() * 30);
+		        } else if (e.isShiftDown() && !e.isControlDown()) {
+		            zoomManager.aplicarPan(-e.getWheelRotation() * 30, 0);
+		        } else {
+		            // --- INICIO DE LA MODIFICACIÓN FINAL ---
+		            // 1. Delegar el cálculo y la actualización del modelo al ZoomManager.
+		            zoomManager.aplicarZoomConRueda(e);
+		            
+		            // 2. Llamar al método centralizador de UI para que actualice TODO.
+		            sincronizarEstadoVisualBotonesYRadiosZoom();
+		            // --- FIN DE LA MODIFICACIÓN FINAL ---
+		        }
+			} else
+			{
+				// En cualquier otro caso (sobre listas, o sobre imagen con paneo off)
+				listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
+			}
+			e.consume();
+		};
+
+		// --- ASIGNACIÓN DE LISTENERS ---
+		JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
+		Component scrollMiniaturas = registry.get("scroll.miniaturas");
+		Component[] componentesConRueda = { listaNombres, scrollMiniaturas, etiquetaImagen };
+
+		for (Component c : componentesConRueda)
+		{
+
+			if (c != null)
+			{
+				for (java.awt.event.MouseWheelListener l : c.getMouseWheelListeners())
+					c.removeMouseWheelListener(l);
+				c.addMouseWheelListener(masterWheelListener);
+			}
+		}
+
+		// Listeners de clic para paneo (sin cambios)
+		if (etiquetaImagen != null)
+		{
+			for (java.awt.event.MouseListener ml : etiquetaImagen.getMouseListeners())
+				etiquetaImagen.removeMouseListener(ml);
+			for (java.awt.event.MouseMotionListener mml : etiquetaImagen.getMouseMotionListeners())
+				etiquetaImagen.removeMouseMotionListener(mml);
+
+			etiquetaImagen.addMouseListener(new MouseAdapter()
+			{
+				public void mousePressed(java.awt.event.MouseEvent ev)
+				{
+					if (model.isZoomHabilitado())
+						zoomManager.iniciarPaneo(ev);
+				}
+			});
+			etiquetaImagen.addMouseMotionListener(new MouseMotionAdapter()
+			{
+				public void mouseDragged(java.awt.event.MouseEvent ev)
+				{
+					if (model.isZoomHabilitado())
+						zoomManager.continuarPaneo(ev);
+				}
+			});
+		}
+
+		System.out.println("[Controller Internal] Listeners de Vista configurados.");
+	} // --- Fin del método configurarListenersVistaInternal ---	
+	
+
+//	/**
+//     * Configura todos los listeners. Versión reconstruida para evitar bucles.
+//     */
+//    void configurarListenersVistaInternal() {
+//        if (view == null || listCoordinator == null || model == null || registry == null || zoomManager == null) {
+//            System.err.println("WARN [configurarListenersVistaInternal]: Dependencias críticas nulas. Abortando.");
+//            return;
+//        }
+//        System.out.println("[Controller Internal] Configurando Listeners (Reconstrucción)...");
+//
+//        // --- LISTENERS DE SELECCIÓN (SIMPLIFICADOS) ---
+//        JList<String> listaNombres = registry.get("list.nombresArchivo");
+//        if (listaNombres != null) {
+//            for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners()) listaNombres.removeListSelectionListener(lsl);
+//            listaNombres.addListSelectionListener(e -> {
+//                if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
+//                    listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
+//                }
+//            });
+//        }
+//        JList<String> listaMiniaturas = registry.get("list.miniaturas");
+//        if (listaMiniaturas != null) {
+//            for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners()) listaMiniaturas.removeListSelectionListener(lsl);
+//            listaMiniaturas.addListSelectionListener(e -> {
+//                 if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
+//                    int indiceRelativo = listaMiniaturas.getSelectedIndex();
+//                    if (indiceRelativo != -1) {
+//                        String clave = listaMiniaturas.getModel().getElementAt(indiceRelativo);
+//                        int indicePrincipal = model.getModeloLista().indexOf(clave);
+//                        listCoordinator.seleccionarImagenPorIndice(indicePrincipal);
+//                    }
+//                 }
+//            });
+//        }
+//        
+//        // --- LISTENER DE RUEDA MAESTRO ---
+//        java.awt.event.MouseWheelListener masterWheelListener = e -> {
+//            boolean sobreLaImagen = e.getComponent() == registry.get("label.imagenPrincipal");
+//
+//            // --- LÓGICA DE DECISIÓN ---
+//            if (e.isControlDown() && e.isAltDown()) {
+//                if (e.getWheelRotation() < 0) listCoordinator.seleccionarBloqueAnterior();
+//                else listCoordinator.seleccionarBloqueSiguiente();
+//            
+//            } else if (sobreLaImagen && model.isZoomHabilitado()) {
+//                // Si estamos sobre la imagen y el modo paneo está activo...
+//                if (e.isControlDown() && e.isShiftDown()) {
+//                    zoomManager.aplicarZoomConRueda(e);
+//                } else if (e.isControlDown()) {
+//                    zoomManager.aplicarPan(0, e.getWheelRotation() * 30); // Paneo Horizontal Invertido
+//                } else if (e.isShiftDown()) {
+//                    zoomManager.aplicarPan(-e.getWheelRotation() * 30, 0); // Paneo Vertical Invertido
+//                } else {
+//                    listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
+//                }
+//            } else {
+//                // En cualquier otro caso (sobre listas, o sobre imagen con paneo off)
+//                listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
+//            }
+//            e.consume();
+//        };
+//
+//        // --- ASIGNACIÓN DE LISTENERS ---
+//        JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
+//        Component scrollMiniaturas = registry.get("scroll.miniaturas");
+//        Component[] componentesConRueda = { listaNombres, scrollMiniaturas, etiquetaImagen };
+//
+//        for (Component c : componentesConRueda) {
+//            if (c != null) {
+//                for (java.awt.event.MouseWheelListener l : c.getMouseWheelListeners()) c.removeMouseWheelListener(l);
+//                c.addMouseWheelListener(masterWheelListener);
+//            }
+//        }
+//        
+//        // Listeners de clic para paneo (sin cambios)
+//        if (etiquetaImagen != null) {
+//            for(java.awt.event.MouseListener ml : etiquetaImagen.getMouseListeners()) etiquetaImagen.removeMouseListener(ml);
+//            for(java.awt.event.MouseMotionListener mml : etiquetaImagen.getMouseMotionListeners()) etiquetaImagen.removeMouseMotionListener(mml);
+//            
+//            etiquetaImagen.addMouseListener(new MouseAdapter() {
+//                public void mousePressed(java.awt.event.MouseEvent ev) {
+//                    if (model.isZoomHabilitado()) zoomManager.iniciarPaneo(ev);
+//                }
+//            });
+//            etiquetaImagen.addMouseMotionListener(new MouseMotionAdapter() {
+//                public void mouseDragged(java.awt.event.MouseEvent ev) {
+//                    if (model.isZoomHabilitado()) zoomManager.continuarPaneo(ev);
+//                }
+//            });
+//        }
+//        
+//        System.out.println("[Controller Internal] Listeners de Vista configurados.");
+//    }
 	
     
     /**
@@ -3849,6 +3977,15 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 modoActivo.name()
             );
         }
+        
+        
+        // Si el modo actual es "Zoom Fijo", nos aseguramos de que el "zoom objetivo" tambien cambie
+        if (modoActivo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
+            if (configuration != null) {
+                configuration.setZoomPersonalizadoPorcentaje(model.getZoomFactor() * 100);
+            }
+        }
+        
         
         java.util.List<String> zoomModeCommands = java.util.List.of(
             AppActionCommands.CMD_ZOOM_TIPO_AUTO,

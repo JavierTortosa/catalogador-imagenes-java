@@ -5,16 +5,16 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.swing.AbstractButton; // <--- NUEVO
+import javax.swing.AbstractButton; 
 import javax.swing.Action;
-import javax.swing.ButtonGroup; // <--- NUEVO
+import javax.swing.ButtonGroup; 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
-import javax.swing.JToggleButton; // <--- NUEVO
+import javax.swing.JToggleButton; 
 import javax.swing.JToolBar;
 import controlador.VisorController;
 import servicios.ConfigKeys;
-import vista.config.ButtonType; // <--- NUEVO
+import vista.config.ButtonType; 
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarDefinition;
 import vista.theme.Tema;
@@ -33,7 +33,7 @@ public class ToolbarBuilder {
 
     private Map<String, JButton> botonesPorNombre; // Se mantiene como JButton por ahora por simplicidad de la API externa
     
-    // <--- NUEVO: ButtonGroup para los modos de trabajo ---
+    // --- ButtonGroup para los modos de trabajo ---
     private final ButtonGroup modoDeTrabajoGroup;
 
     public ToolbarBuilder(
@@ -54,13 +54,13 @@ public class ToolbarBuilder {
         this.actionMap = new HashMap<>();
         this.botonesPorNombre = new HashMap<>();
         
-        // <--- NUEVO: Inicializamos el ButtonGroup ---
+        // --- Inicializamos el ButtonGroup ---
         this.modoDeTrabajoGroup = new ButtonGroup();
 
         System.out.println("[ToolbarBuilder Constructor] Finalizado.");
     } // --- Fin del constructor ToolbarBuilder ---
 
-    // <--- MODIFICADO: La variable local ahora es AbstractButton ---
+    // --- La variable local ahora es AbstractButton ---
     public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) {
         System.out.println("\n--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
         JToolBar toolbar = new JToolBar(toolbarDef.titulo());
@@ -81,7 +81,7 @@ public class ToolbarBuilder {
         return toolbar;
     } // --- Fin del método buildSingleToolbar ---
 
-    // <--- MODIFICADO: El método ahora crea JButton o JToggleButton y devuelve AbstractButton ---
+    // --- El método ahora crea JButton o JToggleButton y devuelve AbstractButton ---
     private AbstractButton crearBotonIndividual(ToolbarButtonDefinition definition) {
         if (definition == null || definition.comandoCanonico() == null) {
             return null;
