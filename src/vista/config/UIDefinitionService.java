@@ -545,15 +545,15 @@ public class UIDefinitionService {
              );                
              
              
-          // --- BARRA DE VISTAS ---
-    		 List<ToolbarButtonDefinition> botonesVistas = List.of( 
-	            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4001-Panel-Galeria_48x48.png", "Panel Galería", "vista")
-	            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4002-Grid_48x48.png", "Vista Grid", "vista")
-	            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4006-Polaroid48x48.png", "Vista Polaroid", "vista")
-	            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4003-Pantalla_Completa_48x48.png", "Pantalla Completa", "vista")
-	            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4005-Carrousel_48x48.png", "Vista Carrusel", "vista")
-	            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, "4004-Lista_48x48.png", "Vista Lista", "vista")
-	         );
+          // --- BARRA DE VISTA ---
+	    		 List<ToolbarButtonDefinition> botonesVista = List.of( 
+		            new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4001-Panel-Galeria_48x48.png", "Panel Galería", "vista")
+		            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4002-Grid_48x48.png", "Vista Grid", "vista")
+		            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4006-Polaroid48x48.png", "Vista Polaroid", "vista")
+		            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4003-Pantalla_Completa_48x48.png", "Pantalla Completa", "vista")
+		            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "4005-Carrousel_48x48.png", "Vista Carrusel", "vista")
+		            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, "4004-Lista_48x48.png", "Vista Lista", "vista")
+		         );
 			 
              
           // --- BARRA DE UITILS ---
@@ -655,7 +655,7 @@ public class UIDefinitionService {
                 new ToolbarDefinition("navegacion", "Navegación", 	10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesNavegacion)
                 ,new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion)
                 ,new ToolbarDefinition("zoom", 		"Zoom", 		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesZoom)
-                ,new ToolbarDefinition("vistas",		"Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVistas)
+                ,new ToolbarDefinition("vistas",		"Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVista)
                 ,new ToolbarDefinition("proyecto",	"Proyecto", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesProyecto)
                 ,new ToolbarDefinition("toggle",		"Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle)
                 ,new ToolbarDefinition("utils",		"Utilidades", 	70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils)

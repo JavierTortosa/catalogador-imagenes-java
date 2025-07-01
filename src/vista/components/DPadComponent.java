@@ -5,213 +5,180 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
-import java.awt.event.MouseAdapter; // Para los listeners del ratón
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.ArrayList;
-import java.util.List; // Para almacenar los Hotspots
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
-import javax.swing.Action; // Necesario para la Action del Hotspot
+import javax.swing.Action;
 import javax.swing.JComponent;
-import javax.swing.SwingUtilities; // Para invocar en el EDT si es necesario
+import javax.swing.SwingUtilities;
 
 /**
- * Componente de UI personalizado que representa un D-Pad para controlar el paneo
- * de una imagen. Detecta interacciones de ratón sobre sus zonas predefinidas
- * y ejecuta la acción asociada a cada zona.
- *
- * NOTA: Este componente es un prototipo del futuro MultiActionImageComponent,
- *      con su API adaptada específicamente para el caso del D-Pad.
+ * Un componente de UI altamente configurable que representa una imagen base
+ * con múltiples zonas interactivas (Hotspots).
+ * Utiliza un patrón Builder para una configuración limpia y declarativa.
  */
 public class DPadComponent extends JComponent {
 
     private static final long serialVersionUID = 1L;
 
-    // --- Imágenes Base del Componente ---
-    // Estas imágenes son la "piel" visual del D-Pad.
-    // baseImage: La imagen de fondo del D-Pad (todo "apagado").
-    // pressedImage: La imagen que se muestra cuando el usuario hace clic y mantiene.
-    private Image baseImage;
-    private Image pressedImage;
+    // --- Imágenes ORIGINALES, sin escalar ---
+    private final Image originalBaseImage;
+    private final Image originalPressedImage;
+    private final Map<String, Image> originalHoverImages;
 
-    // --- Definición de Hotspots (Zonas Interactivas) ---
-    // Cada Hotspot define un área clicable, una imagen de hover y una Action.
+    // --- Imágenes en CACHÉ, escaladas al tamaño actual ---
+    private transient Image scaledBaseImage;
+    private transient Image scaledPressedImage;
+    private transient Map<String, Image> scaledHoverImages;
+    
+    // --- Estado Interno ---
     private final List<Hotspot> hotspots;
-
-    // --- Estado Interno de Interacción ---
-    // hoveredHotspot: El Hotspot sobre el que está el ratón en este momento.
-    //                 Se usa para dibujar el efecto de "hover".
     private Hotspot hoveredHotspot = null;
-    // isPressed: Indica si el botón del ratón está presionado actualmente sobre una zona.
     private boolean isPressed = false;
 
     /**
-     * Constructor del DPadComponent.
-     * Inicializa las colecciones internas, carga las imágenes base y configura los listeners.
+     * Constructor privado. Solo se puede llamar desde el Builder.
      */
-    public DPadComponent() {
-        this.hotspots = new ArrayList<>();
+    private DPadComponent(Builder builder) {
+        this.originalBaseImage = builder.baseImage;
+        this.originalPressedImage = builder.pressedImage;
+        this.hotspots = builder.hotspots;
         
-        // TODO: Cargar las imágenes base (baseImage y pressedImage).
-        // Por ahora, usamos null. Más adelante, las cargarás aquí o las pasarás por un setter.
-        // Ejemplo de carga (asumiendo que las imágenes están en tu carpeta de recursos):
-        // try {
-        //     this.baseImage = new ImageIcon(getClass().getResource("/icons/common/dpad_base.png")).getImage();
-        //     this.pressedImage = new ImageIcon(getClass().getResource("/icons/common/dpad_all_on.png")).getImage();
-        // } catch (Exception e) {
-        //     System.err.println("Error cargando imágenes del DPadComponent: " + e.getMessage());
-        // }
-
-        // Configura el tamaño preferido del componente.
-        // Debería coincidir con el tamaño de tus imágenes del D-Pad (ej. 48x48 o 64x64).
-        setPreferredSize(new Dimension(48, 48)); // Ajusta esto al tamaño real de tus iconos.
-
+        // Inicializar mapas internos
+        this.originalHoverImages = new HashMap<>();
+        this.scaledHoverImages = new HashMap<>();
+        for (Hotspot hotspot : this.hotspots) {
+            if (hotspot.hoverImage() != null) {
+                this.originalHoverImages.put(hotspot.key(), hotspot.hoverImage());
+            }
+        }
+        
+        // Configurar propiedades del componente
+        setOpaque(false);
+        setFocusable(false);
+        setPreferredSize(builder.size);
+        setMaximumSize(builder.size);
+        setMinimumSize(builder.size);
+        
         setupListeners();
-        
-        // Asegurarse de que el componente pueda recibir eventos del ratón.
-        setOpaque(false); // Puede ser transparente para ver el fondo del contenedor.
-        setFocusable(false); // No queremos que reciba el foco para navegación con teclado por ahora.
-    } // --- Fin del método DPadComponent (constructor) ---
+    }
 
-    // --- Métodos de Configuración Pública (API) ---
-
-    /**
-     * Establece la imagen base que se dibujará como fondo del D-Pad cuando
-     * no hay interacción.
-     * @param baseImage La imagen base (no nula).
-     */
-    public void setBaseImage(Image baseImage) {
-        this.baseImage = Objects.requireNonNull(baseImage, "La imagen base no puede ser nula.");
-        // Ajustar el tamaño del componente al de la imagen base si no se ha establecido
-        // o si queremos que siempre se ajuste.
-        setPreferredSize(new Dimension(baseImage.getWidth(null), baseImage.getHeight(null)));
-        repaint();
-    } // --- Fin del método setBaseImage ---
-
-    /**
-     * Establece la imagen que se dibujará cuando el D-Pad esté en estado "presionado" (clic mantenido).
-     * @param pressedImage La imagen de presionado (puede ser null si no hay efecto visual).
-     */
-    public void setPressedImage(Image pressedImage) {
-        this.pressedImage = pressedImage;
-        repaint();
-    } // --- Fin del método setPressedImage ---
-
-    /**
-     * Añade un Hotspot (zona interactiva) al D-Pad.
-     * @param hotspot El objeto Hotspot a añadir (no nulo).
-     */
-    public void addHotspot(Hotspot hotspot) {
-        this.hotspots.add(Objects.requireNonNull(hotspot, "El Hotspot a añadir no puede ser nulo."));
-    } // --- Fin del método addHotspot ---
-
-    // --- Lógica de Dibujo (Rendering) ---
+    // --- LÓGICA DE DIBUJO Y ESCALADO ---
 
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g); // Importante para la cadena de pintado de Swing
-
-        Graphics2D g2d = (Graphics2D) g.create(); // Creamos una copia del contexto gráfico
-
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g.create();
+        
         try {
-            // 1. Dibujar la imagen base del componente
-            if (baseImage != null) {
-                g2d.drawImage(baseImage, 0, 0, this);
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+
+            Image imageToDraw = getScaledBaseImage();
+            if (imageToDraw != null) {
+                g2d.drawImage(imageToDraw, 0, 0, getWidth(), getHeight(), this);
             }
 
-            // 2. Si el componente está presionado, dibujar la imagen de "todos encendidos"
-            //    Esta tiene prioridad sobre el efecto de hover.
-            if (isPressed && pressedImage != null) {
-                g2d.drawImage(pressedImage, 0, 0, this);
-            } else if (hoveredHotspot != null && hoveredHotspot.hoverImage() != null) {
-                // 3. Si no está presionado, pero hay un hotspot en hover, dibujar su imagen de hover
-                g2d.drawImage(hoveredHotspot.hoverImage(), 0, 0, this);
+            Image overlayImage = null;
+            if (isPressed && originalPressedImage != null) {
+                overlayImage = getScaledPressedImage();
+            } else if (hoveredHotspot != null) {
+                overlayImage = getScaledHoverImage(hoveredHotspot.key());
             }
 
+            if (overlayImage != null) {
+                g2d.drawImage(overlayImage, 0, 0, getWidth(), getHeight(), this);
+            }
         } finally {
-            g2d.dispose(); // Liberar recursos del contexto gráfico
+            g2d.dispose();
         }
-    } // --- Fin del método paintComponent ---
+    }
+    
+    private Image getScaledImage(Image originalImage) {
+        if (originalImage == null) return null;
+        int width = getWidth();
+        int height = getHeight();
+        if (width <= 0 || height <= 0) return null;
+        return originalImage.getScaledInstance(width, height, Image.SCALE_SMOOTH);
+    }
+    
+    private Image getScaledBaseImage() {
+        if (scaledBaseImage == null && originalBaseImage != null) {
+            scaledBaseImage = getScaledImage(originalBaseImage);
+        }
+        return scaledBaseImage;
+    }
+    
+    private Image getScaledPressedImage() {
+        if (scaledPressedImage == null && originalPressedImage != null) {
+            scaledPressedImage = getScaledImage(originalPressedImage);
+        }
+        return scaledPressedImage;
+    }
+    
+    private Image getScaledHoverImage(String key) {
+        if (!scaledHoverImages.containsKey(key) && originalHoverImages.containsKey(key)) {
+            Image scaled = getScaledImage(originalHoverImages.get(key));
+            scaledHoverImages.put(key, scaled);
+        }
+        return scaledHoverImages.get(key);
+    }
 
-    // --- Lógica de Interacción (Listeners de Ratón) ---
+    // --- LÓGICA DE INTERACCIÓN (Listeners) ---
 
     private void setupListeners() {
-        // Listener para detectar el movimiento del ratón y el efecto de hover
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
-            public void mouseMoved(MouseEvent e) {
-                updateHoveredHotspot(e.getPoint());
-            } // --- Fin del método mouseMoved ---
-
+            public void mouseMoved(MouseEvent e) { updateHoveredHotspot(e.getPoint()); }
             @Override
-            public void mouseDragged(MouseEvent e) {
-                // También actualizamos el hover durante el arrastre, por si el usuario
-                // arrastra sobre otra zona y luego la suelta.
-                updateHoveredHotspot(e.getPoint());
-            } // --- Fin del método mouseDragged ---
+            public void mouseDragged(MouseEvent e) { updateHoveredHotspot(e.getPoint()); }
         });
 
-        // Listener para detectar clics y el estado de presionado
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                // Al presionar, si hay un hotspot bajo el ratón, marcamos el estado 'isPressed'
-                // y forzamos un repintado para mostrar la imagen de "todos encendidos".
-                Hotspot hotspotAtPress = findHotspotAtPoint(e.getPoint());
-                if (hotspotAtPress != null && SwingUtilities.isLeftMouseButton(e)) {
+                if (findHotspotAtPoint(e.getPoint()) != null && SwingUtilities.isLeftMouseButton(e)) {
                     isPressed = true;
                     repaint();
                 }
-            } // --- Fin del método mousePressed ---
-
+            }
             @Override
             public void mouseReleased(MouseEvent e) {
-                // Al soltar el botón, si el componente estaba presionado y
-                // el ratón sigue sobre el mismo hotspot, ejecutamos la acción.
                 if (isPressed) {
-                    isPressed = false; // Resetear el estado de presionado
+                    isPressed = false;
                     Hotspot hotspotAtRelease = findHotspotAtPoint(e.getPoint());
                     if (hotspotAtRelease != null && hotspotAtRelease == hoveredHotspot) {
-                        // Ejecutar la acción si es válida
                         executeHotspotAction(hotspotAtRelease);
                     }
-                    repaint(); // Forzar repintado para quitar la imagen de "todos encendidos"
+                    repaint();
                 }
-            } // --- Fin del método mouseReleased ---
-
+            }
             @Override
             public void mouseExited(MouseEvent e) {
-                // Cuando el ratón sale del componente, no hay ningún hotspot en hover.
                 hoveredHotspot = null;
-                isPressed = false; // Asegurarse de que el estado presionado se resetea
+                isPressed = false;
                 repaint();
-            } // --- Fin del método mouseExited ---
+            }
         });
-    } // --- Fin del método setupListeners ---
+    }
 
-    /**
-     * Actualiza el 'hoveredHotspot' buscando qué zona está bajo el punto del ratón.
-     * Forzará un repintado si el hotspot en hover ha cambiado.
-     * @param p El punto actual del ratón.
-     */
     private void updateHoveredHotspot(Point p) {
         Hotspot newHoveredHotspot = findHotspotAtPoint(p);
         if (newHoveredHotspot != hoveredHotspot) {
             hoveredHotspot = newHoveredHotspot;
-            repaint(); // Solo repintar si el estado de hover ha cambiado
+            repaint();
         }
-    } // --- Fin del método updateHoveredHotspot ---
+    }
 
-    /**
-     * Busca y devuelve el Hotspot cuya área de 'bounds' contiene el punto dado.
-     * @param p El punto (coordenadas X, Y) a comprobar.
-     * @return El Hotspot que contiene el punto, o null si ninguno lo contiene.
-     */
     private Hotspot findHotspotAtPoint(Point p) {
-        // Itera sobre los hotspots de forma inversa para que el último Hotspot añadido (si hay solapamiento)
-        // tenga prioridad en la detección, o según el orden que quieras darles.
         for (int i = hotspots.size() - 1; i >= 0; i--) {
             Hotspot hs = hotspots.get(i);
             if (hs.bounds().contains(p)) {
@@ -219,24 +186,103 @@ public class DPadComponent extends JComponent {
             }
         }
         return null;
-    } // --- Fin del método findHotspotAtPoint ---
+    }
 
-    /**
-     * Ejecuta la Action asociada a un Hotspot dado.
-     * @param hotspot El Hotspot cuya acción se debe ejecutar.
-     */
     private void executeHotspotAction(Hotspot hotspot) {
-        if (hotspot != null && hotspot.action() != null && hotspot.action().isEnabled()) {
-            // Creamos un ActionEvent, similar a cómo lo hace Swing para JButtons.
-            hotspot.action().actionPerformed(new ActionEvent(
-                this, // Fuente del evento es este DPadComponent
-                ActionEvent.ACTION_PERFORMED,
-                (String) hotspot.action().getValue(Action.ACTION_COMMAND_KEY) // El comando de la Action
+        Action action = hotspot.action();
+        if (action != null && action.isEnabled()) {
+            action.actionPerformed(new ActionEvent(
+                this, ActionEvent.ACTION_PERFORMED, (String) action.getValue(Action.ACTION_COMMAND_KEY)
             ));
-            System.out.println("[DPadComponent] Acción ejecutada para Hotspot: " + hotspot.key());
-        } else if (hotspot != null) {
-            System.out.println("[DPadComponent] Hotspot '" + hotspot.key() + "' clicado, pero su acción es nula o deshabilitada.");
         }
-    } // --- Fin del método executeHotspotAction ---
+    }
 
+    // ===================================================================
+    // --- CLASE ANIDADA ESTÁTICA: BUILDER ---
+    // ===================================================================
+    public static class Builder {
+        private static final int MINIMUM_CELL_SIZE = 8;
+
+        // --- Parámetros de configuración del Builder ---
+        private Dimension size;
+        private int rows = 1;
+        private int cols = 1;
+        private Image baseImage;
+        private Image pressedImage;
+        private final List<Hotspot> hotspots = new ArrayList<>();
+        
+        public Builder() {
+            this.size = new Dimension(48, 48); 
+        }
+
+        public Builder withSize(int width, int height) {
+            this.size = new Dimension(width, height);
+            return this;
+        }
+
+        public Builder withGrid(int rows, int cols) {
+            if (rows < 1 || cols < 1) {
+                throw new IllegalArgumentException("Las filas y columnas deben ser al menos 1.");
+            }
+            this.rows = rows;
+            this.cols = cols;
+            return this;
+        }
+
+        public Builder withBaseImage(Image baseImage) {
+            this.baseImage = baseImage;
+            return this;
+        }
+
+        public Builder withPressedImage(Image pressedImage) {
+            this.pressedImage = pressedImage;
+            return this;
+        }
+
+        /**
+         * Añade un Hotspot basado en coordenadas de cuadrícula.
+         * Calcula el rectángulo del hotspot automáticamente.
+         */
+        public Builder withHotspot(int row, int col, Image hoverImage, Action action) {
+            if (row < 0 || row >= rows || col < 0 || col >= cols) {
+                throw new IllegalArgumentException("Coordenadas de hotspot ("+row+","+col+") fuera de la cuadrícula ("+rows+"x"+cols+").");
+            }
+            
+            int cellWidth = size.width / cols;
+            int cellHeight = size.height / rows;
+            int x = col * cellWidth;
+            int y = row * cellHeight;
+            
+            String key = "hotspot-" + row + "-" + col;
+            Rectangle bounds = new Rectangle(x, y, cellWidth, cellHeight);
+            
+            this.hotspots.add(new Hotspot(key, bounds, hoverImage, action));
+            return this;
+        }
+        
+        /**
+         * Añade un Hotspot con un rectángulo definido manualmente.
+         * Útil para formas no rectangulares o D-Pads complejos.
+         */
+        public Builder withManualHotspot(String key, Rectangle bounds, Image hoverImage, Action action) {
+            this.hotspots.add(new Hotspot(key, bounds, hoverImage, action));
+            return this;
+        }
+
+        /**
+         * Construye y devuelve la instancia final del DPadComponent.
+         */
+        public DPadComponent build() {
+            if (baseImage == null) {
+                throw new IllegalStateException("La imagen base (baseImage) no puede ser nula.");
+            }
+            int minWidth = cols * MINIMUM_CELL_SIZE;
+            int minHeight = rows * MINIMUM_CELL_SIZE;
+            if (size.width < minWidth || size.height < minHeight) {
+                System.err.println("WARN: El tamaño solicitado ("+size+") es muy pequeño para la cuadrícula ("+rows+"x"+cols+"). El componente podría no funcionar bien.");
+            }
+            
+            return new DPadComponent(this);
+        }
+    }
 } // --- FIN de la clase DPadComponent ---

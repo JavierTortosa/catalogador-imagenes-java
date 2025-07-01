@@ -5,10 +5,10 @@ Iniciando Visor de Imágenes V2...
 Mapa de configuración por defecto inicializado con 103 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 163
+Configuración leída. Total claves: 169
 --- DEBUG PRE-SINCRONIZACIÓN ---
 Tamaño de DEFAULT_CONFIG: 103
-Tamaño de loadedConfig (del archivo): 163
+Tamaño de loadedConfig (del archivo): 169
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
@@ -56,10 +56,6 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   -> Barra 'zoom' construida y almacenada.
 
 --- [ToolbarBuilder] Construyendo barra: 'Vistas' ---
-ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
   -> Barra 'vistas' construida y almacenada.
 
 --- [ToolbarBuilder] Construyendo barra: 'Proyecto' ---
@@ -75,7 +71,7 @@ ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendie
   -> Barra 'apoyo' construida y almacenada.
 
 --- [ToolbarBuilder] Construyendo barra: 'Controles de Imagen' ---
-[ToolbarBuilder] Creando DPadComponent para barra: controles_imagen_inferior
+[ToolbarBuilder] Construyendo DPadComponent con Builder...
   -> Barra 'controles_imagen_inferior' construida y almacenada.
 [ToolbarManager] Inicialización de barras completada. Total: 9
   [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
@@ -145,19 +141,19 @@ ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendie
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-  [Worker BG] Files.walk terminado. Archivos encontrados: 208
+  [Worker BG] Files.walk terminado. Archivos encontrados: 209
 [Worker EDT] Método done() alcanzado.
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 208
-    -> Ordenando 208 claves...
+    WORKER HA TERMINADO. Número de archivos encontrados: 209
+    -> Ordenando 209 claves...
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@54f382ca: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@54f382ca actualizado. Nuevo tamaño: 208
-[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 208
+### DEBUG CONTEXT: ListContext@3bab2b4b: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@3bab2b4b actualizado. Nuevo tamaño: 209
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 209
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
 !!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 245565335
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
@@ -169,164 +165,39 @@ ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendie
     -> Sincronización de botones toggle completada.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---- [Listener Primer Renderizado]: Panel listo (1145x200). Forzando refresco de zoom y UI. ---
+--- [Listener Primer Renderizado]: Panel listo (1145x214). Forzando refresco de zoom y UI. ---
 [VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [VisorController] Sincronización de UI de Zoom completada.
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
-[GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
-
---- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
-  [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@574175e6: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@574175e6 actualizado. Nuevo tamaño: 4
-    -> Datos del proyecto preparados en proyectoListContext.
-  [GeneralController] Saliendo del modo: VISUALIZADOR
-[Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
-  [GeneralController] Entrando en modo: PROYECTO
-  [ProjectController] Activando la UI de la vista de proyecto...
-### DEBUG: Restaurando selección del proyecto. Clave guardada en contexto PROYECTO: 'null'
-  [ProjectController] Actualizando imagen de proyecto para la clave: A-gigante de hierro.jpg
-  [ProjectController] UI de la vista de proyecto activada.
-  [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
-  [GeneralController] Estado de la UI actualizado.
-[ViewManager] Vista cambiada a: VISTA_PROYECTOS
-[ToolbarManager] Reconstruyendo contenedor para modo: PROYECTO
-  -> Añadiendo barra 'navegacion' al contenedor.
-  -> Barra 'edicion' no relevante para modo 'PROYECTO'.
-  -> Añadiendo barra 'zoom' al contenedor.
-  -> Barra 'vistas' no relevante para modo 'PROYECTO'.
-  -> Añadiendo barra 'proyecto' al contenedor.
-  -> Barra 'toggle' no relevante para modo 'PROYECTO'.
-  -> Añadiendo barra 'utils' al contenedor.
-  -> Añadiendo barra 'apoyo' al contenedor.
-  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
-[ToolbarManager] Reconstrucción de contenedor completada.
-[GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
---- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
-
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR...
-
---- [GeneralController] INICIANDO TRANSICIÓN DE MODO: PROYECTO -> VISUALIZADOR ---
-  [GeneralController] Saliendo del modo: PROYECTO
-[Model] Cambiando modo de trabajo de PROYECTO a: VISUALIZADOR
-  [GeneralController] Entrando en modo: VISUALIZADOR
-    -> Restaurando UI para el modo VISUALIZADOR...
-      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 208
-### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: 'A-gigante de hierro.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 245565335
-  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
-[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
-[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  [GeneralController] Actualizando estado de la UI para el modo: VISUALIZADOR
-  [GeneralController] Estado de la UI actualizado.
-[ViewManager] Vista cambiada a: VISTA_VISUALIZADOR
-[ToolbarManager] Reconstruyendo contenedor para modo: VISUALIZADOR
-  -> Añadiendo barra 'navegacion' al contenedor.
-  -> Añadiendo barra 'edicion' al contenedor.
-  -> Añadiendo barra 'zoom' al contenedor.
-  -> Añadiendo barra 'vistas' al contenedor.
-  -> Añadiendo barra 'proyecto' al contenedor.
-  -> Añadiendo barra 'toggle' al contenedor.
-  -> Añadiendo barra 'utils' al contenedor.
-  -> Añadiendo barra 'apoyo' al contenedor.
-  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
-[ToolbarManager] Reconstrucción de contenedor completada.
-[GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
---- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a VISUALIZADOR ---
-
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
-
---- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
-  [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@574175e6: Restored old selectedKey: 'A-gigante de hierro.jpg'
-### DEBUG CONTEXT: ListContext@574175e6 actualizado. Nuevo tamaño: 4
-    -> Datos del proyecto preparados en proyectoListContext.
-  [GeneralController] Saliendo del modo: VISUALIZADOR
-[Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
-  [GeneralController] Entrando en modo: PROYECTO
-  [ProjectController] Activando la UI de la vista de proyecto...
-### DEBUG: Restaurando selección del proyecto. Clave guardada en contexto PROYECTO: 'A-gigante de hierro.jpg'
-  [ProjectController] Actualizando imagen de proyecto para la clave: A-gigante de hierro.jpg
-  [ProjectController] UI de la vista de proyecto activada.
-  [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
-  [GeneralController] Estado de la UI actualizado.
-[ViewManager] Vista cambiada a: VISTA_PROYECTOS
-[ToolbarManager] Reconstruyendo contenedor para modo: PROYECTO
-  -> Añadiendo barra 'navegacion' al contenedor.
-  -> Barra 'edicion' no relevante para modo 'PROYECTO'.
-  -> Añadiendo barra 'zoom' al contenedor.
-  -> Barra 'vistas' no relevante para modo 'PROYECTO'.
-  -> Añadiendo barra 'proyecto' al contenedor.
-  -> Barra 'toggle' no relevante para modo 'PROYECTO'.
-  -> Añadiendo barra 'utils' al contenedor.
-  -> Añadiendo barra 'apoyo' al contenedor.
-  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
-[ToolbarManager] Reconstrucción de contenedor completada.
-[GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
---- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
-
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-  [ProjectController] Actualizando imagen de proyecto para la clave: cyberpunk-city-anime-girl-5k-0e-1.png
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-  [ProjectController] Actualizando imagen de proyecto para la clave: Hero_Pack_____Miniature_jpg.jpg
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-  [ProjectController] Actualizando imagen de proyecto para la clave: iconos/black/1001-Primera_48x48.png
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR...
-
---- [GeneralController] INICIANDO TRANSICIÓN DE MODO: PROYECTO -> VISUALIZADOR ---
-  [GeneralController] Saliendo del modo: PROYECTO
-[Model] Cambiando modo de trabajo de PROYECTO a: VISUALIZADOR
-  [GeneralController] Entrando en modo: VISUALIZADOR
-    -> Restaurando UI para el modo VISUALIZADOR...
-      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 208
-### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: 'A-gigante de hierro.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 245565335
-  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
-[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
-[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  [GeneralController] Actualizando estado de la UI para el modo: VISUALIZADOR
-  [GeneralController] Estado de la UI actualizado.
-[ViewManager] Vista cambiada a: VISTA_VISUALIZADOR
-[ToolbarManager] Reconstruyendo contenedor para modo: VISUALIZADOR
-  -> Añadiendo barra 'navegacion' al contenedor.
-  -> Añadiendo barra 'edicion' al contenedor.
-  -> Añadiendo barra 'zoom' al contenedor.
-  -> Añadiendo barra 'vistas' al contenedor.
-  -> Añadiendo barra 'proyecto' al contenedor.
-  -> Añadiendo barra 'toggle' al contenedor.
-  -> Añadiendo barra 'utils' al contenedor.
-  -> Añadiendo barra 'apoyo' al contenedor.
-  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
-[ToolbarManager] Reconstrucción de contenedor completada.
-[GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
---- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a VISUALIZADOR ---
-
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
+[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
+[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1604839423
@@ -338,7 +209,7 @@ ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendie
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 163
+Claves a guardar/actualizar: 169
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...
