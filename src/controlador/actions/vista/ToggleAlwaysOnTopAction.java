@@ -14,36 +14,41 @@ public class ToggleAlwaysOnTopAction extends AbstractAction {
 
     private VisorView viewRef;
     private ConfigurationManager configManagerRef; 
-    private String configKeyForState; // Ej: "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado"
+    private String configKeyForState;
 
     public ToggleAlwaysOnTopAction(String name, 
-                                   ImageIcon icon, // Probablemente null
-                                   VisorView view, 
+                                   ImageIcon icon,
+                                   VisorView view, // Ahora puede ser null en la construcción
                                    ConfigurationManager configManager, 
                                    String configKeyForSelectedState,
                                    String actionCommandKey) {
         super(name, icon); 
         
-        this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null en ToggleAlwaysOnTopAction");
+        this.viewRef = view; // Se asigna, pero sin requireNonNull
         this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
         this.configKeyForState = Objects.requireNonNull(configKeyForSelectedState, "configKeyForState no puede ser null");
 
         putValue(Action.SHORT_DESCRIPTION, "Mantener la ventana siempre visible encima de otras");
         putValue(Action.ACTION_COMMAND_KEY, Objects.requireNonNull(actionCommandKey, "actionCommandKey no puede ser null"));
 
-        // Leer el estado inicial de la configuración
-        // El default es 'false' (no siempre encima)
         boolean initialState = this.configManagerRef.getBoolean(this.configKeyForState, false); 
         putValue(Action.SELECTED_KEY, initialState);
         
-        // Aplicar el estado inicial a la ventana (JFrame)
-        if (this.viewRef != null) {
-            // Comprobar si el estado actual es diferente para evitar llamadas innecesarias
-            if (this.viewRef.isAlwaysOnTop() != initialState) {
-                this.viewRef.setAlwaysOnTop(initialState);
-            }
+        // La aplicación del estado inicial se mueve al método setView.
+    } // --- Fin del método ToggleAlwaysOnTopAction (constructor) ---
+
+    /**
+     * Inyecta la referencia a la vista después de que ha sido creada.
+     * @param view La instancia de VisorView.
+     */
+    public void setView(VisorView view) {
+        this.viewRef = Objects.requireNonNull(view, "La vista no puede ser nula al inyectarse en ToggleAlwaysOnTopAction");
+        // Aplicar el estado inicial ahora que tenemos la vista
+        boolean initialState = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
+        if (this.viewRef.isAlwaysOnTop() != initialState) {
+            this.viewRef.setAlwaysOnTop(initialState);
         }
-    }
+    } // --- Fin del método setView ---
 
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -52,18 +57,17 @@ public class ToggleAlwaysOnTopAction extends AbstractAction {
             return;
         }
 
+        // El estado seleccionado del JCheckBoxMenuItem se actualiza automáticamente.
+        // Lo leemos para saber cuál es el nuevo estado deseado.
         boolean nuevoEstadoAlwaysOnTop = Boolean.TRUE.equals(getValue(Action.SELECTED_KEY));
         System.out.println("[ToggleAlwaysOnTopAction actionPerformed] Nuevo estado: " + nuevoEstadoAlwaysOnTop);
 
-        // 1. Actualizar la configuración en memoria
         configManagerRef.setString(this.configKeyForState, String.valueOf(nuevoEstadoAlwaysOnTop));
         System.out.println("  -> Configuración '" + this.configKeyForState + "' actualizada a: " + nuevoEstadoAlwaysOnTop);
             
-        // 2. Llamar al método de VisorView (que es un JFrame) para cambiar el estado "AlwaysOnTop"
-        //    Comprobar si el estado actual es diferente para evitar llamadas innecesarias
         if (viewRef.isAlwaysOnTop() != nuevoEstadoAlwaysOnTop) {
             viewRef.setAlwaysOnTop(nuevoEstadoAlwaysOnTop);
         }
-        // No se necesita revalidate/repaint para setAlwaysOnTop, el sistema operativo lo maneja.
-    }
-}
+    } // --- Fin del método actionPerformed ---
+    
+} // --- FIN de la clase ToggleAlwaysOnTopAction ---

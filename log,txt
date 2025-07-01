@@ -2,14 +2,13 @@ Iniciando Visor de Imágenes V2...
 --- Iniciando VisorController (Constructor Simple) ---
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
-    -> VisorModel creado e inyectado.
-Mapa de configuración por defecto inicializado con 94 claves.
+Mapa de configuración por defecto inicializado con 103 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 138
+Configuración leída. Total claves: 163
 --- DEBUG PRE-SINCRONIZACIÓN ---
-Tamaño de DEFAULT_CONFIG: 94
-Tamaño de loadedConfig (del archivo): 138
+Tamaño de DEFAULT_CONFIG: 103
+Tamaño de loadedConfig (del archivo): 163
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
@@ -17,23 +16,13 @@ Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
 !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1604839423
-    -> ConfigurationManager creado, cargado e inyectado.
   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
 [VisorModel] Inicializando estado por defecto de todos los contextos...
-    -> Contextos del modelo (Visualizador, Proyecto, etc.) inicializados.
-    -> Configuración de miniaturas (no contextual) aplicada al modelo.
-  -> Fin de la aplicación de configuración al modelo.
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
 [ThemeManager] Tema inicial establecido a: clear
-    -> ThemeManager creado e inyectado.
-    -> IconUtils creado e inyectado.
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-    -> ThumbnailService creado e inyectado.
-    -> Modelo para JList de Miniaturas creado. HashCode: 245565335
   [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 245565335
-    -> ExecutorService (FixedThreadPool con 8 hilos) creado e inyectado.
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
-    -> Instancia de ProjectManager (servicio) creada.
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
 --- VisorController: Inicialización delegada completada con éxito ---
@@ -41,69 +30,86 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
 --- [AppInitializer Fase B - EDT] Reorganizando la inicialización en bloques... ---
   -> BLOQUE 1: Creando todas las instancias...
 [ProjectController] Instancia creada.
-  [ActionFactory] Inicializando todas las Actions...
-  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 0
 [ConfigApplicationManager] Creando instancia refactorizada...
 [ConfigApplicationManager] Instancia creada.
 [ToolbarBuilder Constructor] Iniciando...
 [ToolbarBuilder Constructor] Finalizado.
-  -> BLOQUE 2: Cableando dependencias pre-UI...
+[ToolbarManager Constructor] Finalizado.
+  -> BLOQUE 2: Cableando dependencias...
 [MenuBarBuilder] ControllerGlobalActionListener establecido: controlador.VisorController
-  -> BLOQUE 3: Ejecutando lógica de arranque...
-  [ProjectManager] Cargadas 4 rutas absolutas desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-[ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-  -> Imágenes marcadas inicialmente: 4
-  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
-[VisorView Constructor SIMPLIFICADO] Iniciando...
-!!! DEBUG ViewBuilder: La JList o su modelo son NULOS en este punto.
-  [ViewBuilder] Frame principal construido y ensamblado.
-  [ActionFactory] Inicializando todas las Actions...
-[ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
+  -> BLOQUE 3: Ejecutando inicialización secuenciada...
+  [ActionFactory] Inicializando Actions principales (no dependientes de la vista)...
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
-ActionFactory: Creando ToggleSubfoldersAction@1d64ef6b
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: 68
+  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 81
+[ToolbarManager] Inicializando todas las barras de herramientas...
+
+--- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
+  -> Barra 'navegacion' construida y almacenada.
+
+--- [ToolbarBuilder] Construyendo barra: 'Edición' ---
+  -> Barra 'edicion' construida y almacenada.
+
+--- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
+  -> Barra 'zoom' construida y almacenada.
+
+--- [ToolbarBuilder] Construyendo barra: 'Vistas' ---
+ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
+ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
+ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
+ComponentRegistry WARN: La clave 'interfaz.boton.vista.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
+  -> Barra 'vistas' construida y almacenada.
+
+--- [ToolbarBuilder] Construyendo barra: 'Proyecto' ---
+  -> Barra 'proyecto' construida y almacenada.
+
+--- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
+  -> Barra 'toggle' construida y almacenada.
+
+--- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
+  -> Barra 'utils' construida y almacenada.
+
+--- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
+  -> Barra 'apoyo' construida y almacenada.
+
+--- [ToolbarBuilder] Construyendo barra: 'Controles de Imagen' ---
+[ToolbarBuilder] Creando DPadComponent para barra: controles_imagen_inferior
+  -> Barra 'controles_imagen_inferior' construida y almacenada.
+[ToolbarManager] Inicialización de barras completada. Total: 9
+  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
+[VisorView Constructor SIMPLIFICADO] Iniciando...
+[ViewBuilder] Barra de controles de imagen inferior añadida a rightPanel (BorderLayout.SOUTH).
+  [ViewBuilder] Frame principal construido y ensamblado.
+    -> VisorView (JFrame) creado.
+    -> Inyectando la instancia de 'view' en los componentes...
+  [ActionFactory] Inicializando Actions dependientes de la vista...
+[ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 83
+  [ProjectManager] Cargadas 4 rutas absolutas desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
+[ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
+  -> Imágenes marcadas inicialmente: 4
   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 68 acciones.
+  [MenuBarBuilder] ActionMap recibido con 83 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 165
-[ToolbarManager] FASE 1: Creando instancias de barras de herramientas...
-
---- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
-
---- [ToolbarBuilder] Construyendo barra: 'Edición' ---
-
---- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
-
---- [ToolbarBuilder] Construyendo barra: 'Vistas' ---
-
---- [ToolbarBuilder] Construyendo barra: 'Proyecto' ---
-
---- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
-
---- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
-
---- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
-  [ToolbarManager] Registrando botones individuales...
-    -> 32 botones registrados.
-[ToolbarManager] Creación de instancias de barras completada.
-[ToolbarManager] FASE 2: Reconstruyendo contenedor de toolbars para el modo: VISUALIZADOR
-  [HierarchyListener] Detectado cambio de padre en: navegacion. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: edicion. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: zoom. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: vistas. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: proyecto. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: toggle. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: utils. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: apoyo. IGNORADO (reconstrucción en progreso).
-  [ToolbarManager] Contenedor de toolbars reconstruido.
+  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 181
+[ToolbarManager] Reconstruyendo contenedor para modo: VISUALIZADOR
+  -> Añadiendo barra 'navegacion' al contenedor.
+  -> Añadiendo barra 'edicion' al contenedor.
+  -> Añadiendo barra 'zoom' al contenedor.
+  -> Añadiendo barra 'vistas' al contenedor.
+  -> Añadiendo barra 'proyecto' al contenedor.
+  -> Añadiendo barra 'toggle' al contenedor.
+  -> Añadiendo barra 'utils' al contenedor.
+  -> Añadiendo barra 'apoyo' al contenedor.
+  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
+[ToolbarManager] Reconstrucción de contenedor completada.
   [Controller] Configurando atajos de teclado globales...
   -> Atajos de teclado globales configurados para teclado estándar y numérico.
 --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
@@ -123,7 +129,6 @@ ActionFactory: Creando ToggleSubfoldersAction@1d64ef6b
     -> Aplicando estado inicial de fondo a cuadros desde config: false
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
-  -> [EDT Post-Visibilidad] Lanzando carga de imágenes...
 
 -->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
@@ -140,19 +145,19 @@ ActionFactory: Creando ToggleSubfoldersAction@1d64ef6b
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-  [Worker BG] Files.walk terminado. Archivos encontrados: 201
+  [Worker BG] Files.walk terminado. Archivos encontrados: 208
 [Worker EDT] Método done() alcanzado.
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 201
-    -> Ordenando 201 claves...
+    WORKER HA TERMINADO. Número de archivos encontrados: 208
+    -> Ordenando 208 claves...
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@29f9178a: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@29f9178a actualizado. Nuevo tamaño: 201
-[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 201
+### DEBUG CONTEXT: ListContext@54f382ca: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@54f382ca actualizado. Nuevo tamaño: 208
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 208
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
 !!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 245565335
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
@@ -164,72 +169,18 @@ ActionFactory: Creando ToggleSubfoldersAction@1d64ef6b
     -> Sincronización de botones toggle completada.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---- [Listener Primer Renderizado]: Panel listo (1145x236). Forzando refresco de zoom y UI. ---
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+--- [Listener Primer Renderizado]: Panel listo (1145x200). Forzando refresco de zoom y UI. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [VisorController] Sincronización de UI de Zoom completada.
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
 [GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@72ca65a6: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@72ca65a6 actualizado. Nuevo tamaño: 4
+### DEBUG CONTEXT: ListContext@574175e6: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@574175e6 actualizado. Nuevo tamaño: 4
     -> Datos del proyecto preparados en proyectoListContext.
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
@@ -241,27 +192,141 @@ ActionFactory: Creando ToggleSubfoldersAction@1d64ef6b
   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
   [GeneralController] Estado de la UI actualizado.
 [ViewManager] Vista cambiada a: VISTA_PROYECTOS
-[ToolbarManager] FASE 2: Reconstruyendo contenedor de toolbars para el modo: PROYECTO
-  [HierarchyListener] Detectado cambio de padre en: apoyo. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: utils. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: toggle. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: proyecto. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: vistas. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: zoom. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: edicion. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: navegacion. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: navegacion. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: zoom. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: proyecto. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: utils. IGNORADO (reconstrucción en progreso).
-  [HierarchyListener] Detectado cambio de padre en: apoyo. IGNORADO (reconstrucción en progreso).
-  [ToolbarManager] Contenedor de toolbars reconstruido.
+[ToolbarManager] Reconstruyendo contenedor para modo: PROYECTO
+  -> Añadiendo barra 'navegacion' al contenedor.
+  -> Barra 'edicion' no relevante para modo 'PROYECTO'.
+  -> Añadiendo barra 'zoom' al contenedor.
+  -> Barra 'vistas' no relevante para modo 'PROYECTO'.
+  -> Añadiendo barra 'proyecto' al contenedor.
+  -> Barra 'toggle' no relevante para modo 'PROYECTO'.
+  -> Añadiendo barra 'utils' al contenedor.
+  -> Añadiendo barra 'apoyo' al contenedor.
+  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
+[ToolbarManager] Reconstrucción de contenedor completada.
 [GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
 --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
 
-[VisorController] Sincronizando UI de Zoom. Modo: Porcentaje Personalizado, Permiso Manual: true
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [VisorController] Sincronización de UI de Zoom completada.
+[SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR...
+
+--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: PROYECTO -> VISUALIZADOR ---
+  [GeneralController] Saliendo del modo: PROYECTO
+[Model] Cambiando modo de trabajo de PROYECTO a: VISUALIZADOR
+  [GeneralController] Entrando en modo: VISUALIZADOR
+    -> Restaurando UI para el modo VISUALIZADOR...
+      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 208
+### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: 'A-gigante de hierro.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 245565335
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
+[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [GeneralController] Actualizando estado de la UI para el modo: VISUALIZADOR
+  [GeneralController] Estado de la UI actualizado.
+[ViewManager] Vista cambiada a: VISTA_VISUALIZADOR
+[ToolbarManager] Reconstruyendo contenedor para modo: VISUALIZADOR
+  -> Añadiendo barra 'navegacion' al contenedor.
+  -> Añadiendo barra 'edicion' al contenedor.
+  -> Añadiendo barra 'zoom' al contenedor.
+  -> Añadiendo barra 'vistas' al contenedor.
+  -> Añadiendo barra 'proyecto' al contenedor.
+  -> Añadiendo barra 'toggle' al contenedor.
+  -> Añadiendo barra 'utils' al contenedor.
+  -> Añadiendo barra 'apoyo' al contenedor.
+  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
+[ToolbarManager] Reconstrucción de contenedor completada.
+[GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
+--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a VISUALIZADOR ---
+
+  -> Solicitando repintado inicial de listaMiniaturas.
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
+
+--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
+  [ProjectController] Preparando datos para el modo proyecto...
+### DEBUG CONTEXT: ListContext@574175e6: Restored old selectedKey: 'A-gigante de hierro.jpg'
+### DEBUG CONTEXT: ListContext@574175e6 actualizado. Nuevo tamaño: 4
+    -> Datos del proyecto preparados en proyectoListContext.
+  [GeneralController] Saliendo del modo: VISUALIZADOR
+[Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
+  [GeneralController] Entrando en modo: PROYECTO
+  [ProjectController] Activando la UI de la vista de proyecto...
+### DEBUG: Restaurando selección del proyecto. Clave guardada en contexto PROYECTO: 'A-gigante de hierro.jpg'
+  [ProjectController] Actualizando imagen de proyecto para la clave: A-gigante de hierro.jpg
+  [ProjectController] UI de la vista de proyecto activada.
+  [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
+  [GeneralController] Estado de la UI actualizado.
+[ViewManager] Vista cambiada a: VISTA_PROYECTOS
+[ToolbarManager] Reconstruyendo contenedor para modo: PROYECTO
+  -> Añadiendo barra 'navegacion' al contenedor.
+  -> Barra 'edicion' no relevante para modo 'PROYECTO'.
+  -> Añadiendo barra 'zoom' al contenedor.
+  -> Barra 'vistas' no relevante para modo 'PROYECTO'.
+  -> Añadiendo barra 'proyecto' al contenedor.
+  -> Barra 'toggle' no relevante para modo 'PROYECTO'.
+  -> Añadiendo barra 'utils' al contenedor.
+  -> Añadiendo barra 'apoyo' al contenedor.
+  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
+[ToolbarManager] Reconstrucción de contenedor completada.
+[GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
+--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
+
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+  [ProjectController] Actualizando imagen de proyecto para la clave: cyberpunk-city-anime-girl-5k-0e-1.png
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+  [ProjectController] Actualizando imagen de proyecto para la clave: Hero_Pack_____Miniature_jpg.jpg
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+  [ProjectController] Actualizando imagen de proyecto para la clave: iconos/black/1001-Primera_48x48.png
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR...
+
+--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: PROYECTO -> VISUALIZADOR ---
+  [GeneralController] Saliendo del modo: PROYECTO
+[Model] Cambiando modo de trabajo de PROYECTO a: VISUALIZADOR
+  [GeneralController] Entrando en modo: VISUALIZADOR
+    -> Restaurando UI para el modo VISUALIZADOR...
+      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 208
+### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: 'A-gigante de hierro.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 245565335
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
+[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [GeneralController] Actualizando estado de la UI para el modo: VISUALIZADOR
+  [GeneralController] Estado de la UI actualizado.
+[ViewManager] Vista cambiada a: VISTA_VISUALIZADOR
+[ToolbarManager] Reconstruyendo contenedor para modo: VISUALIZADOR
+  -> Añadiendo barra 'navegacion' al contenedor.
+  -> Añadiendo barra 'edicion' al contenedor.
+  -> Añadiendo barra 'zoom' al contenedor.
+  -> Añadiendo barra 'vistas' al contenedor.
+  -> Añadiendo barra 'proyecto' al contenedor.
+  -> Añadiendo barra 'toggle' al contenedor.
+  -> Añadiendo barra 'utils' al contenedor.
+  -> Añadiendo barra 'apoyo' al contenedor.
+  -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
+[ToolbarManager] Reconstrucción de contenedor completada.
+[GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
+--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a VISUALIZADOR ---
+
+  -> Solicitando repintado inicial de listaMiniaturas.
+    -> Sincronizando estado visual de botones toggle...
+    -> Sincronización de botones toggle completada.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1604839423
@@ -273,7 +338,7 @@ ActionFactory: Creando ToggleSubfoldersAction@1d64ef6b
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 138
+Claves a guardar/actualizar: 163
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

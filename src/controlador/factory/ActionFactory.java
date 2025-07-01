@@ -1,3 +1,5 @@
+// Contenido para ActionFactory.java
+
 package controlador.factory;
 
 import java.awt.event.ActionEvent;
@@ -73,6 +75,9 @@ import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
 import vista.config.MenuItemDefinition;
 import vista.config.UIDefinitionService;
+// Importaciones para PanAction y Direction
+import controlador.actions.pan.PanAction;
+import vista.components.Direction;
 //import vista.config.ViewUIConfig;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
@@ -119,6 +124,8 @@ public class ActionFactory {
     // 1.7. CAMPO para registrar acciones sensibles al contexto
     private final List<ContextSensitiveAction> contextSensitiveActions;
 
+    // Constante para la cantidad de paneo incremental (se puede mover a una clase de constantes globales si existe)
+    private static final int INCREMENTAL_PAN_AMOUNT = 50; 
     
     // --- SECCIÓN 2: CONSTRUCTOR ---
     /**
@@ -126,7 +133,7 @@ public class ActionFactory {
      * Recibe todas las dependencias necesarias para crear las acciones.
      *
      * @param model El modelo principal de la aplicación.
-     * @param view La vista principal (JFrame).
+     * @param view La vista principal (JFrame). Puede ser null inicialmente.
      * @param zoomManager El gestor de zoom.
      * @param fileOperationsManager El gestor de operaciones de archivo.
      * @param editionManager El gestor de edición.
@@ -162,64 +169,83 @@ public class ActionFactory {
         
         // 2.1. Asignar dependencias principales.
         this.model 						= Objects.requireNonNull(model, "VisorModel no puede ser null en ActionFactory");
-        this.view =view;//						= Objects.requireNonNull(view, "VisorView no puede ser null en ActionFactory");
+        this.view = view; // Se permite que la vista sea null en el constructor.
         this.configuration 				= Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null en ActionFactory");
         this.iconUtils 					= Objects.requireNonNull(iconUtils, "IconUtils no puede ser null en ActionFactory");
         
-//        this.controllerRef 				= Objects.requireNonNull(controller, "VisorController (controllerRef) no puede ser null en ActionFactory");
         this.generalController			= Objects.requireNonNull(generalController, "GeneralController no puede ser null en ActionFactory");
         
         this.themeManager 				= Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ActionFactory");
         this.projectControllerRef       = Objects.requireNonNull(projectController);
         
         // 2.2. Asignar Managers y Coordinadores.
-        this.zoomManager = zoomManager;//				= Objects.requireNonNull(zoomManager, "ZoomManager no puede ser null en ActionFactory");
-        this.fileOperationsManager = fileOperationsManager;// 		= Objects.requireNonNull(fileOperationsManager, "FileManager no puede ser null");
-        this.viewManager = viewManager;	//			= Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
-        this.editionManager	= editionManager;//			= Objects.requireNonNull(editionManager, "ViewManager no puede ser null");
+        this.zoomManager = zoomManager;
+        this.fileOperationsManager = fileOperationsManager;
+        this.viewManager = viewManager;
+        this.editionManager	= editionManager;
         this.contextSensitiveActions 	= new ArrayList<>(); 
         
-        // this.editionManager = Objects.requireNonNull(editionManager, "EditionManager no puede ser null");
         this.listCoordinator 			= Objects.requireNonNull(listCoordinator, "IListCoordinator no puede ser null en ActionFactory");
         this.projectService 			= Objects.requireNonNull(projectService, "IProjectManager (servicio) no puede ser null");
         
         // 2.3. Asignar mapa de iconos.
         this.comandoToIconKeyMap 		= Objects.requireNonNull(comandoToIconKeyMap, "comandoToIconKeyMap no puede ser null");
         
-
         // 2.4. Leer dimensiones de iconos desde la configuración.
         this.iconoAncho 				= configuration.getInt("iconos.ancho", 24);
-        this.iconoAlto 					= configuration.getInt("iconos.alto", 24); // Usar el mismo valor o -1 si quieres proporción basada en ancho
+        this.iconoAlto 					= configuration.getInt("iconos.alto", 24);
 
         // 2.5. Inicializar el mapa interno de acciones.
         this.actionMap 					= new HashMap<>();
 
-        // 2.6. Crear e inicializar todas las Actions.
-        System.out.println("  [ActionFactory] Inicializando todas las Actions...");
-        System.out.println("  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: " + this.actionMap.size());
-    }
+    } // --- Fin del método ActionFactory (constructor) ---
 
-
-    public void initializeActions() {
-        System.out.println("  [ActionFactory] Inicializando todas las Actions...");
-        if (view == null || zoomManager == null || fileOperationsManager == null ||
-                editionManager == null || listCoordinator == null || viewManager == null) {
-            throw new IllegalStateException("No se pueden inicializar las acciones porque las dependencias tardías (view, zoomManager, etc.) no han sido inyectadas.");
-        }
-        initializeAllActions(); // Llama al método privado que ya tienes
-        System.out.println("  [ActionFactory] Todas las Actions inicializadas y mapeadas. Total: " + this.actionMap.size());
-    }
-    
-    
-    // --- SECCIÓN 3: MÉTODO PRINCIPAL DE INICIALIZACIÓN DE ACTIONS ---
+    // --- CAMBIO ---
+    // El método initializeActions se renombra a initializeCoreActions y se ajusta.
     /**
-     * Crea instancias de todas las Actions de la aplicación y las registra en el actionMap.
-     * Se llama desde el constructor de ActionFactory.
-     * El orden puede ser importante si hay dependencias entre Actions (ej. ToggleZoomManual necesita ResetZoom).
+     * Inicializa todas las acciones que NO dependen de la existencia de la 'view'.
+     * Este método debe ser llamado antes de que se necesiten las acciones para construir
+     * componentes como las barras de herramientas.
      */
-    private void initializeAllActions() {
-    	
-    	boolean estadoConfigActualIncluyeSubcarpetas = this.configuration.getBoolean("comportamiento.carpeta.cargarSubcarpetas",true);
+    public void initializeCoreActions() {
+		System.out.println("  [ActionFactory] Inicializando Actions principales (no dependientes de la vista)...");
+
+		if (zoomManager == null || fileOperationsManager == null || editionManager == null
+				|| listCoordinator == null || viewManager == null)
+		{
+			throw new IllegalStateException(
+					"No se pueden inicializar las acciones principales porque las dependencias (zoomManager, etc.) no han sido inyectadas.");
+		}
+		
+		createCoreActions();
+		
+		System.out.println(
+				"  [ActionFactory] Actions principales inicializadas y mapeadas. Total: " + this.actionMap.size());
+	} // --- Fin del método initializeCoreActions ---
+
+    // --- CAMBIO ---
+    // Se añade un nuevo método para las acciones que dependen de la vista.
+    /**
+     * Inicializa todas las acciones que SÍ dependen de la existencia de la 'view'.
+     * Este método DEBE ser llamado DESPUÉS de crear la 'view' y de inyectarla en esta fábrica.
+     */
+    public void initializeViewDependentActions() {
+        System.out.println("  [ActionFactory] Inicializando Actions dependientes de la vista...");
+        if (view == null) {
+            throw new IllegalStateException("No se pueden inicializar las acciones dependientes de la vista porque la 'view' es null.");
+        }
+
+        createViewDependentActions();
+
+        System.out.println(
+				"  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: " + this.actionMap.size());
+    } // --- Fin del método initializeViewDependentActions ---
+    
+
+	/**
+     * Crea las acciones que NO dependen de la 'view'.
+     */
+private void createCoreActions() {
     	
         // 3.1. Crear la Action genérica para funcionalidades pendientes primero.
         this.funcionalidadPendienteAction = createFuncionalidadPendienteAction();
@@ -252,8 +278,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_NAV_ULTIMA, createLastImageAction());
         actionMap.put(AppActionCommands.CMD_TOGGLE_WRAP_AROUND, createToggleNavegacionCircularAction());
         
-        // 3.4. Crear y registrar Actions de Edición (usando funcionalidadPendiente por ahora)
-        // Cuando EditionManager esté listo, se crearán las actions reales aquí.
+        // 3.4. Crear y registrar Actions de Edición
         actionMap.put(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ, createRotateLeftAction());
         actionMap.put(AppActionCommands.CMD_IMAGEN_ROTAR_DER, createRotateRightAction());
         actionMap.put(AppActionCommands.CMD_IMAGEN_VOLTEAR_H, createFlipHorizontalAction());
@@ -262,9 +287,9 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_IMAGEN_LOCALIZAR, createLocateFileAction());
         
         // 3.5. Crear y registrar Actions de Archivo y relacionadas
-        actionMap.put(AppActionCommands.CMD_ARCHIVO_ABRIR, createOpenFileAction()); // Requiere FileOperationsManager o lógica interna
-        actionMap.put(AppActionCommands.CMD_IMAGEN_ELIMINAR, createDeleteAction());   // Requiere FileOperationsManager
-        actionMap.put(AppActionCommands.CMD_ESPECIAL_REFRESCAR, createRefreshAction()); // Puede necesitar recargar lista
+        actionMap.put(AppActionCommands.CMD_ARCHIVO_ABRIR, createOpenFileAction());
+        actionMap.put(AppActionCommands.CMD_IMAGEN_ELIMINAR, createDeleteAction());
+        actionMap.put(AppActionCommands.CMD_ESPECIAL_REFRESCAR, createRefreshAction());
 
         // 3.6. Crear y registrar Actions de Vista (Toggles de UI)
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR, createToggleMenuBarAction());
@@ -273,28 +298,19 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, createToggleThumbnailsAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, createToggleLocationBarAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, createToggleCheckeredBackgroundAction());
-        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, createToggleAlwaysOnTopAction());
         actionMap.put(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, createMostrarDialogoListaAction());
-        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, createToggleMiniatureTextAction());
         
-        
-
         // 3.7. Crear y registrar Actions de Tema
         actionMap.put(AppActionCommands.CMD_TEMA_CLEAR, createToggleThemeAction("clear", "Tema Clear"));
         actionMap.put(AppActionCommands.CMD_TEMA_DARK, createToggleThemeAction("dark", "Tema Dark"));
         actionMap.put(AppActionCommands.CMD_TEMA_BLUE, createToggleThemeAction("blue", "Tema Blue"));
         actionMap.put(AppActionCommands.CMD_TEMA_GREEN, createToggleThemeAction("green", "Tema Green"));
         actionMap.put(AppActionCommands.CMD_TEMA_ORANGE, createToggleThemeAction("orange", "Tema Orange"));
-        // El estado SELECTED de estas actions lo maneja ToggleThemeAction internamente.
 
         // 3.8. Crear y registrar Actions de Toggle Generales
-        
-        
         actionMap.put(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, createToggleSubfoldersAction());
-        
-        boolean estadoModeloActualIncluyeSubcarpetas = !this.model.isMostrarSoloCarpetaActual();
-        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,"Mostrar Solo Carpeta Actual",false));//, estadoModeloActualIncluyeSubcarpetas));
-        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, "Mostrar Imágenes de Subcarpetas", true));//, estadoModeloActualIncluyeSubcarpetas));
+        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,"Mostrar Solo Carpeta Actual",false));
+        actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, "Mostrar Imágenes de Subcarpetas", true));
         actionMap.put(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, createToggleProporcionesAction());
 
         // 3.9. Crear y registrar Actions de Proyecto
@@ -302,171 +318,72 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_PROYECTO_GESTIONAR, createGestionarProyectoAction());
         actionMap.put(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, createSwitchToVisualizadorAction());
         
+        // --- CAMBIO ---: Actions especiales movidas de vuelta a la primera fase.
         // 3.10. Crear y registrar Actions Especiales
         actionMap.put(AppActionCommands.CMD_ESPECIAL_MENU, createMenuAction());
         actionMap.put(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, createHiddenButtonsAction());
         
-     // BARRA DE INFORMACION SUPERIOR
+        // ACCIONES PARA CONFIGURAR VISIBILIDAD DE ELEMENTOS
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_VISIBLE, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Barra de Información Superior", ConfigKeys.INFOBAR_SUP_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_VISIBLE));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_NOMBRE_RUTA, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Nombre/Ruta Archivo (Sup.)", ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_NOMBRE_RUTA));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_INDICE_TOTAL, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Índice/Total Imágenes", ConfigKeys.INFOBAR_SUP_INDICE_TOTAL_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_INDICE_TOTAL));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_DIMENSIONES, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Dimensiones Originales", ConfigKeys.INFOBAR_SUP_DIMENSIONES_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_DIMENSIONES));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_TAMANO_ARCHIVO, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Tamaño de Archivo", ConfigKeys.INFOBAR_SUP_TAMANO_ARCHIVO_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_TAMANO_ARCHIVO));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FECHA_ARCHIVO, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Fecha de Archivo", ConfigKeys.INFOBAR_SUP_FECHA_ARCHIVO_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FECHA_ARCHIVO));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FORMATO_IMAGEN, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Formato de Imagen", ConfigKeys.INFOBAR_SUP_FORMATO_IMAGEN_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FORMATO_IMAGEN));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_MODO_ZOOM, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Modo de Zoom", ConfigKeys.INFOBAR_SUP_MODO_ZOOM_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_MODO_ZOOM));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_ZOOM_REAL_PCT, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar % Zoom Real", ConfigKeys.INFOBAR_SUP_ZOOM_REAL_PCT_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_ZOOM_REAL_PCT));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_SOLO_NOMBRE, new SetInfoBarTextFormatAction(this.viewManager, this.configuration, "Solo Nombre de Archivo", ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO, "solo_nombre", "REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_SOLO_NOMBRE));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_RUTA_COMPLETA, new SetInfoBarTextFormatAction(this.viewManager, this.configuration, "Ruta Completa y Nombre", ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO, "ruta_completa", "REFRESH_INFO_BAR_SUPERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_RUTA_COMPLETA));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_VISIBLE, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Barra de Estado/Control Inferior", ConfigKeys.INFOBAR_INF_VISIBLE, "REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_VISIBLE));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_NOMBRE_RUTA, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Nombre/Ruta Archivo (Inf.)", ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE,"REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_NOMBRE_RUTA));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_ZM, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Zoom Manual (Inf.)", ConfigKeys.INFOBAR_INF_ICONO_ZM_VISIBLE,"REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_ZM));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_PROP, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Proporciones (Inf.)", ConfigKeys.INFOBAR_INF_ICONO_PROP_VISIBLE,"REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_PROP));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_SUBC, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Subcarpetas (Inf.)", ConfigKeys.INFOBAR_INF_ICONO_SUBC_VISIBLE,"REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_SUBC));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_ZOOM_PCT, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Control % Zoom (Inf.)", ConfigKeys.INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE, "REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_ZOOM_PCT));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_MODO_ZOOM, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Control Modo Zoom (Inf.)", ConfigKeys.INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE,"REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_MODO_ZOOM));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_MENSAJES_APP, new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Área de Mensajes (Inf.)", ConfigKeys.INFOBAR_INF_MENSAJES_APP_VISIBLE,"REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_MENSAJES_APP));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE, new SetInfoBarTextFormatAction(this.viewManager, this.configuration, "Solo Nombre de Archivo", ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_FORMATO, "solo_nombre", "REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE));
+        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA, new SetInfoBarTextFormatAction(this.viewManager, this.configuration, "Ruta Completa y Nombre", ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_FORMATO, "ruta_completa", "REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA));
+    
+        // 3.11. Crear y registrar Actions de Paneo (para el D-Pad)
+        actionMap.put(AppActionCommands.CMD_PAN_TOP_EDGE, createPanActionAbsolute(AppActionCommands.CMD_PAN_TOP_EDGE, Direction.UP));
+        actionMap.put(AppActionCommands.CMD_PAN_BOTTOM_EDGE, createPanActionAbsolute(AppActionCommands.CMD_PAN_BOTTOM_EDGE, Direction.DOWN));
+        actionMap.put(AppActionCommands.CMD_PAN_LEFT_EDGE, createPanActionAbsolute(AppActionCommands.CMD_PAN_LEFT_EDGE, Direction.LEFT));
+        actionMap.put(AppActionCommands.CMD_PAN_RIGHT_EDGE, createPanActionAbsolute(AppActionCommands.CMD_PAN_RIGHT_EDGE, Direction.RIGHT));
         
-        // --- ACCIONES PARA CONFIGURAR VISIBILIDAD DE ELEMENTOS EN LA BARRA DE INFORMACIÓN SUPERIOR ---
+        actionMap.put(AppActionCommands.CMD_PAN_UP_INCREMENTAL, createPanActionIncremental(AppActionCommands.CMD_PAN_UP_INCREMENTAL, Direction.UP));
+        actionMap.put(AppActionCommands.CMD_PAN_DOWN_INCREMENTAL, createPanActionIncremental(AppActionCommands.CMD_PAN_DOWN_INCREMENTAL, Direction.DOWN));
+        actionMap.put(AppActionCommands.CMD_PAN_LEFT_INCREMENTAL, createPanActionIncremental(AppActionCommands.CMD_PAN_LEFT_INCREMENTAL, Direction.LEFT));
+        actionMap.put(AppActionCommands.CMD_PAN_RIGHT_INCREMENTAL, createPanActionIncremental(AppActionCommands.CMD_PAN_RIGHT_INCREMENTAL, Direction.RIGHT));
+        
+        // 3.12. Crear y registrar Actions de Control de Fondo
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, createSetBackgroundColorAction("clear", "Fondo Tema Claro"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, createSetBackgroundColorAction("dark", "Fondo Tema Oscuro"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, createSetBackgroundColorAction("blue", "Fondo Tema Azul"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, createSetBackgroundColorAction("orange", "Fondo Tema Naranja"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, createSetBackgroundColorAction("green", "Fondo Tema Verde"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_CHECKERED, createSetCheckeredBackgroundAction("Fondo a Cuadros"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, createRequestCustomColorAction("Elegir Color..."));
+    } // --- FIN del metodo createCoreActions ---
+    
 
-        // Visibilidad del PANEL COMPLETO de la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_VISIBLE,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Barra de Información Superior",
-            		ConfigKeys.INFOBAR_SUP_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR", 
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_VISIBLE));
+	/**
+     * Crea las acciones que SÍ dependen de la 'view'.
+     */
+    private void createViewDependentActions() {
+        // Crear la Action genérica para funcionalidades pendientes primero, ya que necesita la 'view'.
+//        this.funcionalidadPendienteAction = createFuncionalidadPendienteAction();
+//        actionMap.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
 
-        // Visibilidad del componente Nombre/Ruta en la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_NOMBRE_RUTA,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Nombre/Ruta Archivo (Sup.)",
-            		ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR", 
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_NOMBRE_RUTA
-            ));
+        // Action que depende explícitamente de la 'view'.
+        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, createToggleAlwaysOnTopAction());
+        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, createToggleMiniatureTextAction());
 
-        // Visibilidad del componente Índice/Total en la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_INDICE_TOTAL,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Índice/Total Imágenes",
-            		ConfigKeys.INFOBAR_SUP_INDICE_TOTAL_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_INDICE_TOTAL
-            ));
-
-        // Visibilidad del componente Dimensiones en la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_DIMENSIONES,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Dimensiones Originales",
-            		ConfigKeys.INFOBAR_SUP_DIMENSIONES_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR",
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_DIMENSIONES
-            ));
-
-        // Visibilidad del componente Tamaño de Archivo en la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_TAMANO_ARCHIVO,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Tamaño de Archivo",
-            		ConfigKeys.INFOBAR_SUP_TAMANO_ARCHIVO_VISIBLE, "REFRESH_INFO_BAR_SUPERIOR",
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_TAMANO_ARCHIVO
-            ));
-
-        // Visibilidad del componente Fecha de Archivo en la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FECHA_ARCHIVO,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Fecha de Archivo",
-            		ConfigKeys.INFOBAR_SUP_FECHA_ARCHIVO_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FECHA_ARCHIVO
-            ));
-
-        // Visibilidad del componente Formato de Imagen en la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FORMATO_IMAGEN,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Formato de Imagen",
-            		ConfigKeys.INFOBAR_SUP_FORMATO_IMAGEN_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_FORMATO_IMAGEN
-            ));
-
-        // Visibilidad del componente Modo de Zoom en la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_MODO_ZOOM,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Modo de Zoom",
-            		ConfigKeys.INFOBAR_SUP_MODO_ZOOM_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_MODO_ZOOM
-            ));
-
-        // Visibilidad del componente % Zoom Real en la Barra Superior
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_ZOOM_REAL_PCT,
-            new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar % Zoom Real",
-            		ConfigKeys.INFOBAR_SUP_ZOOM_REAL_PCT_VISIBLE,"REFRESH_INFO_BAR_SUPERIOR",
-                AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_SUPERIOR_ZOOM_REAL_PCT
-            ));
-
-     // --- ACCIONES PARA CONFIGURAR FORMATO DE TEXTO EN BARRA SUPERIOR (RADIO BUTTONS) ---
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_SOLO_NOMBRE,
-            new SetInfoBarTextFormatAction(
-                this.viewManager, this.configuration, "Solo Nombre de Archivo", // Texto del JRadioButtonMenuItem
-                ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO, // Clave donde se guarda "solo_nombre" o "ruta_completa"
-                "solo_nombre", // Valor que esta Action establece
-                "REFRESH_INFO_BAR_SUPERIOR", // Zona a refrescar
-                AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_SOLO_NOMBRE // Comando de esta Action
-            ));
-        actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_RUTA_COMPLETA,
-            new SetInfoBarTextFormatAction(
-                this.viewManager, this.configuration, "Ruta Completa y Nombre",
-                ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO,
-                "ruta_completa",
-                "REFRESH_INFO_BAR_SUPERIOR",
-                AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_SUPERIOR_NOMBRE_RUTA_RUTA_COMPLETA
-            ));
-
-     // --- BARRA DE INFORMACIÓN INFERIOR ---
-
-     // Visibilidad del PANEL COMPLETO de la Barra Inferior
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_VISIBLE,
-         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Barra de Estado/Control Inferior",
-             ConfigKeys.INFOBAR_INF_VISIBLE, "REFRESH_INFO_BAR_INFERIOR", 
-             AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_VISIBLE
-         ));
-
-     // Visibilidad del componente Nombre/Ruta en la Barra Inferior
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_NOMBRE_RUTA,
-         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Nombre/Ruta Archivo (Inf.)",
-        		 ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_NOMBRE_RUTA
-         ));
-
-     // Visibilidad del Icono Zoom Manual en la Barra Inferior
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_ZM,
-         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Zoom Manual (Inf.)",
-        		 ConfigKeys.INFOBAR_INF_ICONO_ZM_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_ZM
-         ));
-
-     // Visibilidad del Icono Proporciones en la Barra Inferior
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_PROP,
-         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Proporciones (Inf.)",
-        		 ConfigKeys.INFOBAR_INF_ICONO_PROP_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_PROP
-         ));
-
-     // Visibilidad del Icono Subcarpetas en la Barra Inferior
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_SUBC,
-         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Icono Subcarpetas (Inf.)",
-        		 ConfigKeys.INFOBAR_INF_ICONO_SUBC_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_ICONO_SUBC
-         ));
-
-     // Visibilidad del Control % Zoom en la Barra Inferior
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_ZOOM_PCT,
-         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Control % Zoom (Inf.)",
-        		 ConfigKeys.INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE, "REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_ZOOM_PCT
-         ));
-
-     // Visibilidad del Control Modo Zoom en la Barra Inferior
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_MODO_ZOOM,
-         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Control Modo Zoom (Inf.)",
-        		 ConfigKeys.INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_CTRL_MODO_ZOOM
-         ));
-
-     // Visibilidad de Mensajes Aplicación en la Barra Inferior
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_MENSAJES_APP,
-         new ToggleUIElementVisibilityAction(this.viewManager, this.configuration, "Mostrar Área de Mensajes (Inf.)",
-        		 ConfigKeys.INFOBAR_INF_MENSAJES_APP_VISIBLE,"REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_TOGGLE_INFERIOR_MENSAJES_APP
-         ));
-
-  // --- ACCIONES PARA CONFIGURAR FORMATO DE TEXTO EN BARRA INFERIOR (RADIO BUTTONS) ---
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE,
-         new SetInfoBarTextFormatAction(
-             this.viewManager, this.configuration, "Solo Nombre de Archivo",
-             ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_FORMATO,
-             "solo_nombre",
-             "REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_SOLO_NOMBRE
-         ));
-     actionMap.put(AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA,
-         new SetInfoBarTextFormatAction(
-             this.viewManager, this.configuration, "Ruta Completa y Nombre",
-             ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_FORMATO,
-             "ruta_completa",
-             "REFRESH_INFO_BAR_INFERIOR",
-             AppActionCommands.CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA
-         ));
-
-    }
+        // Actions que dependen del 'actionMap' completo para construir menús emergentes.
+//        actionMap.put(AppActionCommands.CMD_ESPECIAL_MENU, createMenuAction());
+//        actionMap.put(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, createHiddenButtonsAction());
+    } // --- FIN del metodo createViewDependentActions ---
 
 
     // --- SECCIÓN 4: MÉTODOS PRIVADOS AUXILIARES PARA CREAR ACTIONS ---
@@ -491,8 +408,8 @@ public class ActionFactory {
 
                  String mensaje = "Funcionalidad para '" + textoComponente + "' aún no implementada.";
 
-                 // Usamos la variable 'view' directamente como el componente padre.
-                 JOptionPane.showMessageDialog(view, mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
+                 // --- CAMBIO ---: Usamos null como componente padre para eliminar la dependencia de la vista.
+                 JOptionPane.showMessageDialog(null, mensaje, "En Desarrollo", JOptionPane.INFORMATION_MESSAGE);
             }
         };
     } // --- FIN del metodo createFuncionalidadPendienteAction ---
@@ -505,83 +422,85 @@ public class ActionFactory {
         if (claveIcono != null && !claveIcono.isBlank()) {
         	return this.iconUtils.getScaledIcon(claveIcono, this.iconoAncho, this.iconoAlto);
         }
-        // System.err.println("WARN [ActionFactory]: No se encontró clave de icono en comandoToIconKeyMap para el comando: " + appCommand + ". No se asignará icono a la Action.");
-        return null; // Devolver null si no hay icono definido para este comando
-    }
+        return null; 
+    } // --- Fin del método getIconForCommand ---
 
     // --- 4.3. Métodos Create para Actions de Zoom ---
     private Action createToggleZoomManualAction() { 
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
         return new ToggleZoomManualAction("Activar Zoom Manual", icon, this.zoomManager, this.generalController.getVisorController(), this.model);
-    }
+    } // --- Fin del método createToggleZoomManualAction ---
+    
     private Action createResetZoomAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_RESET);
         return new ResetZoomAction("Resetear Zoom", icon, this.zoomManager);
-    }
+    } // --- Fin del método createResetZoomAction ---
+    
     private Action createAplicarModoZoomAction(String commandKey, String displayName, ZoomModeEnum modo) {
         ImageIcon icon = getIconForCommand(commandKey); 
-        // Pasamos this.model a AplicarModoZoomAction
         return new AplicarModoZoomAction(this.zoomManager, this.model, this.generalController.getVisorController(), displayName, icon, modo, commandKey);
-    }
+    } // --- Fin del método createAplicarModoZoomAction ---
     
     // --- 4.4. Métodos Create para Actions de Navegación ---
     private Action createFirstImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_PRIMERA);
         return new FirstImageAction(this.listCoordinator, "Primera Imagen", icon);
-    }
+    } // --- Fin del método createFirstImageAction ---
+    
     private Action createPreviousImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_ANTERIOR);
         return new PreviousImageAction(this.listCoordinator, "Imagen Anterior", icon);
-    }
+    } // --- Fin del método createPreviousImageAction ---
+    
     private Action createNextImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_SIGUIENTE);
         return new NextImageAction(this.listCoordinator, "Siguiente Imagen", icon);
-    }
+    } // --- Fin del método createNextImageAction ---
+    
     private Action createLastImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_ULTIMA);
         return new LastImageAction(this.listCoordinator, "Última Imagen", icon);
-    }
+    } // --- Fin del método createLastImageAction ---
+    
     private Action createToggleNavegacionCircularAction() {
         return new ToggleNavegacionCircularAction("Alternar Navegación Circular", null, this.configuration, this.model, this.generalController.getVisorController(), ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR,AppActionCommands.CMD_TOGGLE_WRAP_AROUND);
-    }
+    } // --- Fin del método createToggleNavegacionCircularAction ---
 
 
     // --- 4.5. Métodos Create para Actions de Edición (usarán EditionManager) ---
-    // Ejemplo (cuando EditionManager esté listo):
-    // private Action createRotateLeftAction() {
-    //     ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
-    //     return new RotateLeftAction(this.editionManager, "Girar Izquierda", icon); 
-    // }
-    // Por ahora, se usa funcionalidadPendienteAction.
     private Action createRotateRightAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ROTAR_DER);
         RotateRightAction action = new RotateRightAction(this.editionManager, this.model, "Girar Derecha", icon);
         this.contextSensitiveActions.add(action); 
         return action;
-    }
+    } // --- Fin del método createRotateRightAction ---
+    
     private Action createRotateLeftAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
         RotateLeftAction action = new RotateLeftAction(this.editionManager, this.model, "Girar Izquierda", icon);
         this.contextSensitiveActions.add(action); 
         return action;
-    }
+    } // --- Fin del método createRotateLeftAction ---
+    
     private Action createFlipHorizontalAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_VOLTEAR_H);
     	FlipHorizontalAction action = new FlipHorizontalAction(this.editionManager, this.model, "Voltear Horizontal", icon);
         this.contextSensitiveActions.add(action); 
         return action;
-    }
+    } // --- Fin del método createFlipHorizontalAction ---
+    
     private Action createFlipVerticalAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_VOLTEAR_V);
     	FlipVerticalAction action = new FlipVerticalAction(this.editionManager, this.model, "Voltear Vertical", icon);
         this.contextSensitiveActions.add(action); 
         return action;
-    }
+    } // --- Fin del método createFlipVerticalAction ---
+    
     private Action createCropAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_RECORTAR);
         CropAction action = new CropAction(this.editionManager, this.model, "Recortar", icon);
         
-        this.contextSensitiveActions.add(action); // Registrarla
+        this.contextSensitiveActions.add(action);
         return action;
     } // --- Fin del método createCropAction ---
 
@@ -589,68 +508,75 @@ public class ActionFactory {
     private Action createOpenFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_ABRIR);
         return new OpenFileAction("Abrir Carpeta...", icon, this.fileOperationsManager);
-    }
+    } // --- Fin del método createOpenFileAction ---
+    
     private Action createDeleteAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ELIMINAR);
         return new DeleteAction("Eliminar Imagen", icon, this.fileOperationsManager, this.model);
-    }
+    } // --- Fin del método createDeleteAction ---
+    
     private Action createRefreshAction() {
-        // 1. Obtener el icono usando el comando canónico
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_REFRESCAR); 
         return new RefreshAction("Refrescar", icon, this.generalController.getVisorController());
-    }
+    } // --- Fin del método createRefreshAction ---
+    
     private Action createLocateFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
         LocateFileAction action = new LocateFileAction(this.model, this.generalController.getVisorController(), "Localizar Archivo", icon);
-        this.contextSensitiveActions.add(action); // <<< REGISTRAR LA ACCIÓN
+        this.contextSensitiveActions.add(action);
         return action;
-    }    
+    } // --- Fin del método createLocateFileAction ---    
 
     // --- 4.7. Métodos Create para Actions de Vista (Toggles UI) ---
-    // (Estas actions suelen tomar VisorView y ConfigurationManager)
      
     private Action createToggleMenuBarAction() {
     	return new ToggleMenuBarAction("Barra de Menú", null, this.configuration, this.viewManager, "interfaz.menu.vista.barra_de_menu.seleccionado", "Barra_de_Menu", AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
-    }
+    } // --- Fin del método createToggleMenuBarAction ---
+    
     private Action createToggleToolBarAction() {
         return new ToggleToolBarAction("Barra de Botones", null, this.configuration, this.viewManager, "interfaz.menu.vista.barra_de_botones", "Barra_de_Botones", AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
-    }  
+    } // --- Fin del método createToggleToolBarAction ---
+      
     private Action createToggleFileListAction() {
         return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.viewManager, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-    }
+    } // --- Fin del método createToggleFileListAction ---
+    
     private Action createToggleThumbnailsAction() {
-   	    //return new ToggleThumbnailsAction("Imagenes en Miniatura", null, this.viewManager, this.configuration, "interfaz.menu.vista.imagenes_en_miniatura.seleccionado", "imagenes_en_miniatura", AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
     	return new ToggleThumbnailsAction( "Barra de Miniaturas", null, this.configuration, this.viewManager, "interfaz.menu.vista.imagenes_en_miniatura.seleccionado", "imagenes_en_miniatura", AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
-   	}
+   	} // --- Fin del método createToggleThumbnailsAction ---
+    
     private Action createToggleLocationBarAction() {
-//        return new ToggleLocationBarAction("Linea de Ubicacion del Archivo", null, this.configuration, this.controllerRef, ConfigKeys.INFOBAR_INF_NOMBRE_RUTA_VISIBLE, "REFRESH_INFO_BAR_INFERIOR", AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR);
-    	return new ToggleUIElementVisibilityAction( // <<< Usamos la Action genérica
+    	return new ToggleUIElementVisibilityAction(
     	        this.viewManager,
     	        this.configuration,
-    	        "Barra de Estado", // <-- Texto más apropiado para el menú
-    	        ConfigKeys.INFOBAR_INF_VISIBLE, // <<< Clave que controla TODA la barra
-    	        "REFRESH_INFO_BAR_INFERIOR", // <<< Identificador para el refresco
-    	        AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR // Comando
+    	        "Barra de Estado",
+    	        ConfigKeys.INFOBAR_INF_VISIBLE,
+    	        "REFRESH_INFO_BAR_INFERIOR",
+    	        AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR
     	    );
-    }
+    } // --- Fin del método createToggleLocationBarAction ---
+    
     private Action createToggleCheckeredBackgroundAction() {
-//   	    return new ToggleCheckeredBackgroundAction("Fondo a Cuadros", null, this.view, this.configuration, "interfaz.menu.vista.fondo_a_cuadros.seleccionado", AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
     		return new ToggleCheckeredBackgroundAction("Fondo a Cuadros", null, this.viewManager, this.configuration, "interfaz.menu.vista.fondo_a_cuadros.seleccionado", AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
-   	}
+   	} // --- Fin del método createToggleCheckeredBackgroundAction ---
+    
     private Action createToggleAlwaysOnTopAction() {
    	    return new ToggleAlwaysOnTopAction("Mantener Ventana Siempre Encima", null, this.view, this.configuration, "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", controlador.commands.AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
-   	}
+   	} // --- Fin del método createToggleAlwaysOnTopAction ---
+    
     private Action createMostrarDialogoListaAction() {
    	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA);
    	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.generalController.getVisorController());
-   	}
+   	} // --- Fin del método createMostrarDialogoListaAction ---
+    
     private Action createToggleMiniatureTextAction() {
     	return new ToggleMiniatureTextAction("Mostrar Nombres en Miniaturas", null, this.configuration, this.view, ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT);
-    }
+    } // --- Fin del método createToggleMiniatureTextAction ---
+    
     private Action createSwitchToVisualizadorAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR); 
         return new SwitchToVisualizadorAction("Visualizador", icon, this.generalController);
-    }
+    } // --- Fin del método createSwitchToVisualizadorAction ---
    	 	
 
     // --- 4.8. Métodos Create para Actions de Tema ---
@@ -663,27 +589,26 @@ public class ActionFactory {
             case "green":  commandKey = AppActionCommands.CMD_TEMA_GREEN;  break;
             case "orange": commandKey = AppActionCommands.CMD_TEMA_ORANGE; break;
             default:
-                System.err.println("WARN [ActionFactory]: Nombre de tema interno no reconocido para ActionCommandKey: " + themeNameInternal);
                 commandKey = AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE;
         }
         return new ToggleThemeAction(this.themeManager, this.generalController.getVisorController(), themeNameInternal, displayNameForMenu, commandKey);
-    }
+    } // --- Fin del método createToggleThemeAction ---
    
     // --- 4.9. Métodos Create para Actions de Toggle Generales ---
     private Action createToggleSubfoldersAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        ToggleSubfoldersAction action = new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.configuration, this.model, this.generalController.getVisorController());
-        System.out.println("ActionFactory: Creando ToggleSubfoldersAction@" + Integer.toHexString(System.identityHashCode(action))); // Log de la instancia creada
-        return action;
-    }
+        return new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.configuration, this.model, this.generalController.getVisorController());
+    } // --- Fin del método createToggleSubfoldersAction ---
+    
     private Action createSetSubfolderReadModeAction(String commandKey, String displayName, boolean representaModoIncluirSubcarpetas) {
     	ImageIcon icon = null; 
     	return new SetSubfolderReadModeAction(displayName, icon, this.generalController.getVisorController(), this.model,representaModoIncluirSubcarpetas, commandKey);
-    }    
+    } // --- Fin del método createSetSubfolderReadModeAction ---
+        
     private Action createToggleProporcionesAction() {
-    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
-    return new ToggleProporcionesAction("Mantener Proporciones", icon, this.model, this.generalController.getVisorController());
-    }
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
+        return new ToggleProporcionesAction("Mantener Proporciones", icon, this.model, this.generalController.getVisorController());
+    } // --- Fin del método createToggleProporcionesAction ---
    
     // --- 4.10. Métodos Create para Actions de Proyecto ---
     private Action createToggleMarkImageAction() {
@@ -692,10 +617,11 @@ public class ActionFactory {
         this.contextSensitiveActions.add(action);
         return action;
     } // --- FIN del método createToggleMarkImageAction ---
+    
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
         return new GestionarProyectoAction(this.generalController, "Ver Proyecto", icon);
-    }
+    } // --- Fin del método createGestionarProyectoAction ---
     
     // --- 4.11. Métodos Create para Actions Especiales ---
      private Action createMenuAction() { 
@@ -703,26 +629,73 @@ public class ActionFactory {
          UIDefinitionService uiDefService = new UIDefinitionService();
          List<MenuItemDefinition> fullMenuStructure = uiDefService.generateMenuStructure();
          return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.themeManager, this.configuration, this.generalController.getVisorController());
-     }
+     } // --- Fin del método createMenuAction ---
+     
      private Action createHiddenButtonsAction() {
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
          return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration, this.generalController.getVisorController() );
-     }
+     } // --- Fin del método createHiddenButtonsAction ---
 
-    // --- SECCIÓN 5: GETTER PARA EL ACTIONMAP ---
-    /**
-     * Devuelve el mapa de acciones construido.
-     * @return El mapa donde la clave es el String del comando (de AppActionCommands)
-     *         y el valor es la instancia de Action correspondiente.
-     */
-     public Map<String, Action> getActionMap() {
+     // --- 4.12. Métodos Create para Actions de Paneo ---
+     private Action createPanActionAbsolute(String command, Direction direction) {
+         PanAction action = new PanAction(generalController, command, direction);
+         this.contextSensitiveActions.add(action);
+         return action;
+     } // --- Fin del método createPanActionAbsolute ---
+
+     private Action createPanActionIncremental(String command, Direction direction) {
+         PanAction action = new PanAction(generalController, command, direction, INCREMENTAL_PAN_AMOUNT);
+         this.contextSensitiveActions.add(action);
+         return action;
+     } // --- Fin del método createPanActionIncremental ---
+
+     // --- 4.13. Métodos Create para Actions de Control de Fondo ---
+     private Action createSetBackgroundColorAction(String themeKey, String name) {
+         return new AbstractAction(name) {
+             private static final long serialVersionUID = 1L;
+             @Override
+             public void actionPerformed(ActionEvent e) {
+                 if (viewManager != null && themeManager != null) {
+                     java.awt.Color color = themeManager.getFondoSecundarioParaTema(themeKey);
+                     viewManager.setSessionBackgroundColor(color);
+                 }
+             }
+         };
+     } // --- Fin del método createSetBackgroundColorAction ---
+     
+     private Action createSetCheckeredBackgroundAction(String name) {
+         return new AbstractAction(name) {
+             private static final long serialVersionUID = 1L;
+             @Override
+             public void actionPerformed(ActionEvent e) {
+                 if (viewManager != null) {
+                     viewManager.setSessionCheckeredBackground();
+                 }
+             }
+         };
+     } // --- Fin del método createSetCheckeredBackgroundAction ---
+     
+     private Action createRequestCustomColorAction(String name) {
+         return new AbstractAction(name) {
+             private static final long serialVersionUID = 1L;
+             @Override
+             public void actionPerformed(ActionEvent e) {
+                 if (viewManager != null) {
+                     viewManager.requestCustomBackgroundColor();
+                 }
+             }
+         };
+     } // --- Fin del método createRequestCustomColorAction ---
+     
+    // --- SECCIÓN 5: GETTERS Y SETTERS ---
+    public Map<String, Action> getActionMap() {
          return this.actionMap; 
-     }
+    } // --- Fin del método getActionMap ---
+     
     public List<ContextSensitiveAction> getContextSensitiveActions() {
         return Collections.unmodifiableList(this.contextSensitiveActions);
-    }
+    } // --- Fin del método getContextSensitiveActions ---
     
-    // Getters para las dimensiones de los iconos
     public Map<String, String> getComandoToIconKeyMap() {return Collections.unmodifiableMap(this.comandoToIconKeyMap);}
     public int getIconoAncho() { return this.iconoAncho;}
     public int getIconoAlto() { return this.iconoAlto;}
@@ -731,10 +704,9 @@ public class ActionFactory {
         if (this.actionMap.containsKey(commandKey)) {
             System.out.println("WARN [ActionFactory]: Reemplazando Action existente para el comando: " + commandKey);
         }
-        this.actionMap.put(commandKey, action); // Modifica el mapa interno mutable
+        this.actionMap.put(commandKey, action);
         System.out.println("  [ActionFactory] Action registrada/actualizada para comando: " + commandKey);
-    }
-    
+    } // --- Fin del método registerAction ---
     
     public void setView(VisorView view) { this.view = view; }
     public void setZoomManager(IZoomManager zoomManager) { this.zoomManager = zoomManager; }
@@ -743,6 +715,8 @@ public class ActionFactory {
     public void setListCoordinator(IListCoordinator listCoordinator) {this.listCoordinator = Objects.requireNonNull(listCoordinator);}
     public void setFileOperationsManager(FileOperationsManager fileOperationsManager) {
         this.fileOperationsManager = Objects.requireNonNull(fileOperationsManager, "FileOperationsManager no puede ser null en setFileOperationsManager");
-    }
+    } // --- Fin del método setFileOperationsManager ---
     
-}	// --- FIN de la clase ActionFactory
+}	// --- FIN de la clase ActionFactory ---
+
+

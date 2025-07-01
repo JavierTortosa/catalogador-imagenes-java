@@ -8,6 +8,10 @@ import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 import javax.swing.BorderFactory;
@@ -22,6 +26,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
+import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -29,15 +34,16 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 import controlador.VisorController;
-// --- INICIO DE LA MODIFICACIÓN: Importar la interfaz en lugar de la clase ---
+import controlador.commands.AppActionCommands;
+import controlador.managers.ToolbarManager;
 import controlador.managers.interfaces.IViewManager;
-// --- FIN DE LA MODIFICACIÓN ---
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
 import vista.VisorView;
+import vista.config.ButtonType;
 import vista.config.UIDefinitionService;
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
@@ -45,6 +51,7 @@ import vista.renderers.NombreArchivoRenderer;
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
+
 
 public class ViewBuilder {
 
@@ -59,12 +66,14 @@ public class ViewBuilder {
     private final ThumbnailService thumbnailService;
     private final ProjectBuilder projectBuilder;
     private final DefaultListModel<String> modeloMiniaturas;
-
-    // --- INICIO DE LA MODIFICACIÓN: El campo ahora es de tipo IViewManager ---
-    private IViewManager viewManager;
-    // --- FIN DE LA MODIFICACIÓN ---
     
-    // --- INICIO DE LA MODIFICACIÓN: Constructor simplificado ---
+    private ToolbarManager toolbarManager;
+    private IViewManager viewManager;
+
+    private final List<JButton> backgroundControlButtons;
+    private final Border bordePuntoNormal;
+    private final Border bordePuntoSeleccionado;
+    
     public ViewBuilder(
             ComponentRegistry registry,
             VisorModel model,
@@ -85,16 +94,28 @@ public class ViewBuilder {
         this.uiDefService = new UIDefinitionService();
         this.thumbnailService = Objects.requireNonNull(thumbnailService);
         this.projectBuilder = Objects.requireNonNull(projectBuilder, "ProjectBuilder no puede ser null");
-        // El viewManager ya no se inyecta aquí. Se inyectará a través del setter.
         this.modeloMiniaturas = Objects.requireNonNull(modeloMiniaturas, "El modelo de miniaturas no puede ser null en el constructor de ViewBuilder.");
-        
-    } // --- Fin del constructor ViewBuilder ---
+
+        this.backgroundControlButtons = new ArrayList<>();
+        this.bordePuntoNormal = BorderFactory.createLineBorder(Color.GRAY);
+        this.bordePuntoSeleccionado = BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(Color.CYAN, 2),
+            BorderFactory.createLineBorder(Color.BLACK)
+        );
+    } // --- Fin del método ViewBuilder (constructor) ---
+
+    public void setToolbarManager(ToolbarManager toolbarManager) {
+        this.toolbarManager = Objects.requireNonNull(toolbarManager, "ToolbarManager no puede ser null en ViewBuilder.");
+    } // --- Fin del método setToolbarManager ---
+
+    public void setViewManager(IViewManager viewManager) {
+        this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null en el setter");
+    } // --- Fin del método setViewManager ---
 
 
     public VisorView createMainFrame() {
         System.out.println("  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...");
 
-        // --- FASE 1: Crear el contenedor principal (VisorView) ---
         VisorView mainFrame = new VisorView(
             100,
             this.model,
@@ -108,8 +129,6 @@ public class ViewBuilder {
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         mainFrame.setLayout(new BorderLayout());
 
-        // --- FASE 2: CONSTRUIR Y ENSAMBLAR LAS PIEZAS DE LA UI ---
-        
         JPanel toolbarContainer = createToolbarContainer();
         JPanel topInfoPanel = createTopInfoPanel();
         JPanel northWrapper = new JPanel(new BorderLayout());
@@ -131,7 +150,6 @@ public class ViewBuilder {
 
         mainFrame.add(vistasContainer, BorderLayout.CENTER);
 
-        // --- FASE 3: Lógica de configuración final de la ventana ---
         int x = configuration.getInt(ConfigKeys.WINDOW_X, -1);
         int y = configuration.getInt(ConfigKeys.WINDOW_Y, -1);
         int w = configuration.getInt(ConfigKeys.WINDOW_WIDTH, 1280);
@@ -164,15 +182,6 @@ public class ViewBuilder {
         JPanel panel = new JPanel(new BorderLayout());
         
         panel.add(createMainSplitPane(), BorderLayout.CENTER);
-        
-        // LOG DEBUG ViewBuilder: La JList tiene asignado un modelo con hashCode
-        // *** AÑADIR ESTE BLOQUE DE DEBUG ***
-        JList<String> listaDebug = registry.get("list.miniaturas");
-        if(listaDebug != null && listaDebug.getModel() != null) {
-            System.out.println("!!! DEBUG ViewBuilder: La JList tiene asignado un modelo con hashCode: " + System.identityHashCode(listaDebug.getModel()));
-        } else {
-            System.out.println("!!! DEBUG ViewBuilder: La JList o su modelo son NULOS en este punto.");
-        }
         
         panel.add(createThumbnailScrollPane(), BorderLayout.SOUTH);
         
@@ -218,70 +227,12 @@ public class ViewBuilder {
         panelIzquierdo.add(scrollPane, BorderLayout.CENTER);
         return panelIzquierdo;
     } // --- Fin del método createLeftSplitComponent ---
-
-    
-//******************************************************************************************* metodo que funciona independiente    
-//    private JScrollPane createThumbnailScrollPane() {
-//        System.out.println("--- PRUEBA DE AISLAMIENTO: createThumbnailScrollPane ---");
-//
-//        // 1. CREAMOS UN MODELO NUEVO AQUÍ MISMO. NO PUEDE SER NULL.
-//        DefaultListModel<String> modeloDePrueba = new DefaultListModel<>();
-//        
-//        // 2. LE AÑADIMOS DATOS DE PRUEBA PARA VER SI SE PINTA ALGO
-//        modeloDePrueba.addElement("prueba1.jpg");
-//        modeloDePrueba.addElement("prueba2.jpg");
-//        modeloDePrueba.addElement("prueba3.jpg");
-//        System.out.println("    -> Modelo de prueba creado con " + modeloDePrueba.getSize() + " elementos.");
-//
-//        // 3. CREAMOS LA JLIST CON ESTE MODELO LOCAL Y SEGURO
-//        JList<String> thumbnailList = new JList<>(modeloDePrueba);
-//        registry.register("list.miniaturas", thumbnailList);
-//        System.out.println("    -> JList creada y registrada.");
-//        
-//        // 4. CREAMOS UN RENDERER. USAMOS LA MISMA LÓGICA
-//        MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
-//            this.thumbnailService,
-//            this.model,
-//            this.themeManager,
-//            this.iconUtils,
-//            40, // Valores fijos para la prueba
-//            40,
-//            true
-//        );
-//        thumbnailList.setCellRenderer(renderer);
-//        thumbnailList.setFixedCellWidth(renderer.getAnchoCalculadaDeCelda());
-//        thumbnailList.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
-//        thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-//        thumbnailList.setVisibleRowCount(-1);
-//        System.out.println("    -> Renderer y configuración de JList aplicados.");
-//
-//        // 5. METEMOS LA JLIST DIRECTAMENTE EN EL SCROLLPANE
-//        JScrollPane scrollPane = new JScrollPane(thumbnailList);
-//        
-//        // 6. CONFIGURAMOS EL SCROLLPANE
-//        TitledBorder border = BorderFactory.createTitledBorder("Miniaturas (MODO PRUEBA)");
-//        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-//        scrollPane.setBorder(border);
-//        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-//        registry.register("scroll.miniaturas", scrollPane);
-//        System.out.println("    -> JScrollPane creado y configurado. Fin de la prueba.");
-//
-//        return scrollPane;
-//    }
-//*******************************************************************************************************    
     
     
-private JScrollPane createThumbnailScrollPane() {
-        
-        // 1. OBTENER EL MODELO CORRECTO DESDE EL CAMPO DE LA CLASE
-        //    Ya no se lo pedimos al controlador, usamos el modelo que nos inyectaron
-        //    en el constructor.
+    private JScrollPane createThumbnailScrollPane() {
         JList<String> thumbnailList = new JList<>(this.modeloMiniaturas);
-        
-        // 2. REGISTRAR LA JLIST
         registry.register("list.miniaturas", thumbnailList);
 
-        // 3. CONFIGURAR LA JLIST Y SU RENDERER (Lógica sin cambios)
         MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
             this.thumbnailService,
             this.model,
@@ -297,10 +248,8 @@ private JScrollPane createThumbnailScrollPane() {
         thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
         thumbnailList.setVisibleRowCount(-1);
 
-        // 4. METER LA JLIST DIRECTAMENTE EN EL SCROLLPANE
         JScrollPane scrollPane = new JScrollPane(thumbnailList);
         
-        // 5. CONFIGURAR EL SCROLLPANE
         TitledBorder border = BorderFactory.createTitledBorder("Miniaturas");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
         scrollPane.setBorder(border);
@@ -310,33 +259,153 @@ private JScrollPane createThumbnailScrollPane() {
         return scrollPane;
     } // --- Fin del método createThumbnailScrollPane ---
 
-    
-    private JPanel createRightSplitComponent() {
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBackground(themeManager.getTemaActual().colorFondoSecundario());
-        registry.register("panel.derecho.visor", rightPanel);
+	private JPanel createRightSplitComponent() {
+	    JPanel rightPanel = new JPanel(new BorderLayout());
+	    rightPanel.setBackground(themeManager.getTemaActual().colorFondoSecundario());
+	    registry.register("panel.derecho.visor", rightPanel);
+	
+	    ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
+	    registry.register("panel.display.imagen", imageDisplayPanel);
+	    registry.register("label.imagenPrincipal", imageDisplayPanel.getInternalLabel());
+	    
+	    TitledBorder border = BorderFactory.createTitledBorder("");
+	    border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
+	    imageDisplayPanel.setBorder(border);
+	    
+	    rightPanel.add(imageDisplayPanel, BorderLayout.CENTER);
+	
+        JToolBar imageControlsToolbar = createBackgroundControlPanel(); 
+        if (imageControlsToolbar != null) {
+            rightPanel.add(imageControlsToolbar, BorderLayout.SOUTH);
+            System.out.println("[ViewBuilder] Barra de controles de imagen inferior añadida a rightPanel (BorderLayout.SOUTH).");
+        } else {
+            System.err.println("ERROR [ViewBuilder]: La barra de controles de imagen inferior no pudo ser obtenida/configurada.");
+        }
+	
+	    return rightPanel;
+    } // --- Fin del método createRightSplitComponent ---
 
-        ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
-        registry.register("panel.display.imagen", imageDisplayPanel);
-        registry.register("label.imagenPrincipal", imageDisplayPanel.getInternalLabel());
+
+	private JToolBar createBackgroundControlPanel() {
+        if (this.toolbarManager == null) {
+            System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
+            return new JToolBar();
+        }
+
+        JToolBar imageControlsToolbar = toolbarManager.getToolbar("controles_imagen_inferior");
+        if (imageControlsToolbar == null) {
+            System.err.println("WARN [ViewBuilder.createBackgroundControlPanel]: La toolbar 'controles_imagen_inferior' no se encontró en ToolbarManager.");
+            return new JToolBar();
+        }
+
+        imageControlsToolbar.setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 1));
+        imageControlsToolbar.setOpaque(false);
+
+        this.backgroundControlButtons.clear(); 
         
-        TitledBorder border = BorderFactory.createTitledBorder("");
-        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-        imageDisplayPanel.setBorder(border);
+        for (java.awt.Component comp : imageControlsToolbar.getComponents()) {
+            if (comp instanceof JButton) {
+                JButton button = (JButton) comp;
+                
+                ButtonType buttonType = (ButtonType) button.getClientProperty("buttonType");
+                String baseIconName = (String) button.getClientProperty("baseIconName");
+                String customOverlayKey = (String) button.getClientProperty("customOverlayKey");
+
+                int iconSize = 16;
+                
+                if (buttonType == ButtonType.COLOR_OVERLAY_ICON_BUTTON && baseIconName != null && customOverlayKey != null) {
+                    
+                    Color colorFondoOriginalTema = themeManager.getFondoSecundarioParaTema(customOverlayKey);
+                    if (colorFondoOriginalTema == null) {
+                        System.err.println("WARN [ViewBuilder]: Color de tema para clave '" + customOverlayKey + "' es nulo. Usando GRIS.");
+                        colorFondoOriginalTema = Color.GRAY;
+                    }
+                    
+                    Color colorModificado = colorFondoOriginalTema;
+                    int luminosidad = colorFondoOriginalTema.getRed() + colorFondoOriginalTema.getGreen() + colorFondoOriginalTema.getBlue();
+                    if (luminosidad < 150) { 
+                        colorModificado = aclararColor(colorFondoOriginalTema, 70);
+                    } else if (luminosidad > 600) { 
+                        colorModificado = oscurecerColor(colorFondoOriginalTema, 70);
+                    }
+                    
+                    button.setIcon(iconUtils.getColoredOverlayIcon(baseIconName, colorModificado, iconSize, iconSize));
+                    backgroundControlButtons.add(button);
+                    
+                } else if (buttonType == ButtonType.CHECKERED_OVERLAY_ICON_BUTTON && baseIconName != null) {
+                    button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIconName, iconSize, iconSize));
+                    backgroundControlButtons.add(button);
+                }
+                
+                if (buttonType == ButtonType.COLOR_OVERLAY_ICON_BUTTON || buttonType == ButtonType.CHECKERED_OVERLAY_ICON_BUTTON || AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR.equals(button.getActionCommand())) {
+                    button.addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mousePressed(MouseEvent e) {
+                            selectBackgroundControlButton(button);
+                        }
+                    });
+                }
+            }
+        }
         
-        rightPanel.add(imageDisplayPanel, BorderLayout.CENTER);
+        SwingUtilities.invokeLater(() -> {
+            String currentThemeName = themeManager.getTemaActual().nombreInterno();
+            JButton defaultButton = null;
+            for (JButton btn : backgroundControlButtons) {
+                String overlayKey = (String) btn.getClientProperty("customOverlayKey");
+                if (currentThemeName.equals(overlayKey)) {
+                    defaultButton = btn;
+                    break;
+                }
+            }
+            if (defaultButton != null) {
+                selectBackgroundControlButton(defaultButton);
+            } else {
+                 // Usamos la clave correcta para el fondo a cuadros
+                 boolean isCheckered = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false); // <-- LÍNEA CORREGIDA
+                 if (isCheckered) {
+                    for (JButton btn : backgroundControlButtons) {
+                        ButtonType type = (ButtonType) btn.getClientProperty("buttonType");
+                        if (type == ButtonType.CHECKERED_OVERLAY_ICON_BUTTON) {
+                            selectBackgroundControlButton(btn);
+                            break;
+                        }
+                    }
+                 }
+            }
+        });
 
-        JPanel backgroundControlsPanel = createBackgroundControlPanel();
-        
-        JPanel southWrapper = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        southWrapper.setOpaque(false);
-        southWrapper.add(backgroundControlsPanel);
+        return imageControlsToolbar;
+    } // --- Fin del método createBackgroundControlPanel ---
 
-        rightPanel.add(southWrapper, BorderLayout.SOUTH);
+    private Color aclararColor(Color colorOriginal, int cantidadAclarar) {
+        if (colorOriginal == null) return Color.LIGHT_GRAY;
+        int r = Math.min(255, colorOriginal.getRed() + cantidadAclarar);
+        int g = Math.min(255, colorOriginal.getGreen() + cantidadAclarar);
+        int b = Math.min(255, colorOriginal.getBlue() + cantidadAclarar);
+        return new Color(r, g, b);
+    } // --- Fin del método aclararColor ---
 
-        return rightPanel;
-    } // --- FIN del metodo createRightSplitComponent ---
-    
+    private Color oscurecerColor(Color colorOriginal, int cantidadOscurecer) {
+        if (colorOriginal == null) return Color.DARK_GRAY;
+        int r = Math.max(0, colorOriginal.getRed() - cantidadOscurecer);
+        int g = Math.max(0, colorOriginal.getGreen() - cantidadOscurecer);
+        int b = Math.max(0, colorOriginal.getBlue() - cantidadOscurecer);
+        return new Color(r, g, b);
+    } // --- Fin del método oscurecerColor ---
+
+    private void selectBackgroundControlButton(JButton selectedButton) {
+        for (JButton btn : backgroundControlButtons) {
+            btn.setBorder(bordePuntoNormal);
+        }
+        if (selectedButton != null) {
+            selectedButton.setBorder(bordePuntoSeleccionado);
+        }
+    } // --- Fin del método selectBackgroundControlButton ---
+
+    // Línea posterior: private JPanel createBottomStatusBar() { ... }
+    // --- FIN BLOQUE DE MODIFICACIÓN ---
+
     private JPanel createBottomStatusBar() {
         JPanel bottomStatusBar = new JPanel(new BorderLayout(5, 0));
         registry.register("panel.estado.inferior", bottomStatusBar);
@@ -499,145 +568,6 @@ private JScrollPane createThumbnailScrollPane() {
         label.setPreferredSize(dim);
         label.setToolTipText(tooltip);
     } // --- Fin del método configurarIndicadorLabel ---
-
-    private Color aclararColor(Color colorOriginal, int cantidadAclarar) {
-        if (colorOriginal == null) return Color.LIGHT_GRAY;
-        int r = Math.min(255, colorOriginal.getRed() + cantidadAclarar);
-        int g = Math.min(255, colorOriginal.getGreen() + cantidadAclarar);
-        int b = Math.min(255, colorOriginal.getBlue() + cantidadAclarar);
-        return new Color(r, g, b);
-    } // --- FIN del metodo aclararColor ---
-
-    private Color oscurecerColor(Color colorOriginal, int cantidadOscurecer) {
-        if (colorOriginal == null) return Color.DARK_GRAY;
-        int r = Math.max(0, colorOriginal.getRed() - cantidadOscurecer);
-        int g = Math.max(0, colorOriginal.getGreen() - cantidadOscurecer);
-        int b = Math.max(0, colorOriginal.getBlue() - cantidadOscurecer);
-        return new Color(r, g, b);
-    } // --- FIN del metodo oscurecerColor ---
-
-    private JPanel createBackgroundControlPanel() {
-        if (this.themeManager == null || this.iconUtils == null) {
-            System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ThemeManager o IconUtils son nulos.");
-            return new JPanel();
-        }
-
-        JPanel panelControlesFondoIcono = new JPanel(new FlowLayout(FlowLayout.RIGHT, 3, 1));
-        panelControlesFondoIcono.setOpaque(false);
-        registry.register("panel.controles.fondo", panelControlesFondoIcono);
-
-        Border bordePuntoNormal = BorderFactory.createLineBorder(Color.GRAY);
-        Border bordePuntoSeleccionado = BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(Color.CYAN, 2),
-            BorderFactory.createLineBorder(Color.BLACK)
-        );
-        
-        String[] nombresTemas = {"clear", "dark", "blue", "orange", "green"};
-        String[] tooltipsTemas = { "Fondo Tema Claro", "Fondo Tema Oscuro", "Fondo Tema Azul", "Fondo Tema Naranja", "Fondo Tema Verde" };
-
-        for (int i = 0; i < nombresTemas.length; i++) {
-            Color colorFondoOriginalTema = this.themeManager.getFondoSecundarioParaTema(nombresTemas[i]);
-            Color colorParaElPuntoSelector;
-            int luminosidad = colorFondoOriginalTema.getRed() + colorFondoOriginalTema.getGreen() + colorFondoOriginalTema.getBlue();
-            
-            if (luminosidad < 150) colorParaElPuntoSelector = aclararColor(colorFondoOriginalTema, 70);
-            else if (luminosidad > 600) colorParaElPuntoSelector = oscurecerColor(colorFondoOriginalTema, 70);
-            else colorParaElPuntoSelector = colorFondoOriginalTema;
-            
-            JPanel punto = crearPuntoSelectorFondo(colorFondoOriginalTema, tooltipsTemas[i], false, false, nombresTemas[i], colorParaElPuntoSelector, bordePuntoNormal, bordePuntoSeleccionado);
-            panelControlesFondoIcono.add(punto);
-        }
-        
-        JPanel puntoCuadros = crearPuntoSelectorFondo(null, "Fondo a Cuadros", true, false, "cuadros", null, bordePuntoNormal, bordePuntoSeleccionado);
-        panelControlesFondoIcono.add(puntoCuadros);
-
-        JPanel puntoPersonalizado = crearPuntoSelectorFondo(null, "Seleccionar Color Personalizado...", false, true, "personalizado", null, bordePuntoNormal, bordePuntoSeleccionado);
-        panelControlesFondoIcono.add(puntoPersonalizado);
-        
-        return panelControlesFondoIcono;
-    } // --- FIN del metodo createBackgroundControlPanel ---
-
-    private JPanel crearPuntoSelectorFondo(
-            final java.awt.Color colorQueAplicaAlPreview,
-            String tooltip,
-            final boolean esSelectorCuadros,
-            final boolean esSelectorPersonalizado,
-            String identificadorPunto,
-            final java.awt.Color colorParaPintarElSelectorPropio,
-            final javax.swing.border.Border bordeNormal,
-            final javax.swing.border.Border bordePuntoSeleccionado) {
-
-        final JPanel punto = new JPanel() {
-            private static final long serialVersionUID = 1L;
-            @Override
-            protected void paintComponent(java.awt.Graphics g) {
-                super.paintComponent(g);
-                if (esSelectorCuadros && isVisible()) {
-                    java.awt.Graphics2D g2d = (java.awt.Graphics2D) g.create();
-                    int w = getWidth(); int h = getHeight();
-                    int tamCuadroPunto = Math.max(2, Math.min(w, h) / 4);
-                    for (int row = 0; row < h; row += tamCuadroPunto) {
-                        for (int col = 0; col < w; col += tamCuadroPunto) {
-                            g2d.setColor((((row / tamCuadroPunto) % 2) == ((col / tamCuadroPunto) % 2)) ? java.awt.Color.WHITE : java.awt.Color.LIGHT_GRAY);
-                            g2d.fillRect(col, row, tamCuadroPunto, tamCuadroPunto);
-                        }
-                    }
-                    g2d.dispose();
-                }
-            }
-        };
-        punto.setPreferredSize(new java.awt.Dimension(16, 16));
-        punto.setToolTipText(tooltip);
-        punto.setBorder(bordeNormal);
-        punto.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        punto.setName(identificadorPunto);
-        punto.setOpaque(true);
-
-        if (esSelectorPersonalizado) {
-            punto.setLayout(new java.awt.BorderLayout());
-            punto.setBackground(new java.awt.Color(220, 220, 220));
-            if (this.iconUtils != null) {
-                javax.swing.ImageIcon paletteIcon = this.iconUtils.getScaledCommonIcon("Paint-Palette--Streamline-Core.png", 10, 10);
-                if (paletteIcon != null) punto.add(new javax.swing.JLabel(paletteIcon), java.awt.BorderLayout.CENTER);
-            }
-        } else if (esSelectorCuadros) {
-            punto.setBackground(java.awt.Color.LIGHT_GRAY);
-        } else {
-            punto.setBackground(colorParaPintarElSelectorPropio != null ? colorParaPintarElSelectorPropio : colorQueAplicaAlPreview);
-        }
-
-        punto.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                if (ViewBuilder.this.viewManager == null) {
-                    System.err.println("ERROR [ViewBuilder]: ViewManager no ha sido inyectado. No se puede cambiar el fondo.");
-                    return;
-                }
-                
-                JPanel parentContainer = (JPanel) punto.getParent();
-                for (java.awt.Component comp : parentContainer.getComponents()) {
-                    if (comp instanceof JPanel) ((JPanel) comp).setBorder(bordeNormal);
-                }
-                punto.setBorder(bordePuntoSeleccionado);
-                
-                if (esSelectorPersonalizado) {
-                    ViewBuilder.this.viewManager.requestCustomBackgroundColor();
-                } else if (esSelectorCuadros) {
-                    ViewBuilder.this.viewManager.setSessionCheckeredBackground();
-                } else {
-                    ViewBuilder.this.viewManager.setSessionBackgroundColor(colorQueAplicaAlPreview);
-                }
-            }
-        });
-        
-        return punto;
-    } // --- Fin del método crearPuntoSelectorFondo ---
     
-    // --- INICIO DE LA MODIFICACIÓN: El setter ahora acepta IViewManager ---
-    public void setViewManager(IViewManager viewManager) {
-        this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null en el setter");
-    } // --- Fin del método setViewManager ---
-
-} // --- Fin de la clase ViewBuilder ---
-
+} // --- FIN de la clase ViewBuilder ---
 

@@ -165,8 +165,28 @@ public interface AppActionCommands {
     // String CMD_ORDEN_DIRECCION_ASC = "cmd.orden.direccion.asc";
     // String CMD_ORDEN_DIRECCION_DESC = "cmd.orden.direccion.desc";
     
-    
+    // --- Comandos de Paneo del D-Pad ---
+    // Paneo Absoluto (al borde del panel)
+    String CMD_PAN_TOP_EDGE 	= "cmd.pan.top_edge";
+    String CMD_PAN_BOTTOM_EDGE 	= "cmd.pan.bottom_edge";
+    String CMD_PAN_LEFT_EDGE 	= "cmd.pan.left_edge";
+    String CMD_PAN_RIGHT_EDGE 	= "cmd.pan.right_edge";
 
+    // Paneo Incremental (pequeños pasos)
+    String CMD_PAN_UP_INCREMENTAL 	= "cmd.pan.up_incremental";
+    String CMD_PAN_DOWN_INCREMENTAL = "cmd.pan.down_incremental";
+    String CMD_PAN_LEFT_INCREMENTAL = "cmd.pan.left_incremental";
+    String CMD_PAN_RIGHT_INCREMENTAL= "cmd.pan.right_incremental";
+
+    // --- Comandos para Control de Fondo de Imagen (NUEVOS) ---
+    String CMD_BACKGROUND_COLOR_SLOT_1  = "cmd.background.color.slot_1";
+    String CMD_BACKGROUND_COLOR_SLOT_2  = "cmd.background.color.slot_2";
+    String CMD_BACKGROUND_COLOR_SLOT_3  = "cmd.background.color.slot_3";
+    String CMD_BACKGROUND_COLOR_SLOT_4  = "cmd.background.color.slot_4";
+    String CMD_BACKGROUND_COLOR_SLOT_5  = "cmd.background.color.slot_5";
+    String CMD_BACKGROUND_CHECKERED     = "cmd.background.checkered";
+    String CMD_BACKGROUND_CUSTOM_COLOR  = "cmd.background.custom_color";
+    
     
 
 }

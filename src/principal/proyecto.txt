@@ -384,98 +384,90 @@ CONSIDERACIONES ADICIONALES (Futuras):
 -------------------------------------------------------------------------
 
 
-======================================================================================
- INFORME DE PROYECTO: IMPLEMENTACIÓN DE BARRAS DE HERRAMIENTAS DINÁMICAS Y FLOTANTES
-======================================================================================
+----------------------------------------------------------------------------
+--- INFORME DETALLADO: IMPLEMENTACIÓN DEL COMPONENTE DE PANEO TIPO D-PAD ---
+----------------------------------------------------------------------------
 
-OBJETIVO PRINCIPAL:
-Refactorizar el sistema de barras de herramientas para que sean flotantes, acoplables,
-y su visibilidad y orden se gestionen dinámicamente según el modo de trabajo actual
-(VISUALIZADOR, PROYECTO, etc.). Esto mejorará la usabilidad y la organización del código.
+== 1. OBJETIVO PRINCIPAL ==
+Implementar un nuevo componente de interfaz de usuario visualmente representado como un D-Pad
+(controlador direccional), que permita al usuario mover la imagen principal del visor.
+Este componente permitirá dos tipos de paneo:
+1. Paneo Absoluto: Mover la imagen hasta uno de sus cuatro extremos (arriba, abajo, izquierda, derecha).
+2. Paneo Incremental: Mover la imagen una pequeña cantidad fija en una dirección específica.
+El D-Pad funcionará de manera independiente del "modo paneo" (zoom manual) del ZoomManager.
 
-FUNCIONALIDADES CLAVE A IMPLEMENTAR:
-1.  **Barras Flotantes y Acoplables:** El usuario podrá arrastrar una barra de herramientas fuera de su
-    posición para que flote en su propia ventana.
-2.  **Reacoplamiento Inteligente:** Al cerrar una barra de herramientas flotante, esta deberá
-    volver a su posición original ordenada, no al final del contenedor.
-3.  **Visibilidad por Modo:** La interfaz mostrará únicamente las barras de herramientas relevantes
-    para el modo de trabajo activo (ej. la barra de "Edición" solo será visible en el modo "Visualizador").
-4.  **Configuración Centralizada:** Toda la definición de la estructura de las barras (su orden,
-    botones, y en qué modos son visibles) residirá en un único lugar (`UIDefinitionService`).
-5.  **Orden Personalizable (Futuro):** La arquitectura sentará las bases para que en el futuro
-    el usuario pueda personalizar el orden de las barras a través del "MegaConfig".
+== 2. ARQUITECTURA Y RESPONSABILIDADES DE LAS CLASES (Confirmado) ==
 
-======================================================================================
-PLAN DE IMPLEMENTACIÓN DETALLADO
-======================================================================================
+*   vista.components.Direction.java (NUEVA CLASE - ENUM):
+    *   Rol: Define las direcciones para uso interno del D-Pad y sus acciones.
 
-FASE 1: ENRIQUECER LA DEFINICIÓN DE LA UI (`UIDefinitionService`)
+*   vista.components.Hotspot.java (NUEVA CLASE - RECORD):
+    *   Rol: Define una zona clicable dentro del D-Pad.
+    *   Contendrá: `String key`, `Rectangle bounds`, `Image hoverImage`, `Action action`.
 
-1.  **`modelo/VisorModel.java`:**
-    *   Asegurar que el `enum WorkMode { VISUALIZADOR, PROYECTO, DATOS }` existe.
+*   vista.components.DPadComponent.java (NUEVA CLASE - COMPONENTE PERSONALIZADO):
+    *   Rol: El componente visual del D-Pad.
+    *   Responsabilidades: Cargar/dibujar sus imágenes, detectar eventos de ratón (hover, clic) sobre sus Hotspots, proporcionar feedback visual, y ejecutar la Action asociada al Hotspot clicado.
+    *   IMPORTANTE: No tendrá dependencias directas de tu aplicación (controlador.*, modelo.*) para su futura reutilización como librería.
 
-2.  **`vista/config/ToolbarDefinition.java`:**
-    *   Modificar (o crear) este `record` para que contenga, además de sus campos actuales,
-        dos nuevas propiedades:
-        - `int orden`: Un número para la posición relativa (ej: 10, 20, 30...).
-        - `Set<WorkMode> modosVisibles`: Un conjunto de los modos en los que la barra debe ser visible.
+*   controlador.commands.AppActionCommands.java (MODIFICAR):
+    *   Rol: Define las constantes (`String`) que identifican de forma única cada acción.
+    *   Responsabilidades: Añadir las constantes para las nuevas acciones de paneo (absoluto e incremental).
 
-3.  **`vista/config/UIDefinitionService.java`:**
-    *   Modificar el método `generateModularToolbarStructure()`:
-        - Para cada `ToolbarDefinition` creada, rellenar los nuevos campos `orden` y `modosVisibles`.
-        - Ejemplo: `new ToolbarDefinition("edicion", ..., 20, Set.of(WorkMode.VISUALIZADOR))`
+*   controlador.actions.pan.PanAction.java (NUEVA CLASE - ACTION ESPECÍFICA):
+    *   Rol: Encapsula la intención de ejecutar una operación de paneo.
+    *   Responsabilidades: Su constructor recibirá el GeneralController y la dirección/tipo de paneo. Su método `actionPerformed()` llamará a un método específico en GeneralController.
 
+*   controlador.factory.ActionFactory.java (MODIFICAR):
+    *   Rol: Crea instancias de todas las Actions de la aplicación.
+    *   Responsabilidades: Añadir la lógica para construir las nuevas instancias de PanAction, inyectándoles GeneralController.
 
-FASE 2: REFACTORIZAR EL GESTOR DE BARRAS DE HERRAMIENTAS (`ToolbarManager`)
+*   controlador.GeneralController.java (MODIFICAR):
+    *   Rol: Orquestador de la lógica de negocio general, incluyendo el paneo.
+    *   Responsabilidades:
+        *   Tendrá métodos públicos como `panImageToEdge(Direction)` y `panImageIncrementally(Direction, int)`.
+        *   Estos métodos:
+            *   Obtendrán dimensiones del ImageDisplayPanel y de la imagen (del VisorModel).
+            *   Obtendrán los offsets de paneo actuales (del VisorModel).
+            *   Realizarán los cálculos matemáticos para determinar los nuevos offsets.
+            *   Actualizarán el estado del modelo (setImageOffsetX, setImageOffsetY).
+            *   Solicitarán el repintado del ImageDisplayPanel.
 
-1.  **`controlador/managers/ToolbarManager.java`:**
-    *   **Añadir un campo para almacenar las instancias creadas:**
-        - `private List<JToolBar> toolbarsCreadas = new ArrayList<>();`
-    *   **Modificar `inicializarBarrasDeHerramientas()`:**
-        - Este método ya no añadirá las barras a la vista directamente.
-        - Su nueva responsabilidad será:
-            a. Obtener la lista de `ToolbarDefinition` de `UIDefinitionService`.
-            b. Iterar sobre las definiciones y, para cada una, usar `ToolbarBuilder` para crear la instancia de `JToolBar`.
-            c. Añadir cada `JToolBar` recién creada a la lista interna `toolbarsCreadas`.
-            d. **Añadir un `HierarchyListener` a cada `JToolBar` creada.** Este listener será el "disparador" para el reacoplamiento.
-    *   **Crear el método de reconstrucción `reconstruirContenedorDeToolbars(WorkMode modoActual)`:**
-        - Este será el nuevo método central para dibujar las barras.
-        - **Lógica:**
-            a. Obtener el `JPanel` contenedor de las barras (`container.toolbars`) desde el `ComponentRegistry`.
-            b. Limpiar el contenedor: `toolbarContainer.removeAll()`.
-            c. Obtener la lista completa de `ToolbarDefinition` desde `UIDefinitionService`.
-            d. Ordenar esta lista de definiciones según el campo `orden`.
-            e. Iterar sobre la lista de definiciones **ordenada**.
-            f. Para cada definición, comprobar si `def.modosVisibles().contains(modoActual)`.
-            g. Si la condición anterior es cierta, buscar la instancia de `JToolBar` correspondiente en `toolbarsCreadas` (usando la `claveBarra`).
-            h. Si la `JToolBar` se encuentra y no está flotando (su ancestro es el `JFrame` principal), añadirla al `toolbarContainer`: `toolbarContainer.add(toolbar)`.
-            i. Al final del bucle, llamar a `toolbarContainer.revalidate()` y `toolbarContainer.repaint()`.
-    *   **Implementar el `HierarchyListener`:**
-        - Se añadirá a cada `JToolBar` durante su creación.
-        - El método `hierarchyChanged` del listener será muy simple:
-            - Comprobará si el cambio es de tipo `PARENT_CHANGED`.
-            - Si lo es, llamará a `SwingUtilities.invokeLater(() -> reconstruirContenedorDeToolbars(model.getCurrentWorkMode()));`. Se usa `invokeLater` para asegurar que la reconstrucción ocurra después de que Swing haya procesado el cambio de jerarquía.
+*   modelo.VisorModel.java (NO MODIFICAR - ROL CONFIRMADO):
+    *   Rol: Única fuente de verdad y gestor del estado de la aplicación. Contiene offsets de paneo y zoom.
+    *   Responsabilidades: Proporciona los getters/setters (getImageOffsetX, setImageOffsetX, etc.) que GeneralController utilizará.
 
-FASE 3: ORQUESTACIÓN DESDE EL CONTROLADOR GENERAL (`GeneralController`)
+*   vista.panels.ImageDisplayPanel.java (NO MODIFICAR - ROL CONFIRMADO):
+    *   Rol: El componente visual que dibuja la imagen.
+    *   Responsabilidades: En su `paintComponent()`, lee directamente los offsets del VisorModel para posicionar la imagen. Simplemente necesita que se le llame `repaint()`.
 
-1.  **`controlador/GeneralController.java`:**
-    *   **Añadir dependencia:** Necesitará una referencia al `ToolbarManager`. Se inyectará desde `AppInitializer`.
-        - `private ToolbarManager toolbarManager;`
-        - `public void setToolbarManager(ToolbarManager manager) { ... }`
-    *   **Modificar `entrarModo(WorkMode modoAlQueSeEntra)`:**
-        - Después de que el modo en `VisorModel` se haya actualizado, este método llamará al `ToolbarManager` para que redibuje las barras de herramientas según el nuevo modo.
-        - Llamada: `this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);`
+*   vista.config.ButtonType.java (MODIFICAR):
+    *   Rol: Define los tipos de botones que ToolbarBuilder puede construir.
+    *   Responsabilidades: Añadir un nuevo tipo `DPAD`.
 
-FASE 4: AJUSTES EN EL ARRANQUE (`AppInitializer`)
+*   vista.config.ToolbarButtonDefinition.java (NO MODIFICAR - UTILIZAREMOS ASÍ SU API):
+    *   Rol: Define las propiedades de un botón.
+    *   Responsabilidades: Su constructor es suficiente; la usaremos para definir el D-Pad pasando el nuevo `ButtonType.DPAD` y una clave de icono base.
 
-1.  **`controlador/AppInitializer.java`:**
-    *   **Cableado:** Asegurarse de inyectar el `ToolbarManager` en el `GeneralController`.
-    *   **Llamada Inicial:** En el `BLOQUE 3`, después de que `toolbarManager.inicializarBarrasDeHerramientas()` se haya ejecutado, se debe hacer una llamada inicial a la reconstrucción para el modo por defecto (VISUALIZADOR).
-        - `toolbarManager.reconstruirContenedorDeToolbars(model.getCurrentWorkMode());`
+*   vista.config.UIDefinitionService.java (MODIFICAR):
+    *   Rol: Declara la estructura completa de menús y barras de herramientas.
+    *   Responsabilidades: Añadir la definición de la nueva "Barra de Control de Imagen" y, dentro de ella, la definición de nuestro DPadComponent utilizando el nuevo `ButtonType.DPAD`.
 
-======================================================================================
-FIN DE LA IMPLEMENTACIÓN DE BARRAS DE HERRAMIENTAS DINÁMICAS Y FLOTANTES
-======================================================================================
+*   vista.builders.ToolbarBuilder.java (MODIFICAR):
+    *   Rol: Construye JToolBars y sus componentes hijos.
+    *   Responsabilidades: Ampliar su método `crearBotonIndividual` para que, cuando la definición indique `ButtonType.DPAD`, instancie `DPadComponent` y le asigne las Actions de paneo.
+
+*   controlador.managers.ToolbarManager.java (MODIFICAR):
+    *   Rol: Orquesta la creación y colocación de las toolbars.
+    *   Responsabilidades: Asegurarse de que la nueva barra se cree y esté disponible para el `ViewBuilder`.
+
+*   vista.builders.ViewBuilder.java (MODIFICAR):
+    *   Rol: Construye y organiza los paneles principales de la VisorView.
+    *   Responsabilidades: Colocar la nueva "Barra de Control de Imagen" en el layout adecuado (probablemente debajo del ImageDisplayPanel).
+------------------------------------------------------------------------------------
+--- FIN DEL INFORME DETALLADO: IMPLEMENTACIÓN DEL COMPONENTE DE PANEO TIPO D-PAD ---
+------------------------------------------------------------------------------------
+
 
 
 Los Prefijos Más Comunes y Útiles
