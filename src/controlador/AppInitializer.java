@@ -107,6 +107,7 @@ public class AppInitializer {
         boolean soloCarpeta = !incluirSubcarpetas;
         boolean navCircular = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, false);
         boolean zoomManualInicial = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL, true);
+        boolean zoomAlCursor = configuration.getBoolean("comportamiento.zoom.al_cursor.activado", false);
         
         ZoomModeEnum modoZoomInicial;
         String ultimoModoStr = configuration.getString(ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO, "FIT_TO_SCREEN").toUpperCase();
@@ -116,7 +117,7 @@ public class AppInitializer {
             modoZoomInicial = ZoomModeEnum.FIT_TO_SCREEN;
         }
         
-        this.model.initializeContexts(mantenerProp, soloCarpeta, modoZoomInicial, zoomManualInicial, navCircular);
+        this.model.initializeContexts(mantenerProp, soloCarpeta, modoZoomInicial, zoomManualInicial, navCircular, zoomAlCursor);
         
         this.model.setMiniaturasAntes(configuration.getInt(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, 8));
         this.model.setMiniaturasDespues(configuration.getInt(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES, 8));
@@ -201,7 +202,7 @@ public class AppInitializer {
             
             this.configAppManager = new ConfigApplicationManager(this.model, this.configuration, this.themeManager, registry);
             this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
-            MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager);
+            MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager, registry);
             ToolbarBuilder toolbarBuilder = new ToolbarBuilder(
             	    this.themeManager,
             	    this.iconUtils,
@@ -253,6 +254,9 @@ public class AppInitializer {
             this.fileOperationsManager.setController(this.controller);
             this.fileOperationsManager.setConfiguration(this.configuration);
             this.fileOperationsManager.setOnNuevaCarpetaSeleccionadaCallback(onFolderSelectedCallback);
+            
+            this.controller.setComponentRegistry(registry);
+            this.controller.setToolbarManager(this.toolbarManager);
             
             viewBuilder.setToolbarManager(this.toolbarManager);
             viewBuilder.setViewManager(this.viewManager);

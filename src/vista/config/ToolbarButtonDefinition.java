@@ -1,5 +1,3 @@
-// Contenido de la clase vista.config.ToolbarButtonDefinition.java
-
 package vista.config;
 
 import java.util.Objects;

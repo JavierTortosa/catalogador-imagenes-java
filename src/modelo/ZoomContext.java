@@ -13,6 +13,7 @@ public class ZoomContext {
     private int imageOffsetY = 0;
     private boolean zoomHabilitado = false; // El permiso para paneo/zoom manual
     private boolean mantenerProporcion = false;
+    private boolean zoomToCursorEnabled = false;
     
     // --- Getters y Setters ---
     public double getZoomFactor() { return zoomFactor; }
@@ -33,9 +34,13 @@ public class ZoomContext {
     public boolean isMantenerProporcion() { return mantenerProporcion; } 
     public void setMantenerProporcion(boolean mantener) { this.mantenerProporcion = mantener; }
     
+    public boolean isZoomToCursorEnabled() {return this.zoomToCursorEnabled;} 
+    public void setZoomToCursorEnabled(boolean enabled) {this.zoomToCursorEnabled = enabled;}
+
     public void resetPan() {
         this.imageOffsetX = 0;
         this.imageOffsetY = 0;
     }
+    
     
 } // --- Fin de la clase ZoomContext ---

@@ -1,5 +1,3 @@
-// Contenido para ActionFactory.java
-
 package controlador.factory;
 
 import java.awt.event.ActionEvent;
@@ -18,10 +16,6 @@ import javax.swing.JOptionPane;
 
 import controlador.GeneralController;
 import controlador.ProjectController;
-
-// --- SECCIÓN 0.1: IMPORTS DE COMPONENTES DEL SISTEMA ---
-
-import controlador.VisorController;
 import controlador.actions.archivo.DeleteAction;
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
 // (Asegúrate de que estas clases Action tengan los constructores correctos)
@@ -41,6 +35,8 @@ import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
+// Importaciones para PanAction y Direction
+import controlador.actions.pan.PanAction;
 import controlador.actions.projects.GestionarProyectoAction;
 import controlador.actions.projects.ToggleMarkImageAction;
 import controlador.actions.tema.ToggleThemeAction;
@@ -59,6 +55,7 @@ import controlador.actions.vista.ToggleToolBarAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.actions.zoom.ResetZoomAction;
 import controlador.actions.zoom.ToggleZoomManualAction;
+import controlador.actions.zoom.ToggleZoomToCursorAction;
 import controlador.commands.AppActionCommands;
 import controlador.imagen.LocateFileAction;
 import controlador.interfaces.ContextSensitiveAction;
@@ -73,11 +70,9 @@ import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
+import vista.components.Direction;
 import vista.config.MenuItemDefinition;
 import vista.config.UIDefinitionService;
-// Importaciones para PanAction y Direction
-import controlador.actions.pan.PanAction;
-import vista.components.Direction;
 //import vista.config.ViewUIConfig;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
@@ -270,6 +265,7 @@ private void createCoreActions() {
                 createAplicarModoZoomAction(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, "Zoom Especificado", ZoomModeEnum.USER_SPECIFIED_PERCENTAGE));
         actionMap.put(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR,
                 createAplicarModoZoomAction(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, "Escalar para Rellenar", ZoomModeEnum.FILL));
+        actionMap.put(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, createToggleZoomToCursorAction());
         
         // 3.3. Crear y registrar Actions de Navegación
         actionMap.put(AppActionCommands.CMD_NAV_PRIMERA, createFirstImageAction());
@@ -435,6 +431,20 @@ private void createCoreActions() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_RESET);
         return new ResetZoomAction("Resetear Zoom", icon, this.zoomManager);
     } // --- Fin del método createResetZoomAction ---
+    
+    private Action createToggleZoomToCursorAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
+        // Creamos la acción. El nombre "Zoom al Cursor" se usará para el tooltip del botón
+        // y el texto del item de menú. Le pasamos el VisorController.
+        ToggleZoomToCursorAction action = new ToggleZoomToCursorAction("Zoom al Cursor", this.generalController.getVisorController());
+        
+        // --- ¡IMPORTANTE! ---
+        // Como este es un botón que debe reflejar un estado (ON/OFF), lo registramos
+        // como sensible al contexto para futuras actualizaciones.
+        this.contextSensitiveActions.add(action);
+        
+        return action;
+    } // --- Fin del método createToggleZoomToCursorAction ---
     
     private Action createAplicarModoZoomAction(String commandKey, String displayName, ZoomModeEnum modo) {
         ImageIcon icon = getIconForCommand(commandKey); 

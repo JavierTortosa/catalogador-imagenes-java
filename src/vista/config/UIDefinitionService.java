@@ -101,21 +101,37 @@ public class UIDefinitionService {
             new MenuItemDefinition(null, 
             		MenuItemType.RADIO_GROUP_END, null, null)
         );
+        
+	        List<MenuItemDefinition> tiposPaneoSubItems = List.of(
+	    			new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 
+	                		MenuItemType.ITEM, "Ver Parte Superior", null),
+	    			new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 
+	                		MenuItemType.ITEM, "Ver Parte Inferior", null),
+	    			new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 
+	                		MenuItemType.ITEM, "Ver Parte Izquierda", null),
+	    			new MenuItemDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 
+	                		MenuItemType.ITEM, "Ver Parte Derecha", null)
+			);
+        
         List<MenuItemDefinition> zoomSubItems = List.of(
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_ACERCAR, 
             		MenuItemType.ITEM, "Acercar", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_ALEJAR, 
             		MenuItemType.ITEM, "Alejar", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_PERSONALIZADO, 
-            		MenuItemType.ITEM, "Establecer Zoom %...", null), // Este abre el diálogo
+            		MenuItemType.ITEM, "Establecer Zoom %...", null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TAMAÑO_REAL, 
-            		MenuItemType.ITEM, "Zoom Tamaño Real (100%)", null), // Equivalente a CMD_ZOOM_TIPO_AUTO
+            		MenuItemType.ITEM, "Zoom Tamaño Real (100%)", null),
             new MenuItemDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, 
             		MenuItemType.CHECKBOX_ITEM, "Mantener Proporciones", null),
             new MenuItemDefinition(null, 
             		MenuItemType.SEPARATOR, null, null),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 
             		MenuItemType.CHECKBOX_ITEM, "Activar Zoom Manual", null),
+            new MenuItemDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, 
+                    MenuItemType.CHECKBOX_ITEM, "Zoom al Cursor", null),
+            new MenuItemDefinition(null, 
+            		MenuItemType.SUB_MENU, "Paneo", tiposPaneoSubItems),
             new MenuItemDefinition(AppActionCommands.CMD_ZOOM_RESET, 
             		MenuItemType.ITEM, "Resetear Zoom", null),
             new MenuItemDefinition(null,
@@ -141,7 +157,9 @@ public class UIDefinitionService {
             		MenuItemType.ITEM, "Recortar", null) // Placeholder
         );
         	
-	        List<MenuItemDefinition> imagenSubItems = List.of(
+        
+        
+        List<MenuItemDefinition> imagenSubItems = List.of(
         	new MenuItemDefinition(null, 
         			MenuItemType.SUB_MENU, "Edición", edicionSubItems),
             new MenuItemDefinition(null, 
@@ -602,19 +620,23 @@ public class UIDefinitionService {
             List<ToolbarButtonDefinition> botonesControlesImagenInferior = List.of(
                 // 1. D-Pad
                 new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, "D-Pad_none_48x48.png", "Control de Paneo", "controles_imagen_inferior", ButtonType.DPAD),
-                
-                // 2. Botones de color de fondo (usando la imagen circular base y el tipo COLOR_OVERLAY_ICON_BUTTON)
-                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, "color_Button_48x48.png", "Fondo Tema Claro", "controles_imagen_inferior", ButtonType.COLOR_OVERLAY_ICON_BUTTON, "clear"),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, "color_Button_48x48.png", "Fondo Tema Oscuro", "controles_imagen_inferior", ButtonType.COLOR_OVERLAY_ICON_BUTTON, "dark"),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, "color_Button_48x48.png", "Fondo Tema Azul", "controles_imagen_inferior", ButtonType.COLOR_OVERLAY_ICON_BUTTON, "blue"),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, "color_Button_48x48.png", "Fondo Tema Naranja", "controles_imagen_inferior", ButtonType.COLOR_OVERLAY_ICON_BUTTON, "orange"),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, "color_Button_48x48.png", "Fondo Tema Verde", "controles_imagen_inferior", ButtonType.COLOR_OVERLAY_ICON_BUTTON, "green"),
+            		
+                // 1.5 Separador y Botón de Zoom al Cursor
+//                new ToolbarButtonDefinition(null, null, null, "controles_imagen_inferior", ButtonType.SEPARATOR),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, "20001-zoom_al_cursor_48x48.png", "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior"),//, ButtonType.NORMAL),
+//                new ToolbarButtonDefinition(null, null, null, "controles_imagen_inferior", ButtonType.SEPARATOR),
+                // 2. Botones de color de fondo (usando la imagen circular base)
+                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, "color_Button_48x48.png", "Fondo Tema Claro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT, "clear"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, "color_Button_48x48.png", "Fondo Tema Oscuro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT, "dark"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, "color_Button_48x48.png", "Fondo Tema Azul", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT, "blue"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, "color_Button_48x48.png", "Fondo Tema Naranja", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT, "orange"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, "color_Button_48x48.png", "Fondo Tema Verde", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT, "green"),
                 
                 // 3. Botón de fondo a cuadros (usando la imagen circular base y el tipo CHECKERED_OVERLAY_ICON_BUTTON)
-                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED, "color_Button_48x48.png", "Fondo a Cuadros", "controles_imagen_inferior", ButtonType.CHECKERED_OVERLAY_ICON_BUTTON, "checkered"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED, "color_Button_48x48.png", "Fondo a Cuadros", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT, "checkered"),
                 
                 // 4. Botón de selección de color personalizado (Paleta)
-                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, "Paint-Palette--Streamline-Core.png", "Seleccionar Color Personalizado...", "controles_imagen_inferior", ButtonType.NORMAL)
+                new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, "Paint-Palette--Streamline-Core.png", "Seleccionar Color Personalizado...", "controles_imagen_inferior", ButtonType.TRANSPARENT)
             );
     		
     		
@@ -661,8 +683,9 @@ public class UIDefinitionService {
                 ,new ToolbarDefinition("utils",		"Utilidades", 	70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils)
                 ,new ToolbarDefinition("apoyo", 		"Apoyo", 		80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesApoyo)
                 
-             // Aquí se añade la nueva barra de control de imagen
+                // Aquí se añade la nueva barra de control de imagen
                 ,new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 95, EnumSet.of(WorkMode.VISUALIZADOR), botonesControlesImagenInferior)
+                
                 
                 //new ToolbarDefinition("carrousel","Carrousel", botonesCarrousel)
                 //new ToolbarDefinition("modos","Modos", botonesModos)

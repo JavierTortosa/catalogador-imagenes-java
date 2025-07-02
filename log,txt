@@ -2,26 +2,30 @@ Iniciando Visor de Imágenes V2...
 --- Iniciando VisorController (Constructor Simple) ---
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
-Mapa de configuración por defecto inicializado con 103 claves.
+Mapa de configuración por defecto inicializado con 104 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
+Config no encontrado. Creando por defecto...
+Creando config por defecto (estructura jerárquica v2.1)...
+Archivo de configuración por defecto creado en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 169
+Configuración leída. Total claves: 104
 --- DEBUG PRE-SINCRONIZACIÓN ---
-Tamaño de DEFAULT_CONFIG: 103
-Tamaño de loadedConfig (del archivo): 169
+Tamaño de DEFAULT_CONFIG: 104
+Tamaño de loadedConfig (del archivo): 104
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
 Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
-!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1604839423
+!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 410424423
   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
+WARN: Clave 'comportamiento.zoom.al_cursor.activado' no encontrada. Usando default 'false' y añadiendo a config en memoria.
 [VisorModel] Inicializando estado por defecto de todos los contextos...
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
 [ThemeManager] Tema inicial establecido a: clear
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 245565335
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 1100439041
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -43,7 +47,7 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 81
+  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 82
 [ToolbarManager] Inicializando todas las barras de herramientas...
 
 --- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
@@ -82,7 +86,7 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     -> Inyectando la instancia de 'view' en los componentes...
   [ActionFactory] Inicializando Actions dependientes de la vista...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
-  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 83
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 84
   [ProjectManager] Cargadas 4 rutas absolutas desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
 [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
   -> Imágenes marcadas inicialmente: 4
@@ -90,19 +94,70 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 83 acciones.
+  [MenuBarBuilder] ActionMap recibido con 84 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
+WARN: Clave 'interfaz.boton.navegacion.nav_primera.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.navegacion.nav_anterior.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.navegacion.nav_siguiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.navegacion.nav_ultima.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_rotar_izq.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_rotar_der.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_voltear_h.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_voltear_v.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.edicion.imagen_recortar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ajustar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_auto.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_ancho.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_alto.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_rellenar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_fijo.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_tipo_especificado.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_manual_toggle.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.zoom.zoom_reset.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vistas.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.proyecto_toggle_marca.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.proyecto_gestionar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.vista_switch_to_visualizador.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.toggle.subcarpetas.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.toggle.mantener_proporciones.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.utils.imagen_eliminar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.utils.especial_refrescar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.utils.imagen_localizar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.apoyo.archivo_abrir.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.apoyo.especial_menu.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.apoyo.especial_botones_ocultos.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.todo_funcionalidad_pendiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.zoom_toggle_to_cursor.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.background_color_slot_1.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.background_color_slot_2.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.background_color_slot_3.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.background_color_slot_4.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.background_color_slot_5.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.background_checkered.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.controles_imagen_inferior.background_custom_color.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 181
+  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 188
+  [MenuBarBuilder] JMenuBar registrada en ComponentRegistry con la clave 'menubar.main'.
+--- MenuBarBuilder: Construcción de JMenuBar completada. ---
 [ToolbarManager] Reconstruyendo contenedor para modo: VISUALIZADOR
+WARN: Clave 'interfaz.herramientas.navegacion' no encontrada. Usando default 'true' y añadiendo a config en memoria.
   -> Añadiendo barra 'navegacion' al contenedor.
+WARN: Clave 'interfaz.herramientas.edicion' no encontrada. Usando default 'true' y añadiendo a config en memoria.
   -> Añadiendo barra 'edicion' al contenedor.
+WARN: Clave 'interfaz.herramientas.zoom' no encontrada. Usando default 'true' y añadiendo a config en memoria.
   -> Añadiendo barra 'zoom' al contenedor.
+WARN: Clave 'interfaz.herramientas.vistas' no encontrada. Usando default 'true' y añadiendo a config en memoria.
   -> Añadiendo barra 'vistas' al contenedor.
+WARN: Clave 'interfaz.herramientas.proyecto' no encontrada. Usando default 'true' y añadiendo a config en memoria.
   -> Añadiendo barra 'proyecto' al contenedor.
+WARN: Clave 'interfaz.herramientas.toggle' no encontrada. Usando default 'true' y añadiendo a config en memoria.
   -> Añadiendo barra 'toggle' al contenedor.
+WARN: Clave 'interfaz.herramientas.utils' no encontrada. Usando default 'true' y añadiendo a config en memoria.
   -> Añadiendo barra 'utils' al contenedor.
+WARN: Clave 'interfaz.herramientas.apoyo' no encontrada. Usando default 'true' y añadiendo a config en memoria.
   -> Añadiendo barra 'apoyo' al contenedor.
   -> EXCLUYENDO barra 'controles_imagen_inferior' del contenedor principal. Se añadirá en ViewBuilder.
 [ToolbarManager] Reconstrucción de contenedor completada.
@@ -120,13 +175,30 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
 --- [EDT] Inicialización de UI completada. Carga de datos programada. ---
   [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...
+WARN: Clave 'interfaz.boton.movimiento.nav_anterior.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_primera.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.especial_botones_ocultos.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_ultima.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.especial_refrescar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.4002-Grid_48x48_png.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.vista_mostrar_dialogo_lista.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.4006-Polaroid48x48_png.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.proyecto.8004-datos_48x48_png.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.imagen_localizar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.4001-Panel-Galeria_48x48_png.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.control.imagen_eliminar.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.4005-Carrousel_48x48_png.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.especial_menu.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.movimiento.nav_siguiente.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.vista.4003-Pantalla_Completa_48x48_png.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
+WARN: Clave 'interfaz.boton.especiales.archivo_abrir.visible' no encontrada. Usando default 'true' y añadiendo a config en memoria.
     -> Sincronizando estado visual de botones toggle...
     -> Sincronización de botones toggle completada.
     -> Aplicando estado inicial de fondo a cuadros desde config: false
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: 
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -151,11 +223,11 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@3bab2b4b: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@3bab2b4b actualizado. Nuevo tamaño: 209
+### DEBUG CONTEXT: ListContext@125dd0be: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@125dd0be actualizado. Nuevo tamaño: 209
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 209
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 245565335
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1100439041
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
 [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
@@ -165,42 +237,35 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
     -> Sincronización de botones toggle completada.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---- [Listener Primer Renderizado]: Panel listo (1145x214). Forzando refresco de zoom y UI. ---
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true
+--- [Listener Primer Renderizado]: Panel listo (1140x214). Forzando refresco de zoom y UI. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [VisorController] Sincronización de UI de Zoom completada.
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
-[PanAction] Ejecutando comando: cmd.pan.left_edge (Dir: LEFT, Tipo: ABSOLUTE_EDGE)
-[GeneralController] Solicitud de paneo ABSOLUTO a: LEFT
-[GeneralController] Paneo absoluto a LEFT aplicado. Offset: (0, 0)
+  [Model VISUALIZADOR] Estado zoomToCursorEnabled cambiado a: true
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[ToggleZoomToCursorAction] Estado de 'Zoom al Cursor' cambiado a: true
+  [Model VISUALIZADOR] Estado zoomToCursorEnabled cambiado a: false
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[ToggleZoomToCursorAction] Estado de 'Zoom al Cursor' cambiado a: false
+  [Model VISUALIZADOR] Estado zoomToCursorEnabled cambiado a: true
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[ToggleZoomToCursorAction] Estado de 'Zoom al Cursor' cambiado a: true
+  [Model VISUALIZADOR] Estado zoomToCursorEnabled cambiado a: false
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[ToggleZoomToCursorAction] Estado de 'Zoom al Cursor' cambiado a: false
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
-!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1604839423
+!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 410424423
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
@@ -209,7 +274,75 @@ VisorController instanciado. La inicialización de la UI ocurrirá en el EDT.
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 169
+Claves a guardar/actualizar: 171
+Añadiendo 67 claves nuevas:
+  Nuevo: comportamiento.zoom.al_cursor.activado = false
+  Nuevo: interfaz.boton.apoyo.archivo_abrir.visible = true
+  Nuevo: interfaz.boton.apoyo.especial_botones_ocultos.visible = true
+  Nuevo: interfaz.boton.apoyo.especial_menu.visible = true
+  Nuevo: interfaz.boton.control.especial_refrescar.visible = true
+  Nuevo: interfaz.boton.control.imagen_eliminar.visible = true
+  Nuevo: interfaz.boton.control.imagen_localizar.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.background_checkered.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.background_color_slot_1.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.background_color_slot_2.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.background_color_slot_3.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.background_color_slot_4.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.background_color_slot_5.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.background_custom_color.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.todo_funcionalidad_pendiente.visible = true
+  Nuevo: interfaz.boton.controles_imagen_inferior.zoom_toggle_to_cursor.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_recortar.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_rotar_der.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_rotar_izq.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_voltear_h.visible = true
+  Nuevo: interfaz.boton.edicion.imagen_voltear_v.visible = true
+  Nuevo: interfaz.boton.especiales.archivo_abrir.visible = true
+  Nuevo: interfaz.boton.especiales.especial_botones_ocultos.visible = true
+  Nuevo: interfaz.boton.especiales.especial_menu.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_anterior.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_primera.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_siguiente.visible = true
+  Nuevo: interfaz.boton.movimiento.nav_ultima.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_anterior.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_primera.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_siguiente.visible = true
+  Nuevo: interfaz.boton.navegacion.nav_ultima.visible = true
+  Nuevo: interfaz.boton.proyecto.8004-datos_48x48_png.visible = true
+  Nuevo: interfaz.boton.proyecto.proyecto_gestionar.visible = true
+  Nuevo: interfaz.boton.proyecto.proyecto_toggle_marca.visible = true
+  Nuevo: interfaz.boton.proyecto.todo_funcionalidad_pendiente.visible = true
+  Nuevo: interfaz.boton.proyecto.vista_switch_to_visualizador.visible = true
+  Nuevo: interfaz.boton.toggle.mantener_proporciones.visible = true
+  Nuevo: interfaz.boton.toggle.subcarpetas.visible = true
+  Nuevo: interfaz.boton.utils.especial_refrescar.visible = true
+  Nuevo: interfaz.boton.utils.imagen_eliminar.visible = true
+  Nuevo: interfaz.boton.utils.imagen_localizar.visible = true
+  Nuevo: interfaz.boton.vista.4001-Panel-Galeria_48x48_png.visible = true
+  Nuevo: interfaz.boton.vista.4002-Grid_48x48_png.visible = true
+  Nuevo: interfaz.boton.vista.4003-Pantalla_Completa_48x48_png.visible = true
+  Nuevo: interfaz.boton.vista.4005-Carrousel_48x48_png.visible = true
+  Nuevo: interfaz.boton.vista.4006-Polaroid48x48_png.visible = true
+  Nuevo: interfaz.boton.vista.vista_mostrar_dialogo_lista.visible = true
+  Nuevo: interfaz.boton.vistas.todo_funcionalidad_pendiente.visible = true
+  Nuevo: interfaz.boton.vistas.vista_mostrar_dialogo_lista.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_manual_toggle.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_reset.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_ajustar.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_alto.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_ancho.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_auto.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_especificado.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_fijo.visible = true
+  Nuevo: interfaz.boton.zoom.zoom_tipo_rellenar.visible = true
+  Nuevo: interfaz.herramientas.apoyo = true
+  Nuevo: interfaz.herramientas.edicion = true
+  Nuevo: interfaz.herramientas.navegacion = true
+  Nuevo: interfaz.herramientas.proyecto = true
+  Nuevo: interfaz.herramientas.toggle = true
+  Nuevo: interfaz.herramientas.utils = true
+  Nuevo: interfaz.herramientas.vistas = true
+  Nuevo: interfaz.herramientas.zoom = true
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

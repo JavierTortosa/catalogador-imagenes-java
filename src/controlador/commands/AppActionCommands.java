@@ -42,6 +42,8 @@ public interface AppActionCommands {
     String CMD_ZOOM_TAMAÑO_REAL 			= "cmd.zoom.tamano_real"; 				// (Asumiendo Action futura)
     String CMD_ZOOM_MANUAL_TOGGLE 			= "cmd.zoom.manual.toggle"; 			// Para ToggleZoomManualAction
     String CMD_ZOOM_RESET 					= "cmd.zoom.reset";         			// Para ResetZoomAction
+    String CMD_ZOOM_TOGGLE_TO_CURSOR 		= "cmd.zoom.toggle_to_cursor";			// para zoom al cursor
+    
     // Tipos de Zoom (cada uno es una Action)
     String CMD_ZOOM_TIPO_AUTO 				= "cmd.zoom.tipo.auto";       			// Para ZoomAutoAction
     String CMD_ZOOM_TIPO_ANCHO 				= "cmd.zoom.tipo.ancho";      			// Para ZoomAnchoAction
@@ -50,7 +52,6 @@ public interface AppActionCommands {
     String CMD_ZOOM_TIPO_FIJO 				= "cmd.zoom.tipo.fijo";       			// Para ZoomFixedAction
     String CMD_ZOOM_TIPO_ESPECIFICADO 		= "cmd.zoom.tipo.especificado"; 		// Para ZoomFijadoAction (o el nombre que le des)
     String CMD_ZOOM_TIPO_RELLENAR 			= "cmd.zoom.tipo.rellenar"; 			// (Asumiendo Action futura)
-
 
     // --- Imagen/Edición ---
     String CMD_IMAGEN_ROTAR_IZQ 			= "cmd.imagen.rotar.izq";    			// Para RotateLeftAction

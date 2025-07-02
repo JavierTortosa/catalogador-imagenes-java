@@ -280,5 +280,7 @@ public class ProjectController {
     public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model); }
     public void setController(VisorController controller) { this.controllerRef = Objects.requireNonNull(controller); }
 
+//    public GeneralController getGeneralController() {return this.generalController;}
+    
 }// --- FIN de la clase ProjectController ---
 

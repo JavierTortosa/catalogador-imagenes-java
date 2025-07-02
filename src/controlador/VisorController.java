@@ -69,6 +69,7 @@ import controlador.commands.AppActionCommands;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
+import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IZoomManager;
@@ -112,6 +113,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private InfobarImageManager infobarImageManager; 
     private InfobarStatusManager statusBarManager;
     private ProjectController projectController;
+    private ToolbarManager toolbarManager;
 
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
@@ -3751,7 +3753,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     
     public void setProjectController(ProjectController projectController) {this.projectController = Objects.requireNonNull(projectController);}
 
-    
+    public void setToolbarManager(ToolbarManager toolbarManager) {this.toolbarManager = toolbarManager;}
 
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
@@ -3959,15 +3961,47 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     } // --- FIN del metodo sincronizarUiControlesSubcarpetas
     
     
+    /**
+     * Orquesta un refresco completo de la UI cuando se cambia de tema.
+     * Es llamado por el ThemeManager.
+     */
+    public void solicitarRefrescoCompletoPorTema() {
+        System.out.println("--- [VisorController] Solicitud de refresco por cambio de tema recibida ---");
+        
+        // 1. Refrescar componentes básicos
+        if (this.configAppManager != null) {
+            this.configAppManager.refrescarTodaLaUIConTemaActual();
+        }
+        
+        // 2. Reconstruir barras de herramientas
+        if (this.toolbarManager != null && this.model != null) {
+            System.out.println("  -> [VisorController] Solicitando a ToolbarManager que reconstruya las barras...");
+            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
+        }
+
+        // 3. Refrescar renderers
+        solicitarRefrescoRenderersMiniaturas();
+        
+        // 4. Sincronizar estados
+        sincronizarEstadoVisualBotonesYRadiosZoom();
+        
+    }// --- FIN del metodo solicitarRefrescoCompletoPorTema ---
+    
+    
     public void sincronizarEstadoVisualBotonesYRadiosZoom() {
-        if (this.actionMap == null || this.model == null || this.configAppManager == null) {
+    	
+    	//FIXME HACER QUE ESTE METODO NO NECESITE UNA INCORPORACION MANUAL DE BOTONES ON OFF
+        
+    	if (this.actionMap == null || this.model == null || this.configAppManager == null) {
             System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: Dependencias nulas.");
             return;
         }
         
         ZoomModeEnum modoActivo = model.getCurrentZoomMode();
         boolean permisoManualActivo = model.isZoomHabilitado();
-        System.out.println("[VisorController] Sincronizando UI de Zoom. Modo: " + modoActivo + ", Permiso Manual: " + permisoManualActivo);
+        boolean zoomAlCursorActivo = model.isZoomToCursorEnabled(); // Se obtiene el estado de este botón
+
+        System.out.println("[VisorController] Sincronizando UI de Zoom. Modo: " + modoActivo + ", Permiso Manual: " + permisoManualActivo + ", Zoom al Cursor: " + zoomAlCursorActivo);
 
         if (modoActivo == null) return;
 
@@ -3978,14 +4012,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             );
         }
         
-        
-        // Si el modo actual es "Zoom Fijo", nos aseguramos de que el "zoom objetivo" tambien cambie
         if (modoActivo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
             if (configuration != null) {
                 configuration.setZoomPersonalizadoPorcentaje(model.getZoomFactor() * 100);
             }
         }
-        
         
         java.util.List<String> zoomModeCommands = java.util.List.of(
             AppActionCommands.CMD_ZOOM_TIPO_AUTO,
@@ -4007,26 +4038,25 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             }
         }
         
-        // --- INICIO DE LA MODIFICACIÓN ---
-        
-        // Sincronizar la Action de Reset
         Action resetAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
         if (resetAction != null) {
-            // La lógica ahora es simple: El botón de reset SÓLO está habilitado
-            // si el modo de paneo manual está activado.
             resetAction.setEnabled(permisoManualActivo);
         }
         
-        // --- FIN DE LA MODIFICACIÓN ---
-        
-        // Sincronizar el Toggle de Permiso Manual
         Action toggleManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
         if(toggleManualAction instanceof ToggleZoomManualAction){
             ((ToggleZoomManualAction)toggleManualAction).sincronizarEstadoConModelo();
             configAppManager.actualizarAspectoBotonToggle(toggleManualAction, permisoManualActivo);
         }
         
-        // Actualizar las barras de información
+        // --- LÓGICA AÑADIDA PARA EL BOTÓN DE ZOOM AL CURSOR ---
+        Action toggleCursorAction = actionMap.get(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
+        if (toggleCursorAction instanceof controlador.actions.zoom.ToggleZoomToCursorAction) {
+            ((controlador.actions.zoom.ToggleZoomToCursorAction)toggleCursorAction).sincronizarEstadoConModelo();
+            configAppManager.actualizarAspectoBotonToggle(toggleCursorAction, zoomAlCursorActivo);
+        }
+        // --- FIN DE LA LÓGICA AÑADIDA ---
+        
         if (infobarImageManager != null) infobarImageManager.actualizar();
         if (statusBarManager != null) statusBarManager.actualizar();
         

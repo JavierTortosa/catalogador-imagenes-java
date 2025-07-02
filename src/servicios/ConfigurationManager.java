@@ -589,9 +589,9 @@ public class ConfigurationManager
 
 //	    defaults.put(ConfigKeys.WINDOW_X, "-1");
 //	    defaults.put(ConfigKeys.WINDOW_Y, "-1");
-	    defaults.put(ConfigKeys.WINDOW_X, "0");
-	    defaults.put(ConfigKeys.WINDOW_Y, "0");
-	    defaults.put(ConfigKeys.WINDOW_WIDTH, "1550");
+	    defaults.put(ConfigKeys.WINDOW_X, "-6");
+	    defaults.put(ConfigKeys.WINDOW_Y, "3");
+	    defaults.put(ConfigKeys.WINDOW_WIDTH, "1544");
 	    defaults.put(ConfigKeys.WINDOW_HEIGHT, "500");
 //	    defaults.put(ConfigKeys.WINDOW_WIDTH, "1280");
 //	    defaults.put(ConfigKeys.WINDOW_HEIGHT, "800");

@@ -129,20 +129,95 @@ public class ZoomManager implements IZoomManager {
     
     @Override
     public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
-        if (model == null || !model.isZoomHabilitado()) return;
+        if (model == null || !model.isZoomHabilitado() || model.getCurrentImage() == null) {
+            return;
+        }
 
+        // --- 1. DATOS INICIALES ---
         double zoomActual = model.getZoomFactor();
-        double scaleFactor = 1.1;
-        double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual * scaleFactor : zoomActual / scaleFactor;
+        double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual * 1.1 : zoomActual / 1.1;
+
+        // Obtener el panel y las coordenadas del ratón relativas a él.
+        ImageDisplayPanel panel = getActiveDisplayPanel();
+        if (panel == null) return;
+        java.awt.Point puntoRatonEnPanel = e.getPoint();
+
+        // --- 2. LÓGICA DE ZOOM AL CURSOR (SI ESTÁ ACTIVA) ---
+        if (model.isZoomToCursorEnabled()) {
+            
+            // Dimensiones del panel y de la imagen original.
+            double panelW = panel.getWidth();
+            double panelH = panel.getHeight();
+            double imgW = model.getCurrentImage().getWidth();
+            double imgH = model.getCurrentImage().getHeight();
+
+            // Posición actual del paneo (offset).
+            double offsetXActual = model.getImageOffsetX();
+            double offsetYActual = model.getImageOffsetY();
+            
+            // Coordenadas de la base centrada (antes del paneo).
+            double xBaseActual = (panelW - imgW * zoomActual) / 2.0;
+            double yBaseActual = (panelH - imgH * zoomActual) / 2.0;
+
+            // a) Coordenadas del punto del ratón relativas a la esquina superior izquierda
+            //    de la imagen DIBUJADA ACTUALMENTE en el panel.
+            double ratonRelativoAIngenX = puntoRatonEnPanel.x - (xBaseActual + offsetXActual);
+            double ratonRelativoAIngenY = puntoRatonEnPanel.y - (yBaseActual + offsetYActual);
+
+            // b) Calcular la posición del punto del ratón como un ratio (0.0 a 1.0)
+            //    dentro de la imagen escalada. Esto nos da un "punto de anclaje" independiente de la escala.
+            double ratioX = ratonRelativoAIngenX / (imgW * zoomActual);
+            double ratioY = ratonRelativoAIngenY / (imgH * zoomActual);
+
+            // c) Calculamos la nueva base centrada con la nueva escala.
+            double xBaseNuevo = (panelW - imgW * nuevoZoom) / 2.0;
+            double yBaseNuevo = (panelH - imgH * nuevoZoom) / 2.0;
+
+            // d) Calculamos el NUEVO OFFSET de paneo.
+            //    La idea es que la esquina de la imagen dibujada se ajuste para que
+            //    el punto de anclaje (el ratio) bajo el ratón siga estando bajo el ratón.
+            //    Ecuación: puntoRaton = nuevaBase + nuevoOffset + (ratio * nuevaImagenEscalada)
+            //    Despejando nuevoOffset:
+            //    nuevoOffset = puntoRaton - nuevaBase - (ratio * nuevaImagenEscalada)
+            double nuevoOffsetX = puntoRatonEnPanel.x - xBaseNuevo - (ratioX * imgW * nuevoZoom);
+            double nuevoOffsetY = puntoRatonEnPanel.y - yBaseNuevo - (ratioY * imgH * nuevoZoom);
+            
+            // Actualizar el offset en el modelo
+            model.setImageOffsetX((int) nuevoOffsetX);
+            model.setImageOffsetY((int) nuevoOffsetY);
+        }
         
-        // 1. Actualiza el modelo
+        // --- 3. ACTUALIZAR ZOOM Y REPINTAR (SE HACE SIEMPRE) ---
         model.setZoomFactor(nuevoZoom);
-        
-        // 2. Repinta la imagen
         refrescarVistaSincrono();
-        
-        // NADA MÁS. No hay llamadas a otros managers.
-    } // --- Fin del método aplicarZoomConRueda ---
+
+        // --- 4. ACTUALIZAR UI (Opcional, pero recomendado) ---
+        //    Si el modo de zoom es FIJO, al hacer zoom manual, el porcentaje cambia.
+        //    Es buena idea actualizar la barra de estado.
+        if (model.getCurrentZoomMode() == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM || model.getCurrentZoomMode() == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
+            if (statusBarManager != null) {
+                statusBarManager.actualizar();
+            }
+        }
+    }
+    
+    
+//    @Override
+//    public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
+//        if (model == null || !model.isZoomHabilitado()) return;
+//
+//        double zoomActual = model.getZoomFactor();
+//        double scaleFactor = 1.1;
+//        double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual * scaleFactor : zoomActual / scaleFactor;
+//        
+//        // 1. Actualiza el modelo
+//        model.setZoomFactor(nuevoZoom);
+//        
+//        // 2. Repinta la imagen
+//        refrescarVistaSincrono();
+//        
+//        // NADA MÁS. No hay llamadas a otros managers.
+//    } // --- Fin del método aplicarZoomConRueda ---
     
 
     @Override

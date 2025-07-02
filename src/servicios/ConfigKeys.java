@@ -117,7 +117,7 @@ public final class ConfigKeys {
     public static final String COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO = "comportamiento.zoom.personalizado.porcentaje";
     public static final String COMPORTAMIENTO_NAVEGACION_CIRCULAR = "comportamiento.navegacion.circular";
     public static final String COMPORTAMIENTO_CARGAR_SUBCARPETAS = "comportamiento.carpeta.cargarSubcarpetas";
-    
+    public static final String COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO = "comportamiento.zoom.al_cursor.activado";
     
  // --- SECCIÓN: BARRAS DE INFORMACIÓN (SUPERIOR) ---
     public static final String INFOBAR_SUP_VISIBLE 				= "interfaz.infobar.superior.visible";

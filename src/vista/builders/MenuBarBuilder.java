@@ -1,7 +1,7 @@
 package vista.builders;
 
 import java.awt.Component;
-import java.awt.event.ActionListener; // Asegúrate de tener este import
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +22,8 @@ import controlador.VisorController;
 import controlador.actions.config.ToggleToolbarButtonVisibilityAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
 import controlador.commands.AppActionCommands; // Asumo que lo necesitas para algún log o comparación, aunque no directamente aquí
-import controlador.managers.ViewManager;
 import controlador.managers.interfaces.IViewManager;
+import controlador.utils.ComponentRegistry;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
@@ -48,16 +48,18 @@ public class MenuBarBuilder {
     private final ConfigurationManager configuration;
     private final VisorController controllerRef;
     private final IViewManager viewManager;
+    private final ComponentRegistry registry;
 
     /**
      * Constructor simplificado. Inicializa las estructuras internas.
      */
-    public MenuBarBuilder(VisorController controller, ConfigurationManager config, IViewManager viewManager) {
+    public MenuBarBuilder(VisorController controller, ConfigurationManager config, IViewManager viewManager, ComponentRegistry registry) {
         this.menuItemsPorNombre = new HashMap<>();
         this.menuBar = new JMenuBar();
         this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
         this.configuration = Objects.requireNonNull(config, "ConfigurationManager no puede ser null");
         this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null");
+        this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en MenuBarBuilder");
         // actionMap y controllerGlobalActionListener se recibirán/establecerán externamente.
         // currentButtonGroup se inicializa a null y se gestiona durante la construcción.
     } // --- Fin del método MenuBarBuilder (constructor) ---
@@ -143,7 +145,14 @@ public class MenuBarBuilder {
         System.out.println("  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: " + this.menuItemsPorNombre.size());
 
         // 3.2. Devolver la JMenuBar completamente construida.
+        
+        // Usamos una clave estándar para la barra de menú principal.
+        this.registry.register("menubar.main", this.menuBar);
+        System.out.println("  [MenuBarBuilder] JMenuBar registrada en ComponentRegistry con la clave 'menubar.main'.");
+
+        System.out.println("--- MenuBarBuilder: Construcción de JMenuBar completada. ---");
         return this.menuBar;
+        
     } // --- FIN del método buildMenuBar ---
 
 

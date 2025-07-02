@@ -10,8 +10,13 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -140,6 +145,123 @@ public class ConfigApplicationManager {
         System.out.println("    -> Configuración básica de Vista aplicada.");
     } // --- Fin del método aplicarConfiguracionAlaVista ---
 
+    
+    public void refrescarTodaLaUIConTemaActual() {
+        System.out.println("--- [ConfigApplicationManager] INICIANDO REFRESCO DE COLORES POR TEMA ---");
+        if (themeManager == null || registry == null) {
+            System.err.println("  ERROR: ThemeManager o Registry nulos.");
+            return;
+        }
+
+        Tema tema = themeManager.getTemaActual();
+        JFrame mainFrame = registry.get("frame.main");
+
+        // --- 1. Contenedores Principales ---
+        if (mainFrame != null) {
+            mainFrame.getContentPane().setBackground(tema.colorFondoPrincipal());
+        }
+        
+        JPanel toolbarContainer = registry.get("container.toolbars");
+        if (toolbarContainer != null) {
+            toolbarContainer.setBackground(tema.colorFondoPrincipal());
+        }
+
+        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+        if (scrollMiniaturas != null) {
+            scrollMiniaturas.setBackground(tema.colorFondoPrincipal());
+            scrollMiniaturas.getViewport().setBackground(tema.colorFondoPrincipal());
+            if(scrollMiniaturas.getBorder() instanceof javax.swing.border.TitledBorder) {
+                ((javax.swing.border.TitledBorder)scrollMiniaturas.getBorder()).setTitleColor(tema.colorBordeTitulo());
+            }
+        }
+
+        // --- 2. JMenuBar y sus ítems ---
+        if (mainFrame != null && mainFrame.getJMenuBar() != null) {
+        	JMenuBar menuBar = registry.get("menubar.main");
+//            JMenuBar menuBar = mainFrame.getJMenuBar();
+        	if (menuBar != null) {
+        		menuBar.setBackground(tema.colorFondoPrincipal());
+        		menuBar.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, tema.colorBorde()));
+        	}
+        	
+            for (int i = 0; i < menuBar.getMenuCount(); i++) {
+                JMenu menu = menuBar.getMenu(i);
+                menu.setForeground(tema.colorTextoPrimario());
+                menu.setOpaque(true); // Necesario para que el fondo del popup se vea
+                
+                for (java.awt.Component comp : menu.getMenuComponents()) {
+                    if (comp instanceof JMenuItem) {
+                        JMenuItem menuItem = (JMenuItem) comp;
+                        menuItem.setForeground(tema.colorTextoPrimario());
+                        menuItem.setBackground(tema.colorFondoPrincipal());
+                    }
+                }
+            }
+        }
+        
+        // --- 3. Panel Izquierdo (Lista de Archivos) ---
+        JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
+        if (panelIzquierdo != null) {
+            panelIzquierdo.setBackground(tema.colorFondoPrincipal());
+            if(panelIzquierdo.getBorder() instanceof javax.swing.border.TitledBorder) {
+                ((javax.swing.border.TitledBorder)panelIzquierdo.getBorder()).setTitleColor(tema.colorBordeTitulo());
+            }
+            
+            JList<String> listaNombres = registry.get("list.nombresArchivo");
+            if(listaNombres != null) {
+                listaNombres.setForeground(tema.colorTextoPrimario());
+                listaNombres.setBackground(tema.colorFondoSecundario());
+                listaNombres.setSelectionForeground(tema.colorSeleccionTexto());
+                listaNombres.setSelectionBackground(tema.colorSeleccionFondo());
+            }
+        }
+
+        // --- 4. Panel Derecho (Visor) ---
+        JPanel panelDerecho = registry.get("panel.derecho.visor");
+        if (panelDerecho != null) {
+            panelDerecho.setBackground(tema.colorFondoSecundario());
+        }
+        
+        // --- 5. Barras de Información (Superior e Inferior) ---
+        JPanel topInfoPanel = registry.get("panel.info.superior");
+        if(topInfoPanel != null) {
+            topInfoPanel.setBackground(tema.colorFondoSecundario());
+            topInfoPanel.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, tema.colorBorde()));
+            for(JLabel label : registry.getAllComponentsOfType(JLabel.class)) {
+                if(SwingUtilities.isDescendingFrom(label, topInfoPanel)) {
+                    label.setForeground(tema.colorTextoSecundario());
+                }
+            }
+        }
+        
+        JPanel bottomStatusBar = registry.get("panel.estado.inferior");
+        if(bottomStatusBar != null) {
+            bottomStatusBar.setBackground(tema.colorFondoPrincipal());
+            bottomStatusBar.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, tema.colorBorde()),
+                javax.swing.BorderFactory.createEmptyBorder(2, 5, 2, 5)
+            ));
+            
+            JLabel rutaLabel = registry.get("label.estado.ruta");
+            if(rutaLabel != null) rutaLabel.setForeground(tema.colorTextoPrimario());
+            
+            JLabel mensajesLabel = registry.get("label.estado.mensajes");
+            if(mensajesLabel != null) mensajesLabel.setForeground(tema.colorTextoSecundario());
+            
+            JLabel zoomPctLabel = registry.get("label.control.zoomPorcentaje");
+            if(zoomPctLabel != null) zoomPctLabel.setForeground(tema.colorTextoPrimario());
+        }
+        
+        // --- 6. Forzar repintado ---
+        if (mainFrame != null) {
+            mainFrame.revalidate();
+            mainFrame.repaint();
+        }
+        System.out.println("--- [ConfigApplicationManager] REFRESCO DE COLORES FINALIZADO ---");
+        
+    }// --- FIN del metodo refrescarTodaLaUIConTemaActual --- 
+    
+    
     /**
      * Sincroniza el estado visual (color de fondo) de todos los botones de la UI
      * que están asociados a una Action de tipo "toggle" (que tiene un estado ON/OFF).
@@ -148,17 +270,22 @@ public class ConfigApplicationManager {
     public void sincronizarEstadoVisualBotonesToggle() {
         System.out.println("    -> Sincronizando estado visual de botones toggle...");
 
+        
+        //FIXME HACER QUE ESTE METODO NO NECESITE UNA INCORPORACION MANUAL DE BOTONES ON OFF
+        
         // Llamamos a un método helper para cada botón que queramos sincronizar.
         // Esto mantiene el código limpio y fácil de leer.
         sincronizarUnBotonToggle(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
         sincronizarUnBotonToggle(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
         sincronizarUnBotonToggle(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
         sincronizarUnBotonToggle(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
+        sincronizarUnBotonToggle(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
         
         // ... Añade aquí cualquier otra Action de tipo toggle que tengas ...
 
         System.out.println("    -> Sincronización de botones toggle completada.");
     } // --- Fin del método sincronizarEstadoVisualBotonesToggle ---
+    
     
     /**
      * Método helper privado para actualizar el aspecto de UN botón toggle específico.
@@ -303,7 +430,7 @@ public class ConfigApplicationManager {
     /**
      * Actualiza la apariencia visual de un botón toggle (como un JToggleButton)
      * para reflejar su estado de selección (activado/desactivado).
-     * Busca el botón asociado a la Action proporcionada y le aplica los colores del tema.
+     * Busca el botón asociado a la Action proporcionada y le aplica los estilos del tema.
      * 
      * @param action La Action cuyo botón asociado se va a actualizar.
      * @param isSelected El estado de selección (true si está activado, false si no).
@@ -312,7 +439,7 @@ public class ConfigApplicationManager {
         if (action == null) return;
 
         JButton botonAsociado = null;
-        // La búsqueda del botón se mantiene igual
+        // La búsqueda del botón se mantiene igual.
         for (JButton boton : registry.getAllComponentsOfType(JButton.class)) {
             if (action.equals(boton.getAction())) {
                 botonAsociado = boton;
@@ -327,18 +454,21 @@ public class ConfigApplicationManager {
         Tema temaActual = this.themeManager.getTemaActual();
         if (temaActual == null) return;
         
-        // <<< LA LÓGICA DE ACTUALIZACIÓN CORRECTA >>>
+        // --- LÓGICA DE ACTUALIZACIÓN ---
         
-        // 1. Establecer el color de fondo
-        Color colorFondoDestino = isSelected 
-            ? temaActual.colorBotonFondoActivado() 
-            : temaActual.colorBotonFondo();
-        botonAsociado.setBackground(colorFondoDestino);
-        botonAsociado.setOpaque(true);
+        if (isSelected) {
+            // ESTADO "ON": Se pinta el fondo verde de "activado".
+            botonAsociado.setBackground(temaActual.colorBotonFondoActivado());
+            botonAsociado.setOpaque(true);
+            botonAsociado.setContentAreaFilled(true);
+            botonAsociado.setBorderPainted(true); // Opcional: mostrar un borde para destacar más.
+        } else {
+            // ESTADO "OFF": Se hace el botón completamente transparente.
+            botonAsociado.setOpaque(false);
+            botonAsociado.setContentAreaFilled(false);
+            botonAsociado.setBorderPainted(false);
+        }
         
-        // 2. Establecer el estado de selección.
-        // Esto funcionará tanto para JButton (donde no tiene efecto visual)
-        // como para JToggleButton (donde sí lo tiene).
         botonAsociado.setSelected(isSelected);
         
     } // --- FIN del metodo actualizarAspectoBotonToggle ---

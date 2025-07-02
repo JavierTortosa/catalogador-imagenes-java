@@ -40,5 +40,16 @@ public enum ButtonType {
      * Se creará como una instancia de javax.swing.JButton y su icono será
      * una instancia de vista.components.icons.ColorOverlayIcon.
      */
-    CHECKERED_OVERLAY_ICON_BUTTON
+    CHECKERED_OVERLAY_ICON_BUTTON,
+    
+    
+    /**
+     * Un botón transparente que tendrá un icono base al que se le aplicará un icono
+     * Ese icono debe ser blanco y transparente
+     * Posteriormente se aplicara un color que solo afectara a las partes blancas
+     */
+    TRANSPARENT
+    
 } // --- FIN del enum ButtonType ---
+
+

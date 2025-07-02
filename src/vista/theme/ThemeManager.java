@@ -6,6 +6,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap; // Para seguridad en hilos si fuera necesario
 
+import javax.swing.SwingUtilities;
+
 import controlador.VisorController;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager; // Necesita leer/guardar el nombre
@@ -31,91 +33,201 @@ public class ThemeManager {
         this.temaActual = temasDisponibles.getOrDefault(nombreTemaInicial, obtenerTemaPorDefecto());
         System.out.println("[ThemeManager] Tema inicial establecido a: " + temaActual.nombreInterno());
     }
-
+    
+    
     private void cargarTemasPredeterminados() {
-        // --- Definir los temas aquí (Hardcodeado para empezar) ---
-
-        // Tema Claro (Replicando los defaults anteriores)
+        // --- 1. Tema Claro (Clear) - Revisado ---
+        // Objetivo: Un look profesional, limpio y legible. El azul como color de acento.
+        Color claroAcento = new Color(57, 105, 138); // Un azul corporativo, serio.
         Tema temaClaro = new Tema(
             "clear", "Tema Claro", "black",
-            new Color(238, 238, 238), new Color(255, 255, 255), // fondo principal, secundario
-            new Color(0, 0, 0), new Color(80, 80, 80),           // texto primario, secundario
-            new Color(184, 207, 229), new Color(0, 0, 0),        // borde color, titulo
-            new Color(57, 105, 138), new Color(255, 255, 255),  // seleccion fondo, texto
-            new Color(238, 238, 238), new Color(0, 0, 0),        // boton fondo, texto
-            new Color(84, 144, 164), new Color(173, 216, 230),    // boton activado, animacion
-            new Color(255, 140, 0)
+            new Color(245, 245, 245), // colorFondoPrincipal: Un blanco roto, menos duro que el blanco puro.
+            new Color(255, 255, 255), // colorFondoSecundario: Blanco puro para paneles de contenido.
+            new Color(20, 20, 20),    // colorTextoPrimario: Casi negro, pero no 100% para menos fatiga.
+            new Color(85, 85, 85),    // colorTextoSecundario: Gris oscuro para info menos importante.
+            new Color(200, 200, 200), // colorBorde: Un gris claro para separadores sutiles.
+            new Color(20, 20, 20),    // colorBordeTitulo: Mismo que el texto principal.
+            claroAcento,              // colorSeleccionFondo: El azul de acento.
+            Color.WHITE,              // colorSeleccionTexto: Blanco para máximo contraste sobre el azul.
+            new Color(230, 230, 230), // colorBotonFondo: Un gris ligeramente más oscuro que el fondo para que destaque un poco.
+            new Color(20, 20, 20),    // colorBotonTexto.
+            new Color(179, 205, 224), // colorBotonFondoActivado: El mismo azul de acento. Coherencia.
+            new Color(173, 216, 230), // colorBotonFondoAnimacion: Un azul claro para el feedback de hover/clic.
+            new Color(0, 122, 204)    // colorBordeSeleccionActiva: Un azul más brillante para bordes de foco.
         );
         temasDisponibles.put(temaClaro.nombreInterno(), temaClaro);
 
-        // Tema Oscuro
+        // --- 2. Tema Oscuro (Dark) - Revisado ---
+        // Objetivo: Clásico tema oscuro, fácil para la vista, con un azul eléctrico como acento.
+        Color oscuroAcentoSeleccion = new Color(0, 122, 204); // Azul brillante para selección de lista
         Tema temaOscuro = new Tema(
-             "dark", "Tema Oscuro", "white",
-             new Color(45, 45, 45), new Color(60, 60, 60),      // fondo principal, secundario
-             new Color(210, 210, 210), new Color(160, 160, 160), // texto primario, secundario
-             new Color(80, 80, 80), new Color(180, 180, 180),   // borde color, titulo
-             new Color(0, 80, 150), new Color(255, 255, 255),   // seleccion fondo, texto
-             new Color(55, 55, 55), new Color(210, 210, 210),   // boton fondo, texto
-             new Color(74, 134, 154), new Color(100, 100, 100), // boton activado, animacion
-             new Color(0, 128, 255)
+            "dark", "Tema Oscuro", "white",
+            new Color(50, 53, 59),    // colorFondoPrincipal: Un gris "pizarra" para menús y barras. Es el color principal de la "carcasa".
+            new Color(43, 45, 49),    // colorFondoSecundario: Un gris aún más oscuro para el área de contenido (visor y lista), para que la imagen destaque.
+            new Color(220, 221, 222), // colorTextoPrimario: Un blanco roto muy legible.
+            new Color(140, 142, 145), // colorTextoSecundario: Un gris más suave para info secundaria.
+            new Color(60, 63, 68),    // colorBorde: Un borde sutil que separa paneles.
+            new Color(200, 201, 202), // colorBordeTitulo: Un color de texto claro para los títulos de panel.
+            oscuroAcentoSeleccion,    // colorSeleccionFondo: El Azul Acero, claro y visible.
+            Color.WHITE,              // colorSeleccionTexto: Blanco para máximo contraste sobre la selección.
+            new Color(66, 70, 77),    // colorBotonFondo: Un gris ligeramente más claro que la barra, para que los botones "apagados" sean visibles pero integrados.
+            new Color(220, 221, 222), // colorBotonTexto.
+            new Color(88, 101, 242),  // colorBotonFondoActivado: Un azul/púrpura tipo Discord, muy claro y moderno para indicar estado "ON".
+            new Color(75, 78, 84),    // colorBotonFondoAnimacion: Un gris más claro para el efecto "hover".
+            oscuroAcentoSeleccion     // colorBordeSeleccionActiva: El mismo color de acento para el foco.
+       );
+        temasDisponibles.put(temaOscuro.nombreInterno(), temaOscuro);
+
+        // --- 3. Tema Azul (Blue) - Revisado ---
+        // Objetivo: Un tema claro pero con un toque de color azul en los fondos.
+        Color azulAcento = new Color(0, 100, 180); // Un azul más profundo que el del tema claro.
+        Tema temaAzul = new Tema(
+             "blue", "Tema Azul", "black", // Iconos negros sobre fondo claro.
+             new Color(237, 244, 252), // colorFondoPrincipal: Un blanco muy ligeramente azulado.
+             new Color(255, 255, 255), // colorFondoSecundario: Blanco puro.
+             new Color(10, 25, 40),    // colorTextoPrimario: Un azul muy oscuro, casi negro.
+             new Color(60, 80, 100),   // colorTextoSecundario: Un gris azulado.
+             new Color(180, 210, 240), // colorBorde: Un azul pálido.
+             new Color(10, 25, 40),    // colorBordeTitulo.
+             azulAcento,               // colorSeleccionFondo: El azul profundo de acento.
+             Color.WHITE,              // colorSeleccionTexto.
+             new Color(225, 235, 245), // colorBotonFondo: Un blanco azulado que destaca un poco.
+             new Color(10, 25, 40),    // colorBotonTexto.
+             azulAcento,               // colorBotonFondoActivado: El mismo azul profundo. Coherencia.
+             new Color(200, 220, 240), // colorBotonFondoAnimacion: Un azul claro para hover.
+             new Color(0, 122, 204)    // colorBordeSeleccionActiva.
         );
-         temasDisponibles.put(temaOscuro.nombreInterno(), temaOscuro);
+        temasDisponibles.put(temaAzul.nombreInterno(), temaAzul);
 
-         // Tema Azul
-         Tema temaAzul = new Tema(
-             "blue", "Tema Azul", "blue",
-             new Color(229, 241, 251), new Color(255, 255, 255), // fondo principal, secundario
-             new Color(0, 0, 0), new Color(50, 50, 50),           // texto primario, secundario
-             new Color(153, 209, 255), new Color(0, 0, 0),        // borde color, titulo
-             new Color(0, 120, 215), new Color(255, 255, 255),  // seleccion fondo, texto
-             new Color(229, 241, 251), new Color(0, 0, 0),        // boton fondo, texto
-             new Color(84, 144, 164), new Color(173, 216, 230),    // boton activado, animacion (igual que claro?)
-             new Color(0, 100, 200)
-         );
-         temasDisponibles.put(temaAzul.nombreInterno(), temaAzul);
+        // --- 4. Tema Verde (Green) - Revisado ---
+        // Objetivo: Un look "hacker" o "matrix", oscuro y con acentos verdes.
+        Color verdeAcento = new Color(0, 204, 102); // Un verde menta brillante y moderno.
+        Tema temaVerde = new Tema(
+             "green", "Tema Verde", "green", // Iconos verdes sobre fondo oscuro.
+             new Color(20, 30, 25),    // colorFondoPrincipal: Verde muy oscuro.
+             new Color(30, 45, 38),    // colorFondoSecundario: Verde oscuro algo más claro.
+             new Color(230, 255, 230), // colorTextoPrimario: Blanco con un levísimo tinte verde.
+             new Color(140, 190, 150), // colorTextoSecundario: Verde pálido.
+             new Color(40, 60, 50),    // colorBorde: Verde grisáceo oscuro.
+             new Color(140, 190, 150), // colorBordeTitulo.
+             verdeAcento,              // colorSeleccionFondo: El verde menta de acento.
+             Color.BLACK,              // colorSeleccionTexto: Negro para el máximo contraste sobre el verde menta.
+             new Color(45, 65, 55),    // colorBotonFondo.
+             new Color(230, 255, 230), // colorBotonTexto.
+             verdeAcento,              // colorBotonFondoActivado: El mismo verde menta. Coherencia.
+             new Color(60, 80, 70),    // colorBotonFondoAnimacion: Verde oscuro para hover.
+             new Color(50, 255, 150)   // colorBordeSeleccionActiva: Verde neón para foco.
+        );
+        temasDisponibles.put(temaVerde.nombreInterno(), temaVerde);
 
-         //Tema Green
-         Tema temaVerde = new Tema(
-                 "green",                     // nombreInterno (minúsculas)
-                 "Tema Verde",                // nombreDisplay
-                 "green",                     // carpetaIconos
-                 new Color(10, 25, 15),       // colorFondoPrincipal (muy oscuro, tinte verde)
-                 new Color(20, 40, 30),       // colorFondoSecundario (ligeramente más claro)
-                 new Color(0, 255, 100),      // colorTextoPrimario (verde brillante)
-                 new Color(0, 180, 80),       // colorTextoSecundario (verde menos intenso)
-                 new Color(0, 80, 40),        // colorBorde (verde oscuro sutil)
-                 new Color(0, 180, 80),       // colorBordeTitulo (igual que texto secundario)
-                 new Color(0, 100, 50),       // colorSeleccionFondo (verde medio oscuro)
-                 new Color(220, 255, 230),    // colorSeleccionTexto (blanco verdoso muy claro para contraste)
-                 new Color(20, 40, 30),       // colorBotonFondo (igual que fondo secundario)
-                 new Color(0, 255, 100),      // colorBotonTexto (igual que texto primario)
-                 new Color(0, 150, 70),       // colorBotonFondoActivado (verde más intenso)
-                 new Color(0, 100, 50),        // colorBotonFondoAnimacion (igual que selección)
-                 new Color(0, 200, 0)
-            );
-            temasDisponibles.put(temaVerde.nombreInterno(), temaVerde);
-
-            // --- Tema Naranja ("Energía/HUD") ---
-            Tema temaNaranja = new Tema(
-                 "orange",                    // nombreInterno
-                 "Tema Naranja",              // nombreDisplay
-                 "orange",                    // carpetaIconos
-                 new Color(35, 30, 25),       // colorFondoPrincipal (gris oscuro cálido)
-                 new Color(55, 45, 40),       // colorFondoSecundario (gris más claro cálido)
-                 new Color(255, 150, 0),      // colorTextoPrimario (naranja brillante)
-                 new Color(200, 120, 0),      // colorTextoSecundario (naranja menos intenso)
-                 new Color(90, 70, 50),       // colorBorde (marrón oscuro/naranja)
-                 new Color(200, 120, 0),      // colorBordeTitulo (igual que texto secundario)
-                 new Color(180, 90, 0),       // colorSeleccionFondo (naranja oscuro)
-                 new Color(255, 240, 220),    // colorSeleccionTexto (blanco anaranjado muy claro)
-                 new Color(55, 45, 40),       // colorBotonFondo (igual que fondo secundario)
-                 new Color(255, 150, 0),      // colorBotonTexto (igual que texto primario)
-                 new Color(255, 120, 0),      // colorBotonFondoActivado (naranja más vivo)
-                 new Color(180, 90, 0),       // colorBotonFondoAnimacion (igual que selección)
-                 new Color(255, 90, 0)
-            );
-            temasDisponibles.put(temaNaranja.nombreInterno(), temaNaranja);
+        // --- 5. Tema Naranja (Orange) - Revisado ---
+        // Objetivo: Un tema oscuro, cálido y energético, con acentos en ámbar/naranja.
+        Color naranjaAcento = new Color(230, 126, 34); // Un naranja elegante, no tan estridente.
+        Tema temaNaranja = new Tema(
+             "orange", "Tema Naranja", "orange", // Iconos naranjas sobre fondo oscuro.
+             new Color(35, 30, 25),    // colorFondoPrincipal: Gris oscuro cálido.
+             new Color(50, 40, 35),    // colorFondoSecundario: Marrón oscuro.
+             new Color(250, 230, 210), // colorTextoPrimario: Blanco cálido (hueso).
+             new Color(190, 160, 140), // colorTextoSecundario: "Beige" oscuro.
+             new Color(70, 60, 50),    // colorBorde.
+             new Color(190, 160, 140), // colorBordeTitulo.
+             naranjaAcento,            // colorSeleccionFondo: El naranja de acento.
+             Color.WHITE,              // colorSeleccionTexto: Blanco para contraste.
+             new Color(65, 55, 50),    // colorBotonFondo.
+             new Color(250, 230, 210), // colorBotonTexto.
+             naranjaAcento,            // colorBotonFondoActivado: El mismo naranja. Coherencia.
+             new Color(80, 70, 65),    // colorBotonFondoAnimacion: Marrón más claro para hover.
+             new Color(255, 152, 0)    // colorBordeSeleccionActiva: Naranja brillante para foco.
+        );
+        temasDisponibles.put(temaNaranja.nombreInterno(), temaNaranja);
     }
+    
+
+//    private void cargarTemasPredeterminados() {
+//        // --- Definir los temas aquí (Hardcodeado para empezar) ---
+//
+//        // Tema Claro (Replicando los defaults anteriores)
+//        Tema temaClaro = new Tema(
+//            "clear", "Tema Claro", "black",
+//            new Color(238, 238, 238), new Color(255, 255, 255), // fondo principal, secundario
+//            new Color(0, 0, 0), new Color(80, 80, 80),           // texto primario, secundario
+//            new Color(184, 207, 229), new Color(0, 0, 0),        // borde color, titulo
+//            new Color(57, 105, 138), new Color(255, 255, 255),  // seleccion fondo, texto
+//            new Color(238, 238, 238), new Color(0, 0, 0),        // boton fondo, texto
+//            new Color(84, 144, 164), new Color(173, 216, 230),    // boton activado, animacion
+//            new Color(255, 140, 0)
+//        );
+//        temasDisponibles.put(temaClaro.nombreInterno(), temaClaro);
+//
+//        // Tema Oscuro
+//        Tema temaOscuro = new Tema(
+//             "dark", "Tema Oscuro", "white",
+//             new Color(45, 45, 45), new Color(60, 60, 60),      // fondo principal, secundario
+//             new Color(210, 210, 210), new Color(160, 160, 160), // texto primario, secundario
+//             new Color(80, 80, 80), new Color(180, 180, 180),   // borde color, titulo
+//             new Color(0, 80, 150), new Color(255, 255, 255),   // seleccion fondo, texto
+//             new Color(55, 55, 55), new Color(210, 210, 210),   // boton fondo, texto
+//             new Color(74, 134, 154), new Color(100, 100, 100), // boton activado, animacion
+//             new Color(0, 128, 255)
+//        );
+//         temasDisponibles.put(temaOscuro.nombreInterno(), temaOscuro);
+//
+//         // Tema Azul
+//         Tema temaAzul = new Tema(
+//             "blue", "Tema Azul", "blue",
+//             new Color(229, 241, 251), new Color(255, 255, 255), // fondo principal, secundario
+//             new Color(0, 0, 0), new Color(50, 50, 50),           // texto primario, secundario
+//             new Color(153, 209, 255), new Color(0, 0, 0),        // borde color, titulo
+//             new Color(0, 120, 215), new Color(255, 255, 255),  // seleccion fondo, texto
+//             new Color(229, 241, 251), new Color(0, 0, 0),        // boton fondo, texto
+//             new Color(84, 144, 164), new Color(173, 216, 230),    // boton activado, animacion (igual que claro?)
+//             new Color(0, 100, 200)
+//         );
+//         temasDisponibles.put(temaAzul.nombreInterno(), temaAzul);
+//
+//         //Tema Green
+//         Tema temaVerde = new Tema(
+//                 "green",                     // nombreInterno (minúsculas)
+//                 "Tema Verde",                // nombreDisplay
+//                 "green",                     // carpetaIconos
+//                 new Color(10, 25, 15),       // colorFondoPrincipal (muy oscuro, tinte verde)
+//                 new Color(20, 40, 30),       // colorFondoSecundario (ligeramente más claro)
+//                 new Color(0, 255, 100),      // colorTextoPrimario (verde brillante)
+//                 new Color(0, 180, 80),       // colorTextoSecundario (verde menos intenso)
+//                 new Color(0, 80, 40),        // colorBorde (verde oscuro sutil)
+//                 new Color(0, 180, 80),       // colorBordeTitulo (igual que texto secundario)
+//                 new Color(0, 100, 50),       // colorSeleccionFondo (verde medio oscuro)
+//                 new Color(220, 255, 230),    // colorSeleccionTexto (blanco verdoso muy claro para contraste)
+//                 new Color(20, 40, 30),       // colorBotonFondo (igual que fondo secundario)
+//                 new Color(0, 255, 100),      // colorBotonTexto (igual que texto primario)
+//                 new Color(0, 150, 70),       // colorBotonFondoActivado (verde más intenso)
+//                 new Color(0, 100, 50),        // colorBotonFondoAnimacion (igual que selección)
+//                 new Color(0, 200, 0)
+//            );
+//            temasDisponibles.put(temaVerde.nombreInterno(), temaVerde);
+//
+//            // --- Tema Naranja ("Energía/HUD") ---
+//            Tema temaNaranja = new Tema(
+//                 "orange",                    // nombreInterno
+//                 "Tema Naranja",              // nombreDisplay
+//                 "orange",                    // carpetaIconos
+//                 new Color(35, 30, 25),       // colorFondoPrincipal (gris oscuro cálido)
+//                 new Color(55, 45, 40),       // colorFondoSecundario (gris más claro cálido)
+//                 new Color(255, 150, 0),      // colorTextoPrimario (naranja brillante)
+//                 new Color(200, 120, 0),      // colorTextoSecundario (naranja menos intenso)
+//                 new Color(90, 70, 50),       // colorBorde (marrón oscuro/naranja)
+//                 new Color(200, 120, 0),      // colorBordeTitulo (igual que texto secundario)
+//                 new Color(180, 90, 0),       // colorSeleccionFondo (naranja oscuro)
+//                 new Color(255, 240, 220),    // colorSeleccionTexto (blanco anaranjado muy claro)
+//                 new Color(55, 45, 40),       // colorBotonFondo (igual que fondo secundario)
+//                 new Color(255, 150, 0),      // colorBotonTexto (igual que texto primario)
+//                 new Color(255, 120, 0),      // colorBotonFondoActivado (naranja más vivo)
+//                 new Color(180, 90, 0),       // colorBotonFondoAnimacion (igual que selección)
+//                 new Color(255, 90, 0)
+//            );
+//            temasDisponibles.put(temaNaranja.nombreInterno(), temaNaranja);
+//    }
+    
 
     private Tema obtenerTemaPorDefecto() {
         // Devuelve el tema "claro" o el primero que encuentre si "claro" no está
@@ -139,23 +251,64 @@ public class ThemeManager {
      */
     public boolean setTemaActual(String nombreTemaInterno) {
         Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
-        if (nuevoTema != null) {
-            if (!nuevoTema.equals(this.temaActual)) { // Cambiar solo si es diferente
-                Tema temaAnterior = this.temaActual;
-                this.temaActual = nuevoTema;
-                configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno()); // Usar la constante
-                System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
-                notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
-                return true; // <--- Tema realmente cambiado
-            } else {
-                System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
-                return false; // <--- No hubo cambio, pero el tema solicitado es el actual
-            }
-        } else {
+        
+        // Validar que el tema solicitado exista.
+        if (nuevoTema == null) {
             System.err.println("WARN [ThemeManager]: No se encontró el tema con nombre: " + nombreTemaInterno);
-            return false; // <--- Tema no válido
+            return false;
         }
-    }
+        
+        // Solo proceder si el tema nuevo es realmente diferente al actual.
+        if (!nuevoTema.equals(this.temaActual)) {
+            Tema temaAnterior = this.temaActual;
+            this.temaActual = nuevoTema;
+            
+            // Actualizar la configuración en memoria.
+            configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno());
+            System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
+
+            // Notificar al controlador principal para que orqueste el refresco de la UI.
+            if (this.controllerRefParaNotificacion != null) {
+                // Usamos invokeLater para asegurar que toda la actualización de la UI
+                // se ejecute de forma segura en el Event Dispatch Thread de Swing.
+                SwingUtilities.invokeLater(() -> {
+                    controllerRefParaNotificacion.solicitarRefrescoCompletoPorTema();
+                });
+            }
+            
+            // Notificar para que se actualice el estado de los radio-buttons del menú de temas.
+            notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
+            
+            return true; // El cambio se realizó con éxito.
+            
+        } else {
+            // Si se intenta poner el mismo tema que ya está activo, no hacemos nada.
+            System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
+            return false; // No hubo cambio.
+        }
+        
+    }// --- FIN del metodo setTemaActual ---
+    
+    
+//    public boolean setTemaActual(String nombreTemaInterno) {
+//        Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
+//        if (nuevoTema != null) {
+//            if (!nuevoTema.equals(this.temaActual)) { // Cambiar solo si es diferente
+//                Tema temaAnterior = this.temaActual;
+//                this.temaActual = nuevoTema;
+//                configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno()); // Usar la constante
+//                System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
+//                notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
+//                return true; // <--- Tema realmente cambiado
+//            } else {
+//                System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
+//                return false; // <--- No hubo cambio, pero el tema solicitado es el actual
+//            }
+//        } else {
+//            System.err.println("WARN [ThemeManager]: No se encontró el tema con nombre: " + nombreTemaInterno);
+//            return false; // <--- Tema no válido
+//        }
+//    }
     
     
     // --- NUEVO MÉTODO para notificar al VisorController ---

@@ -286,97 +286,110 @@ public class ViewBuilder {
     } // --- Fin del método createRightSplitComponent ---
 
 
+
 	private JToolBar createBackgroundControlPanel() {
-        if (this.toolbarManager == null) {
-            System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
-            return new JToolBar();
-        }
+	    if (this.toolbarManager == null) {
+	        System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
+	        return new JToolBar();
+	    }
 
-        JToolBar imageControlsToolbar = toolbarManager.getToolbar("controles_imagen_inferior");
-        if (imageControlsToolbar == null) {
-            System.err.println("WARN [ViewBuilder.createBackgroundControlPanel]: La toolbar 'controles_imagen_inferior' no se encontró en ToolbarManager.");
-            return new JToolBar();
-        }
+	    JToolBar imageControlsToolbar = toolbarManager.getToolbar("controles_imagen_inferior");
+	    if (imageControlsToolbar == null) {
+	        System.err.println("WARN [ViewBuilder.createBackgroundControlPanel]: La toolbar 'controles_imagen_inferior' no se encontró en ToolbarManager.");
+	        return new JToolBar();
+	    }
 
-        imageControlsToolbar.setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 1));
-        imageControlsToolbar.setOpaque(false);
+	    imageControlsToolbar.setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 1));
+	    imageControlsToolbar.setOpaque(false);
 
-        this.backgroundControlButtons.clear(); 
-        
-        for (java.awt.Component comp : imageControlsToolbar.getComponents()) {
-            if (comp instanceof JButton) {
-                JButton button = (JButton) comp;
-                
-                ButtonType buttonType = (ButtonType) button.getClientProperty("buttonType");
-                String baseIconName = (String) button.getClientProperty("baseIconName");
-                String customOverlayKey = (String) button.getClientProperty("customOverlayKey");
+	    this.backgroundControlButtons.clear(); 
+	    
+	    for (java.awt.Component comp : imageControlsToolbar.getComponents()) {
+	        if (comp instanceof JButton) {
+	            JButton button = (JButton) comp;
+	            
+	            ButtonType buttonType = (ButtonType) button.getClientProperty("buttonType");
+	            
+	            if (buttonType == ButtonType.TRANSPARENT) {
+	                String baseIconName = (String) button.getClientProperty("baseIconName");
+	                String customOverlayKey = (String) button.getClientProperty("customOverlayKey");
+	                int iconSize = 16;
 
-                int iconSize = 16;
-                
-                if (buttonType == ButtonType.COLOR_OVERLAY_ICON_BUTTON && baseIconName != null && customOverlayKey != null) {
-                    
-                    Color colorFondoOriginalTema = themeManager.getFondoSecundarioParaTema(customOverlayKey);
-                    if (colorFondoOriginalTema == null) {
-                        System.err.println("WARN [ViewBuilder]: Color de tema para clave '" + customOverlayKey + "' es nulo. Usando GRIS.");
-                        colorFondoOriginalTema = Color.GRAY;
-                    }
-                    
-                    Color colorModificado = colorFondoOriginalTema;
-                    int luminosidad = colorFondoOriginalTema.getRed() + colorFondoOriginalTema.getGreen() + colorFondoOriginalTema.getBlue();
-                    if (luminosidad < 150) { 
-                        colorModificado = aclararColor(colorFondoOriginalTema, 70);
-                    } else if (luminosidad > 600) { 
-                        colorModificado = oscurecerColor(colorFondoOriginalTema, 70);
-                    }
-                    
-                    button.setIcon(iconUtils.getColoredOverlayIcon(baseIconName, colorModificado, iconSize, iconSize));
-                    backgroundControlButtons.add(button);
-                    
-                } else if (buttonType == ButtonType.CHECKERED_OVERLAY_ICON_BUTTON && baseIconName != null) {
-                    button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIconName, iconSize, iconSize));
-                    backgroundControlButtons.add(button);
-                }
-                
-                if (buttonType == ButtonType.COLOR_OVERLAY_ICON_BUTTON || buttonType == ButtonType.CHECKERED_OVERLAY_ICON_BUTTON || AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR.equals(button.getActionCommand())) {
-                    button.addMouseListener(new MouseAdapter() {
-                        @Override
-                        public void mousePressed(MouseEvent e) {
-                            selectBackgroundControlButton(button);
-                        }
-                    });
-                }
-            }
-        }
-        
-        SwingUtilities.invokeLater(() -> {
-            String currentThemeName = themeManager.getTemaActual().nombreInterno();
-            JButton defaultButton = null;
-            for (JButton btn : backgroundControlButtons) {
-                String overlayKey = (String) btn.getClientProperty("customOverlayKey");
-                if (currentThemeName.equals(overlayKey)) {
-                    defaultButton = btn;
-                    break;
-                }
-            }
-            if (defaultButton != null) {
-                selectBackgroundControlButton(defaultButton);
-            } else {
-                 // Usamos la clave correcta para el fondo a cuadros
-                 boolean isCheckered = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false); // <-- LÍNEA CORREGIDA
-                 if (isCheckered) {
-                    for (JButton btn : backgroundControlButtons) {
-                        ButtonType type = (ButtonType) btn.getClientProperty("buttonType");
-                        if (type == ButtonType.CHECKERED_OVERLAY_ICON_BUTTON) {
-                            selectBackgroundControlButton(btn);
-                            break;
-                        }
-                    }
-                 }
-            }
-        });
+	                if ("checkered".equals(customOverlayKey)) {
+	                    if (iconUtils.getCheckeredOverlayIcon(baseIconName, iconSize, iconSize) != null) {
+	                        button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIconName, iconSize, iconSize));
+	                    }
+	                    backgroundControlButtons.add(button);
+	                } else if (customOverlayKey != null) {
+	                    Color colorFondoOriginalTema = themeManager.getFondoSecundarioParaTema(customOverlayKey);
+	                    if (colorFondoOriginalTema == null) colorFondoOriginalTema = Color.GRAY;
+	                    
+	                    Color colorParaTintar = colorFondoOriginalTema;
+	                    int luminosidad = colorFondoOriginalTema.getRed() + colorFondoOriginalTema.getGreen() + colorFondoOriginalTema.getBlue();
+	                    if (luminosidad < 150) { 
+	                        colorParaTintar = aclararColor(colorFondoOriginalTema, 70);
+	                    } else if (luminosidad > 600) { 
+	                        colorParaTintar = oscurecerColor(colorFondoOriginalTema, 70);
+	                    }
+	                    
+	                    ImageIcon mascaraIcono = iconUtils.getScaledCommonIcon(baseIconName, iconSize, iconSize);
+	                    
+	                    if (mascaraIcono != null) {
+	                        java.awt.image.BufferedImage tintedImage = new java.awt.image.BufferedImage(
+	                            iconSize, iconSize, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+	                        java.awt.Graphics2D g2d = tintedImage.createGraphics();
+	                        
+	                        g2d.drawImage(mascaraIcono.getImage(), 0, 0, null);
+	                        g2d.setComposite(java.awt.AlphaComposite.SrcAtop);
+	                        g2d.setColor(colorParaTintar);
+	                        g2d.fillRect(0, 0, iconSize, iconSize);
+	                        g2d.dispose();
+	                        
+	                        button.setIcon(new javax.swing.ImageIcon(tintedImage));
+	                    }
+	                    backgroundControlButtons.add(button);
+	                }
+	                
+	                button.addMouseListener(new MouseAdapter() {
+	                    @Override
+	                    public void mousePressed(MouseEvent e) {
+	                        if (customOverlayKey != null) {
+	                            selectBackgroundControlButton(button);
+	                        }
+	                    }
+	                });
+	            }
+	        }
+	    }
 
-        return imageControlsToolbar;
-    } // --- Fin del método createBackgroundControlPanel ---
+	    SwingUtilities.invokeLater(() -> {
+	        String currentThemeName = themeManager.getTemaActual().nombreInterno();
+	        JButton defaultButton = null;
+	        for (JButton btn : backgroundControlButtons) {
+	            String overlayKey = (String) btn.getClientProperty("customOverlayKey");
+	            if (currentThemeName.equals(overlayKey)) {
+	                defaultButton = btn;
+	                break;
+	            }
+	        }
+	        if (defaultButton != null) {
+	            selectBackgroundControlButton(defaultButton);
+	        } else {
+	             boolean isCheckered = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false);
+	             if (isCheckered) {
+	                for (JButton btn : backgroundControlButtons) {
+	                    if ("checkered".equals(btn.getClientProperty("customOverlayKey"))) {
+	                        selectBackgroundControlButton(btn);
+	                        break;
+	                    }
+	                }
+	             }
+	        }
+	    });
+
+	    return imageControlsToolbar;
+	} // --- Fin del método createBackgroundControlPanel ---
+	
 
     private Color aclararColor(Color colorOriginal, int cantidadAclarar) {
         if (colorOriginal == null) return Color.LIGHT_GRAY;
