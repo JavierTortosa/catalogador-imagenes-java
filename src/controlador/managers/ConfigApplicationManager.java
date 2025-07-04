@@ -146,120 +146,120 @@ public class ConfigApplicationManager {
     } // --- Fin del método aplicarConfiguracionAlaVista ---
 
     
-    public void refrescarTodaLaUIConTemaActual() {
-        System.out.println("--- [ConfigApplicationManager] INICIANDO REFRESCO DE COLORES POR TEMA ---");
-        if (themeManager == null || registry == null) {
-            System.err.println("  ERROR: ThemeManager o Registry nulos.");
-            return;
-        }
-
-        Tema tema = themeManager.getTemaActual();
-        JFrame mainFrame = registry.get("frame.main");
-
-        // --- 1. Contenedores Principales ---
-        if (mainFrame != null) {
-            mainFrame.getContentPane().setBackground(tema.colorFondoPrincipal());
-        }
-        
-        JPanel toolbarContainer = registry.get("container.toolbars");
-        if (toolbarContainer != null) {
-            toolbarContainer.setBackground(tema.colorFondoPrincipal());
-        }
-
-        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-        if (scrollMiniaturas != null) {
-            scrollMiniaturas.setBackground(tema.colorFondoPrincipal());
-            scrollMiniaturas.getViewport().setBackground(tema.colorFondoPrincipal());
-            if(scrollMiniaturas.getBorder() instanceof javax.swing.border.TitledBorder) {
-                ((javax.swing.border.TitledBorder)scrollMiniaturas.getBorder()).setTitleColor(tema.colorBordeTitulo());
-            }
-        }
-
-        // --- 2. JMenuBar y sus ítems ---
-        if (mainFrame != null && mainFrame.getJMenuBar() != null) {
-        	JMenuBar menuBar = registry.get("menubar.main");
-//            JMenuBar menuBar = mainFrame.getJMenuBar();
-        	if (menuBar != null) {
-        		menuBar.setBackground(tema.colorFondoPrincipal());
-        		menuBar.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, tema.colorBorde()));
-        	}
-        	
-            for (int i = 0; i < menuBar.getMenuCount(); i++) {
-                JMenu menu = menuBar.getMenu(i);
-                menu.setForeground(tema.colorTextoPrimario());
-                menu.setOpaque(true); // Necesario para que el fondo del popup se vea
-                
-                for (java.awt.Component comp : menu.getMenuComponents()) {
-                    if (comp instanceof JMenuItem) {
-                        JMenuItem menuItem = (JMenuItem) comp;
-                        menuItem.setForeground(tema.colorTextoPrimario());
-                        menuItem.setBackground(tema.colorFondoPrincipal());
-                    }
-                }
-            }
-        }
-        
-        // --- 3. Panel Izquierdo (Lista de Archivos) ---
-        JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
-        if (panelIzquierdo != null) {
-            panelIzquierdo.setBackground(tema.colorFondoPrincipal());
-            if(panelIzquierdo.getBorder() instanceof javax.swing.border.TitledBorder) {
-                ((javax.swing.border.TitledBorder)panelIzquierdo.getBorder()).setTitleColor(tema.colorBordeTitulo());
-            }
-            
-            JList<String> listaNombres = registry.get("list.nombresArchivo");
-            if(listaNombres != null) {
-                listaNombres.setForeground(tema.colorTextoPrimario());
-                listaNombres.setBackground(tema.colorFondoSecundario());
-                listaNombres.setSelectionForeground(tema.colorSeleccionTexto());
-                listaNombres.setSelectionBackground(tema.colorSeleccionFondo());
-            }
-        }
-
-        // --- 4. Panel Derecho (Visor) ---
-        JPanel panelDerecho = registry.get("panel.derecho.visor");
-        if (panelDerecho != null) {
-            panelDerecho.setBackground(tema.colorFondoSecundario());
-        }
-        
-        // --- 5. Barras de Información (Superior e Inferior) ---
-        JPanel topInfoPanel = registry.get("panel.info.superior");
-        if(topInfoPanel != null) {
-            topInfoPanel.setBackground(tema.colorFondoSecundario());
-            topInfoPanel.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, tema.colorBorde()));
-            for(JLabel label : registry.getAllComponentsOfType(JLabel.class)) {
-                if(SwingUtilities.isDescendingFrom(label, topInfoPanel)) {
-                    label.setForeground(tema.colorTextoSecundario());
-                }
-            }
-        }
-        
-        JPanel bottomStatusBar = registry.get("panel.estado.inferior");
-        if(bottomStatusBar != null) {
-            bottomStatusBar.setBackground(tema.colorFondoPrincipal());
-            bottomStatusBar.setBorder(javax.swing.BorderFactory.createCompoundBorder(
-                javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, tema.colorBorde()),
-                javax.swing.BorderFactory.createEmptyBorder(2, 5, 2, 5)
-            ));
-            
-            JLabel rutaLabel = registry.get("label.estado.ruta");
-            if(rutaLabel != null) rutaLabel.setForeground(tema.colorTextoPrimario());
-            
-            JLabel mensajesLabel = registry.get("label.estado.mensajes");
-            if(mensajesLabel != null) mensajesLabel.setForeground(tema.colorTextoSecundario());
-            
-            JLabel zoomPctLabel = registry.get("label.control.zoomPorcentaje");
-            if(zoomPctLabel != null) zoomPctLabel.setForeground(tema.colorTextoPrimario());
-        }
-        
-        // --- 6. Forzar repintado ---
-        if (mainFrame != null) {
-            mainFrame.revalidate();
-            mainFrame.repaint();
-        }
-        System.out.println("--- [ConfigApplicationManager] REFRESCO DE COLORES FINALIZADO ---");
-        
-    }// --- FIN del metodo refrescarTodaLaUIConTemaActual --- 
+//    public void refrescarTodaLaUIConTemaActual() {
+//        System.out.println("--- [ConfigApplicationManager] INICIANDO REFRESCO DE COLORES POR TEMA ---");
+//        if (themeManager == null || registry == null) {
+//            System.err.println("  ERROR: ThemeManager o Registry nulos.");
+//            return;
+//        }
+//
+//        Tema tema = themeManager.getTemaActual();
+//        JFrame mainFrame = registry.get("frame.main");
+//
+//        // --- 1. Contenedores Principales ---
+//        if (mainFrame != null) {
+//            mainFrame.getContentPane().setBackground(tema.colorFondoPrincipal());
+//        }
+//        
+//        JPanel toolbarContainer = registry.get("container.toolbars");
+//        if (toolbarContainer != null) {
+//            toolbarContainer.setBackground(tema.colorFondoPrincipal());
+//        }
+//
+//        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+//        if (scrollMiniaturas != null) {
+//            scrollMiniaturas.setBackground(tema.colorFondoPrincipal());
+//            scrollMiniaturas.getViewport().setBackground(tema.colorFondoPrincipal());
+//            if(scrollMiniaturas.getBorder() instanceof javax.swing.border.TitledBorder) {
+//                ((javax.swing.border.TitledBorder)scrollMiniaturas.getBorder()).setTitleColor(tema.colorBordeTitulo());
+//            }
+//        }
+//
+//        // --- 2. JMenuBar y sus ítems ---
+//        if (mainFrame != null && mainFrame.getJMenuBar() != null) {
+//        	JMenuBar menuBar = registry.get("menubar.main");
+////            JMenuBar menuBar = mainFrame.getJMenuBar();
+//        	if (menuBar != null) {
+//        		menuBar.setBackground(tema.colorFondoPrincipal());
+//        		menuBar.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, tema.colorBorde()));
+//        	}
+//        	
+//            for (int i = 0; i < menuBar.getMenuCount(); i++) {
+//                JMenu menu = menuBar.getMenu(i);
+//                menu.setForeground(tema.colorTextoPrimario());
+//                menu.setOpaque(true); // Necesario para que el fondo del popup se vea
+//                
+//                for (java.awt.Component comp : menu.getMenuComponents()) {
+//                    if (comp instanceof JMenuItem) {
+//                        JMenuItem menuItem = (JMenuItem) comp;
+//                        menuItem.setForeground(tema.colorTextoPrimario());
+//                        menuItem.setBackground(tema.colorFondoPrincipal());
+//                    }
+//                }
+//            }
+//        }
+//        
+//        // --- 3. Panel Izquierdo (Lista de Archivos) ---
+//        JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
+//        if (panelIzquierdo != null) {
+//            panelIzquierdo.setBackground(tema.colorFondoPrincipal());
+//            if(panelIzquierdo.getBorder() instanceof javax.swing.border.TitledBorder) {
+//                ((javax.swing.border.TitledBorder)panelIzquierdo.getBorder()).setTitleColor(tema.colorBordeTitulo());
+//            }
+//            
+//            JList<String> listaNombres = registry.get("list.nombresArchivo");
+//            if(listaNombres != null) {
+//                listaNombres.setForeground(tema.colorTextoPrimario());
+//                listaNombres.setBackground(tema.colorFondoSecundario());
+//                listaNombres.setSelectionForeground(tema.colorSeleccionTexto());
+//                listaNombres.setSelectionBackground(tema.colorSeleccionFondo());
+//            }
+//        }
+//
+//        // --- 4. Panel Derecho (Visor) ---
+//        JPanel panelDerecho = registry.get("panel.derecho.visor");
+//        if (panelDerecho != null) {
+//            panelDerecho.setBackground(tema.colorFondoSecundario());
+//        }
+//        
+//        // --- 5. Barras de Información (Superior e Inferior) ---
+//        JPanel topInfoPanel = registry.get("panel.info.superior");
+//        if(topInfoPanel != null) {
+//            topInfoPanel.setBackground(tema.colorFondoSecundario());
+//            topInfoPanel.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, tema.colorBorde()));
+//            for(JLabel label : registry.getAllComponentsOfType(JLabel.class)) {
+//                if(SwingUtilities.isDescendingFrom(label, topInfoPanel)) {
+//                    label.setForeground(tema.colorTextoSecundario());
+//                }
+//            }
+//        }
+//        
+//        JPanel bottomStatusBar = registry.get("panel.estado.inferior");
+//        if(bottomStatusBar != null) {
+//            bottomStatusBar.setBackground(tema.colorFondoPrincipal());
+//            bottomStatusBar.setBorder(javax.swing.BorderFactory.createCompoundBorder(
+//                javax.swing.BorderFactory.createMatteBorder(1, 0, 0, 0, tema.colorBorde()),
+//                javax.swing.BorderFactory.createEmptyBorder(2, 5, 2, 5)
+//            ));
+//            
+//            JLabel rutaLabel = registry.get("label.estado.ruta");
+//            if(rutaLabel != null) rutaLabel.setForeground(tema.colorTextoPrimario());
+//            
+//            JLabel mensajesLabel = registry.get("label.estado.mensajes");
+//            if(mensajesLabel != null) mensajesLabel.setForeground(tema.colorTextoSecundario());
+//            
+//            JLabel zoomPctLabel = registry.get("label.control.zoomPorcentaje");
+//            if(zoomPctLabel != null) zoomPctLabel.setForeground(tema.colorTextoPrimario());
+//        }
+//        
+//        // --- 6. Forzar repintado ---
+//        if (mainFrame != null) {
+//            mainFrame.revalidate();
+//            mainFrame.repaint();
+//        }
+//        System.out.println("--- [ConfigApplicationManager] REFRESCO DE COLORES FINALIZADO ---");
+//        
+//    }// --- FIN del metodo refrescarTodaLaUIConTemaActual --- 
     
     
     /**

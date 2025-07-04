@@ -257,6 +257,7 @@ public class AppInitializer {
             
             this.controller.setComponentRegistry(registry);
             this.controller.setToolbarManager(this.toolbarManager);
+            this.controller.setActionFactory(this.actionFactory);
             
             viewBuilder.setToolbarManager(this.toolbarManager);
             viewBuilder.setViewManager(this.viewManager);

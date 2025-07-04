@@ -22,7 +22,7 @@ VisorV2.main: Configurando tema claro FlatLightLaf.
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
 [ThemeManager] Tema inicial establecido a: clear
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 663856289
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 536531056
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -154,11 +154,11 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@2fd121db: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@2fd121db actualizado. Nuevo tamaño: 209
+### DEBUG CONTEXT: ListContext@7e9b9fb1: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@7e9b9fb1 actualizado. Nuevo tamaño: 209
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 209
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 663856289
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 536531056
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
 [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
@@ -168,82 +168,53 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Sincronización de botones toggle completada.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---- [Listener Primer Renderizado]: Panel listo (1144x246). Forzando refresco de zoom y UI. ---
+--- [Listener Primer Renderizado]: Panel listo (1144x257). Forzando refresco de zoom y UI. ---
 [VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [VisorController] Sincronización de UI de Zoom completada.
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 663856289
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
-[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 663856289
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
-[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice: 9)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 663856289
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1004-Ultima_48x48.png' (Índice: 10)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 663856289
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice: 9)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 663856289
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[VisorController] Sincronización de UI de Zoom completada.
+  [Model VISUALIZADOR] Estado zoomToCursorEnabled cambiado a: true
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 663856289
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
-[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[VisorController] Sincronización de UI de Zoom completada.
+[ToggleZoomToCursorAction] Estado de 'Zoom al Cursor' cambiado a: true
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 663856289
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-    -> Sincronizando estado visual de botones toggle...
-    -> Sincronización de botones toggle completada.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1685538367

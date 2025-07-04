@@ -66,12 +66,14 @@ import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.actions.zoom.ToggleZoomManualAction;
 import controlador.commands.AppActionCommands;
+import controlador.factory.ActionFactory;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.interfaces.IListCoordinator;
+import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.BuscadorArchivosWorker;
@@ -114,6 +116,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     private InfobarStatusManager statusBarManager;
     private ProjectController projectController;
     private ToolbarManager toolbarManager;
+    private ActionFactory actionFactory;
 
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
@@ -1855,9 +1858,34 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
          }
 
      } // --- FIN precalentarCacheMiniaturasAsync ---
+     
+     
+     /**
+      * Solicita que la JList de miniaturas se repinte.
+      * Esto hará que MiniaturaListCellRenderer se ejecute para las celdas visibles
+      * y pueda leer el nuevo estado de configuración para mostrar/ocultar nombres.
+      */
+     public void solicitarRefrescoRenderersMiniaturas() {
+         if (view != null && registry.get("list.miniaturas") != null) {
+             System.out.println("  [Controller] Solicitando repintado de listaMiniaturas.");
+             registry.get("list.miniaturas").repaint();
 
-     
-     
+             // Si ocultar/mostrar nombres cambia la ALTURA de las celdas,
+             // podrías necesitar más que un simple repaint().
+             // Por ahora, asumamos que la altura de la celda es fija y solo cambia
+             // la visibilidad del JLabel del nombre.
+             // Si la altura cambia, necesitarías:
+             // 1. Que MiniaturaListCellRenderer devuelva una nueva PreferredSize.
+             // 2. Invalidar el layout de la JList:
+             //    registry.get("list.miniaturas").revalidate();
+             //    registry.get("list.miniaturas").repaint();
+             // 3. Posiblemente recalcular el número de miniaturas visibles si la altura de celda cambió.
+             //    Esto haría que el `ComponentListener` de redimensionamiento sea más complejo
+             //    o que necesites llamar a actualizarModeloYVistaMiniaturas aquí también.
+             // ¡POR AHORA, MANTENGAMOSLO SIMPLE CON SOLO REPAINT!
+         }
+     } // --- FIN metodo solicitarRefrescoRenderersMiniaturas
+
 
 // ************************************************************************************************************* FIN DE LOGICA     
 // ***************************************************************************************************************************
@@ -3101,6 +3129,9 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     	    return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
     	}// --- FIN del metodo calcularNumMiniaturasDinamicas ---
      
+     
+     
+     
 
 // ***************************************************************************** FIN METODOS DE MOVIMIENTO CON LISTCOORDINATOR
 // ***************************************************************************************************************************
@@ -3407,81 +3438,68 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ********************************************************************************************************* GETTERS Y SETTERS
 // ***************************************************************************************************************************
 	  
-// --- NUEVO: Setters para Inyección de Dependencias desde AppInitializer ---
-	public void setModel(VisorModel model) { this.model = model; }
-	public void setConfigurationManager(ConfigurationManager configuration) { this.configuration = configuration; }
-	public void setThemeManager(ThemeManager themeManager) { this.themeManager = themeManager; }
-	public void setIconUtils(IconUtils iconUtils) { this.iconUtils = iconUtils; }
-	public void setServicioMiniaturas(ThumbnailService servicioMiniaturas) { this.servicioMiniaturas = servicioMiniaturas; }
-	public void setExecutorService(ExecutorService executorService) { this.executorService = executorService; }
-	public void setActionMap(Map<String, Action> actionMap) { this.actionMap = actionMap; }
-	public void setUiConfigForView(ViewUIConfig uiConfigForView) { this.uiConfigForView = uiConfigForView; }
-	public void setCalculatedMiniaturePanelHeight(int calculatedMiniaturePanelHeight) { this.calculatedMiniaturePanelHeight = calculatedMiniaturePanelHeight; }
-	public void setView(VisorView view) { this.view = view; }
-	public void setListCoordinator(IListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
+
+
 	
-	public DefaultListModel<String> getModeloMiniaturas()	{ return this.modeloMiniaturas; }
-	public void setModeloMiniaturas(DefaultListModel<String> modeloMiniaturas) {
-	    this.modeloMiniaturas = Objects.requireNonNull(modeloMiniaturas, 
-	            "El modelo de miniaturas no puede ser inyectado como nulo en VisorController.");
-	    
-	    System.out.println("  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: " + System.identityHashCode(this.modeloMiniaturas));
-	} // --- Fin del método setModeloMiniaturas ---
+
+
+     
+    
+    
+    
+    
+    
+    	
 	
-	public void setZoomManager(IZoomManager zoomManager) {
-	    this.zoomManager = zoomManager;
-	}		
-
-	/**
-	 * Devuelve el mapa completo de Actions (incluyendo navegación).
-	 * Usado por AppInitializer para pasarlo a los builders durante la creación de la UI.
-	 * Es package-private para limitar su visibilidad.
-	 *
-	 * @return El mapa de acciones (comando canónico -> Action).
-	 */
-	Map<String, Action> getActionMap() { // Sin modificador de acceso = package-private
-	    return this.actionMap;
-	}
-
-
-// Setters
-
-	// --- NUEVO: Getters para que AppInitializer obtenga datos ---
-	public ViewUIConfig getUiConfigForView() { return uiConfigForView; }
-	public ThumbnailService getServicioMiniaturas() { return servicioMiniaturas; }
-	public int getCalculatedMiniaturePanelHeight() { return calculatedMiniaturePanelHeight; }
-	public IconUtils getIconUtils() { return iconUtils; } // Necesario para createNavigationActions...	  
-	  
-	public void setProjectManager(ProjectManager projectManager) {
-	    this.projectManager = projectManager;
-	}
-
+	
+	
     
     /**
-     * Solicita que la JList de miniaturas se repinte.
-     * Esto hará que MiniaturaListCellRenderer se ejecute para las celdas visibles
-     * y pueda leer el nuevo estado de configuración para mostrar/ocultar nombres.
+     * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
+     * Es un método seguro que comprueba la existencia del modelo y su lista interna.
+     *
+     * @return El tamaño (número de elementos) de la lista de imágenes,
+     *         o 0 si el modelo o la lista no están inicializados o están vacíos.
      */
-    public void solicitarRefrescoRenderersMiniaturas() {
-        if (view != null && registry.get("list.miniaturas") != null) {
-            System.out.println("  [Controller] Solicitando repintado de listaMiniaturas.");
-            registry.get("list.miniaturas").repaint();
-
-            // Si ocultar/mostrar nombres cambia la ALTURA de las celdas,
-            // podrías necesitar más que un simple repaint().
-            // Por ahora, asumamos que la altura de la celda es fija y solo cambia
-            // la visibilidad del JLabel del nombre.
-            // Si la altura cambia, necesitarías:
-            // 1. Que MiniaturaListCellRenderer devuelva una nueva PreferredSize.
-            // 2. Invalidar el layout de la JList:
-            //    registry.get("list.miniaturas").revalidate();
-            //    registry.get("list.miniaturas").repaint();
-            // 3. Posiblemente recalcular el número de miniaturas visibles si la altura de celda cambió.
-            //    Esto haría que el `ComponentListener` de redimensionamiento sea más complejo
-            //    o que necesites llamar a actualizarModeloYVistaMiniaturas aquí también.
-            // ¡POR AHORA, MANTENGAMOSLO SIMPLE CON SOLO REPAINT!
+    public int getTamanioListaImagenes() {
+        // 1. Verificar que el modelo principal ('model') no sea null
+        if (model != null) {
+            // 2. Obtener el DefaultListModel interno del modelo principal
+            DefaultListModel<String> modeloLista = model.getModeloLista();
+            // 3. Verificar que el DefaultListModel obtenido no sea null
+            if (modeloLista != null) {
+                // 4. Devolver el tamaño del modelo de lista
+                return modeloLista.getSize();
+            } else {
+                // Log si el modelo interno es null (inesperado si el modelo principal no es null)
+                System.err.println("WARN [getTamanioListaImagenes]: El modelo interno (modeloLista) es null.");
+                return 0;
+            }
+        } else {
+            // Log si el modelo principal es null
+            System.err.println("WARN [getTamanioListaImagenes]: El modelo principal (model) es null.");
+            return 0; // Devuelve 0 si el modelo principal no está listo
         }
-    } // --- FIN metodo solicitarRefrescoRenderersMiniaturas 
+    } // --- FIN getTamanioListaImagenes ---	
+    
+    Map<String, Action> getActionMap() {return this.actionMap;}
+    public int getCalculatedMiniaturePanelHeight() { return calculatedMiniaturePanelHeight; }
+    public Map<String, JButton> getBotonesPorNombre() {return this.botonesPorNombre;}
+    public ExecutorService getExecutorService() {return this.executorService;}
+    public IViewManager getViewManager() {return this.viewManager;}
+    public IListCoordinator getListCoordinator() {return this.listCoordinator;}
+    public DefaultListModel<String> getModeloMiniaturas()	{ return this.modeloMiniaturas; }
+    public ViewUIConfig getUiConfigForView() { return uiConfigForView; }
+	public ThumbnailService getServicioMiniaturas() { return servicioMiniaturas; }
+	public IconUtils getIconUtils() { return iconUtils; } 
+    public ComponentRegistry getComponentRegistry() {return this.registry;}
+    public ToolbarManager getToolbarManager() {return this.toolbarManager;}
+    public VisorModel getModel() { return model; }
+    public VisorView getView() { return view; }
+    public ConfigurationManager getConfigurationManager() { return configuration; }
+    public ConfigApplicationManager getConfigApplicationManager() { return this.configAppManager; }
+    public ProjectManager getProjectManager() {return this.projectManager;}
+    public ActionFactory getActionFactory() {return this.actionFactory;}
     
     
     /**
@@ -3539,56 +3557,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
         System.out.println("[VisorController] setMostrarNombresMiniaturas completado.");
     }// --- FIN del metodo setMostrarNombresMiniaturas ---
-
-	
-	// Getters
     
-    /**
-     * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
-     * Es un método seguro que comprueba la existencia del modelo y su lista interna.
-     *
-     * @return El tamaño (número de elementos) de la lista de imágenes,
-     *         o 0 si el modelo o la lista no están inicializados o están vacíos.
-     */
-    public int getTamanioListaImagenes() {
-        // 1. Verificar que el modelo principal ('model') no sea null
-        if (model != null) {
-            // 2. Obtener el DefaultListModel interno del modelo principal
-            DefaultListModel<String> modeloLista = model.getModeloLista();
-            // 3. Verificar que el DefaultListModel obtenido no sea null
-            if (modeloLista != null) {
-                // 4. Devolver el tamaño del modelo de lista
-                return modeloLista.getSize();
-            } else {
-                // Log si el modelo interno es null (inesperado si el modelo principal no es null)
-                System.err.println("WARN [getTamanioListaImagenes]: El modelo interno (modeloLista) es null.");
-                return 0;
-            }
-        } else {
-            // Log si el modelo principal es null
-            System.err.println("WARN [getTamanioListaImagenes]: El modelo principal (model) es null.");
-            return 0; // Devuelve 0 si el modelo principal no está listo
-        }
-    } // --- FIN getTamanioListaImagenes ---	
-    
-    
-    public ProjectManager getProjectManager() {
-        return this.projectManager;
-    }
-
-    
-	/** Getters para Modelo/Vista/Config (usados por Actions). */
-    public VisorModel getModel() { return model; }
-    public VisorView getView() { return view; }
-    public ConfigurationManager getConfigurationManager() { return configuration; }
-     
-     
-    public IListCoordinator getListCoordinator() {return this.listCoordinator;}
-	 
-    public void setConfigApplicationManager(ConfigApplicationManager manager) { this.configAppManager = manager; }
-    public ConfigApplicationManager getConfigApplicationManager() { return this.configAppManager; }
-     
-     
     /**
      * Método centralizado para cambiar el estado de "Navegación Circular".
      * Actualiza el modelo, la configuración, y sincroniza la UI (incluyendo el
@@ -3632,7 +3601,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         System.out.println("    -> Forzada actualización del estado de botones de navegación.");
 
         System.out.println("[VisorController setNavegacionCircularLogicaYUi] Proceso completado.");
-    }
+        
+    }// --- FIN del metodo setNavegacionCircularLogicaYUi ---
      
      
     /**
@@ -3735,26 +3705,36 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
  	    System.out.println("[VisorController setMostrarSubcarpetasLogicaYUi] Proceso completado.");
  	}// FIN metodo setMostrarSubcarpetasLogicaYUi
  	
+ 	public void setModeloMiniaturas(DefaultListModel<String> modeloMiniaturas) {
+	    this.modeloMiniaturas = Objects.requireNonNull(modeloMiniaturas, 
+	            "El modelo de miniaturas no puede ser inyectado como nulo en VisorController.");
+	    
+	    System.out.println("  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: " + System.identityHashCode(this.modeloMiniaturas));
+	} // --- Fin del método setModeloMiniaturas ---
  	
- 	public void setInfobarImageManager(InfobarImageManager manager) { this.infobarImageManager = manager; }
- 	public void setStatusBarManager(InfobarStatusManager manager) { this.statusBarManager = manager; }
-     
- 	public void setComponentRegistry(ComponentRegistry registry) {this.registry = registry;}
-    public ComponentRegistry getComponentRegistry() {return this.registry;}
- 	 	
-    public void setBotonesPorNombre(Map<String, JButton> botones) {this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();}
-    public Map<String, JButton> getBotonesPorNombre() {return this.botonesPorNombre;}
-    
-    public void setMenuItemsPorNombre(Map<String, JMenuItem> menuItems) {this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();}
-    
-    public ExecutorService getExecutorService() {return this.executorService;}
-    
-    public void setViewManager(ViewManager viewManager) {this.viewManager = viewManager;}
-    
-    public void setProjectController(ProjectController projectController) {this.projectController = Objects.requireNonNull(projectController);}
-
-    public void setToolbarManager(ToolbarManager toolbarManager) {this.toolbarManager = toolbarManager;}
-
+ 	public void setCalculatedMiniaturePanelHeight(int calculatedMiniaturePanelHeight) { this.calculatedMiniaturePanelHeight = calculatedMiniaturePanelHeight; }
+ 	public void setModel					(VisorModel model) { this.model = model; }
+	public void setConfigurationManager		(ConfigurationManager configuration) { this.configuration = configuration; }
+	public void setThemeManager				(ThemeManager themeManager) { this.themeManager = themeManager; }
+	public void setIconUtils				(IconUtils iconUtils) { this.iconUtils = iconUtils; }
+	public void setServicioMiniaturas		(ThumbnailService servicioMiniaturas) { this.servicioMiniaturas = servicioMiniaturas; }
+	public void setExecutorService			(ExecutorService executorService) { this.executorService = executorService; }
+	public void setActionMap				(Map<String, Action> actionMap) { this.actionMap = actionMap; }
+	public void setUiConfigForView			(ViewUIConfig uiConfigForView) { this.uiConfigForView = uiConfigForView; }
+	public void setView						(VisorView view) { this.view = view; }
+	public void setListCoordinator			(IListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
+ 	public void setProjectManager			(ProjectManager projectManager) {this.projectManager = projectManager;}
+    public void setActionFactory			(ActionFactory actionFactory) {this.actionFactory = actionFactory;}
+    public void setZoomManager				(IZoomManager zoomManager) {this.zoomManager = zoomManager;}	
+    public void setInfobarImageManager		(InfobarImageManager manager) { this.infobarImageManager = manager; }
+    public void setStatusBarManager			(InfobarStatusManager manager) { this.statusBarManager = manager; }
+    public void setComponentRegistry		(ComponentRegistry registry) {this.registry = registry;}
+    public void setBotonesPorNombre			(Map<String, JButton> botones) {this.botonesPorNombre = (botones != null) ? botones : new HashMap<>();}
+    public void setMenuItemsPorNombre		(Map<String, JMenuItem> menuItems) {this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();}
+    public void setToolbarManager			(ToolbarManager toolbarManager) {this.toolbarManager = toolbarManager;}
+    public void setViewManager				(ViewManager viewManager) {this.viewManager = viewManager;}
+    public void setProjectController		(ProjectController projectController) {this.projectController = Objects.requireNonNull(projectController);}
+    public void setConfigApplicationManager	(ConfigApplicationManager manager) { this.configAppManager = manager; }
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
@@ -3961,31 +3941,31 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     } // --- FIN del metodo sincronizarUiControlesSubcarpetas
     
     
-    /**
-     * Orquesta un refresco completo de la UI cuando se cambia de tema.
-     * Es llamado por el ThemeManager.
-     */
-    public void solicitarRefrescoCompletoPorTema() {
-        System.out.println("--- [VisorController] Solicitud de refresco por cambio de tema recibida ---");
-        
-        // 1. Refrescar componentes básicos
-        if (this.configAppManager != null) {
-            this.configAppManager.refrescarTodaLaUIConTemaActual();
-        }
-        
-        // 2. Reconstruir barras de herramientas
-        if (this.toolbarManager != null && this.model != null) {
-            System.out.println("  -> [VisorController] Solicitando a ToolbarManager que reconstruya las barras...");
-            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
-        }
-
-        // 3. Refrescar renderers
-        solicitarRefrescoRenderersMiniaturas();
-        
-        // 4. Sincronizar estados
-        sincronizarEstadoVisualBotonesYRadiosZoom();
-        
-    }// --- FIN del metodo solicitarRefrescoCompletoPorTema ---
+//    /**
+//     * Orquesta un refresco completo de la UI cuando se cambia de tema.
+//     * Es llamado por el ThemeManager.
+//     */
+//    public void solicitarRefrescoCompletoPorTema() {
+//        System.out.println("--- [VisorController] Solicitud de refresco por cambio de tema recibida ---");
+//        
+//        // 1. Refrescar componentes básicos
+//        if (this.configAppManager != null) {
+//            this.configAppManager.refrescarTodaLaUIConTemaActual();
+//        }
+//        
+//        // 2. Reconstruir barras de herramientas
+//        if (this.toolbarManager != null && this.model != null) {
+//            System.out.println("  -> [VisorController] Solicitando a ToolbarManager que reconstruya las barras...");
+//            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
+//        }
+//
+//        // 3. Refrescar renderers
+//        solicitarRefrescoRenderersMiniaturas();
+//        
+//        // 4. Sincronizar estados
+//        sincronizarEstadoVisualBotonesYRadiosZoom();
+//        
+//    }// --- FIN del metodo solicitarRefrescoCompletoPorTema ---
     
     
     public void sincronizarEstadoVisualBotonesYRadiosZoom() {
@@ -4152,15 +4132,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ***************************************************************************************************************************    
 
      
-/*
- * borrar metodos 
-cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino)
-salirModo(VisorModel.WorkMode modoQueSeAbandona)
-entrarModo(VisorModel.WorkMode modoAlQueSeEntra)
-restaurarUiGenerica()
-restaurarUiGenericaParaModoProyecto()
-sincronizarEstadoBotonesDeModo()     
- */
      
 } // --- FIN CLASE VisorController ---
 

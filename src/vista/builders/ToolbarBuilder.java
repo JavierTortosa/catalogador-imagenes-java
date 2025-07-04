@@ -87,7 +87,7 @@ public class ToolbarBuilder {
         toolbar.setName(toolbarDef.claveBarra());
         toolbar.setFloatable(true);
         toolbar.setRollover(true);
-        toolbar.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
+//        toolbar.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
 
         if (toolbarDef.botones() != null) {
             for (ToolbarButtonDefinition botonDef : toolbarDef.botones()) {
@@ -122,8 +122,10 @@ public class ToolbarBuilder {
                 ((AbstractButton) componentToBuild).setBorderPainted(false);
                 ((AbstractButton) componentToBuild).setFocusPainted(false);
                 ((AbstractButton) componentToBuild).setContentAreaFilled(true);
-                componentToBuild.setBackground(temaActual.colorBotonFondo());
-                componentToBuild.setOpaque(true);
+                
+//                componentToBuild.setBackground(temaActual.colorBotonFondo());
+//                componentToBuild.setOpaque(true);
+                
                 ((AbstractButton) componentToBuild).setToolTipText(definition.textoTooltip());
                 action = this.actionMap.get(definition.comandoCanonico());
                 if (action != null) {
@@ -194,8 +196,10 @@ public class ToolbarBuilder {
                 button.setBorderPainted(false);
                 button.setFocusPainted(false);
                 button.setContentAreaFilled(true);
-                button.setBackground(temaActual.colorBotonFondo());
-                button.setOpaque(true);
+                
+//                button.setBackground(temaActual.colorBotonFondo());
+//                button.setOpaque(true);
+                
                 button.setToolTipText(definition.textoTooltip());
                 action = this.actionMap.get(definition.comandoCanonico());
                 if (action != null) {
@@ -233,6 +237,7 @@ public class ToolbarBuilder {
         return componentToBuild;
     } // --- Fin del método crearComponenteIndividual ---
 
+    
     
      private String extraerNombreClave(String comandoCanonico) {
         if (comandoCanonico == null) return "desconocido";

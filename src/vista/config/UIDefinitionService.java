@@ -623,7 +623,7 @@ public class UIDefinitionService {
             		
                 // 1.5 Separador y Botón de Zoom al Cursor
 //                new ToolbarButtonDefinition(null, null, null, "controles_imagen_inferior", ButtonType.SEPARATOR),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, "20001-zoom_al_cursor_48x48.png", "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior"),//, ButtonType.NORMAL),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, "20001-zoom_al_cursor_48x48.png", "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior"),
 //                new ToolbarButtonDefinition(null, null, null, "controles_imagen_inferior", ButtonType.SEPARATOR),
                 // 2. Botones de color de fondo (usando la imagen circular base)
                 new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, "color_Button_48x48.png", "Fondo Tema Claro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT, "clear"),
@@ -677,11 +677,11 @@ public class UIDefinitionService {
                 new ToolbarDefinition("navegacion", "Navegación", 	10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesNavegacion)
                 ,new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion)
                 ,new ToolbarDefinition("zoom", 		"Zoom", 		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesZoom)
-                ,new ToolbarDefinition("vistas",		"Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVista)
+                ,new ToolbarDefinition("vistas",	"Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVista)
                 ,new ToolbarDefinition("proyecto",	"Proyecto", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesProyecto)
-                ,new ToolbarDefinition("toggle",		"Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle)
+                ,new ToolbarDefinition("toggle",	"Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle)
                 ,new ToolbarDefinition("utils",		"Utilidades", 	70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils)
-                ,new ToolbarDefinition("apoyo", 		"Apoyo", 		80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesApoyo)
+                ,new ToolbarDefinition("apoyo", 	"Apoyo", 		80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesApoyo)
                 
                 // Aquí se añade la nueva barra de control de imagen
                 ,new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 95, EnumSet.of(WorkMode.VISUALIZADOR), botonesControlesImagenInferior)

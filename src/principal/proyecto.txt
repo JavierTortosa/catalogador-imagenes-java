@@ -1,129 +1,129 @@
 
 	el github es: https://github.com/JavierTortosa/catalogador-imagenes-java.git
 	
-	este es un proyecto de un visualilzador/catalogador en java/swing. 
-	
-	Idea general:
-	Soy aprendiz de programador y me dedico bastante a menudo a hacer proyectos en 3d. 
-	
-	Este proyecto nace de la ncesidad de buscar entre cerca de 26000 imagenes.
-	Cada una de estas imagenes corresponde a un archivo comprimido que es quien contiene los modelos a imprimir
-	
-	Los archivos estan separados por carpetas tematicas, las cuales pueden contener varios temas diferentes y de varias formas diferentes
-	Para aclararnos, las carpetas pueden ser de cine, herramientes, escenografia, etc., y dentro de cada carpeta puede contener mas carpetas refinando el catalogo de archivos
-	El problema es que puede ser por una tematica, cine, o puede ser por un diseñador, punga, o simplemente ser archivos stl con su imagen
-	las carpetas tematicas no tienen demasiado problema, pero las de diseñadores pueden contener varios temas, ademas las imagenes pueden ser de 1 modelo o varios
-	
-	Los proyectos en 3d suelen ser tematicos por ej trofeos para toneo de blood bowl. para este proyecto necesitare buscar: bases, pedestales, una base superior y un modelo que represente el campeon por ej...
-	Todo lo referente a trofeos esta en la carpeta trofeos, dentro hay otras carpetas de bases, pedestales, etc... 
-	Luego tengo que ir buscando la figura que ira encima del toreo en funcion de la tematica del torneo, pongamos skaven. 
-	El kit de la cuestion es buscar entre las 26000 imagenes, algun modelo que sea de la tematica que busco y que me sirva para el trofeo... 
-	
-	Lo que pretendo con este proyecto es poder agilizar dicha busqueda.
-
-
-El programa:
-
-El programa tiene 3 partes:
-	Visualizador
-	Gestor de proyectos
-	catalogador de imagenes
-	
-Este es el orden en el que pretendo abordar el proyecto, ya que primero necesito un programa agil y rapido que me permita visualizar las imagenes rapidamente
-En este punto tenemos varias herramientas:
-
-
--- El Visualizador --
-
-	La interfaz:
-		En la parte superior tiene un menu con la totalidad de opciones disponibles en el programa y una opcion de configuracion que en un futuro sera mucho mas completa
-		A continuacion la barra de botones, que iran distribuidos en varias barras de herramientas y que segun donde estemos se mostraran unas herramientas u otras
-			(no tiene ningun sentido que se visualicen los botones de movimiento en el carrousel si estamos editando una imagen) 
-		En el centro de la aplicacion tenemos 3 partes:
-			1. la lista de nombres de archivos (por si sabemos el nobmre de lo que buscamos y ordenacion de los archivos (nombre, carpeta, fecha...)
-			2. la lista de miniaturas es la misma lista de nombres pero mostrando una pequeña lista de imagenes para navegacion rapida 
-			3. vista de la imagen seleccionada. es la vista principal de la imagen seleccionada
+		este es un proyecto de un visualilzador/catalogador en java/swing (ahora maven/swing). 
 		
-	Formas de visualizar la interfaz 
+		Idea general:
+		Soy aprendiz de programador y me dedico bastante a menudo a hacer proyectos en 3d. 
 		
-		1. Navegador por carpetas, un selector de carpetas donde empezar la visualizacion de las imagenes
-		2. Una opcion para que Se puede visualizar la carpeta actual o con las subcarpetas. muy util por la distribucion de las carpetas que tenemos
-		3. Zoom. Hay 2 tipos:
-			1. Zoom Manual que me permite acercar o alejar la imagen o moverla (muy practico en las imgaenes multiples)
-			2. Tipos de zoom: son varias formas de ver las imagenes (sin restriccciones, ajutas al espacion maximo, ajustar al alto/ancho....)
-				Este segundo tipo tiene una opcion para mantener o no las proporciones de la imagen
-		2. Modos de visualizacion: 1 imagen, grid de imagenes, etc....
-		3. Complemento al Modo de visualizacion: pantalla compeleta y carrousel
-		4. Tanto el menu, como las diferentes listas, botones, etc se pueden hacer visibles o no... para ganar espacio de visualizacion
+		Este proyecto nace de la ncesidad de buscar entre cerca de 26000 imagenes.
+		Cada una de estas imagenes corresponde a un archivo comprimido que es quien contiene los modelos a imprimir
+		
+		Los archivos estan separados por carpetas tematicas, las cuales pueden contener varios temas diferentes y de varias formas diferentes
+		Para aclararnos, las carpetas pueden ser de cine, herramientes, escenografia, etc., y dentro de cada carpeta puede contener mas carpetas refinando el catalogo de archivos
+		El problema es que puede ser por una tematica, cine, o puede ser por un diseñador, punga, o simplemente ser archivos stl con su imagen
+		las carpetas tematicas no tienen demasiado problema, pero las de diseñadores pueden contener varios temas, ademas las imagenes pueden ser de 1 modelo o varios
+		
+		Los proyectos en 3d suelen ser tematicos por ej trofeos para toneo de blood bowl. para este proyecto necesitare buscar: bases, pedestales, una base superior y un modelo que represente el campeon por ej...
+		Todo lo referente a trofeos esta en la carpeta trofeos, dentro hay otras carpetas de bases, pedestales, etc... 
+		Luego tengo que ir buscando la figura que ira encima del toreo en funcion de la tematica del torneo, pongamos skaven. 
+		El kit de la cuestion es buscar entre las 26000 imagenes, algun modelo que sea de la tematica que busco y que me sirva para el trofeo... 
+		
+		Lo que pretendo con este proyecto es poder agilizar dicha busqueda.
 	
-	Edicion
 	
-		1. la funciones basicas, rotar izq. y der., espejo horizonta y vertical
-		2. Un modo de recortar (para las imagenes multiples) pero que sera capaz de de poder modificar la imagen actual 
-			(tendra una serie de opciones para pegar el recorte en la imagen original, separar el recorte de la imagen original....)
-		3. Varias formas de guardado tanto de la imagen nueva como la original como la modificacion.... 
-		
-
--- Gestor de Proyectos --
-					
-	Se distribuye en varias fases: 
-		1. una opcion de marcar las imagenes que nos interesa y añadir el archivo con su ruta en un txt temporal 
-		2. Un visualizador de las imagenes marcadas (cambiando el foco entre las carpetas del disco o el contenido del txt)
-		3. El archivo temporal se puede guardar con un nombre concreto y se pueden gestionar los diferentes proyectos
-		
-		
--- Catalogador de Imagenes --
-
-	Es el grueso de la aplicacion, gestionando una base de datos o metadatos o algo similar en donde poder catalogar las imagenes, de tal forma que pueda buscar elfos, enanos, etc.
-	Con la base de datos podremos implementar un gestor de proyectos que pueda ser mas refinado, el uso de tags, pero el trabajo de introducir los de 26000 imagenes puede ser duro.
-	La complicacion mas grande de catalogar las imagenes es el tema de que la cantidad de archivos que tengo ahora y que va creciendo y por lo tanto se van refinando las carpetas
-		(una carpeta que empezo siendo cine, ahora tiene star wars, señor de los anillos.... y dentro de star wars esta la carpeta de naves, personajes, droides... y asi hasta el infinito....
-
-		 
---- MegaConfig - El Centro de Control del Usuario:
-
-	Objetivo: Proporcionar una interfaz gráfica centralizada donde el usuario pueda ajustar finamente casi todos los aspectos del comportamiento y la apariencia de la aplicación, sin necesidad de editar manualmente el archivo config.cfg (aunque este seguirá siendo la base para la persistencia).
-
-	Contenido Potencial (basado en lo que ya tienes y planeas):
-		Visibilidad de Componentes de UI:
-		Checkboxes para mostrar/ocultar la barra de menú, la barra de herramientas principal, la lista de archivos, la barra de miniaturas, las barras de información (superior e inferior) y los elementos individuales dentro de estas barras.
-		Gestión de la visibilidad de botones individuales en la barra de herramientas (lo que ya tienes en el menú "Configuración -> Visualizar Botones" podría migrar o complementarse aquí).
-
-	Configuración de Paneles y Layout:
-		(Más avanzado) Opciones para cambiar la disposición de los paneles principales si decides ofrecer diferentes layouts.
-		Configuración de la posición por defecto del divisor del JSplitPane.
-
-	Comportamiento de la Aplicación:
-		Opciones de "Carga de Imágenes" (subcarpetas, ordenación por defecto).
-		Opciones de "Comportamiento General" (imagen de bienvenida, abrir última imagen, navegación circular, etc.).
-		Configuración de la cantidad de miniaturas (antes/después), tamaño de miniaturas.
-		Parámetros de zoom por defecto.
-
-	Apariencia y Temas:
-		Selector de temas (lo que ya tienes en el menú, pero podría tener una vista previa aquí).
-		(Muy avanzado) Editor de temas o personalización de colores individuales si quisieras ir por ese camino, aunque gestionar un tema completo es más sencillo.
-		Configuración de Teclado (Atajos):
-		(Avanzado) Permitir al usuario personalizar algunos atajos de teclado.
-		Configuración de la Base de Datos/Catalogador (Futuro):
-		Ruta de la base de datos, opciones de indexación, etc.
-		Botones de Acción: "Aplicar", "Cancelar", "Restaurar Defaults".
-		
-	--- Diseño de la UI
+	El programa:
 	
-		La interfaz esta diseñada sobre un cardLayout que proporciona que cada modo tenga su interfaz como si fueran las paginas de un libro
-		Sobre esta pagina estan establecidos unos paneles vacios para que en el futuro config podamos asignar el componente final al panel que queramos
-		La barra de botones esta compuesta por varias toolbars independientes para poder ver la toolbar pertinente segun lo que estemos haciendo
+	El programa tiene 3 partes:
+		Visualizador
+		Gestor de proyectos
+		catalogador de imagenes
 		
-	--- Diseño de las Listas
+	Este es el orden en el que pretendo abordar el proyecto, ya que primero necesito un programa agil y rapido que me permita visualizar las imagenes rapidamente
+	En este punto tenemos varias herramientas:
+	
+	
+	-- El Visualizador --
+	
+		La interfaz:
+			En la parte superior tiene un menu con la totalidad de opciones disponibles en el programa y una opcion de configuracion que en un futuro sera mucho mas completa
+			A continuacion la barra de botones, que iran distribuidos en varias barras de herramientas y que segun donde estemos se mostraran unas herramientas u otras
+				(no tiene ningun sentido que se visualicen los botones de movimiento en el carrousel si estamos editando una imagen) 
+			En el centro de la aplicacion tenemos 3 partes:
+				1. la lista de nombres de archivos (por si sabemos el nobmre de lo que buscamos y ordenacion de los archivos (nombre, carpeta, fecha...)
+				2. la lista de miniaturas es la misma lista de nombres pero mostrando una pequeña lista de imagenes para navegacion rapida 
+				3. vista de la imagen seleccionada. es la vista principal de la imagen seleccionada
+			
+		Formas de visualizar la interfaz 
+			
+			1. Navegador por carpetas, un selector de carpetas donde empezar la visualizacion de las imagenes
+			2. Una opcion para que Se puede visualizar la carpeta actual o con las subcarpetas. muy util por la distribucion de las carpetas que tenemos
+			3. Zoom. Hay 2 tipos:
+				1. Zoom Manual que me permite acercar o alejar la imagen o moverla (muy practico en las imgaenes multiples)
+				2. Tipos de zoom: son varias formas de ver las imagenes (sin restriccciones, ajutas al espacion maximo, ajustar al alto/ancho....)
+					Este segundo tipo tiene una opcion para mantener o no las proporciones de la imagen
+			2. Modos de visualizacion: 1 imagen, grid de imagenes, etc....
+			3. Complemento al Modo de visualizacion: pantalla compeleta y carrousel
+			4. Tanto el menu, como las diferentes listas, botones, etc se pueden hacer visibles o no... para ganar espacio de visualizacion
 		
-		Dado el gran volumen de imagnes, necesitamos formas de ver la mayor cantidad de imagnes en el menor tiempo posible y para eso tenemos las 2 listas, una de nombres y otra de miniaturas
-		La lista de nombres contiene la lista completa de nombres que estamos viendo pero la lista de miniaturas solo esta mostrando una cantidad concreta en cada momento porque hacer 26000 miniaturas es una locura
-		Como la lista de nombres y la de miniaturas funcionan de forma diferente, la lista de miniaturas se crea de forma manual, creando una miniatura y añadiendola a la barra de miniaturas
-		Cuando nos movemos por esta lista de miniaturas, lo que estamos haciendo es eliminar la miniatura que ya no se ve y añadiendo una nueva (al principio o al final segun convenga)
-		Para sincronizar las 2 listas, lo que tenemos es una lista principal que es la que realmente tiene la informacion del disco y la deriva a las 2 listas (miniaturas y nombres) y con un metodo lo sincronizamos todo
-		Ademas para ayudarnos al desplazamiento de las miniaturas, usamos un scrollPane que nos da los medios para el desplazamiento, pero no contiene las miniaturas, sino el panel que creamos nosotros
-		Tambien se creo un cache para que algunas de las miniaturas se fabriquen mientras estamos viendo las que estan en pantalla y asi agilizamos la barra de miniaturas
-		En una version mas avanzada, se añadio que las miniaturas visibles fuera variable, de manera que se vean el maximo de miniaturas posible segun el ancho de la aplicacion
+		Edicion
+		
+			1. la funciones basicas, rotar izq. y der., espejo horizonta y vertical
+			2. Un modo de recortar (para las imagenes multiples) pero que sera capaz de de poder modificar la imagen actual 
+				(tendra una serie de opciones para pegar el recorte en la imagen original, separar el recorte de la imagen original....)
+			3. Varias formas de guardado tanto de la imagen nueva como la original como la modificacion.... 
+			
+	
+	-- Gestor de Proyectos --
+						
+		Se distribuye en varias fases: 
+			1. una opcion de marcar las imagenes que nos interesa y añadir el archivo con su ruta en un txt temporal 
+			2. Un visualizador de las imagenes marcadas (cambiando el foco entre las carpetas del disco o el contenido del txt)
+			3. El archivo temporal se puede guardar con un nombre concreto y se pueden gestionar los diferentes proyectos
+			
+			
+	-- Catalogador de Imagenes --
+	
+		Es el grueso de la aplicacion, gestionando una base de datos o metadatos o algo similar en donde poder catalogar las imagenes, de tal forma que pueda buscar elfos, enanos, etc.
+		Con la base de datos podremos implementar un gestor de proyectos que pueda ser mas refinado, el uso de tags, pero el trabajo de introducir los de 26000 imagenes puede ser duro.
+		La complicacion mas grande de catalogar las imagenes es el tema de que la cantidad de archivos que tengo ahora y que va creciendo y por lo tanto se van refinando las carpetas
+			(una carpeta que empezo siendo cine, ahora tiene star wars, señor de los anillos.... y dentro de star wars esta la carpeta de naves, personajes, droides... y asi hasta el infinito....
+	
+			 
+	--- MegaConfig - El Centro de Control del Usuario:
+	
+		Objetivo: Proporcionar una interfaz gráfica centralizada donde el usuario pueda ajustar finamente casi todos los aspectos del comportamiento y la apariencia de la aplicación, sin necesidad de editar manualmente el archivo config.cfg (aunque este seguirá siendo la base para la persistencia).
+	
+		Contenido Potencial (basado en lo que ya tienes y planeas):
+			Visibilidad de Componentes de UI:
+			Checkboxes para mostrar/ocultar la barra de menú, la barra de herramientas principal, la lista de archivos, la barra de miniaturas, las barras de información (superior e inferior) y los elementos individuales dentro de estas barras.
+			Gestión de la visibilidad de botones individuales en la barra de herramientas (lo que ya tienes en el menú "Configuración -> Visualizar Botones" podría migrar o complementarse aquí).
+	
+		Configuración de Paneles y Layout:
+			(Más avanzado) Opciones para cambiar la disposición de los paneles principales si decides ofrecer diferentes layouts.
+			Configuración de la posición por defecto del divisor del JSplitPane.
+	
+		Comportamiento de la Aplicación:
+			Opciones de "Carga de Imágenes" (subcarpetas, ordenación por defecto).
+			Opciones de "Comportamiento General" (imagen de bienvenida, abrir última imagen, navegación circular, etc.).
+			Configuración de la cantidad de miniaturas (antes/después), tamaño de miniaturas.
+			Parámetros de zoom por defecto.
+	
+		Apariencia y Temas:
+			Selector de temas (lo que ya tienes en el menú, pero podría tener una vista previa aquí).
+			(Muy avanzado) Editor de temas o personalización de colores individuales si quisieras ir por ese camino, aunque gestionar un tema completo es más sencillo.
+			Configuración de Teclado (Atajos):
+			(Avanzado) Permitir al usuario personalizar algunos atajos de teclado.
+			Configuración de la Base de Datos/Catalogador (Futuro):
+			Ruta de la base de datos, opciones de indexación, etc.
+			Botones de Acción: "Aplicar", "Cancelar", "Restaurar Defaults".
+			
+		--- Diseño de la UI
+		
+			La interfaz esta diseñada sobre un cardLayout que proporciona que cada modo tenga su interfaz como si fueran las paginas de un libro
+			Sobre esta pagina estan establecidos unos paneles vacios para que en el futuro config podamos asignar el componente final al panel que queramos
+			La barra de botones esta compuesta por varias toolbars independientes para poder ver la toolbar pertinente segun lo que estemos haciendo
+			
+		--- Diseño de las Listas
+			
+			Dado el gran volumen de imagnes, necesitamos formas de ver la mayor cantidad de imagnes en el menor tiempo posible y para eso tenemos las 2 listas, una de nombres y otra de miniaturas
+			La lista de nombres contiene la lista completa de nombres que estamos viendo pero la lista de miniaturas solo esta mostrando una cantidad concreta en cada momento porque hacer 26000 miniaturas es una locura
+			Como la lista de nombres y la de miniaturas funcionan de forma diferente, la lista de miniaturas se crea de forma manual, creando una miniatura y añadiendola a la barra de miniaturas
+			Cuando nos movemos por esta lista de miniaturas, lo que estamos haciendo es eliminar la miniatura que ya no se ve y añadiendo una nueva (al principio o al final segun convenga)
+			Para sincronizar las 2 listas, lo que tenemos es una lista principal que es la que realmente tiene la informacion del disco y la deriva a las 2 listas (miniaturas y nombres) y con un metodo lo sincronizamos todo
+			Ademas para ayudarnos al desplazamiento de las miniaturas, usamos un scrollPane que nos da los medios para el desplazamiento, pero no contiene las miniaturas, sino el panel que creamos nosotros
+			Tambien se creo un cache para que algunas de las miniaturas se fabriquen mientras estamos viendo las que estan en pantalla y asi agilizamos la barra de miniaturas
+			En una version mas avanzada, se añadio que las miniaturas visibles fuera variable, de manera que se vean el maximo de miniaturas posible segun el ancho de la aplicacion
 	
 --------------------------------   		 
    		
@@ -419,3 +419,157 @@ Ejemplo: test: Add unit tests for ThumbnailService
 chore (Tarea / Mantenimiento)
 Cuándo usarlo: Para cambios en el proceso de construcción, tareas de mantenimiento, o actualización de dependencias que no afectan al código de producción. Es la "limpieza de la casa".
 Ejemplo: chore: Update gitignore to exclude log files o chore: Upgrade Swing version
+
+----------------------------------------------------------------
+
+----------------------------------------------------------------
+Hoja de Ruta: Implementación del Componente D-Pad Configurable
+----------------------------------------------------------------
+
+1. Objetivo Final:
+Implementar un componente de UI DPadComponent reutilizable y genérico. La configuración de sus "hotspots" (zonas interactivas), su layout (cruz, grid, etc.) y su comportamiento se definirá de forma declarativa en UIDefinitionService, manteniendo el componente agnóstico al proyecto. El componente se usará para implementar una funcionalidad de paneo de imagen.
+
+2. Principios de Diseño Acordados:
+- Encapsulación Máxima: Toda la lógica de geometría, validación y dibujado de un layout específico (ej. una cruz) reside dentro de la clase DPadComponent.
+- Independencia del Componente: DPadComponent es genérico. No conoce clases del proyecto como IconUtils o ActionFactory. Recibe objetos ya construidos (Image, Action).
+- Definición Declarativa: La estructura y comportamiento de cada D-Pad se define en UIDefinitionService usando records de definición.
+- Fábrica Explícita: Se usarán métodos de fábrica estáticos en DPadComponent (ej. createCrossLayout) para construir instancias con layouts predefinidos, garantizando la robustez y una API clara.
+- Convención sobre Configuración: Se usarán constructores sobrecargados para que IconScope.THEMED sea el valor por defecto, reduciendo la verbosidad en las definiciones.
+
+---
+3. Plan de Acción Detallado (Clase por Clase):
+
+PASO A: Crear/Modificar Clases de Definición (/vista/config/)
+
+- IconScope.java:
+  - Qué: Asegurarse de que el enum existe con los valores THEMED y COMMON.
+
+- HotspotDefinition.java (NUEVO FICHERO):
+  - Qué: Crear un nuevo record para definir un "ítem" de un D-Pad.
+  - Cómo:
+    package vista.config;
+    public record HotspotDefinition(
+        String comando,
+        String tooltip,
+        String icono,
+        IconScope scope
+    ) {
+        // Constructor de conveniencia para asumir THEMED por defecto
+        public HotspotDefinition(String comando, String tooltip, String icono) {
+            this(comando, tooltip, icono, IconScope.THEMED);
+        }
+    }
+
+- ButtonType.java:
+  - Qué: Añadir tipos específicos para los layouts del D-Pad.
+  - Cómo:
+    public enum ButtonType {
+        NORMAL,
+        TOGGLE,
+        TRANSPARENT,
+        DPAD_CRUZ,
+        DPAD_GRID;
+        // ... etc.
+    }
+
+- ToolbarButtonDefinition.java:
+  - Qué: Modificar el record para que pueda contener una lista de definiciones de hotspots y las dimensiones para layouts de grid.
+  - Cómo:
+    public record ToolbarButtonDefinition(
+        String comandoCanonico,
+        String claveIcono,
+        IconScope scopeIconoBase, // Para el icono base del componente
+        String textoTooltip,
+        String categoriaLayout,
+        ButtonType tipoBoton,
+        List<HotspotDefinition> listaDeHotspots, // Para D-Pads
+        int gridRows, // Para DPAD_GRID
+        int gridCols  // Para DPAD_GRID
+    ) {
+        // Añadir varios constructores sobrecargados para simplificar la creación
+        // de botones normales, toggles, etc., que no usan los últimos parámetros,
+        // asignando null, 0, o valores por defecto.
+    }
+
+PASO B: Actualizar el Servicio de Definición de UI (/vista/config/)
+
+- UIDefinitionService.java:
+  - Qué: Implementar la definición declarativa de un D-Pad.
+  - Cómo:
+    1. Dentro de la clase, crear una List<HotspotDefinition> para el layout en cruz (ej. dpadPaneoItems), respetando un orden documentado (0:UP, 1:DOWN, 2:LEFT, 3:RIGHT).
+    2. En generateModularToolbarStructure(), al definir el ToolbarButtonDefinition para el D-Pad, usar el nuevo constructor pasándole:
+        - La lista dpadPaneoItems.
+        - El ButtonType.DPAD_CRUZ.
+
+PASO C: Refactorizar el Componente DPadComponent (/vista/components/)
+
+- DPadComponent.java:
+  - Qué: Convertir la clase para que use métodos de fábrica estáticos y encapsule toda la lógica de layout.
+  - Cómo:
+    1. Hacer el constructor principal private.
+    2. Eliminar la clase interna Builder. Ya no es necesaria.
+    3. Crear el método public static DPadComponent createCrossLayout(Dimension size, Image baseImage, Image pressedImage, List<Hotspot> hotspots).
+    4. Dentro de createCrossLayout:
+        - Validar que hotspots.size() es 4.
+        - Validar que size es suficiente para una cuadrícula de 3x3.
+        - Calcular los 4 Rectangle para la cruz.
+        - Crear una List<Hotspot> final, combinando los Hotspot de entrada con los Rectangle calculados.
+        - Llamar al constructor privado con todos los datos finales y devolver la instancia.
+
+PASO D: Actualizar el Constructor de la UI (/vista/builders/)
+
+- ToolbarBuilder.java:
+  - Qué: Simplificar la creación del D-Pad para que llame al nuevo método de fábrica.
+  - Cómo:
+    1. En el switch de crearComponenteIndividual, añadir el case DPAD_CRUZ:.
+    2. Dentro del case:
+        - Obtener la List<HotspotDefinition> de la ToolbarButtonDefinition.
+        - Crear una List<Hotspot> "pre-construidos" iterando sobre las definiciones. Para cada una, usar actionMap para obtener la Action y iconUtils para obtener la Image. Estos Hotspot se crearán con bounds = null.
+        - Llamar al método de fábrica: return DPadComponent.createCrossLayout(new Dimension(32,32), baseImage, pressedImage, prebuiltHotspots);
+
+PASO E: Implementar la Lógica de Negocio (/controlador/)
+
+- GeneralController.java:
+  - Qué: Implementar la lógica de paneo incremental que será llamada por las PanAction.
+  - Cómo:
+    1. Crear o modificar el método public void panImageIncrementally(Direction direction, int amount).
+    2. Dentro de este método:
+        - Obtener el VisorModel.
+        - Comprobar si el paneo está habilitado (model.isZoomHabilitado()).
+        - Si está habilitado, calcular el deltaX y deltaY según la direction y amount.
+        - Llamar a model.addImageOffsetX(deltaX) y model.addImageOffsetY(deltaY).
+        - Obtener el ImageDisplayPanel del ComponentRegistry.
+        - Llamar a displayPanel.repaint().
+        - Lógica Condicional: Si el paneo NO está habilitado, implementar la lógica alternativa (ej. navegar en la lista de archivos).
+    3. Asegurarse de que el método panImageToEdge también tenga una implementación (puede llamar a panImageIncrementally con un valor grande o tener su propia lógica de cálculo de bordes si se necesita en el futuro).
+
+Listado de Clases a Modificar y Crear
+Fase 1: Creación de las Definiciones (Paquete: /vista/config/)
+    HotspotDefinition.java - (FICHERO NUEVO)
+Crearemos este nuevo record para definir los "ítems" de un D-Pad.
+    IconScope.java - (Revisar/Crear)
+Nos aseguraremos de que este enum existe con los valores THEMED y COMMON.
+    ButtonType.java - (Modificación)
+Añadiremos los nuevos tipos DPAD_CRUZ y DPAD_GRID al enum.
+    ToolbarButtonDefinition.java - (Modificación)
+Modificaremos el record para que pueda aceptar los nuevos parámetros (listaDeHotspots, gridRows, gridCols, scopeIconoBase).
+Añadiremos los constructores sobrecargados para mantener la simplicidad en las definiciones de botones normales.
+Fase 2: Implementación de las Definiciones (Paquete: /vista/config/)
+    UIDefinitionService.java - (Modificación)
+Crearemos las listas de HotspotDefinition (los "planos").
+Actualizaremos la llamada al constructor de ToolbarButtonDefinition para el D-Pad, pasándole los nuevos parámetros.
+Fase 3: Refactorización del Componente y su Constructor (Paquetes: /vista/components/ y /vista/builders/)
+    DPadComponent.java - (Modificación Mayor)
+Haremos su constructor private.
+Eliminaremos la clase anidada Builder.
+Añadiremos el método de fábrica estático public static DPadComponent createCrossLayout(...).
+    ToolbarBuilder.java - (Modificación)
+Refactorizaremos el switch en el método crearComponenteIndividual para añadir el case DPAD_CRUZ:.
+Implementaremos la lógica dentro de ese case para que prepare los Hotspot y llame al nuevo método de fábrica estático de DPadComponent.
+Fase 4: Implementación de la Lógica Final (Paquete: /controlador/)
+    GeneralController.java - (Modificación)
+Implementaremos el código final dentro del método public void panImageIncrementally(...). Será el corazón de la funcionalidad de movimiento.
+(Posiblemente, también modificaremos panImageToEdge para que llame al método incremental o tenga una implementación básica).
+
+Resumen: En total, son 8 clases las que tocaremos (1 de ellas es un fichero nuevo). Las abordaremos en este orden para construir la funcionalidad de abajo hacia arriba, asegurando que cada pieza esté lista antes de que la siguiente la necesite.
+

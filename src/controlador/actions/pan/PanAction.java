@@ -7,8 +7,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Action; // Para Action.ACTION_COMMAND_KEY, etc.
 
 import controlador.GeneralController; // Importamos el GeneralController para delegar la acción
-import controlador.interfaces.ContextSensitiveAction; // <-- NUEVO IMPORT
-import modelo.VisorModel; // <-- NUEVO IMPORT
+import controlador.interfaces.ContextSensitiveAction; 
+import modelo.VisorModel; 
 import vista.components.Direction; // Importamos el enum Direction de nuestro componente
 
 /**
@@ -17,7 +17,7 @@ import vista.components.Direction; // Importamos el enum Direction de nuestro co
  * Implementa ContextSensitiveAction para que su estado 'enabled' pueda ser
  * actualizado dinámicamente según el estado del modelo (modo paneo).
  */
-public class PanAction extends AbstractAction implements ContextSensitiveAction { // <-- IMPLEMENTA LA INTERFAZ
+public class PanAction extends AbstractAction implements ContextSensitiveAction { 
 
     private static final long serialVersionUID = 1L;
 
@@ -109,8 +109,6 @@ public class PanAction extends AbstractAction implements ContextSensitiveAction 
         }
     } // --- Fin del método actionPerformed ---
 
-    // --- INICIO BLOQUE DE MODIFICACIÓN ---
-    // Línea anterior: public void actionPerformed(ActionEvent e) { ... }
     
     /**
      * Implementación del método de la interfaz ContextSensitiveAction.
@@ -130,5 +128,5 @@ public class PanAction extends AbstractAction implements ContextSensitiveAction 
     } // --- Fin del método updateEnabledState ---
     
     // Línea posterior: La llave de cierre de la clase
-    // --- FIN BLOQUE DE MODIFICACIÓN ---
+
 } // --- FIN de la clase PanAction ---

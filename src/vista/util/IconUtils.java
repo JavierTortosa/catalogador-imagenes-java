@@ -1,5 +1,3 @@
-// Contenido de la clase vista.util.IconUtils.java
-
 package vista.util; 
 
 import java.awt.AlphaComposite;

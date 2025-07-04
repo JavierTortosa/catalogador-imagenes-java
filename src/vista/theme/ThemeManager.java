@@ -7,6 +7,11 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap; // Para seguridad en hilos si fuera necesario
 
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 
 import controlador.VisorController;
 import servicios.ConfigKeys;
@@ -244,85 +249,128 @@ public class ThemeManager {
         return temaActual;
     }
 
+    
     /**
-     * Establece un nuevo tema como el actual y guarda el nombre en la configuración.
+     * Establece un nuevo tema como el actual.
+     * Esta versión está refactorizada para usar FlatLaf de forma nativa.
+     * Cambia el LookAndFeel en caliente y aplica los colores personalizados del objeto Tema.
+     *
      * @param nombreTemaInterno El nombre interno del tema a activar (ej. "oscuro").
-     * @return true si el tema se cambió exitosamente, false si el nombre no existe.
+     * @return true si el tema se cambió exitosamente, false si no.
      */
     public boolean setTemaActual(String nombreTemaInterno) {
         Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
         
-        // Validar que el tema solicitado exista.
         if (nuevoTema == null) {
             System.err.println("WARN [ThemeManager]: No se encontró el tema con nombre: " + nombreTemaInterno);
             return false;
         }
         
-        // Solo proceder si el tema nuevo es realmente diferente al actual.
         if (!nuevoTema.equals(this.temaActual)) {
-            Tema temaAnterior = this.temaActual;
             this.temaActual = nuevoTema;
             
-            // Actualizar la configuración en memoria.
             configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno());
             System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
+            
+            SwingUtilities.invokeLater(() -> {
+                try {
+                    // --- PASO 1: APLICAR LOOK AND FEEL BASE ---
+                    System.out.println("  -> [EDT] Aplicando Look and Feel de FlatLaf...");
+                    if ("dark".equalsIgnoreCase(nuevoTema.nombreInterno()) || "green".equalsIgnoreCase(nuevoTema.nombreInterno()) || "orange".equalsIgnoreCase(nuevoTema.nombreInterno())) {
+                        FlatDarkLaf.setup();
+                    } else {
+                        FlatLightLaf.setup();
+                    }
 
-            // Notificar al controlador principal para que orqueste el refresco de la UI.
-            if (this.controllerRefParaNotificacion != null) {
-                // Usamos invokeLater para asegurar que toda la actualización de la UI
-                // se ejecute de forma segura en el Event Dispatch Thread de Swing.
-                SwingUtilities.invokeLater(() -> {
-                    controllerRefParaNotificacion.solicitarRefrescoCompletoPorTema();
-                });
-            }
+                    // --- PASO 2: PERSONALIZAR COLORES GLOBALES ---
+                    System.out.println("  -> [EDT] Personalizando colores del UIManager con el tema: " + nuevoTema.nombreDisplay());
+                    UIManager.put("Panel.background", nuevoTema.colorFondoPrincipal());
+                    UIManager.put("ToolBar.background", nuevoTema.colorFondoPrincipal());
+                    UIManager.put("MenuBar.background", nuevoTema.colorFondoPrincipal());
+                    UIManager.put("Menu.background", nuevoTema.colorFondoPrincipal());
+                    UIManager.put("MenuItem.background", nuevoTema.colorFondoPrincipal());
+                    UIManager.put("PopupMenu.background", nuevoTema.colorFondoPrincipal());
+                    UIManager.put("List.background", nuevoTema.colorFondoSecundario());
+                    UIManager.put("Viewport.background", nuevoTema.colorFondoSecundario());
+                    UIManager.put("ScrollPane.background", nuevoTema.colorFondoPrincipal());
+                    UIManager.put("Button.background", nuevoTema.colorBotonFondo());
+                    UIManager.put("Component.foreground", nuevoTema.colorTextoPrimario());
+                    UIManager.put("Label.foreground", nuevoTema.colorTextoPrimario());
+                    UIManager.put("Button.foreground", nuevoTema.colorBotonTexto());
+                    UIManager.put("Menu.foreground", nuevoTema.colorTextoPrimario());
+                    UIManager.put("MenuItem.foreground", nuevoTema.colorTextoPrimario());
+                    UIManager.put("TitledBorder.titleColor", nuevoTema.colorBordeTitulo());
+                    UIManager.put("List.selectionBackground", nuevoTema.colorSeleccionFondo());
+                    UIManager.put("List.selectionForeground", nuevoTema.colorSeleccionTexto());
+                    UIManager.put("Component.borderColor", nuevoTema.colorBorde());
+                    UIManager.put("Separator.borderColor", nuevoTema.colorBorde());
+                    UIManager.put("MenuBar.borderColor", nuevoTema.colorBorde());
+                    UIManager.put("Component.focusColor", nuevoTema.colorBordeSeleccionActiva());
+                    UIManager.put("Button.focusedBorderColor", nuevoTema.colorBordeSeleccionActiva());
+
+                    // --- PASO 3: REFRESCO GLOBAL DE LA UI DE SWING ---
+                    System.out.println("  -> [EDT] Llamando a FlatLaf.updateUI() para refrescar todos los componentes...");
+                    FlatLaf.updateUI();
+
+                    // --- PASO 4: REFRESCO DE COMPONENTES PERSONALIZADOS ---
+                    if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getViewManager() != null) {
+                        System.out.println("  -> [EDT] Refrescando fondo del panel de imagen al valor por defecto del nuevo tema...");
+                        controllerRefParaNotificacion.getViewManager().refrescarFondoAlPorDefecto();
+                    }        
+                    
+                    // --- PASO 5: ACTUALIZAR ICONOS EN CACHÉ DE ACTIONS ---
+                    if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getActionFactory() != null) {
+                        System.out.println("  -> [EDT] Actualizando los iconos cacheados en las Actions...");
+                        controllerRefParaNotificacion.getActionFactory().actualizarIconosDeAcciones();
+                    }
+                    
+                    // --- PASO 6: RECONSTRUIR BARRAS DE HERRAMIENTAS ---
+                    if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getToolbarManager() != null && controllerRefParaNotificacion.getModel() != null) {
+                        System.out.println("  -> [EDT] Reconstruyendo barras de herramientas...");
+                        controllerRefParaNotificacion.getToolbarManager().reconstruirContenedorDeToolbars(
+                            controllerRefParaNotificacion.getModel().getCurrentWorkMode()
+                        );
+                    }                    
+                    
+                    // --- INICIO DE LA MODIFICACIÓN ---
+                    // --- PASO 7 (NUEVO): SINCRONIZAR ESTADO VISUAL DE BOTONES TOGGLE ---
+                    if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getConfigApplicationManager() != null) {
+                        System.out.println("  -> [EDT] Sincronizando estado visual de los botones toggle...");
+                        controllerRefParaNotificacion.getConfigApplicationManager().sincronizarEstadoVisualBotonesToggle();
+                    }
+                    // --- FIN DE LA MODIFICACIÓN ---
+                    
+                    // --- PASO 8: SINCRONIZAR RADIOS DEL MENÚ DE TEMA ---
+                    if (controllerRefParaNotificacion != null) {
+                        controllerRefParaNotificacion.sincronizarEstadoDeTodasLasToggleThemeActions();
+                    }
+
+                } catch (Exception e) {
+                    System.err.println("ERROR [ThemeManager]: Fallo al aplicar el tema en caliente con FlatLaf.");
+                    e.printStackTrace();
+                }
+            });
             
-            // Notificar para que se actualice el estado de los radio-buttons del menú de temas.
-            notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
-            
-            return true; // El cambio se realizó con éxito.
+            return true;
             
         } else {
-            // Si se intenta poner el mismo tema que ya está activo, no hacemos nada.
             System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
-            return false; // No hubo cambio.
+            return false;
         }
-        
-    }// --- FIN del metodo setTemaActual ---
+    } // --- Fin del método setTemaActual ---
     
     
-//    public boolean setTemaActual(String nombreTemaInterno) {
-//        Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
-//        if (nuevoTema != null) {
-//            if (!nuevoTema.equals(this.temaActual)) { // Cambiar solo si es diferente
-//                Tema temaAnterior = this.temaActual;
-//                this.temaActual = nuevoTema;
-//                configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno()); // Usar la constante
-//                System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
-//                notificarCambioDeTemaAlControlador(temaAnterior, this.temaActual);
-//                return true; // <--- Tema realmente cambiado
-//            } else {
-//                System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
-//                return false; // <--- No hubo cambio, pero el tema solicitado es el actual
-//            }
+//    private void notificarCambioDeTemaAlControlador(Tema temaAnterior, Tema temaNuevo) {
+//        if (this.controllerRefParaNotificacion != null) {
+//            // Llamar a un método en VisorController para que actualice las Actions de tema
+//            // y cualquier otra cosa que dependa del tema.
+//            this.controllerRefParaNotificacion.sincronizarEstadoDeTodasLasToggleThemeActions();
+//            // Podrías pasar temaAnterior y temaNuevo si el controller los necesita
+//            // this.controllerRefParaNotificacion.temaHaCambiado(temaAnterior, temaNuevo);
 //        } else {
-//            System.err.println("WARN [ThemeManager]: No se encontró el tema con nombre: " + nombreTemaInterno);
-//            return false; // <--- Tema no válido
+//            System.err.println("WARN [ThemeManager]: controllerRefParaNotificacion es null. No se pudo notificar cambio de tema para actualizar Actions de UI.");
 //        }
 //    }
-    
-    
-    // --- NUEVO MÉTODO para notificar al VisorController ---
-    private void notificarCambioDeTemaAlControlador(Tema temaAnterior, Tema temaNuevo) {
-        if (this.controllerRefParaNotificacion != null) {
-            // Llamar a un método en VisorController para que actualice las Actions de tema
-            // y cualquier otra cosa que dependa del tema.
-            this.controllerRefParaNotificacion.sincronizarEstadoDeTodasLasToggleThemeActions();
-            // Podrías pasar temaAnterior y temaNuevo si el controller los necesita
-            // this.controllerRefParaNotificacion.temaHaCambiado(temaAnterior, temaNuevo);
-        } else {
-            System.err.println("WARN [ThemeManager]: controllerRefParaNotificacion es null. No se pudo notificar cambio de tema para actualizar Actions de UI.");
-        }
-    }
     
     
     public void setControllerParaNotificacion(VisorController controller) {

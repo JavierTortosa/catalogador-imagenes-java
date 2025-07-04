@@ -649,12 +649,28 @@ private void createCoreActions() {
      // --- 4.12. Métodos Create para Actions de Paneo ---
      private Action createPanActionAbsolute(String command, Direction direction) {
          PanAction action = new PanAction(generalController, command, direction);
+         
+         ImageIcon icon = getIconForCommand(command);
+         if (icon != null) {
+             action.putValue(Action.SMALL_ICON, icon);
+         }
+         
          this.contextSensitiveActions.add(action);
          return action;
      } // --- Fin del método createPanActionAbsolute ---
 
      private Action createPanActionIncremental(String command, Direction direction) {
          PanAction action = new PanAction(generalController, command, direction, INCREMENTAL_PAN_AMOUNT);
+         
+         // --- INICIO DE LA MODIFICACIÓN ---
+         // Obtener el icono correspondiente al comando y asignarlo a la acción.
+         // Esto es necesario para que los JMenuItems que usen esta acción muestren un icono.
+         ImageIcon icon = getIconForCommand(command);
+         if (icon != null) {
+             action.putValue(Action.SMALL_ICON, icon);
+         }
+         // --- FIN DE LA MODIFICACIÓN ---
+         
          this.contextSensitiveActions.add(action);
          return action;
      } // --- Fin del método createPanActionIncremental ---
@@ -717,6 +733,45 @@ private void createCoreActions() {
         this.actionMap.put(commandKey, action);
         System.out.println("  [ActionFactory] Action registrada/actualizada para comando: " + commandKey);
     } // --- Fin del método registerAction ---
+    
+    
+    /**
+     * Itera sobre todas las acciones creadas en el actionMap y actualiza sus iconos
+     * basándose en el tema actualmente activo en el ThemeManager.
+     * Esto es crucial para el cambio de tema en caliente, ya que los iconos se
+     * almacenan como una propiedad dentro de cada objeto Action.
+     */
+    public void actualizarIconosDeAcciones() {
+        System.out.println("[ActionFactory] Iniciando actualización de iconos para todas las acciones...");
+        if (actionMap == null || actionMap.isEmpty()) {
+            System.out.println("  -> No hay acciones en el mapa para actualizar. Proceso omitido.");
+            return;
+        }
+
+        int iconosActualizados = 0;
+        // Iteramos sobre todas las entradas del mapa de acciones.
+        for (Map.Entry<String, Action> entry : actionMap.entrySet()) {
+            String comando = entry.getKey();
+            Action action = entry.getValue();
+
+            // Usamos el método que ya tenemos para obtener el ImageIcon para un comando.
+            // Este método, getIconForCommand, internamente ya usa IconUtils, que a su vez
+            // usa ThemeManager para obtener el tema ACTUAL. Por lo tanto, obtendrá el icono correcto.
+            ImageIcon nuevoIcono = getIconForCommand(comando);
+
+            // Solo actualizamos si se encontró un nuevo icono.
+            // Algunas acciones pueden no tener icono por diseño.
+            if (nuevoIcono != null) {
+                // Actualizamos la propiedad Action.SMALL_ICON de la Action.
+                // Los componentes de Swing (JButton, JMenuItem) que usan esta Action
+                // escucharán este cambio de propiedad y actualizarán su icono automáticamente.
+                action.putValue(Action.SMALL_ICON, nuevoIcono);
+                iconosActualizados++;
+            }
+        }
+        System.out.println("[ActionFactory] Actualización de iconos completada. Se actualizaron " + iconosActualizados + " acciones con un nuevo icono.");
+    } // --- Fin del método actualizarIconosDeAcciones ---
+    
     
     public void setView(VisorView view) { this.view = view; }
     public void setZoomManager(IZoomManager zoomManager) { this.zoomManager = zoomManager; }
