@@ -1,5 +1,6 @@
 package controlador.managers;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -335,30 +336,94 @@ public class InfobarStatusManager {
             });
         }
     }// --- Fin del métodoconfigurarListenerParaIndicador
-    
-    private void actualizarUnIndicador(String key, String configKeyVisible, boolean activo, String tooltipPrefix, boolean habilitado) {
-        JLabel label = registry.get(key);
-        if (label != null) {
-            boolean esVisible = configuration.getBoolean(configKeyVisible, true);
-            if(label.isVisible() != esVisible) label.setVisible(esVisible);
-            
-            // La lógica de habilitación se aplica independientemente de la visibilidad.
-            label.setEnabled(habilitado);
 
-            if(esVisible) {
-                Tema tema = themeManager.getTemaActual();
-                
-                if (habilitado) {
-                    label.setToolTipText(tooltipPrefix + ": " + (activo ? "Activado" : "Desactivado"));
-                    label.setBackground(activo ? tema.colorBotonFondoActivado() : tema.colorFondoSecundario());
-                } else {
-                    // Si está deshabilitado, ponemos un tooltip indicándolo y un color neutro.
-                    label.setToolTipText(tooltipPrefix + " (No disponible en este modo)");
-                    label.setBackground(tema.colorFondoSecundario()); // O un color grisáceo específico para deshabilitados.
-                }
-            }
-        }
-    } // --- Fin del método actualizarUnIndicador ---
+    
+     /**
+      * MÉTODO HELPER para aclarar un color.
+      * @param color El color original.
+      * @param factor Cantidad a sumar a cada componente RGB (0-255).
+      * @return El nuevo color aclarado.
+      */
+     private java.awt.Color aclararColor(java.awt.Color color, int factor) {
+         if (color == null) return java.awt.Color.LIGHT_GRAY;
+         return new java.awt.Color(
+             Math.min(255, color.getRed() + factor),
+             Math.min(255, color.getGreen() + factor),
+             Math.min(255, color.getBlue() + factor)
+         );
+     } // --- Fin del método aclararColor ---
+
+     private void actualizarUnIndicador(String key, String configKeyVisible, boolean activo, String tooltipPrefix, boolean habilitado) {
+         JLabel label = registry.get(key);
+         if (label != null) {
+             boolean esVisible = configuration.getBoolean(configKeyVisible, true);
+             if(label.isVisible() != esVisible) label.setVisible(esVisible);
+             
+             label.setEnabled(habilitado);
+
+             if(esVisible) {
+                 Tema tema = themeManager.getTemaActual();
+                 
+                 label.setOpaque(true);
+                 
+                 if (habilitado) {
+                     label.setToolTipText(tooltipPrefix + ": " + (activo ? "Activado" : "Desactivado"));
+                     
+                     // --- INICIO DE LA MODIFICACIÓN ---
+                     if (activo) {
+                         // Tomamos el color original del botón activado...
+                         Color colorOriginal = tema.colorBotonFondoActivado();
+                         // ... y lo aclaramos un poco para crear un nuevo color "anónimo".
+                         Color colorAclarado = aclararColor(colorOriginal, 40); // Aclaramos en 40 (puedes ajustar este valor)
+                         
+                         label.setBackground(colorAclarado);
+                         label.setForeground(tema.colorSeleccionTexto()); // Usamos el texto de selección para contraste
+                     } else {
+                         label.setBackground(tema.colorFondoSecundario());
+                         label.setForeground(tema.colorTextoPrimario());
+                     }
+                     // --- FIN DE LA MODIFICACIÓN ---
+
+                 } else {
+                     label.setToolTipText(tooltipPrefix + " (No disponible en este modo)");
+                     label.setBackground(tema.colorFondoSecundario());
+                     label.setForeground(tema.colorTextoSecundario());
+                  }
+             } else {
+                  label.setOpaque(false);
+             }
+         }
+     } // --- Fin del método actualizarUnIndicador ---
+    
+    
+//    private void actualizarUnIndicador(String key, String configKeyVisible, boolean activo, String tooltipPrefix, boolean habilitado) {
+//        JLabel label = registry.get(key);
+//        if (label != null) {
+//            boolean esVisible = configuration.getBoolean(configKeyVisible, true);
+//            if(label.isVisible() != esVisible) label.setVisible(esVisible);
+//            
+//            label.setEnabled(habilitado);
+//
+//            if(esVisible) {
+//                Tema tema = themeManager.getTemaActual();
+//                
+//                // Aseguramos que sea opaco para que el fondo se pueda pintar
+//                label.setOpaque(true); 
+//                
+//                if (habilitado) {
+//                    label.setToolTipText(tooltipPrefix + ": " + (activo ? "Activado" : "Desactivado"));
+//                    label.setBackground(activo ? tema.colorLabelActivo() : tema.colorFondoSecundario());
+//                } else {
+//                    label.setToolTipText(tooltipPrefix + " (No disponible en este modo)");
+//                    label.setBackground(tema.colorFondoSecundario());
+//                }
+//            } else {
+//                 label.setOpaque(false);
+//            }
+//        }
+//    } // --- Fin del método actualizarUnIndicador ---
+    
+    
 
     private String getIconKeyForZoomMode(ZoomModeEnum modo) {
         String command = modo.getAssociatedActionCommand();

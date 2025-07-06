@@ -189,11 +189,64 @@ public class ViewBuilder {
     } // --- Fin del método createVisualizadorViewPanel ---
 
 
+//    private JPanel createToolbarContainer() {
+//        // --- INICIO DE LA MODIFICACIÓN ---
+//        // 1. Creamos el panel contenedor.
+//        JPanel toolbarContainer = new JPanel();
+//        
+//        // 2. Le asignamos un BoxLayout que alinee los componentes horizontalmente (LINE_AXIS).
+//        toolbarContainer.setLayout(new javax.swing.BoxLayout(toolbarContainer, javax.swing.BoxLayout.LINE_AXIS));
+//        
+//        // 3. El resto se mantiene igual.
+//        toolbarContainer.setOpaque(false);
+//        registry.register("container.toolbars", toolbarContainer);
+//        
+//        System.out.println("  [ViewBuilder] Toolbar container creado con BoxLayout.");
+//        return toolbarContainer;
+//        // --- FIN DE LA MODIFICACIÓN ---
+//    } // --- Fin del método createToolbarContainer ---
+    
+    
+ // Dentro de la clase ViewBuilder
+
     private JPanel createToolbarContainer() {
-        JPanel toolbarContainer = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
-        toolbarContainer.setOpaque(false);
-        registry.register("container.toolbars", toolbarContainer);
-        return toolbarContainer;
+        // --- INICIO DE LA MODIFICACIÓN ---
+
+        // 1. El contenedor principal ahora usa BorderLayout.
+        JPanel mainToolbarContainer = new JPanel(new BorderLayout());
+        mainToolbarContainer.setOpaque(false); // Sigue siendo transparente.
+        // Registramos el contenedor principal, como antes.
+        registry.register("container.toolbars", mainToolbarContainer);
+
+        // 2. Creamos tres sub-paneles, uno para cada alineamiento.
+        //    Cada uno usa un FlowLayout para que las toolbars dentro de él fluyan.
+        
+        // Panel para las barras alineadas a la izquierda.
+        JPanel leftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        leftPanel.setOpaque(false);
+        registry.register("container.toolbars.left", leftPanel); // Lo registramos
+
+        // Panel para las barras alineadas al centro.
+        JPanel centerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 0, 0));
+        centerPanel.setOpaque(false);
+        registry.register("container.toolbars.center", centerPanel); // Lo registramos
+
+        // Panel para las barras alineadas a la derecha.
+        JPanel rightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        rightPanel.setOpaque(false);
+        registry.register("container.toolbars.right", rightPanel); // Lo registramos
+
+        // 3. Añadimos los tres sub-paneles al contenedor principal en sus respectivas zonas.
+        mainToolbarContainer.add(leftPanel, BorderLayout.WEST);
+        mainToolbarContainer.add(centerPanel, BorderLayout.CENTER);
+        mainToolbarContainer.add(rightPanel, BorderLayout.EAST);
+
+        System.out.println("  [ViewBuilder] Toolbar container creado con estructura BorderLayout (WEST, CENTER, EAST).");
+        
+        // Devolvemos el contenedor principal.
+        return mainToolbarContainer;
+
+        // --- FIN DE LA MODIFICACIÓN ---
     } // --- Fin del método createToolbarContainer ---
     
     
@@ -480,19 +533,11 @@ public class ViewBuilder {
         JPanel bottomStatusBar = new JPanel(new BorderLayout(5, 0));
         registry.register("panel.estado.inferior", bottomStatusBar);
 
-        // Tema tema = themeManager.getTemaActual(); // Ya no se necesita aquí
-        // bottomStatusBar.setBackground(tema.colorFondoSecundario()); // <-- COMENTADO
-        // bottomStatusBar.setOpaque(true); // <-- COMENTADO
-
-        // Border lineaExterna = BorderFactory.createMatteBorder(1, 0, 0, 0, tema.colorBorde()); // <-- COMENTADO
-        // Border paddingInterno = BorderFactory.createEmptyBorder(2, 5, 2, 5); // El padding es bueno, lo dejamos
-        // bottomStatusBar.setBorder(BorderFactory.createCompoundBorder(lineaExterna, paddingInterno)); // <-- COMENTADO, FlatLaf gestiona el borde
-        bottomStatusBar.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5)); // Dejamos solo el padding
+        bottomStatusBar.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
 
         JLabel rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
         registry.register("label.estado.ruta", rutaCompletaArchivoLabel);
-        // rutaCompletaArchivoLabel.setForeground(tema.colorTextoPrimario()); // <-- COMENTADO
-
+        
         JPanel panelRuta = new JPanel(new BorderLayout());
         panelRuta.setOpaque(false);
         panelRuta.add(rutaCompletaArchivoLabel, BorderLayout.CENTER);
@@ -505,24 +550,55 @@ public class ViewBuilder {
         panelControlesInferior.setOpaque(false);
         registry.register("panel.estado.controles", panelControlesInferior);
 
-        // La lógica de los iconos se mantiene igual
         int iconSize = 18;
         Dimension indicadorDimension = new Dimension(iconSize + 6, iconSize + 4);
 
-        ImageIcon iconoZM = iconUtils.getScaledIcon("3001-Zoom_48x48.png", iconSize, iconSize);
-        JLabel iconoZoomManualLabel = new JLabel(iconoZM);
+        // --- INICIO DE LA MODIFICACIÓN CLAVE ---
+
+        // Creamos una instancia anónima de JLabel que FUERZA el pintado del fondo.
+        JLabel iconoZoomManualLabel = new JLabel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                if (isOpaque()) {
+                    g.setColor(getBackground());
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+                super.paintComponent(g);
+            }
+        };
+        iconoZoomManualLabel.setIcon(iconUtils.getScaledIcon("3001-Zoom_48x48.png", iconSize, iconSize));
         registry.register("label.indicador.zoomManual", iconoZoomManualLabel);
         configurarIndicadorLabel(iconoZoomManualLabel, indicadorDimension, "Zoom Manual: Desactivado");
 
-        ImageIcon iconoProp = iconUtils.getScaledIcon("7002-Mantener_Proporciones_48x48.png", iconSize, iconSize);
-        JLabel iconoMantenerProporcionesLabel = new JLabel(iconoProp);
+        JLabel iconoMantenerProporcionesLabel = new JLabel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                if (isOpaque()) {
+                    g.setColor(getBackground());
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+                super.paintComponent(g);
+            }
+        };
+        iconoMantenerProporcionesLabel.setIcon(iconUtils.getScaledIcon("7002-Mantener_Proporciones_48x48.png", iconSize, iconSize));
         registry.register("label.indicador.proporciones", iconoMantenerProporcionesLabel);
         configurarIndicadorLabel(iconoMantenerProporcionesLabel, indicadorDimension, "Mantener Proporciones: Desactivado");
 
-        ImageIcon iconoSubC = iconUtils.getScaledIcon("7001-Subcarpetas_48x48.png", iconSize, iconSize);
-        JLabel iconoModoSubcarpetasLabel = new JLabel(iconoSubC);
+        JLabel iconoModoSubcarpetasLabel = new JLabel() {
+            @Override
+            protected void paintComponent(java.awt.Graphics g) {
+                if (isOpaque()) {
+                    g.setColor(getBackground());
+                    g.fillRect(0, 0, getWidth(), getHeight());
+                }
+                super.paintComponent(g);
+            }
+        };
+        iconoModoSubcarpetasLabel.setIcon(iconUtils.getScaledIcon("7001-Subcarpetas_48x48.png", iconSize, iconSize));
         registry.register("label.indicador.subcarpetas", iconoModoSubcarpetasLabel);
         configurarIndicadorLabel(iconoModoSubcarpetasLabel, indicadorDimension, "Incluir Subcarpetas: Desactivado");
+
+        // --- FIN DE LA MODIFICACIÓN CLAVE ---
 
         JLabel porcentajeZoomLabel = new JLabel("Z: 100%");
         registry.register("label.control.zoomPorcentaje", porcentajeZoomLabel);
@@ -541,7 +617,6 @@ public class ViewBuilder {
 
         JLabel mensajesAppLabel = new JLabel(" ");
         registry.register("label.estado.mensajes", mensajesAppLabel);
-        // mensajesAppLabel.setForeground(tema.colorTextoSecundario()); // <-- COMENTADO
         mensajesAppLabel.setHorizontalAlignment(SwingConstants.CENTER);
         mensajesAppLabel.setPreferredSize(new Dimension(200, mensajesAppLabel.getPreferredSize().height));
         panelDerechoContenedor.add(mensajesAppLabel, BorderLayout.EAST);
@@ -551,23 +626,24 @@ public class ViewBuilder {
         return bottomStatusBar;
     } // --- Fin del método createBottomStatusBar ---
     
-
+    
 //    private JPanel createBottomStatusBar() {
 //        JPanel bottomStatusBar = new JPanel(new BorderLayout(5, 0));
 //        registry.register("panel.estado.inferior", bottomStatusBar);
 //
-//        Tema tema = themeManager.getTemaActual();
-//        bottomStatusBar.setBackground(tema.colorFondoSecundario());
-//        bottomStatusBar.setOpaque(true);
+//        // Tema tema = themeManager.getTemaActual(); // Ya no se necesita aquí
+//        // bottomStatusBar.setBackground(tema.colorFondoSecundario()); // <-- COMENTADO
+//        // bottomStatusBar.setOpaque(true); // <-- COMENTADO
 //
-//        Border lineaExterna = BorderFactory.createMatteBorder(1, 0, 0, 0, tema.colorBorde());
-//        Border paddingInterno = BorderFactory.createEmptyBorder(2, 5, 2, 5);
-//        bottomStatusBar.setBorder(BorderFactory.createCompoundBorder(lineaExterna, paddingInterno));
+//        // Border lineaExterna = BorderFactory.createMatteBorder(1, 0, 0, 0, tema.colorBorde()); // <-- COMENTADO
+//        // Border paddingInterno = BorderFactory.createEmptyBorder(2, 5, 2, 5); // El padding es bueno, lo dejamos
+//        // bottomStatusBar.setBorder(BorderFactory.createCompoundBorder(lineaExterna, paddingInterno)); // <-- COMENTADO, FlatLaf gestiona el borde
+//        bottomStatusBar.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5)); // Dejamos solo el padding
 //
 //        JLabel rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
 //        registry.register("label.estado.ruta", rutaCompletaArchivoLabel);
-//        rutaCompletaArchivoLabel.setForeground(tema.colorTextoPrimario());
-//        
+//        // rutaCompletaArchivoLabel.setForeground(tema.colorTextoPrimario()); // <-- COMENTADO
+//
 //        JPanel panelRuta = new JPanel(new BorderLayout());
 //        panelRuta.setOpaque(false);
 //        panelRuta.add(rutaCompletaArchivoLabel, BorderLayout.CENTER);
@@ -580,6 +656,7 @@ public class ViewBuilder {
 //        panelControlesInferior.setOpaque(false);
 //        registry.register("panel.estado.controles", panelControlesInferior);
 //
+//        // La lógica de los iconos se mantiene igual
 //        int iconSize = 18;
 //        Dimension indicadorDimension = new Dimension(iconSize + 6, iconSize + 4);
 //
@@ -615,7 +692,7 @@ public class ViewBuilder {
 //
 //        JLabel mensajesAppLabel = new JLabel(" ");
 //        registry.register("label.estado.mensajes", mensajesAppLabel);
-//        mensajesAppLabel.setForeground(tema.colorTextoSecundario());
+//        // mensajesAppLabel.setForeground(tema.colorTextoSecundario()); // <-- COMENTADO
 //        mensajesAppLabel.setHorizontalAlignment(SwingConstants.CENTER);
 //        mensajesAppLabel.setPreferredSize(new Dimension(200, mensajesAppLabel.getPreferredSize().height));
 //        panelDerechoContenedor.add(mensajesAppLabel, BorderLayout.EAST);
@@ -624,6 +701,9 @@ public class ViewBuilder {
 //
 //        return bottomStatusBar;
 //    } // --- Fin del método createBottomStatusBar ---
+    
+
+
     
     
     private JPanel createTopInfoPanel() {

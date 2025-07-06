@@ -113,30 +113,42 @@ public class EditionManager  implements IEditionManager{
         return true;
     } // --- Fin del método validarPrecondiciones ---
 
-    private void procesarResultadoEdicion(BufferedImage imagenEditada, String nombreOperacion, String actionCommand, boolean resetearZoom) {
-        JFrame mainFrame = controller.getView(); // Obtener el frame desde el controller
-        
+    private void procesarResultadoEdicion(BufferedImage imagenEditada, String nombreOperacion, String actionCommand, boolean necesitaResetZoom) {
+        // La validación del controlador es crucial, ya que es nuestro canal de notificación.
+        if (controller == null) {
+            System.err.println("ERROR CRÍTICO [procesarResultadoEdicion]: VisorController es nulo. No se puede continuar la operación.");
+            return;
+        }
+
         if (imagenEditada != null) {
             System.out.println("  -> " + nombreOperacion + " exitosa. Actualizando modelo...");
             model.setCurrentImage(imagenEditada);
             
-            if (resetearZoom) {
-                System.out.println("  -> Reseteando zoom/pan debido a cambio de dimensiones.");
-                model.resetZoomState();
-            }
+            // --- INICIO DE LA MODIFICACIÓN CLAVE ---
+            // En lugar de llamar a zoomManager.refrescarVistaSincrono() directamente,
+            // notificamos al controlador para que él se encargue de orquestar el refresco.
+            System.out.println("  -> Notificando al VisorController para que refresque la vista...");
+            controller.solicitarRefrescoDeVistaPorEdicion(necesitaResetZoom);
+            // --- FIN DE LA MODIFICACIÓN CLAVE ---
             
-            zoomManager.refrescarVistaSincrono();
-            
-            // Llamar a la animación a través del ConfigManager obtenido del Controller
+            // La animación del botón se mantiene, ya que es una responsabilidad cosmética
+            // que puede manejar el ConfigApplicationManager a través del Controller.
             ConfigApplicationManager configManager = controller.getConfigApplicationManager();
             if (configManager != null) {
                 configManager.aplicarAnimacionBoton(actionCommand);
             }
             
-            System.out.println("[EditionManager] " + nombreOperacion + " aplicada y vista actualizada.");
+            System.out.println("[EditionManager] " + nombreOperacion + " aplicada y notificación enviada.");
         } else {
-            System.err.println("ERROR [EditionManager]: " + nombreOperacion + " devolvió null.");
-            JOptionPane.showMessageDialog(mainFrame, "No se pudo realizar la operación: " + nombreOperacion, "Error de Edición", JOptionPane.ERROR_MESSAGE);
+            System.err.println("ERROR [EditionManager]: La operación '" + nombreOperacion + "' devolvió una imagen nula.");
+            if (controller.getView() != null) {
+                JOptionPane.showMessageDialog(
+                    controller.getView(), 
+                    "No se pudo realizar la operación: " + nombreOperacion, 
+                    "Error de Edición", 
+                    JOptionPane.ERROR_MESSAGE
+                );
+            }
         }
     } // --- Fin del método procesarResultadoEdicion ---
     

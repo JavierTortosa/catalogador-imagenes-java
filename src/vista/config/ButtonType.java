@@ -2,8 +2,7 @@ package vista.config;
 
 /**
  * Define el tipo de botón a crear en una barra de herramientas,
- * permitiendo diferenciar entre botones estándar y botones de tipo toggle
- * que pueden mantener un estado de presionado/seleccionado.
+ * permitiendo diferenciar entre botones estándar y componentes más complejos.
  */
 public enum ButtonType {
     /** 
@@ -20,12 +19,17 @@ public enum ButtonType {
     TOGGLE,
     
     /**
-     * Un componente de control direccional personalizado (D-Pad).
-     * Se creará como una instancia de vista.components.DPadComponent.
-     * Representará múltiples zonas clicables que ejecutan acciones distintas.
+     * Un componente de control direccional personalizado (D-Pad) con un layout en forma de cruz.
+     * Se creará como una instancia de vista.components.DPadComponent usando la fábrica createCrossLayout.
      */
-    DPAD,
+    DPAD_CRUZ,
     
+    /**
+     * Un componente de control direccional personalizado (D-Pad) con un layout en forma de cuadrícula (grid).
+     * Se creará como una instancia de vista.components.DPadComponent usando la fábrica createGridLayout.
+     */
+    DPAD_GRID,
+
     /**
      * Un botón estándar que tendrá un icono base al que se le aplicará un color
      * específico del tema. Se usará para los selectores de color de fondo.
@@ -51,5 +55,3 @@ public enum ButtonType {
     TRANSPARENT
     
 } // --- FIN del enum ButtonType ---
-
-

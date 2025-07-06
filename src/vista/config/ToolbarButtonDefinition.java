@@ -1,62 +1,84 @@
 package vista.config;
 
+import java.util.List;
 import java.util.Objects;
 
+/**
+ * Define la estructura y propiedades de un botón o componente en una barra de herramientas.
+ * Este record es la base para la construcción declarativa de la UI.
+ */
 public record ToolbarButtonDefinition(
-    /** Comando Canónico (de AppActionCommands) que ejecuta este botón. */
+    /** Comando Canónico (de AppActionCommands) que ejecuta este botón o que sirve como clave base. */
     String comandoCanonico,
     
-    /** Clave o nombre del archivo de icono (ej: "1001-Primera_48x48.png"). */
+    /** Clave o nombre del archivo del icono base del componente. */
     String claveIcono,
-    
-    /** Texto que aparecerá como tooltip. */
+
+    /** Ámbito del icono base (si depende del tema o es común). */
+    IconScope scopeIconoBase,
+
+    /** Texto que aparecerá como tooltip general del componente. */
     String textoTooltip,
     
     /** Categoría lógica para agrupación y layout (ej: "movimiento", "edicion"). */
     String categoriaLayout,
     
-    /** El tipo de botón a crear (NORMAL, TOGGLE, DPAD, COLOR_OVERLAY_ICON_BUTTON, CHECKERED_OVERLAY_ICON_BUTTON). */
+    /** El tipo de componente a crear (NORMAL, TOGGLE, DPAD_CRUZ, etc.). */
     ButtonType tipoBoton,
 
-    // --- INICIO DE LA MODIFICACIÓN ---
-    /**
-     * Clave opcional para indicar cómo se debe superponer un color o patrón al icono base.
-     * Para COLOR_OVERLAY_ICON_BUTTON: Una clave que ThemeManager puede usar para obtener un Color.
-     * Para CHECKERED_OVERLAY_ICON_BUTTON: Una clave especial como "checkered" para indicar el patrón.
-     * Para otros tipos de botón: Debería ser null.
-     */
-    String customOverlayKey
-    // --- FIN DE LA MODIFICACIÓN ---
+    /** Lista de definiciones de hotspots para componentes complejos como D-Pads. Null para botones simples. */
+    List<HotspotDefinition> listaDeHotspots,
+
+    /** Número de filas para layouts de tipo DPAD_GRID. 0 para otros. */
+    int gridRows,
+
+    /** Número de columnas para layouts de tipo DPAD_GRID. 0 para otros. */
+    int gridCols
+
 ) {
-	
-    // Constructor principal (canónico) con validación
+    // Constructor Canónico (valida los campos no nulos)
     public ToolbarButtonDefinition {
         Objects.requireNonNull(comandoCanonico, "comandoCanonico no puede ser nulo");
         Objects.requireNonNull(claveIcono, "claveIcono no puede ser nula");
+        Objects.requireNonNull(scopeIconoBase, "scopeIconoBase no puede ser nulo");
         Objects.requireNonNull(categoriaLayout, "categoriaLayout no puede ser nula");
         Objects.requireNonNull(tipoBoton, "tipoBoton no puede ser nulo");
-        // customOverlayKey puede ser null, por lo que NO se valida con Objects.requireNonNull
+        // listaDeHotspots, gridRows, y gridCols pueden ser null o 0.
     }
 
-    // --- Constructor sobrecargado para retrocompatibilidad y botones NORMAL/TOGGLE/DPAD ---
     /**
-     * Constructor para botones que no requieren una clave de superposición personalizada (color/patrón).
-     * Se usa para ButtonType.NORMAL, ButtonType.TOGGLE, y ButtonType.DPAD.
+     * Constructor para botones SIMPLES (NORMAL, TOGGLE, TRANSPARENT) que usan un icono del tema.
      */
     public ToolbarButtonDefinition(String comandoCanonico, String claveIcono, String textoTooltip, String categoriaLayout, ButtonType tipoBoton) {
-        // Llama al constructor principal, asignando customOverlayKey a null por defecto.
-        this(comandoCanonico, claveIcono, textoTooltip, categoriaLayout, tipoBoton, null);
-    }
-
-    // --- Constructor sobrecargado para retrocompatibilidad para botones NORMAL por defecto ---
-    /**
-     * Constructor para botones normales. Por defecto, el tipo será `ButtonType.NORMAL`
-     * y no tendrá clave de superposición.
-     */
-    public ToolbarButtonDefinition(String comandoCanonico, String claveIcono, String textoTooltip, String categoriaLayout) {
-        // Llama al constructor que acepta el tipo de botón, asignando ButtonType.NORMAL y null para customOverlayKey.
-        this(comandoCanonico, claveIcono, textoTooltip, categoriaLayout, ButtonType.NORMAL, null);
+        this(comandoCanonico, claveIcono, IconScope.THEMED, textoTooltip, categoriaLayout, tipoBoton, null, 0, 0);
     }
     
-} // --- FIN del record ToolbarButtonDefinition ---
+    /**
+     * Constructor para botones SIMPLES (NORMAL, TOGGLE, TRANSPARENT) que usan un icono COMÚN.
+     */
+    public ToolbarButtonDefinition(String comandoCanonico, String claveIcono, IconScope scope, String textoTooltip, String categoriaLayout, ButtonType tipoBoton) {
+        this(comandoCanonico, claveIcono, scope, textoTooltip, categoriaLayout, tipoBoton, null, 0, 0);
+    }
 
+    /**
+     * Constructor de conveniencia para botones NORMALES que usan un icono del tema.
+     */
+    public ToolbarButtonDefinition(String comandoCanonico, String claveIcono, String textoTooltip, String categoriaLayout) {
+        this(comandoCanonico, claveIcono, IconScope.THEMED, textoTooltip, categoriaLayout, ButtonType.NORMAL, null, 0, 0);
+    }
+
+    /**
+     * Constructor para DPAD_CRUZ.
+     */
+    public ToolbarButtonDefinition(String comandoCanonico, String claveIcono, IconScope scope, String textoTooltip, String categoriaLayout, List<HotspotDefinition> listaDeHotspots) {
+        this(comandoCanonico, claveIcono, scope, textoTooltip, categoriaLayout, ButtonType.DPAD_CRUZ, listaDeHotspots, 0, 0);
+    }
+
+    /**
+     * Constructor para DPAD_GRID.
+     */
+    public ToolbarButtonDefinition(String comandoCanonico, String claveIcono, IconScope scope, String textoTooltip, String categoriaLayout, List<HotspotDefinition> listaDeHotspots, int rows, int cols) {
+        this(comandoCanonico, claveIcono, scope, textoTooltip, categoriaLayout, ButtonType.DPAD_GRID, listaDeHotspots, rows, cols);
+    }
+
+} // --- FIN del record ToolbarButtonDefinition ---

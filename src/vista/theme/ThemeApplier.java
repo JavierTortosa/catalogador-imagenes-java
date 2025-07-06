@@ -139,4 +139,5 @@ public class ThemeApplier {
             scrollMiniaturas.repaint();
         }
     }
-}
+    
+} // --- FIN de la clase ThemeApplier ---

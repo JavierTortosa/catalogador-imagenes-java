@@ -21,7 +21,9 @@ public record Tema(
  Color colorBotonTexto,
  Color colorBotonFondoActivado,
  Color colorBotonFondoAnimacion,
- Color colorBordeSeleccionActiva
+ Color colorBordeSeleccionActiva,
+ Color colorLabelActivo
+ 
  // ... otros colores que definas ...
 ) {
  public Tema { // Constructor canónico compacto
@@ -30,4 +32,5 @@ public record Tema(
      if (carpetaIconos == null || carpetaIconos.isBlank()) throw new IllegalArgumentException("carpetaIconos no puede ser vacía");
      // Añadir chequeos de null para los colores si quieres ser estricto
  }
-}
+ 
+}// --- FIN de la clase Tema ---

@@ -126,7 +126,7 @@ public class ConfigApplicationManager {
             }
         }
         
-        sincronizarEstadoVisualBotonesToggle();
+        sincronizarAparienciaTodosLosToggles();
         
         // Aplicar el estado inicial del fondo a cuadros, que es una configuración de la vista.
         String configKeyFondo = "interfaz.menu.vista.fondo_a_cuadros.seleccionado";
@@ -262,79 +262,80 @@ public class ConfigApplicationManager {
 //    }// --- FIN del metodo refrescarTodaLaUIConTemaActual --- 
     
     
-    /**
-     * Sincroniza el estado visual (color de fondo) de todos los botones de la UI
-     * que están asociados a una Action de tipo "toggle" (que tiene un estado ON/OFF).
-     * Itera sobre todas las acciones conocidas y actualiza el botón correspondiente.
-     */
-    public void sincronizarEstadoVisualBotonesToggle() {
-        System.out.println("    -> Sincronizando estado visual de botones toggle...");
-
-        
-        //FIXME HACER QUE ESTE METODO NO NECESITE UNA INCORPORACION MANUAL DE BOTONES ON OFF
-        
-        // Llamamos a un método helper para cada botón que queramos sincronizar.
-        // Esto mantiene el código limpio y fácil de leer.
-        sincronizarUnBotonToggle(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-        sincronizarUnBotonToggle(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
-        sincronizarUnBotonToggle(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        sincronizarUnBotonToggle(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-        sincronizarUnBotonToggle(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
-        
-        // ... Añade aquí cualquier otra Action de tipo toggle que tengas ...
-
-        System.out.println("    -> Sincronización de botones toggle completada.");
-    } // --- Fin del método sincronizarEstadoVisualBotonesToggle ---
+//    /**
+//     * Sincroniza el estado visual (color de fondo) de todos los botones de la UI
+//     * que están asociados a una Action de tipo "toggle" (que tiene un estado ON/OFF).
+//     * Itera sobre todas las acciones conocidas y actualiza el botón correspondiente.
+//     */
+//    public void sincronizarEstadoVisualBotonesToggle() {
+//        System.out.println("    -> Sincronizando estado visual de botones toggle...");
+//
+//        
+//        //FIXME HACER QUE ESTE METODO NO NECESITE UNA INCORPORACION MANUAL DE BOTONES ON OFF
+//        
+//        // Llamamos a un método helper para cada botón que queramos sincronizar.
+//        // Esto mantiene el código limpio y fácil de leer.
+//        sincronizarUnBotonToggle(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+//        sincronizarUnBotonToggle(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
+//        sincronizarUnBotonToggle(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+//        sincronizarUnBotonToggle(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
+//        sincronizarUnBotonToggle(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
+//        
+//        // ... Añade aquí cualquier otra Action de tipo toggle que tengas ...
+//
+//        System.out.println("    -> Sincronización de botones toggle completada.");
+//    } // --- Fin del método sincronizarEstadoVisualBotonesToggle ---
     
     
-    /**
-     * Método helper privado para actualizar el aspecto de UN botón toggle específico.
-     * @param actionCommand La clave de la Action en el actionMap.
-     */
-    private void sincronizarUnBotonToggle(String actionCommand) {
-        Action action = actionMap.get(actionCommand);
-        if (action == null) {
-            // System.err.println("WARN [ConfigAppManager]: No se encontró la acción para el comando: " + actionCommand);
-            return;
-        }
+//    /**
+//     * Método helper privado para actualizar el aspecto de UN botón toggle específico.
+//     * @param actionCommand La clave de la Action en el actionMap.
+//     */
+//    private void sincronizarUnBotonToggle(String actionCommand) {
+//        Action action = actionMap.get(actionCommand);
+//        if (action == null) {
+//            // System.err.println("WARN [ConfigAppManager]: No se encontró la acción para el comando: " + actionCommand);
+//            return;
+//        }
+//
+//        boolean isSelected = Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY));
+//        Tema temaActual = themeManager.getTemaActual();
+//
+//        // Buscar el botón asociado a esta Action en el registro de componentes
+//        // Este enfoque es desacoplado pero puede ser lento si hay miles de componentes.
+//        // Para una UI normal, es perfectamente aceptable.
+//        registry.getAllJComponents().stream()
+//            .filter(c -> c instanceof JButton && action.equals(((JButton) c).getAction()))
+//            .findFirst()
+//            .ifPresent(componente -> {
+//                JButton button = (JButton) componente;
+//                Color colorFondo = isSelected ? temaActual.colorBotonFondoActivado() : temaActual.colorBotonFondo();
+//                button.setBackground(colorFondo);
+//                // Asegurarse de que el botón es opaco para que el color se vea
+//                if (!button.isOpaque()) {
+//                    button.setOpaque(true);
+//                }
+//            });
+//        
+//    } // --- Fin del método sincronizarUnBotonToggle ---
 
-        boolean isSelected = Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY));
-        Tema temaActual = themeManager.getTemaActual();
-
-        // Buscar el botón asociado a esta Action en el registro de componentes
-        // Este enfoque es desacoplado pero puede ser lento si hay miles de componentes.
-        // Para una UI normal, es perfectamente aceptable.
-        registry.getAllJComponents().stream()
-            .filter(c -> c instanceof JButton && action.equals(((JButton) c).getAction()))
-            .findFirst()
-            .ifPresent(componente -> {
-                JButton button = (JButton) componente;
-                Color colorFondo = isSelected ? temaActual.colorBotonFondoActivado() : temaActual.colorBotonFondo();
-                button.setBackground(colorFondo);
-                // Asegurarse de que el botón es opaco para que el color se vea
-                if (!button.isOpaque()) {
-                    button.setOpaque(true);
-                }
-            });
-    } // --- Fin del método sincronizarUnBotonToggle ---
-
-    private void sincronizarBotonToggle(String actionCommand) {
-        Action action = actionMap.get(actionCommand);
-        if (action != null) {
-            boolean isSelected = Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY));
-            
-            // Buscar el botón asociado a esta acción en el registro
-            // Esto es más lento que el mapa de la vista, pero más desacoplado.
-            // Se puede optimizar si es necesario.
-            registry.getAllJComponents().stream()
-                .filter(c -> c instanceof JButton && action.equals(((JButton) c).getAction()))
-                .findFirst()
-                .ifPresent(c -> {
-                    JButton button = (JButton) c;
-                    button.setBackground(isSelected ? themeManager.getTemaActual().colorBotonFondoActivado() : themeManager.getTemaActual().colorBotonFondo());
-                });
-        }
-    } // --- Fin del método sincronizarBotonToggle ---
+//    private void sincronizarBotonToggle(String actionCommand) {
+//        Action action = actionMap.get(actionCommand);
+//        if (action != null) {
+//            boolean isSelected = Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY));
+//            
+//            // Buscar el botón asociado a esta acción en el registro
+//            // Esto es más lento que el mapa de la vista, pero más desacoplado.
+//            // Se puede optimizar si es necesario.
+//            registry.getAllJComponents().stream()
+//                .filter(c -> c instanceof JButton && action.equals(((JButton) c).getAction()))
+//                .findFirst()
+//                .ifPresent(c -> {
+//                    JButton button = (JButton) c;
+//                    button.setBackground(isSelected ? themeManager.getTemaActual().colorBotonFondoActivado() : themeManager.getTemaActual().colorBotonFondo());
+//                });
+//        }
+//    } // --- Fin del método sincronizarBotonToggle ---
 
     private void sincronizarUIFinal() {
         System.out.println("  [ConfigAppManager] Sincronizando UI final...");
@@ -472,6 +473,41 @@ public class ConfigApplicationManager {
         botonAsociado.setSelected(isSelected);
         
     } // --- FIN del metodo actualizarAspectoBotonToggle ---
+    
+    /**
+     * Sincroniza la apariencia de TODOS los botones toggle definidos al estado
+     * que dictan sus respectivas Actions. Ideal para llamar al inicio de la app.
+     */
+    public void sincronizarAparienciaTodosLosToggles() {
+        System.out.println("  [ConfigAppManager] Sincronizando apariencia de todos los botones toggle...");
+        if (actionMap == null || actionMap.isEmpty()) {
+            System.err.println("WARN [ConfigAppManager]: ActionMap vacío, no se puede sincronizar apariencia.");
+            return;
+        }
+
+        // Lista de todos los comandos que corresponden a un botón toggle que queremos gestionar
+        java.util.List<String> toggleCommands = java.util.List.of(
+            AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE,
+            AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,
+            AppActionCommands.CMD_TOGGLE_SUBCARPETAS,
+            AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA,
+            AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR,
+            // Añadir aquí cualquier otro botón toggle individual que exista
+            // Los botones de modo se sincronizan por separado en GeneralController
+            AppActionCommands.CMD_PROYECTO_GESTIONAR,
+            AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR
+        );
+
+        for (String command : toggleCommands) {
+            Action action = actionMap.get(command);
+            if (action != null) {
+                boolean isSelected = Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY));
+                // Llamamos al método bueno para cada uno
+                actualizarAspectoBotonToggle(action, isSelected);
+            }
+        }
+        System.out.println("  [ConfigAppManager] Sincronización de apariencia completada.");
+    } // --- Fin del método sincronizarAparienciaTodosLosToggles ---
     
     /**
      * Inyecta la instancia principal de la vista.

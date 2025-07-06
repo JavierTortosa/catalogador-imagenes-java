@@ -204,14 +204,18 @@ public class AppInitializer {
             this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
             MenuBarBuilder menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager, registry);
             ToolbarBuilder toolbarBuilder = new ToolbarBuilder(
-            	    this.themeManager,
-            	    this.iconUtils,
-            	    this.controller,
-            	    configuration.getInt("iconos.ancho", 24),
-            	    configuration.getInt("iconos.alto", 24),
-            	    registry
-            	);
-            this.toolbarManager = new ToolbarManager(this.configuration, toolbarBuilder, uiDefSvc, registry, this.model);
+                    this.themeManager,
+                    this.iconUtils,
+                    this.controller,
+                    configuration.getInt("iconos.ancho", 24),
+                    configuration.getInt("iconos.alto", 24),
+                    registry
+            );
+            
+            // --- INICIO DE LA CORRECCIÓN ---
+            // Se corrige el orden de los parámetros para que coincida con el constructor de ToolbarManager.
+            this.toolbarManager = new ToolbarManager(registry, this.configuration, toolbarBuilder, uiDefSvc, this.model);
+            // --- FIN DE LA CORRECCIÓN ---
             
             //======================================================================
             // BLOQUE 2: CABLEADO (INYECCIÓN DE DEPENDENCIAS)
@@ -262,7 +266,7 @@ public class AppInitializer {
             viewBuilder.setToolbarManager(this.toolbarManager);
             viewBuilder.setViewManager(this.viewManager);
             menuBuilder.setControllerGlobalActionListener(this.controller);
-            toolbarBuilder.setGeneralController(this.generalController);
+//            toolbarBuilder.setGeneralController(this.generalController);
             
             //======================================================================
             // BLOQUE 3: FASE DE INICIALIZACIÓN SECUENCIADA (ORDEN CORREGIDO)
@@ -275,10 +279,9 @@ public class AppInitializer {
 
             // 2. Inyectar el ActionMap (parcial) en los builders/managers que lo necesitan para construir.
             toolbarBuilder.setActionMap(this.actionMap);
-//            menuBuilder.setActionMap(this.actionMap); // Menubuilder también puede necesitarlo para atajos
 
-            // 3. Inicializar el ToolbarManager. Esto CONSTRUYE las JToolBar.
-            this.toolbarManager.inicializarBarrasDeHerramientas();
+            // 3. Inicializar el ToolbarManager. ESTA LÍNEA SE ELIMINA, la reconstrucción hace el trabajo.
+            // this.toolbarManager.inicializarBarrasDeHerramientas(); // <-- ELIMINAR O COMENTAR ESTA LÍNEA
 
             // 4. Crear el frame principal (VisorView).
             this.view = viewBuilder.createMainFrame();
@@ -335,6 +338,8 @@ public class AppInitializer {
             this.projectController.configurarListeners();
             this.generalController.initialize();
             
+            this.controller.configurarListenerGlobalDeToolbars();
+            
             java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
             this.view.addWindowListener(new java.awt.event.WindowAdapter() {
                 public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
@@ -344,6 +349,11 @@ public class AppInitializer {
             this.controller.establecerCarpetaRaizDesdeConfigInternal();
             
             this.view.setVisible(true);
+            
+            System.out.println("  [AppInitializer] Forzando sincronización visual inicial de botones toggle...");
+            if (this.configAppManager != null) {
+                this.configAppManager.sincronizarAparienciaTodosLosToggles();
+            }
             
             SwingUtilities.invokeLater(() -> {
                 String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);

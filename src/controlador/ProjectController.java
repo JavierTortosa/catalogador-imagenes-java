@@ -212,7 +212,7 @@ public class ProjectController {
         if (model.getCurrentWorkMode() != VisorModel.WorkMode.PROYECTO) return;
 
         ImageDisplayPanel projectDisplayPanel = registry.get("panel.proyecto.display");
-        if (projectDisplayPanel == null || zoomManager == null || model == null) {
+        if (projectDisplayPanel == null || model == null || controllerRef == null) {
             System.err.println("ERROR CRÍTICO [actualizarImagenVistaProyecto]: Dependencias nulas.");
             return;
         }
@@ -221,15 +221,15 @@ public class ProjectController {
         System.out.println("  [ProjectController] Actualizando imagen de proyecto para la clave: " + claveSeleccionada);
 
         if (claveSeleccionada == null) {
-            projectDisplayPanel.limpiar();
             model.setCurrentImage(null);
+            projectDisplayPanel.limpiar();
             return;
         }
 
         Path rutaImagen = model.getRutaCompleta(claveSeleccionada);
         if (rutaImagen == null) {
-            projectDisplayPanel.mostrarError("Ruta no encontrada para:\n" + claveSeleccionada, null);
             model.setCurrentImage(null);
+            projectDisplayPanel.mostrarError("Ruta no encontrada para:\n" + claveSeleccionada, null);
             return;
         }
 
@@ -244,30 +244,33 @@ public class ProjectController {
             protected void done() {
                 if (model.getCurrentWorkMode() != VisorModel.WorkMode.PROYECTO ||
                     !Objects.equals(claveSeleccionada, model.getSelectedImageKey())) {
-                    return;
+                    return; // La selección o el modo cambiaron mientras se cargaba.
                 }
                 
                 try {
                     java.awt.image.BufferedImage imagen = get();
                     if (imagen != null) {
                         model.setCurrentImage(imagen);
-                        projectDisplayPanel.setImagen(imagen);
-                        zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
                         
-                        if (controllerRef != null) {
-                            controllerRef.sincronizarEstadoVisualBotonesYRadiosZoom();
-                        }
+                        // --- INICIO DE LA CORRECCIÓN ---
+                        // 1. Limpiamos el texto "Cargando..." del panel.
+                        projectDisplayPanel.limpiar();
+
+                        // 2. Solicitamos el refresco visual al controlador principal.
+                        controllerRef.solicitarRefrescoDeVistaPorSeleccion();
+                        // --- FIN DE LA CORRECCIÓN ---
+
                     } else {
                         throw new java.io.IOException("No se pudo decodificar la imagen.");
                     }
                 } catch (Exception e) {
                     System.err.println("ERROR [ProjectController]: No se pudo cargar la imagen del proyecto: " + rutaImagen);
+                    model.setCurrentImage(null); // Limpiar el modelo en caso de error
                     projectDisplayPanel.mostrarError("Error al cargar:\n" + rutaImagen.getFileName().toString(), null);
-                    model.setCurrentImage(null);
                 }
             }
         }.execute();
-    }// --- FIN del metodo actualizarImagenVistaProyecto ---
+    } // --- FIN del metodo actualizarImagenVistaProyecto ---
 
     
     // --- Setters (sin cambios) ---
