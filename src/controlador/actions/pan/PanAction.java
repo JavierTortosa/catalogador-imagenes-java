@@ -127,6 +127,5 @@ public class PanAction extends AbstractAction implements ContextSensitiveAction 
         }
     } // --- Fin del método updateEnabledState ---
     
-    // Línea posterior: La llave de cierre de la clase
 
 } // --- FIN de la clase PanAction ---

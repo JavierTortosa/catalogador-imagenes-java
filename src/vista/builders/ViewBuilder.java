@@ -34,7 +34,6 @@ import javax.swing.border.Border;
 import javax.swing.border.TitledBorder;
 
 import controlador.VisorController;
-import controlador.commands.AppActionCommands;
 import controlador.managers.ToolbarManager;
 import controlador.managers.interfaces.IViewManager;
 import controlador.utils.ComponentRegistry;
@@ -48,7 +47,6 @@ import vista.config.UIDefinitionService;
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
 import vista.renderers.NombreArchivoRenderer;
-import vista.theme.Tema;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
@@ -189,28 +187,7 @@ public class ViewBuilder {
     } // --- Fin del método createVisualizadorViewPanel ---
 
 
-//    private JPanel createToolbarContainer() {
-//        // --- INICIO DE LA MODIFICACIÓN ---
-//        // 1. Creamos el panel contenedor.
-//        JPanel toolbarContainer = new JPanel();
-//        
-//        // 2. Le asignamos un BoxLayout que alinee los componentes horizontalmente (LINE_AXIS).
-//        toolbarContainer.setLayout(new javax.swing.BoxLayout(toolbarContainer, javax.swing.BoxLayout.LINE_AXIS));
-//        
-//        // 3. El resto se mantiene igual.
-//        toolbarContainer.setOpaque(false);
-//        registry.register("container.toolbars", toolbarContainer);
-//        
-//        System.out.println("  [ViewBuilder] Toolbar container creado con BoxLayout.");
-//        return toolbarContainer;
-//        // --- FIN DE LA MODIFICACIÓN ---
-//    } // --- Fin del método createToolbarContainer ---
-    
-    
- // Dentro de la clase ViewBuilder
-
     private JPanel createToolbarContainer() {
-        // --- INICIO DE LA MODIFICACIÓN ---
 
         // 1. El contenedor principal ahora usa BorderLayout.
         JPanel mainToolbarContainer = new JPanel(new BorderLayout());
@@ -246,7 +223,6 @@ public class ViewBuilder {
         // Devolvemos el contenedor principal.
         return mainToolbarContainer;
 
-        // --- FIN DE LA MODIFICACIÓN ---
     } // --- Fin del método createToolbarContainer ---
     
     
@@ -262,9 +238,7 @@ public class ViewBuilder {
 
     private JPanel createLeftSplitComponent() {
         JPanel panelIzquierdo = new JPanel(new BorderLayout());
-//        panelIzquierdo.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
         TitledBorder border = BorderFactory.createTitledBorder("Archivos: 0");
-//        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
         panelIzquierdo.setBorder(border);
         registry.register("panel.izquierdo.listaArchivos", panelIzquierdo);
 
@@ -274,7 +248,6 @@ public class ViewBuilder {
         registry.register("list.nombresArchivo", fileList);
 
         JScrollPane scrollPane = new JScrollPane(fileList);
-//        scrollPane.setBorder(BorderFactory.createLineBorder(themeManager.getTemaActual().colorBorde()));
         registry.register("scroll.nombresArchivo", scrollPane);
 
         panelIzquierdo.add(scrollPane, BorderLayout.CENTER);
@@ -313,40 +286,8 @@ public class ViewBuilder {
     } // --- Fin del método createThumbnailScrollPane ---
     
     
-//    private JScrollPane createThumbnailScrollPane() {
-//        JList<String> thumbnailList = new JList<>(this.modeloMiniaturas);
-//        registry.register("list.miniaturas", thumbnailList);
-//
-//        MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
-//            this.thumbnailService,
-//            this.model,
-//            this.themeManager,
-//            this.iconUtils,
-//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40),
-//            configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, 40),
-//            configuration.getBoolean(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, true)
-//        );
-//        thumbnailList.setCellRenderer(renderer);
-//        thumbnailList.setFixedCellWidth(renderer.getAnchoCalculadaDeCelda());
-//        thumbnailList.setFixedCellHeight(renderer.getAlturaCalculadaDeCelda());
-//        thumbnailList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
-//        thumbnailList.setVisibleRowCount(-1);
-//
-//        JScrollPane scrollPane = new JScrollPane(thumbnailList);
-//        
-//        TitledBorder border = BorderFactory.createTitledBorder("Miniaturas");
-//        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-//        scrollPane.setBorder(border);
-//        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-//        registry.register("scroll.miniaturas", scrollPane);
-//
-//        return scrollPane;
-//    } // --- Fin del método createThumbnailScrollPane ---
-
-    
     private JPanel createRightSplitComponent() {
         JPanel rightPanel = new JPanel(new BorderLayout());
-        // rightPanel.setBackground(themeManager.getTemaActual().colorFondoSecundario()); // <-- COMENTADO
         registry.register("panel.derecho.visor", rightPanel);
 
         ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
@@ -354,7 +295,6 @@ public class ViewBuilder {
         registry.register("label.imagenPrincipal", imageDisplayPanel.getInternalLabel());
         
         TitledBorder border = BorderFactory.createTitledBorder("");
-        // border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo()); // <-- COMENTADO
         imageDisplayPanel.setBorder(border);
         
         rightPanel.add(imageDisplayPanel, BorderLayout.CENTER);
@@ -371,34 +311,6 @@ public class ViewBuilder {
     } // --- Fin del método createRightSplitComponent ---
     
     
-//	private JPanel createRightSplitComponent() {
-//	    JPanel rightPanel = new JPanel(new BorderLayout());
-//	    rightPanel.setBackground(themeManager.getTemaActual().colorFondoSecundario());
-//	    registry.register("panel.derecho.visor", rightPanel);
-//	
-//	    ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
-//	    registry.register("panel.display.imagen", imageDisplayPanel);
-//	    registry.register("label.imagenPrincipal", imageDisplayPanel.getInternalLabel());
-//	    
-//	    TitledBorder border = BorderFactory.createTitledBorder("");
-//	    border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-//	    imageDisplayPanel.setBorder(border);
-//	    
-//	    rightPanel.add(imageDisplayPanel, BorderLayout.CENTER);
-//	
-//        JToolBar imageControlsToolbar = createBackgroundControlPanel(); 
-//        if (imageControlsToolbar != null) {
-//            rightPanel.add(imageControlsToolbar, BorderLayout.SOUTH);
-//            System.out.println("[ViewBuilder] Barra de controles de imagen inferior añadida a rightPanel (BorderLayout.SOUTH).");
-//        } else {
-//            System.err.println("ERROR [ViewBuilder]: La barra de controles de imagen inferior no pudo ser obtenida/configurada.");
-//        }
-//	
-//	    return rightPanel;
-//    } // --- Fin del método createRightSplitComponent ---
-
-
-
 	private JToolBar createBackgroundControlPanel() {
 	    if (this.toolbarManager == null) {
 	        System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
@@ -553,8 +465,6 @@ public class ViewBuilder {
         int iconSize = 18;
         Dimension indicadorDimension = new Dimension(iconSize + 6, iconSize + 4);
 
-        // --- INICIO DE LA MODIFICACIÓN CLAVE ---
-
         // Creamos una instancia anónima de JLabel que FUERZA el pintado del fondo.
         JLabel iconoZoomManualLabel = new JLabel() {
             @Override
@@ -598,8 +508,6 @@ public class ViewBuilder {
         registry.register("label.indicador.subcarpetas", iconoModoSubcarpetasLabel);
         configurarIndicadorLabel(iconoModoSubcarpetasLabel, indicadorDimension, "Incluir Subcarpetas: Desactivado");
 
-        // --- FIN DE LA MODIFICACIÓN CLAVE ---
-
         JLabel porcentajeZoomLabel = new JLabel("Z: 100%");
         registry.register("label.control.zoomPorcentaje", porcentajeZoomLabel);
         
@@ -627,97 +535,9 @@ public class ViewBuilder {
     } // --- Fin del método createBottomStatusBar ---
     
     
-//    private JPanel createBottomStatusBar() {
-//        JPanel bottomStatusBar = new JPanel(new BorderLayout(5, 0));
-//        registry.register("panel.estado.inferior", bottomStatusBar);
-//
-//        // Tema tema = themeManager.getTemaActual(); // Ya no se necesita aquí
-//        // bottomStatusBar.setBackground(tema.colorFondoSecundario()); // <-- COMENTADO
-//        // bottomStatusBar.setOpaque(true); // <-- COMENTADO
-//
-//        // Border lineaExterna = BorderFactory.createMatteBorder(1, 0, 0, 0, tema.colorBorde()); // <-- COMENTADO
-//        // Border paddingInterno = BorderFactory.createEmptyBorder(2, 5, 2, 5); // El padding es bueno, lo dejamos
-//        // bottomStatusBar.setBorder(BorderFactory.createCompoundBorder(lineaExterna, paddingInterno)); // <-- COMENTADO, FlatLaf gestiona el borde
-//        bottomStatusBar.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5)); // Dejamos solo el padding
-//
-//        JLabel rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
-//        registry.register("label.estado.ruta", rutaCompletaArchivoLabel);
-//        // rutaCompletaArchivoLabel.setForeground(tema.colorTextoPrimario()); // <-- COMENTADO
-//
-//        JPanel panelRuta = new JPanel(new BorderLayout());
-//        panelRuta.setOpaque(false);
-//        panelRuta.add(rutaCompletaArchivoLabel, BorderLayout.CENTER);
-//        bottomStatusBar.add(panelRuta, BorderLayout.CENTER);
-//
-//        JPanel panelDerechoContenedor = new JPanel(new BorderLayout(5, 0));
-//        panelDerechoContenedor.setOpaque(false);
-//
-//        JPanel panelControlesInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
-//        panelControlesInferior.setOpaque(false);
-//        registry.register("panel.estado.controles", panelControlesInferior);
-//
-//        // La lógica de los iconos se mantiene igual
-//        int iconSize = 18;
-//        Dimension indicadorDimension = new Dimension(iconSize + 6, iconSize + 4);
-//
-//        ImageIcon iconoZM = iconUtils.getScaledIcon("3001-Zoom_48x48.png", iconSize, iconSize);
-//        JLabel iconoZoomManualLabel = new JLabel(iconoZM);
-//        registry.register("label.indicador.zoomManual", iconoZoomManualLabel);
-//        configurarIndicadorLabel(iconoZoomManualLabel, indicadorDimension, "Zoom Manual: Desactivado");
-//
-//        ImageIcon iconoProp = iconUtils.getScaledIcon("7002-Mantener_Proporciones_48x48.png", iconSize, iconSize);
-//        JLabel iconoMantenerProporcionesLabel = new JLabel(iconoProp);
-//        registry.register("label.indicador.proporciones", iconoMantenerProporcionesLabel);
-//        configurarIndicadorLabel(iconoMantenerProporcionesLabel, indicadorDimension, "Mantener Proporciones: Desactivado");
-//
-//        ImageIcon iconoSubC = iconUtils.getScaledIcon("7001-Subcarpetas_48x48.png", iconSize, iconSize);
-//        JLabel iconoModoSubcarpetasLabel = new JLabel(iconoSubC);
-//        registry.register("label.indicador.subcarpetas", iconoModoSubcarpetasLabel);
-//        configurarIndicadorLabel(iconoModoSubcarpetasLabel, indicadorDimension, "Incluir Subcarpetas: Desactivado");
-//
-//        JLabel porcentajeZoomLabel = new JLabel("Z: 100%");
-//        registry.register("label.control.zoomPorcentaje", porcentajeZoomLabel);
-//        
-//        JButton modoZoomBoton = new JButton();
-//        registry.register("button.control.modoZoom", modoZoomBoton);
-//        
-//        panelControlesInferior.add(iconoZoomManualLabel);
-//        panelControlesInferior.add(iconoMantenerProporcionesLabel);
-//        panelControlesInferior.add(iconoModoSubcarpetasLabel);
-//        panelControlesInferior.add(new JSeparator(SwingConstants.VERTICAL));
-//        panelControlesInferior.add(porcentajeZoomLabel);
-//        panelControlesInferior.add(modoZoomBoton);
-//        
-//        panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER);
-//
-//        JLabel mensajesAppLabel = new JLabel(" ");
-//        registry.register("label.estado.mensajes", mensajesAppLabel);
-//        // mensajesAppLabel.setForeground(tema.colorTextoSecundario()); // <-- COMENTADO
-//        mensajesAppLabel.setHorizontalAlignment(SwingConstants.CENTER);
-//        mensajesAppLabel.setPreferredSize(new Dimension(200, mensajesAppLabel.getPreferredSize().height));
-//        panelDerechoContenedor.add(mensajesAppLabel, BorderLayout.EAST);
-//
-//        bottomStatusBar.add(panelDerechoContenedor, BorderLayout.EAST);
-//
-//        return bottomStatusBar;
-//    } // --- Fin del método createBottomStatusBar ---
-    
-
-
-    
-    
     private JPanel createTopInfoPanel() {
         JPanel panel = new JPanel(new GridBagLayout());
         registry.register("panel.info.superior", panel);
-
-        // Tema tema = themeManager.getTemaActual(); // Ya no se necesita aquí
-        
-        // Border paddingParaContenido = BorderFactory.createEmptyBorder(3, 5, 3, 5); // <-- COMENTADO
-        // Border lineaInferiorExterna = BorderFactory.createMatteBorder(2, 2, 2, 2, tema.colorBorde()); // <-- COMENTADO
-        // panel.setBorder(BorderFactory.createCompoundBorder(lineaInferiorExterna, paddingParaContenido)); // <-- COMENTADO
-        
-        // panel.setBackground(tema.colorFondoSecundario()); // <-- COMENTADO
-        // panel.setOpaque(true); // <-- COMENTADO
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.LINE_START;
@@ -749,13 +569,6 @@ public class ViewBuilder {
         registry.register("label.info.formatoImagen", formatoImagenInfoLabel);
         formatoImagenInfoLabel.setToolTipText("Formato del archivo de imagen actual");
         
-        // --- SECCIÓN DE ASIGNACIÓN DE COLORES ELIMINADA ---
-        /*
-        Color colorTextoInfo = tema.colorTextoSecundario();
-        nombreArchivoInfoLabel.setForeground(colorTextoInfo);
-        // ...etc
-        */
-
         // La lógica de GridBagLayout se mantiene igual
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE;
         panel.add(nombreArchivoInfoLabel, gbc);
@@ -788,88 +601,6 @@ public class ViewBuilder {
     } // --- Fin del método createTopInfoPanel ---
     
     
-//    private JPanel createTopInfoPanel() {
-//        JPanel panel = new JPanel(new GridBagLayout());
-//        registry.register("panel.info.superior", panel);
-//
-//        Tema tema = themeManager.getTemaActual();
-//        
-//        Border paddingParaContenido = BorderFactory.createEmptyBorder(3, 5, 3, 5);
-//        Border lineaInferiorExterna = BorderFactory.createMatteBorder(2, 2, 2, 2, tema.colorBorde());
-//        panel.setBorder(BorderFactory.createCompoundBorder(lineaInferiorExterna, paddingParaContenido));
-//        
-//        panel.setBackground(tema.colorFondoSecundario());
-//        panel.setOpaque(true);
-//
-//        GridBagConstraints gbc = new GridBagConstraints();
-//        gbc.anchor = GridBagConstraints.LINE_START;
-//        gbc.insets = new Insets(0, 3, 0, 3);
-//
-//        JLabel nombreArchivoInfoLabel = new JLabel("Archivo: N/A");
-//        registry.register("label.info.nombreArchivo", nombreArchivoInfoLabel);
-//
-//        JLabel indiceTotalInfoLabel = new JLabel("Idx: N/A");
-//        registry.register("label.info.indiceTotal", indiceTotalInfoLabel);
-//
-//        JLabel dimensionesOriginalesInfoLabel = new JLabel("Dim: N/A");
-//        registry.register("label.info.dimensiones", dimensionesOriginalesInfoLabel);
-//
-//        JLabel tamanoArchivoInfoLabel = new JLabel("Tam: N/A");
-//        registry.register("label.info.tamano", tamanoArchivoInfoLabel);
-//
-//        JLabel fechaArchivoInfoLabel = new JLabel("Fch: N/A");
-//        registry.register("label.info.fecha", fechaArchivoInfoLabel);
-//
-//        JLabel modoZoomNombreInfoLabel = new JLabel("Modo: N/A");
-//        registry.register("label.info.modoZoom", modoZoomNombreInfoLabel);
-//
-//        JLabel porcentajeZoomVisualRealInfoLabel = new JLabel("%Z: N/A");
-//        registry.register("label.info.porcentajeZoom", porcentajeZoomVisualRealInfoLabel);
-//
-//        JLabel formatoImagenInfoLabel = new JLabel("Fmt: N/A");
-//        registry.register("label.info.formatoImagen", formatoImagenInfoLabel);
-//        formatoImagenInfoLabel.setToolTipText("Formato del archivo de imagen actual");
-//
-//        Color colorTextoInfo = tema.colorTextoSecundario();
-//        nombreArchivoInfoLabel.setForeground(colorTextoInfo);
-//        indiceTotalInfoLabel.setForeground(colorTextoInfo);
-//        dimensionesOriginalesInfoLabel.setForeground(colorTextoInfo);
-//        tamanoArchivoInfoLabel.setForeground(colorTextoInfo);
-//        fechaArchivoInfoLabel.setForeground(colorTextoInfo);
-//        modoZoomNombreInfoLabel.setForeground(colorTextoInfo);
-//        porcentajeZoomVisualRealInfoLabel.setForeground(colorTextoInfo);
-//        formatoImagenInfoLabel.setForeground(colorTextoInfo);
-//
-//        gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE;
-//        panel.add(nombreArchivoInfoLabel, gbc);
-//
-//        gbc.gridx = 1; gbc.weightx = 1.0; gbc.fill = GridBagConstraints.HORIZONTAL;
-//        panel.add(Box.createHorizontalGlue(), gbc);
-//
-//        gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE; gbc.anchor = GridBagConstraints.LINE_END;
-//
-//        gbc.gridx = 2; panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
-//        gbc.gridx = 3; panel.add(dimensionesOriginalesInfoLabel, gbc);
-//        gbc.gridx = 4; panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
-//        gbc.gridx = 5; panel.add(tamanoArchivoInfoLabel, gbc);
-//        gbc.gridx = 6; panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
-//        gbc.gridx = 7; panel.add(fechaArchivoInfoLabel, gbc);
-//
-//        gbc.gridx = 8; gbc.insets = new Insets(0, 8, 0, 8);
-//        panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
-//        gbc.insets = new Insets(0, 3, 0, 3);
-//
-//        gbc.gridx = 9;  panel.add(indiceTotalInfoLabel, gbc);
-//        gbc.gridx = 10; panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
-//        gbc.gridx = 11; panel.add(porcentajeZoomVisualRealInfoLabel, gbc);
-//        gbc.gridx = 12; panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
-//        gbc.gridx = 13; panel.add(modoZoomNombreInfoLabel, gbc);
-//        gbc.gridx = 14; panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
-//        gbc.gridx = 15; panel.add(formatoImagenInfoLabel, gbc);
-//        
-//        return panel;
-//    } // --- Fin del método createTopInfoPanel ---
-
     private void configurarIndicadorLabel(JLabel label, Dimension dim, String tooltip) {
         label.setOpaque(true);
         label.setHorizontalAlignment(SwingConstants.CENTER);

@@ -157,7 +157,6 @@ public class ActionFactory {
             ThemeManager themeManager,
             
             GeneralController generalController,
-//            VisorController controller,
             
             ProjectController projectController
     ){ 
@@ -447,8 +446,19 @@ private void createCoreActions() {
     } // --- Fin del método createToggleZoomToCursorAction ---
     
     private Action createAplicarModoZoomAction(String commandKey, String displayName, ZoomModeEnum modo) {
-        ImageIcon icon = getIconForCommand(commandKey); 
-        return new AplicarModoZoomAction(this.zoomManager, this.model, this.generalController.getVisorController(), displayName, icon, modo, commandKey);
+        ImageIcon icon = getIconForCommand(commandKey);
+        
+        // MODIFICACIÓN: Creamos un Runnable (un callback) que llama al método de sincronización del VisorController.
+        // El VisorController es inyectado en ActionFactory a través del constructor, así que tenemos acceso.
+        Runnable syncCallback = () -> {
+            if (this.generalController.getVisorController() != null) {
+                this.generalController.getVisorController().sincronizarEstadoVisualBotonesYRadiosZoom();
+            }
+        };
+
+        // Pasamos el zoomManager, el modelo y el nuevo callback.
+        return new AplicarModoZoomAction(this.zoomManager, this.model, displayName, icon, modo, commandKey, syncCallback);
+        
     } // --- Fin del método createAplicarModoZoomAction ---
     
     // --- 4.4. Métodos Create para Actions de Navegación ---

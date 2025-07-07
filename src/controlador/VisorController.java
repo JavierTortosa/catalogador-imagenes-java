@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -14,9 +12,6 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,7 +41,6 @@ import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -55,14 +49,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
-import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import controlador.actions.config.SetSubfolderReadModeAction;
 import controlador.actions.tema.ToggleThemeAction;
-import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
@@ -85,7 +77,6 @@ import servicios.ProjectManager;
 import servicios.image.ThumbnailService;
 import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
-import vista.config.ToolbarDefinition;
 import vista.config.ViewUIConfig;
 import vista.dialogos.ProgresoCargaDialog;
 import vista.panels.ImageDisplayPanel;
@@ -98,7 +89,8 @@ import vista.util.IconUtils;
  * Controlador principal para el Visor de Imágenes (Versión con 2 JList sincronizadas).
  * Orquesta la interacción entre Modelo y Vista, maneja acciones y lógica de negocio.
  */
-public class VisorController implements ActionListener, ClipboardOwner, KeyEventDispatcher {
+//public class VisorController implements ActionListener, ClipboardOwner, KeyEventDispatcher, IModoController {
+public class VisorController implements ActionListener, ClipboardOwner {
 
     // --- 1. Referencias a Componentes del Sistema ---
 
@@ -127,7 +119,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     
     // --- 2. Estado Interno del Controlador ---
     private Future<?> cargaImagenesFuture;
-    // private Future<?> cargaMiniaturasFuture; // Eliminado
     private Future<?> cargaImagenPrincipalFuture;
     private volatile boolean estaCargandoLista = false;
     
@@ -447,41 +438,44 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
 	
 	/**
-	 * Configura todos los listeners. Versión reconstruida para evitar bucles.
+	 * Configura los listeners específicos de la vista del visualizador.
+	 * La lógica global de teclado y ratón ahora es manejada por GeneralController.
 	 */
 	void configurarListenersVistaInternal()
 	{
-
-		if (view == null || listCoordinator == null || model == null || registry == null || zoomManager == null)
+		if (view == null || listCoordinator == null || model == null || registry == null)
 		{
 			System.err.println("WARN [configurarListenersVistaInternal]: Dependencias críticas nulas. Abortando.");
 			return;
 		}
-		System.out.println("[Controller Internal] Configurando Listeners (Reconstrucción)...");
+		System.out.println("[VisorController Internal] Configurando listeners ESPECÍFICOS de Vista...");
 
-		// --- LISTENERS DE SELECCIÓN (SIMPLIFICADOS) ---
+		// --- LISTENERS DE SELECCIÓN DE LISTAS (SE MANTIENEN) ---
 		JList<String> listaNombres = registry.get("list.nombresArchivo");
 
 		if (listaNombres != null)
 		{
+			// Limpiar listeners anteriores para evitar duplicados
 			for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners())
 				listaNombres.removeListSelectionListener(lsl);
+			
 			listaNombres.addListSelectionListener(e -> {
-
 				if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI())
 				{
 					listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
 				}
 			});
 		}
+
 		JList<String> listaMiniaturas = registry.get("list.miniaturas");
 
 		if (listaMiniaturas != null)
 		{
+			// Limpiar listeners anteriores para evitar duplicados
 			for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners())
 				listaMiniaturas.removeListSelectionListener(lsl);
+			
 			listaMiniaturas.addListSelectionListener(e -> {
-
 				if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI())
 				{
 					int indiceRelativo = listaMiniaturas.getSelectedIndex();
@@ -496,180 +490,11 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 			});
 		}
 
-		
-		// --- LISTENER DE RUEDA MAESTRO ---
-		java.awt.event.MouseWheelListener masterWheelListener = e -> {
-		    boolean sobreLaImagen = e.getComponent() == registry.get("label.imagenPrincipal");
+		System.out.println("[VisorController Internal] Listeners específicos de Vista configurados.");
 
-		    if (e.isControlDown() && e.isAltDown()) {
-		        if (e.getWheelRotation() < 0) listCoordinator.seleccionarBloqueAnterior();
-		        else listCoordinator.seleccionarBloqueSiguiente();
-		    
-		    } else if (sobreLaImagen && model.isZoomHabilitado()) {
-		        
-		        // Lógica de Zoom y Paneo
-		        if (e.isControlDown() && !e.isShiftDown()) {
-		            zoomManager.aplicarPan(0, e.getWheelRotation() * 30);
-		        } else if (e.isShiftDown() && !e.isControlDown()) {
-		            zoomManager.aplicarPan(-e.getWheelRotation() * 30, 0);
-		        } else {
-		            // --- INICIO DE LA MODIFICACIÓN FINAL ---
-		            // 1. Delegar el cálculo y la actualización del modelo al ZoomManager.
-		            zoomManager.aplicarZoomConRueda(e);
-		            
-		            // 2. Llamar al método centralizador de UI para que actualice TODO.
-		            sincronizarEstadoVisualBotonesYRadiosZoom();
-		            // --- FIN DE LA MODIFICACIÓN FINAL ---
-		        }
-			} else
-			{
-				// En cualquier otro caso (sobre listas, o sobre imagen con paneo off)
-				listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
-			}
-			e.consume();
-		};
-
-		// --- ASIGNACIÓN DE LISTENERS ---
-		JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
-		Component scrollMiniaturas = registry.get("scroll.miniaturas");
-		Component[] componentesConRueda = { listaNombres, scrollMiniaturas, etiquetaImagen };
-
-		for (Component c : componentesConRueda)
-		{
-
-			if (c != null)
-			{
-				for (java.awt.event.MouseWheelListener l : c.getMouseWheelListeners())
-					c.removeMouseWheelListener(l);
-				c.addMouseWheelListener(masterWheelListener);
-			}
-		}
-
-		// Listeners de clic para paneo (sin cambios)
-		if (etiquetaImagen != null)
-		{
-			for (java.awt.event.MouseListener ml : etiquetaImagen.getMouseListeners())
-				etiquetaImagen.removeMouseListener(ml);
-			for (java.awt.event.MouseMotionListener mml : etiquetaImagen.getMouseMotionListeners())
-				etiquetaImagen.removeMouseMotionListener(mml);
-
-			etiquetaImagen.addMouseListener(new MouseAdapter()
-			{
-				public void mousePressed(java.awt.event.MouseEvent ev)
-				{
-					if (model.isZoomHabilitado())
-						zoomManager.iniciarPaneo(ev);
-				}
-			});
-			etiquetaImagen.addMouseMotionListener(new MouseMotionAdapter()
-			{
-				public void mouseDragged(java.awt.event.MouseEvent ev)
-				{
-					if (model.isZoomHabilitado())
-						zoomManager.continuarPaneo(ev);
-				}
-			});
-		}
-
-		System.out.println("[Controller Internal] Listeners de Vista configurados.");
-	} // --- Fin del método configurarListenersVistaInternal ---	
+	} // --- Fin del método configurarListenersVistaInternal ---
 	
-
-//	/**
-//     * Configura todos los listeners. Versión reconstruida para evitar bucles.
-//     */
-//    void configurarListenersVistaInternal() {
-//        if (view == null || listCoordinator == null || model == null || registry == null || zoomManager == null) {
-//            System.err.println("WARN [configurarListenersVistaInternal]: Dependencias críticas nulas. Abortando.");
-//            return;
-//        }
-//        System.out.println("[Controller Internal] Configurando Listeners (Reconstrucción)...");
-//
-//        // --- LISTENERS DE SELECCIÓN (SIMPLIFICADOS) ---
-//        JList<String> listaNombres = registry.get("list.nombresArchivo");
-//        if (listaNombres != null) {
-//            for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners()) listaNombres.removeListSelectionListener(lsl);
-//            listaNombres.addListSelectionListener(e -> {
-//                if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
-//                    listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
-//                }
-//            });
-//        }
-//        JList<String> listaMiniaturas = registry.get("list.miniaturas");
-//        if (listaMiniaturas != null) {
-//            for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners()) listaMiniaturas.removeListSelectionListener(lsl);
-//            listaMiniaturas.addListSelectionListener(e -> {
-//                 if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
-//                    int indiceRelativo = listaMiniaturas.getSelectedIndex();
-//                    if (indiceRelativo != -1) {
-//                        String clave = listaMiniaturas.getModel().getElementAt(indiceRelativo);
-//                        int indicePrincipal = model.getModeloLista().indexOf(clave);
-//                        listCoordinator.seleccionarImagenPorIndice(indicePrincipal);
-//                    }
-//                 }
-//            });
-//        }
-//        
-//        // --- LISTENER DE RUEDA MAESTRO ---
-//        java.awt.event.MouseWheelListener masterWheelListener = e -> {
-//            boolean sobreLaImagen = e.getComponent() == registry.get("label.imagenPrincipal");
-//
-//            // --- LÓGICA DE DECISIÓN ---
-//            if (e.isControlDown() && e.isAltDown()) {
-//                if (e.getWheelRotation() < 0) listCoordinator.seleccionarBloqueAnterior();
-//                else listCoordinator.seleccionarBloqueSiguiente();
-//            
-//            } else if (sobreLaImagen && model.isZoomHabilitado()) {
-//                // Si estamos sobre la imagen y el modo paneo está activo...
-//                if (e.isControlDown() && e.isShiftDown()) {
-//                    zoomManager.aplicarZoomConRueda(e);
-//                } else if (e.isControlDown()) {
-//                    zoomManager.aplicarPan(0, e.getWheelRotation() * 30); // Paneo Horizontal Invertido
-//                } else if (e.isShiftDown()) {
-//                    zoomManager.aplicarPan(-e.getWheelRotation() * 30, 0); // Paneo Vertical Invertido
-//                } else {
-//                    listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
-//                }
-//            } else {
-//                // En cualquier otro caso (sobre listas, o sobre imagen con paneo off)
-//                listCoordinator.seleccionarSiguienteOAnterior(e.getWheelRotation());
-//            }
-//            e.consume();
-//        };
-//
-//        // --- ASIGNACIÓN DE LISTENERS ---
-//        JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
-//        Component scrollMiniaturas = registry.get("scroll.miniaturas");
-//        Component[] componentesConRueda = { listaNombres, scrollMiniaturas, etiquetaImagen };
-//
-//        for (Component c : componentesConRueda) {
-//            if (c != null) {
-//                for (java.awt.event.MouseWheelListener l : c.getMouseWheelListeners()) c.removeMouseWheelListener(l);
-//                c.addMouseWheelListener(masterWheelListener);
-//            }
-//        }
-//        
-//        // Listeners de clic para paneo (sin cambios)
-//        if (etiquetaImagen != null) {
-//            for(java.awt.event.MouseListener ml : etiquetaImagen.getMouseListeners()) etiquetaImagen.removeMouseListener(ml);
-//            for(java.awt.event.MouseMotionListener mml : etiquetaImagen.getMouseMotionListeners()) etiquetaImagen.removeMouseMotionListener(mml);
-//            
-//            etiquetaImagen.addMouseListener(new MouseAdapter() {
-//                public void mousePressed(java.awt.event.MouseEvent ev) {
-//                    if (model.isZoomHabilitado()) zoomManager.iniciarPaneo(ev);
-//                }
-//            });
-//            etiquetaImagen.addMouseMotionListener(new MouseMotionAdapter() {
-//                public void mouseDragged(java.awt.event.MouseEvent ev) {
-//                    if (model.isZoomHabilitado()) zoomManager.continuarPaneo(ev);
-//                }
-//            });
-//        }
-//        
-//        System.out.println("[Controller Internal] Listeners de Vista configurados.");
-//    }
 	
-    
     /**
      * Configura un listener que se dispara UNA SOLA VEZ para corregir el zoom inicial.
      * Espera a que el panel de la imagen tenga un tamaño válido y haya una imagen cargada,
@@ -1278,100 +1103,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
     
     /**
-     * Intercepta eventos de teclado.
-     * VERSIÓN F: Intercepta ALT para simular un clic en el menú y dar feedback.
-     *
-     * @param e El KeyEvent a procesar.
-     * @return true si el evento fue consumido, false para continuar.
-     */
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent e) {
-        if (e.getID() != KeyEvent.KEY_PRESSED) {
-            return false;
-        }
-
-        // --- MANEJO ESPECIAL Y SEGURO DE LA TECLA ALT ---
-        if (e.getKeyCode() == KeyEvent.VK_ALT) {
-            if (view != null && view.getJMenuBar() != null) {
-                JMenuBar menuBar = view.getJMenuBar();
-                
-                // Comprobamos si algún menú ya está abierto (seleccionado)
-                if (menuBar.isSelected()) {
-                    // Si ya hay un menú abierto, cerramos la selección actual.
-                    // Esto simula el efecto "toggle" de la tecla Alt.
-                    menuBar.getSelectionModel().clearSelection();
-                    System.out.println("--- [Dispatcher] ALT: Menú ya activo. Cerrando selección.");
-                } else {
-                    // Si no hay ningún menú activo, activamos el primero.
-                    if (menuBar.getMenuCount() > 0) {
-                        JMenu primerMenu = menuBar.getMenu(0); // Obtenemos el menú "Archivo"
-                        if (primerMenu != null) {
-                            System.out.println("--- [Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
-                            primerMenu.doClick(); // Simula un clic del ratón, abriendo el menú.
-                        }
-                    }
-                }
-                
-                e.consume(); // Consumimos el evento ALT para evitar conflictos.
-                return true; // Indicamos que ya lo hemos manejado.
-            }
-        }
-        
-        if (listCoordinator == null || registry == null) {
-            return false;
-        }
-        
-        // ... (el resto del método para las teclas de navegación se mantiene igual)
-        java.awt.Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (focusOwner == null) {
-            return false;
-        }
-
-        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-        JList<String> listaNombres = registry.get("list.nombresArchivo");
-
-        boolean focoEnAreaMiniaturas = scrollMiniaturas != null && SwingUtilities.isDescendingFrom(focusOwner, scrollMiniaturas);
-        boolean focoEnListaNombres = listaNombres != null && SwingUtilities.isDescendingFrom(focusOwner, listaNombres);
-
-        if (focoEnAreaMiniaturas || focoEnListaNombres) {
-            boolean consumed = false;
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_UP: case KeyEvent.VK_LEFT:
-                    listCoordinator.seleccionarAnterior();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT:
-                    listCoordinator.seleccionarSiguiente();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_HOME:
-                    listCoordinator.seleccionarPrimero();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_END:
-                    listCoordinator.seleccionarUltimo();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_PAGE_UP:
-                    listCoordinator.seleccionarBloqueAnterior();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_PAGE_DOWN:
-                    listCoordinator.seleccionarBloqueSiguiente();
-                    consumed = true;
-                    break;
-            }
-            if (consumed) {
-                e.consume();
-                return true;
-            }
-        }
-        
-        return false;
-    }// --- FIN del metodo dispatchKeyEvent ---
-    
-
-    /**
      * Navega a la imagen anterior o siguiente en la lista principal.
      * Calcula el nuevo índice basado en la dirección y el modo 'wrapAround'.
      * Si el índice calculado es diferente al actual, actualiza la selección
@@ -1443,8 +1174,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 
     } // --- FIN navegarImagen ---
 
-
- // DENTRO DE LA CLASE VisorController.java
 
     /**
      * Navega directamente a un índice específico en la lista principal (listaNombres).
@@ -1597,8 +1326,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
     } // --- Fin del método ejecutarRefrescoCompleto ---
 
 
- // Dentro de la clase VisorController
-
     /**
      * Inicia el proceso de carga y visualización de la imagen principal.
      * Es el método central que se llama cada vez que cambia la selección de imagen.
@@ -1672,7 +1399,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 if (imagenCargadaDesdeDisco == null) throw new IOException("Formato no soportado o archivo inválido.");
             } catch (Exception ex) {
                 System.err.println("Error al cargar la imagen: " + ex.getMessage());
-                // imagenCargadaDesdeDisco permanecerá null
             }
 
             final BufferedImage finalImagenCargada = imagenCargadaDesdeDisco;
@@ -2075,7 +1801,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ********************************************************************************************************************** ZOOM     
 
      private void refrescarManualmenteLaVistaPrincipal() {
-         // --- INICIO DE LA CORRECCIÓN ---
+    	 
          if (this.zoomManager != null) {
         	 
              // La forma más segura de forzar un refresco es volver a aplicar el modo de zoom actual.
@@ -2094,6 +1820,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
      * Estos atajos funcionarán sin importar qué componente tenga el foco.
      */
      void configurarAtajosTecladoGlobales() {
+    	 
          if (view == null || actionMap == null) {
              System.err.println("WARN [configurarAtajosTecladoGlobales]: Vista o ActionMap nulos.");
              return;
@@ -2324,11 +2051,122 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ***************************************************************************************************************************
 
 // ***************************************************************************************************************************
-// ******************************************************************************************************************* EDICION	
+// *********************************************************************************************************** IModoController	
 	
 
+ // --- INICIO DE LA IMPLEMENTACIÓN DE IModoController ---
+
+    /**
+     * Navega a la siguiente imagen. Delega la lógica al ListCoordinator.
+     * Es llamado por GeneralController.
+     */
+    public void navegarSiguiente() {
+        if (listCoordinator != null) {
+            listCoordinator.seleccionarSiguiente();
+        }
+    } // --- Fin del método navegarSiguiente ---
+
+    /**
+     * Navega a la imagen anterior. Delega la lógica al ListCoordinator.
+     * Es llamado por GeneralController.
+     */
+    public void navegarAnterior() {
+        if (listCoordinator != null) {
+            listCoordinator.seleccionarAnterior();
+        }
+    } // --- Fin del método navegarAnterior ---
+
+    /**
+     * Navega a la primera imagen. Delega la lógica al ListCoordinator.
+     * Es llamado por GeneralController.
+     */
+    public void navegarPrimero() {
+        if (listCoordinator != null) {
+            listCoordinator.seleccionarPrimero();
+        }
+    } // --- Fin del método navegarPrimero ---
+
+    /**
+     * Navega a la última imagen. Delega la lógica al ListCoordinator.
+     * Es llamado por GeneralController.
+     */
+    public void navegarUltimo() {
+        if (listCoordinator != null) {
+            listCoordinator.seleccionarUltimo();
+        }
+    } // --- Fin del método navegarUltimo ---
+
+    /**
+     * Navega al bloque anterior de imágenes. Delega la lógica al ListCoordinator.
+     * Es llamado por GeneralController.
+     */
+    public void navegarBloqueAnterior() {
+        if (listCoordinator != null) {
+            listCoordinator.seleccionarBloqueAnterior();
+        }
+    } // --- Fin del método navegarBloqueAnterior ---
+
+    /**
+     * Navega al bloque siguiente de imágenes. Delega la lógica al ListCoordinator.
+     * Es llamado por GeneralController.
+     */
+    public void navegarBloqueSiguiente() {
+        if (listCoordinator != null) {
+            listCoordinator.seleccionarBloqueSiguiente();
+        }
+    } // --- Fin del método navegarBloqueSiguiente ---
+
+    /**
+     * Aplica zoom con la rueda del ratón. Delega la lógica al ZoomManager.
+     * Es llamado por GeneralController.
+     * @param e El evento de la rueda del ratón.
+     */
+    public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
+        if (zoomManager != null) {
+            zoomManager.aplicarZoomConRueda(e);
+            sincronizarEstadoVisualBotonesYRadiosZoom();
+        }
+    } // --- Fin del método aplicarZoomConRueda ---
+
+    /**
+     * Aplica paneo a la imagen. Delega la lógica al ZoomManager.
+     * Es llamado por GeneralController.
+     * @param deltaX Desplazamiento horizontal.
+     * @param deltaY Desplazamiento vertical.
+     */
+    public void aplicarPan(int deltaX, int deltaY) {
+        if (zoomManager != null) {
+            zoomManager.aplicarPan(deltaX, deltaY);
+        }
+    } // --- Fin del método aplicarPan ---
+
+    /**
+     * Inicia una operación de paneo. Delega la lógica al ZoomManager.
+     * Es llamado por GeneralController.
+     * @param e El evento del ratón.
+     */
+    public void iniciarPaneo(java.awt.event.MouseEvent e) {
+        if (zoomManager != null && model.isZoomHabilitado()) {
+            zoomManager.iniciarPaneo(e);
+        }
+    } // --- Fin del método iniciarPaneo ---
+
+    /**
+     * Continúa una operación de paneo. Delega la lógica al ZoomManager.
+     * Es llamado por GeneralController.
+     * @param e El evento del ratón.
+     */
+    public void continuarPaneo(java.awt.event.MouseEvent e) {
+        if (zoomManager != null && model.isZoomHabilitado()) {
+            zoomManager.continuarPaneo(e);
+        }
+    } // --- Fin del método continuarPaneo ---
+
+// --- FIN DE LA IMPLEMENTACIÓN DE IModoController ---    
+    
+    
      
-// ************************************************************************************************************ FIN DE EDICION     
+// **************************************************************************************************** FIN DE IModoController     
 // ***************************************************************************************************************************
 
      
@@ -2408,8 +2246,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              
              if (this.zoomManager != null) {
 
-            	 //LOG VisorController DEBUG
-//                 System.out.println("  [VisorController DEBUG] Estado del MODELO ANTES DE REFRESCAR ZOOM: model.isMantenerProporcion()=" + model.isMantenerProporcion());
             	 this.zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
                  
              } else {
@@ -3374,63 +3210,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
 	
 	
-//	public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
-//        VisorModel.WorkMode modoActual = model.getCurrentWorkMode();
-//        if (modoActual == modoDestino) return;
-//
-//        System.out.println("\n--- INICIANDO TRANSICIÓN DE MODO: " + modoActual + " -> " + modoDestino + " ---");
-//
-//        if (modoDestino == VisorModel.WorkMode.PROYECTO) {
-//            if (!projectController.prepararDatosProyecto()) {
-//                sincronizarEstadoBotonesDeModo();
-//                System.out.println("--- TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
-//                return;
-//            }
-//        }
-//        
-//        salirModo(modoActual);
-//        model.setCurrentWorkMode(modoDestino);
-//        entrarModo(modoDestino);
-//
-//        System.out.println("--- TRANSICIÓN DE MODO COMPLETADA a " + modoDestino + " ---\n");
-//    } // --- Fin del método cambiarModoDeTrabajo ---
-	
-	
-
-
-//    /**
-//     * Realiza las tareas de "limpieza" o "desactivación" de un modo antes de abandonarlo.
-//     * @param modoQueSeAbandona El modo que estamos dejando.
-//     */
-//	private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
-//        System.out.println("  -> Saliendo del modo: " + modoQueSeAbandona);
-//        Action toggleSubcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-//        if (toggleSubcarpetasAction != null) {
-//            toggleSubcarpetasAction.setEnabled(true);
-//        }
-//    } // --- Fin del método salirModo ---
-
-//    /**
-//     * Realiza las tareas de "configuración" y "restauración" de la UI para un modo
-//     * en el que estamos entrando.
-//     * @param modoAlQueSeEntra El nuevo modo activo.
-//     */
-//	private void entrarModo(VisorModel.WorkMode modoAlQueSeEntra) {
-//        System.out.println("  -> Entrando en modo: " + modoAlQueSeEntra);
-//        switch (modoAlQueSeEntra) {
-//            case VISUALIZADOR:
-//                restaurarUiVisualizador();
-//                break;
-//            case PROYECTO:
-//                projectController.activarVistaProyecto();
-//                restaurarUiGenericaParaModoProyecto();
-//                break;
-//        }
-//        viewManager.cambiarAVista(modoAlQueSeEntra == VisorModel.WorkMode.PROYECTO ? "VISTA_PROYECTOS" : "VISTA_VISUALIZADOR");
-//        sincronizarEstadoBotonesDeModo();
-//    } // --- Fin del método entrarModo ---
-	
-	
 	/**
      * Restaura toda la UI específica del modo VISUALIZADOR, leyendo el estado
      * desde el contexto correspondiente en el VisorModel.
@@ -3441,7 +3220,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         JList<String> listaNombres = registry.get("list.nombresArchivo");
         DefaultListModel<String> modeloVisualizador = model.getModeloLista(); // Este es el ListModel del visualizadorListContext
 
-        // INICIO DEL CAMBIO
         // Deshabilitar temporalmente el ListSelectionListener para evitar que se dispare
         // cuando JList.setModel() limpia internamente la selección.
         // Capturar los listeners existentes para poder re-añadirlos.
@@ -3452,21 +3230,18 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 listaNombres.removeListSelectionListener(l);
             }
         }
-        // FIN DEL CAMBIO
         
         if (listaNombres != null) {
             listaNombres.setModel(modeloVisualizador); // Asignar el modelo de la lista del visualizador
             System.out.println("      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: " + modeloVisualizador.getSize());
         }
 
-        // INICIO DEL CAMBIO
         // Re-añadir los listeners después de setModel()
         if (listaNombres != null && listeners != null) {
             for (javax.swing.event.ListSelectionListener l : listeners) {
                 listaNombres.addListSelectionListener(l);
             }
         }
-        // FIN DEL CAMBIO
 
         JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
         if(panelIzquierdo != null && panelIzquierdo.getBorder() instanceof javax.swing.border.TitledBorder) {
@@ -3493,72 +3268,7 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
              System.err.println("ERROR: ListCoordinator es null al restaurar UI del visualizador.");
         }
         
-//        restaurarUiGenerica();
     } // --- Fin del método restaurarUiVisualizador ---
-	
-
-//    /**
-//     * Restaura los elementos de la UI que son comunes o necesitan ser
-//     * sincronizados al entrar en un modo.
-//     */
-//	private void restaurarUiGenerica() {
-//        System.out.println("      -> Restaurando UI genérica (Zoom, Toggles)...");
-//        sincronizarEstadoVisualBotonesYRadiosZoom();
-//        sincronizarControlesSubcarpetas();
-//        sincronizarUiControlesProporciones(model.isMantenerProporcion());
-//    } // --- Fin del método restaurarUiGenerica ---
-
-//    /**
-//     * Restaura la UI para el modo proyecto. Es similar a la genérica, pero
-//     * deshabilita los controles que no aplican.
-//     */
-//	private void restaurarUiGenericaParaModoProyecto() {
-//        System.out.println("      -> Restaurando UI genérica para el modo PROYECTO...");
-//        restaurarUiGenerica();
-//        
-//        Action toggleSubcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-//        if (toggleSubcarpetasAction != null) {
-//            toggleSubcarpetasAction.setEnabled(false);
-//        }
-//    } // --- Fin del método restaurarUiGenericaParaModoProyecto ---
-
-    // --- FIN DE LA SECCIÓN DE GESTIÓN DE MODOS ---
-	
-	
-	
-	
-//	/**
-//	 * Sincroniza el estado visual de los botones de modo de trabajo (Visualizador, Proyecto, etc.).
-//	 * Asegura que solo el botón del modo activo esté seleccionado.
-//	 */
-//	public void sincronizarEstadoBotonesDeModo() {
-//	    if (actionMap == null || model == null) {
-//	        System.err.println("WARN [sincronizarEstadoBotonesDeModo]: ActionMap o Model nulos.");
-//	        return;
-//	    }
-//
-//	    // Determina qué acción corresponde al modo activo.
-//	    String comandoModoActivo = model.isEnModoProyecto()
-//	                               ? AppActionCommands.CMD_PROYECTO_GESTIONAR
-//	                               : AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
-//
-//	    // Lista de todos los comandos de modo para iterar
-//	    List<String> comandosDeModo = List.of(
-//	        AppActionCommands.CMD_PROYECTO_GESTIONAR,
-//	        AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,
-//	        "cmd.funcionalidad.pendiente" // Comando del botón "Modo Datos"
-//	    );
-//
-//	    // Itera y actualiza el estado de cada Action.
-//	    // El ButtonGroup se encargará de la parte visual automáticamente.
-//	    for (String comando : comandosDeModo) {
-//	        Action action = actionMap.get(comando);
-//	        if (action != null) {
-//	            action.putValue(Action.SELECTED_KEY, comando.equals(comandoModoActivo));
-//	        }
-//	    }
-//	    System.out.println("[Controller] Sincronizados botones de modo. Activo: " + comandoModoActivo);
-//	} // --- Fin del método sincronizarEstadoBotonesDeModo ---
 	
 	
 	public void toggleMarcaImagenActual (boolean marcarDeseado)
@@ -3611,21 +3321,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
 // ***************************************************************************************************************************
 	  
 
-
-	
-
-
-     
-    
-    
-    
-    
-    
-    	
-	
-	
-	
-    
     /**
      * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
      * Es un método seguro que comprueba la existencia del modelo y su lista interna.
@@ -3952,7 +3647,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         // Y para el botón de la toolbar:
         toggleAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
         if (toggleAction != null) {
-            // <<< INICIO DEL CAMBIO >>>
             
             // En lugar de llamar a view.actualizarAspectoBotonToggle(...)
             // llamamos al método en ConfigApplicationManager.
@@ -3962,177 +3656,12 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
                 System.err.println("WARN [sincronizarControlesSubcarpetas]: configAppManager es nulo, no se puede actualizar el botón toggle.");
             }
             
-            // <<< FIN DEL CAMBIO >>>
         }
     } // --- FIN del metodo sincronizarControlesSubcarpetas ---
     
     
-    
-	
-    
-    /**
-     * Sincroniza el estado SELECTED_KEY de la ToggleProporcionesAction
-     * y la apariencia del botón de la toolbar asociado.
-     * @param estadoActualMantenerProporciones El estado actual de 'mantenerProporciones' según el modelo.
-     */
-    private void sincronizarUiControlesProporciones(boolean estadoActualMantenerProporciones) {
-        System.out.println("  [VisorController sincronizarUiControlesProporciones] Sincronizando UI con estado: " + estadoActualMantenerProporciones);
-        if (actionMap == null) return; // Ya no necesitamos 'view' para esta lógica
-
-        Action action = actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
-        
-        // La sincronización del estado de la Action se mantiene igual
-        if (action instanceof ToggleProporcionesAction) {
-            ((ToggleProporcionesAction) action).sincronizarSelectedKeyConModelo(estadoActualMantenerProporciones);
-        } else if (action != null) {
-            if (!Objects.equals(action.getValue(Action.SELECTED_KEY), estadoActualMantenerProporciones)) {
-                action.putValue(Action.SELECTED_KEY, estadoActualMantenerProporciones);
-            }
-        }
-
-        // Actualizar el aspecto visual del botón de la toolbar
-        if (action != null) {
-            // <<< INICIO DEL CAMBIO >>>
-            if (this.configAppManager != null) {
-                this.configAppManager.actualizarAspectoBotonToggle(action, estadoActualMantenerProporciones);
-            } else {
-                System.err.println("WARN [sincronizarUiControlesProporciones]: configAppManager es nulo, no se puede actualizar el botón toggle.");
-            }
-            // <<< FIN DEL CAMBIO >>>
-        }
-    } // --- FIN del metodo sincronizarUiControlesProporciones ---
-    
-    
-    /**
-     * Sincroniza el estado visual de todos los controles de la UI relacionados
-     * con la configuración de "incluir subcarpetas" (toggle general y radios del menú)
-     * para que coincidan con el estado actual del modelo.
-     *
-     * @param estadoModeloIncluirSubcarpetas true si el modelo indica que se deben incluir subcarpetas,
-     *                                       false si solo se debe mostrar la carpeta actual.
-     */
-    private void sincronizarUiControlesSubcarpetas(boolean estadoModeloIncluirSubcarpetas) {
-        // --- SECCIÓN 1: LOG INICIAL Y VALIDACIONES ---
-        System.out.println("  [VisorController sincronizarUiControlesSubcarpetas] Iniciando sincronización de UI. Estado modelo (incluir subcarpetas): " + estadoModeloIncluirSubcarpetas);
-
-        // 1.1. Validar que las dependencias necesarias (actionMap y view) existan.
-        if (actionMap == null || view == null) {
-            System.err.println("    ERROR [sincronizarUiControlesSubcarpetas]: actionMap o view son nulos. No se puede sincronizar UI.");
-            return;
-        }
-
-        // --- SECCIÓN 2: SINCRONIZAR LA ACTION DEL TOGGLE GENERAL (JCHECKBOXMENUITEM O JTOGGLEBUTTON) ---
-        // 2.1. Obtener la Action del toggle general desde el actionMap.
-        Action toggleGeneralAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-
-        // 2.2. Verificar si la Action existe.
-        if (toggleGeneralAction != null) {
-            // 2.2.1. Comprobar si es la instancia esperada (opcional pero bueno para asegurar el tipo).
-            if (toggleGeneralAction instanceof ToggleSubfoldersAction) {
-                // 2.2.1.1. Llamar al método de sincronización específico de la Action.
-                ((ToggleSubfoldersAction) toggleGeneralAction).sincronizarSelectedKeyConModelo(estadoModeloIncluirSubcarpetas);
-            } else {
-                // 2.2.1.2. Fallback genérico: actualizar SELECTED_KEY directamente si no es del tipo esperado pero existe.
-                System.out.println("    WARN [sincronizarUiControlesSubcarpetas]: CMD_TOGGLE_SUBCARPETAS no es instancia de ToggleSubfoldersAction. Actualizando SELECTED_KEY genéricamente.");
-                if (!Objects.equals(toggleGeneralAction.getValue(Action.SELECTED_KEY), estadoModeloIncluirSubcarpetas)) {
-                    toggleGeneralAction.putValue(Action.SELECTED_KEY, estadoModeloIncluirSubcarpetas);
-                }
-            }
-            // 2.2.2. Actualizar el aspecto visual del botón de la toolbar asociado a esta Action.
-            System.out.println("VisorController Sync: Pasando Action@" + Integer.toHexString(System.identityHashCode(toggleGeneralAction)) + 
-                    " a view.actualizarAspectoBotonToggle.");
-            
-            if (this.configAppManager != null) {
-                this.configAppManager.actualizarAspectoBotonToggle(toggleGeneralAction, estadoModeloIncluirSubcarpetas);
-            } else {
-                System.err.println("WARN [sincronizarUiControlesSubcarpetas]: configAppManager es nulo, no se puede actualizar el botón toggle.");
-            }
-            
-        } else {
-            System.err.println("    ERROR [sincronizarUiControlesSubcarpetas]: No se encontró Action para CMD_TOGGLE_SUBCARPETAS en actionMap.");
-        }
-
-        // --- SECCIÓN 3: SINCRONIZAR LAS ACTIONS DE LOS JRADIOBUTTONMENUITEM DEL MENÚ ---
-
-        // 3.1. Sincronizar la Action para "Mostrar Solo Carpeta Actual"
-        //      - El estado seleccionado de este radio debe ser el OPUESTO a estadoModeloIncluirSubcarpetas.
-        boolean estadoParaRadioSoloCarpeta = !estadoModeloIncluirSubcarpetas;
-        Action soloCarpetaAction = actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA);
-        if (soloCarpetaAction != null) {
-            if (soloCarpetaAction instanceof SetSubfolderReadModeAction) {
-                // El método sincronizarSelectedKey en SetSubfolderReadModeAction compara
-                // el estadoModeloIncluirSubcarpetas con el estadoQueRepresentaLaAction.
-                ((SetSubfolderReadModeAction) soloCarpetaAction).sincronizarSelectedKey(estadoModeloIncluirSubcarpetas);
-            } else {
-                System.out.println("    WARN [sincronizarUiControlesSubcarpetas]: CMD_CONFIG_CARGA_SOLO_CARPETA no es instancia de SetSubfolderReadModeAction. Actualizando SELECTED_KEY genéricamente.");
-                if (!Objects.equals(soloCarpetaAction.getValue(Action.SELECTED_KEY), estadoParaRadioSoloCarpeta)) {
-                    soloCarpetaAction.putValue(Action.SELECTED_KEY, estadoParaRadioSoloCarpeta);
-                }
-            }
-        } else {
-            System.err.println("    ERROR [sincronizarUiControlesSubcarpetas]: No se encontró Action para CMD_CONFIG_CARGA_SOLO_CARPETA.");
-        }
-
-        // 3.2. Sincronizar la Action para "Mostrar Imágenes de Subcarpetas"
-        //      - El estado seleccionado de este radio debe ser IGUAL a estadoModeloIncluirSubcarpetas.
-        boolean estadoParaRadioConSubcarpetas = estadoModeloIncluirSubcarpetas;
-        Action conSubcarpetasAction = actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS);
-        if (conSubcarpetasAction != null) {
-            if (conSubcarpetasAction instanceof SetSubfolderReadModeAction) {
-                ((SetSubfolderReadModeAction) conSubcarpetasAction).sincronizarSelectedKey(estadoModeloIncluirSubcarpetas);
-            } else {
-                System.out.println("    WARN [sincronizarUiControlesSubcarpetas]: CMD_CONFIG_CARGA_CON_SUBCARPETAS no es instancia de SetSubfolderReadModeAction. Actualizando SELECTED_KEY genéricamente.");
-                if (!Objects.equals(conSubcarpetasAction.getValue(Action.SELECTED_KEY), estadoParaRadioConSubcarpetas)) {
-                    conSubcarpetasAction.putValue(Action.SELECTED_KEY, estadoParaRadioConSubcarpetas);
-                }
-            }
-        } else {
-            System.err.println("    ERROR [sincronizarUiControlesSubcarpetas]: No se encontró Action para CMD_CONFIG_CARGA_CON_SUBCARPETAS.");
-        }
-
-        // 3.3. (Opcional si las Actions y ButtonGroup no son suficientes) Restaurar selección visual de radios.
-        //      Si MenuBarBuilder configuró correctamente los JRadioButtonMenuItems con sus Actions
-        //      y los añadió a un ButtonGroup, el cambio en Action.SELECTED_KEY debería ser suficiente
-        //      para que el ButtonGroup actualice visualmente cuál radio está seleccionado.
-        //      Si esto no ocurre, restaurarSeleccionRadiosSubcarpetas puede ser un reaseguro.
-        //      Por ahora, lo comentaremos para ver si las Actions son suficientes.
-        // restaurarSeleccionRadiosSubcarpetas(estadoModeloIncluirSubcarpetas);
-        // System.out.println("    -> (Opcional) Llamada a restaurarSeleccionRadiosSubcarpetas con: " + estadoModeloIncluirSubcarpetas);
-
-
-        // --- SECCIÓN 4: LOG FINAL ---
-        System.out.println("  [VisorController sincronizarUiControlesSubcarpetas] Sincronización de UI completada.");
-    } // --- FIN del metodo sincronizarUiControlesSubcarpetas
-    
-    
-//    /**
-//     * Orquesta un refresco completo de la UI cuando se cambia de tema.
-//     * Es llamado por el ThemeManager.
-//     */
-//    public void solicitarRefrescoCompletoPorTema() {
-//        System.out.println("--- [VisorController] Solicitud de refresco por cambio de tema recibida ---");
-//        
-//        // 1. Refrescar componentes básicos
-//        if (this.configAppManager != null) {
-//            this.configAppManager.refrescarTodaLaUIConTemaActual();
-//        }
-//        
-//        // 2. Reconstruir barras de herramientas
-//        if (this.toolbarManager != null && this.model != null) {
-//            System.out.println("  -> [VisorController] Solicitando a ToolbarManager que reconstruya las barras...");
-//            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
-//        }
-//
-//        // 3. Refrescar renderers
-//        solicitarRefrescoRenderersMiniaturas();
-//        
-//        // 4. Sincronizar estados
-//        sincronizarEstadoVisualBotonesYRadiosZoom();
-//        
-//    }// --- FIN del metodo solicitarRefrescoCompletoPorTema ---
-    
-    
     public void sincronizarEstadoVisualBotonesYRadiosZoom() {
+    	
         if (this.actionMap == null || this.model == null || this.configAppManager == null) {
             System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: Dependencias nulas.");
             return;
@@ -4154,7 +3683,8 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             }
         }
         
-        // --- INICIO DE CORRECCIÓN ---
+//    	//FIXME HACER QUE ESTE METODO NO NECESITE UNA INCORPORACION MANUAL DE BOTONES ON OFF
+
         // Lista de TODAS las actions que actúan como toggles de zoom
         java.util.List<String> allToggleCommands = java.util.List.of(
             // Modos de zoom
@@ -4196,7 +3726,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         if (resetAction != null) {
             resetAction.setEnabled(permisoManualActivo);
         }
-        // --- FIN DE CORRECCIÓN ---
         
         if (infobarImageManager != null) infobarImageManager.actualizar();
         if (statusBarManager != null) statusBarManager.actualizar();
@@ -4204,83 +3733,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
         System.out.println("[VisorController] Sincronización de UI de Zoom completada.");
         
     } // --- FIN del metodo sincronizarEstadoVisualBotonesYRadiosZoom ---
-    
-    
-//    public void sincronizarEstadoVisualBotonesYRadiosZoom() {
-//    	
-//    	//FIXME HACER QUE ESTE METODO NO NECESITE UNA INCORPORACION MANUAL DE BOTONES ON OFF
-//        
-//    	if (this.actionMap == null || this.model == null || this.configAppManager == null) {
-//            System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: Dependencias nulas.");
-//            return;
-//        }
-//        
-//        ZoomModeEnum modoActivo = model.getCurrentZoomMode();
-//        boolean permisoManualActivo = model.isZoomHabilitado();
-//        boolean zoomAlCursorActivo = model.isZoomToCursorEnabled(); // Se obtiene el estado de este botón
-//
-//        System.out.println("[VisorController] Sincronizando UI de Zoom. Modo: " + modoActivo + ", Permiso Manual: " + permisoManualActivo + ", Zoom al Cursor: " + zoomAlCursorActivo);
-//
-//        if (modoActivo == null) return;
-//
-//        if (configuration != null) {
-//            configuration.setString(
-//                ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO,
-//                modoActivo.name()
-//            );
-//        }
-//        
-//        if (modoActivo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
-//            if (configuration != null) {
-//                configuration.setZoomPersonalizadoPorcentaje(model.getZoomFactor() * 100);
-//            }
-//        }
-//        
-//        java.util.List<String> zoomModeCommands = java.util.List.of(
-//            AppActionCommands.CMD_ZOOM_TIPO_AUTO,
-//            AppActionCommands.CMD_ZOOM_TIPO_ANCHO,
-//            AppActionCommands.CMD_ZOOM_TIPO_ALTO,
-//            AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR,
-//            AppActionCommands.CMD_ZOOM_TIPO_FIJO,
-//            AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO,
-//            AppActionCommands.CMD_ZOOM_TIPO_RELLENAR
-//        );
-//
-//        for (String command : zoomModeCommands) {
-//            Action action = actionMap.get(command);
-//            if (action instanceof AplicarModoZoomAction) {
-//                AplicarModoZoomAction zoomAction = (AplicarModoZoomAction) action;
-//                boolean isSelected = zoomAction.getModoAsociado() == modoActivo;
-//                action.putValue(Action.SELECTED_KEY, isSelected);
-//                this.configAppManager.actualizarAspectoBotonToggle(action, isSelected);
-//            }
-//        }
-//        
-//        Action resetAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
-//        if (resetAction != null) {
-//            resetAction.setEnabled(permisoManualActivo);
-//        }
-//        
-//        Action toggleManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-//        if(toggleManualAction instanceof ToggleZoomManualAction){
-//            ((ToggleZoomManualAction)toggleManualAction).sincronizarEstadoConModelo();
-//            configAppManager.actualizarAspectoBotonToggle(toggleManualAction, permisoManualActivo);
-//        }
-//        
-//        // --- LÓGICA AÑADIDA PARA EL BOTÓN DE ZOOM AL CURSOR ---
-//        Action toggleCursorAction = actionMap.get(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
-//        if (toggleCursorAction instanceof controlador.actions.zoom.ToggleZoomToCursorAction) {
-//            ((controlador.actions.zoom.ToggleZoomToCursorAction)toggleCursorAction).sincronizarEstadoConModelo();
-//            configAppManager.actualizarAspectoBotonToggle(toggleCursorAction, zoomAlCursorActivo);
-//        }
-//        // --- FIN DE LA LÓGICA AÑADIDA ---
-//        
-//        if (infobarImageManager != null) infobarImageManager.actualizar();
-//        if (statusBarManager != null) statusBarManager.actualizar();
-//        
-//        System.out.println("[VisorController] Sincronización de UI de Zoom completada.");
-//        
-//    } // --- FIN del metodo sincronizarEstadoVisualBotonesYRadiosZoom ---
     
     
     public void notificarCambioEstadoZoomManual() {
@@ -4342,9 +3794,6 @@ public class VisorController implements ActionListener, ClipboardOwner, KeyEvent
             System.err.println("WARN [sincronizarUiControlesZoom]: configAppManager es nulo.");
         }
     }
-    
-    
-    
     
     
 // ********************************************************************************************* FIN METODOS DE SINCRONIZACION

@@ -23,7 +23,6 @@ public class ZoomManager implements IZoomManager {
     private VisorModel model;
     private ComponentRegistry registry;
     private ConfigurationManager configuration;
-//    private InfobarImageManager infobarImageManager;
     private InfobarStatusManager statusBarManager;
     private ListCoordinator listCoordinator;
 
@@ -83,49 +82,11 @@ public class ZoomManager implements IZoomManager {
         
         refrescarVistaSincrono();
 
-        // La barra inferior solo se actualiza si el modo es ZOOM_FIJO o USER_SPECIFIED
-//        if (modo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM || modo == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
-//            if (statusBarManager != null) statusBarManager.actualizar();
-//        }
+
 
         if (onComplete != null) onComplete.run();
     } // --- Fin del método aplicarModoDeZoom (con callback) ---
     
-    
-//    @Override
-//    public void aplicarModoDeZoom(ZoomModeEnum modo, Runnable onComplete) {
-//        if (model == null || model.getCurrentImage() == null) {
-//            ImageDisplayPanel panelActivo = getActiveDisplayPanel();
-//            if (panelActivo != null) panelActivo.limpiar();
-//            if (onComplete != null) onComplete.run();
-//            return;
-//        }
-//        
-//        ImageDisplayPanel displayPanel = getActiveDisplayPanel();
-//        if (displayPanel == null || !displayPanel.isShowing() || displayPanel.getWidth() <= 0) {
-//            System.out.println("[ZoomManager] Panel no listo/visible. Reintentando en EDT...");
-//            SwingUtilities.invokeLater(() -> aplicarModoDeZoom(modo, onComplete));
-//            return;
-//        }
-//
-//        if (modo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
-//            double factorActual = model.getZoomFactor();
-//            configuration.setZoomPersonalizadoPorcentaje(factorActual * 100);
-//            System.out.println("[ZoomManager] Capturado nuevo Zoom Fijo: " + (factorActual * 100) + "%");
-//        }
-//
-//        model.setCurrentZoomMode(modo);
-//
-//        double nuevoFactor = _calcularFactorDeZoom(modo);
-//        model.setZoomFactor(nuevoFactor);
-//        model.resetPan();
-//        
-//        refrescarVistaSincrono();
-//
-//        if (statusBarManager != null) statusBarManager.actualizar();
-//        if (onComplete != null) onComplete.run();
-//    } // --- Fin del método aplicarModoDeZoom (con callback) ---
-
     
     @Override
     public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
@@ -202,24 +163,6 @@ public class ZoomManager implements IZoomManager {
     }
     
     
-//    @Override
-//    public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
-//        if (model == null || !model.isZoomHabilitado()) return;
-//
-//        double zoomActual = model.getZoomFactor();
-//        double scaleFactor = 1.1;
-//        double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual * scaleFactor : zoomActual / scaleFactor;
-//        
-//        // 1. Actualiza el modelo
-//        model.setZoomFactor(nuevoZoom);
-//        
-//        // 2. Repinta la imagen
-//        refrescarVistaSincrono();
-//        
-//        // NADA MÁS. No hay llamadas a otros managers.
-//    } // --- Fin del método aplicarZoomConRueda ---
-    
-
     @Override
     public void iniciarPaneo(MouseEvent e) {
         if (model != null && SwingUtilities.isLeftMouseButton(e) && model.isZoomHabilitado()) {
@@ -258,7 +201,6 @@ public class ZoomManager implements IZoomManager {
         }
     } // --- Fin del método refrescarVistaSincrono ---
     
- // En la clase: controlador.managers.ZoomManager
 
     @Override
     public void manejarRuedaInteracciona(java.awt.event.MouseWheelEvent e) {
@@ -387,7 +329,6 @@ public class ZoomManager implements IZoomManager {
     public void setRegistry(ComponentRegistry registry) { this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null"); }
     public void setConfiguration(ConfigurationManager configuration) { this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null"); }
 
-//    public void setInfobarImageManager(InfobarImageManager manager) { this.infobarImageManager = manager; }
 	
 
 } // --- FIN de la clase ZoomManager ---

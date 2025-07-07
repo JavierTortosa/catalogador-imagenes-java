@@ -1,13 +1,28 @@
 package controlador;
 
+import java.awt.Component;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
+import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.Action;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JScrollPane;
+import javax.swing.SwingUtilities;
 
 import controlador.commands.AppActionCommands;
+import controlador.interfaces.IModoController;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager; // <-- Importación necesaria
@@ -25,7 +40,7 @@ import vista.panels.ImageDisplayPanel; // <-- NUEVO: Importación para ImageDisp
  * y gestiona el estado global de la aplicación, como el modo de trabajo actual y la
  * habilitación/deshabilitación de la UI correspondiente.
  */
-public class GeneralController {
+public class GeneralController implements IModoController, KeyEventDispatcher{
 
     // --- Dependencias Clave ---
     private VisorModel model;
@@ -37,7 +52,10 @@ public class GeneralController {
     private ConfigApplicationManager configAppManager;
     private ToolbarManager toolbarManager;
     private ComponentRegistry registry; // <-- NUEVO: Referencia al ComponentRegistry
+    
+    private int lastMouseX, lastMouseY;
 
+    
     /**
      * Constructor de GeneralController.
      * Las dependencias se inyectarán a través de setters después de la creación.
@@ -461,12 +479,343 @@ public class GeneralController {
         displayPanel.repaint();
         System.out.println("[GeneralController] Paneo incremental aplicado. Offset: (" + newOffsetX + ", " + newOffsetY + ")");
     } // --- Fin del método panImageIncrementally ---
+    
+    
+//  ************************************************************************************** IMPLEMENTACION INTERFAZ IModoController
+    
+    /**
+     * Configura los listeners globales de teclado y ratón para la aplicación.
+     * MODIFICADO: Ahora adjunta listeners a los componentes de AMBOS modos (Visualizador y Proyecto).
+     */
+    public void configurarListenersDeEntradaGlobal() {
+        System.out.println("[GeneralController] Configurando listeners de entrada globales para todos los modos...");
 
+        // --- Obtener componentes de la UI desde el registro para AMBOS modos ---
+        
+        // Componentes del modo VISUALIZADOR
+        JLabel etiquetaImagenVisualizador = registry.get("label.imagenPrincipal");
+        JList<String> listaNombresVisualizador = registry.get("list.nombresArchivo");
+        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+
+        // Componentes del modo PROYECTO
+        ImageDisplayPanel panelDisplayProyecto = registry.get("panel.proyecto.display");
+        JLabel etiquetaImagenProyecto = (panelDisplayProyecto != null) ? panelDisplayProyecto.getInternalLabel() : null;
+        JList<String> listaNombresProyecto = registry.get("list.proyecto.nombres");
+
+        // --- Master Mouse Wheel Listener (sin cambios en su lógica interna) ---
+        java.awt.event.MouseWheelListener masterWheelListener = e -> {
+            boolean sobreLaImagen = (etiquetaImagenVisualizador != null && e.getComponent() == etiquetaImagenVisualizador) ||
+                                    (etiquetaImagenProyecto != null && e.getComponent() == etiquetaImagenProyecto);
+
+            if (e.isControlDown() && e.isAltDown()) {
+                if (e.getWheelRotation() < 0) this.navegarBloqueAnterior();
+                else this.navegarBloqueSiguiente();
+            } else if (sobreLaImagen && model.isZoomHabilitado()) {
+                if (e.isControlDown() && !e.isShiftDown()) {
+                    this.aplicarPan(0, e.getWheelRotation() * 30);
+                } else if (e.isShiftDown() && !e.isControlDown()) {
+                    this.aplicarPan(-e.getWheelRotation() * 30, 0);
+                } else {
+                    this.aplicarZoomConRueda(e);
+                }
+            } else {
+                this.navegarSiguienteOAnterior(e.getWheelRotation());
+            }
+            e.consume();
+        };
+
+        // --- Adjuntar el master MouseWheelListener a los componentes de AMBOS modos ---
+        Component[] componentesConRueda = {
+            listaNombresVisualizador, scrollMiniaturas, etiquetaImagenVisualizador,
+            listaNombresProyecto, etiquetaImagenProyecto
+        };
+
+        for (Component c : componentesConRueda) {
+            if (c != null) {
+                // Es seguro añadir el listener aunque ya exista; no se duplicará si es la misma instancia.
+                c.addMouseWheelListener(masterWheelListener);
+            }
+        }
+
+        // --- Listeners de clic y arrastre para paneo para AMBAS etiquetas de imagen ---
+        MouseAdapter paneoMouseAdapter = new MouseAdapter() {
+            @Override
+            public void mousePressed(MouseEvent ev) {
+                GeneralController.this.iniciarPaneo(ev);
+            }
+        };
+
+        MouseMotionAdapter paneoMouseMotionAdapter = new MouseMotionAdapter() {
+            @Override
+            public void mouseDragged(MouseEvent ev) {
+                GeneralController.this.continuarPaneo(ev);
+            }
+        };
+        
+        if (etiquetaImagenVisualizador != null) {
+            etiquetaImagenVisualizador.addMouseListener(paneoMouseAdapter);
+            etiquetaImagenVisualizador.addMouseMotionListener(paneoMouseMotionAdapter);
+        }
+        if (etiquetaImagenProyecto != null) {
+            etiquetaImagenProyecto.addMouseListener(paneoMouseAdapter);
+            etiquetaImagenProyecto.addMouseMotionListener(paneoMouseMotionAdapter);
+        }
+
+        System.out.println("[GeneralController] Listeners de entrada globales configurados para todos los modos.");
+        
+    } // --- Fin del método configurarListenersDeEntradaGlobal ---
+    
+
+    /**
+     * Implementación del método de la interfaz KeyEventDispatcher.
+     * Intercepta eventos de teclado globales, movida desde VisorController.
+     * @param e El KeyEvent a procesar.
+     * @return true si el evento fue consumido, false para continuar.
+     */
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ KeyEventDispatcher
+    public boolean dispatchKeyEvent(KeyEvent e) {
+        if (e.getID() != KeyEvent.KEY_PRESSED) {
+            return false;
+        }
+
+        // --- MANEJO ESPECIAL Y SEGURO DE LA TECLA ALT (movido de VisorController) ---
+        if (e.getKeyCode() == KeyEvent.VK_ALT) {
+            // Necesita acceso a la vista, se obtiene a través de visorController.getView()
+            if (visorController != null && visorController.getView() != null && visorController.getView().getJMenuBar() != null) {
+                JMenuBar menuBar = visorController.getView().getJMenuBar();
+                if (menuBar.isSelected()) { // Comprueba si algún menú ya está abierto (seleccionado)
+                    menuBar.getSelectionModel().clearSelection(); // Cierra la selección actual
+                    System.out.println("--- [GeneralController Dispatcher] ALT: Menú ya activo. Cerrando selección.");
+                } else {
+                    if (menuBar.getMenuCount() > 0) { // Si no hay ningún menú activo, activamos el primero.
+                        JMenu primerMenu = menuBar.getMenu(0);
+                        if (primerMenu != null) {
+                            System.out.println("--- [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
+                            primerMenu.doClick(); // Simula un clic del ratón, abriendo el menú.
+                        }
+                    }
+                }
+                e.consume(); // Consumimos el evento ALT
+                return true;
+            }
+        }
+        
+        // Continuación de la lógica de navegación por teclado (movido de VisorController)
+        if (model == null || registry == null) { // Dependencias mínimas
+            return false;
+        }
+
+        java.awt.Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        if (focusOwner == null) {
+            return false;
+        }
+
+        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+        JList<String> listaNombres = registry.get("list.nombresArchivo");
+
+        boolean focoEnAreaMiniaturas = (scrollMiniaturas != null && SwingUtilities.isDescendingFrom(focusOwner, scrollMiniaturas));
+        boolean focoEnListaNombres = (listaNombres != null && SwingUtilities.isDescendingFrom(focusOwner, listaNombres));
+
+        if (focoEnAreaMiniaturas || focoEnListaNombres) {
+            boolean consumed = false;
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_UP: case KeyEvent.VK_LEFT:
+                    this.navegarAnterior(); // Delega a los métodos IModoController de GeneralController
+                    consumed = true;
+                    break;
+                case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT:
+                    this.navegarSiguiente(); // Delega a los métodos IModoController de GeneralController
+                    consumed = true;
+                    break;
+                case KeyEvent.VK_HOME:
+                    this.navegarPrimero(); // Delega a los métodos IModoController de GeneralController
+                    consumed = true;
+                    break;
+                case KeyEvent.VK_END:
+                    this.navegarUltimo(); // Delega a los métodos IModoController de GeneralController
+                    consumed = true;
+                    break;
+                case KeyEvent.VK_PAGE_UP:
+                    this.navegarBloqueAnterior(); // Delega a los métodos IModoController de GeneralController
+                    consumed = true;
+                    break;
+                case KeyEvent.VK_PAGE_DOWN:
+                    this.navegarBloqueSiguiente(); // Delega a los métodos IModoController de GeneralController
+                    consumed = true;
+                    break;
+            }
+            if (consumed) {
+                e.consume();
+                return true;
+            }
+        }
+        
+        return false;
+    }// --- Fin del método dispatchKeyEvent ---
+
+    // --- Implementación de IModoController (delegando al controlador de modo activo) ---
+    // NOTA: La lógica interna de estos métodos seguirá residiendo en VisorController y ProjectController
+    // tal como están ahora. GeneralController solo actúa como un router.
+
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void navegarSiguiente() {
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.navegarSiguiente();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.navegarSiguiente();
+        }
+        System.out.println("[GeneralController] Delegando navegarSiguiente a " + model.getCurrentWorkMode());
+        
+    }// --- FIN del metodo navegarSiguiente ---
+
+    
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void navegarAnterior() {
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.navegarAnterior();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.navegarAnterior();
+        }
+        System.out.println("[GeneralController] Delegando navegarAnterior a " + model.getCurrentWorkMode());
+        
+    }// --- FIN del metodo navegarAnterior ---
+
+    
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void navegarPrimero() {
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.navegarPrimero();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.navegarPrimero();
+        }
+        System.out.println("[GeneralController] Delegando navegarPrimero a " + model.getCurrentWorkMode());
+    
+    }// --- FIN del metodo navegarPrimero ---
+    
+
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void navegarUltimo() {
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.navegarUltimo();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.navegarUltimo();
+        }
+        System.out.println("[GeneralController] Delegando navegarUltimo a " + model.getCurrentWorkMode());
+    
+    }// --- FIN del metodo navegarUltimo ---
+    
+
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void navegarBloqueAnterior() {
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.navegarBloqueAnterior();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.navegarBloqueAnterior();
+        }
+        System.out.println("[GeneralController] Delegando navegarBloqueAnterior a " + model.getCurrentWorkMode());
+    
+    }// --- FIN del metodo navegarBloqueAnterior ---
+    
+
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void navegarBloqueSiguiente() {
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.navegarBloqueSiguiente();
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.navegarBloqueSiguiente();
+        }
+        System.out.println("[GeneralController] Delegando navegarBloqueSiguiente a " + model.getCurrentWorkMode());
+    
+    }// --- FIN del metodo navegarBloqueSiguiente ---
+    
+
+    /**
+     * Helper para la navegación con rueda del ratón en listas (si no hay modificadores).
+     * Mueve el selector de la lista en lugar del scroll.
+     * Lógica movida de VisorController.
+     */
+    private void navegarSiguienteOAnterior(int wheelRotation) { // MÉTODO AÑADIDO (HELPER PRIVADO)
+        if (wheelRotation < 0) { // Rueda hacia arriba
+            navegarAnterior();
+        } else { // Rueda hacia abajo
+            navegarSiguiente();
+        }
+    
+    }// --- FIN del metodo navegarSiguienteOAnterior ---
+    
+
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void aplicarZoomConRueda(MouseWheelEvent e) {
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.aplicarZoomConRueda(e);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.aplicarZoomConRueda(e);
+        }
+        System.out.println("[GeneralController] Delegando aplicarZoomConRueda a " + model.getCurrentWorkMode());
+    
+    }// --- FIN del metodo aplicarZoomConRueda ---
+    
+
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void aplicarPan(int deltaX, int deltaY) {
+        // La lógica de cálculo del pan (cuánto se mueve) reside en ZoomManager.
+        // Aquí solo delegamos la acción de pan al controlador de modo activo.
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.aplicarPan(deltaX, deltaY);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.aplicarPan(deltaX, deltaY);
+        }
+        System.out.println("[GeneralController] Delegando aplicarPan a " + model.getCurrentWorkMode());
+    
+    }// --- FIN del metodo aplicarPan ---
+    
+
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void iniciarPaneo(MouseEvent e) {
+        // En GeneralController, almacenamos lastMouseX/Y para el cálculo de delta en continuarPaneo.
+        // Luego delegamos al controlador de modo, quien llamará al ZoomManager para iniciar el paneo.
+        this.lastMouseX = e.getX(); // MODIFICACIÓN CLAVE: GeneralController mantiene el estado del ratón para el paneo
+        this.lastMouseY = e.getY(); // MODIFICACIÓN CLAVE
+
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.iniciarPaneo(e);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.iniciarPaneo(e);
+        }
+        System.out.println("[GeneralController] Delegando iniciarPaneo a " + model.getCurrentWorkMode());
+    
+    }// --- FIN del metodo iniciarPaneo ---
+
+    
+    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    public void continuarPaneo(MouseEvent e) {
+        // Calculamos el delta de movimiento y actualizamos lastMouseX/Y aquí.
+        int deltaX = e.getX() - this.lastMouseX; // MODIFICACIÓN CLAVE
+        int deltaY = e.getY() - this.lastMouseY; // MODIFICACIÓN CLAVE
+        this.lastMouseX = e.getX();
+        this.lastMouseY = e.getY();
+
+        // Luego delegamos la acción de aplicar el pan con los deltas calculados.
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
+            visorController.aplicarPan(deltaX, deltaY);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.aplicarPan(deltaX, deltaY);
+        }
+        System.out.println("[GeneralController] Delegando continuarPaneo a " + model.getCurrentWorkMode());
+    
+    }// --- FIN del metodo continuarPaneo ---
+    
+    
+//  ********************************************************************************** FIN IMPLEMENTACION INTERFAZ IModoController
+    
+//  *************************************************************************************************************** INICIO GETTERS    
     
     public ToolbarManager getToolbarManager() {
         return this.toolbarManager;
     }
-    
+
+
+//  ****************************************************************************************************************** FIN GETTERS
     
 } // --- Fin de la clase GeneralController ---
 

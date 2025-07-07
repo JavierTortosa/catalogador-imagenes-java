@@ -2,10 +2,10 @@ Iniciando Visor de Imágenes V2...
 Mapa de configuración por defecto inicializado con 104 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 171
+Configuración leída. Total claves: 163
 --- DEBUG PRE-SINCRONIZACIÓN ---
 Tamaño de DEFAULT_CONFIG: 104
-Tamaño de loadedConfig (del archivo): 171
+Tamaño de loadedConfig (del archivo): 163
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
@@ -22,7 +22,7 @@ VisorV2.main: Configurando tema claro FlatLightLaf.
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
 [ThemeManager] Tema inicial establecido a: clear
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 1947129352
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 590015440
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -79,8 +79,10 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [Controller] Configurando atajos de teclado globales...
   -> Atajos de teclado globales configurados para teclado estándar y numérico.
 --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
-[Controller Internal] Configurando Listeners (Reconstrucción)...
-[Controller Internal] Listeners de Vista configurados.
+[GeneralController] Configurando listeners de entrada globales para todos los modos...
+[GeneralController] Listeners de entrada globales configurados para todos los modos.
+[VisorController Internal] Configurando listeners ESPECÍFICOS de Vista...
+[VisorController Internal] Listeners específicos de Vista configurados.
 [ProjectController] Listener añadido a 'list.proyecto.nombres'.
 [GeneralController] Inicializado.
 [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
@@ -156,11 +158,11 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@34680796: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@34680796 actualizado. Nuevo tamaño: 209
+### DEBUG CONTEXT: ListContext@7e039420: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@7e039420 actualizado. Nuevo tamaño: 209
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 209
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
 [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
@@ -174,630 +176,303 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 [VisorController] Sincronización de UI de Zoom completada.
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
-  -> Rotación izquierda exitosa. Actualizando modelo...
-  -> Notificando al VisorController para que refresque la vista...
-[VisorController] Solicitud de refresco por edición recibida. Resetear zoom: true
-  -> Reseteando estado de zoom en el modelo...
-  -> Delegando a ZoomManager para aplicar el modo de zoom actual y refrescar la vista...
+[GeneralController] Delegando iniciarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[GeneralController] Delegando continuarPaneo a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Refresco por edición completado.
-[EditionManager] Rotación izquierda aplicada y notificación enviada.
-  -> Rotación derecha exitosa. Actualizando modelo...
-  -> Notificando al VisorController para que refresque la vista...
-[VisorController] Solicitud de refresco por edición recibida. Resetear zoom: true
-  -> Reseteando estado de zoom en el modelo...
-  -> Delegando a ZoomManager para aplicar el modo de zoom actual y refrescar la vista...
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Refresco por edición completado.
-[EditionManager] Rotación derecha aplicada y notificación enviada.
-  -> Volteo horizontal exitosa. Actualizando modelo...
-  -> Notificando al VisorController para que refresque la vista...
-[VisorController] Solicitud de refresco por edición recibida. Resetear zoom: false
-  -> Delegando a ZoomManager para aplicar el modo de zoom actual y refrescar la vista...
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Refresco por edición completado.
-[EditionManager] Volteo horizontal aplicada y notificación enviada.
-  -> Volteo horizontal exitosa. Actualizando modelo...
-  -> Notificando al VisorController para que refresque la vista...
-[VisorController] Solicitud de refresco por edición recibida. Resetear zoom: false
-  -> Delegando a ZoomManager para aplicar el modo de zoom actual y refrescar la vista...
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Refresco por edición completado.
-[EditionManager] Volteo horizontal aplicada y notificación enviada.
-  -> Volteo vertical exitosa. Actualizando modelo...
-  -> Notificando al VisorController para que refresque la vista...
-[VisorController] Solicitud de refresco por edición recibida. Resetear zoom: false
-  -> Delegando a ZoomManager para aplicar el modo de zoom actual y refrescar la vista...
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Refresco por edición completado.
-[EditionManager] Volteo vertical aplicada y notificación enviada.
-  -> Volteo vertical exitosa. Actualizando modelo...
-  -> Notificando al VisorController para que refresque la vista...
-[VisorController] Solicitud de refresco por edición recibida. Resetear zoom: false
-  -> Delegando a ZoomManager para aplicar el modo de zoom actual y refrescar la vista...
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Refresco por edición completado.
-[EditionManager] Volteo vertical aplicada y notificación enviada.
-[NextImageAction actionPerformed] Comando: cmd.nav.siguiente
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice: 1)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
 [Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[NextImageAction actionPerformed] Comando: cmd.nav.siguiente
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
 [Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[NextImageAction actionPerformed] Comando: cmd.nav.siguiente
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
 [Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[PreviousImageAction actionPerformed] Comando: cmd.nav.anterior
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
-[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[PreviousImageAction actionPerformed] Comando: cmd.nav.anterior
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice: 1)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
-[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[PreviousImageAction actionPerformed] Comando: cmd.nav.anterior
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
-[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice: 1)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
-[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
-[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
-[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
 [Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
 [Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
 [Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
-[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice: 9)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1004-Ultima_48x48.png' (Índice: 10)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/20001-zoom_al_cursor_48x48.png' (Índice: 11)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2001-rotar_izquierda_48x48.png' (Índice: 12)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2002-rotar_derecha_48x48.png' (Índice: 13)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2001-rotar_izquierda_48x48.png' (Índice: 12)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/20001-zoom_al_cursor_48x48.png' (Índice: 11)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1004-Ultima_48x48.png' (Índice: 10)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice: 9)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
-[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
-[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
 [Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarAnterior a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
 [Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarAnterior a VISUALIZADOR
+[GeneralController] Delegando navegarAnterior a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
 [Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarAnterior a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
 [Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[GeneralController] Delegando navegarAnterior a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice: 1)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
-[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
-[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice: 1)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
-[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
-[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
-[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  [actualizarImagenPrincipal EDT] Carga de 'Hero_Pack_____Miniature_jpg.jpg' descartada. La selección ha cambiado.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
-[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
-[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
-[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice: 9)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1004-Ultima_48x48.png' (Índice: 10)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/20001-zoom_al_cursor_48x48.png' (Índice: 11)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2001-rotar_izquierda_48x48.png' (Índice: 12)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2002-rotar_derecha_48x48.png' (Índice: 13)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2003-espejo_horizontal_48x48.png' (Índice: 14)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2004-espejo_vertical_48x48.png' (Índice: 15)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2005-recortar_48x48.png' (Índice: 16)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3001-zoom_48x48.png' (Índice: 17)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3002-zoom_auto_48x48.png' (Índice: 18)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3003-ajustar_al_ancho_48x48.png' (Índice: 19)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3004-ajustar_al_alto_48x48.png' (Índice: 20)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3005-escalar_para_ajustar_48x48.png' (Índice: 21)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3004-ajustar_al_alto_48x48.png' (Índice: 20)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3003-ajustar_al_ancho_48x48.png' (Índice: 19)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3002-zoom_auto_48x48.png' (Índice: 18)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/3001-zoom_48x48.png' (Índice: 17)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2005-recortar_48x48.png' (Índice: 16)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2004-espejo_vertical_48x48.png' (Índice: 15)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2003-espejo_horizontal_48x48.png' (Índice: 14)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2002-rotar_derecha_48x48.png' (Índice: 13)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2001-rotar_izquierda_48x48.png' (Índice: 12)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/20001-zoom_al_cursor_48x48.png' (Índice: 11)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1004-Ultima_48x48.png' (Índice: 10)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice: 9)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
-[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
-[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
-[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  [actualizarImagenPrincipal EDT] Carga de 'cyberpunk-city-anime-girl-5k-0e-1.png' descartada. La selección ha cambiado.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
-[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
-[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice: 1)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
-[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1947129352
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
-[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-  [AncestorListener] La barra 'vistas' ha sido añadida a un JDialog. Ahora es flotante.
-  [AncestorListener] La barra flotante 'vistas' ha sido cerrada.
-    >>> CONDICIÓN DE RECONSTRUCCIÓN CUMPLIDA para 'vistas' <<<
+[GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
 
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
---- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
-  [AncestorListener] La barra 'zoom' ha sido añadida a un JDialog. Ahora es flotante.
-  [AncestorListener] La barra flotante 'zoom' ha sido cerrada.
-    >>> CONDICIÓN DE RECONSTRUCCIÓN CUMPLIDA para 'zoom' <<<
+--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
+  [ProjectController] Preparando datos para el modo proyecto...
+### DEBUG CONTEXT: ListContext@2678f9f7: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@2678f9f7 actualizado. Nuevo tamaño: 4
+    -> Datos del proyecto preparados en proyectoListContext.
+  [GeneralController] Saliendo del modo: VISUALIZADOR
+[Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
+  [GeneralController] Entrando en modo: PROYECTO
+  [ProjectController] Activando la UI de la vista de proyecto...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
+  [ProjectController] UI de la vista de proyecto activada.
+  [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
+  [GeneralController] Estado de la UI actualizado.
+[ViewManager] Vista cambiada a: VISTA_PROYECTOS
 
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
---- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
-  [AncestorListener] La barra 'toggle' ha sido añadida a un JDialog. Ahora es flotante.
-  [AncestorListener] La barra flotante 'toggle' ha sido cerrada.
-    >>> CONDICIÓN DE RECONSTRUCCIÓN CUMPLIDA para 'toggle' <<<
+--- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: PROYECTO ---
+[GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
+--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
 
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[VisorController] Sincronización de UI de Zoom completada.
+[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
+[GeneralController] Delegando iniciarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
+[GeneralController] Delegando continuarPaneo a PROYECTO
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 410424423
@@ -809,7 +484,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 171
+Claves a guardar/actualizar: 163
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

@@ -5,20 +5,18 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.swing.JComponent; // Import necesario para el cast
 import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 
 import controlador.utils.ComponentRegistry;
-import modelo.VisorModel; // Import necesario
+import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.builders.ToolbarBuilder;
 import vista.config.ToolbarAlignment;
 import vista.config.ToolbarDefinition;
-import vista.config.ToolbarButtonDefinition; // Import necesario si usas el tipo
 import vista.config.UIDefinitionService;
 
 /**
@@ -69,7 +67,6 @@ public class ToolbarManager {
      * @param def La definición de la barra de herramientas a construir.
      * @return La JToolBar construida y con el listener ya configurado.
      */
- // Reemplaza este método completo en tu ToolbarManager.java
 
     private JToolBar buildAndConfigureToolbar(ToolbarDefinition def) {
         // 1. Construir la barra usando el builder.
@@ -128,7 +125,6 @@ public class ToolbarManager {
                 // No nos interesa este evento.
             }
         });
-        // --- FIN DE LA LÓGICA BASADA EN ANCESTORLISTENER ---
 
         return toolbar;
         
@@ -233,265 +229,3 @@ public class ToolbarManager {
 
 } // --- FIN de la clase ToolbarManager ---
 
-//package controlador.managers;
-//
-//import java.util.ArrayList;
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.Objects;
-//
-//import javax.swing.JPanel;
-//import javax.swing.JToolBar;
-//
-//import controlador.utils.ComponentRegistry; // Importación para ComponentRegistry si lo usas
-//import modelo.VisorModel;
-//import modelo.VisorModel.WorkMode; // Importación para el enum WorkMode
-//import servicios.ConfigKeys;
-//import servicios.ConfigurationManager;
-//import vista.builders.ToolbarBuilder;
-//import vista.config.ToolbarAlignment;
-//import vista.config.ToolbarDefinition;
-//import vista.config.UIDefinitionService;
-//
-///**
-// * Gestiona la creación, visibilidad y estado de las diferentes barras de herramientas.
-// * Ahora centraliza las instancias de JToolBar.
-// */
-//public class ToolbarManager {
-//
-//    private final ConfigurationManager configuration;
-//    private final ToolbarBuilder toolbarBuilder;
-//    private final UIDefinitionService uiDefinitionService;
-//    private final ComponentRegistry registry;
-//    private final VisorModel model;
-//
-//    // --- NUEVO: Mapa para almacenar las instancias de JToolBar creadas ---
-//    private final Map<String, JToolBar> toolbarInstances; 
-//
-//    /**
-//     * Constructor del ToolbarManager.
-//     * @param configuration El gestor de configuración.
-//     * @param toolbarBuilder El builder para construir las JToolBar.
-//     * @param uiDefinitionService El servicio que define la estructura de la UI.
-//     * @param registry El registro de componentes.
-//     * @param model El modelo de la aplicación.
-//     */
-//    public ToolbarManager(
-//            ConfigurationManager configuration,
-//            ToolbarBuilder toolbarBuilder,
-//            UIDefinitionService uiDefinitionService,
-//            ComponentRegistry registry,
-//            VisorModel model) {
-//        this.configuration = Objects.requireNonNull(configuration);
-//        this.toolbarBuilder = Objects.requireNonNull(toolbarBuilder);
-//        this.uiDefinitionService = Objects.requireNonNull(uiDefinitionService);
-//        this.registry = Objects.requireNonNull(registry);
-//        this.model = Objects.requireNonNull(model);
-//        this.toolbarInstances = new HashMap<>(); // Inicializa el mapa
-//        System.out.println("[ToolbarManager Constructor] Finalizado.");
-//    } // --- Fin del constructor ToolbarManager ---
-//
-//    /**
-//     * Inicializa todas las barras de herramientas definidas en el UIDefinitionService,
-//     * las construye y las almacena internamente en el mapa `toolbarInstances`.
-//     * Se llama una sola vez durante la inicialización de la aplicación.
-//     */
-//    public void inicializarBarrasDeHerramientas() {
-//        System.out.println("[ToolbarManager] Inicializando todas las barras de herramientas...");
-//        List<ToolbarDefinition> allToolbarDefs = uiDefinitionService.generateModularToolbarStructure();
-//        
-//        for (ToolbarDefinition def : allToolbarDefs) {
-//            JToolBar toolbar = toolbarBuilder.buildSingleToolbar(def);
-//            toolbarInstances.put(def.claveBarra(), toolbar); // Guarda la instancia
-//            registry.register("toolbar." + def.claveBarra(), toolbar); // Opcional: registrar en ComponentRegistry
-//            System.out.println("  -> Barra '" + def.claveBarra() + "' construida y almacenada.");
-//        }
-//        System.out.println("[ToolbarManager] Inicialización de barras completada. Total: " + toolbarInstances.size());
-//    } // --- Fin del método inicializarBarrasDeHerramientas ---
-//
-//    /**
-//     * Reconstruye el contenedor de toolbars para mostrar solo las barras relevantes
-//     * para el modo de trabajo actual, colocándolas en su panel de alineamiento
-//     * correspondiente (izquierda, centro o derecha).
-//     * @param currentWorkMode El modo de trabajo actual de la aplicación.
-//     */
-//    public void reconstruirContenedorDeToolbars(WorkMode currentWorkMode) {
-//        System.out.println("[ToolbarManager] Reconstruyendo contenedor para modo: " + currentWorkMode);
-//        
-//        JPanel leftToolbarPanel = registry.get("container.toolbars.left");
-//        JPanel centerToolbarPanel = registry.get("container.toolbars.center");
-//        JPanel rightToolbarPanel = registry.get("container.toolbars.right");
-//        
-//        if (leftToolbarPanel == null || centerToolbarPanel == null || rightToolbarPanel == null) {
-//            System.err.println("ERROR [ToolbarManager]: No se encontraron los paneles de alineamiento (left/center/right) en el registro.");
-//            return;
-//        }
-//
-//        leftToolbarPanel.removeAll();
-//        centerToolbarPanel.removeAll();
-//        rightToolbarPanel.removeAll();
-//        
-//        List<ToolbarDefinition> allToolbarDefs = new ArrayList<>(uiDefinitionService.generateModularToolbarStructure());
-//        allToolbarDefs.sort((def1, def2) -> Integer.compare(def1.orden(), def2.orden()));
-//
-//        for (ToolbarDefinition def : allToolbarDefs) {
-//            if ("controles_imagen_inferior".equals(def.claveBarra())) {
-//                continue;
-//            }
-//
-//            if (def.modosVisibles().contains(currentWorkMode)) {
-//                String toolbarVisibilityKey = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra());
-//                boolean isToolbarVisible = configuration.getBoolean(toolbarVisibilityKey, true);
-//
-//                if (isToolbarVisible) {
-//                    JToolBar toolbar = toolbarInstances.get(def.claveBarra());
-//                    if (toolbar != null) {
-//                        switch (def.alignment()) {
-//                            case LEFT:   leftToolbarPanel.add(toolbar);   break;
-//                            case CENTER: centerToolbarPanel.add(toolbar); break;
-//                            case RIGHT:  rightToolbarPanel.add(toolbar);  break;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//        
-//        leftToolbarPanel.revalidate();
-//        leftToolbarPanel.repaint();
-//        centerToolbarPanel.revalidate();
-//        centerToolbarPanel.repaint();
-//        rightToolbarPanel.revalidate();
-//        rightToolbarPanel.repaint();
-//        
-//        System.out.println("[ToolbarManager] Reconstrucción de contenedor completada.");
-//    } // --- Fin del método reconstruirContenedorDeToolbars ---
-//    
-//    
-////    /**
-////     * Calcula el índice de inserción correcto para una JToolBar dentro de su panel de alineamiento,
-////     * basándose en el orden definido en UIDefinitionService.
-////     * 
-////     * @param toolbarKey La clave de la barra de herramientas (ej. "edicion").
-////     * @return El índice donde la barra debe ser insertada en su panel de alineamiento, o -1 si hay un error.
-////     */
-////    public int getCorrectIndexForToolbar(String toolbarKey) {
-////        // Obtenemos la definición de todas las barras y las ordenamos.
-////        List<ToolbarDefinition> allDefs = new ArrayList<>(uiDefinitionService.generateModularToolbarStructure());
-////        allDefs.sort((def1, def2) -> Integer.compare(def1.orden(), def2.orden()));
-////
-////        // Buscamos la definición de nuestra barra para saber su alineamiento
-////        ToolbarDefinition targetDef = allDefs.stream()
-////                                             .filter(d -> d.claveBarra().equals(toolbarKey))
-////                                             .findFirst()
-////                                             .orElse(null);
-////
-////        if (targetDef == null) {
-////            System.err.println("ERROR [getCorrectIndexForToolbar]: No se encontró la definición para la clave: " + toolbarKey);
-////            return -1;
-////        }
-////        
-////        ToolbarAlignment targetAlignment = targetDef.alignment();
-////        int indexInGroup = 0;
-////
-////        // Iteramos sobre TODAS las definiciones en orden
-////        for (ToolbarDefinition def : allDefs) {
-////            // Si la definición actual es la que buscamos, hemos encontrado su índice dentro de su grupo.
-////            if (def.equals(targetDef)) {
-////                return indexInGroup;
-////            }
-////            
-////            // Si la definición actual pertenece al MISMO grupo de alineamiento,
-////            // y su toolbar correspondiente está actualmente visible, contamos una posición.
-////            if (def.alignment() == targetAlignment) {
-////                JToolBar existingToolbar = toolbarInstances.get(def.claveBarra());
-////                if (existingToolbar != null && existingToolbar.isVisible() && existingToolbar.getParent() != null) {
-////                    indexInGroup++;
-////                }
-////            }
-////        }
-////        
-////        return -1; // No debería llegar aquí
-////    } // --- Fin del método getCorrectIndexForToolbar ---
-//    
-//    
-////    public void reconstruirContenedorDeToolbars(WorkMode currentWorkMode) {
-////        System.out.println("[ToolbarManager] Reconstruyendo contenedor para modo: " + currentWorkMode);
-////        JPanel toolbarContainer = registry.get("container.toolbars");
-////        if (toolbarContainer == null) {
-////            System.err.println("ERROR [ToolbarManager]: 'container.toolbars' no encontrado en el registro.");
-////            return;
-////        }
-////
-////        toolbarContainer.removeAll(); // Limpiar el contenedor actual
-////
-////        // --- INICIO BLOQUE DE MODIFICACIÓN ---
-////        // Línea anterior: List<ToolbarDefinition> allToolbarDefs = new ArrayList<>(uiDefinitionService.generateModularToolbarStructure());
-////        List<ToolbarDefinition> allToolbarDefs = new ArrayList<>(uiDefinitionService.generateModularToolbarStructure());
-////        // --- FIN BLOQUE DE MODIFICACIÓN ---
-////        
-////        // Ordenar las barras por su 'order' para que aparezcan consistentemente
-////        allToolbarDefs.sort((td1, td2) -> Integer.compare(td1.orden(), td2.orden()));
-////
-////        for (ToolbarDefinition def : allToolbarDefs) {
-////            // --- INICIO DE LA MODIFICACIÓN ---
-////            // Excluir la barra de control inferior de ser añadida al contenedor principal
-////            if ("controles_imagen_inferior".equals(def.claveBarra())) {
-////                System.out.println("  -> EXCLUYENDO barra '" + def.claveBarra() + "' del contenedor principal. Se añadirá en ViewBuilder.");
-////                continue; // Saltar esta barra, no la añadimos aquí.
-////            }
-////            // --- FIN DE LA MODIFICACIÓN ---
-////
-////            // Comprobar si la barra es relevante para el modo actual
-////            if (def.modosVisibles().contains(currentWorkMode)) {
-////                // Comprobar si la barra está configurada para ser visible (interfaz.herramientas.<claveBarra>)
-////                String toolbarVisibilityKey = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra());
-////                boolean isToolbarVisible = configuration.getBoolean(toolbarVisibilityKey, true);
-////
-////                if (isToolbarVisible) {
-////                    JToolBar toolbar = toolbarInstances.get(def.claveBarra()); // Obtener la instancia ya creada
-////                    if (toolbar != null) {
-////                        toolbarContainer.add(toolbar);
-////                        System.out.println("  -> Añadiendo barra '" + def.claveBarra() + "' al contenedor.");
-////                    } else {
-////                        System.err.println("WARN [ToolbarManager]: Instancia de barra '" + def.claveBarra() + "' no encontrada en el mapa.");
-////                    }
-////                } else {
-////                    System.out.println("  -> Barra '" + def.claveBarra() + "' oculta por configuración.");
-////                }
-////            } else {
-////                System.out.println("  -> Barra '" + def.claveBarra() + "' no relevante para modo '" + currentWorkMode + "'.");
-////            }
-////        }
-////        
-////        toolbarContainer.revalidate();
-////        toolbarContainer.repaint();
-////        System.out.println("[ToolbarManager] Reconstrucción de contenedor completada.");
-////    } // --- Fin del método reconstruirContenedorDeToolbars ---
-//
-//    /**
-//     * Devuelve una instancia de JToolBar por su clave.
-//     * Útil para ViewBuilder o cualquier otro componente que necesite una barra específica.
-//     * @param key La clave de la barra (ej. "control_imagen").
-//     * @return La JToolBar asociada a la clave, o null si no se encuentra.
-//     */
-//    public JToolBar getToolbar(String key) { // <-- NUEVO: Método público para obtener toolbars
-//        return toolbarInstances.get(key);
-//    } // --- Fin del método getToolbar ---
-//    
-//    public java.util.Map<String, javax.swing.JToolBar> getManagedToolbars() {
-//        return this.toolbarInstances;
-//    }
-//    
-//    /**
-//     * "Bomba Nuclear": Destruye todas las instancias de JToolBar y las
-//     * vuelve a crear desde cero usando el ToolbarBuilder.
-//     * Garantiza un estado completamente limpio.
-//     */
-//    public void forzarRecreacionDeTodasLasToolbars() {
-//        System.out.println("  [ToolbarManager] Forzando recreación completa de todas las barras de herramientas (Bomba Nuclear)...");
-//        inicializarBarrasDeHerramientas();
-//    } // --- Fin del método forzarRecreacionDeTodasLasToolbars ---
-//
-//} // --- FIN de la clase ToolbarManager ---
-//

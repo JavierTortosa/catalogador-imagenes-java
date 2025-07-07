@@ -1,5 +1,6 @@
 package controlador;
 
+import java.awt.KeyboardFocusManager;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
@@ -161,7 +162,7 @@ public class AppInitializer {
         }
     } // --- Fin del método inicializarServicioDeProyectos ---
     
-
+    
     private void crearUIyComponentesDependientesEnEDT() {
         try {
             System.out.println("--- [AppInitializer Fase B - EDT] Reorganizando la inicialización en bloques... ---");
@@ -212,10 +213,7 @@ public class AppInitializer {
                     registry
             );
             
-            // --- INICIO DE LA CORRECCIÓN ---
-            // Se corrige el orden de los parámetros para que coincida con el constructor de ToolbarManager.
             this.toolbarManager = new ToolbarManager(registry, this.configuration, toolbarBuilder, uiDefSvc, this.model);
-            // --- FIN DE LA CORRECCIÓN ---
             
             //======================================================================
             // BLOQUE 2: CABLEADO (INYECCIÓN DE DEPENDENCIAS)
@@ -245,6 +243,9 @@ public class AppInitializer {
             this.projectController.setZoomManager(this.zoomManager); 
             this.projectController.setModel(this.model); 
             this.projectController.setController(this.controller);
+            
+            this.projectController.setListCoordinator(this.listCoordinator);
+            
             this.controller.setProjectController(this.projectController);
             this.generalController.setModel(this.model);
             this.generalController.setViewManager(this.viewManager);
@@ -266,7 +267,6 @@ public class AppInitializer {
             viewBuilder.setToolbarManager(this.toolbarManager);
             viewBuilder.setViewManager(this.viewManager);
             menuBuilder.setControllerGlobalActionListener(this.controller);
-//            toolbarBuilder.setGeneralController(this.generalController);
             
             //======================================================================
             // BLOQUE 3: FASE DE INICIALIZACIÓN SECUENCIADA (ORDEN CORREGIDO)
@@ -280,14 +280,11 @@ public class AppInitializer {
             // 2. Inyectar el ActionMap (parcial) en los builders/managers que lo necesitan para construir.
             toolbarBuilder.setActionMap(this.actionMap);
 
-            // 3. Inicializar el ToolbarManager. ESTA LÍNEA SE ELIMINA, la reconstrucción hace el trabajo.
-            // this.toolbarManager.inicializarBarrasDeHerramientas(); // <-- ELIMINAR O COMENTAR ESTA LÍNEA
-
-            // 4. Crear el frame principal (VisorView).
+            // 3. Crear el frame principal (VisorView).
             this.view = viewBuilder.createMainFrame();
             System.out.println("    -> VisorView (JFrame) creado.");
 
-            // 5. Inyectar la 'view' en todos los componentes que la esperaban.
+            // 4. Inyectar la 'view' en todos los componentes que la esperaban.
             System.out.println("    -> Inyectando la instancia de 'view' en los componentes...");
             this.actionFactory.setView(this.view);
             this.configAppManager.setView(this.view);
@@ -296,10 +293,10 @@ public class AppInitializer {
             this.controller.setView(this.view);
             this.projectController.setView(this.view);
 
-            // 6. Ahora que la 'view' está inyectada, inicializar las Actions restantes.
+            // 5. Ahora que la 'view' está inyectada, inicializar las Actions restantes.
             this.actionFactory.initializeViewDependentActions();
             
-            // 7. El resto del cableado y configuración final.
+            // 6. El resto del cableado y configuración final.
             if (this.projectManagerService != null) {
                 this.projectManagerService.initialize();
             }
@@ -334,13 +331,31 @@ public class AppInitializer {
             
             this.controller.configurarAtajosTecladoGlobales();
             this.configAppManager.aplicarConfiguracionGlobalmente();
-            this.controller.configurarListenersVistaInternal();
+
+            // ------------------ INICIO DE LAS MODIFICACIONES CLAVE ------------------
+            
+            // AÑADIDO: Pedir a GeneralController que configure sus listeners GLOBALES de ratón.
+            // Esto es SEGURO ahora porque la UI está construida y registrada en el registry.
+            this.generalController.configurarListenersDeEntradaGlobal();
+
+            // AÑADIDO: Registrar a GeneralController como el dispatcher global de TECLADO.
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.generalController);
+
+            // MANTENIDO: La siguiente línea se mantiene por ahora para no romper nada.
+            // En una fase posterior, eliminaremos los listeners de teclado/ratón duplicados de VisorController.
+            this.controller.configurarListenersVistaInternal(); 
+
+            // ELIMINADO: La siguiente línea ahora es redundante.
+            // Se elimina porque GeneralController ya está registrado como el dispatcher.
+            // java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
+            
+            // ------------------ FIN DE LAS MODIFICACIONES CLAVE ------------------
+
             this.projectController.configurarListeners();
             this.generalController.initialize();
             
             this.controller.configurarListenerGlobalDeToolbars();
             
-            java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
             this.view.addWindowListener(new java.awt.event.WindowAdapter() {
                 public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
             });
@@ -370,6 +385,9 @@ public class AppInitializer {
             manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
         }
     } // --- Fin del método crearUIyComponentesDependientesEnEDT ---
+    
+
+
     
     private void manejarErrorFatalInicializacion(String message, Throwable cause) {
         System.err.println("### ERROR FATAL DE INICIALIZACIÓN ###");
