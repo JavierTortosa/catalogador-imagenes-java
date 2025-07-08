@@ -1,0 +1,101 @@
+package controlador.managers;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import modelo.proyecto.ExportItem;
+import modelo.proyecto.ExportStatus;
+
+public class ExportQueueManager {
+
+    private List<ExportItem> colaDeExportacion;
+
+    public ExportQueueManager() {
+        this.colaDeExportacion = new ArrayList<>();
+    } // --- Fin del método ExportQueueManager (constructor) ---
+
+    public List<ExportItem> getColaDeExportacion() {
+        return this.colaDeExportacion;
+    } // --- Fin del método getColaDeExportacion ---
+
+    public void limpiarCola() {
+        this.colaDeExportacion.clear();
+    } // --- Fin del método limpiarCola ---
+    
+    /**
+     * Prepara la cola de exportación basándose en la selección actual del proyecto.
+     * Limpia la cola anterior y la repuebla.
+     * @param rutasSeleccionadas La lista de rutas absolutas de las imágenes seleccionadas.
+     */
+    public void prepararColaDesdeSeleccion(List<Path> rutasSeleccionadas) {
+        System.out.println("[ExportQueueManager] Preparando cola para " + rutasSeleccionadas.size() + " imágenes.");
+        limpiarCola();
+
+        for (Path rutaImagen : rutasSeleccionadas) {
+            ExportItem item = new ExportItem(rutaImagen);
+            buscarArchivoComprimidoAsociado(item);
+            this.colaDeExportacion.add(item);
+        }
+        System.out.println("[ExportQueueManager] Preparación de cola finalizada.");
+    } // --- Fin del método prepararColaDesdeSeleccion ---
+
+    /**
+     * Lógica simple para buscar un archivo comprimido asociado a una imagen.
+     * @param item El ExportItem que se está procesando.
+     */
+    private void buscarArchivoComprimidoAsociado(ExportItem item) {
+        Path rutaImagen = item.getRutaImagen();
+        Path directorio = rutaImagen.getParent();
+        if (directorio == null || !Files.isDirectory(directorio)) {
+            item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
+            return;
+        }
+
+        String nombreBase = obtenerNombreBase(rutaImagen.getFileName().toString());
+
+        try (Stream<Path> stream = Files.list(directorio)) {
+            List<Path> candidatos = stream
+                .filter(p -> Files.isRegularFile(p) && !p.equals(rutaImagen))
+                .filter(p -> {
+                    String nombreArchivoCandidato = p.getFileName().toString();
+                    String nombreBaseArchivoCandidato = obtenerNombreBase(nombreArchivoCandidato);
+                    // Comprobamos si el nombre base del candidato es igual al de la imagen
+                    // y si la extensión es de un tipo comprimido conocido.
+                    return nombreBase.equalsIgnoreCase(nombreBaseArchivoCandidato) && esExtensionComprimida(nombreArchivoCandidato);
+                })
+                .collect(Collectors.toList());
+
+            if (candidatos.size() == 1) {
+                item.setRutaArchivoComprimido(candidatos.get(0));
+                item.setEstadoArchivoComprimido(ExportStatus.ENCONTRADO_OK);
+            } else if (candidatos.size() > 1) {
+                item.setCandidatosArchivo(candidatos);
+                item.setEstadoArchivoComprimido(ExportStatus.MULTIPLES_CANDIDATOS);
+            } else {
+                item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
+            }
+        } catch (IOException e) {
+            System.err.println("Error buscando archivo asociado para " + rutaImagen + ": " + e.getMessage());
+            item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
+        }
+    } // --- Fin del método buscarArchivoComprimidoAsociado ---
+
+    private String obtenerNombreBase(String nombreArchivo) {
+        int puntoIndex = nombreArchivo.lastIndexOf('.');
+        return (puntoIndex == -1) ? nombreArchivo : nombreArchivo.substring(0, puntoIndex);
+    } // --- Fin del método obtenerNombreBase ---
+    
+    private boolean esExtensionComprimida(String nombreArchivo) {
+        String nombreEnMinusculas = nombreArchivo.toLowerCase();
+        return nombreEnMinusculas.endsWith(".zip") || 
+               nombreEnMinusculas.endsWith(".rar") || 
+               nombreEnMinusculas.endsWith(".7z");
+    } // --- Fin del método esExtensionComprimida ---
+
+} // --- FIN de la clase ExportQueueManager ---

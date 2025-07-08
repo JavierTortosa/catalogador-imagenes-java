@@ -151,57 +151,67 @@ public class ProjectBuilder {
     
     
     /**
-     * MODIFICADO: Crea el panel que contendrá las herramientas del proyecto.
-     * La primera pestaña es la lista de "Descartes", con un listener de menú contextual
-     * para restaurar imágenes.
+     * MODIFICADO: Crea el panel de herramientas, que ahora incluye un ExportPanel funcional
+     * con todos sus ActionListeners conectados al ProjectController.
      * @return Un JPanel configurado con un JTabbedPane para las herramientas.
      */
     private JPanel createProjectToolsPanel() {
-        // --- Panel contenedor principal para la zona de herramientas ---
         JPanel panelHerramientas = new JPanel(new BorderLayout());
         TitledBorder border = BorderFactory.createTitledBorder("Herramientas de Proyecto");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
         panelHerramientas.setBorder(border);
         registry.register("panel.proyecto.herramientas.container", panelHerramientas);
         
-        // --- JTabbedPane para alojar las diferentes herramientas ---
         javax.swing.JTabbedPane herramientasTabbedPane = new javax.swing.JTabbedPane();
         registry.register("tabbedpane.proyecto.herramientas", herramientasTabbedPane);
         
-        // --- Pestaña 1: Lista de Descartes ---
+        // Pestaña 1: Lista de Descartes
         JList<String> descartesList = new JList<>();
         descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager));
         registry.register("list.proyecto.descartes", descartesList);
-
-        // --- AÑADIR LISTENER DE MENÚ CONTEXTUAL ---
         Action restoreFromDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
         if (restoreFromDiscardsAction != null) {
             descartesList.addMouseListener(createContextMenuListener(descartesList, restoreFromDiscardsAction));
-        } else {
-            System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_RESTAURAR_DE_DESCARTES en el ActionFactory.");
         }
-        // --- FIN DE LA ADICIÓN DEL LISTENER ---
-
         JScrollPane scrollPaneDescartes = new JScrollPane(descartesList);
         scrollPaneDescartes.setBorder(null);
         registry.register("scroll.proyecto.descartes", scrollPaneDescartes);
-        
         herramientasTabbedPane.addTab("Descartes", scrollPaneDescartes);
 
-        // --- Pestaña 2: Placeholder para el futuro Panel de Exportación ---
-        JPanel panelExportarPlaceholder = new JPanel();
-        registry.register("panel.proyecto.herramientas.exportar", panelExportarPlaceholder);
-        herramientasTabbedPane.addTab("Exportar", panelExportarPlaceholder);
+        // Pestaña 2: Panel de Exportación
+        vista.panels.export.ExportPanel panelExportar = new vista.panels.export.ExportPanel(this.generalController.getProjectController());
+        registry.register("panel.proyecto.herramientas.exportar", panelExportar);
+        
+        // --- CONECTAR BOTONES A LA LÓGICA ---
+        panelExportar.getBotonCargarProyecto().addActionListener(e -> {
+            if (generalController != null && generalController.getProjectController() != null) {
+                generalController.getProjectController().solicitarPreparacionColaExportacion();
+            }
+        });
+        
+        panelExportar.getBotonSeleccionarCarpeta().addActionListener(e -> {
+            if (generalController != null && generalController.getProjectController() != null) {
+                generalController.getProjectController().solicitarSeleccionCarpetaDestino();
+            }
+        });
+        
+        // --- INICIO DE LA NUEVA MODIFICACIÓN ---
+        panelExportar.getBotonIniciarExportacion().addActionListener(e -> {
+            if (generalController != null && generalController.getProjectController() != null) {
+                generalController.getProjectController().solicitarInicioExportacion();
+            }
+        });
+        // --- FIN DE LA NUEVA MODIFICACIÓN ---
+        
+        herramientasTabbedPane.addTab("Exportar", panelExportar);
 
-        // --- Pestaña 3: Placeholder para el futuro Panel de Etiquetado ---
+        // Pestaña 3: Placeholder para el futuro Panel de Etiquetado
         JPanel panelEtiquetarPlaceholder = new JPanel();
-        registry.register("panel.proyecto.herramientas.etiquetar", panelEtiquetarPlaceholder);
         herramientasTabbedPane.addTab("Etiquetar", panelEtiquetarPlaceholder);
         herramientasTabbedPane.setEnabledAt(2, false); 
 
         panelHerramientas.add(herramientasTabbedPane, BorderLayout.CENTER);
-
         return panelHerramientas;
     } // --- Fin del método createProjectToolsPanel ---
     

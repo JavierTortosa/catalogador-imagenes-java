@@ -22,7 +22,7 @@ VisorV2.main: Configurando tema claro FlatLightLaf.
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
 [ThemeManager] Tema inicial establecido a: clear
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 590015440
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 2060028175
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -62,9 +62,9 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [ActionFactory] Inicializando Actions dependientes de la vista...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
   [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 86
-  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 23, Descartes: 0
+  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 17, Descartes: 6
 [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-  -> Proyecto inicial cargado. Selección: 23, Descartes: 0
+  -> Proyecto inicial cargado. Selección: 17, Descartes: 6
   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
@@ -90,9 +90,9 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
   [Controller] configurarListenerGlobalDeToolbars: Lógica deshabilitada en favor de PropertyChangeListener.
     [EDT Internal] Estableciendo carpeta raíz inicial desde config...
-  [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R'
-      -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R
-    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R
+  [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
+      -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
   [AppInitializer] Forzando sincronización visual inicial de botones toggle...
   [ConfigAppManager] Sincronizando apariencia de todos los botones toggle...
   [ConfigAppManager] Sincronización de apariencia completada.
@@ -137,7 +137,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: .metadata/.plugins/org.eclipse.jdt.ui/jdt-images/0.png
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -148,73 +148,45 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R con profundidad 2147483647
-  [Worker BG] Files.walk terminado. Archivos encontrados: 60254
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
+  [Worker BG] Files.walk terminado. Archivos encontrados: 209
 [Worker EDT] Método done() alcanzado.
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 60254
-    -> Ordenando 60254 claves...
+    WORKER HA TERMINADO. Número de archivos encontrados: 209
+    -> Ordenando 209 claves...
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@753d6297: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@753d6297 actualizado. Nuevo tamaño: 60254
-[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 60254
---> [actualizarImagenPrincipal] Iniciando carga para clave: '.metadata/.plugins/org.eclipse.jdt.ui/jdt-images/0.png' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
+### DEBUG CONTEXT: ListContext@64691e53: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@64691e53 actualizado. Nuevo tamaño: 209
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 209
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 2060028175
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
 [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   -> Solicitando repintado inicial de listaMiniaturas.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---- [Listener Primer Renderizado]: Panel listo (1144x257). Forzando refresco de zoom y UI. ---
+--- [Listener Primer Renderizado]: Panel listo (1149x580). Forzando refresco de zoom y UI. ---
 [VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 [VisorController] Sincronización de UI de Zoom completada.
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
---> [actualizarImagenPrincipal] Iniciando carga para clave: '.metadata/.plugins/org.eclipse.jdt.ui/jdt-images/7.png' (Índice: 7)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
-[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Iconos En Uso/Originales/streamline-core-duo-black--free--48x48-PNG/Ai-Generate-Landscape-Image-Spark--Streamline-Core.png' (Índice: 9)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Iconos En Uso/Originales/streamline-core-duo-black--free--48x48-PNG/Arrow-Bend-Left-Down-2--Streamline-Core.png' (Índice: 11)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: '.metadata/.plugins/org.eclipse.jdt.ui/jdt-images/5.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
 [GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@1250b423: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@1250b423 actualizado. Nuevo tamaño: 23
-    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 23
+### DEBUG CONTEXT: ListContext@2bdb83b2: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@2bdb83b2 actualizado. Nuevo tamaño: 17
+    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 17
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
   [GeneralController] Entrando en modo: PROYECTO
   [ProjectController] Activando la UI de la vista de proyecto...
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
   [ProjectController] UI de la vista de proyecto activada.
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 0
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 6
   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
   [GeneralController] Estado de la UI actualizado.
 [ViewManager] Vista cambiada a: VISTA_PROYECTOS
@@ -225,51 +197,32 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png' (Índice: 2)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 1)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/angry-hamster.jpg' (Índice: 3)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg' (Índice: 5)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png' (Índice: 2)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [ProjectManager] Proyecto guardado en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt (Selección: 22, Descartes: 1).
-  [ProjectManager] Imagen movida a descartes: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1001-Primera_48x48.png
+[ExportQueueManager] Preparando cola para 17 imágenes.
+[ExportQueueManager] Preparación de cola finalizada.
+[ProjectController] Modelo de tabla de exportación actualizado.
+  [ProjectController] Estado de exportación UI actualizado. Carpeta OK: false, Todos Items OK: false
+  [ProjectManager] Proyecto guardado en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt (Selección: 16, Descartes: 7).
+  [ProjectManager] Imagen movida a descartes: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
   [ProjectController] Refrescando ambas listas del proyecto...
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@1250b423: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@1250b423 actualizado. Nuevo tamaño: 22
-    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 22
+### DEBUG CONTEXT: ListContext@2bdb83b2: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@2bdb83b2 actualizado. Nuevo tamaño: 16
+    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 16
   [ProjectController] Activando la UI de la vista de proyecto...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg' (Índice: 0)
   [ProjectController] UI de la vista de proyecto activada.
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 1
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 1
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 7
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 7
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [ProjectManager] Proyecto guardado en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt (Selección: 23, Descartes: 0).
-  [ProjectManager] Imagen restaurada desde descartes: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1001-Primera_48x48.png
-  [ProjectController] Refrescando ambas listas del proyecto...
-  [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@1250b423: Restored old selectedKey: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png'
-### DEBUG CONTEXT: ListContext@1250b423 actualizado. Nuevo tamaño: 23
-    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 23
-  [ProjectController] Activando la UI de la vista de proyecto...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
-  [ProjectController] UI de la vista de proyecto activada.
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 0
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 0
+  [ProjectController] Carpeta de destino seleccionada: D:\Compartir\Encargos\Cuchi Cuchi 2025
+  [ProjectController] Estado de exportación UI actualizado. Carpeta OK: true, Todos Items OK: false
+[ExportQueueManager] Preparando cola para 16 imágenes.
+[ExportQueueManager] Preparación de cola finalizada.
+[ProjectController] Modelo de tabla de exportación actualizado.
+  [ProjectController] Estado de exportación UI actualizado. Carpeta OK: true, Todos Items OK: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg' (Índice: 13)
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png' (Índice: 2)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 1)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png' (Índice: 2)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 4)
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
