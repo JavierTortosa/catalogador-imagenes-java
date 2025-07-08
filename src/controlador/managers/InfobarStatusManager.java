@@ -369,7 +369,6 @@ public class InfobarStatusManager {
                  if (habilitado) {
                      label.setToolTipText(tooltipPrefix + ": " + (activo ? "Activado" : "Desactivado"));
                      
-                     // --- INICIO DE LA MODIFICACIÓN ---
                      if (activo) {
                          // Tomamos el color original del botón activado...
                          Color colorOriginal = tema.colorBotonFondoActivado();
@@ -382,7 +381,6 @@ public class InfobarStatusManager {
                          label.setBackground(tema.colorFondoSecundario());
                          label.setForeground(tema.colorTextoPrimario());
                      }
-                     // --- FIN DE LA MODIFICACIÓN ---
 
                  } else {
                      label.setToolTipText(tooltipPrefix + " (No disponible en este modo)");
@@ -396,35 +394,6 @@ public class InfobarStatusManager {
      } // --- Fin del método actualizarUnIndicador ---
     
     
-//    private void actualizarUnIndicador(String key, String configKeyVisible, boolean activo, String tooltipPrefix, boolean habilitado) {
-//        JLabel label = registry.get(key);
-//        if (label != null) {
-//            boolean esVisible = configuration.getBoolean(configKeyVisible, true);
-//            if(label.isVisible() != esVisible) label.setVisible(esVisible);
-//            
-//            label.setEnabled(habilitado);
-//
-//            if(esVisible) {
-//                Tema tema = themeManager.getTemaActual();
-//                
-//                // Aseguramos que sea opaco para que el fondo se pueda pintar
-//                label.setOpaque(true); 
-//                
-//                if (habilitado) {
-//                    label.setToolTipText(tooltipPrefix + ": " + (activo ? "Activado" : "Desactivado"));
-//                    label.setBackground(activo ? tema.colorLabelActivo() : tema.colorFondoSecundario());
-//                } else {
-//                    label.setToolTipText(tooltipPrefix + " (No disponible en este modo)");
-//                    label.setBackground(tema.colorFondoSecundario());
-//                }
-//            } else {
-//                 label.setOpaque(false);
-//            }
-//        }
-//    } // --- Fin del método actualizarUnIndicador ---
-    
-    
-
     private String getIconKeyForZoomMode(ZoomModeEnum modo) {
         String command = modo.getAssociatedActionCommand();
         // Busca en la definición de la barra de "zoom" el botón que corresponde a este comando

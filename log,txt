@@ -44,7 +44,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 82
+  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 84
   [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
 [VisorView Constructor SIMPLIFICADO] Iniciando...
   [ViewBuilder] Toolbar container creado con estructura BorderLayout (WEST, CENTER, EAST).
@@ -54,20 +54,22 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 [ToolbarBuilder] Construyendo DPadComponent con Fábrica Estática...
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
 [ViewBuilder] Barra de controles de imagen inferior añadida a rightPanel (BorderLayout.SOUTH).
+  [ProjectBuilder] Construyendo el panel del modo proyecto (Dashboard)...
+  [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.
   [ViewBuilder] Frame principal construido y ensamblado.
     -> VisorView (JFrame) creado.
     -> Inyectando la instancia de 'view' en los componentes...
   [ActionFactory] Inicializando Actions dependientes de la vista...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
-  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 84
-  [ProjectManager] Cargadas 4 rutas absolutas desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 86
+  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 23, Descartes: 0
 [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-  -> Imágenes marcadas inicialmente: 4
+  -> Proyecto inicial cargado. Selección: 23, Descartes: 0
   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 84 acciones.
+  [MenuBarBuilder] ActionMap recibido con 86 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
@@ -88,9 +90,9 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
   [Controller] configurarListenerGlobalDeToolbars: Lógica deshabilitada en favor de PropertyChangeListener.
     [EDT Internal] Estableciendo carpeta raíz inicial desde config...
-  [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
-      -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R'
+      -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R
+    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R
   [AppInitializer] Forzando sincronización visual inicial de botones toggle...
   [ConfigAppManager] Sincronizando apariencia de todos los botones toggle...
   [ConfigAppManager] Sincronización de apariencia completada.
@@ -135,7 +137,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: .metadata/.plugins/org.eclipse.jdt.ui/jdt-images/0.png
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -144,233 +146,75 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 [ThumbnailService] Caché de miniaturas limpiado.
   -> Caché de miniaturas limpiado.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
-  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-  [Worker BG] Files.walk terminado. Archivos encontrados: 209
+  [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R con profundidad 2147483647
+  [Worker BG] Files.walk terminado. Archivos encontrados: 60254
 [Worker EDT] Método done() alcanzado.
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 209
-    -> Ordenando 209 claves...
+    WORKER HA TERMINADO. Número de archivos encontrados: 60254
+    -> Ordenando 60254 claves...
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@7e039420: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@7e039420 actualizado. Nuevo tamaño: 209
-[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 209
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
+### DEBUG CONTEXT: ListContext@753d6297: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@753d6297 actualizado. Nuevo tamaño: 60254
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 60254
+--> [actualizarImagenPrincipal] Iniciando carga para clave: '.metadata/.plugins/org.eclipse.jdt.ui/jdt-images/0.png' (Índice: 0)
 !!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
 [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---- [Listener Primer Renderizado]: Panel listo (1144x257). Forzando refresco de zoom y UI. ---
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
-[GeneralController] Delegando iniciarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[GeneralController] Delegando continuarPaneo a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a VISUALIZADOR
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg' (Índice: 1)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
-[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
-[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
-[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
-[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
-[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarSiguiente a VISUALIZADOR
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarAnterior a VISUALIZADOR
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
-[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarAnterior a VISUALIZADOR
-[GeneralController] Delegando navegarAnterior a VISUALIZADOR
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
-[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarAnterior a VISUALIZADOR
   -> Solicitando repintado inicial de listaMiniaturas.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
+--- [Listener Primer Renderizado]: Panel listo (1144x257). Forzando refresco de zoom y UI. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+[VisorController] Sincronización de UI de Zoom completada.
+--- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
+--> [actualizarImagenPrincipal] Iniciando carga para clave: '.metadata/.plugins/org.eclipse.jdt.ui/jdt-images/7.png' (Índice: 7)
 !!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
-[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[GeneralController] Delegando navegarAnterior a VISUALIZADOR
+[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
+[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Iconos En Uso/Originales/streamline-core-duo-black--free--48x48-PNG/Ai-Generate-Landscape-Image-Spark--Streamline-Core.png' (Índice: 9)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Iconos En Uso/Originales/streamline-core-duo-black--free--48x48-PNG/Arrow-Bend-Left-Down-2--Streamline-Core.png' (Índice: 11)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: '.metadata/.plugins/org.eclipse.jdt.ui/jdt-images/5.png' (Índice: 5)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 590015440
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
 [GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@2678f9f7: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@2678f9f7 actualizado. Nuevo tamaño: 4
-    -> Datos del proyecto preparados en proyectoListContext.
+### DEBUG CONTEXT: ListContext@1250b423: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@1250b423 actualizado. Nuevo tamaño: 23
+    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 23
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
   [GeneralController] Entrando en modo: PROYECTO
   [ProjectController] Activando la UI de la vista de proyecto...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
   [ProjectController] UI de la vista de proyecto activada.
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 0
   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
   [GeneralController] Estado de la UI actualizado.
 [ViewManager] Vista cambiada a: VISTA_PROYECTOS
@@ -380,99 +224,53 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
 
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
-[VisorController] Sincronización de UI de Zoom completada.
-[GeneralController] Delegando aplicarZoomConRueda a PROYECTO
-[GeneralController] Delegando iniciarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
-[GeneralController] Delegando continuarPaneo a PROYECTO
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png' (Índice: 2)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 1)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/angry-hamster.jpg' (Índice: 3)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg' (Índice: 5)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png' (Índice: 2)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ProjectManager] Proyecto guardado en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt (Selección: 22, Descartes: 1).
+  [ProjectManager] Imagen movida a descartes: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1001-Primera_48x48.png
+  [ProjectController] Refrescando ambas listas del proyecto...
+  [ProjectController] Preparando datos para el modo proyecto...
+### DEBUG CONTEXT: ListContext@1250b423: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@1250b423 actualizado. Nuevo tamaño: 22
+    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 22
+  [ProjectController] Activando la UI de la vista de proyecto...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
+  [ProjectController] UI de la vista de proyecto activada.
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 1
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 1
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ProjectManager] Proyecto guardado en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt (Selección: 23, Descartes: 0).
+  [ProjectManager] Imagen restaurada desde descartes: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\iconos\black\1001-Primera_48x48.png
+  [ProjectController] Refrescando ambas listas del proyecto...
+  [ProjectController] Preparando datos para el modo proyecto...
+### DEBUG CONTEXT: ListContext@1250b423: Restored old selectedKey: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png'
+### DEBUG CONTEXT: ListContext@1250b423 actualizado. Nuevo tamaño: 23
+    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 23
+  [ProjectController] Activando la UI de la vista de proyecto...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
+  [ProjectController] UI de la vista de proyecto activada.
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 0
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 0
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png' (Índice: 2)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 1)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png' (Índice: 2)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 410424423

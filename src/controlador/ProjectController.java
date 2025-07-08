@@ -77,6 +77,7 @@ public class ProjectController implements IModoController { // <-- MODIFICADO: i
         }
     } // --- Fin del método configurarListeners ---
 
+    
     public boolean prepararDatosProyecto() {
         System.out.println("  [ProjectController] Preparando datos para el modo proyecto...");
         if (projectManager == null || model == null) {
@@ -92,29 +93,26 @@ public class ProjectController implements IModoController { // <-- MODIFICADO: i
 
         DefaultListModel<String> modeloProyecto = new DefaultListModel<>();
         Map<String, Path> mapaRutasProyecto = new HashMap<>();
-        Path carpetaRaiz = model.getCarpetaRaizActual();
-        if (carpetaRaiz == null) {
-            JOptionPane.showMessageDialog(view, "No se puede entrar al modo proyecto sin una carpeta base cargada.", "Error", JOptionPane.ERROR_MESSAGE);
-            return false;
-        }
 
+        // Ya no dependemos de model.getCarpetaRaizActual(). El proyecto es agnóstico a la carpeta.
+        // Las rutas en el proyecto ya son absolutas. Usaremos la ruta absoluta como la "clave"
+        // para el mapa, asegurando unicidad y acceso directo.
+        
         for (java.nio.file.Path rutaAbsoluta : imagenesMarcadas) {
-            try {
-                Path rutaRelativa = carpetaRaiz.relativize(rutaAbsoluta);
-                String clave = rutaRelativa.toString().replace("\\", "/");
-                modeloProyecto.addElement(clave);
-                mapaRutasProyecto.put(clave, rutaAbsoluta);
-            } catch (IllegalArgumentException e) {
-                 System.err.println("WARN [prepararDatosProyecto]: No se pudo relativizar la ruta marcada: " + rutaAbsoluta);
-            }
+            // La clave será la ruta absoluta convertida a String, con separadores normalizados.
+            String clave = rutaAbsoluta.toString().replace("\\", "/");
+            
+            modeloProyecto.addElement(clave);
+            mapaRutasProyecto.put(clave, rutaAbsoluta);
         }
 
         ListContext proyectoContext = model.getProyectoListContext();
         proyectoContext.actualizarContextoCompleto(modeloProyecto, mapaRutasProyecto);
         
-        System.out.println("    -> Datos del proyecto preparados en proyectoListContext.");
+        System.out.println("    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: " + modeloProyecto.getSize());
         return true;
     } // --- Fin del método prepararDatosProyecto ---
+    
     
     public void activarVistaProyecto() {
         System.out.println("  [ProjectController] Activando la UI de la vista de proyecto...");
@@ -165,6 +163,9 @@ public class ProjectController implements IModoController { // <-- MODIFICADO: i
         }
         
         System.out.println("  [ProjectController] UI de la vista de proyecto activada.");
+        
+        poblarListaDescartes();
+        
     } // --- Fin del método activarVistaProyecto ---
 
     private void actualizarImagenVistaProyecto() {
@@ -274,6 +275,132 @@ public class ProjectController implements IModoController { // <-- MODIFICADO: i
     } // --- Fin del método continuarPaneo ---
     
 // ****************************************************************** --- FIN DE LA IMPLEMENTACIÓN DE IModoController ---
+    
+// ******************************************************************************************** GESTION DEL MODO PROYECTO
+    
+    
+    
+    /**
+     * Puebla la JList de descartes con los datos actuales del ProjectManager.
+     * Este método debe ser llamado cuando se activa la vista de proyecto.
+     */
+    public void poblarListaDescartes() {
+        if (registry == null || projectManager == null) {
+            System.err.println("WARN [poblarListaDescartes]: Registry o ProjectManager nulos.");
+            return;
+        }
+
+        JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
+        if (listaDescartesUI == null) {
+            System.err.println("WARN [poblarListaDescartes]: JList 'list.proyecto.descartes' no encontrada en el registro.");
+            return;
+        }
+
+        List<Path> imagenesDescartadas = projectManager.getImagenesDescartadas();
+        DefaultListModel<String> modeloDescartes = new DefaultListModel<>();
+
+        for (Path rutaAbsoluta : imagenesDescartadas) {
+            String clave = rutaAbsoluta.toString().replace("\\", "/");
+            modeloDescartes.addElement(clave);
+        }
+
+        listaDescartesUI.setModel(modeloDescartes);
+        System.out.println("  [ProjectController] Lista de descartes actualizada en la UI. Total: " + modeloDescartes.getSize());
+    } // --- Fin del método poblarListaDescartes ---
+
+    /**
+     * Mueve la imagen actualmente seleccionada en la lista principal a la lista de descartes.
+     */
+    public void moverSeleccionActualADescartes() {
+        if (model == null || projectManager == null) return;
+
+        String claveSeleccionada = model.getSelectedImageKey();
+        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
+            System.out.println("  [ProjectController] No hay imagen seleccionada para mover a descartes.");
+            return;
+        }
+
+        Path rutaAbsoluta = model.getRutaCompleta(claveSeleccionada);
+        if (rutaAbsoluta != null) {
+            projectManager.moverAdescartes(rutaAbsoluta);
+            // Después de mover, refrescamos ambas listas en la UI
+            refrescarListasDeProyecto();
+        }
+    } // --- Fin del método moverSeleccionActualADescartes ---
+
+    /**
+     * Mueve la imagen actualmente seleccionada en la lista de descartes de vuelta a la selección principal.
+     */
+    public void restaurarDesdeDescartes() {
+        if (registry == null || projectManager == null) return;
+        
+        JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
+        if (listaDescartesUI == null) return;
+
+        String claveSeleccionada = listaDescartesUI.getSelectedValue();
+        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
+            System.out.println("  [ProjectController] No hay imagen seleccionada en descartes para restaurar.");
+            return;
+        }
+
+        // Como la clave es la ruta absoluta, podemos convertirla directamente a Path
+        Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
+        projectManager.restaurarDeDescartes(rutaAbsoluta);
+        
+        // Después de restaurar, refrescamos ambas listas en la UI
+        refrescarListasDeProyecto();
+    } // --- Fin del método restaurarDesdeDescartes ---
+
+    /**
+     * Refresca el contenido de las listas de "Selección Actual" y "Descartes"
+     * para que reflejen el estado actual del ProjectManager.
+     */
+    private void refrescarListasDeProyecto() {
+        System.out.println("  [ProjectController] Refrescando ambas listas del proyecto...");
+        
+        // Refrescar la lista de selección principal
+        // El método prepararDatosProyecto ya hace esto, así que lo reutilizamos
+        prepararDatosProyecto(); 
+        
+        // Lo activamos de nuevo para que la JList coja el nuevo modelo
+        activarVistaProyecto(); 
+
+        // Refrescar la lista de descartes
+        poblarListaDescartes();
+    } // --- Fin del método refrescarListasDeProyecto ---
+    
+// ************************************************************************************ FIN DE  GESTION DEL MODO PROYECTO    
+    
+    
+    /**
+     * Orquesta la operación de alternar el estado de marca de la imagen
+     * seleccionada DENTRO DEL MODO PROYECTO.
+     */
+    public void solicitudAlternarMarcaImagen() {
+        System.out.println("  [ProjectController] Procesando solicitud para alternar marca...");
+        if (model == null || projectManager == null || controllerRef == null) {
+            System.err.println("ERROR CRÍTICO [ProjectController.solicitudAlternarMarcaImagen]: Dependencias nulas.");
+            return;
+        }
+        
+        String claveActual = model.getSelectedImageKey();
+        if (claveActual == null || claveActual.isEmpty()) {
+            System.out.println("    -> No hay imagen seleccionada en el proyecto para marcar.");
+            return;
+        }
+
+        Path rutaAbsoluta = model.getRutaCompleta(claveActual); 
+        if (rutaAbsoluta == null) {
+            System.err.println("ERROR [ProjectController.solicitudAlternarMarcaImagen]: No se pudo resolver la ruta para la clave: " + claveActual);
+            return;
+        }
+
+        boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
+        
+        controllerRef.actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
+        
+        System.out.println("    -> Marca alternada para: " + rutaAbsoluta + ". Nuevo estado: " + (estaAhoraMarcada ? "MARCADA" : "NO MARCADA"));
+    } // --- Fin del método solicitudAlternarMarcaImagen ---
     
     
 } // --- FIN de la clase ProjectController ---

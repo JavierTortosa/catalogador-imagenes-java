@@ -1,5 +1,28 @@
-# VisorImagenes - Selección de Proyecto (Rutas Absolutas)
-D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png
-D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/A-gigante de hierro.jpg
+# VisorImagenes - Archivo de Proyecto
+
+[SELECCION]
+F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg
+F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg
+F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg
+F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg
+F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png
+F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg
+F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg
+F:/ARCHIVOS 3D/Chibi/angry-hamster.jpg
+F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg
+F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg
 D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/iconos/black/1001-Primera_48x48.png
+F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg
+F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg
+F:/ARCHIVOS 3D/Chibi/Satr Wars/STORM.jpg
+F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
+F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg
+F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg
+D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png
+F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg
 D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg
+F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg
+F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg
+F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg
+
+[DESCARTES]

@@ -72,7 +72,8 @@ public interface AppActionCommands {
     String CMD_PROYECTO_TOGGLE_MARCA 		= "cmd.proyecto.toggle_marca"; 			// Para Marcar/Desmarcar imagen actual
     String CMD_PROYECTO_GESTIONAR 			= "cmd.proyecto.gestionar";     		// Para abrir el diálogo/funcionalidad de gestión de proyectos (el JOptionPane por ahora)
     String CMD_PROYECTO_TOGGLE_VISTA 		= "cmd.proyecto.toggle_vista_seleccion"; // (Opcional por ahora, si quieres un botón/menú para alternar vista)
-
+    String CMD_PROYECTO_MOVER_A_DESCARTES 	= "cmd.proyecto.mover_a_descartes";
+    String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";
     
 
     // --- Vista (Toggles de UI) ---
@@ -87,6 +88,7 @@ public interface AppActionCommands {
 
     String CMD_VISTA_TOGGLE_MINIATURE_TEXT 	= "cmd.vista.toggle_miniature_text"; 	//Muestra el texto del nombre de las miniaturas
     String CMD_VISTA_SWITCH_TO_VISUALIZADOR = "cmd.vista.switch_to_visualizador";
+    
     
     // --- Comportamiento/Toggles Generales ---
     String CMD_TOGGLE_SUBCARPETAS 			= "cmd.toggle.subcarpetas";             // Para ToggleSubfoldersAction

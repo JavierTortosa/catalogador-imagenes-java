@@ -3819,8 +3819,16 @@ public class VisorController implements ActionListener, ClipboardOwner {
 // ***************************************************************************************************************************    
 
      
+     //TODO HACER SALTO DE CARPETA
+     //Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
+     
+     //TODO CTRL + ALT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
+     
+     //TODO Pasar las imagenes rapido con la rueda del raton no debe mostrar las imagenes, 
+     //solo un placebo que parezca que estan pasando imagenes pero en realidad no se ve nada
+     
+     //TODO conectar a internet en busca de una imgen para un zip que no la tiene
+     
+     
      
 } // --- FIN CLASE VisorController ---
-
-
-

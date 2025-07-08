@@ -202,54 +202,11 @@ public class InfobarImageManager {
         }
     } // --- Fin del método actualizarModoZoom ---
 
-//    private void actualizarPorcentajeZoom() {
-//        JLabel label = registry.get("label.info.porcentajeZoom");
-//        if (label == null) return;
-//
-//        boolean esVisible = configuration.getBoolean(ConfigKeys.INFOBAR_SUP_ZOOM_REAL_PCT_VISIBLE, true);
-//        if(label.isVisible() != esVisible) label.setVisible(esVisible);
-//
-//        if (esVisible) {
-//            String display = "N/A";
-//            BufferedImage img = model.getCurrentImage();
-//            
-//            if (img != null) {
-//                // --- INICIO LÓGICA DE CÁLCULO DEL ZOOM VISUAL REAL ---
-//                double zoomVisualReal = model.getZoomFactor(); // Partimos del zoom de intención
-//
-//                // Si el BMP está activo, debemos comprobar si hubo un reajuste
-//                if (model.isMantenerProporcion()) {
-//                    JPanel displayPanel = registry.get("panel.display.imagen");
-//                    if (displayPanel != null && displayPanel.getWidth() > 0 && displayPanel.getHeight() > 0) {
-//                        int panelW = displayPanel.getWidth();
-//                        int panelH = displayPanel.getHeight();
-//                        int imgW = img.getWidth();
-//                        int imgH = img.getHeight();
-//
-//                        // Calculamos las dimensiones que la imagen TENDRÍA con el zoom de intención
-//                        int tempW = (int) (imgW * zoomVisualReal);
-//                        int tempH = (int) (imgH * zoomVisualReal);
-//
-//                        // Si se sale de la pantalla, hubo un reajuste
-//                        if (tempW > panelW || tempH > panelH) {
-//                            // Calculamos el ratio de ajuste real que se aplicó
-//                            double ratioAjuste = Math.min((double) panelW / tempW, (double) panelH / tempH);
-//                            zoomVisualReal *= ratioAjuste; // Aplicamos el ajuste para obtener el zoom visual real
-//                        }
-//                    }
-//                }
-//                display = String.format("%.0f%%", zoomVisualReal * 100);
-//                // --- FIN LÓGICA DE CÁLCULO ---
-//            }
-//            label.setText("%Z: " + display);
-//        }
-//    } // --- Fin del método actualizarPorcentajeZoom ---
-    
     
     private void actualizarPorcentajeZoom() {
     	
-    	// LOG ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO"
-    	System.out.println("### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO");
+//    	// LOG ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO"
+//    	System.out.println("### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO");
     	
         JLabel label = registry.get("label.info.porcentajeZoom");
         if (label == null) return;

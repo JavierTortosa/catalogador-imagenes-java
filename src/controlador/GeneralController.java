@@ -480,6 +480,19 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         System.out.println("[GeneralController] Paneo incremental aplicado. Offset: (" + newOffsetX + ", " + newOffsetY + ")");
     } // --- Fin del método panImageIncrementally ---
     
+    /**
+     * Actúa como un router para la acción de marcar/desmarcar una imagen.
+     * Delega la solicitud al controlador del modo de trabajo activo.
+     */
+    public void solicitudAlternarMarcaImagenActual() {
+        System.out.println("[GeneralController] Recibida solicitud para alternar marca. Modo actual: " + model.getCurrentWorkMode());
+        if (model.isEnModoProyecto()) {
+            projectController.solicitudAlternarMarcaImagen();
+        } else {
+            visorController.solicitudAlternarMarcaDeImagenActual();
+        }
+    } // --- Fin del método solicitudAlternarMarcaImagenActual ---
+    
     
 //  ************************************************************************************** IMPLEMENTACION INTERFAZ IModoController
     
@@ -590,7 +603,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                     if (menuBar.getMenuCount() > 0) { // Si no hay ningún menú activo, activamos el primero.
                         JMenu primerMenu = menuBar.getMenu(0);
                         if (primerMenu != null) {
-                            System.out.println("--- [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
+                        	
+                        	//LOG [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'
+                            //System.out.println("--- [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
+                        	
                             primerMenu.doClick(); // Simula un clic del ratón, abriendo el menú.
                         }
                     }
@@ -664,7 +680,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarSiguiente();
         }
-        System.out.println("[GeneralController] Delegando navegarSiguiente a " + model.getCurrentWorkMode());
+        
+        //LOG [GeneralController] Delegando navegarSiguiente
+        //System.out.println("[GeneralController] Delegando navegarSiguiente a " + model.getCurrentWorkMode());
         
     }// --- FIN del metodo navegarSiguiente ---
 
@@ -676,7 +694,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarAnterior();
         }
-        System.out.println("[GeneralController] Delegando navegarAnterior a " + model.getCurrentWorkMode());
+        // LOG [GeneralController] Delegando navegarAnterior
+        //System.out.println("[GeneralController] Delegando navegarAnterior a " + model.getCurrentWorkMode());
         
     }// --- FIN del metodo navegarAnterior ---
 
@@ -688,7 +707,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarPrimero();
         }
-        System.out.println("[GeneralController] Delegando navegarPrimero a " + model.getCurrentWorkMode());
+        
+        // LOG [GeneralController] Delegando navegarPrimero
+        //System.out.println("[GeneralController] Delegando navegarPrimero a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo navegarPrimero ---
     
@@ -700,7 +721,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarUltimo();
         }
-        System.out.println("[GeneralController] Delegando navegarUltimo a " + model.getCurrentWorkMode());
+        // LOG [GeneralController] Delegando navegarUltimo
+        //System.out.println("[GeneralController] Delegando navegarUltimo a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo navegarUltimo ---
     
@@ -712,7 +734,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarBloqueAnterior();
         }
-        System.out.println("[GeneralController] Delegando navegarBloqueAnterior a " + model.getCurrentWorkMode());
+        
+        //LOG [GeneralController] Delegando navegarBloqueAnterior
+        //System.out.println("[GeneralController] Delegando navegarBloqueAnterior a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo navegarBloqueAnterior ---
     
@@ -724,7 +748,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarBloqueSiguiente();
         }
-        System.out.println("[GeneralController] Delegando navegarBloqueSiguiente a " + model.getCurrentWorkMode());
+        //LOG [GeneralController] Delegando navegarBloqueSiguiente
+        //System.out.println("[GeneralController] Delegando navegarBloqueSiguiente a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo navegarBloqueSiguiente ---
     
@@ -751,7 +776,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarZoomConRueda(e);
         }
-        System.out.println("[GeneralController] Delegando aplicarZoomConRueda a " + model.getCurrentWorkMode());
+        
+        //LOG [GeneralController] Delegando aplicarZoomConRueda
+        //System.out.println("[GeneralController] Delegando aplicarZoomConRueda a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo aplicarZoomConRueda ---
     
@@ -765,7 +792,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarPan(deltaX, deltaY);
         }
-        System.out.println("[GeneralController] Delegando aplicarPan a " + model.getCurrentWorkMode());
+        //LOG [GeneralController] Delegando aplicarPan
+        //System.out.println("[GeneralController] Delegando aplicarPan a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo aplicarPan ---
     
@@ -782,7 +810,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.iniciarPaneo(e);
         }
-        System.out.println("[GeneralController] Delegando iniciarPaneo a " + model.getCurrentWorkMode());
+        
+        //LOG [GeneralController] Delegando iniciarPaneo
+        //System.out.println("[GeneralController] Delegando iniciarPaneo a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo iniciarPaneo ---
 
@@ -801,7 +831,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarPan(deltaX, deltaY);
         }
-        System.out.println("[GeneralController] Delegando continuarPaneo a " + model.getCurrentWorkMode());
+        
+        //LOG [GeneralController] Delegando continuarPaneo
+        //System.out.println("[GeneralController] Delegando continuarPaneo a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo continuarPaneo ---
     

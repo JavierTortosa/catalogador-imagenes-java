@@ -180,7 +180,7 @@ public class AppInitializer {
             this.listCoordinator = new ListCoordinator();
             this.fileOperationsManager = new FileOperationsManager();
             this.projectController = new ProjectController();
-            ProjectBuilder projectBuilder = new ProjectBuilder(registry, this.model, this.themeManager);
+            ProjectBuilder projectBuilder = new ProjectBuilder(registry, this.model, this.themeManager, this.generalController);
             DefaultListModel<String> modeloMiniaturas = this.controller.getModeloMiniaturas();
             
             ViewBuilder viewBuilder = new ViewBuilder(

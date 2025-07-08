@@ -1,3 +1,4 @@
+// Archivo: IProjectManager.java
 package controlador.managers.interfaces;
 
 import java.awt.Component;
@@ -6,15 +7,45 @@ import java.util.List;
 
 /**
  * Interfaz (Contrato) que define las responsabilidades del ProjectManager.
- * Define las operaciones para marcar, gestionar y recuperar selecciones de imágenes.
+ * Define las operaciones para marcar, gestionar y recuperar selecciones de imágenes,
+ * incluyendo las listas de selección principal y de descartes.
  */
 public interface IProjectManager {
 
     /**
-     * Devuelve una lista de los Paths absolutos de todas las imágenes marcadas.
+     * Devuelve una lista de los Paths absolutos de todas las imágenes en la SELECCIÓN PRINCIPAL.
      * @return Una nueva lista de Paths (ordenada).
      */
     List<Path> getImagenesMarcadas();
+
+    // --- INICIO DE LA MODIFICACIÓN ---
+
+    /**
+     * Devuelve la lista de imágenes actualmente en la sección de descartes.
+     * @return Una lista ordenada de Paths de las imágenes descartadas.
+     */
+    List<Path> getImagenesDescartadas();
+
+    /**
+     * Mueve una imagen de la selección actual a la lista de descartes.
+     * @param rutaAbsolutaImagen La ruta de la imagen a mover.
+     */
+    void moverAdescartes(Path rutaAbsolutaImagen);
+
+    /**
+     * Mueve una imagen de la lista de descartes de vuelta a la selección actual.
+     * @param rutaAbsolutaImagen La ruta de la imagen a restaurar.
+     */
+    void restaurarDeDescartes(Path rutaAbsolutaImagen);
+
+    /**
+     * Comprueba si una imagen está actualmente en la lista de descartes.
+     * @param rutaAbsolutaImagen La ruta de la imagen a comprobar.
+     * @return true si está en descartes, false en caso contrario.
+     */
+    boolean estaEnDescartes(Path rutaAbsolutaImagen);
+
+    // --- FIN DE LA MODIFICACIÓN ---
 
     /**
      * Muestra un diálogo o una vista para gestionar los proyectos/selecciones.
@@ -35,14 +66,15 @@ public interface IProjectManager {
     void desmarcarImagenInterno(Path rutaAbsoluta);
 
     /**
-     * Verifica si una imagen (dada por su Path absoluto) está actualmente marcada.
+     * Verifica si una imagen (dada por su Path absoluto) está actualmente marcada en la SELECCIÓN PRINCIPAL.
      * @param rutaAbsolutaImagen El Path absoluto de la imagen a verificar.
      * @return true si la imagen está marcada, false en caso contrario.
      */
     boolean estaMarcada(Path rutaAbsolutaImagen);
 
     /**
-     * Alterna el estado de marca de una imagen (dada por su Path absoluto).
+
+     * Alterna el estado de marca de una imagen (dada por su Path absoluto) en la SELECCIÓN PRINCIPAL.
      * @param rutaAbsolutaImagen El Path absoluto de la imagen.
      * @return true si la imagen quedó marcada, false si quedó desmarcada.
      */

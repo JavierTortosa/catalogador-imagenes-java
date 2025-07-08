@@ -22,7 +22,9 @@ import controlador.managers.interfaces.IProjectManager;
 public class ProjectManager implements IProjectManager {
 
     private Path archivoSeleccionActualPath;
-    private Set<Path> rutasAbsolutasMarcadas;
+//    private Set<Path> rutasAbsolutasMarcadas;
+    private Set<Path> seleccionActual;
+    private Set<Path> seleccionDescartada;
     private ConfigurationManager configManager;
 
     /**
@@ -30,7 +32,9 @@ public class ProjectManager implements IProjectManager {
      * Las dependencias se inyectan a través de setters.
      */
     public ProjectManager() {
-        this.rutasAbsolutasMarcadas = new HashSet<>();
+//        this.rutasAbsolutasMarcadas = new HashSet<>();
+    	this.seleccionActual = new HashSet<>();
+        this.seleccionDescartada = new HashSet<>();
     } // --- Fin del método ProjectManager (constructor) ---
 
     /**
@@ -43,7 +47,7 @@ public class ProjectManager implements IProjectManager {
         }
         inicializarRutaArchivoSeleccion();
         System.out.println("[ProjectManager] Instancia inicializada. Selección actual desde: " + (this.archivoSeleccionActualPath != null ? this.archivoSeleccionActualPath.toAbsolutePath() : "N/A"));
-        System.out.println("  -> Imágenes marcadas inicialmente: " + this.rutasAbsolutasMarcadas.size());
+        System.out.println("  -> Proyecto inicial cargado. Selección: " + this.seleccionActual.size() + ", Descartes: " + this.seleccionDescartada.size());
     } // --- Fin del método initialize ---
 
     private void inicializarRutaArchivoSeleccion() {
@@ -77,57 +81,147 @@ public class ProjectManager implements IProjectManager {
         cargarDesdeArchivo(this.archivoSeleccionActualPath);
     } // --- Fin del método inicializarRutaArchivoSeleccion ---
 
+    
     private void cargarDesdeArchivo(Path rutaArchivo) {
-        this.rutasAbsolutasMarcadas.clear();
+        this.seleccionActual.clear();
+        this.seleccionDescartada.clear();
+
         if (Files.exists(rutaArchivo) && Files.isReadable(rutaArchivo)) {
+            String seccionActual = "SELECCION"; // Por defecto, las líneas sin sección van a la selección principal.
+
             try (BufferedReader reader = Files.newBufferedReader(rutaArchivo)) {
                 String linea;
-                int count = 0;
                 while ((linea = reader.readLine()) != null) {
-                    String rutaStr = linea.trim();
-                    if (!rutaStr.isEmpty() && !rutaStr.startsWith("#")) {
-                        try {
-                            this.rutasAbsolutasMarcadas.add(Paths.get(rutaStr));
-                            count++;
-                        } catch (Exception e) {
-                            System.err.println("WARN [PM cargar]: Ruta inválida en archivo de selección: '" + rutaStr + "' - " + e.getMessage());
+                    linea = linea.trim();
+                    if (linea.isEmpty() || linea.startsWith("#")) {
+                        continue; // Ignorar líneas vacías y comentarios
+                    }
+
+                    if (linea.equalsIgnoreCase("[SELECCION]")) {
+                        seccionActual = "SELECCION";
+                        continue;
+                    } else if (linea.equalsIgnoreCase("[DESCARTES]")) {
+                        seccionActual = "DESCARTES";
+                        continue;
+                    }
+
+                    try {
+                        Path rutaParseada = Paths.get(linea);
+                        if ("SELECCION".equals(seccionActual)) {
+                            this.seleccionActual.add(rutaParseada);
+                        } else if ("DESCARTES".equals(seccionActual)) {
+                            this.seleccionDescartada.add(rutaParseada);
                         }
+                    } catch (Exception e) {
+                        System.err.println("WARN [PM cargar]: Ruta inválida en archivo de proyecto: '" + linea + "' - " + e.getMessage());
                     }
                 }
-                System.out.println("  [ProjectManager] Cargadas " + count + " rutas absolutas desde " + rutaArchivo);
+                System.out.println("  [ProjectManager] Proyecto cargado desde " + rutaArchivo +
+                                   ". Selección: " + this.seleccionActual.size() +
+                                   ", Descartes: " + this.seleccionDescartada.size());
+
             } catch (IOException e) {
-                System.err.println("ERROR [ProjectManager]: No se pudo leer el archivo de selección: " + rutaArchivo + " - " + e.getMessage());
+                System.err.println("ERROR [ProjectManager]: No se pudo leer el archivo de proyecto: " + rutaArchivo + " - " + e.getMessage());
             }
         } else {
-            System.out.println("  [ProjectManager] Archivo de selección no encontrado o no legible: " + rutaArchivo + ". Se iniciará con selección vacía.");
+            System.out.println("  [ProjectManager] Archivo de proyecto no encontrado: " + rutaArchivo + ". Se iniciará con proyecto vacío.");
         }
     } // --- Fin del método cargarDesdeArchivo ---
-
+    
+    
+//    private void cargarDesdeArchivo(Path rutaArchivo) {
+//        this.rutasAbsolutasMarcadas.clear();
+//        if (Files.exists(rutaArchivo) && Files.isReadable(rutaArchivo)) {
+//            try (BufferedReader reader = Files.newBufferedReader(rutaArchivo)) {
+//                String linea;
+//                int count = 0;
+//                while ((linea = reader.readLine()) != null) {
+//                    String rutaStr = linea.trim();
+//                    if (!rutaStr.isEmpty() && !rutaStr.startsWith("#")) {
+//                        try {
+//                            this.rutasAbsolutasMarcadas.add(Paths.get(rutaStr));
+//                            count++;
+//                        } catch (Exception e) {
+//                            System.err.println("WARN [PM cargar]: Ruta inválida en archivo de selección: '" + rutaStr + "' - " + e.getMessage());
+//                        }
+//                    }
+//                }
+//                System.out.println("  [ProjectManager] Cargadas " + count + " rutas absolutas desde " + rutaArchivo);
+//            } catch (IOException e) {
+//                System.err.println("ERROR [ProjectManager]: No se pudo leer el archivo de selección: " + rutaArchivo + " - " + e.getMessage());
+//            }
+//        } else {
+//            System.out.println("  [ProjectManager] Archivo de selección no encontrado o no legible: " + rutaArchivo + ". Se iniciará con selección vacía.");
+//        }
+//    } // --- Fin del método cargarDesdeArchivo ---
+    
+    
     private void guardarAArchivo() {
         if (this.archivoSeleccionActualPath == null) {
             System.err.println("ERROR [PM guardar]: archivoSeleccionActualPath es null. No se puede guardar.");
             return;
         }
+
         try (BufferedWriter writer = Files.newBufferedWriter(this.archivoSeleccionActualPath,
                                                             StandardOpenOption.CREATE,
                                                             StandardOpenOption.TRUNCATE_EXISTING)) {
-            writer.write("# VisorImagenes - Selección de Proyecto (Rutas Absolutas)");
+            // --- Escribir sección de SELECCION ---
+            writer.write("# VisorImagenes - Archivo de Proyecto");
             writer.newLine();
-            for (Path ruta : this.rutasAbsolutasMarcadas) {
+            writer.newLine();
+            writer.write("[SELECCION]");
+            writer.newLine();
+            for (Path ruta : this.seleccionActual) {
                 writer.write(ruta.toString().replace("\\", "/"));
                 writer.newLine();
             }
-            System.out.println("  [ProjectManager] Selección guardada en " + this.archivoSeleccionActualPath +
-                               " (" + this.rutasAbsolutasMarcadas.size() + " rutas).");
+
+            // --- Escribir sección de DESCARTES ---
+            writer.newLine();
+            writer.write("[DESCARTES]");
+            writer.newLine();
+            for (Path ruta : this.seleccionDescartada) {
+                writer.write(ruta.toString().replace("\\", "/"));
+                writer.newLine();
+            }
+
+            System.out.println("  [ProjectManager] Proyecto guardado en " + this.archivoSeleccionActualPath +
+                               " (Selección: " + this.seleccionActual.size() +
+                               ", Descartes: " + this.seleccionDescartada.size() + ").");
+
         } catch (IOException e) {
-            System.err.println("ERROR [ProjectManager]: No se pudo guardar el archivo de selección: " +
+            System.err.println("ERROR [ProjectManager]: No se pudo guardar el archivo de proyecto: " +
                                this.archivoSeleccionActualPath + " - " + e.getMessage());
         }
     } // --- Fin del método guardarAArchivo ---
+    
+
+//    private void guardarAArchivo() {
+//        if (this.archivoSeleccionActualPath == null) {
+//            System.err.println("ERROR [PM guardar]: archivoSeleccionActualPath es null. No se puede guardar.");
+//            return;
+//        }
+//        try (BufferedWriter writer = Files.newBufferedWriter(this.archivoSeleccionActualPath,
+//                                                            StandardOpenOption.CREATE,
+//                                                            StandardOpenOption.TRUNCATE_EXISTING)) {
+//            writer.write("# VisorImagenes - Selección de Proyecto (Rutas Absolutas)");
+//            writer.newLine();
+//            for (Path ruta : this.rutasAbsolutasMarcadas) {
+//                writer.write(ruta.toString().replace("\\", "/"));
+//                writer.newLine();
+//            }
+//            System.out.println("  [ProjectManager] Selección guardada en " + this.archivoSeleccionActualPath +
+//                               " (" + this.rutasAbsolutasMarcadas.size() + " rutas).");
+//        } catch (IOException e) {
+//            System.err.println("ERROR [ProjectManager]: No se pudo guardar el archivo de selección: " +
+//                               this.archivoSeleccionActualPath + " - " + e.getMessage());
+//        }
+//    } // --- Fin del método guardarAArchivo ---
 
     @Override
     public List<Path> getImagenesMarcadas() {
-        List<Path> sortedList = new ArrayList<>(this.rutasAbsolutasMarcadas);
+//        List<Path> sortedList = new ArrayList<>(this.rutasAbsolutasMarcadas);
+    	List<Path> sortedList = new ArrayList<>(this.seleccionActual);
         Collections.sort(sortedList);
         return sortedList;
     } // --- Fin del método getImagenesMarcadas ---
@@ -136,7 +230,7 @@ public class ProjectManager implements IProjectManager {
     public void gestionarSeleccionProyecto(Component parentComponent) {
         String message = "Funcionalidad para gestionar la selección de imágenes del proyecto (marcar, ver, guardar, cargar) aún no implementada.\n\n" +
                          "Actualmente se usa: " + (this.archivoSeleccionActualPath != null ? this.archivoSeleccionActualPath.toAbsolutePath() : "Ninguno") +
-                         "\nImágenes marcadas: " + this.rutasAbsolutasMarcadas.size();
+                         "\nImágenes seleccionadas: " + this.seleccionActual.size() + "\nImágenes descartadas: " + this.seleccionDescartada.size();
         JOptionPane.showMessageDialog(parentComponent,
                                       message,
                                       "Gestión de Selección de Proyecto (Pendiente)",
@@ -147,7 +241,7 @@ public class ProjectManager implements IProjectManager {
     @Override
     public void marcarImagenInterno(Path rutaAbsoluta) {
         if (rutaAbsoluta == null) return;
-        if (this.rutasAbsolutasMarcadas.add(rutaAbsoluta)) {
+        if (this.seleccionActual.add(rutaAbsoluta)) {
             guardarAArchivo();
             System.out.println("  [ProjectManager] Imagen marcada (ruta abs): " + rutaAbsoluta);
         }
@@ -156,7 +250,7 @@ public class ProjectManager implements IProjectManager {
     @Override
     public void desmarcarImagenInterno(Path rutaAbsoluta) {
         if (rutaAbsoluta == null) return;
-        if (this.rutasAbsolutasMarcadas.remove(rutaAbsoluta)) {
+        if (this.seleccionActual.remove(rutaAbsoluta)) {
             guardarAArchivo();
             System.out.println("  [ProjectManager] Imagen desmarcada (ruta abs): " + rutaAbsoluta);
         }
@@ -165,7 +259,7 @@ public class ProjectManager implements IProjectManager {
     @Override
     public boolean estaMarcada(Path rutaAbsolutaImagen) {
         if (rutaAbsolutaImagen == null) return false;
-        return this.rutasAbsolutasMarcadas.contains(rutaAbsolutaImagen);
+        return this.seleccionActual.contains(rutaAbsolutaImagen);
     } // --- Fin del método estaMarcada ---
 
     @Override
@@ -181,6 +275,56 @@ public class ProjectManager implements IProjectManager {
         }
     } // --- Fin del método alternarMarcaImagen ---
 
+    
+    /**
+     * Devuelve la lista de imágenes actualmente en la sección de descartes.
+     * @return Una lista ordenada de Paths de las imágenes descartadas.
+     */
+    public List<Path> getImagenesDescartadas() {
+        List<Path> sortedList = new ArrayList<>(this.seleccionDescartada);
+        Collections.sort(sortedList);
+        return sortedList;
+    } // --- Fin del método getImagenesDescartadas ---
+
+    /**
+     * Mueve una imagen de la selección actual a la lista de descartes.
+     * Si la imagen no estaba en la selección, no hace nada.
+     * @param rutaAbsolutaImagen La ruta de la imagen a mover.
+     */
+    public void moverAdescartes(Path rutaAbsolutaImagen) {
+        if (rutaAbsolutaImagen == null) return;
+        if (this.seleccionActual.remove(rutaAbsolutaImagen)) {
+            this.seleccionDescartada.add(rutaAbsolutaImagen);
+            guardarAArchivo();
+            System.out.println("  [ProjectManager] Imagen movida a descartes: " + rutaAbsolutaImagen);
+        }
+    } // --- Fin del método moverAdescartes ---
+
+    /**
+     * Mueve una imagen de la lista de descartes de vuelta a la selección actual.
+     * Si la imagen no estaba en descartes, no hace nada.
+     * @param rutaAbsolutaImagen La ruta de la imagen a restaurar.
+     */
+    public void restaurarDeDescartes(Path rutaAbsolutaImagen) {
+        if (rutaAbsolutaImagen == null) return;
+        if (this.seleccionDescartada.remove(rutaAbsolutaImagen)) {
+            this.seleccionActual.add(rutaAbsolutaImagen);
+            guardarAArchivo();
+            System.out.println("  [ProjectManager] Imagen restaurada desde descartes: " + rutaAbsolutaImagen);
+        }
+    } // --- Fin del método restaurarDeDescartes ---
+
+    /**
+     * Comprueba si una imagen está actualmente en la lista de descartes.
+     * @param rutaAbsolutaImagen La ruta de la imagen a comprobar.
+     * @return true si está en descartes, false en caso contrario.
+     */
+    public boolean estaEnDescartes(Path rutaAbsolutaImagen) {
+        if (rutaAbsolutaImagen == null) return false;
+        return this.seleccionDescartada.contains(rutaAbsolutaImagen);
+    } // --- Fin del método estaEnDescartes ---
+    
+    
     /**
      * Inyecta el gestor de configuración.
      * @param configManager La instancia de ConfigurationManager.

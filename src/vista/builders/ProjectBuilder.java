@@ -1,18 +1,20 @@
 package vista.builders;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.util.Objects;
 
+import javax.swing.Action;
 import javax.swing.BorderFactory;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
+import controlador.GeneralController;
+import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import vista.panels.ImageDisplayPanel;
@@ -23,79 +25,64 @@ public class ProjectBuilder {
 
     private final ComponentRegistry registry;
     private final VisorModel model;
-    // --- INICIO DE LA MODIFICACIÓN: Nuevas dependencias ---
     private final ThemeManager themeManager;
-    // --- FIN DE LA MODIFICACIÓN ---
+    private final GeneralController generalController;
 
     // <--- MODIFICADO: Constructor ahora necesita ThemeManager ---
-    public ProjectBuilder(ComponentRegistry registry, VisorModel model, ThemeManager themeManager) {
+    public ProjectBuilder(ComponentRegistry registry, VisorModel model, ThemeManager themeManager, GeneralController generalController) {
         this.registry = Objects.requireNonNull(registry, "Registry no puede ser null en ProjectBuilder");
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en ProjectBuilder");
         this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ProjectBuilder");
+        this.generalController = Objects.requireNonNull(generalController, "GeneralController no puede ser null");
     } // --- Fin del método ProjectBuilder (constructor) ---
 
-    // <--- MODIFICADO: El método ahora construye una UI completa ---
+    
+    /**
+     * MODIFICADO: Construye el panel principal para la vista de proyecto con una estructura
+     * de Dashboard, utilizando JSplitPanes anidados y JTabbedPanes.
+     * Esta estructura es flexible y permite añadir nuevas herramientas y listas en el futuro.
+     * @return Un JPanel configurado con la nueva estructura de Dashboard.
+     */
     public JPanel buildProjectViewPanel() {
-        JPanel panelProyecto = new JPanel(new BorderLayout());
-        registry.register("view.panel.proyectos", panelProyecto);
+        System.out.println("  [ProjectBuilder] Construyendo el panel del modo proyecto (Dashboard)...");
 
-        // Creamos la estructura principal con un JSplitPane
-        JSplitPane splitPaneProyecto = new JSplitPane(
-            JSplitPane.HORIZONTAL_SPLIT,
-            createProjectLeftPanel(), 
-            createProjectRightPanel()
-        );
-        splitPaneProyecto.setResizeWeight(0.25);
-        splitPaneProyecto.setContinuousLayout(true);
-        splitPaneProyecto.setBorder(null);
-        registry.register("splitpane.proyecto", splitPaneProyecto);
+        // --- 1. Panel Raíz de la Vista Proyecto ---
+        // Este es el panel que se añadirá al CardLayout principal. Usa BorderLayout.
+        JPanel panelProyectoRaiz = new JPanel(new BorderLayout());
+        registry.register("view.panel.proyectos", panelProyectoRaiz);
 
-        panelProyecto.add(splitPaneProyecto, BorderLayout.CENTER);
+        // --- 2. JSplitPane Principal (HORIZONTAL) ---
+        // Divide la vista en una zona izquierda (listas/herramientas) y una derecha (visor).
+        JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        mainSplit.setResizeWeight(0.25); // El 25% del espacio va a la izquierda por defecto.
+        mainSplit.setContinuousLayout(true);
+        mainSplit.setBorder(null); // Sin bordes para una apariencia limpia.
+        registry.register("splitpane.proyecto.main", mainSplit);
+
+        // --- 3. JSplitPane Izquierdo (VERTICAL) ---
+        // Divide la zona izquierda en una parte superior (listas) y una inferior (herramientas).
+        JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        leftSplit.setResizeWeight(0.6); // El 60% del espacio para las listas por defecto.
+        leftSplit.setContinuousLayout(true);
+        leftSplit.setBorder(null);
+        registry.register("splitpane.proyecto.left", leftSplit);
+
+        // --- 4. Creación de los Paneles Contenedores ---
+        // Se crean los paneles que irán dentro de los JSplitPanes.
+
+        // 4.1. Panel para las listas (arriba-izquierda)
+        JPanel panelListas = createProjectListsPanel();
         
-        // Podríamos añadir una barra de estado o de miniaturas específica para el proyecto aquí si quisiéramos
-        // panelProyecto.add(createProjectStatusBar(), BorderLayout.SOUTH);
+        // 4.2. Panel para las herramientas (abajo-izquierda)
+        JPanel panelHerramientas = createProjectToolsPanel();
 
-        return panelProyecto;
-    } // --- Fin del método buildProjectViewPanel ---
+        // --- INICIO DE LA CORRECCIÓN ---
+        // 4.3. Panel para el visor de imagen (derecha)
+        // Se crea directamente aquí para no depender de un método que vamos a eliminar.
+        JPanel panelVisor = new JPanel(new BorderLayout());
+        panelVisor.setBackground(themeManager.getTemaActual().colorFondoSecundario());
+        registry.register("panel.proyecto.visor", panelVisor);
 
-    /**
-     * Crea el panel izquierdo para la vista de proyecto, que contiene la lista de imágenes marcadas.
-     * @return Un JPanel configurado.
-     */
-    private JPanel createProjectLeftPanel() {
-        JPanel panelIzquierdo = new JPanel(new BorderLayout());
-        panelIzquierdo.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
-        
-        TitledBorder border = BorderFactory.createTitledBorder("Imágenes del Proyecto: 0");
-        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-        panelIzquierdo.setBorder(border);
-        registry.register("panel.proyecto.lista", panelIzquierdo);
-
-        // Creamos una JList específica para el proyecto. Inicialmente estará vacía.
-        JList<String> projectFileList = new JList<>();
-        projectFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        // Usamos el mismo renderer que la lista principal para consistencia visual.
-        projectFileList.setCellRenderer(new NombreArchivoRenderer(themeManager));
-        registry.register("list.proyecto.nombres", projectFileList);
-
-        JScrollPane scrollPane = new JScrollPane(projectFileList);
-        scrollPane.setBorder(BorderFactory.createLineBorder(themeManager.getTemaActual().colorBorde()));
-        registry.register("scroll.proyecto.nombres", scrollPane);
-
-        panelIzquierdo.add(scrollPane, BorderLayout.CENTER);
-        return panelIzquierdo;
-    } // --- Fin del método createProjectLeftPanel ---
-
-    /**
-     * Crea el panel derecho para la vista de proyecto, que contiene el visor de imagen.
-     * @return Un JPanel configurado.
-     */
-    private JPanel createProjectRightPanel() {
-        JPanel rightPanel = new JPanel(new BorderLayout());
-        rightPanel.setBackground(themeManager.getTemaActual().colorFondoSecundario());
-        registry.register("panel.proyecto.visor", rightPanel);
-
-        // Creamos un ImageDisplayPanel específico para esta vista.
         ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
         registry.register("panel.proyecto.display", imageDisplayPanel);
         
@@ -103,12 +90,155 @@ public class ProjectBuilder {
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
         imageDisplayPanel.setBorder(border);
         
-        rightPanel.add(imageDisplayPanel, BorderLayout.CENTER);
-        
-        // Aquí podríamos añadir controles específicos para el modo proyecto en el futuro.
+        panelVisor.add(imageDisplayPanel, BorderLayout.CENTER);
+        // --- FIN DE LA CORRECCIÓN ---
 
-        return rightPanel;
-    } // --- Fin del método createProjectRightPanel ---
+        // --- 5. Ensamblaje de la Estructura ---
+        // Se conectan todos los paneles en el orden correcto.
+        leftSplit.setTopComponent(panelListas);
+        leftSplit.setBottomComponent(panelHerramientas);
+
+        mainSplit.setLeftComponent(leftSplit);
+        mainSplit.setRightComponent(panelVisor);
+
+        // --- 6. Añadir la estructura completa al panel raíz ---
+        panelProyectoRaiz.add(mainSplit, BorderLayout.CENTER);
+        
+        System.out.println("  [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.");
+        
+        return panelProyectoRaiz;
+    } // --- Fin del método buildProjectViewPanel ---
+    
+    
+    /**
+     * MODIFICADO: Crea el panel que contiene únicamente la lista de "Selección Actual" del proyecto
+     * y le añade un listener de menú contextual para mover imágenes a descartes.
+     * @return Un JPanel configurado con la lista de imágenes seleccionadas.
+     */
+    private JPanel createProjectListsPanel() {
+        // --- Panel contenedor principal para la zona de listas ---
+        JPanel panelListas = new JPanel(new BorderLayout());
+        TitledBorder border = BorderFactory.createTitledBorder("Selección Actual");
+        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
+        panelListas.setBorder(border);
+        registry.register("panel.proyecto.listas.container", panelListas);
+        
+        // --- Crear y añadir la lista de "Selección Actual" ---
+        JList<String> projectFileList = new JList<>();
+        projectFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        projectFileList.setCellRenderer(new NombreArchivoRenderer(themeManager));
+        registry.register("list.proyecto.nombres", projectFileList);
+
+        // --- AÑADIR LISTENER DE MENÚ CONTEXTUAL ---
+        // Se obtiene la acción correspondiente del ActionFactory a través del GeneralController.
+        Action moveToDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES);
+        if (moveToDiscardsAction != null) {
+            // Se le asigna el listener a la lista.
+            projectFileList.addMouseListener(createContextMenuListener(projectFileList, moveToDiscardsAction));
+        } else {
+             System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_MOVER_A_DESCARTES en el ActionFactory.");
+        }
+        // --- FIN DE LA ADICIÓN DEL LISTENER ---
+
+        JScrollPane scrollPane = new JScrollPane(projectFileList);
+        scrollPane.setBorder(null); // El borde lo pone el panel contenedor
+        registry.register("scroll.proyecto.nombres", scrollPane);
+        
+        panelListas.add(scrollPane, BorderLayout.CENTER);
+        
+        return panelListas;
+    } // --- Fin del método createProjectListsPanel ---
+    
+    
+    /**
+     * MODIFICADO: Crea el panel que contendrá las herramientas del proyecto.
+     * La primera pestaña es la lista de "Descartes", con un listener de menú contextual
+     * para restaurar imágenes.
+     * @return Un JPanel configurado con un JTabbedPane para las herramientas.
+     */
+    private JPanel createProjectToolsPanel() {
+        // --- Panel contenedor principal para la zona de herramientas ---
+        JPanel panelHerramientas = new JPanel(new BorderLayout());
+        TitledBorder border = BorderFactory.createTitledBorder("Herramientas de Proyecto");
+        border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
+        panelHerramientas.setBorder(border);
+        registry.register("panel.proyecto.herramientas.container", panelHerramientas);
+        
+        // --- JTabbedPane para alojar las diferentes herramientas ---
+        javax.swing.JTabbedPane herramientasTabbedPane = new javax.swing.JTabbedPane();
+        registry.register("tabbedpane.proyecto.herramientas", herramientasTabbedPane);
+        
+        // --- Pestaña 1: Lista de Descartes ---
+        JList<String> descartesList = new JList<>();
+        descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager));
+        registry.register("list.proyecto.descartes", descartesList);
+
+        // --- AÑADIR LISTENER DE MENÚ CONTEXTUAL ---
+        Action restoreFromDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
+        if (restoreFromDiscardsAction != null) {
+            descartesList.addMouseListener(createContextMenuListener(descartesList, restoreFromDiscardsAction));
+        } else {
+            System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_RESTAURAR_DE_DESCARTES en el ActionFactory.");
+        }
+        // --- FIN DE LA ADICIÓN DEL LISTENER ---
+
+        JScrollPane scrollPaneDescartes = new JScrollPane(descartesList);
+        scrollPaneDescartes.setBorder(null);
+        registry.register("scroll.proyecto.descartes", scrollPaneDescartes);
+        
+        herramientasTabbedPane.addTab("Descartes", scrollPaneDescartes);
+
+        // --- Pestaña 2: Placeholder para el futuro Panel de Exportación ---
+        JPanel panelExportarPlaceholder = new JPanel();
+        registry.register("panel.proyecto.herramientas.exportar", panelExportarPlaceholder);
+        herramientasTabbedPane.addTab("Exportar", panelExportarPlaceholder);
+
+        // --- Pestaña 3: Placeholder para el futuro Panel de Etiquetado ---
+        JPanel panelEtiquetarPlaceholder = new JPanel();
+        registry.register("panel.proyecto.herramientas.etiquetar", panelEtiquetarPlaceholder);
+        herramientasTabbedPane.addTab("Etiquetar", panelEtiquetarPlaceholder);
+        herramientasTabbedPane.setEnabledAt(2, false); 
+
+        panelHerramientas.add(herramientasTabbedPane, BorderLayout.CENTER);
+
+        return panelHerramientas;
+    } // --- Fin del método createProjectToolsPanel ---
+    
+    
+    /**
+     * Crea un MouseListener que muestra un menú contextual con acciones.
+     * @param list La JList a la que se asociará el listener.
+     * @param actions Las acciones a añadir al menú contextual.
+     * @return Un MouseAdapter configurado.
+     */
+    private java.awt.event.MouseAdapter createContextMenuListener(JList<String> list, Action... actions) {
+        return new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showMenu(e);
+                }
+            }
+
+            public void mouseReleased(java.awt.event.MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    showMenu(e);
+                }
+            }
+
+            private void showMenu(java.awt.event.MouseEvent e) {
+                int row = list.locationToIndex(e.getPoint());
+                if (row != -1) { list.setSelectedIndex(row); }
+                JPopupMenu menu = new JPopupMenu();
+                for (Action action : actions) {
+                    action.setEnabled(true);
+                    menu.add(action);
+                }
+                menu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        };
+    } // --- Fin del método createContextMenuListener ---
+    
 
 } // --- FIN DE LA CLASE ProjectBuilder ---
 

@@ -38,6 +38,8 @@ import controlador.actions.navegacion.PreviousImageAction;
 // Importaciones para PanAction y Direction
 import controlador.actions.pan.PanAction;
 import controlador.actions.projects.GestionarProyectoAction;
+import controlador.actions.projects.MoveToDiscardsAction;
+import controlador.actions.projects.RestoreFromDiscardsAction;
 import controlador.actions.projects.ToggleMarkImageAction;
 import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.toggle.ToggleNavegacionCircularAction;
@@ -312,6 +314,8 @@ private void createCoreActions() {
         actionMap.put(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, createToggleMarkImageAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_GESTIONAR, createGestionarProyectoAction());
         actionMap.put(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, createSwitchToVisualizadorAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES, createMoveToDiscardsAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES, createRestoreFromDiscardsAction());
         
         // --- CAMBIO ---: Actions especiales movidas de vuelta a la primera fase.
         // 3.10. Crear y registrar Actions Especiales
@@ -633,7 +637,8 @@ private void createCoreActions() {
     // --- 4.10. Métodos Create para Actions de Proyecto ---
     private Action createToggleMarkImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-        ToggleMarkImageAction action = new ToggleMarkImageAction(this.generalController.getVisorController(), "Marcar/Desmarcar para Proyecto", icon);
+        // Ahora pasamos la referencia al GeneralController, no al VisorController.
+        ToggleMarkImageAction action = new ToggleMarkImageAction(this.generalController, "Marcar/Desmarcar para Proyecto", icon);
         this.contextSensitiveActions.add(action);
         return action;
     } // --- FIN del método createToggleMarkImageAction ---
@@ -642,6 +647,16 @@ private void createCoreActions() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
         return new GestionarProyectoAction(this.generalController, "Ver Proyecto", icon);
     } // --- Fin del método createGestionarProyectoAction ---
+    
+    private Action createMoveToDiscardsAction() {
+        // Esta acción no necesita icono ya que es para un menú contextual
+        return new MoveToDiscardsAction(this.generalController, this.model);
+    } // --- FIN del método createMoveToDiscardsAction ---
+
+    private Action createRestoreFromDiscardsAction() {
+        // Esta acción tampoco necesita icono
+        return new RestoreFromDiscardsAction(this.generalController, this.generalController.getVisorController().getComponentRegistry());
+    } // --- FIN del método createRestoreFromDiscardsAction ---
     
     // --- 4.11. Métodos Create para Actions Especiales ---
      private Action createMenuAction() { 
