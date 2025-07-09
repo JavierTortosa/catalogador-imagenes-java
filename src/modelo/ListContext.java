@@ -17,6 +17,7 @@ public class ListContext {
     private Map<String, Path> rutaCompletaMap;
     private String selectedImageKey;
     private boolean mostrarSoloCarpetaActual = true;
+    private String nombreListaActiva;
 
     /**
      * Constructor. Inicializa el contexto a un estado vacío y válido.
@@ -25,6 +26,7 @@ public class ListContext {
         this.modeloLista = new DefaultListModel<>();
         this.rutaCompletaMap = new HashMap<>();
         this.selectedImageKey = null;
+        this.nombreListaActiva = "seleccion";
         
     } // --- Fin del constructor ListContext ---
 
@@ -90,5 +92,7 @@ public class ListContext {
     
     public boolean isMostrarSoloCarpetaActual() { return mostrarSoloCarpetaActual; } 
     public void setMostrarSoloCarpetaActual(boolean soloCarpeta) { this.mostrarSoloCarpetaActual = soloCarpeta; }
+	public String getNombreListaActiva(){ return this.nombreListaActiva; } 
+	public void setNombreListaActiva(String nombreListaActiva)	{ this.nombreListaActiva = nombreListaActiva; }
 
 } // --- FIN DE LA CLASE ListContext ---

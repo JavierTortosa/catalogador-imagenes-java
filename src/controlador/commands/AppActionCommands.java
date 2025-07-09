@@ -71,13 +71,15 @@ public interface AppActionCommands {
     // --- Gestor de proyectos ---
     String CMD_PROYECTO_TOGGLE_MARCA 		= "cmd.proyecto.toggle_marca"; 			// Para Marcar/Desmarcar imagen actual
     String CMD_PROYECTO_GESTIONAR 			= "cmd.proyecto.gestionar";     		// Para abrir el diálogo/funcionalidad de gestión de proyectos (el JOptionPane por ahora)
-    String CMD_PROYECTO_TOGGLE_VISTA 		= "cmd.proyecto.toggle_vista_seleccion"; // (Opcional por ahora, si quieres un botón/menú para alternar vista)
+    String CMD_PROYECTO_TOGGLE_VISTA 		= "cmd.proyecto.toggle_vista_seleccion";//  botón/menú para alternar vista
     String CMD_PROYECTO_MOVER_A_DESCARTES 	= "cmd.proyecto.mover_a_descartes";
-    String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";
     String CMD_EXPORT_ASIGNAR_ARCHIVO 		= "cmd.export.asignar_archivo";
     String CMD_EXPORT_ABRIR_UBICACION 		= "cmd.export.abrir_ubicacion";
     String CMD_EXPORT_QUITAR_DE_COLA 		= "cmd.export.quitar_de_cola";
     String CMD_EXPORT_IGNORAR_COMPRIMIDO 	= "cmd.export.ignorar_comprimido";
+    String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";
+    String CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE = "cmd.proyecto.eliminar";
+    
     
 
     // --- Vista (Toggles de UI) ---

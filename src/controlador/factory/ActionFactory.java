@@ -17,8 +17,8 @@ import javax.swing.JOptionPane;
 import controlador.GeneralController;
 import controlador.ProjectController;
 import controlador.actions.archivo.DeleteAction;
+
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
-// (Asegúrate de que estas clases Action tengan los constructores correctos)
 import controlador.actions.archivo.OpenFileAction;
 import controlador.actions.archivo.RefreshAction;
 import controlador.actions.config.SetInfoBarTextFormatAction;
@@ -35,6 +35,7 @@ import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
+
 // Importaciones para PanAction y Direction
 import controlador.actions.pan.PanAction;
 import controlador.actions.projects.GestionarProyectoAction;
@@ -75,7 +76,6 @@ import vista.VisorView;
 import vista.components.Direction;
 import vista.config.MenuItemDefinition;
 import vista.config.UIDefinitionService;
-//import vista.config.ViewUIConfig;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
@@ -94,7 +94,6 @@ public class ActionFactory {
     private IZoomManager zoomManager;
     private IViewManager viewManager;
 
-//        private final VisorController controllerRef;
     private final GeneralController generalController;
     
     private final ProjectController projectControllerRef;
@@ -196,8 +195,6 @@ public class ActionFactory {
 
     } // --- Fin del método ActionFactory (constructor) ---
 
-    // --- CAMBIO ---
-    // El método initializeActions se renombra a initializeCoreActions y se ajusta.
     /**
      * Inicializa todas las acciones que NO dependen de la existencia de la 'view'.
      * Este método debe ser llamado antes de que se necesiten las acciones para construir
@@ -219,8 +216,6 @@ public class ActionFactory {
 				"  [ActionFactory] Actions principales inicializadas y mapeadas. Total: " + this.actionMap.size());
 	} // --- Fin del método initializeCoreActions ---
 
-    // --- CAMBIO ---
-    // Se añade un nuevo método para las acciones que dependen de la vista.
     /**
      * Inicializa todas las acciones que SÍ dependen de la existencia de la 'view'.
      * Este método DEBE ser llamado DESPUÉS de crear la 'view' y de inyectarla en esta fábrica.
@@ -241,7 +236,7 @@ public class ActionFactory {
 	/**
      * Crea las acciones que NO dependen de la 'view'.
      */
-private void createCoreActions() {
+    private void createCoreActions() {
     	
         // 3.1. Crear la Action genérica para funcionalidades pendientes primero.
         this.funcionalidadPendienteAction = createFuncionalidadPendienteAction();
@@ -320,6 +315,7 @@ private void createCoreActions() {
         actionMap.put(AppActionCommands.CMD_EXPORT_ABRIR_UBICACION, createOpenLocationAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, createRemoveFromQueueAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, createToggleIgnoreCompressedAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE, createEliminarDeProyectoAction());
         
         // --- CAMBIO ---: Actions especiales movidas de vuelta a la primera fase.
         // 3.10. Crear y registrar Actions Especiales
@@ -658,16 +654,14 @@ private void createCoreActions() {
     } // --- FIN del método createMoveToDiscardsAction ---
 
     private Action createRestoreFromDiscardsAction() {
-        // Esta acción tampoco necesita icono
+        // Esta acción no necesita icono
         return new RestoreFromDiscardsAction(this.generalController, this.generalController.getVisorController().getComponentRegistry());
     } // --- FIN del método createRestoreFromDiscardsAction ---
     
     private Action createAssignFileAction() {
         return new AbstractAction("Asignar archivo manualmente...") {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
+
+        	private static final long serialVersionUID = 1L;
 
 			@Override public void actionPerformed(ActionEvent e) {
                 generalController.getProjectController().solicitarAsignacionManual();
@@ -677,10 +671,8 @@ private void createCoreActions() {
 
     private Action createOpenLocationAction() {
         return new AbstractAction("Abrir ubicación de la imagen") {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
+
+        	private static final long serialVersionUID = 1L;
 
 			@Override public void actionPerformed(ActionEvent e) {
                 generalController.getProjectController().solicitarAbrirUbicacionImagen();
@@ -690,10 +682,8 @@ private void createCoreActions() {
 
     private Action createRemoveFromQueueAction() {
         return new AbstractAction("Quitar de la cola") {
-            /**
-			 * 
-			 */
-			private static final long serialVersionUID = 1L;
+
+        	private static final long serialVersionUID = 1L;
 
 			@Override public void actionPerformed(ActionEvent e) {
                 generalController.getProjectController().solicitarQuitarDeLaCola();
@@ -704,9 +694,7 @@ private void createCoreActions() {
     private Action createToggleIgnoreCompressedAction() {
         // Esta acción será un JCheckBoxMenuItem en el menú, así que no necesita icono.
         return new AbstractAction("Ignorar archivo comprimido") {
-            /**
-			 * 
-			 */
+        	
 			private static final long serialVersionUID = 1L;
 
 			@Override public void actionPerformed(ActionEvent e) {
@@ -714,6 +702,24 @@ private void createCoreActions() {
             }
         };
     } // --- Fin del método createToggleIgnoreCompressedAction ---
+    
+    /**
+     * Crea la acción para eliminar permanentemente una imagen del proyecto.
+     * Esta acción es para el menú contextual de la lista de descartes.
+     */
+    private Action createEliminarDeProyectoAction() {
+        return new AbstractAction("Eliminar permanentemente del proyecto") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Llama a un método en ProjectController que crearemos más adelante.
+                if (projectControllerRef != null) {
+                    projectControllerRef.solicitarEliminacionPermanente();
+                }
+            }
+        };
+    } // --- Fin del método createEliminarDeProyectoAction ---
     
     
     // --- 4.11. Métodos Create para Actions Especiales ---
@@ -745,14 +751,12 @@ private void createCoreActions() {
      private Action createPanActionIncremental(String command, Direction direction) {
          PanAction action = new PanAction(generalController, command, direction, INCREMENTAL_PAN_AMOUNT);
          
-         // --- INICIO DE LA MODIFICACIÓN ---
          // Obtener el icono correspondiente al comando y asignarlo a la acción.
          // Esto es necesario para que los JMenuItems que usen esta acción muestren un icono.
          ImageIcon icon = getIconForCommand(command);
          if (icon != null) {
              action.putValue(Action.SMALL_ICON, icon);
          }
-         // --- FIN DE LA MODIFICACIÓN ---
          
          this.contextSensitiveActions.add(action);
          return action;

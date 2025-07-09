@@ -1,4 +1,3 @@
-// Archivo: IProjectManager.java
 package controlador.managers.interfaces;
 
 import java.awt.Component;
@@ -17,8 +16,6 @@ public interface IProjectManager {
      * @return Una nueva lista de Paths (ordenada).
      */
     List<Path> getImagenesMarcadas();
-
-    // --- INICIO DE LA MODIFICACIÓN ---
 
     /**
      * Devuelve la lista de imágenes actualmente en la sección de descartes.
@@ -44,8 +41,6 @@ public interface IProjectManager {
      * @return true si está en descartes, false en caso contrario.
      */
     boolean estaEnDescartes(Path rutaAbsolutaImagen);
-
-    // --- FIN DE LA MODIFICACIÓN ---
 
     /**
      * Muestra un diálogo o una vista para gestionar los proyectos/selecciones.
@@ -73,11 +68,18 @@ public interface IProjectManager {
     boolean estaMarcada(Path rutaAbsolutaImagen);
 
     /**
-
      * Alterna el estado de marca de una imagen (dada por su Path absoluto) en la SELECCIÓN PRINCIPAL.
      * @param rutaAbsolutaImagen El Path absoluto de la imagen.
      * @return true si la imagen quedó marcada, false si quedó desmarcada.
      */
     boolean alternarMarcaImagen(Path rutaAbsolutaImagen);
+    
+    /**
+     * Elimina permanentemente una imagen del proyecto, quitándola tanto de la
+     * lista de selección actual como de la de descartes.
+     *
+     * @param rutaAbsolutaImagen La ruta de la imagen a eliminar del proyecto.
+     */
+    void eliminarDeProyecto(Path rutaAbsolutaImagen);
 
 } // --- FIN de la interfaz IProjectManager ---

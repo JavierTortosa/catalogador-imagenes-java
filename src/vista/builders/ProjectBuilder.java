@@ -29,7 +29,7 @@ public class ProjectBuilder {
     private final ThemeManager themeManager;
     private final GeneralController generalController;
 
-    // <--- MODIFICADO: Constructor ahora necesita ThemeManager ---
+    // Constructor ahora necesita ThemeManager ---
     public ProjectBuilder(ComponentRegistry registry, VisorModel model, ThemeManager themeManager, GeneralController generalController) {
         this.registry = Objects.requireNonNull(registry, "Registry no puede ser null en ProjectBuilder");
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en ProjectBuilder");
@@ -39,7 +39,7 @@ public class ProjectBuilder {
 
     
     /**
-     * MODIFICADO: Construye el panel principal para la vista de proyecto con una estructura
+     * Construye el panel principal para la vista de proyecto con una estructura
      * de Dashboard, utilizando JSplitPanes anidados y JTabbedPanes.
      * Esta estructura es flexible y permite añadir nuevas herramientas y listas en el futuro.
      * @return Un JPanel configurado con la nueva estructura de Dashboard.
@@ -77,7 +77,6 @@ public class ProjectBuilder {
         // 4.2. Panel para las herramientas (abajo-izquierda)
         JPanel panelHerramientas = createProjectToolsPanel();
 
-        // --- INICIO DE LA CORRECCIÓN ---
         // 4.3. Panel para el visor de imagen (derecha)
         // Se crea directamente aquí para no depender de un método que vamos a eliminar.
         JPanel panelVisor = new JPanel(new BorderLayout());
@@ -92,7 +91,6 @@ public class ProjectBuilder {
         imageDisplayPanel.setBorder(border);
         
         panelVisor.add(imageDisplayPanel, BorderLayout.CENTER);
-        // --- FIN DE LA CORRECCIÓN ---
 
         // --- 5. Ensamblaje de la Estructura ---
         // Se conectan todos los paneles en el orden correcto.
@@ -112,7 +110,7 @@ public class ProjectBuilder {
     
     
     /**
-     * MODIFICADO: Crea el panel que contiene únicamente la lista de "Selección Actual" del proyecto
+     * Crea el panel que contiene únicamente la lista de "Selección Actual" del proyecto
      * y le añade un listener de menú contextual para mover imágenes a descartes.
      * @return Un JPanel configurado con la lista de imágenes seleccionadas.
      */
@@ -130,7 +128,6 @@ public class ProjectBuilder {
         projectFileList.setCellRenderer(new NombreArchivoRenderer(themeManager));
         registry.register("list.proyecto.nombres", projectFileList);
 
-        // --- AÑADIR LISTENER DE MENÚ CONTEXTUAL ---
         // Se obtiene la acción correspondiente del ActionFactory a través del GeneralController.
         Action moveToDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES);
         if (moveToDiscardsAction != null) {
@@ -139,7 +136,6 @@ public class ProjectBuilder {
         } else {
              System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_MOVER_A_DESCARTES en el ActionFactory.");
         }
-        // --- FIN DE LA ADICIÓN DEL LISTENER ---
 
         JScrollPane scrollPane = new JScrollPane(projectFileList);
         scrollPane.setBorder(null); // El borde lo pone el panel contenedor
@@ -152,7 +148,7 @@ public class ProjectBuilder {
     
     
     /**
-     * MODIFICADO: Crea el panel de herramientas, incluyendo un ExportPanel con una tabla
+     * Crea el panel de herramientas, incluyendo un ExportPanel con una tabla
      * que tiene un menú contextual con acciones para gestionar la cola.
      * @return Un JPanel configurado con un JTabbedPane para las herramientas.
      */
@@ -169,12 +165,31 @@ public class ProjectBuilder {
         // --- Pestaña 1: Lista de Descartes ---
         JList<String> descartesList = new JList<>();
         descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager));
+        descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager, true));
         registry.register("list.proyecto.descartes", descartesList);
+        
         Action restoreFromDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
-        if (restoreFromDiscardsAction != null) {
-            descartesList.addMouseListener(createContextMenuListener(descartesList, restoreFromDiscardsAction));
-        }
+        Action deleteFromProjectAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE);
+
+        // Añadir el listener del menú contextual a la lista de descartes
+        // Usamos el método createContextMenuListener que ya acepta múltiples items.
+        if (restoreFromDiscardsAction != null && deleteFromProjectAction != null) {
+            descartesList.addMouseListener(createContextMenuListener(descartesList, 
+                restoreFromDiscardsAction,
+                new javax.swing.JPopupMenu.Separator(), // Añadimos un separador
+                deleteFromProjectAction
+            ));
+        } else {
+            // Manejo de error si alguna acción no se encuentra
+            if (restoreFromDiscardsAction == null) {
+                System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_RESTAURAR_DE_DESCARTES.");
+            }
+            if (deleteFromProjectAction == null) {
+                System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE.");
+            }
+        }        
+        
+        
         JScrollPane scrollPaneDescartes = new JScrollPane(descartesList);
         scrollPaneDescartes.setBorder(null);
         registry.register("scroll.proyecto.descartes", scrollPaneDescartes);
@@ -224,7 +239,7 @@ public class ProjectBuilder {
     
     
     /**
-     * REFACTORIZADO: Crea un MouseListener que muestra un menú contextual.
+     * Crea un MouseListener que muestra un menú contextual.
      * Funciona tanto para JList como para JTable y permite añadir separadores.
      * @param component El componente (JList o JTable) al que se asociará el listener.
      * @param menuItems Los ítems del menú (pueden ser Actions o JSeparators).

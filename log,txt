@@ -22,7 +22,7 @@ VisorV2.main: Configurando tema claro FlatLightLaf.
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
 [ThemeManager] Tema inicial establecido a: clear
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 2060028175
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 618412112
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -44,7 +44,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 88
+  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 89
   [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
 [VisorView Constructor SIMPLIFICADO] Iniciando...
   [ViewBuilder] Toolbar container creado con estructura BorderLayout (WEST, CENTER, EAST).
@@ -61,15 +61,15 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Inyectando la instancia de 'view' en los componentes...
   [ActionFactory] Inicializando Actions dependientes de la vista...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
-  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 90
-  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 18, Descartes: 5
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 91
+  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 19, Descartes: 4
 [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-  -> Proyecto inicial cargado. Selección: 18, Descartes: 5
+  -> Proyecto inicial cargado. Selección: 19, Descartes: 4
   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 90 acciones.
+  [MenuBarBuilder] ActionMap recibido con 91 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
@@ -85,7 +85,8 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 [GeneralController] Listeners de entrada globales configurados para todos los modos.
 [VisorController Internal] Configurando listeners ESPECÍFICOS de Vista...
 [VisorController Internal] Listeners específicos de Vista configurados.
-[ProjectController] Listener añadido a 'list.proyecto.nombres'.
+[ProjectController] Listener de selección añadido a 'list.proyecto.nombres'.
+[ProjectController] Listener de selección añadido a 'list.proyecto.descartes'.
 [GeneralController] Inicializado.
 [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
   [Controller] configurarListenerGlobalDeToolbars: Lógica deshabilitada en favor de PropertyChangeListener.
@@ -137,7 +138,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -159,17 +160,17 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@4dc2fe53: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@4dc2fe53 actualizado. Nuevo tamaño: 209
+### DEBUG CONTEXT: ListContext@3d0e69a9: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@3d0e69a9 actualizado. Nuevo tamaño: 209
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 209
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 2060028175
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 618412112
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
 [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   -> Solicitando repintado inicial de listaMiniaturas.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---- [Listener Primer Renderizado]: Panel listo (1149x580). Forzando refresco de zoom y UI. ---
+--- [Listener Primer Renderizado]: Panel listo (1144x257). Forzando refresco de zoom y UI. ---
 [VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
 [VisorController] Sincronización de UI de Zoom completada.
 --- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
@@ -177,16 +178,17 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@fcb992e: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@fcb992e actualizado. Nuevo tamaño: 18
-    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 18
+### DEBUG CONTEXT: ListContext@3c59f602: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@3c59f602 actualizado. Nuevo tamaño: 23
+    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): 23
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
   [GeneralController] Entrando en modo: PROYECTO
   [ProjectController] Activando la UI de la vista de proyecto...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 4
+  [ProjectController] Estado visual de listas actualizado. Activa: seleccion
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg' (Índice: 4)
   [ProjectController] UI de la vista de proyecto activada.
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 5
   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
   [GeneralController] Estado de la UI actualizado.
 [ViewManager] Vista cambiada a: VISTA_PROYECTOS
@@ -197,6 +199,11 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
+  [ProjectController] Estado visual de listas actualizado. Activa: seleccion
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg' (Índice: 4)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 410424423

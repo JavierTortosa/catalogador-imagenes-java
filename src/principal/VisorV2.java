@@ -22,6 +22,17 @@ public class VisorV2
 		//TODO añadir botones de agrandar o encoger las miniaturas y que se ajuste a la pantalla
     
 	// PROYECTO
+	
+		//TODO hacer que el salto de pagina avance o retroceda los items que se estipulan en el config, ahora lo hace pero de la lista general, no en la lista
+		//especifica, si movemos items a descartes pasa del item 0 al 10 pero si en medio no hay items porque estan en descartes va al item 10 igual
+	
+		//TODO hacer que la mochila guarde el archivo y el foco activo en el cofig para la proxima ejecucion o para el cambio de foco
+	
+		//TODO cambiar formato de las pestañas de exportar, descartes... para que no parezcan labels, que sean algo mas
+	
+		//TODO cuando busca los archivos asociados deberia aparecer un progressbar indicando que esta buscando los archivos asociados.... 
+		//si hay 50 imagenes son 50 archivos que tiene que localizar identificar y asimilar, esto lleva un tiempo que la UI esta parada y no se ve que haga nada
+	
     	//TODO hacer que el boton de marcar imagen en modo proyecto mueva la imagen a descartes o viceversa
     
     	//TODO permitir la seleccion multiple en modo proyecto
@@ -31,6 +42,19 @@ public class VisorV2
 		//TODO hacer que las imagenes solo muestren el nombre o el path con la configuracion del config
 	
 		//TODO forzar a que el splitPanel de modo proyecto se ajuste a un espacio del 20%
+	
+		//TODO hacer que la lista de archivos no muestre la ruta o por lo menos que no la muestre desplegada (ocupa mucho sitio en pantalla)
+	
+		//TODO permitir seleccionar varios archivos con el raton + shift por ej. para enviarlos a descartes o a exportar
+	
+		//TODO ajustar los botones que se tienen que ver o modificar el comportamiento entre visualizador y proyecto
+			//-Marcar Imagen: debe desmarcar la imagen en modo proyecto y por lo tanto eliminarla del proyecto o debe mandar la imagen a descartes
+			//-Selector de Carpeta: en modo proyecto se deberia usar para abrir un proyecto, no para iniciar la exploracion de imagenes como en el visualizador
+			//-
+		
+		//TODO ajustar opciones del menu para que se activen o desactiven las que son o no relevantes en modo proyecto
+	
+	
 	
 	
 	/**

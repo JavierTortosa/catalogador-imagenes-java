@@ -514,6 +514,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         ImageDisplayPanel panelDisplayProyecto = registry.get("panel.proyecto.display");
         JLabel etiquetaImagenProyecto = (panelDisplayProyecto != null) ? panelDisplayProyecto.getInternalLabel() : null;
         JList<String> listaNombresProyecto = registry.get("list.proyecto.nombres");
+        JList<String> listaDescartesProyecto = registry.get("list.proyecto.descartes"); // <<< OBTENEMOS LA LISTA
 
         // --- Master Mouse Wheel Listener (sin cambios en su lógica interna) ---
         java.awt.event.MouseWheelListener masterWheelListener = e -> {
@@ -540,7 +541,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         // --- Adjuntar el master MouseWheelListener a los componentes de AMBOS modos ---
         Component[] componentesConRueda = {
             listaNombresVisualizador, scrollMiniaturas, etiquetaImagenVisualizador,
-            listaNombresProyecto, etiquetaImagenProyecto
+            listaNombresProyecto, listaDescartesProyecto, etiquetaImagenProyecto
         };
 
         for (Component c : componentesConRueda) {

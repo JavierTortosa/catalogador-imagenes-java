@@ -12,12 +12,12 @@ import servicios.zoom.ZoomModeEnum;
 public class AplicarModoZoomAction extends AbstractAction {
     private static final long serialVersionUID = 1L;
     
-    // MODIFICACIÓN: Se eliminan las dependencias a VisorController y se mantiene la del ZoomManager.
+    // Se eliminan las dependencias a VisorController y se mantiene la del ZoomManager.
     private IZoomManager zoomManager;
     private VisorModel modelRef;
     private ZoomModeEnum modoDeZoomQueRepresentaEstaAction;
 
-    // MODIFICACIÓN: El constructor ya no necesita VisorController.
+    // El constructor ya no necesita VisorController.
     // En su lugar, se le pasa un Runnable (callback) para la sincronización de la UI.
     public AplicarModoZoomAction(IZoomManager zoomManager, VisorModel model, String name, ImageIcon icon, ZoomModeEnum modo, String actionCommandKey, Runnable uiSyncCallback) {
         super(name, icon);

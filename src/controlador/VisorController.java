@@ -89,7 +89,6 @@ import vista.util.IconUtils;
  * Controlador principal para el Visor de Imágenes (Versión con 2 JList sincronizadas).
  * Orquesta la interacción entre Modelo y Vista, maneja acciones y lógica de negocio.
  */
-//public class VisorController implements ActionListener, ClipboardOwner, KeyEventDispatcher, IModoController {
 public class VisorController implements ActionListener, ClipboardOwner {
 
     // --- 1. Referencias a Componentes del Sistema ---

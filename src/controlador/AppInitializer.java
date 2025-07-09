@@ -109,6 +109,7 @@ public class AppInitializer {
         boolean navCircular = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, false);
         boolean zoomManualInicial = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL, true);
         boolean zoomAlCursor = configuration.getBoolean("comportamiento.zoom.al_cursor.activado", false);
+        int saltoBloque = configuration.getInt(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10);
         
         ZoomModeEnum modoZoomInicial;
         String ultimoModoStr = configuration.getString(ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO, "FIT_TO_SCREEN").toUpperCase();
@@ -126,6 +127,9 @@ public class AppInitializer {
         this.model.setMiniaturaSelAlto(configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO, 60));
         this.model.setMiniaturaNormAncho(configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40));
         this.model.setMiniaturaNormAlto(configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, 40));
+        this.model.setSaltoDeBloque(saltoBloque);
+        this.model.setMiniaturasAntes(configuration.getInt(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, 8));
+        
     } // --- fin del método aplicarConfiguracionAlModelo ---
 
     private boolean inicializarServiciosEsenciales() {
@@ -332,22 +336,15 @@ public class AppInitializer {
             this.controller.configurarAtajosTecladoGlobales();
             this.configAppManager.aplicarConfiguracionGlobalmente();
 
-            // ------------------ INICIO DE LAS MODIFICACIONES CLAVE ------------------
-            
-            // AÑADIDO: Pedir a GeneralController que configure sus listeners GLOBALES de ratón.
-            // Esto es SEGURO ahora porque la UI está construida y registrada en el registry.
+            // Pedir a GeneralController que configure sus listeners GLOBALES de ratón.
             this.generalController.configurarListenersDeEntradaGlobal();
 
-            // AÑADIDO: Registrar a GeneralController como el dispatcher global de TECLADO.
+            // Registrar a GeneralController como el dispatcher global de TECLADO.
             KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.generalController);
 
-            // MANTENIDO: La siguiente línea se mantiene por ahora para no romper nada.
             // En una fase posterior, eliminaremos los listeners de teclado/ratón duplicados de VisorController.
             this.controller.configurarListenersVistaInternal(); 
 
-            // ELIMINADO: La siguiente línea ahora es redundante.
-            // Se elimina porque GeneralController ya está registrado como el dispatcher.
-            // java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.controller);
             
             // ------------------ FIN DE LAS MODIFICACIONES CLAVE ------------------
 
@@ -384,11 +381,9 @@ public class AppInitializer {
         } catch (Exception e) {
             manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
         }
-    } // --- Fin del método crearUIyComponentesDependientesEnEDT ---
+    } // --- FIN del método crearUIyComponentesDependientesEnEDT ---
     
 
-
-    
     private void manejarErrorFatalInicializacion(String message, Throwable cause) {
         System.err.println("### ERROR FATAL DE INICIALIZACIÓN ###");
         System.err.println("Mensaje: " + message);
@@ -415,11 +410,11 @@ public class AppInitializer {
         }
         System.err.println("Terminando la aplicación debido a un error fatal de inicialización.");
         System.exit(1); 
-    } // --- fin del método manejarErrorFatalInicializacion ---
+    } // --- FIN del método manejarErrorFatalInicializacion ---
 
     public void setControllerParaNotificacion(VisorController controller) {
         this.controllerRefParaNotificacion = controller;
-    } // --- fin del método setControllerParaNotificacion ---
+    } // --- FIN del método setControllerParaNotificacion ---
     
 } // --- FIN de la clase AppInitializer ---
 

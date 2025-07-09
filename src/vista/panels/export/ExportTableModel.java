@@ -13,9 +13,7 @@ public class ExportTableModel extends AbstractTableModel {
     private final java.util.function.Consumer<javax.swing.event.TableModelEvent> onDataChangedCallback;
 
     private List<ExportItem> cola;
-    // --- INICIO DE LA MODIFICACIÓN ---
     private final String[] nombresColumnas = {"Exportar", "Imagen", "Archivo Comprimido", "Estado"};
-    // --- FIN DE LA MODIFICACIÓN ---
 
     public ExportTableModel(java.util.function.Consumer<javax.swing.event.TableModelEvent> callback) {
         this.cola = new ArrayList<>();
@@ -99,14 +97,13 @@ public class ExportTableModel extends AbstractTableModel {
             // Notificamos a la tabla que la fila ha cambiado (para repintar)
             fireTableCellUpdated(rowIndex, columnIndex);
             
-            // --- INICIO DE LA MODIFICACIÓN ---
             // Y ahora, llamamos al callback para notificar al controlador que re-evalúe la UI.
             if (onDataChangedCallback != null) {
                 // Le pasamos el evento para que el listener sepa qué cambió, aunque no lo usemos ahora.
                 onDataChangedCallback.accept(new javax.swing.event.TableModelEvent(this, rowIndex, rowIndex, columnIndex));
             }
-            // --- FIN DE LA MODIFICACIÓN ---
         }
+        
     } // --- Fin del método setValueAt ---
 
 } // --- FIN de la clase ExportTableModel ---

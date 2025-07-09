@@ -37,6 +37,7 @@ public class VisorModel {
     private int miniaturaNormAlto;
     private Path carpetaRaizActual = null;
     private boolean navegacionCircularActivada = false;
+    private int saltoDeBloque;
     
     private boolean enModoProyecto = false; 
 
@@ -49,9 +50,9 @@ public class VisorModel {
         this.proyectoZoomContext = new ZoomContext();
         this.datosZoomContext = new ZoomContext();
         this.currentImage = null;
+        this.saltoDeBloque = 10;
     }
 
-    // --- INICIO DE LA MODIFICACIÓN ---
     // Añadimos el nuevo parámetro 'zoomAlCursor' a la firma del método
     public void initializeContexts(boolean mantenerPropInicial, boolean soloCarpetaInicial, ZoomModeEnum modoZoomInicial, boolean zoomManualInicial, boolean navCircularInicial, boolean zoomAlCursor) {
         System.out.println("[VisorModel] Inicializando estado por defecto de todos los contextos...");
@@ -77,7 +78,6 @@ public class VisorModel {
         
         this.navegacionCircularActivada = navCircularInicial;
     }
-    // --- FIN DE LA MODIFICACIÓN ---
     
     public WorkMode getCurrentWorkMode() {
         return this.currentWorkMode;
@@ -125,40 +125,20 @@ public class VisorModel {
     public ZoomModeEnum getCurrentZoomMode() { return getCurrentZoomContext().getZoomMode(); }
     public void setCurrentZoomMode(ZoomModeEnum newMode) { getCurrentZoomContext().setZoomMode(newMode); }
 
-    public double getZoomFactor() { return getCurrentZoomContext().getZoomFactor(); }
-    public void setZoomFactor(double zoomFactor) {
-        double validFactor = Math.max(0.01, Math.min(zoomFactor, 50.0));
-        getCurrentZoomContext().setZoomFactor(validFactor);
-    }
     
     public int getImageOffsetX() { return getCurrentZoomContext().getImageOffsetX(); }
     public void setImageOffsetX(int x) { getCurrentZoomContext().setImageOffsetX(x); }
     public void addImageOffsetX(int deltaX) { setImageOffsetX(getImageOffsetX() + deltaX); }
-
     public int getImageOffsetY() { return getCurrentZoomContext().getImageOffsetY(); }
     public void setImageOffsetY(int y) { getCurrentZoomContext().setImageOffsetY(y); }
     public void addImageOffsetY(int deltaY) { setImageOffsetY(getImageOffsetY() + deltaY); }
-    
     public boolean isZoomHabilitado() { return getCurrentZoomContext().isZoomHabilitado(); }
     public void setZoomHabilitado(boolean b) { getCurrentZoomContext().setZoomHabilitado(b); }
-    
     public void resetPan() { getCurrentZoomContext().resetPan(); }
-    public void resetZoomState() {
-        this.setZoomFactor(1.0);
-        this.resetPan();
-    }
-
+    public void resetZoomState() {this.setZoomFactor(1.0); this.resetPan();}
     public BufferedImage getCurrentImage() { return currentImage; }
     public void setCurrentImage(BufferedImage currentImage) { this.currentImage = currentImage; }
-    
-    public boolean isMostrarSoloCarpetaActual() { return getCurrentListContext().isMostrarSoloCarpetaActual(); }
-    public void setMostrarSoloCarpetaActual(boolean mostrarSoloCarpetaActual) {
-        if (isMostrarSoloCarpetaActual() != mostrarSoloCarpetaActual) {
-            getCurrentListContext().setMostrarSoloCarpetaActual(mostrarSoloCarpetaActual);
-            System.out.println("  [Model " + currentWorkMode + "] Estado mostrarSoloCarpetaActual cambiado a: " + mostrarSoloCarpetaActual);
-        }
-    }
-
+    public ListContext getProyectoListContext() { return this.proyectoListContext; }
     public int getMiniaturasAntes() { return miniaturasAntes; }
     public void setMiniaturasAntes(int val) { this.miniaturasAntes = val; }
     public int getMiniaturasDespues() { return miniaturasDespues; }
@@ -171,6 +151,24 @@ public class VisorModel {
     public void setMiniaturaNormAncho(int val) { this.miniaturaNormAncho = val; }
     public int getMiniaturaNormAlto() { return miniaturaNormAlto; }
     public void setMiniaturaNormAlto(int val) { this.miniaturaNormAlto = val; }
+    public boolean isEnModoProyecto() { return enModoProyecto; }
+    public void setEnModoProyecto(boolean enModoProyecto) { setCurrentWorkMode(enModoProyecto ? WorkMode.PROYECTO : WorkMode.VISUALIZADOR); }
+    public int getSaltoDeBloque() { return saltoDeBloque; }
+    public void setSaltoDeBloque(int salto) { this.saltoDeBloque = salto; }
+
+    public double getZoomFactor() { return getCurrentZoomContext().getZoomFactor(); }
+    public void setZoomFactor(double zoomFactor) {
+        double validFactor = Math.max(0.01, Math.min(zoomFactor, 50.0));
+        getCurrentZoomContext().setZoomFactor(validFactor);
+    }
+
+    public boolean isMostrarSoloCarpetaActual() { return getCurrentListContext().isMostrarSoloCarpetaActual(); }
+    public void setMostrarSoloCarpetaActual(boolean mostrarSoloCarpetaActual) {
+        if (isMostrarSoloCarpetaActual() != mostrarSoloCarpetaActual) {
+            getCurrentListContext().setMostrarSoloCarpetaActual(mostrarSoloCarpetaActual);
+            System.out.println("  [Model " + currentWorkMode + "] Estado mostrarSoloCarpetaActual cambiado a: " + mostrarSoloCarpetaActual);
+        }
+    }
 
     public boolean isMantenerProporcion() { return getCurrentZoomContext().isMantenerProporcion(); }
     public void setMantenerProporcion(boolean mantenerProporcion) {
@@ -187,7 +185,7 @@ public class VisorModel {
             this.carpetaRaizActual = carpetaRaizActual;
         }
     }
-
+    
     public boolean isNavegacionCircularActivada() { return navegacionCircularActivada; }
     public void setNavegacionCircularActivada(boolean activada) {
         if (this.navegacionCircularActivada != activada) {
@@ -195,14 +193,7 @@ public class VisorModel {
             System.out.println("  [VisorModel] Navegación Circular cambiada a: " + activada);
         }
     }
-
-    public boolean isEnModoProyecto() { return enModoProyecto; }
-    public void setEnModoProyecto(boolean enModoProyecto) { setCurrentWorkMode(enModoProyecto ? WorkMode.PROYECTO : WorkMode.VISUALIZADOR); }
     
-    public ListContext getProyectoListContext() { return this.proyectoListContext; }
-    
-    // --- INICIO DE LA MODIFICACIÓN ---
-    // Métodos delegados para la nueva funcionalidad.
     public boolean isZoomToCursorEnabled() { return getCurrentZoomContext().isZoomToCursorEnabled(); }
     public void setZoomToCursorEnabled(boolean enabled) {
         if (isZoomToCursorEnabled() != enabled) {
@@ -210,6 +201,5 @@ public class VisorModel {
             System.out.println("  [Model " + currentWorkMode + "] Estado zoomToCursorEnabled cambiado a: " + enabled);
         }
     }
-    // --- FIN DE LA MODIFICACIÓN ---
         
 } // --- FIN DE LA CLASE VisorModel ---
