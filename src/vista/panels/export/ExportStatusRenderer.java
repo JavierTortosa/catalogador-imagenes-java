@@ -44,6 +44,11 @@ public class ExportStatusRenderer extends DefaultTableCellRenderer {
                     setBackground(new Color(255, 255, 180)); // Amarillo claro
                     setForeground(Color.BLACK);
                     break;
+                case IGNORAR_COMPRIMIDO:
+                    setBackground(new Color(210, 210, 210)); // Un gris neutro
+                    setForeground(Color.BLACK);
+                    setText("SOLO IMAGEN"); // Un texto más descriptivo
+                    break;
                 case COPIANDO:
                     setBackground(new Color(180, 200, 255)); // Azul claro
                     setForeground(Color.BLACK);

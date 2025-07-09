@@ -44,7 +44,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 84
+  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 88
   [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
 [VisorView Constructor SIMPLIFICADO] Iniciando...
   [ViewBuilder] Toolbar container creado con estructura BorderLayout (WEST, CENTER, EAST).
@@ -61,15 +61,15 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Inyectando la instancia de 'view' en los componentes...
   [ActionFactory] Inicializando Actions dependientes de la vista...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
-  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 86
-  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 17, Descartes: 6
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 90
+  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 18, Descartes: 5
 [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-  -> Proyecto inicial cargado. Selección: 17, Descartes: 6
+  -> Proyecto inicial cargado. Selección: 18, Descartes: 5
   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 86 acciones.
+  [MenuBarBuilder] ActionMap recibido con 90 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
@@ -137,7 +137,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -159,8 +159,8 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@64691e53: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@64691e53 actualizado. Nuevo tamaño: 209
+### DEBUG CONTEXT: ListContext@4dc2fe53: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@4dc2fe53 actualizado. Nuevo tamaño: 209
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 209
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
 !!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 2060028175
@@ -177,16 +177,16 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@2bdb83b2: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@2bdb83b2 actualizado. Nuevo tamaño: 17
-    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 17
+### DEBUG CONTEXT: ListContext@fcb992e: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@fcb992e actualizado. Nuevo tamaño: 18
+    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 18
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
   [GeneralController] Entrando en modo: PROYECTO
   [ProjectController] Activando la UI de la vista de proyecto...
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 0)
   [ProjectController] UI de la vista de proyecto activada.
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 6
+  [ProjectController] Lista de descartes actualizada en la UI. Total: 5
   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
   [GeneralController] Estado de la UI actualizado.
 [ViewManager] Vista cambiada a: VISTA_PROYECTOS
@@ -197,33 +197,6 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
-[ExportQueueManager] Preparando cola para 17 imágenes.
-[ExportQueueManager] Preparación de cola finalizada.
-[ProjectController] Modelo de tabla de exportación actualizado.
-  [ProjectController] Estado de exportación UI actualizado. Carpeta OK: false, Todos Items OK: false
-  [ProjectManager] Proyecto guardado en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt (Selección: 16, Descartes: 7).
-  [ProjectManager] Imagen movida a descartes: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources\cyberpunk-city-anime-girl-5k-0e-1.png
-  [ProjectController] Refrescando ambas listas del proyecto...
-  [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@2bdb83b2: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@2bdb83b2 actualizado. Nuevo tamaño: 16
-    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes: 16
-  [ProjectController] Activando la UI de la vista de proyecto...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg' (Índice: 0)
-  [ProjectController] UI de la vista de proyecto activada.
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 7
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 7
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [ProjectController] Carpeta de destino seleccionada: D:\Compartir\Encargos\Cuchi Cuchi 2025
-  [ProjectController] Estado de exportación UI actualizado. Carpeta OK: true, Todos Items OK: false
-[ExportQueueManager] Preparando cola para 16 imágenes.
-[ExportQueueManager] Preparación de cola finalizada.
-[ProjectController] Modelo de tabla de exportación actualizado.
-  [ProjectController] Estado de exportación UI actualizado. Carpeta OK: true, Todos Items OK: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg' (Índice: 13)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 4)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final...
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 410424423

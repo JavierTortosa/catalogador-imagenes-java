@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.TitledBorder;
 
@@ -151,8 +152,8 @@ public class ProjectBuilder {
     
     
     /**
-     * MODIFICADO: Crea el panel de herramientas, que ahora incluye un ExportPanel funcional
-     * con todos sus ActionListeners conectados al ProjectController.
+     * MODIFICADO: Crea el panel de herramientas, incluyendo un ExportPanel con una tabla
+     * que tiene un menú contextual con acciones para gestionar la cola.
      * @return Un JPanel configurado con un JTabbedPane para las herramientas.
      */
     private JPanel createProjectToolsPanel() {
@@ -165,7 +166,7 @@ public class ProjectBuilder {
         javax.swing.JTabbedPane herramientasTabbedPane = new javax.swing.JTabbedPane();
         registry.register("tabbedpane.proyecto.herramientas", herramientasTabbedPane);
         
-        // Pestaña 1: Lista de Descartes
+        // --- Pestaña 1: Lista de Descartes ---
         JList<String> descartesList = new JList<>();
         descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager));
@@ -179,34 +180,40 @@ public class ProjectBuilder {
         registry.register("scroll.proyecto.descartes", scrollPaneDescartes);
         herramientasTabbedPane.addTab("Descartes", scrollPaneDescartes);
 
-        // Pestaña 2: Panel de Exportación
-        vista.panels.export.ExportPanel panelExportar = new vista.panels.export.ExportPanel(this.generalController.getProjectController());
+        // --- Pestaña 2: Panel de Exportación ---
+        vista.panels.export.ExportPanel panelExportar = new vista.panels.export.ExportPanel(
+        	    this.generalController.getProjectController(),
+        	    (e) -> this.generalController.getProjectController().actualizarEstadoExportacionUI()
+        	);
         registry.register("panel.proyecto.herramientas.exportar", panelExportar);
         
-        // --- CONECTAR BOTONES A LA LÓGICA ---
-        panelExportar.getBotonCargarProyecto().addActionListener(e -> {
-            if (generalController != null && generalController.getProjectController() != null) {
-                generalController.getProjectController().solicitarPreparacionColaExportacion();
-            }
-        });
+        // --- CONECTAR BOTONES Y MENÚS A LA LÓGICA ---
+        panelExportar.getBotonCargarProyecto().addActionListener(e -> generalController.getProjectController().solicitarPreparacionColaExportacion());
+        panelExportar.getBotonSeleccionarCarpeta().addActionListener(e -> generalController.getProjectController().solicitarSeleccionCarpetaDestino());
+        panelExportar.getBotonIniciarExportacion().addActionListener(e -> generalController.getProjectController().solicitarInicioExportacion());
+
+        // Obtener la JTable del panel de exportación
+        JTable tablaExportacion = (JTable) ((JScrollPane) panelExportar.getComponent(1)).getViewport().getView();
         
-        panelExportar.getBotonSeleccionarCarpeta().addActionListener(e -> {
-            if (generalController != null && generalController.getProjectController() != null) {
-                generalController.getProjectController().solicitarSeleccionCarpetaDestino();
-            }
-        });
+        // Obtener las acciones del menú desde el ActionFactory
+        Action assignAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO);
+        Action openLocationAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ABRIR_UBICACION);
+        Action removeFromQueueAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA);
+        Action toggleIgnoreAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO);
         
-        // --- INICIO DE LA NUEVA MODIFICACIÓN ---
-        panelExportar.getBotonIniciarExportacion().addActionListener(e -> {
-            if (generalController != null && generalController.getProjectController() != null) {
-                generalController.getProjectController().solicitarInicioExportacion();
-            }
-        });
-        // --- FIN DE LA NUEVA MODIFICACIÓN ---
+        // Añadir el listener del menú contextual a la tabla con la nueva acción y separadores
+        tablaExportacion.addMouseListener(createContextMenuListener(tablaExportacion, 
+            assignAction, 
+            openLocationAction,
+            new javax.swing.JPopupMenu.Separator(),
+            toggleIgnoreAction,
+            new javax.swing.JPopupMenu.Separator(),
+            removeFromQueueAction
+        ));
         
         herramientasTabbedPane.addTab("Exportar", panelExportar);
 
-        // Pestaña 3: Placeholder para el futuro Panel de Etiquetado
+        // --- Pestaña 3: Placeholder para Etiquetar ---
         JPanel panelEtiquetarPlaceholder = new JPanel();
         herramientasTabbedPane.addTab("Etiquetar", panelEtiquetarPlaceholder);
         herramientasTabbedPane.setEnabledAt(2, false); 
@@ -217,34 +224,49 @@ public class ProjectBuilder {
     
     
     /**
-     * Crea un MouseListener que muestra un menú contextual con acciones.
-     * @param list La JList a la que se asociará el listener.
-     * @param actions Las acciones a añadir al menú contextual.
+     * REFACTORIZADO: Crea un MouseListener que muestra un menú contextual.
+     * Funciona tanto para JList como para JTable y permite añadir separadores.
+     * @param component El componente (JList o JTable) al que se asociará el listener.
+     * @param menuItems Los ítems del menú (pueden ser Actions o JSeparators).
      * @return Un MouseAdapter configurado.
      */
-    private java.awt.event.MouseAdapter createContextMenuListener(JList<String> list, Action... actions) {
+    private java.awt.event.MouseAdapter createContextMenuListener(javax.swing.JComponent component, Object... menuItems) {
         return new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    showMenu(e);
-                }
-            }
-
-            public void mouseReleased(java.awt.event.MouseEvent e) {
-                if (e.isPopupTrigger()) {
-                    showMenu(e);
-                }
-            }
+            public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) { showMenu(e); } }
+            public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) { showMenu(e); } }
 
             private void showMenu(java.awt.event.MouseEvent e) {
-                int row = list.locationToIndex(e.getPoint());
-                if (row != -1) { list.setSelectedIndex(row); }
-                JPopupMenu menu = new JPopupMenu();
-                for (Action action : actions) {
-                    action.setEnabled(true);
-                    menu.add(action);
+                // Seleccionar la fila bajo el cursor antes de mostrar el menú
+                if (component instanceof JList) {
+                    JList<?> list = (JList<?>) component;
+                    int row = list.locationToIndex(e.getPoint());
+                    if (row != -1) {
+                        list.setSelectedIndex(row);
+                    }
+                } else if (component instanceof JTable) {
+                    JTable table = (JTable) component;
+                    int row = table.rowAtPoint(e.getPoint());
+                    if (row != -1) {
+                        table.setRowSelectionInterval(row, row);
+                    }
                 }
-                menu.show(e.getComponent(), e.getX(), e.getY());
+                
+                JPopupMenu menu = new JPopupMenu();
+                for (Object item : menuItems) {
+                    if (item instanceof Action) {
+                        Action action = (Action) item;
+                        // Actualizar el estado 'enabled' de la acción antes de mostrarla
+                        action.setEnabled(true); 
+                        menu.add(action);
+                    } else if (item instanceof javax.swing.JPopupMenu.Separator) {
+                        menu.addSeparator();
+                    }
+                }
+                
+                // Mostrar el menú solo si tiene items
+                if (menu.getComponentCount() > 0) {
+                    menu.show(e.getComponent(), e.getX(), e.getY());
+                }
             }
         };
     } // --- Fin del método createContextMenuListener ---

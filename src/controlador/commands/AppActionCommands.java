@@ -74,6 +74,10 @@ public interface AppActionCommands {
     String CMD_PROYECTO_TOGGLE_VISTA 		= "cmd.proyecto.toggle_vista_seleccion"; // (Opcional por ahora, si quieres un botón/menú para alternar vista)
     String CMD_PROYECTO_MOVER_A_DESCARTES 	= "cmd.proyecto.mover_a_descartes";
     String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";
+    String CMD_EXPORT_ASIGNAR_ARCHIVO 		= "cmd.export.asignar_archivo";
+    String CMD_EXPORT_ABRIR_UBICACION 		= "cmd.export.abrir_ubicacion";
+    String CMD_EXPORT_QUITAR_DE_COLA 		= "cmd.export.quitar_de_cola";
+    String CMD_EXPORT_IGNORAR_COMPRIMIDO 	= "cmd.export.ignorar_comprimido";
     
 
     // --- Vista (Toggles de UI) ---

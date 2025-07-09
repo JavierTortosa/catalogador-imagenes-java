@@ -35,40 +35,20 @@ public class ExportStatusEditor extends AbstractCellEditor implements TableCellE
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        // Solo actuamos si el estado es de un tipo que requiere intervención
-        if (value == ExportStatus.NO_ENCONTRADO || value == ExportStatus.MULTIPLES_CANDIDATOS) {
-            
-            // Usamos invokeLater para que el FileChooser no bloquee el repintado de la tabla
+        if (value == ExportStatus.NO_ENCONTRADO || value == ExportStatus.MULTIPLES_CANDIDATOS || value == ExportStatus.SUGERENCIA) {
             SwingUtilities.invokeLater(() -> {
-                JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setDialogTitle("Localizar Archivo Comprimido para " + table.getValueAt(row, 0));
-                
-                int result = fileChooser.showOpenDialog(table);
-                if (result == JFileChooser.APPROVE_OPTION) {
-                    File selectedFile = fileChooser.getSelectedFile();
-                    Path selectedPath = selectedFile.toPath();
-                    
-                    // Obtenemos el ExportItem de la tabla para modificarlo
+                // Ya no muestra el FileChooser, solo llama al callback.
+                if (onFileSelectedCallback != null) {
+                    // El callback debe obtener el item de la tabla y llamar al controlador
                     ExportTableModel model = (ExportTableModel) table.getModel();
-                    // Necesitaremos un método en el TableModel para obtener el item
                     ExportItem item = model.getItemAt(row);
-                    
                     if (item != null) {
-                        item.setRutaArchivoComprimido(selectedPath);
-                        item.setEstadoArchivoComprimido(ExportStatus.ASIGNADO_MANUAL);
-                        
-                        // Llamamos al callback para notificar al controlador que algo ha cambiado
-                        if (onFileSelectedCallback != null) {
-                            onFileSelectedCallback.accept(item);
-                        }
+                        onFileSelectedCallback.accept(item);
                     }
                 }
-                // Importante: después de la interacción, le decimos al editor que pare.
                 fireEditingStopped();
             });
         }
-        
-        // No devolvemos un componente de edición visible, la acción ocurre en el diálogo
         return null; 
     } // --- Fin del método getTableCellEditorComponent ---
 

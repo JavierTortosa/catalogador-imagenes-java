@@ -22,13 +22,13 @@ public class ExportPanel extends JPanel {
     private JButton btnCargarProyecto;
     private controlador.ProjectController projectController;
 
-    public ExportPanel(controlador.ProjectController controller) { // <-- NUEVO PARÁMETRO
+    public ExportPanel(controlador.ProjectController controller, java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {
         super(new BorderLayout(5, 5));
-        this.projectController = controller; // <-- NUEVA ASIGNACIÓN
-        initComponents();
+        this.projectController = controller;
+        initComponents(tableChangedCallback); // Pasamos el callback al método que crea los componentes
     } // --- Fin del método ExportPanel (constructor) ---
 
-    private void initComponents() {
+    private void initComponents(java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {
         // --- Panel Superior: Selección de Carpeta de Destino ---
         JPanel panelDestino = new JPanel(new BorderLayout(5, 0));
         txtCarpetaDestino = new JTextField("Seleccione una carpeta de destino...", 40);
@@ -40,24 +40,34 @@ public class ExportPanel extends JPanel {
         
         // --- Panel Central: La Tabla con la Cola de Exportación ---
         tablaExportacion = new JTable();
-        tablaExportacion.setModel(new ExportTableModel());
+        tablaExportacion.setModel(new ExportTableModel(tableChangedCallback));
 
-        // --- INICIO DE LA MODIFICACIÓN ---
-        // Asignar el renderer y editor a la columna "Estado" (que es la columna con índice 2).
-        // Se asume que las columnas son: 0="Imagen", 1="Archivo Comprimido", 2="Estado".
-        if (tablaExportacion.getColumnCount() > 2) {
-            tablaExportacion.getColumnModel().getColumn(2).setCellRenderer(new ExportStatusRenderer());
-            tablaExportacion.getColumnModel().getColumn(2).setCellEditor(new ExportStatusEditor(
-                // Se le pasa una referencia al método onExportItemManuallyAssigned del ProjectController.
-                // Esto es un "callback" que se ejecutará cuando el editor termine su trabajo.
+        // Asignar el renderer y editor a la columna "Estado" (índice 3 ahora)
+        if (tablaExportacion.getColumnCount() > 3) {
+            tablaExportacion.getColumnModel().getColumn(3).setCellRenderer(new ExportStatusRenderer());
+            tablaExportacion.getColumnModel().getColumn(3).setCellEditor(new ExportStatusEditor(
                 projectController::onExportItemManuallyAssigned
             ));
-            // Aumentar el alto de las filas para que los colores se vean mejor y haya espacio para clicar.
-            tablaExportacion.setRowHeight(24);
-        } else {
-            System.err.println("WARN [ExportPanel]: El TableModel no tiene suficientes columnas para asignar Renderer/Editor.");
         }
+
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // --- Ajustar el ancho de las columnas ---
+        javax.swing.table.TableColumnModel columnModel = tablaExportacion.getColumnModel();
+        
+        // Columna 0: "Exportar" (Checkbox)
+        javax.swing.table.TableColumn exportarColumn = columnModel.getColumn(0);
+        exportarColumn.setPreferredWidth(60); // Ancho preferido
+        exportarColumn.setMinWidth(50);      // Ancho mínimo
+        exportarColumn.setMaxWidth(70);      // Ancho máximo
+        
+        // Columna 3: "Estado"
+        javax.swing.table.TableColumn estadoColumn = columnModel.getColumn(3);
+        estadoColumn.setPreferredWidth(150);
+        estadoColumn.setMinWidth(120);
+        estadoColumn.setMaxWidth(200);
         // --- FIN DE LA MODIFICACIÓN ---
+
+        tablaExportacion.setRowHeight(24);
         
         JScrollPane scrollTabla = new JScrollPane(tablaExportacion);
 
@@ -67,7 +77,7 @@ public class ExportPanel extends JPanel {
         panelAccion.add(btnCargarProyecto, BorderLayout.WEST);
         
         btnIniciarExportacion = new JButton("Iniciar Exportación");
-        btnIniciarExportacion.setEnabled(false); // Deshabilitado hasta que todo esté listo
+        btnIniciarExportacion.setEnabled(false);
         lblResumen = new JLabel("  0 de 0 archivos listos para exportar.");
         panelAccion.add(btnIniciarExportacion, BorderLayout.EAST);
         panelAccion.add(lblResumen, BorderLayout.CENTER);
@@ -82,15 +92,12 @@ public class ExportPanel extends JPanel {
     
     /**
      * Actualiza el estado de los controles del panel de exportación.
-     * Habilita el botón "Iniciar Exportación" solo si se ha seleccionado una carpeta
-     * de destino y todos los ítems de la cola están listos.
-     * @param carpetaDestinoSeleccionada true si hay una carpeta de destino válida.
-     * @param todosLosItemsListos true si todos los ítems en la cola tienen un estado válido.
+     * @param puedeExportar true si el botón de exportación debe estar habilitado.
      * @param mensajeResumen El texto a mostrar en la etiqueta de resumen.
      */
-    public void actualizarEstadoControles(boolean carpetaDestinoSeleccionada, boolean todosLosItemsListos, String mensajeResumen) {
+    public void actualizarEstadoControles(boolean puedeExportar, String mensajeResumen) {
         if (btnIniciarExportacion != null) {
-            btnIniciarExportacion.setEnabled(carpetaDestinoSeleccionada && todosLosItemsListos);
+            btnIniciarExportacion.setEnabled(puedeExportar);
         }
         if (lblResumen != null) {
             lblResumen.setText("  " + mensajeResumen);

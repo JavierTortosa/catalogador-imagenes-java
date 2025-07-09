@@ -14,6 +14,8 @@ public class ExportItem {
     private List<Path> candidatosArchivo; // Para el caso de múltiples candidatos
 
     private ExportStatus estadoArchivoComprimido;
+    
+    private boolean seleccionadoParaExportar = true;
 
     public ExportItem(Path rutaImagen) {
         this.rutaImagen = rutaImagen;
@@ -58,5 +60,13 @@ public class ExportItem {
     public void setEstadoArchivoComprimido(ExportStatus estadoArchivoComprimido) {
         this.estadoArchivoComprimido = estadoArchivoComprimido;
     } // --- Fin del método setEstadoArchivoComprimido ---
+    
+    public boolean isSeleccionadoParaExportar() {
+        return seleccionadoParaExportar;
+    } // --- Fin del método isSeleccionadoParaExportar ---
+
+    public void setSeleccionadoParaExportar(boolean seleccionadoParaExportar) {
+        this.seleccionadoParaExportar = seleccionadoParaExportar;
+    } // --- Fin del método setSeleccionadoParaExportar ---
 
 } // --- FIN de la clase ExportItem ---

@@ -316,6 +316,10 @@ private void createCoreActions() {
         actionMap.put(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, createSwitchToVisualizadorAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES, createMoveToDiscardsAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES, createRestoreFromDiscardsAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO, createAssignFileAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_ABRIR_UBICACION, createOpenLocationAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, createRemoveFromQueueAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, createToggleIgnoreCompressedAction());
         
         // --- CAMBIO ---: Actions especiales movidas de vuelta a la primera fase.
         // 3.10. Crear y registrar Actions Especiales
@@ -657,6 +661,60 @@ private void createCoreActions() {
         // Esta acción tampoco necesita icono
         return new RestoreFromDiscardsAction(this.generalController, this.generalController.getVisorController().getComponentRegistry());
     } // --- FIN del método createRestoreFromDiscardsAction ---
+    
+    private Action createAssignFileAction() {
+        return new AbstractAction("Asignar archivo manualmente...") {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override public void actionPerformed(ActionEvent e) {
+                generalController.getProjectController().solicitarAsignacionManual();
+            }
+        };
+    } // --- Fin del método createAssignFileAction ---
+
+    private Action createOpenLocationAction() {
+        return new AbstractAction("Abrir ubicación de la imagen") {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override public void actionPerformed(ActionEvent e) {
+                generalController.getProjectController().solicitarAbrirUbicacionImagen();
+            }
+        };
+    } // --- Fin del método createOpenLocationAction ---
+
+    private Action createRemoveFromQueueAction() {
+        return new AbstractAction("Quitar de la cola") {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override public void actionPerformed(ActionEvent e) {
+                generalController.getProjectController().solicitarQuitarDeLaCola();
+            }
+        };
+    } // --- Fin del método createRemoveFromQueueAction ---
+    
+    private Action createToggleIgnoreCompressedAction() {
+        // Esta acción será un JCheckBoxMenuItem en el menú, así que no necesita icono.
+        return new AbstractAction("Ignorar archivo comprimido") {
+            /**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			@Override public void actionPerformed(ActionEvent e) {
+                generalController.getProjectController().solicitarAlternarIgnorarComprimido();
+            }
+        };
+    } // --- Fin del método createToggleIgnoreCompressedAction ---
+    
     
     // --- 4.11. Métodos Create para Actions Especiales ---
      private Action createMenuAction() { 

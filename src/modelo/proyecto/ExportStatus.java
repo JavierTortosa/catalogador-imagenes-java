@@ -7,6 +7,7 @@ public enum ExportStatus {
     ASIGNADO_MANUAL,    // El usuario lo ha localizado a mano
     SUGERENCIA,         // Encontrado un candidato probable, pero no 100% seguro
     MULTIPLES_CANDIDATOS, // Se encontraron varios posibles archivos
+    IGNORAR_COMPRIMIDO, // Ignora si no tiene archivo comprimido asignado
     COPIANDO,           // Proceso de copia en curso
     COPIADO_OK,         // Copia finalizada con éxito
     ERROR_COPIA         // Fallo durante la copia

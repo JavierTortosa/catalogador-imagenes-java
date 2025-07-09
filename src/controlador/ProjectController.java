@@ -1,5 +1,6 @@
 package controlador;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
+import controlador.utils.DesktopUtils;
 import controlador.worker.ExportWorker;
 import modelo.ListContext;
 import modelo.VisorModel;
@@ -472,52 +474,59 @@ public class ProjectController implements IModoController { // <-- MODIFICADO: i
     } // --- Fin del método onExportItemManuallyAssigned ---
     
     /**
-     * CORREGIDO: Comprueba el estado de la cola de exportación y la carpeta de destino,
-     * y actualiza la habilitación de los controles y el resaltado de la UI de forma independiente.
+     * DEFINITIVO: Comprueba el estado de la cola y actualiza la UI.
+     * El botón de exportar se activa si hay una carpeta de destino, si hay al menos un
+     * ítem seleccionado para exportar, y si TODOS los ítems seleccionados para exportar
+     * tienen un estado válido.
      */
-    private void actualizarEstadoExportacionUI() {
+    public void actualizarEstadoExportacionUI() {
         if (registry == null || exportQueueManager == null) {
             return;
         }
 
-        JPanel exportPanelPlaceholder = registry.get("panel.proyecto.herramientas.exportar");
-        if (!(exportPanelPlaceholder instanceof vista.panels.export.ExportPanel)) {
-            return;
-        }
-        vista.panels.export.ExportPanel exportPanel = (vista.panels.export.ExportPanel) exportPanelPlaceholder;
+        vista.panels.export.ExportPanel exportPanel = (vista.panels.export.ExportPanel) registry.get("panel.proyecto.herramientas.exportar");
+        if (exportPanel == null) return;
         
-        java.util.List<modelo.proyecto.ExportItem> cola = exportQueueManager.getColaDeExportacion();
+        java.util.List<modelo.proyecto.ExportItem> colaCompleta = exportQueueManager.getColaDeExportacion();
         
         // --- INICIO DE LA MODIFICACIÓN LÓGICA ---
 
-        // Condición 1: ¿Se ha seleccionado una carpeta de destino válida?
+        // 1. Filtrar solo los ítems que el usuario ha marcado con el checkbox.
+        List<modelo.proyecto.ExportItem> itemsSeleccionadosParaExportar = colaCompleta.stream()
+                                                                              .filter(modelo.proyecto.ExportItem::isSeleccionadoParaExportar)
+                                                                              .collect(Collectors.toList());
+
+        // 2. Comprobar si TODOS los ítems seleccionados para exportar tienen un estado válido.
+        boolean todosLosSeleccionadosEstanListos = itemsSeleccionadosParaExportar.stream().allMatch(item ->
+            item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ENCONTRADO_OK ||
+            item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ASIGNADO_MANUAL ||
+            item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO
+        );
+        
+        // 3. Comprobar si se ha seleccionado una carpeta de destino.
         String rutaDestino = exportPanel.getRutaDestino();
         boolean carpetaOk = rutaDestino != null && !rutaDestino.isBlank() && !rutaDestino.equals("Seleccione una carpeta de destino...");
 
-        // Resaltar el campo de destino SI Y SOLO SI no se ha seleccionado una carpeta,
-        // pero solo si ya se ha cargado la cola (para no resaltarlo al principio).
-        boolean resaltarDestino = !cola.isEmpty() && !carpetaOk;
+        // 4. Determinar si el botón "Iniciar Exportación" debe estar activo.
+        //    Debe estar activo SI Y SOLO SI:
+        //    a) Hay una carpeta seleccionada.
+        //    b) Hay al menos un ítem seleccionado para exportar.
+        //    c) TODOS los que están seleccionados están en un estado válido.
+        boolean puedeExportar = carpetaOk && !itemsSeleccionadosParaExportar.isEmpty() && todosLosSeleccionadosEstanListos;
+        
+        // 5. Crear el mensaje de resumen.
+        String mensaje = itemsSeleccionadosParaExportar.size() + " de " + colaCompleta.size() + " archivos seleccionados para exportar.";
+        
+        // 6. Actualizar la UI.
+        exportPanel.actualizarEstadoControles(puedeExportar, mensaje); // Modificamos el método para que solo necesite el resultado final
+        
+        // La lógica de resaltado de la carpeta de destino no cambia.
+        boolean resaltarDestino = !colaCompleta.isEmpty() && !carpetaOk;
         exportPanel.resaltarRutaDestino(resaltarDestino);
-
-        // Condición 2: ¿Están todos los ítems de la cola listos para exportar?
-        long itemsListos = cola.stream()
-                               .filter(item -> item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ENCONTRADO_OK ||
-                                                item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ASIGNADO_MANUAL)
-                               .count();
-        
-        boolean todosItemsOk = !cola.isEmpty() && (itemsListos == cola.size());
-        
-        // Crear el mensaje de resumen
-        String mensaje = itemsListos + " de " + cola.size() + " archivos listos para exportar.";
-        
-        // Llamar al método en el panel para que actualice el botón y el resumen.
-        // El botón solo se activa si AMBAS condiciones son verdaderas.
-        exportPanel.actualizarEstadoControles(carpetaOk, todosItemsOk, mensaje);
         
         // --- FIN DE LA MODIFICACIÓN LÓGICA ---
 
-        System.out.println("  [ProjectController] Estado de exportación UI actualizado. Carpeta OK: " + carpetaOk + ", Todos Items OK: " + todosItemsOk);
-
+        System.out.println("  [ProjectController] Estado de exportación UI actualizado. Puede exportar: " + puedeExportar);
     } // --- Fin del método actualizarEstadoExportacionUI ---
     
     
@@ -531,28 +540,29 @@ public class ProjectController implements IModoController { // <-- MODIFICADO: i
             return;
         }
         
-        // Obtener la carpeta de destino desde el panel
         vista.panels.export.ExportPanel exportPanel = (vista.panels.export.ExportPanel) registry.get("panel.proyecto.herramientas.exportar");
         Path carpetaDestino = java.nio.file.Paths.get(exportPanel.getRutaDestino());
 
-        // Obtener solo la lista de ítems que están listos para ser exportados
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Obtener solo la lista de ítems que el usuario ha marcado con el checkbox
         List<modelo.proyecto.ExportItem> colaParaCopiar = exportQueueManager.getColaDeExportacion().stream()
-            .filter(item -> item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ENCONTRADO_OK ||
-                             item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ASIGNADO_MANUAL)
+            .filter(modelo.proyecto.ExportItem::isSeleccionadoParaExportar)
+            .filter(item -> 
+                item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ENCONTRADO_OK ||
+                item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.ASIGNADO_MANUAL ||
+                item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO
+            )
             .collect(Collectors.toList());
+        // --- FIN DE LA MODIFICACIÓN ---
             
         if (colaParaCopiar.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "No hay archivos válidos en la cola para exportar.", "Exportación Vacía", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(view, "No hay archivos válidos seleccionados en la cola para exportar.", "Exportación Vacía", JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        // Crear el diálogo de progreso
         ExportProgressDialog dialogo = new ExportProgressDialog(view);
-        
-        // Crear y ejecutar el worker
         ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo);
         
-        // Añadir un PropertyChangeListener para actualizar la barra de progreso
         worker.addPropertyChangeListener(evt -> {
             if ("progress".equals(evt.getPropertyName())) {
                 dialogo.setProgress((Integer) evt.getNewValue());
@@ -560,9 +570,139 @@ public class ProjectController implements IModoController { // <-- MODIFICADO: i
         });
         
         worker.execute();
-        dialogo.setVisible(true); // Esto bloqueará la UI hasta que el worker llame a dispose()
-
+        dialogo.setVisible(true);
     } // --- Fin del método solicitarInicioExportacion ---
+    
+    
+    /**
+     * Abre la carpeta que contiene el archivo de imagen especificado en el explorador de archivos del sistema.
+     * Se activa desde el menú contextual de la tabla de exportación.
+     */
+    public void solicitarAbrirUbicacionImagen() {
+        if (exportQueueManager == null || registry == null) return;
+        
+        JTable tablaExportacion = getTablaExportacionDesdeRegistro();
+        if (tablaExportacion == null || tablaExportacion.getSelectedRow() == -1) return;
+
+        ExportTableModel modelTabla = (ExportTableModel) tablaExportacion.getModel();
+        modelo.proyecto.ExportItem itemSeleccionado = modelTabla.getItemAt(tablaExportacion.getSelectedRow());
+
+        if (itemSeleccionado != null) {
+            try {
+                // --- INICIO DE LA MODIFICACIÓN ---
+                // Llamamos a nuestro nuevo método de utilidad
+                DesktopUtils.openAndSelectFile(itemSeleccionado.getRutaImagen());
+                // --- FIN DE LA MODIFICACIÓN ---
+            } catch (Exception e) {
+                System.err.println("Error al intentar abrir y seleccionar el archivo: " + e.getMessage());
+                JOptionPane.showMessageDialog(view, "No se pudo abrir la ubicación del archivo.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    } // --- Fin del método solicitarAbrirUbicacionImagen ---
+    
+    
+    /**
+     * Alterna el estado de un ítem entre NO_ENCONTRADO e IGNORAR_COMPRIMIDO.
+     */
+    public void solicitarAlternarIgnorarComprimido() {
+        if (registry == null) return;
+        JTable tablaExportacion = getTablaExportacionDesdeRegistro();
+        if (tablaExportacion == null || tablaExportacion.getSelectedRow() == -1) return;
+
+        int filaSeleccionada = tablaExportacion.getSelectedRow();
+        ExportTableModel modelTabla = (ExportTableModel) tablaExportacion.getModel();
+        modelo.proyecto.ExportItem item = modelTabla.getItemAt(filaSeleccionada);
+
+        if (item != null) {
+            if (item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.NO_ENCONTRADO) {
+                item.setEstadoArchivoComprimido(modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO);
+            } else if (item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO) {
+                item.setEstadoArchivoComprimido(modelo.proyecto.ExportStatus.NO_ENCONTRADO);
+            }
+            
+            modelTabla.fireTableRowsUpdated(filaSeleccionada, filaSeleccionada);
+            actualizarEstadoExportacionUI();
+        }
+    } // --- Fin del método solicitarAlternarIgnorarComprimido ---
+    
+    
+    /**
+     * Inicia el proceso para que el usuario asigne manualmente un archivo
+     * (comprimido o STL) a un ítem de la cola de exportación.
+     * Reutiliza la lógica del TableCellEditor.
+     */
+    public void solicitarAsignacionManual() {
+        if (registry == null) return;
+        
+        JTable tablaExportacion = getTablaExportacionDesdeRegistro();
+        if (tablaExportacion == null || tablaExportacion.getSelectedRow() == -1) return;
+        
+        int filaSeleccionada = tablaExportacion.getSelectedRow();
+        ExportTableModel modelTabla = (ExportTableModel) tablaExportacion.getModel();
+        modelo.proyecto.ExportItem item = modelTabla.getItemAt(filaSeleccionada);
+
+        if (item == null) return;
+
+        // --- INICIO DE LA MODIFICACIÓN ---
+        JFileChooser fileChooser = new JFileChooser();
+        
+        // Establecer el directorio inicial del FileChooser en la carpeta de la imagen
+        Path carpetaImagen = item.getRutaImagen().getParent();
+        if (carpetaImagen != null && Files.isDirectory(carpetaImagen)) {
+            fileChooser.setCurrentDirectory(carpetaImagen.toFile());
+        }
+        
+        fileChooser.setDialogTitle("Localizar Archivo para " + item.getRutaImagen().getFileName());
+        
+        int result = fileChooser.showOpenDialog(view); // Usamos 'view' (el JFrame) como padre
+        if (result == JFileChooser.APPROVE_OPTION) {
+            Path selectedPath = fileChooser.getSelectedFile().toPath();
+            
+            item.setRutaArchivoComprimido(selectedPath);
+            item.setEstadoArchivoComprimido(modelo.proyecto.ExportStatus.ASIGNADO_MANUAL);
+            
+            // Refrescar la tabla y el estado de los controles
+            modelTabla.fireTableRowsUpdated(filaSeleccionada, filaSeleccionada);
+            actualizarEstadoExportacionUI();
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+    } // --- Fin del método solicitarAsignacionManual ---
+
+    /**
+     * Quita el ítem seleccionado de la cola de exportación.
+     */
+    public void solicitarQuitarDeLaCola() {
+        if (exportQueueManager == null || registry == null) return;
+
+        JTable tablaExportacion = getTablaExportacionDesdeRegistro();
+        if (tablaExportacion == null || tablaExportacion.getSelectedRow() == -1) return;
+        
+        ExportTableModel modelTabla = (ExportTableModel) tablaExportacion.getModel();
+        modelo.proyecto.ExportItem itemSeleccionado = modelTabla.getItemAt(tablaExportacion.getSelectedRow());
+
+        if (itemSeleccionado != null) {
+            exportQueueManager.getColaDeExportacion().remove(itemSeleccionado);
+            // Refrescamos la tabla y el estado de los botones
+            modelTabla.setCola(exportQueueManager.getColaDeExportacion());
+            actualizarEstadoExportacionUI();
+        }
+    } // --- Fin del método solicitarQuitarDeLaCola ---
+
+    /**
+     * Método de ayuda privado para obtener la JTable de exportación de forma segura.
+     * @return La JTable o null si no se encuentra.
+     */
+    private JTable getTablaExportacionDesdeRegistro() {
+        JPanel exportPanelPlaceholder = registry.get("panel.proyecto.herramientas.exportar");
+        if (exportPanelPlaceholder instanceof vista.panels.export.ExportPanel) {
+            vista.panels.export.ExportPanel exportPanel = (vista.panels.export.ExportPanel) exportPanelPlaceholder;
+            if (exportPanel.getComponent(1) instanceof javax.swing.JScrollPane) {
+                javax.swing.JScrollPane scrollPane = (javax.swing.JScrollPane) exportPanel.getComponent(1);
+                return (JTable) scrollPane.getViewport().getView();
+            }
+        }
+        return null;
+    } // --- Fin del método getTablaExportacionDesdeRegistro ---
     
     
     /**
