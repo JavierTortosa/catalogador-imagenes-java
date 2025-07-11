@@ -155,7 +155,7 @@ public class ToolbarManager {
             List<ToolbarDefinition> todasLasBarras = uiDefService.generateModularToolbarStructure();
 
             for (ToolbarDefinition def : todasLasBarras) {
-                if ("controles_imagen_inferior".equals(def.claveBarra())) {
+                if ("controles_imagen_inferior".equals(def.claveBarra()) || "acciones_exportacion".equals(def.claveBarra())) {
                     continue;
                 }
 

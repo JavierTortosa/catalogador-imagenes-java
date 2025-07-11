@@ -1,11 +1,11 @@
 Iniciando Visor de Imágenes V2...
-Mapa de configuración por defecto inicializado con 111 claves.
+Mapa de configuración por defecto inicializado con 115 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 182
+Configuración leída. Total claves: 211
 --- DEBUG PRE-SINCRONIZACIÓN ---
-Tamaño de DEFAULT_CONFIG: 111
-Tamaño de loadedConfig (del archivo): 182
+Tamaño de DEFAULT_CONFIG: 115
+Tamaño de loadedConfig (del archivo): 211
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
@@ -13,16 +13,16 @@ Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
 !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 410424423
-VisorV2.main: Configurando tema claro FlatLightLaf.
+VisorV2.main: Configurando tema oscuro FlatDarkLaf.
 --- Iniciando VisorController (Constructor Simple) ---
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
 [VisorModel] Inicializando estado por defecto de todos los contextos...
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
-[ThemeManager] Tema inicial establecido a: clear
+[ThemeManager] Tema inicial establecido a: dark
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 1060033311
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 937083307
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -44,7 +44,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
-  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 89
+  [ActionFactory] Actions principales inicializadas y mapeadas. Total: 92
   [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
 [VisorView Constructor SIMPLIFICADO] Iniciando...
   [ViewBuilder] Toolbar container creado con estructura BorderLayout (WEST, CENTER, EAST).
@@ -55,13 +55,17 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
 [ViewBuilder] Barra de controles de imagen inferior añadida a rightPanel (BorderLayout.SOUTH).
   [ProjectBuilder] Construyendo el panel del modo proyecto (Dashboard)...
+  [ToolbarManager getToolbar] La barra 'acciones_exportacion' no está en caché. Construyéndola ahora...
+
+--- [ToolbarBuilder] Construyendo barra: 'Acciones de Exportación' ---
+  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'acciones_exportacion'
   [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.
   [ViewBuilder] Frame principal construido y ensamblado.
     -> VisorView (JFrame) creado.
     -> Inyectando la instancia de 'view' en los componentes...
   [ActionFactory] Inicializando Actions dependientes de la vista...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
-  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 91
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 94
   [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 25, Descartes: 4
 [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
   -> Proyecto inicial cargado. Selección: 25, Descartes: 4
@@ -69,7 +73,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 91 acciones.
+  [MenuBarBuilder] ActionMap recibido con 94 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 WARN [MenuBarBuilder]: Clave de configuración duplicada encontrada: 'interfaz.menu.configuracion.herramientas.barra_de_proyecto'. El ítem anterior será sobrescrito en el mapa. Item nuevo: Barra de Proyecto
@@ -109,14 +113,10 @@ WARN [MenuBarBuilder]: Clave de configuración duplicada encontrada: 'interfaz.m
 
 --- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'zoom'
-  [ToolbarManager getToolbar] La barra 'carrousel' no está en caché. Construyéndola ahora...
+  [ToolbarManager getToolbar] La barra 'vistas' no está en caché. Construyéndola ahora...
 
---- [ToolbarBuilder] Construyendo barra: 'Carrousel' ---
-WARN [ToolbarBuilder]: No se encontró Action para comando 'cmd.nav.fotograma.primero'
-WARN [ToolbarBuilder]: No se encontró Action para comando 'cmd.nav.fotograma.anterior'
-WARN [ToolbarBuilder]: No se encontró Action para comando 'cmd.nav.fotograma.siguiente'
-WARN [ToolbarBuilder]: No se encontró Action para comando 'cmd.nav.fotograma.ultimo'
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'carrousel'
+--- [ToolbarBuilder] Construyendo barra: 'Vistas' ---
+  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'vistas'
   [ToolbarManager getToolbar] La barra 'utils' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
@@ -145,7 +145,7 @@ WARN [ToolbarBuilder]: No se encontró Action para comando 'cmd.nav.fotograma.ul
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: Land of The Frost.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: bam september.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -157,43 +157,100 @@ WARN [ToolbarBuilder]: No se encontró Action para comando 'cmd.nav.fotograma.ul
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-  [Worker BG] Files.walk terminado. Archivos encontrados: 308
+  [Worker BG] Files.walk terminado. Archivos encontrados: 334
 [Worker EDT] Método done() alcanzado.
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 308
-    -> Ordenando 308 claves...
+    WORKER HA TERMINADO. Número de archivos encontrados: 334
+    -> Ordenando 334 claves...
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@445bf85d: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@445bf85d actualizado. Nuevo tamaño: 308
-[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 308
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg' (Índice: 3)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1060033311
+### DEBUG CONTEXT: ListContext@37ebf9d1: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@37ebf9d1 actualizado. Nuevo tamaño: 334
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 334
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
-[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
+[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   -> Solicitando repintado inicial de listaMiniaturas.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---- [Listener Primer Renderizado]: Panel listo (1149x580). Forzando refresco de zoom y UI. ---
-[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
-[VisorController] Sincronización de UI de Zoom completada.
---- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
+[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
+[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice: 9)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
+[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
+[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
 [GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@744f600a: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@744f600a actualizado. Nuevo tamaño: 29
+### DEBUG CONTEXT: ListContext@350e429f: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@350e429f actualizado. Nuevo tamaño: 29
     -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): 29
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
   [GeneralController] Entrando en modo: PROYECTO
   [ProjectController] Activando la UI de la vista de proyecto...
   [ProjectController] Lista de descartes actualizada en la UI. Total: 4
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/angry-hamster.jpg' (Índice: 3)
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
   [ProjectController] UI de la vista de proyecto activada y restaurada.
   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
   [GeneralController] Estado de la UI actualizado.
@@ -203,31 +260,78 @@ WARN [ToolbarBuilder]: No se encontró Action para comando 'cmd.nav.fotograma.ul
 [GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
 --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
 
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [ToolbarManager getToolbar] La barra 'proyecto' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Proyecto' ---
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto'
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
+  [ProjectController] Cambiando foco a lista: seleccion
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ProjectController] Cambiando foco a lista: descartes
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ProjectController] Cambiando foco a lista: seleccion
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [ProjectController] Cambiando foco a lista: descartes
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [ProjectController] Cambiando foco a lista: seleccion
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg' (Índice: 11)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png' (Índice: 12)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg' (Índice: 13)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg' (Índice: 14)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg' (Índice: 15)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg' (Índice: 16)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg' (Índice: 17)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg' (Índice: 16)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg' (Índice: 17)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/STORM.jpg' (Índice: 18)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg' (Índice: 19)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg' (Índice: 20)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg' (Índice: 21)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ChangeListener] Pestaña 'Exportar' seleccionada. Solicitando preparación de cola...
 [ExportQueueManager] Preparando cola para 25 imágenes.
 [ExportQueueManager] Preparación de cola finalizada.
 [ProjectController] Modelo de tabla de exportación actualizado.
   [ProjectController] Estado de exportación UI actualizado. Puede exportar: false
---- [GeneralController Dispatcher] ALT: Menú ya activo. Cerrando selección.
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final de todos los contextos...
-  [Guardar] Estado Visualizador: UltimaKey=Land of The Frost.jpg
-  [Guardar] Estado Proyecto: Foco=descartes, SelKey=F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg, DescKey=F:/ARCHIVOS 3D/Chibi/angry-hamster.jpg
+  [Guardar] Estado Visualizador: UltimaKey=cyberpunk-city-anime-girl-5k-0e-1.png
+  [Guardar] Estado Proyecto: Foco=seleccion, SelKey=F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg, DescKey=D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 410424423
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
-[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
+[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'dark'
 --- DEBUG: Contenido del mapa a guardar ---
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 182
+Claves a guardar/actualizar: 211
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

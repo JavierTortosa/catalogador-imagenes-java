@@ -34,7 +34,7 @@ public class ExportStatusEditor extends AbstractCellEditor implements TableCellE
 
     @Override
     public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row, int column) {
-        if (value == ExportStatus.NO_ENCONTRADO || value == ExportStatus.MULTIPLES_CANDIDATOS || value == ExportStatus.SUGERENCIA) {
+        if (value == ExportStatus.NO_ENCONTRADO || value == ExportStatus.MULTIPLES_CANDIDATOS) {
             SwingUtilities.invokeLater(() -> {
                 // Ya no muestra el FileChooser, solo llama al callback.
                 if (onFileSelectedCallback != null) {

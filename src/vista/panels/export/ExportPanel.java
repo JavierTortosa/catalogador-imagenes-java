@@ -3,12 +3,19 @@ package vista.panels.export;
 import java.awt.BorderLayout;
 import java.awt.Color;
 
+import javax.swing.Action; // <-- NUEVO IMPORT
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.JToolBar; // <-- NUEVO IMPORT
+import javax.swing.table.TableColumn;
+
+import controlador.ProjectController;
+import controlador.commands.AppActionCommands;
+import controlador.managers.ToolbarManager;
 
 public class ExportPanel extends JPanel {
 
@@ -17,144 +24,157 @@ public class ExportPanel extends JPanel {
     private JTable tablaExportacion;
     private JButton btnSeleccionarCarpeta;
     private JTextField txtCarpetaDestino;
-    private JButton btnIniciarExportacion;
     private JLabel lblResumen;
-    private JButton btnCargarProyecto;
-    private controlador.ProjectController projectController;
+    private ProjectController projectController;
+    private JToolBar actionToolBar; 
+    private ExportTableModel tableModel;
 
-    public ExportPanel(controlador.ProjectController controller, java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {
+    public ExportPanel(ProjectController controller, java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {
         super(new BorderLayout(5, 5));
         this.projectController = controller;
-        initComponents(tableChangedCallback); // Pasamos el callback al método que crea los componentes
+        
+        // --- CAMBIO: Inicializar el TableModel aquí ---
+        this.tableModel = new ExportTableModel(tableChangedCallback);
+        
+        initComponents(tableChangedCallback);
     } // --- Fin del método ExportPanel (constructor) ---
+
 
     private void initComponents(java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {
         // --- Panel Superior: Selección de Carpeta de Destino ---
         JPanel panelDestino = new JPanel(new BorderLayout(5, 0));
-        txtCarpetaDestino = new JTextField("Seleccione una carpeta de destino...", 40);
-        txtCarpetaDestino.setEditable(false);
-        btnSeleccionarCarpeta = new JButton("...");
-        panelDestino.add(new JLabel(" Destino: "), BorderLayout.WEST);
+
+        txtCarpetaDestino = new JTextField("Seleccione una carpeta de destino...");
+        txtCarpetaDestino.setEditable(false); 
         panelDestino.add(txtCarpetaDestino, BorderLayout.CENTER);
-        panelDestino.add(btnSeleccionarCarpeta, BorderLayout.EAST);
-        
-        // --- Panel Central: La Tabla con la Cola de Exportación ---
-        tablaExportacion = new JTable();
-        tablaExportacion.setModel(new ExportTableModel(tableChangedCallback));
 
-        // Asignar el renderer y editor a la columna "Estado" (índice 3 ahora)
-        if (tablaExportacion.getColumnCount() > 3) {
-            tablaExportacion.getColumnModel().getColumn(3).setCellRenderer(new ExportStatusRenderer());
-            tablaExportacion.getColumnModel().getColumn(3).setCellEditor(new ExportStatusEditor(
-                projectController::onExportItemManuallyAssigned
-            ));
-        }
-
-        // --- INICIO DE LA MODIFICACIÓN ---
-        // --- Ajustar el ancho de las columnas ---
-        javax.swing.table.TableColumnModel columnModel = tablaExportacion.getColumnModel();
+        Action seleccionarCarpetaAction = projectController.getController().getActionFactory()
+                .getActionMap().get(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA);
         
-        // Columna 0: "Exportar" (Checkbox)
-        javax.swing.table.TableColumn exportarColumn = columnModel.getColumn(0);
-        exportarColumn.setPreferredWidth(60); // Ancho preferido
-        exportarColumn.setMinWidth(50);      // Ancho mínimo
-        exportarColumn.setMaxWidth(70);      // Ancho máximo
+        btnSeleccionarCarpeta = new JButton(seleccionarCarpetaAction);
+        panelDestino.add(btnSeleccionarCarpeta, BorderLayout.EAST); // Corregido: btnSeleccionarCarpeta
         
-        // Columna 3: "Estado"
-        javax.swing.table.TableColumn estadoColumn = columnModel.getColumn(3);
-        estadoColumn.setPreferredWidth(150);
-        estadoColumn.setMinWidth(120);
-        estadoColumn.setMaxWidth(200);
-        // --- FIN DE LA MODIFICACIÓN ---
-
-        tablaExportacion.setRowHeight(24);
-        
-        JScrollPane scrollTabla = new JScrollPane(tablaExportacion);
-
-        // --- Panel Inferior: Botones de Acción y Resumen ---
-        JPanel panelAccion = new JPanel(new BorderLayout(5, 0));
-        btnCargarProyecto = new JButton("Cargar Selección a la Cola");
-        panelAccion.add(btnCargarProyecto, BorderLayout.WEST);
-        
-        btnIniciarExportacion = new JButton("Iniciar Exportación");
-        btnIniciarExportacion.setEnabled(false);
-        lblResumen = new JLabel("  0 de 0 archivos listos para exportar.");
-        panelAccion.add(btnIniciarExportacion, BorderLayout.EAST);
-        panelAccion.add(lblResumen, BorderLayout.CENTER);
-
-        // --- Ensamblaje Final ---
         this.add(panelDestino, BorderLayout.NORTH);
+        
+        // --- Tabla de Exportación ---
+        // --- CAMBIO: La tabla ahora se crea con el tableModel que ya hemos inicializado ---
+        tablaExportacion = new JTable(this.tableModel); 
+        tablaExportacion.setFillsViewportHeight(true);
+        tablaExportacion.setRowHeight(24); // Altura de fila para que los iconos se vean bien
+        tablaExportacion.setShowGrid(false); // Opcional: ocultar la rejilla
+        
+        // --- Configuración de Columnas y Renderers/Editores ---
+        // Columna 0: Checkbox
+        TableColumn checkColumn = tablaExportacion.getColumnModel().getColumn(0);
+        checkColumn.setPreferredWidth(30);
+        checkColumn.setMaxWidth(30);
+        checkColumn.setMinWidth(30);
+        
+        // --- CAMBIO: Añadimos el HeaderRenderer para la columna 0 ---
+        tablaExportacion.getTableHeader().getColumnModel().getColumn(0).setHeaderRenderer(new CheckHeaderRenderer());
+
+        // Columna 1: Nombre de la Imagen
+        TableColumn imageNameColumn = tablaExportacion.getColumnModel().getColumn(1);
+        imageNameColumn.setPreferredWidth(250); // Un ancho más grande para el nombre del archivo
+
+        // Columna 2: Estado de Exportación (Icono + Texto)
+        TableColumn statusColumn = tablaExportacion.getColumnModel().getColumn(2);
+        statusColumn.setPreferredWidth(150); // Suficiente para el estado y texto
+        
+        // --- CAMBIO: Usamos tu StatusCellRenderer.java para esta columna ---
+        // Asumo que StatusCellRenderer es la clase que quieres usar como ExportStatusCellRenderer
+        // y está importada como vista.renderers.ExportStatusCellRenderer.
+        statusColumn.setCellRenderer(new vista.panels.export.StatusCellRenderer(projectController.getController().getIconUtils()));
+
+        // Añadir listener a la cabecera de la primera columna para seleccionar/desseleccionar todo
+        tablaExportacion.getTableHeader().addMouseListener(new HeaderMouseListener(tablaExportacion));
+
+
+        JScrollPane scrollTabla = new JScrollPane(tablaExportacion);
         this.add(scrollTabla, BorderLayout.CENTER);
-        this.add(panelAccion, BorderLayout.SOUTH);
+
+        // --- Panel Inferior: Barra de Acciones y Resumen ---
+        
+        // 1. Obtenemos el ToolbarManager a través del controlador
+        ToolbarManager toolbarManager = projectController.getController().getToolbarManager();
+        
+        if (toolbarManager != null) {
+            // 2. Pedimos la barra de herramientas de acciones de exportación
+            JToolBar exportActionsToolbar = toolbarManager.getToolbar("acciones_exportacion");
+            
+            if (exportActionsToolbar != null) {
+                // 3. Añadimos el resumen de texto al final de la toolbar
+                exportActionsToolbar.add(javax.swing.Box.createHorizontalGlue());
+                lblResumen = new JLabel("Cargue la selección para ver el estado.");
+                exportActionsToolbar.add(lblResumen);
+                exportActionsToolbar.add(javax.swing.Box.createRigidArea(new java.awt.Dimension(5, 0)));
+                
+                // 4. Añadimos la toolbar completa al sur del panel
+                this.add(exportActionsToolbar, BorderLayout.SOUTH);
+            } else {
+                 System.err.println("ERROR: No se pudo obtener la toolbar 'acciones_exportacion' del ToolbarManager.");
+            }
+        } else {
+            System.err.println("ERROR CRÍTICO: ToolbarManager es nulo, no se puede construir la barra de acciones de exportación.");
+        }
 
     } // --- Fin del método initComponents ---
+     
     
     
-    /**
-     * Actualiza el estado de los controles del panel de exportación.
-     * @param puedeExportar true si el botón de exportación debe estar habilitado.
-     * @param mensajeResumen El texto a mostrar en la etiqueta de resumen.
-     */
+    // El método actualizarEstadoControles ahora solo necesita actualizar el resumen
+    // ya que el estado de los botones lo gestionan las Actions.
     public void actualizarEstadoControles(boolean puedeExportar, String mensajeResumen) {
-        if (btnIniciarExportacion != null) {
-            btnIniciarExportacion.setEnabled(puedeExportar);
-        }
         if (lblResumen != null) {
             lblResumen.setText("  " + mensajeResumen);
+        }
+        // El estado del botón de exportación lo maneja su propia Action, pero podemos forzarlo si es necesario.
+        Action iniciarExportAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_INICIAR_EXPORTACION);
+        if (iniciarExportAction != null) {
+            iniciarExportAction.setEnabled(puedeExportar);
         }
     } // --- Fin del método actualizarEstadoControles ---
     
     
-    public JButton getBotonCargarProyecto() {
-        return this.btnCargarProyecto;
-    } // --- Fin del método getBotonCargarProyecto ---
-    
-    /**
-     * Devuelve la instancia del botón para seleccionar la carpeta de destino.
-     * @return El JButton para seleccionar la carpeta.
-     */
     public JButton getBotonSeleccionarCarpeta() {
         return this.btnSeleccionarCarpeta;
     } // --- Fin del método getBotonSeleccionarCarpeta ---
     
     
-    /**
-     * Establece la ruta de destino mostrada en el campo de texto.
-     * @param ruta La ruta a mostrar.
-     */
+    
     public void setRutaDestino(String ruta) {
         if (this.txtCarpetaDestino != null) {
             this.txtCarpetaDestino.setText(ruta);
         }
     } // --- Fin del método setRutaDestino ---
     
-    
-    /**
-     * Resalta el campo de texto de la ruta de destino.
-     * @param resaltar true para poner un fondo de advertencia (rosa), false para volver al normal.
-     */
     public void resaltarRutaDestino(boolean resaltar) {
         if (txtCarpetaDestino != null) {
             if (resaltar) {
-                // Un color rosa claro para advertencia.
                 txtCarpetaDestino.setBackground(new Color(255, 220, 220));
             } else {
-                // Volver al color de fondo por defecto de un JTextField.
-                // Usar null hace que herede el color del Look and Feel.
                 txtCarpetaDestino.setBackground(null);
             }
         }
     } // --- Fin del método resaltarRutaDestino ---
-    
     
     public String getRutaDestino() {
         return (this.txtCarpetaDestino != null) ? this.txtCarpetaDestino.getText() : "";
     } // --- Fin del método getRutaDestino ---
     
     
-    public JButton getBotonIniciarExportacion() {
-        return this.btnIniciarExportacion;
-    } // --- Fin del método getBotonIniciarExportacion ---
+
+    /**
+     * Proporciona acceso directo a la JTable de exportación encapsulada en este panel.
+     * @return La instancia de JTable utilizada para mostrar la cola de exportación.
+     */
+    public JTable getTablaExportacion() {
+        return this.tablaExportacion;
+    } // --- Fin del método getTablaExportacion ---
+    
     
 
+    
+    
+    
 } // --- FIN de la clase ExportPanel ---

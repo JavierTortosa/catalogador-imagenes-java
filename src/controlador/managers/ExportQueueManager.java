@@ -30,6 +30,7 @@ public class ExportQueueManager {
     /**
      * Prepara la cola de exportación basándose en la selección actual del proyecto.
      * Limpia la cola anterior y la repuebla.
+     * MODIFICADO: Ahora comprueba la existencia de la imagen antes de procesarla.
      * @param rutasSeleccionadas La lista de rutas absolutas de las imágenes seleccionadas.
      */
     public void prepararColaDesdeSeleccion(List<Path> rutasSeleccionadas) {
@@ -38,7 +39,18 @@ public class ExportQueueManager {
 
         for (Path rutaImagen : rutasSeleccionadas) {
             ExportItem item = new ExportItem(rutaImagen);
-            buscarArchivoComprimidoAsociado(item);
+
+            // --- LÓGICA DE VERIFICACIÓN DE EXISTENCIA ---
+            if (Files.exists(rutaImagen) && Files.isRegularFile(rutaImagen)) {
+                // Si la imagen existe, procedemos a buscar su archivo comprimido asociado.
+                buscarArchivoComprimidoAsociado(item);
+            } else {
+                // Si la imagen NO existe, marcamos el item con el nuevo estado y no buscamos nada más.
+                System.err.println("WARN [ExportQueueManager]: La imagen original no se encontró en la ruta: " + rutaImagen);
+                item.setEstadoArchivoComprimido(ExportStatus.IMAGEN_NO_ENCONTRADA);
+            }
+            // --- FIN DE LA LÓGICA DE VERIFICACIÓN ---
+
             this.colaDeExportacion.add(item);
         }
         System.out.println("[ExportQueueManager] Preparación de cola finalizada.");
@@ -48,7 +60,7 @@ public class ExportQueueManager {
      * Lógica simple para buscar un archivo comprimido asociado a una imagen.
      * @param item El ExportItem que se está procesando.
      */
-    private void buscarArchivoComprimidoAsociado(ExportItem item) {
+    public void buscarArchivoComprimidoAsociado(ExportItem item) {
         Path rutaImagen = item.getRutaImagen();
         Path directorio = rutaImagen.getParent();
         if (directorio == null || !Files.isDirectory(directorio)) {

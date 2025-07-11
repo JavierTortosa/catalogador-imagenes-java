@@ -83,7 +83,9 @@ public interface AppActionCommands {
 	    String CMD_EXPORT_IGNORAR_COMPRIMIDO 	= "cmd.export.ignorar_comprimido";
 	    String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";
 	    String CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE = "cmd.proyecto.eliminar";
-    
+	    String CMD_EXPORT_RELOCALIZAR_IMAGEN 	= "cmd.export.relocalizar_imagen";
+	    String CMD_INICIAR_EXPORTACION 			= "cmd.export.iniciar"; 
+	    String CMD_EXPORT_SELECCIONAR_CARPETA 	= "cmd.export.seleccionar.carpeta";
 
  // --- Vista (Toggles de UI) ---
     String CMD_VISTA_TOGGLE_MENU_BAR 		= "cmd.vista.toggle.menu_bar";      	// Para ToggleMenuBarAction

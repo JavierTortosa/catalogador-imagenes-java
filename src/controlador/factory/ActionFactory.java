@@ -17,7 +17,6 @@ import javax.swing.JOptionPane;
 import controlador.GeneralController;
 import controlador.ProjectController;
 import controlador.actions.archivo.DeleteAction;
-
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
 import controlador.actions.archivo.OpenFileAction;
 import controlador.actions.archivo.RefreshAction;
@@ -35,11 +34,11 @@ import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
-
 // Importaciones para PanAction y Direction
 import controlador.actions.pan.PanAction;
 import controlador.actions.projects.GestionarProyectoAction;
 import controlador.actions.projects.MoveToDiscardsAction;
+import controlador.actions.projects.RelocateImageAction;
 import controlador.actions.projects.RestoreFromDiscardsAction;
 import controlador.actions.projects.ToggleMarkImageAction;
 import controlador.actions.tema.ToggleThemeAction;
@@ -316,6 +315,9 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, createRemoveFromQueueAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, createToggleIgnoreCompressedAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE, createEliminarDeProyectoAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN, createRelocateImageAction());
+        actionMap.put(AppActionCommands.CMD_INICIAR_EXPORTACION, createIniciarExportacionAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, createSeleccionarCarpetaAction());
         
         // --- CAMBIO ---: Actions especiales movidas de vuelta a la primera fase.
         // 3.10. Crear y registrar Actions Especiales
@@ -721,6 +723,49 @@ public class ActionFactory {
         };
     } // --- Fin del método createEliminarDeProyectoAction ---
     
+    /**
+     * Crea la acción para relocalizar una imagen no encontrada.
+     * Es sensible al contexto.
+     */
+    private Action createRelocateImageAction() {
+        // Esta acción es para el menú contextual, no necesita icono por ahora.
+        RelocateImageAction action = new RelocateImageAction(this.generalController.getProjectController());
+        this.contextSensitiveActions.add(action); // ¡Importante! Registrarla como sensible al contexto.
+        return action;
+    } // --- Fin del método createRelocateImageAction ---
+    
+    private Action createIniciarExportacionAction() {
+        // Obtenemos un icono (ej. un 'play' o un 'exportar')
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_INICIAR_EXPORTACION);
+        // Creamos la acción
+        Action action = new AbstractAction("Iniciar Exportación", icon) {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                generalController.getProjectController().solicitarInicioExportacion();
+            }
+        };
+        // Por defecto, esta acción debe estar deshabilitada
+        action.setEnabled(false);
+        return action;
+    } // --- Fin del método createIniciarExportacionAction ---
+    
+    /**
+     * Crea la acción para seleccionar la carpeta de destino de la exportación.
+     */
+    private Action createSeleccionarCarpetaAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA);
+        return new AbstractAction("" /*"Seleccionar Carpeta..."*/, icon) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (projectControllerRef != null) {
+                    projectControllerRef.solicitarSeleccionCarpetaDestino();
+                }
+            }
+        };
+    } // --- Fin del método createSeleccionarCarpetaAction ---
     
     // --- 4.11. Métodos Create para Actions Especiales ---
      private Action createMenuAction() { 

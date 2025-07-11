@@ -685,6 +685,15 @@ public class UIDefinitionService {
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, 	"Paint-Palette--Streamline-Core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", "controles_imagen_inferior", ButtonType.TRANSPARENT)
         );
 
+        
+        List<ToolbarButtonDefinition> botonesExportacion = List.of(	
+       		new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, 	"6001-selector_de_carpetas_48x48.png", "Seleccionar Carpeta de Destino", "exportacion"),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, 		"21001-quitar_de_cola.png", "Quitar de la cola", "exportacion"),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO,		"21002-asignar_archivo.png","Asignar archivo manualmente", "exportacion"),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, 	"21003-ignorar_comprimido.png", "Ignorar archivo comprimido", "exportacion"),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN, 	"21004-relocalizar_imagen.png", "Relocalizar Imagen", "exportacion"),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_INICIAR_EXPORTACION, 			"21005-iniciar_exportación.png","Iniciar Exportación", "exportacion")
+        );
 
         return List.of(
             // Grupo Izquierda
@@ -693,8 +702,8 @@ public class UIDefinitionService {
             // Grupo Centro
             new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion, ToolbarAlignment.CENTER),
             new ToolbarDefinition("zoom", 		"Zoom", 		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesZoom, ToolbarAlignment.CENTER),
-//            new ToolbarDefinition("vistas",	    "Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVista, ToolbarAlignment.CENTER),
-            new ToolbarDefinition("carrousel",	"Carrousel", 	110, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesCarrousel, ToolbarAlignment.CENTER),
+            new ToolbarDefinition("vistas",	    "Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVista, ToolbarAlignment.CENTER),
+//            new ToolbarDefinition("carrousel",	"Carrousel", 	110, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesCarrousel, ToolbarAlignment.CENTER),
             
             // Grupo Derecha
             new ToolbarDefinition("utils",		"Utilidades", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils, ToolbarAlignment.RIGHT),
@@ -708,8 +717,8 @@ public class UIDefinitionService {
             new ToolbarDefinition("apoyo", 	    "Apoyo", 		100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesApoyo, ToolbarAlignment.RIGHT),
             
             // Barra especial que no se añade al contenedor principal. Su alineamiento no importa.
+            new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 98, EnumSet.of(WorkMode.PROYECTO), botonesExportacion, ToolbarAlignment.LEFT),
             new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 95, EnumSet.of(WorkMode.VISUALIZADOR), botonesControlesImagenInferior, ToolbarAlignment.RIGHT)
-            
     	);
         
         

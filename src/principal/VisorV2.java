@@ -33,8 +33,6 @@ public class VisorV2
 		//TODO hacer que el salto de pagina avance o retroceda los items que se estipulan en el config, ahora lo hace pero de la lista general, no en la lista
 		//especifica, si movemos items a descartes pasa del item 0 al 10 pero si en medio no hay items porque estan en descartes va al item 10 igual
 	
-		//TODO hacer que la mochila guarde el archivo y el foco activo en el cofig para la proxima ejecucion o para el cambio de foco
-	
 		//TODO cambiar formato de las pestañas de exportar, descartes... para que no parezcan labels, que sean algo mas
 	
 		//TODO cuando busca los archivos asociados deberia aparecer un progressbar indicando que esta buscando los archivos asociados.... 
@@ -45,12 +43,6 @@ public class VisorV2
     	//TODO permitir la seleccion multiple en modo proyecto
     
     	//TODO añadir una opcion al panel de descartes para borrar seleccion o todo
-	
-		//TODO hacer que las imagenes solo muestren el nombre o el path con la configuracion del config
-	
-		//TODO forzar a que el splitPanel de modo proyecto se ajuste a un espacio del 20%
-	
-		//TODO hacer que la lista de archivos no muestre la ruta o por lo menos que no la muestre desplegada (ocupa mucho sitio en pantalla)
 	
 		//TODO permitir seleccionar varios archivos con el raton + shift por ej. para enviarlos a descartes o a exportar
 	

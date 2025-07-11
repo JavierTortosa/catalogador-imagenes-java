@@ -170,6 +170,7 @@ public class ProjectBuilder {
         javax.swing.JTabbedPane herramientasTabbedPane = new javax.swing.JTabbedPane();
         registry.register("tabbedpane.proyecto.herramientas", herramientasTabbedPane);
         
+        // --- Pestaña 1: Lista de Descartes ---
         JList<String> descartesList = new JList<>();
         descartesList.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
         descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -199,15 +200,15 @@ public class ProjectBuilder {
         registry.register("scroll.proyecto.descartes", scrollPaneDescartes);
         herramientasTabbedPane.addTab("Descartes", scrollPaneDescartes);
 
+        // --- Pestaña 2: Panel de Exportación ---
         vista.panels.export.ExportPanel panelExportar = new vista.panels.export.ExportPanel(
         	    this.generalController.getProjectController(),
         	    (e) -> this.generalController.getProjectController().actualizarEstadoExportacionUI()
         	);
         registry.register("panel.proyecto.herramientas.exportar", panelExportar);
         
-        panelExportar.getBotonCargarProyecto().addActionListener(e -> generalController.getProjectController().solicitarPreparacionColaExportacion());
-        panelExportar.getBotonSeleccionarCarpeta().addActionListener(e -> generalController.getProjectController().solicitarSeleccionCarpetaDestino());
-        panelExportar.getBotonIniciarExportacion().addActionListener(e -> generalController.getProjectController().solicitarInicioExportacion());
+        // --- LÍNEA ELIMINADA ---
+        // panelExportar.getBotonSeleccionarCarpeta().addActionListener(e -> generalController.getProjectController().solicitarSeleccionCarpetaDestino());
 
         JTable tablaExportacion = (JTable) ((JScrollPane) panelExportar.getComponent(1)).getViewport().getView();
         
@@ -215,10 +216,12 @@ public class ProjectBuilder {
         Action openLocationAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ABRIR_UBICACION);
         Action removeFromQueueAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA);
         Action toggleIgnoreAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO);
+        Action relocateAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN);
         
         tablaExportacion.addMouseListener(createContextMenuListener(tablaExportacion, 
             assignAction, 
             openLocationAction,
+            relocateAction, // <-- Añadimos la nueva acción al menú
             new javax.swing.JPopupMenu.Separator(),
             toggleIgnoreAction,
             new javax.swing.JPopupMenu.Separator(),
@@ -227,11 +230,23 @@ public class ProjectBuilder {
         
         herramientasTabbedPane.addTab("Exportar", panelExportar);
 
+        // --- Pestaña 3: Placeholder para Etiquetar ---
         JPanel panelEtiquetarPlaceholder = new JPanel();
         herramientasTabbedPane.addTab("Etiquetar", panelEtiquetarPlaceholder);
         herramientasTabbedPane.setEnabledAt(2, false); 
 
         panelHerramientas.add(herramientasTabbedPane, BorderLayout.CENTER);
+
+        // --- LÓGICA DE CARGA AUTOMÁTICA ---
+        herramientasTabbedPane.addChangeListener(e -> {
+            // Comprobamos si la pestaña recién seleccionada es la de "Exportar"
+            if (herramientasTabbedPane.getSelectedIndex() == 1) { // El índice 1 corresponde a "Exportar"
+                System.out.println("[ChangeListener] Pestaña 'Exportar' seleccionada. Solicitando preparación de cola...");
+                // Llamamos directamente al método del controlador
+                generalController.getProjectController().solicitarPreparacionColaExportacion();
+            }
+        });
+        // --- FIN DE LÓGICA DE CARGA AUTOMÁTICA ---
         
         return panelHerramientas;
     } // --- Fin del método createProjectToolsPanel ---

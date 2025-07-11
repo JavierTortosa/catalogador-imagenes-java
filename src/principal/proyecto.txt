@@ -612,7 +612,7 @@ Podrías permitir iconos cambiantes por estado (ej. presionado/no presionado) de
 
 ***********************************************************************************************************************************
 
-
+************************************************************************************************************************************************
 Plan de Acción: Rediseño del Panel de Exportación
 Objetivo General: Transformar el panel de exportación en una interfaz más compacta, intuitiva y robusta, usando iconos para el estado, una toolbar para las acciones y manejando la posible inexistencia de archivos.
 FASE 1: Fortalecer el Modelo y la Lógica de Negocio
@@ -654,6 +654,8 @@ Eliminar el JPanel inferior con los botones de texto.
 Crear y añadir una JToolBar en ExportPanel.
 Poblar la toolbar con JButtons basados en las Actions de ActionFactory (Iniciar Exportación, Quitar de la cola, Asignar manualmente, Ignorar, Relocalizar).
 Añadir la etiqueta de resumen (lblResumen) a la toolbar.
+
+*******************************************************************************************************************************
 
 
 

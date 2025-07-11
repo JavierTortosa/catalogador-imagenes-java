@@ -3,7 +3,10 @@ package vista.panels.export;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.swing.ImageIcon; // <-- ¡Importante añadir esta línea!
 import javax.swing.table.AbstractTableModel;
+
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
 
@@ -13,7 +16,10 @@ public class ExportTableModel extends AbstractTableModel {
     private final java.util.function.Consumer<javax.swing.event.TableModelEvent> onDataChangedCallback;
 
     private List<ExportItem> cola;
-    private final String[] nombresColumnas = {"Exportar", "Imagen", "Archivo Comprimido", "Estado"};
+    // --- INICIO DE CAMBIO (1/4) ---
+    // Modificamos los nombres de las columnas
+    private final String[] nombresColumnas = {"", "Imagen", "Estado"};
+    // --- FIN DE CAMBIO (1/4) ---
 
     public ExportTableModel(java.util.function.Consumer<javax.swing.event.TableModelEvent> callback) {
         this.cola = new ArrayList<>();
@@ -53,37 +59,47 @@ public class ExportTableModel extends AbstractTableModel {
             return null;
         }
         ExportItem item = cola.get(rowIndex);
+        
+        // --- INICIO DE CAMBIO (2/4) ---
+        // Adaptamos los valores devueltos a la nueva estructura de columnas
         switch (columnIndex) {
-            case 0:
+            case 0: // Columna del Checkbox
                 return item.isSeleccionadoParaExportar();
-            case 1:
+            case 1: // Columna del Nombre de la Imagen
                 return item.getRutaImagen().getFileName().toString();
-            case 2:
-                Path rutaComprimido = item.getRutaArchivoComprimido();
-                return (rutaComprimido != null) ? rutaComprimido.getFileName().toString() : "---";
-            case 3:
-                return item.getEstadoArchivoComprimido();
+            case 2: // Columna de Estado (ahora devuelve el propio item)
+                // Devolvemos el objeto ExportItem completo. El renderer se encargará
+                // de extraer el icono, el texto y el color de fondo.
+                return item; 
             default:
                 return null;
         }
+        // --- FIN DE CAMBIO (2/4) ---
     } // --- Fin del método getValueAt ---
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
+        // --- INICIO DE CAMBIO (3/4) ---
+        // Definimos los tipos de datos para cada columna
         switch (columnIndex) {
-            case 0:
-                return Boolean.class; // La primera columna es de checkboxes
-            case 3:
-                return ExportStatus.class; // La última es de estados
-            default:
+            case 0: // Columna del Checkbox
+                return Boolean.class;
+            case 1: // Columna del Nombre de la Imagen
                 return String.class;
+            case 2: // Columna de Estado
+                // Le decimos a la tabla que esta columna contiene objetos ExportItem.
+                // Esto permite al renderer recibir el objeto completo.
+                return ExportItem.class;
+            default:
+                return Object.class;
         }
+        // --- FIN DE CAMBIO (3/4) ---
     } // --- Fin del método getColumnClass ---
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
-        // Hacemos editable la columna del checkbox y la del estado
-        return columnIndex == 0 || columnIndex == 3;
+        // Solo la columna del checkbox es editable directamente en la tabla.
+        return columnIndex == 0;
     } // --- Fin del método isCellEditable ---
 
     @Override
@@ -91,19 +107,19 @@ public class ExportTableModel extends AbstractTableModel {
         if (rowIndex < 0 || rowIndex >= cola.size()) {
             return;
         }
-        ExportItem item = cola.get(rowIndex);
+        // --- INICIO DE CAMBIO (4/4) ---
+        // La lógica se mantiene, solo se aplica a la columna 0
         if (columnIndex == 0 && aValue instanceof Boolean) {
+            ExportItem item = cola.get(rowIndex);
             item.setSeleccionadoParaExportar((Boolean) aValue);
-            // Notificamos a la tabla que la fila ha cambiado (para repintar)
+            
             fireTableCellUpdated(rowIndex, columnIndex);
             
-            // Y ahora, llamamos al callback para notificar al controlador que re-evalúe la UI.
             if (onDataChangedCallback != null) {
-                // Le pasamos el evento para que el listener sepa qué cambió, aunque no lo usemos ahora.
                 onDataChangedCallback.accept(new javax.swing.event.TableModelEvent(this, rowIndex, rowIndex, columnIndex));
             }
         }
-        
+        // --- FIN DE CAMBIO (4/4) ---
     } // --- Fin del método setValueAt ---
 
 } // --- FIN de la clase ExportTableModel ---

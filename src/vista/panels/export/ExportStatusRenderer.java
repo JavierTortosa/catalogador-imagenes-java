@@ -39,7 +39,6 @@ public class ExportStatusRenderer extends DefaultTableCellRenderer {
                     setBackground(new Color(255, 180, 180)); // Rojo claro
                     setForeground(Color.BLACK);
                     break;
-                case SUGERENCIA:
                 case MULTIPLES_CANDIDATOS:
                     setBackground(new Color(255, 255, 180)); // Amarillo claro
                     setForeground(Color.BLACK);
