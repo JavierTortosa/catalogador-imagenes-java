@@ -202,7 +202,9 @@ creo que esto es todo mi temario imperativo y me gustaria que lo siguieras lo ma
 
 ICONOS
 
-https://www.streamlinehq.com/icons/core-duo-color
+https://www.streamlinehq.com/icons/core-duo-color 								-> Normales
+https://www.streamlinehq.com/icons/streamline-colors?icon=ico_cqBlbF5QkFCCCVKo	-> A Color
+
 https://www.streamlinehq.com/icons/core-duo-color/interface-essential
 
 
@@ -611,6 +613,47 @@ Podrías permitir iconos cambiantes por estado (ej. presionado/no presionado) de
 ***********************************************************************************************************************************
 
 
+Plan de Acción: Rediseño del Panel de Exportación
+Objetivo General: Transformar el panel de exportación en una interfaz más compacta, intuitiva y robusta, usando iconos para el estado, una toolbar para las acciones y manejando la posible inexistencia de archivos.
+FASE 1: Fortalecer el Modelo y la Lógica de Negocio
+1.1. Ampliar ExportStatus (el enum):
+Añadir el nuevo estado: IMAGEN_NO_ENCONTRADA.
+Asociar a cada estado un nombre de archivo de icono y un ToolTipText descriptivo.
+1.2. Reforzar ExportQueueManager:
+Modificar el método prepararColaDesdeSeleccion.
+Dentro de su bucle, por cada ruta de imagen leída del proyecto, lo primero será verificar si el archivo existe (Files.exists(rutaImagen)).
+Si no existe, crear el ExportItem y establecer su estado a IMAGEN_NO_ENCONTRADA.
+Si sí existe, proceder con la lógica actual de buscar el archivo comprimido asociado.
+1.3. Crear/Verificar la Acción "Relocalizar":
+Verificar que ActionFactory crea una Action para relocalizar archivos (CMD_EXPORT_RELOCALIZAR_IMAGEN).
+La acción llamará a un nuevo método en ProjectController (ej. solicitarRelocalizacionImagen()) que abrirá un JFileChooser.
+La Action será sensible al contexto: solo se habilitará si la fila seleccionada tiene el estado IMAGEN_NO_ENCONTRADA.
+FASE 2: Rediseñar la JTable y sus Componentes
+2.1. Adaptar ExportTableModel:
+Modificar la estructura de columnas para que sea: [Checkbox], [Imagen], [Estado (Icono + Texto)].
+El método getColumnClass() deberá devolver ImageIcon.class para la nueva columna de estado.
+El método getValueAt() para la columna de estado devolverá el ImageIcon y el texto correspondiente al ExportStatus del ExportItem.
+El método setValueAt() se mantiene para la columna del checkbox.
+2.2. Crear/Modificar TableCellRenderer para la Columna de Estado:
+Crear un StatusCellRenderer personalizado.
+Será responsable de dibujar el icono y el texto en la misma celda.
+Establecerá el ToolTipText de la celda basándose en el tooltip del ExportStatus.
+Aplicará el color de fondo (rojo, verde, amarillo) según el estado.
+2.3. Crear HeaderRenderer para la Columna Checkbox (Check General):
+Crear un CheckHeaderRenderer para el encabezado de la primera columna que dibujará un JCheckBox.
+Añadir un MouseListener a la cabecera de la tabla (JTableHeader) para detectar clics en este checkbox e implementar "Seleccionar/Deseleccionar Todo".
+FASE 3: Reconstruir la Interfaz (ExportPanel y ProjectBuilder)
+3.1. Implementar Carga Automática:
+En ProjectBuilder, al crear el JTabbedPane de herramientas, se le añadirá un ChangeListener.
+Cuando se seleccione la pestaña "Exportar", este listener llamará a projectController.solicitarPreparacionColaExportacion().
+3.2. Adaptar la Creación de la JTable en ExportPanel:
+Ajustar el ancho de las columnas para la nueva estructura.
+Asignar los nuevos TableCellRenderer y HeaderRenderer a las columnas correspondientes.
+3.3. Reemplazar Panel de Botones por JToolBar:
+Eliminar el JPanel inferior con los botones de texto.
+Crear y añadir una JToolBar en ExportPanel.
+Poblar la toolbar con JButtons basados en las Actions de ActionFactory (Iniciar Exportación, Quitar de la cola, Asignar manualmente, Ignorar, Relocalizar).
+Añadir la etiqueta de resumen (lblResumen) a la toolbar.
 
 
 

@@ -518,7 +518,7 @@ public class UIDefinitionService {
     }// --- FIN del metodo generateMenuStructure ---
 
 
- // --- Método para definir la estructura de barras de herramientas modulares ---
+    // --- Método para definir la estructura de barras de herramientas modulares ---
     /**
      * Define la estructura completa de todas las barras de herramientas modulares.
      * Cada `ToolbarDefinition` representa una barra de herramientas temática que
@@ -530,21 +530,23 @@ public class UIDefinitionService {
 
     	// --- BARRA DE NAVEGACIÓN ---
 		List<ToolbarButtonDefinition> botonesNavegacion = List.of(	
-             new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_PRIMERA, 			"1001-Primera_48x48.png", "Primera Imagen", "movimiento")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ANTERIOR, 		"1002-Anterior_48x48.png", "Imagen Anterior", "movimiento")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_SIGUIENTE, 		"1003-Siguiente_48x48.png", "Imagen Siguiente", "movimiento")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ULTIMA, 			"1004-Ultima_48x48.png", "Última Imagen", "movimiento")
+             new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_PRIMERA, 				"1001-Primera_48x48.png", "Primera Imagen", "movimiento")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ANTERIOR, 				"1002-Anterior_48x48.png", "Imagen Anterior", "movimiento")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_SIGUIENTE, 				"1003-Siguiente_48x48.png", "Imagen Siguiente", "movimiento")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ULTIMA, 					"1004-Ultima_48x48.png", "Última Imagen", "movimiento")
         );
+		
 		
 		// --- BARRA DE EDICIÓN ---
 		List<ToolbarButtonDefinition> botonesEdicion = List.of(
-             new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ,		"2001-Rotar_Izquierda_48x48.png", "Rotar Izquierda", "edicion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_DER, 	"2002-Rotar_Derecha_48x48.png", "Rotar Derecha", "edicion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_H, 	"2003-Espejo_Horizontal_48x48.png", "Voltear Horizontal", "edicion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_V, 	"2004-Espejo_Vertical_48x48.png", "Voltear Vertical", "edicion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_RECORTAR, 	"2005-Recortar_48x48.png", "Recortar", "edicion")
+             new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ,			"2001-Rotar_Izquierda_48x48.png", "Rotar Izquierda", "edicion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_DER, 			"2002-Rotar_Derecha_48x48.png", "Rotar Derecha", "edicion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_H, 			"2003-Espejo_Horizontal_48x48.png", "Voltear Horizontal", "edicion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_V, 			"2004-Espejo_Vertical_48x48.png", "Voltear Vertical", "edicion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_RECORTAR, 			"2005-Recortar_48x48.png", "Recortar", "edicion")
         );
 
+		
 		// --- BARRA DE ZOOM ---
 		List<ToolbarButtonDefinition> botonesZoom = List.of(
             new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, 			"3005-Escalar_Para_Ajustar_48x48.png", "Escalar para Ajustar", "zoom")
@@ -558,56 +560,95 @@ public class UIDefinitionService {
            ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, 					"3008-Reset_48x48.png", "Resetear Zoom", "zoom")
         );             
 		 
+		
 		// --- BARRA DE VISTA ---
 		List<ToolbarButtonDefinition> botonesVista = List.of( 
 		    new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4001-Panel-Galeria_48x48.png", "Panel Galería", "vista")
 		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4002-Grid_48x48.png", "Vista Grid", "vista")
 		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4006-Polaroid48x48.png", "Vista Polaroid", "vista")
 		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4003-Pantalla_Completa_48x48.png", "Pantalla Completa", "vista")
-		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4005-Carrousel_48x48.png", "Vista Carrusel", "vista")
+//		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4005-Carrousel_48x48.png", "Vista Carrusel", "vista")
 		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, 	"4004-Lista_48x48.png", "Vista Lista", "vista")
 		);
             
+		
 		// --- BARRA DE UITILS ---
 		List<ToolbarButtonDefinition> botonesUtils = List.of( 
-			new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ELIMINAR, 				"5004-Borrar_48x48.png", "Eliminar Imagen", "control")
+			new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ELIMINAR, 				"5002-borrar_48x48.png", "Eliminar Imagen", "control")
            ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, 			"5001-Refrescar_48x48.png", "Refrescar", "control")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_LOCALIZAR, 			"7004-Ubicacion_de_Archivo_48x48.png", "Abrir Ubicación", "control")
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_LOCALIZAR, 			"5003-Ubicacion_de_Archivo_48x48.png", "Abrir Ubicación", "control")
 		);
              
+		
 		// --- BARRA DE APOYO ---
 		List<ToolbarButtonDefinition> botonesApoyo = List.of( 
-            new ToolbarButtonDefinition(AppActionCommands.CMD_ARCHIVO_ABRIR, 				"6001-Selector_de_Carpetas_48x48.png", "Abrir Carpeta", "especiales")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_MENU, 				"6002-Menu_48x48.png", "Menú Principal", "especiales")
+            new ToolbarButtonDefinition(AppActionCommands.CMD_ARCHIVO_ABRIR, 				"6001-selector_de_carpetas_48x48.png", "Abrir Carpeta", "especiales")
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_MENU, 				"6002-menu_48x48.png", "Menú Principal", "especiales")
            ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, 	"6003-Botones_Ocultos_48x48.png", "Mostrar Botones Ocultos", "especiales")
         );
 		
-             
-		// --- BARRA DE PROYECTOS ---
-		List<ToolbarButtonDefinition> botonesProyecto = List.of(
-            new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"8001-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 			"8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "proyecto")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,"8003-visualizador_48x48.png", "Modo Visualizador", "proyecto")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"8004-datos_48x48.png", "Modo Datos", "proyecto")//, ButtonType.TOGGLE)
-                /*botones que faltan
-             	proyecto nuevo
-             	abrir proyecto
-             	guardar proyecto
-             	guardar proyecto como
-             	eliminar proyecto
-                */
-	    );
-            
-
+		
 		// --- BARRA DE BOTONES TOGGLE ---
 		List<ToolbarButtonDefinition> botonesToggle = List.of(
              new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 			"7001-Subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "toggle")//, ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,"7002-Mantener_Proporciones_48x48.png", "Mantener Proporciones", "toggle")//, ButtonType.TOGGLE)
         );
-    		
-    		
-		// --- BARRA DE CONTROL DE IMAGEN INFERIOR (CONSOLIDADA: D-Pad, Colores, Cuadros, Paleta) ---
 		
+             
+		// --- BARRA DE PROYECTOS ---
+		List<ToolbarButtonDefinition> botonesProyectoEnVista = List.of(
+             new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7003-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyectoVista")
+        );
+		
+		List<ToolbarButtonDefinition> botonesProyectoEnProyecto = List.of(
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7101-marcar_imagen_48x48.png", "Cambia la iamgen de Seleccion a Descartes", "proyecto")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7102-nuevo_proyecto_48x48.png", "Nuevo Proyecto", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7103-abrir_proyecto_48x48.png", "Abrir Proyecto", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7104-guardar_proyecto_48x48.png", "Guardar Proyecto", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7105-guardar_proyecto_como_48x48.png", "Guardar Proyecto Como", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7106-eliminar_proyecto_48x48.png", "Eliminar Proyecto", "proyecto")//, ButtonType.TOGGLE)
+		);    
+            
+		
+		// --- BARRA DE BOTONES modos ---
+		List<ToolbarButtonDefinition> botonesModo = List.of(
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,"8001-modod_visualizador_48x48.png", "Modo Visualizador", "modo")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 			"8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "modo")//, ButtonType.TOGGLE)2
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"8003-datos_48x48.png", "Modo Datos", "modo")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"4005-Carrousel_48x48.png", "Vista Carrusel", "modo")
+            
+	    );
+		// botones para los modos de edicion, carrousel, proyectos, gestion de Datos...
+		
+		
+		// --- BARRA DE BOTONES carrousel ---
+		List<ToolbarButtonDefinition> botonesCarrousel = List.of(
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_PRIMERO,		"9001-primer_fotograma_48x48.png", "Primer Fotograma", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_ANTERIOR,		"9003-fotograma_anterior_48x48.png", "Fotograma Anterior", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_SIGUIENTE,	"9008-fotograma_siguiente_48x48.png", "Fotograma Siguiente", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_ULTIMO,		"9010-ultimo_fotograma_48x48.png", "Ultimo Fotograma", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9002-retroceso_rapido_48x48.png", "Retroceso Rapido", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9004-play_48x48.png", "Play", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9005-pausa_48x48.png", "Pausa", "carrousel")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9006-play-pausa_48x48.png", "Play-Pausa", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9007-stop_48x48.png", "Stop", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9009-avance_rapido_48x48.png", "Avance Rapido", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9011-maxima_velocidad_48x48.png", "Maxima Velocidad", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9012-velocidad_normal_48x48.png", "Velocidad Normal", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9013-minima_velocidad_48x48.png", "Minima Velocidad", "carrousel")
+		);
+
+		
+		// --- BARRA DE BOTONES orden ---
+		// boton de on/off, acendente/descendente, nombre, tamaño, fecha, tags...
+		
+		// --- BARRA DE BOTONES filtros ---
+		// filtrado por extension (bmp, gif, png...), filtros por tags, filtros por letra inicial...
+
+		
+		
+            
+		// --- BARRA DE CONTROL DE IMAGEN INFERIOR (CONSOLIDADA: D-Pad, Colores, Cuadros, Paleta) ---
 		// -- ICONOS INTERNOS DEL DPAD
 		// 0: UP, 1: DOWN, 2: LEFT, 3: RIGHT
 		List<HotspotDefinition> dpadPaneoHotspots = List.of(
@@ -616,7 +657,7 @@ public class UIDefinitionService {
             ,new HotspotDefinition(AppActionCommands.CMD_PAN_LEFT_EDGE, 					"D-Pad_Left_48x48.png", "Panear Izquierda", IconScope.COMMON)
             ,new HotspotDefinition(AppActionCommands.CMD_PAN_RIGHT_EDGE, 					"D-Pad_right_48x48.png", "Panear Derecha", IconScope.COMMON)
         );
-            
+
         List<ToolbarButtonDefinition> botonesControlesImagenInferior = List.of(
             // 1. D-Pad (Definición actualizada)
             new ToolbarButtonDefinition(
@@ -628,63 +669,50 @@ public class UIDefinitionService {
                 dpadPaneoHotspots // La lista de hotspots definida arriba
             ),
         		
-            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, "20001-zoom_al_cursor_48x48.png", "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior"),//, ButtonType.TOGGLE),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, 	"20001-zoom_al_cursor_48x48.png", "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior"),//, ButtonType.TOGGLE),
             
             // 2. Botones de color de fondo
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, "color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Claro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, "color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Oscuro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, "color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Azul", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, "color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Naranja", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, "color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Verde", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Claro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Oscuro", "controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Azul", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Naranja","controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Verde", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
             
             // 3. Botón de fondo a cuadros
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED, "color_Button_48x48.png", IconScope.COMMON, "Fondo a Cuadros", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo a Cuadros", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
             
             // 4. Botón de selección de color personalizado
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, "Paint-Palette--Streamline-Core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", "controles_imagen_inferior", ButtonType.TRANSPARENT)
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, 	"Paint-Palette--Streamline-Core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", "controles_imagen_inferior", ButtonType.TRANSPARENT)
         );
 
 
-		// --- BARRA DE BOTONES carrousel ---
-    		// botones de play, pausa, adelante, atras, temporizador, pase manual/automatico...
-    		
-		// --- BARRA DE BOTONES modos ---
-    		
-    		// botones para los modos de edicion, carrousel, proyectos, gestion de Datos...
-    		
-		// --- BARRA DE BOTONES orden ---
-    		// boton de on/off, acendente/descendente, nombre, tamaño, fecha, tags...
-    		
-		// --- BARRA DE BOTONES filtros ---
-    		// filtrado por extension (bmp, gif, png...), filtros por tags, filtros por letra inicial...
-        
         return List.of(
-                // --- INICIO DE LA MODIFICACIÓN ---
-                // Se añade el nuevo parámetro de alineamiento a cada definición.
+            // Grupo Izquierda
+            new ToolbarDefinition("navegacion", "Navegación", 	10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesNavegacion, ToolbarAlignment.LEFT),
 
-                // Grupo Izquierda
-                new ToolbarDefinition("navegacion", "Navegación", 	10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesNavegacion, ToolbarAlignment.LEFT),
-
-                // Grupo Centro
-                new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion, ToolbarAlignment.CENTER),
-                new ToolbarDefinition("zoom", 		"Zoom", 		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesZoom, ToolbarAlignment.CENTER),
-                new ToolbarDefinition("vistas",	    "Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVista, ToolbarAlignment.CENTER),
-
-                // Grupo Derecha
-                new ToolbarDefinition("utils",		"Utilidades", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils, ToolbarAlignment.RIGHT),
-                new ToolbarDefinition("toggle",	    "Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle, ToolbarAlignment.RIGHT),
-                new ToolbarDefinition("proyecto",	"Proyecto", 	70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesProyecto, ToolbarAlignment.RIGHT),
-                new ToolbarDefinition("apoyo", 	    "Apoyo", 		80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesApoyo, ToolbarAlignment.RIGHT),
-                
-                // Barra especial que no se añade al contenedor principal. Su alineamiento no importa.
-                new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 95, EnumSet.of(WorkMode.VISUALIZADOR), botonesControlesImagenInferior, ToolbarAlignment.RIGHT)
-                
-                // --- FIN DE LA MODIFICACIÓN ---
-        	);
+            // Grupo Centro
+            new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion, ToolbarAlignment.CENTER),
+            new ToolbarDefinition("zoom", 		"Zoom", 		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesZoom, ToolbarAlignment.CENTER),
+//            new ToolbarDefinition("vistas",	    "Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVista, ToolbarAlignment.CENTER),
+            new ToolbarDefinition("carrousel",	"Carrousel", 	110, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesCarrousel, ToolbarAlignment.CENTER),
+            
+            // Grupo Derecha
+            new ToolbarDefinition("utils",		"Utilidades", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils, ToolbarAlignment.RIGHT),
+            new ToolbarDefinition("toggle",	    "Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle, ToolbarAlignment.RIGHT),
+            
+            new ToolbarDefinition("proyectoVista","Proyecto", 	70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesProyectoEnVista, ToolbarAlignment.RIGHT),
+            new ToolbarDefinition("proyecto",	"Proyecto", 	90, EnumSet.of(WorkMode.PROYECTO), botonesProyectoEnProyecto, ToolbarAlignment.RIGHT),
+            
+            new ToolbarDefinition("modo",		"Modo",			80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesModo, ToolbarAlignment.RIGHT),
+            
+            new ToolbarDefinition("apoyo", 	    "Apoyo", 		100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesApoyo, ToolbarAlignment.RIGHT),
+            
+            // Barra especial que no se añade al contenedor principal. Su alineamiento no importa.
+            new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 95, EnumSet.of(WorkMode.VISUALIZADOR), botonesControlesImagenInferior, ToolbarAlignment.RIGHT)
+            
+    	);
         
         
-//            //new ToolbarDefinition("carrousel","Carrousel", botonesCarrousel)
-//            //new ToolbarDefinition("modos","Modos", botonesModos)
 //            //new ToolbarDefinition("orden","Orden", botonesOrden)
 //            //new ToolbarDefinition("filtros","Filtros", botonesFiltros)
 //    	);

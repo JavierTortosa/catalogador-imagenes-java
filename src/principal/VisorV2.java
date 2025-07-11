@@ -9,6 +9,8 @@ public class VisorV2
 {
 
 	// VISUALIZADOR
+		//TODO no se guarda la imagen con la que cerramos la aplicacion
+	
 		//TODO HACER SALTO DE CARPETA
 	    //Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
 	    
@@ -20,6 +22,11 @@ public class VisorV2
 	    //TODO conectar a internet en busca de una imgen para un zip que no la tiene
 	
 		//TODO añadir botones de agrandar o encoger las miniaturas y que se ajuste a la pantalla
+	
+		//TODO añadir el popup menu
+			// -marcar imagen, mostrar ubicacion de imagen, modo paneo, 
+	
+		//TODO mostrar arbol de carpetas
     
 	// PROYECTO
 	

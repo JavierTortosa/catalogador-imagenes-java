@@ -8,10 +8,11 @@ package controlador.commands;
  */
 public interface AppActionCommands {
 
-	// --- Generico pendiente de implementar ---
+ // --- Generico pendiente de implementar ---
 	String CMD_FUNCIONALIDAD_PENDIENTE 		= "cmd.todo.funcionalidad_pendiente";
+
 	
-    // --- Archivo ---
+ // --- Archivo ---
     String CMD_ARCHIVO_ABRIR 				= "cmd.archivo.abrir";
     String CMD_ARCHIVO_ABRIR_NUEVA_VENTANA 	= "cmd.archivo.abrir_nueva_ventana"; // (Asumiendo Action futura)
     String CMD_ARCHIVO_GUARDAR 				= "cmd.archivo.guardar"; // (Asumiendo Action futura)
@@ -20,7 +21,7 @@ public interface AppActionCommands {
     String CMD_ARCHIVO_SALIR 				= "cmd.archivo.salir"; // (Necesario si tienes item "Salir")
     
 
-    // --- Navegación ---
+ // --- Navegación ---
     String CMD_NAV_PRIMERA 					= "cmd.nav.primera";
     String CMD_NAV_ANTERIOR 				= "cmd.nav.anterior";
     String CMD_NAV_SIGUIENTE				= "cmd.nav.siguiente";
@@ -28,14 +29,15 @@ public interface AppActionCommands {
     String CMD_NAV_IR_A 					= "cmd.nav.ir_a"; 
     String CMD_NAV_BUSCAR 					= "cmd.nav.buscar"; 
     
-    // Comandos para navegación por fotogramas (si son Actions separadas)
+    
+ // Comandos para navegación por fotogramas (si son Actions separadas)
     String CMD_NAV_FOTOGRAMA_ANTERIOR 		= "cmd.nav.fotograma.anterior";
     String CMD_NAV_FOTOGRAMA_SIGUIENTE 		= "cmd.nav.fotograma.siguiente";
     String CMD_NAV_FOTOGRAMA_PRIMERO 		= "cmd.nav.fotograma.primero";
     String CMD_NAV_FOTOGRAMA_ULTIMO 		= "cmd.nav.fotograma.ultimo";
 
 
-    // --- Zoom ---
+ // --- Zoom ---
     String CMD_ZOOM_ACERCAR 				= "cmd.zoom.acercar"; 					// (Asumiendo Action futura)
     String CMD_ZOOM_ALEJAR 					= "cmd.zoom.alejar";   					// (Asumiendo Action futura)
     String CMD_ZOOM_PERSONALIZADO 			= "cmd.zoom.personalizado"; 			// (Asumiendo Action futura)
@@ -45,15 +47,15 @@ public interface AppActionCommands {
     String CMD_ZOOM_TOGGLE_TO_CURSOR 		= "cmd.zoom.toggle_to_cursor";			// para zoom al cursor
     
     // Tipos de Zoom (cada uno es una Action)
-    String CMD_ZOOM_TIPO_AUTO 				= "cmd.zoom.tipo.auto";       			// Para ZoomAutoAction
-    String CMD_ZOOM_TIPO_ANCHO 				= "cmd.zoom.tipo.ancho";      			// Para ZoomAnchoAction
-    String CMD_ZOOM_TIPO_ALTO 				= "cmd.zoom.tipo.alto";       			// Para ZoomAltoAction
-    String CMD_ZOOM_TIPO_AJUSTAR 			= "cmd.zoom.tipo.ajustar";   			// Para ZoomFitAction
-    String CMD_ZOOM_TIPO_FIJO 				= "cmd.zoom.tipo.fijo";       			// Para ZoomFixedAction
-    String CMD_ZOOM_TIPO_ESPECIFICADO 		= "cmd.zoom.tipo.especificado"; 		// Para ZoomFijadoAction (o el nombre que le des)
-    String CMD_ZOOM_TIPO_RELLENAR 			= "cmd.zoom.tipo.rellenar"; 			// (Asumiendo Action futura)
+	    String CMD_ZOOM_TIPO_AUTO 				= "cmd.zoom.tipo.auto";       			// Para ZoomAutoAction
+	    String CMD_ZOOM_TIPO_ANCHO 				= "cmd.zoom.tipo.ancho";      			// Para ZoomAnchoAction
+	    String CMD_ZOOM_TIPO_ALTO 				= "cmd.zoom.tipo.alto";       			// Para ZoomAltoAction
+	    String CMD_ZOOM_TIPO_AJUSTAR 			= "cmd.zoom.tipo.ajustar";   			// Para ZoomFitAction
+	    String CMD_ZOOM_TIPO_FIJO 				= "cmd.zoom.tipo.fijo";       			// Para ZoomFixedAction
+	    String CMD_ZOOM_TIPO_ESPECIFICADO 		= "cmd.zoom.tipo.especificado"; 		// Para ZoomFijadoAction (o el nombre que le des)
+	    String CMD_ZOOM_TIPO_RELLENAR 			= "cmd.zoom.tipo.rellenar"; 			// (Asumiendo Action futura)
 
-    // --- Imagen/Edición ---
+ // --- Imagen/Edición ---
     String CMD_IMAGEN_ROTAR_IZQ 			= "cmd.imagen.rotar.izq";    			// Para RotateLeftAction
     String CMD_IMAGEN_ROTAR_DER 			= "cmd.imagen.rotar.der";    			// Para RotateRightAction
     String CMD_IMAGEN_VOLTEAR_H 			= "cmd.imagen.voltear.h";  				// Para FlipHorizontalAction
@@ -68,21 +70,22 @@ public interface AppActionCommands {
     String CMD_IMAGEN_PROPIEDADES 			= "cmd.imagen.propiedades"; 			// (Asumiendo Action futura)
 
     
-    // --- Gestor de proyectos ---
+ // --- Gestor de proyectos ---
     String CMD_PROYECTO_TOGGLE_MARCA 		= "cmd.proyecto.toggle_marca"; 			// Para Marcar/Desmarcar imagen actual
     String CMD_PROYECTO_GESTIONAR 			= "cmd.proyecto.gestionar";     		// Para abrir el diálogo/funcionalidad de gestión de proyectos (el JOptionPane por ahora)
     String CMD_PROYECTO_TOGGLE_VISTA 		= "cmd.proyecto.toggle_vista_seleccion";//  botón/menú para alternar vista
-    String CMD_PROYECTO_MOVER_A_DESCARTES 	= "cmd.proyecto.mover_a_descartes";
-    String CMD_EXPORT_ASIGNAR_ARCHIVO 		= "cmd.export.asignar_archivo";
-    String CMD_EXPORT_ABRIR_UBICACION 		= "cmd.export.abrir_ubicacion";
-    String CMD_EXPORT_QUITAR_DE_COLA 		= "cmd.export.quitar_de_cola";
-    String CMD_EXPORT_IGNORAR_COMPRIMIDO 	= "cmd.export.ignorar_comprimido";
-    String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";
-    String CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE = "cmd.proyecto.eliminar";
     
+    // Gestor de proyectos - POPUP MENU
+	    String CMD_PROYECTO_MOVER_A_DESCARTES 	= "cmd.proyecto.mover_a_descartes";
+	    String CMD_EXPORT_ASIGNAR_ARCHIVO 		= "cmd.export.asignar_archivo";
+	    String CMD_EXPORT_ABRIR_UBICACION 		= "cmd.export.abrir_ubicacion";
+	    String CMD_EXPORT_QUITAR_DE_COLA 		= "cmd.export.quitar_de_cola";
+	    String CMD_EXPORT_IGNORAR_COMPRIMIDO 	= "cmd.export.ignorar_comprimido";
+	    String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";
+	    String CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE = "cmd.proyecto.eliminar";
     
 
-    // --- Vista (Toggles de UI) ---
+ // --- Vista (Toggles de UI) ---
     String CMD_VISTA_TOGGLE_MENU_BAR 		= "cmd.vista.toggle.menu_bar";      	// Para ToggleMenuBarAction
     String CMD_VISTA_TOGGLE_TOOL_BAR 		= "cmd.vista.toggle.tool_bar";      	// Para ToggleToolBarAction
     String CMD_VISTA_TOGGLE_FILE_LIST		= "cmd.vista.toggle.file_list";     	// Para ToggleFileListAction

@@ -12,12 +12,15 @@ import javax.swing.DefaultListModel;
 public class ListContext {
 
     // --- Campos de Estado del Contexto ---
-    
     private DefaultListModel<String> modeloLista;
     private Map<String, Path> rutaCompletaMap;
     private String selectedImageKey;
     private boolean mostrarSoloCarpetaActual = true;
     private String nombreListaActiva;
+    
+    // Nuevos campos para recordar la selección de cada lista en el modo proyecto
+    private String seleccionListKey; // Última clave seleccionada en la lista "Selección Actual"
+    private String descartesListKey;  // Última clave seleccionada en la lista "Descartes"
 
     /**
      * Constructor. Inicializa el contexto a un estado vacío y válido.
@@ -28,6 +31,9 @@ public class ListContext {
         this.selectedImageKey = null;
         this.nombreListaActiva = "seleccion";
         
+        this.seleccionListKey = null;
+        this.descartesListKey = null;
+        
     } // --- Fin del constructor ListContext ---
 
     
@@ -37,31 +43,21 @@ public class ListContext {
      * @param nuevoMapaRutas El nuevo mapa de rutas.
      */
     public void actualizarContextoCompleto(DefaultListModel<String> nuevoModelo, Map<String, Path> nuevoMapaRutas) {
-        // INICIO DEL CAMBIO
-        String oldSelectedKey = this.selectedImageKey; // Guardar la clave seleccionada actual
-        // FIN DEL CAMBIO
+        String oldSelectedKey = this.selectedImageKey;
 
         this.modeloLista = (nuevoModelo != null) ? nuevoModelo : new DefaultListModel<>();
         this.rutaCompletaMap = (nuevoMapaRutas != null) ? nuevoMapaRutas : new HashMap<>();
         
-        // INICIO DEL CAMBIO
-        // Intentar restaurar la selección antigua si todavía existe en el nuevo modelo
         if (oldSelectedKey != null && this.modeloLista.contains(oldSelectedKey)) {
             this.selectedImageKey = oldSelectedKey;
             System.out.println("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + ": Restored old selectedKey: '" + oldSelectedKey + "'");
         } else {
-            // Si la clave antigua no existía o no se encontró en el nuevo modelo, resetear la selección
             this.selectedImageKey = null;
             System.out.println("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + ": SelectedKey set to NULL (old key not found or was null).");
         }
-        // FIN DEL CAMBIO
         
         System.out.println("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + 
                            " actualizado. Nuevo tamaño: " + this.modeloLista.getSize());
-        if (this.modeloLista.isEmpty()) {
-            // Imprime el stack trace para saber QUIÉN lo está vaciando
-            // new Throwable("PILA DE LLAMADAS que vació este contexto").printStackTrace(System.out); // Desactivar si no es útil en este punto
-        }
     } // --- Fin del método actualizarContextoCompleto ---
     
 
@@ -94,5 +90,10 @@ public class ListContext {
     public void setMostrarSoloCarpetaActual(boolean soloCarpeta) { this.mostrarSoloCarpetaActual = soloCarpeta; }
 	public String getNombreListaActiva(){ return this.nombreListaActiva; } 
 	public void setNombreListaActiva(String nombreListaActiva)	{ this.nombreListaActiva = nombreListaActiva; }
+	
+	public String getSeleccionListKey() {return seleccionListKey;} 
+    public void setSeleccionListKey(String seleccionListKey) {this.seleccionListKey = seleccionListKey;} 
+    public String getDescartesListKey() {return descartesListKey;} 
+    public void setDescartesListKey(String descartesListKey) {this.descartesListKey = descartesListKey;}
 
 } // --- FIN DE LA CLASE ListContext ---

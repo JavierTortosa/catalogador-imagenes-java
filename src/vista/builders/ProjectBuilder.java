@@ -1,6 +1,7 @@
 package vista.builders;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.util.Objects;
 
 import javax.swing.Action;
@@ -68,6 +69,8 @@ public class ProjectBuilder {
         leftSplit.setBorder(null);
         registry.register("splitpane.proyecto.left", leftSplit);
 
+        leftSplit.setMinimumSize(new java.awt.Dimension(0, 0));
+        
         // --- 4. Creación de los Paneles Contenedores ---
         // Se crean los paneles que irán dentro de los JSplitPanes.
 
@@ -117,15 +120,20 @@ public class ProjectBuilder {
     private JPanel createProjectListsPanel() {
         // --- Panel contenedor principal para la zona de listas ---
         JPanel panelListas = new JPanel(new BorderLayout());
+        
         TitledBorder border = BorderFactory.createTitledBorder("Selección Actual");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
         panelListas.setBorder(border);
         registry.register("panel.proyecto.listas.container", panelListas);
         
+        
         // --- Crear y añadir la lista de "Selección Actual" ---
         JList<String> projectFileList = new JList<>();
+        
+        projectFileList.setBackground(themeManager.getTemaActual().colorFondoSecundario());
+        
         projectFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        projectFileList.setCellRenderer(new NombreArchivoRenderer(themeManager));
+        projectFileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model)); // Se pasa el modelo
         registry.register("list.proyecto.nombres", projectFileList);
 
         // Se obtiene la acción correspondiente del ActionFactory a través del GeneralController.
@@ -162,25 +170,22 @@ public class ProjectBuilder {
         javax.swing.JTabbedPane herramientasTabbedPane = new javax.swing.JTabbedPane();
         registry.register("tabbedpane.proyecto.herramientas", herramientasTabbedPane);
         
-        // --- Pestaña 1: Lista de Descartes ---
         JList<String> descartesList = new JList<>();
+        descartesList.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
         descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager, true));
+        descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager, model, true));
         registry.register("list.proyecto.descartes", descartesList);
         
         Action restoreFromDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
         Action deleteFromProjectAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE);
 
-        // Añadir el listener del menú contextual a la lista de descartes
-        // Usamos el método createContextMenuListener que ya acepta múltiples items.
         if (restoreFromDiscardsAction != null && deleteFromProjectAction != null) {
             descartesList.addMouseListener(createContextMenuListener(descartesList, 
                 restoreFromDiscardsAction,
-                new javax.swing.JPopupMenu.Separator(), // Añadimos un separador
+                new javax.swing.JPopupMenu.Separator(),
                 deleteFromProjectAction
             ));
         } else {
-            // Manejo de error si alguna acción no se encuentra
             if (restoreFromDiscardsAction == null) {
                 System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_RESTAURAR_DE_DESCARTES.");
             }
@@ -189,34 +194,28 @@ public class ProjectBuilder {
             }
         }        
         
-        
         JScrollPane scrollPaneDescartes = new JScrollPane(descartesList);
         scrollPaneDescartes.setBorder(null);
         registry.register("scroll.proyecto.descartes", scrollPaneDescartes);
         herramientasTabbedPane.addTab("Descartes", scrollPaneDescartes);
 
-        // --- Pestaña 2: Panel de Exportación ---
         vista.panels.export.ExportPanel panelExportar = new vista.panels.export.ExportPanel(
         	    this.generalController.getProjectController(),
         	    (e) -> this.generalController.getProjectController().actualizarEstadoExportacionUI()
         	);
         registry.register("panel.proyecto.herramientas.exportar", panelExportar);
         
-        // --- CONECTAR BOTONES Y MENÚS A LA LÓGICA ---
         panelExportar.getBotonCargarProyecto().addActionListener(e -> generalController.getProjectController().solicitarPreparacionColaExportacion());
         panelExportar.getBotonSeleccionarCarpeta().addActionListener(e -> generalController.getProjectController().solicitarSeleccionCarpetaDestino());
         panelExportar.getBotonIniciarExportacion().addActionListener(e -> generalController.getProjectController().solicitarInicioExportacion());
 
-        // Obtener la JTable del panel de exportación
         JTable tablaExportacion = (JTable) ((JScrollPane) panelExportar.getComponent(1)).getViewport().getView();
         
-        // Obtener las acciones del menú desde el ActionFactory
         Action assignAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO);
         Action openLocationAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ABRIR_UBICACION);
         Action removeFromQueueAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA);
         Action toggleIgnoreAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO);
         
-        // Añadir el listener del menú contextual a la tabla con la nueva acción y separadores
         tablaExportacion.addMouseListener(createContextMenuListener(tablaExportacion, 
             assignAction, 
             openLocationAction,
@@ -228,12 +227,12 @@ public class ProjectBuilder {
         
         herramientasTabbedPane.addTab("Exportar", panelExportar);
 
-        // --- Pestaña 3: Placeholder para Etiquetar ---
         JPanel panelEtiquetarPlaceholder = new JPanel();
         herramientasTabbedPane.addTab("Etiquetar", panelEtiquetarPlaceholder);
         herramientasTabbedPane.setEnabledAt(2, false); 
 
         panelHerramientas.add(herramientasTabbedPane, BorderLayout.CENTER);
+        
         return panelHerramientas;
     } // --- Fin del método createProjectToolsPanel ---
     

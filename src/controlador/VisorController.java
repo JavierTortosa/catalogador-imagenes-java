@@ -69,6 +69,7 @@ import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.BuscadorArchivosWorker;
+import modelo.ListContext;
 // --- Imports de Modelo, Servicios y Vista ---
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -3045,31 +3046,44 @@ public class VisorController implements ActionListener, ClipboardOwner {
       	}
   	} // --- FIN parseColor ---
   
+  
   private void guardarConfiguracionActual() {
-	    if (configuration == null) {
-	        System.err.println("ERROR [guardarConfiguracionActual]: Configuración nula.");
-	        return;
-	    }
-	    System.out.println("  [Guardar] Guardando estado final...");
+      if (configuration == null || model == null) {
+          System.err.println("ERROR [guardarConfiguracionActual]: Configuración o Modelo nulos.");
+          return;
+      }
+      System.out.println("  [Guardar] Guardando estado final de todos los contextos...");
 
-	    // La única cosa que necesita ser guardada al final es la última imagen vista.
-	    // Todo lo demás (visibilidad, toggles, etc.) ya ha sido actualizado en memoria por las Actions.
-	    if (model != null && model.getSelectedImageKey() != null) {
-	        configuration.setString(ConfigKeys.INICIO_IMAGEN, model.getSelectedImageKey());
-	    } else {
-	        configuration.setString(ConfigKeys.INICIO_IMAGEN, "");
-	    }
-	    
-	    // El estado de la ventana se guarda por separado en el ShutdownHook.
+      // --- Obtener explícitamente el estado de CADA contexto ---
+      
+      // 1. Guardar estado del MODO VISUALIZADOR
+      //    Obtenemos la clave directamente del visualizadorListContext.
+      String visualizadorKey = model.getVisualizadorListContext().getSelectedImageKey(); 
+      configuration.setString(ConfigKeys.INICIO_IMAGEN, visualizadorKey != null ? visualizadorKey : "");
+      System.out.println("  [Guardar] Estado Visualizador: UltimaKey=" + visualizadorKey);
+      
+      // 2. Guardar estado del MODO PROYECTO
+      ListContext proyectoContext = model.getProyectoListContext();
+      
+      String focoActivo = proyectoContext.getNombreListaActiva();
+      configuration.setString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, focoActivo != null ? focoActivo : "seleccion");
 
-	    try {
-	        // Le decimos al ConfigurationManager que escriba su estado actual en el disco.
-	        configuration.guardarConfiguracion(configuration.getConfig());
-	        System.out.println("  [Guardar] Configuración guardada exitosamente.");
-	    } catch (IOException e) {
-	        System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
-	    }
-	} // --- FIN del metodo guardarConfiguracionActual ---  
+      String seleccionKey = proyectoContext.getSeleccionListKey();
+      configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, seleccionKey != null ? seleccionKey : "");
+
+      String descartesKey = proyectoContext.getDescartesListKey();
+      configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, descartesKey != null ? descartesKey : "");
+      
+      System.out.println("  [Guardar] Estado Proyecto: Foco=" + focoActivo + ", SelKey=" + seleccionKey + ", DescKey=" + descartesKey);
+
+      // 3. Guardar el archivo de configuración en el disco
+      try {
+          configuration.guardarConfiguracion(configuration.getConfig());
+          System.out.println("  [Guardar] Configuración guardada exitosamente.");
+      } catch (IOException e) {
+          System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
+      }
+  } // --- FIN del metodo guardarConfiguracionActual ---
      
      
      /**
@@ -3366,7 +3380,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
     public ConfigApplicationManager getConfigApplicationManager() { return this.configAppManager; }
     public ProjectManager getProjectManager() {return this.projectManager;}
     public ActionFactory getActionFactory() {return this.actionFactory;}
-    
+    public ThemeManager getThemeManager() {return this.themeManager;}
     
     /**
      * Establece si se deben mostrar los nombres de archivo debajo de las miniaturas

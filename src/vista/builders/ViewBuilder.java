@@ -244,7 +244,7 @@ public class ViewBuilder {
 
         JList<String> fileList = new JList<>(model.getModeloLista());
         fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        fileList.setCellRenderer(new NombreArchivoRenderer(themeManager));
+        fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
         registry.register("list.nombresArchivo", fileList);
 
         JScrollPane scrollPane = new JScrollPane(fileList);

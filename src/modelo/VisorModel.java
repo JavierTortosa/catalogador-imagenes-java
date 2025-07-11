@@ -15,7 +15,8 @@ public class VisorModel {
     public enum WorkMode {
         VISUALIZADOR,
         PROYECTO,
-        DATOS
+        DATOS,
+        CARROUSEL
     }
 
     private WorkMode currentWorkMode;
@@ -139,6 +140,7 @@ public class VisorModel {
     public BufferedImage getCurrentImage() { return currentImage; }
     public void setCurrentImage(BufferedImage currentImage) { this.currentImage = currentImage; }
     public ListContext getProyectoListContext() { return this.proyectoListContext; }
+    public ListContext getVisualizadorListContext() {return this.visualizadorListContext;}
     public int getMiniaturasAntes() { return miniaturasAntes; }
     public void setMiniaturasAntes(int val) { this.miniaturasAntes = val; }
     public int getMiniaturasDespues() { return miniaturasDespues; }

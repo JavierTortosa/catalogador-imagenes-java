@@ -32,8 +32,8 @@ public final class ConfigKeys {
     
     
     // --- CONSTANTES PARA CLAVES ÚNICAS (las que no se pueden generar) ---
-    public static final String INICIO_CARPETA = "inicio.carpeta";
-    public static final String INICIO_IMAGEN = "inicio.imagen";
+	    public static final String INICIO_CARPETA = "inicio.carpeta";
+	    public static final String INICIO_IMAGEN = "inicio.imagen";
     
     public static final String VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE = menuState("vista", "mostrar_nombres_en_miniaturas");
     // ... aquí irían el resto de tus constantes de ConfigKeys que no siguen un patrón generable
@@ -103,6 +103,11 @@ public final class ConfigKeys {
     // --- SECCIÓN: INICIO Y PROYECTOS ---
     public static final String PROYECTOS_CARPETA_BASE = "proyectos.carpeta_base";
     public static final String PROYECTOS_ARCHIVO_TEMPORAL = "proyectos.archivo_temporal_nombre";
+    
+    public static final String PROYECTOS_LISTA_ACTIVA = "proyectos.estado.lista_activa";
+    public static final String PROYECTOS_ULTIMA_SELECCION_KEY = "proyectos.estado.ultima_seleccion_key";
+    public static final String PROYECTOS_ULTIMA_DESCARTES_KEY = "proyectos.estado.ultima_descartes_key";
+    
     // Para el futuro:
     // public static final String KEY_PROYECTOS_ULTIMO_ABIERTO = "proyectos.ultimo_abierto_ruta_completa";
     // public static final String KEY_PROYECTOS_INICIO_ACCION = "proyectos.inicio.accion"; // ej. "cargar_ultimo", "nuevo_temporal"
