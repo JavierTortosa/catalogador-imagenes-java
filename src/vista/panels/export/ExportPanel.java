@@ -16,6 +16,7 @@ import javax.swing.table.TableColumn;
 import controlador.ProjectController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.ToolbarManager;
+import modelo.proyecto.ExportItem;
 
 public class ExportPanel extends JPanel {
 
@@ -86,9 +87,32 @@ public class ExportPanel extends JPanel {
         // y está importada como vista.renderers.ExportStatusCellRenderer.
         statusColumn.setCellRenderer(new vista.panels.export.StatusCellRenderer(projectController.getController().getIconUtils()));
 
+
         // Añadir listener a la cabecera de la primera columna para seleccionar/desseleccionar todo
         tablaExportacion.getTableHeader().addMouseListener(new HeaderMouseListener(tablaExportacion));
 
+        // --- NUEVO: Listener de selección de fila para cargar la imagen en el visor principal ---
+        tablaExportacion.getSelectionModel().addListSelectionListener(e -> {
+            // Asegurarse de que la selección ha terminado y no es parte de un arrastre o redibujado intermedio
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = tablaExportacion.getSelectedRow();
+                // Asegurarse de que hay una fila seleccionada (no -1)
+                if (selectedRow != -1) {
+                    ExportTableModel modelTabla = (ExportTableModel) tablaExportacion.getModel();
+                    ExportItem selectedItem = modelTabla.getItemAt(selectedRow);
+                    if (selectedItem != null) {
+                        // Llamar al ProjectController para que muestre la imagen de este item.
+                        // Aseguramos que projectController NO sea null.
+                        if (projectController != null) {
+                            projectController.mostrarImagenDeExportacion(selectedItem.getRutaImagen());
+                        } else {
+                            System.err.println("WARN [ExportPanel]: ProjectController es null, no se puede mostrar la imagen de exportación.");
+                        }
+                    }
+                }
+            }
+        });
+        // --- FIN NUEVO LISTENER ---
 
         JScrollPane scrollTabla = new JScrollPane(tablaExportacion);
         this.add(scrollTabla, BorderLayout.CENTER);

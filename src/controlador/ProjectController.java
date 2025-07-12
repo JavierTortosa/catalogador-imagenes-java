@@ -775,4 +775,112 @@ public class ProjectController implements IModoController {
         }
     } // --- Fin del método solicitarRelocalizacionImagen ---
     
+    
+    /**
+     * Mueve el selector de la tabla de exportación arriba o abajo en respuesta a un evento de rueda del ratón.
+     * Actualiza la selección y asegura que la fila seleccionada sea visible.
+     * Es invocado por GeneralController.
+     *
+     * @param e El evento de la rueda del ratón.
+     */
+    public void navegarTablaExportacionConRueda(java.awt.event.MouseWheelEvent e) {
+        if (registry == null || model == null) {
+            System.err.println("WARN [navegarTablaExportacionConRueda]: Registry o Modelo nulos.");
+            return;
+        }
+
+        JTable tablaExportacion = getTablaExportacionDesdeRegistro(); // Reutilizamos tu método para obtener la tabla
+        if (tablaExportacion == null || tablaExportacion.getModel().getRowCount() == 0) {
+            System.out.println("  [navegarTablaExportacionConRueda] Tabla de exportación vacía o no encontrada. No se puede navegar.");
+            return;
+        }
+
+        int currentRow = tablaExportacion.getSelectedRow();
+        int newRow;
+        int totalRows = tablaExportacion.getModel().getRowCount();
+
+        // Si no hay nada seleccionado, empezamos desde el principio o el final.
+        if (currentRow == -1) {
+            newRow = (e.getWheelRotation() < 0) ? 0 : totalRows - 1;
+        } else {
+            // Calcular el nuevo índice basado en la dirección de la rueda.
+            newRow = currentRow + e.getWheelRotation();
+            
+            // Aplicar límites: asegurar que el índice no se salga del rango.
+            // Para la navegación con rueda, generalmente no hay "wrap-around".
+            newRow = Math.max(0, Math.min(newRow, totalRows - 1));
+        }
+
+        // Solo actualizar si el índice realmente cambia.
+        if (newRow != currentRow) {
+            tablaExportacion.setRowSelectionInterval(newRow, newRow);
+            // Hacer que la fila seleccionada sea visible.
+            tablaExportacion.scrollRectToVisible(tablaExportacion.getCellRect(newRow, 0, true));
+            System.out.println("  [navegarTablaExportacionConRueda] Selector movido a la fila: " + newRow);
+        } else {
+            System.out.println("  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: " + currentRow);
+        }
+    }// --- Fin del nuevo método navegarTablaExportacionConRueda ---
+    
+    
+    /**
+     * Muestra una imagen específica en el visor principal del modo proyecto.
+     * Este método es invocado cuando se selecciona un item en la tabla de exportación.
+     * No cambia el foco de las listas de seleccion/descartes, solo actualiza la imagen del visor.
+     *
+     * @param rutaImagen El Path absoluto de la imagen a mostrar.
+     */
+    public void mostrarImagenDeExportacion(Path rutaImagen) {
+        System.out.println("[ProjectController] Solicitud para mostrar imagen de exportación: " + rutaImagen);
+        
+        if (model == null || controllerRef == null) {
+            System.err.println("ERROR [mostrarImagenDeExportacion]: Modelo o VisorController de referencia nulos.");
+            return;
+        }
+        if (rutaImagen == null) {
+            System.out.println("WARN [mostrarImagenDeExportacion]: Ruta de imagen nula. Limpiando visor principal.");
+            controllerRef.actualizarImagenPrincipal(-1); 
+            return;
+        }
+
+        // Convertir Path a la clave String que el modelo usa para la lista de proyectos.
+        String claveImagen = rutaImagen.toString().replace("\\", "/");
+        
+        int indiceEnProyectoContext = model.getProyectoListContext().getModeloLista().indexOf(claveImagen);
+
+        if (indiceEnProyectoContext != -1) {
+            // La imagen existe en nuestro modelo unificado de proyecto.
+            // Establecemos esta imagen como la seleccionada en el modelo del proyecto
+            // Y luego le decimos al VisorController que la cargue por su índice.
+            // La actualización del model.selectedImageKey es a nivel interno del modelo
+            // y es importante para que el VisorController sepa qué imagen cargar.
+            model.getProyectoListContext().setSelectedImageKey(claveImagen);
+            System.out.println("  -> Imagen encontrada en el contexto del proyecto (índice " + indiceEnProyectoContext + "). Cargando...");
+            controllerRef.actualizarImagenPrincipal(indiceEnProyectoContext);
+
+            // --- INICIO DE LA MODIFICACIÓN ---
+            // Se ELIMINA la lógica de SwingUtilities.invokeLater para manipular la selección
+            // de las JList de seleccion y descartes. Esto asegura que la selección de la tabla
+            // de exportación NO cambie la selección visible en las listas de proyecto.
+            // --- FIN DE LA MODIFICACIÓN ---
+
+        } else {
+            // La imagen no está en ninguna de las listas actuales del proyecto (ej., asignada manualmente).
+            // La cargamos directamente usando la referencia que ProjectController tiene a VisorController.
+            System.out.println("  -> Imagen NO encontrada en el contexto del proyecto. Cargando directamente por Path...");
+            controllerRef.actualizarImagenPrincipalPorPath(rutaImagen, claveImagen);
+            
+            // Limpiar selección de listas si la imagen no proviene de ellas y no queremos que aparezca seleccionada.
+            // Este bloque SÍ permanece, ya que es para asegurar que si se carga algo externo,
+            // las listas del proyecto no conserven una selección que no corresponde a la imagen mostrada.
+            javax.swing.SwingUtilities.invokeLater(() -> {
+                JList<String> listaSeleccion = registry.get("list.proyecto.nombres");
+                JList<String> listaDescartes = registry.get("list.proyecto.descartes");
+                if (listaSeleccion != null) listaSeleccion.clearSelection();
+                if (listaDescartes != null) listaDescartes.clearSelection();
+            });
+        }
+    }// --- Fin del nuevo método mostrarImagenDeExportacion ---
+    
+    
 } // --- FIN de la clase ProjectController ---

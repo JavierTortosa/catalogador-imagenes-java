@@ -164,7 +164,7 @@ public class ProjectBuilder {
         JPanel panelHerramientas = new JPanel(new BorderLayout());
         TitledBorder border = BorderFactory.createTitledBorder("Herramientas de Proyecto");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-        panelHerramientas.setBorder(border);
+//        panelHerramientas.setBorder(border);
         registry.register("panel.proyecto.herramientas.container", panelHerramientas);
         
         javax.swing.JTabbedPane herramientasTabbedPane = new javax.swing.JTabbedPane();

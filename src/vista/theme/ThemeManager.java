@@ -1,6 +1,7 @@
 package vista.theme; 
 
 import java.awt.Color;
+import java.awt.Insets;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -9,10 +10,10 @@ import java.util.concurrent.ConcurrentHashMap; // Para seguridad en hilos si fue
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
-
 import controlador.VisorController;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager; // Necesita leer/guardar el nombre
@@ -37,6 +38,8 @@ public class ThemeManager {
         String nombreTemaInicial = configManager.getString("tema.nombre", "claro"); // Leer clave de config
         this.temaActual = temasDisponibles.getOrDefault(nombreTemaInicial, obtenerTemaPorDefecto());
         System.out.println("[ThemeManager] Tema inicial establecido a: " + temaActual.nombreInterno());
+        
+        applyTabbedPaneTheme();
     }
     
     
@@ -313,23 +316,27 @@ public class ThemeManager {
                     UIManager.put("Component.focusColor", nuevoTema.colorBordeSeleccionActiva());
                     UIManager.put("Button.focusedBorderColor", nuevoTema.colorBordeSeleccionActiva());
 
-                    // --- PASO 3: REFRESCO GLOBAL DE LA UI DE SWING ---
+                    // --- PASO 3 (NUEVO): APLICAR ESTILOS DE JTABBEDPANE ---
+                    System.out.println("  -> [EDT] Aplicando estilos específicos para JTabbedPane...");
+                    applyTabbedPaneTheme(); // <--- AÑADIDA ESTA LÍNEA
+
+                    // --- PASO 4: REFRESCO GLOBAL DE LA UI DE SWING ---
                     System.out.println("  -> [EDT] Llamando a FlatLaf.updateUI() para refrescar todos los componentes...");
                     FlatLaf.updateUI();
 
-                    // --- PASO 4: REFRESCO DE COMPONENTES PERSONALIZADOS ---
+                    // --- PASO 5: REFRESCO DE COMPONENTES PERSONALIZADOS ---
                     if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getViewManager() != null) {
                         System.out.println("  -> [EDT] Refrescando fondo del panel de imagen al valor por defecto del nuevo tema...");
                         controllerRefParaNotificacion.getViewManager().refrescarFondoAlPorDefecto();
                     }        
                     
-                    // --- PASO 5: ACTUALIZAR ICONOS EN CACHÉ DE ACTIONS ---
+                    // --- PASO 6: ACTUALIZAR ICONOS EN CACHÉ DE ACTIONS ---
                     if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getActionFactory() != null) {
                         System.out.println("  -> [EDT] Actualizando los iconos cacheados en las Actions...");
                         controllerRefParaNotificacion.getActionFactory().actualizarIconosDeAcciones();
                     }
                     
-                    // --- PASO 6: RECONSTRUIR BARRAS DE HERRAMIENTAS ---
+                    // --- PASO 7: RECONSTRUIR BARRAS DE HERRAMIENTAS ---
                     if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getToolbarManager() != null && controllerRefParaNotificacion.getModel() != null) {
                         System.out.println("  -> [EDT] Reconstruyendo barras de herramientas...");
                         controllerRefParaNotificacion.getToolbarManager().reconstruirContenedorDeToolbars(
@@ -337,16 +344,14 @@ public class ThemeManager {
                         );
                     }                    
                     
-                    // --- INICIO DE LA MODIFICACIÓN ---
-                    // --- PASO 7 (NUEVO): SINCRONIZAR ESTADO VISUAL DE BOTONES TOGGLE ---
+                    // --- PASO 8: SINCRONIZAR ESTADO VISUAL DE BOTONES TOGGLE ---
                     if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getConfigApplicationManager() != null) {
                         System.out.println("  -> [EDT] Sincronizando estado visual de los botones toggle con el nuevo tema...");
                         // Llamamos al nuevo método centralizado
                         controllerRefParaNotificacion.getConfigApplicationManager().sincronizarAparienciaTodosLosToggles();
                     }
-                    // --- FIN DE LA MODIFICACIÓN ---
                     
-                    // --- PASO 8: SINCRONIZAR RADIOS DEL MENÚ DE TEMA ---
+                    // --- PASO 9: SINCRONIZAR RADIOS DEL MENÚ DE TEMA ---
                     if (controllerRefParaNotificacion != null) {
                         controllerRefParaNotificacion.sincronizarEstadoDeTodasLasToggleThemeActions();
                     }
@@ -363,7 +368,120 @@ public class ThemeManager {
             System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
             return false;
         }
-    } // --- Fin del método setTemaActual ---
+        
+        
+    }// --- Fin del método setTemaActual ---
+    
+    
+//    /**
+//     * Establece un nuevo tema como el actual.
+//     * Esta versión está refactorizada para usar FlatLaf de forma nativa.
+//     * Cambia el LookAndFeel en caliente y aplica los colores personalizados del objeto Tema.
+//     *
+//     * @param nombreTemaInterno El nombre interno del tema a activar (ej. "oscuro").
+//     * @return true si el tema se cambió exitosamente, false si no.
+//     */
+//    public boolean setTemaActual(String nombreTemaInterno) {
+//        Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
+//        
+//        if (nuevoTema == null) {
+//            System.err.println("WARN [ThemeManager]: No se encontró el tema con nombre: " + nombreTemaInterno);
+//            return false;
+//        }
+//        
+//        if (!nuevoTema.equals(this.temaActual)) {
+//            this.temaActual = nuevoTema;
+//            
+//            configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno());
+//            System.out.println("[ThemeManager] Tema actual cambiado a: " + this.temaActual.nombreInterno());
+//            
+//            SwingUtilities.invokeLater(() -> {
+//                try {
+//                    // --- PASO 1: APLICAR LOOK AND FEEL BASE ---
+//                    System.out.println("  -> [EDT] Aplicando Look and Feel de FlatLaf...");
+//                    if ("dark".equalsIgnoreCase(nuevoTema.nombreInterno()) || "green".equalsIgnoreCase(nuevoTema.nombreInterno()) || "orange".equalsIgnoreCase(nuevoTema.nombreInterno())) {
+//                        FlatDarkLaf.setup();
+//                    } else {
+//                        FlatLightLaf.setup();
+//                    }
+//
+//                    // --- PASO 2: PERSONALIZAR COLORES GLOBALES ---
+//                    System.out.println("  -> [EDT] Personalizando colores del UIManager con el tema: " + nuevoTema.nombreDisplay());
+//                    UIManager.put("Panel.background", nuevoTema.colorFondoPrincipal());
+//                    UIManager.put("ToolBar.background", nuevoTema.colorFondoPrincipal());
+//                    UIManager.put("MenuBar.background", nuevoTema.colorFondoPrincipal());
+//                    UIManager.put("Menu.background", nuevoTema.colorFondoPrincipal());
+//                    UIManager.put("MenuItem.background", nuevoTema.colorFondoPrincipal());
+//                    UIManager.put("PopupMenu.background", nuevoTema.colorFondoPrincipal());
+//                    UIManager.put("List.background", nuevoTema.colorFondoSecundario());
+//                    UIManager.put("Viewport.background", nuevoTema.colorFondoSecundario());
+//                    UIManager.put("ScrollPane.background", nuevoTema.colorFondoPrincipal());
+//                    UIManager.put("Button.background", nuevoTema.colorBotonFondo());
+//                    UIManager.put("Component.foreground", nuevoTema.colorTextoPrimario());
+//                    UIManager.put("Label.foreground", nuevoTema.colorTextoPrimario());
+//                    UIManager.put("Button.foreground", nuevoTema.colorBotonTexto());
+//                    UIManager.put("Menu.foreground", nuevoTema.colorTextoPrimario());
+//                    UIManager.put("MenuItem.foreground", nuevoTema.colorTextoPrimario());
+//                    UIManager.put("TitledBorder.titleColor", nuevoTema.colorBordeTitulo());
+//                    UIManager.put("List.selectionBackground", nuevoTema.colorSeleccionFondo());
+//                    UIManager.put("List.selectionForeground", nuevoTema.colorSeleccionTexto());
+//                    UIManager.put("Component.borderColor", nuevoTema.colorBorde());
+//                    UIManager.put("Separator.borderColor", nuevoTema.colorBorde());
+//                    UIManager.put("MenuBar.borderColor", nuevoTema.colorBorde());
+//                    UIManager.put("Component.focusColor", nuevoTema.colorBordeSeleccionActiva());
+//                    UIManager.put("Button.focusedBorderColor", nuevoTema.colorBordeSeleccionActiva());
+//
+//                    // --- PASO 3: REFRESCO GLOBAL DE LA UI DE SWING ---
+//                    System.out.println("  -> [EDT] Llamando a FlatLaf.updateUI() para refrescar todos los componentes...");
+//                    FlatLaf.updateUI();
+//
+//                    // --- PASO 4: REFRESCO DE COMPONENTES PERSONALIZADOS ---
+//                    if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getViewManager() != null) {
+//                        System.out.println("  -> [EDT] Refrescando fondo del panel de imagen al valor por defecto del nuevo tema...");
+//                        controllerRefParaNotificacion.getViewManager().refrescarFondoAlPorDefecto();
+//                    }        
+//                    
+//                    // --- PASO 5: ACTUALIZAR ICONOS EN CACHÉ DE ACTIONS ---
+//                    if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getActionFactory() != null) {
+//                        System.out.println("  -> [EDT] Actualizando los iconos cacheados en las Actions...");
+//                        controllerRefParaNotificacion.getActionFactory().actualizarIconosDeAcciones();
+//                    }
+//                    
+//                    // --- PASO 6: RECONSTRUIR BARRAS DE HERRAMIENTAS ---
+//                    if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getToolbarManager() != null && controllerRefParaNotificacion.getModel() != null) {
+//                        System.out.println("  -> [EDT] Reconstruyendo barras de herramientas...");
+//                        controllerRefParaNotificacion.getToolbarManager().reconstruirContenedorDeToolbars(
+//                            controllerRefParaNotificacion.getModel().getCurrentWorkMode()
+//                        );
+//                    }                    
+//                    
+//                    // --- INICIO DE LA MODIFICACIÓN ---
+//                    // --- PASO 7 (NUEVO): SINCRONIZAR ESTADO VISUAL DE BOTONES TOGGLE ---
+//                    if (controllerRefParaNotificacion != null && controllerRefParaNotificacion.getConfigApplicationManager() != null) {
+//                        System.out.println("  -> [EDT] Sincronizando estado visual de los botones toggle con el nuevo tema...");
+//                        // Llamamos al nuevo método centralizado
+//                        controllerRefParaNotificacion.getConfigApplicationManager().sincronizarAparienciaTodosLosToggles();
+//                    }
+//                    // --- FIN DE LA MODIFICACIÓN ---
+//                    
+//                    // --- PASO 8: SINCRONIZAR RADIOS DEL MENÚ DE TEMA ---
+//                    if (controllerRefParaNotificacion != null) {
+//                        controllerRefParaNotificacion.sincronizarEstadoDeTodasLasToggleThemeActions();
+//                    }
+//
+//                } catch (Exception e) {
+//                    System.err.println("ERROR [ThemeManager]: Fallo al aplicar el tema en caliente con FlatLaf.");
+//                    e.printStackTrace();
+//                }
+//            });
+//            
+//            return true;
+//            
+//        } else {
+//            System.out.println("[ThemeManager] Intento de establecer el tema que ya está activo: " + nombreTemaInterno);
+//            return false;
+//        }
+//    } // --- Fin del método setTemaActual ---
     
     
 //    private void notificarCambioDeTemaAlControlador(Tema temaAnterior, Tema temaNuevo) {
@@ -430,4 +548,78 @@ public class ThemeManager {
          System.err.println("WARN [ThemeManager.getFondoSecundarioParaTema]: No se encontró tema '" + nombreTemaInterno + "'. Devolviendo fallback.");
          return Color.DARK_GRAY; // Fallback si el tema no existe
      }
+     
+     
+     /**
+      * Aplica configuraciones específicas de estilo para JTabbedPane
+      * usando UIManager, para darles un aspecto más de "tarjeta" con mayor profundidad.
+      * Se llama después de configurar el LookAndFeel FlatLaf y de aplicar los colores globales.
+      */
+     private void applyTabbedPaneTheme() {
+         System.out.println("[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...");
+
+         Tema currentTema = getTemaActual();
+
+         // 1. Tipo de pestaña: "card" es fundamental para el efecto de tarjeta.
+         UIManager.put("TabbedPane.tabType", "card");
+
+         // 2. Fondos de las pestañas individuales (la "tarjeta" en sí)
+         //    selectedBackground: Color de fondo de la pestaña activa.
+         //    Usamos colorBordeSeleccionActiva para que la pestaña activa sea un acento fuerte.
+         UIManager.put("TabbedPane.selectedBackground", currentTema.colorBordeSeleccionActiva()); 
+         
+         //    unselectedBackground: Color de fondo de las pestañas inactivas.
+         //    Aquí es donde ajustamos el tono. Usamos el color de animación (hover) y lo aclaramos.
+         //    Esto debería darle el "tono un poco más claro que el azul de cuando tenemos el ratón encima".
+         UIManager.put("TabbedPane.unselectedBackground", currentTema.colorBotonFondoAnimacion().brighter()); 
+
+         // 3. Colores de texto de las pestañas
+         UIManager.put("TabbedPane.selectedForeground", currentTema.colorSeleccionTexto()); // Texto de la pestaña activa (alto contraste)
+         UIManager.put("TabbedPane.unselectedForeground", currentTema.colorTextoSecundario()); // Texto de las pestañas inactivas (más tenue)
+         
+         // 4. Acolchado (padding) y altura para hacerlas prominentes y con forma de botón/tarjeta
+         UIManager.put("TabbedPane.tabInsets", new Insets(8, 16, 8, 16)); // Padding interno de las pestañas
+         UIManager.put("TabbedPane.tabHeight", 40); // Altura total de cada pestaña
+
+         // 5. Bordes de las pestañas y separadores
+         UIManager.put("TabbedPane.showTabSeparators", true); // Muestra líneas divisorias entre pestañas
+         UIManager.put("TabbedPane.tabSeparatorColor", currentTema.colorBorde()); // Color de los separadores verticales
+
+         //    Color del borde de las pestañas individuales (seleccionada y no seleccionadas)
+         //    Estos valores son cruciales para que la "tarjeta" tenga un contorno visible.
+         //    Para las no seleccionadas, hacemos el borde un poco más oscuro que el borde general para que resalte.
+         UIManager.put("TabbedPane.tabBorderColor", currentTema.colorBorde().darker()); 
+         //    Para la seleccionada, usamos un derivado del color de acento.
+         UIManager.put("TabbedPane.selectedTabBorderColor", currentTema.colorBordeSeleccionActiva().darker()); 
+
+         // 6. Fondos y bordes del área general del JTabbedPane
+         //    tabAreaBackground: El fondo de toda la barra donde se asientan las pestañas.
+         //    Lo hacemos ligeramente más oscuro que el fondo principal para que las pestañas resalten sobre él.
+         UIManager.put("TabbedPane.tabAreaBackground", currentTema.colorFondoPrincipal().darker()); 
+         
+         //    contentAreaColor: El fondo del panel de contenido que muestra cada pestaña.
+         UIManager.put("TabbedPane.contentAreaColor", currentTema.colorFondoSecundario()); 
+         //    selectedTabColor: El color que se "extiende" desde la pestaña seleccionada al contenido.
+         UIManager.put("TabbedPane.selectedTabColor", currentTema.colorFondoSecundario()); 
+         
+         //    contentBorderColor: El borde entre la barra de pestañas y el área de contenido.
+         UIManager.put("TabbedPane.contentBorderColor", currentTema.colorBorde()); 
+         //    contentAreaTabInsets: Espacio entre la parte inferior de las pestañas y el borde superior del área de contenido.
+         //    Esto crea una separación visual entre las pestañas y el contenido real del panel.
+         UIManager.put("TabbedPane.contentAreaTabInsets", new Insets(8, 0, 0, 0)); // Añadimos un padding superior para la zona de contenido
+
+         // 7. Esquinas redondeadas para un look de tarjeta más moderno
+         UIManager.put("TabbedPane.tabCornerRadius", 8); // Radio de esquina para pestañas no seleccionadas
+         UIManager.put("TabbedPane.selectedTabCornerRadius", 8); // Mismo para la seleccionada
+
+         // 8. Colores de interacción (hover/foco)
+         UIManager.put("TabbedPane.hoverColor", currentTema.colorBotonFondoAnimacion()); // Color al pasar el ratón por encima
+         UIManager.put("TabbedPane.focusColor", currentTema.colorBordeSeleccionActiva()); // Color del foco (ej. con TAB)
+         UIManager.put("TabbedPane.selectedTabFocusColor", currentTema.colorLabelActivo()); // Color del foco para la pestaña ya seleccionada
+         
+         System.out.println("[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.");
+         
+     } // --- Fin del nuevo método applyTabbedPaneTheme ---
+     
+     
 } // --- FIN de la clase ThemeManager ---

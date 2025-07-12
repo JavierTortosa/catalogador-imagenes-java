@@ -2,10 +2,10 @@ Iniciando Visor de Imágenes V2...
 Mapa de configuración por defecto inicializado con 115 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 211
+Configuración leída. Total claves: 192
 --- DEBUG PRE-SINCRONIZACIÓN ---
 Tamaño de DEFAULT_CONFIG: 115
-Tamaño de loadedConfig (del archivo): 211
+Tamaño de loadedConfig (del archivo): 192
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
@@ -13,14 +13,16 @@ Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
 !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 410424423
-VisorV2.main: Configurando tema oscuro FlatDarkLaf.
+VisorV2.main: Configurando tema claro FlatLightLaf.
 --- Iniciando VisorController (Constructor Simple) ---
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
 [VisorModel] Inicializando estado por defecto de todos los contextos...
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
-[ThemeManager] Tema inicial establecido a: dark
+[ThemeManager] Tema inicial establecido a: clear
+[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...
+[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
   [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 937083307
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
@@ -145,7 +147,7 @@ WARN [MenuBarBuilder]: Clave de configuración duplicada encontrada: 'interfaz.m
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: bam september.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -167,90 +169,33 @@ WARN [MenuBarBuilder]: Clave de configuración duplicada encontrada: 'interfaz.m
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@37ebf9d1: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@37ebf9d1 actualizado. Nuevo tamaño: 334
+### DEBUG CONTEXT: ListContext@14991ac2: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@14991ac2 actualizado. Nuevo tamaño: 334
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 334
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg' (Índice: 4)
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg' (Índice: 0)
 !!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
-[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
+[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   -> Solicitando repintado inicial de listaMiniaturas.
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
-[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
-[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png' (Índice: 9)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-Anterior_48x48.png' (Índice: 8)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-Primera_48x48.png' (Índice: 7)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
-[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg' (Índice: 6)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
-[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png' (Índice: 5)
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 937083307
-  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  -> Solicitando repintado inicial de listaMiniaturas.
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+--- [Listener Primer Renderizado]: Panel listo (1144x404). Forzando refresco de zoom y UI. ---
+[VisorController] Sincronizando UI de Zoom. Modo: Ajustar a Pantalla, Permiso Manual: true, Zoom al Cursor: false
+[VisorController] Sincronización de UI de Zoom completada.
+--- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---
 [GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@350e429f: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@350e429f actualizado. Nuevo tamaño: 29
+### DEBUG CONTEXT: ListContext@161bff2c: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@161bff2c actualizado. Nuevo tamaño: 29
     -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): 29
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
   [GeneralController] Entrando en modo: PROYECTO
   [ProjectController] Activando la UI de la vista de proyecto...
   [ProjectController] Lista de descartes actualizada en la UI. Total: 4
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg' (Índice: 11)
   [ProjectController] UI de la vista de proyecto activada y restaurada.
   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
   [GeneralController] Estado de la UI actualizado.
@@ -260,78 +205,598 @@ WARN [MenuBarBuilder]: Clave de configuración duplicada encontrada: 'interfaz.m
 [GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
 --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
 
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
   [ToolbarManager getToolbar] La barra 'proyecto' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Proyecto' ---
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto'
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
-  [ProjectController] Cambiando foco a lista: seleccion
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [ProjectController] Cambiando foco a lista: descartes
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-  [ProjectController] Cambiando foco a lista: seleccion
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [ProjectController] Cambiando foco a lista: descartes
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg' (Índice: 2)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
-  [ProjectController] Cambiando foco a lista: seleccion
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg' (Índice: 11)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png' (Índice: 12)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg' (Índice: 13)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg' (Índice: 14)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg' (Índice: 15)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg' (Índice: 16)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg' (Índice: 17)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg' (Índice: 16)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg' (Índice: 17)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/STORM.jpg' (Índice: 18)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg' (Índice: 19)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg' (Índice: 20)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg' (Índice: 21)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 [ChangeListener] Pestaña 'Exportar' seleccionada. Solicitando preparación de cola...
 [ExportQueueManager] Preparando cola para 25 imágenes.
 [ExportQueueManager] Preparación de cola finalizada.
 [ProjectController] Modelo de tabla de exportación actualizado.
   [ProjectController] Estado de exportación UI actualizado. Puede exportar: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg' (Índice: 28)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg' (Índice: 26)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg' (Índice: 26)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg' (Índice: 26)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg' (Índice: 26)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg' (Índice: 21)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Super heroes\kratos.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 20). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg' (Índice: 20)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 16
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\The Emperor on Throne Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 19). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg' (Índice: 19)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 15
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Super heroes\kratos.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 20). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg' (Índice: 20)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 16
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg' (Índice: 21)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+  [actualizarImagenPrincipal EDT] Carga de 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg' descartada. La selección ha cambiado.
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg' (Índice: 26)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg' (Índice: 27)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg' (Índice: 28)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg' (Índice: 27)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg' (Índice: 26)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg' (Índice: 21)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Super heroes\kratos.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 20). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg' (Índice: 20)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 16
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\The Emperor on Throne Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 19). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg' (Índice: 19)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 15
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\STORM.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 18). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/STORM.jpg' (Índice: 18)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 14
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\Mini Ewok.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 17). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg' (Índice: 17)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 13
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Grogu as Darth Vader Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 16). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg' (Índice: 16)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 12
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Darth Vader Mythos Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 15). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg' (Índice: 15)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 11
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Rocket pig Stout hearted\Rocket pig Stout hearted heros 2\Rocket pig Stout hearted heros 2\Ogre.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 14). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg' (Índice: 14)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 10
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Ralph Mcquarrie Luke vs Vader Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 13). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg' (Índice: 13)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 9
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\PlaKit – Star Wars – Stormtrooper – 3D Print Model.png
+  -> Imagen encontrada en el contexto del proyecto (índice 12). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png' (Índice: 12)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 8
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Star Wars, Pack 1.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 11). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg' (Índice: 11)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 7
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Matrix.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 10). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 6
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\STREET FIGHTER - CHIBI KEN.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 9). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg' (Índice: 9)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 5
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\Silver+Johnny.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 8). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg' (Índice: 8)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 4
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Hüper3D - 22-5 May.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 7). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg' (Índice: 7)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 3
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Heroes\3DXM - Hulk Hogan Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 6). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg' (Índice: 6)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 2
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\FutureWorld\Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style\images\0647f0b37e317b29053665f315dbd55b_preview_featured.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 5). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg' (Índice: 5)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 1
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\FutureWorld\Chibi_Vader\images\6635dc6c8757c1f194145439b7fea582_preview_featured.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 4). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg' (Índice: 4)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 0
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\FutureWorld\Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style\images\0647f0b37e317b29053665f315dbd55b_preview_featured.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 5). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg' (Índice: 5)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 1
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Heroes\3DXM - Hulk Hogan Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 6). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg' (Índice: 6)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 2
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Hüper3D - 22-5 May.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 7). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg' (Índice: 7)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 3
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\Silver+Johnny.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 8). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg' (Índice: 8)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 4
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\STREET FIGHTER - CHIBI KEN.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 9). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg' (Índice: 9)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 5
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Matrix.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 10). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 6
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Star Wars, Pack 1.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 11). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg' (Índice: 11)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 7
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\PlaKit – Star Wars – Stormtrooper – 3D Print Model.png
+  -> Imagen encontrada en el contexto del proyecto (índice 12). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png' (Índice: 12)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 8
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Ralph Mcquarrie Luke vs Vader Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 13). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg' (Índice: 13)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 9
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Rocket pig Stout hearted\Rocket pig Stout hearted heros 2\Rocket pig Stout hearted heros 2\Ogre.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 14). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg' (Índice: 14)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 10
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Darth Vader Mythos Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 15). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg' (Índice: 15)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 11
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Grogu as Darth Vader Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 16). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg' (Índice: 16)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 12
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\Mini Ewok.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 17). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg' (Índice: 17)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 13
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\STORM.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 18). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/STORM.jpg' (Índice: 18)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 14
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\The Emperor on Throne Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 19). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg' (Índice: 19)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 15
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Super heroes\kratos.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 20). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg' (Índice: 20)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 16
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg' (Índice: 21)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg' (Índice: 26)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg' (Índice: 27)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg' (Índice: 28)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 24
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg' (Índice: 27)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg' (Índice: 26)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg' (Índice: 25)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg' (Índice: 24)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg' (Índice: 23)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg' (Índice: 22)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg' (Índice: 21)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Super heroes\kratos.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 20). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg' (Índice: 20)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 16
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\The Emperor on Throne Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 19). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg' (Índice: 19)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 15
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\STORM.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 18). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/STORM.jpg' (Índice: 18)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 14
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\Mini Ewok.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 17). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg' (Índice: 17)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 13
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Grogu as Darth Vader Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 16). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg' (Índice: 16)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 12
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Darth Vader Mythos Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 15). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg' (Índice: 15)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 11
+  [actualizarImagenPrincipal EDT] Carga de 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg' descartada. La selección ha cambiado.
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Rocket pig Stout hearted\Rocket pig Stout hearted heros 2\Rocket pig Stout hearted heros 2\Ogre.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 14). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg' (Índice: 14)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 10
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Ralph Mcquarrie Luke vs Vader Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 13). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg' (Índice: 13)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 9
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\PlaKit – Star Wars – Stormtrooper – 3D Print Model.png
+  -> Imagen encontrada en el contexto del proyecto (índice 12). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png' (Índice: 12)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 8
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Star Wars, Pack 1.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 11). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg' (Índice: 11)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 7
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Matrix.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 10). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg' (Índice: 10)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 6
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\STREET FIGHTER - CHIBI KEN.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 9). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg' (Índice: 9)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 5
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\Silver+Johnny.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 8). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg' (Índice: 8)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 4
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Hüper3D - 22-5 May.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 7). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg' (Índice: 7)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 3
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Heroes\3DXM - Hulk Hogan Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 6). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg' (Índice: 6)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 2
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\FutureWorld\Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style\images\0647f0b37e317b29053665f315dbd55b_preview_featured.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 5). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg' (Índice: 5)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 1
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\FutureWorld\Chibi_Vader\images\6635dc6c8757c1f194145439b7fea582_preview_featured.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 4). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg' (Índice: 4)
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 0
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 0
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\FutureWorld\Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style\images\0647f0b37e317b29053665f315dbd55b_preview_featured.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 5). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg' (Índice: 5)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Hüper3D - 22-5 May.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 7). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg' (Índice: 7)
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final de todos los contextos...
-  [Guardar] Estado Visualizador: UltimaKey=cyberpunk-city-anime-girl-5k-0e-1.png
-  [Guardar] Estado Proyecto: Foco=seleccion, SelKey=F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg, DescKey=D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg
+  [Guardar] Estado Visualizador: UltimaKey=A-gigante de hierro.jpg
+  [Guardar] Estado Proyecto: Foco=seleccion, SelKey=F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg, DescKey=D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg
 !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 410424423
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
-[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'dark'
+[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
 --- DEBUG: Contenido del mapa a guardar ---
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 211
+Claves a guardar/actualizar: 192
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

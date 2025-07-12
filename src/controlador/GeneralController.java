@@ -19,6 +19,7 @@ import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
 import controlador.commands.AppActionCommands;
@@ -514,17 +515,36 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         ImageDisplayPanel panelDisplayProyecto = registry.get("panel.proyecto.display");
         JLabel etiquetaImagenProyecto = (panelDisplayProyecto != null) ? panelDisplayProyecto.getInternalLabel() : null;
         JList<String> listaNombresProyecto = registry.get("list.proyecto.nombres");
-        JList<String> listaDescartesProyecto = registry.get("list.proyecto.descartes"); // <<< OBTENEMOS LA LISTA
+        JList<String> listaDescartesProyecto = registry.get("list.proyecto.descartes");
 
-        // --- Master Mouse Wheel Listener (sin cambios en su lógica interna) ---
+        // --- NUEVO COMPONENTE: TABLA DE EXPORTACIÓN ---
+        JTable tablaExportacion = projectController.getTablaExportacionDesdeRegistro(); // <-- Obtener la tabla
+
+
+        // --- Master Mouse Wheel Listener ---
         java.awt.event.MouseWheelListener masterWheelListener = e -> {
+            // Determinar si el evento de rueda ocurrió sobre una de las etiquetas de imagen
             boolean sobreLaImagen = (etiquetaImagenVisualizador != null && e.getComponent() == etiquetaImagenVisualizador) ||
                                     (etiquetaImagenProyecto != null && e.getComponent() == etiquetaImagenProyecto);
+            
+            // --- NUEVA LÓGICA: Si la rueda se usó sobre la tabla de exportación ---
+            boolean sobreTablaExportacion = (tablaExportacion != null && (e.getComponent() == tablaExportacion || SwingUtilities.isDescendingFrom(e.getComponent(), tablaExportacion.getTableHeader()) || SwingUtilities.isDescendingFrom(e.getComponent(), ((JScrollPane)tablaExportacion.getParent().getParent()).getVerticalScrollBar()) || SwingUtilities.isDescendingFrom(e.getComponent(), ((JScrollPane)tablaExportacion.getParent().getParent()).getHorizontalScrollBar())));
+            
+            if (sobreTablaExportacion && model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+                // Delegar al ProjectController para manejar la navegación de la tabla de exportación
+                projectController.navegarTablaExportacionConRueda(e);
+                e.consume(); // Consumir el evento para que no se propague al scroll de la tabla
+                return; // Salir de la lógica del listener
+            }
+            // --- FIN NUEVA LÓGICA ---
 
+            // Lógica existente para Ctrl+Alt (navegación por bloque)
             if (e.isControlDown() && e.isAltDown()) {
                 if (e.getWheelRotation() < 0) this.navegarBloqueAnterior();
                 else this.navegarBloqueSiguiente();
-            } else if (sobreLaImagen && model.isZoomHabilitado()) {
+            } 
+            // Lógica existente para zoom/pan sobre la imagen
+            else if (sobreLaImagen && model.isZoomHabilitado()) {
                 if (e.isControlDown() && !e.isShiftDown()) {
                     this.aplicarPan(0, e.getWheelRotation() * 30);
                 } else if (e.isShiftDown() && !e.isControlDown()) {
@@ -532,16 +552,20 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                 } else {
                     this.aplicarZoomConRueda(e);
                 }
-            } else {
+            } 
+            // Lógica existente para navegación general (siguiente/anterior imagen)
+            else {
                 this.navegarSiguienteOAnterior(e.getWheelRotation());
             }
-            e.consume();
+            e.consume(); // Consumir el evento si fue manejado
         };
 
         // --- Adjuntar el master MouseWheelListener a los componentes de AMBOS modos ---
+        // Se asegura que la tablaExportacion también reciba eventos de rueda
         Component[] componentesConRueda = {
             listaNombresVisualizador, scrollMiniaturas, etiquetaImagenVisualizador,
-            listaNombresProyecto, listaDescartesProyecto, etiquetaImagenProyecto
+            listaNombresProyecto, listaDescartesProyecto, etiquetaImagenProyecto,
+            tablaExportacion // <-- Añadida la tabla de exportación aquí
         };
 
         for (Component c : componentesConRueda) {

@@ -1459,6 +1459,114 @@ public class VisorController implements ActionListener, ClipboardOwner {
     } // --- Fin del método actualizarImagenPrincipal ---
     
     
+    /**
+     * Carga y muestra una imagen principal directamente por su Path absoluto,
+     * sin depender de que esté en el modelo de lista actual. Esto es útil
+     * para previsualizaciones rápidas de archivos no indexados (ej., desde exportación).
+     *
+     * @param rutaCompleta La Path absoluta de la imagen a cargar.
+     * @param claveImagen (Opcional) La clave (String) asociada a esta ruta si existe, para logs o referencias.
+     */
+    public void actualizarImagenPrincipalPorPath(Path rutaCompleta, String claveImagen) {
+        System.out.println("--> [actualizarImagenPrincipalPorPath] Iniciando carga directa para: '" + (claveImagen != null ? claveImagen : rutaCompleta.getFileName()) + "'");
+
+        // 1. VALIDACIÓN DE DEPENDENCIAS
+        if (view == null || model == null || executorService == null || executorService.isShutdown() || registry == null) {
+            System.err.println("WARN [actualizarImagenPrincipalPorPath]: Dependencias no listas (vista, modelo, executor o registry nulos).");
+            return;
+        }
+
+        // 2. OBTENER EL PANEL DE VISUALIZACIÓN ACTIVO
+        ImageDisplayPanel displayPanel = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO)
+                                       ? registry.get("panel.proyecto.display")
+                                       : registry.get("panel.display.imagen");
+        
+        if (displayPanel == null) {
+            System.err.println("ERROR CRÍTICO: No se encontró el panel de display activo en el registro.");
+            return;
+        }
+        
+        // 3. MANEJO DE RUTA NULA
+        if (rutaCompleta == null) {
+            System.out.println("--> [actualizarImagenPrincipalPorPath] Limpiando panel de imagen por ruta nula.");
+            model.setCurrentImage(null);
+            // No cambiamos selectedImageKey aquí, ya que esta carga es independiente de la selección de lista.
+            displayPanel.limpiar();
+            return;
+        }
+
+        // 4. CANCELAR CARGAS ANTERIORES
+        if (cargaImagenPrincipalFuture != null && !cargaImagenPrincipalFuture.isDone()) {
+            cargaImagenPrincipalFuture.cancel(true);
+        }
+
+        // 5. MOSTRAR INDICADOR DE CARGA
+        displayPanel.mostrarCargando("Cargando: " + rutaCompleta.getFileName() + "...");
+        
+        // 6. EJECUTAR LA CARGA EN SEGUNDO PLANO
+        cargaImagenPrincipalFuture = executorService.submit(() -> {
+            BufferedImage imagenCargadaDesdeDisco = null;
+            try {
+                if (!Files.exists(rutaCompleta)) throw new IOException("El archivo no existe: " + rutaCompleta);
+                imagenCargadaDesdeDisco = ImageIO.read(rutaCompleta.toFile());
+                if (imagenCargadaDesdeDisco == null) throw new IOException("Formato no soportado o archivo inválido.");
+            } catch (Exception ex) {
+                System.err.println("Error al cargar la imagen directamente por Path: " + ex.getMessage());
+            }
+
+            final BufferedImage finalImagenCargada = imagenCargadaDesdeDisco;
+            final Path finalPath = rutaCompleta; // Capturar para el EDT
+            final String finalClave = claveImagen; // Capturar para el EDT
+
+            // Si la tarea fue cancelada, no hacer nada.
+            if (Thread.currentThread().isInterrupted()) {
+                return;
+            }
+
+            // 7. ACTUALIZAR LA UI EN EL EVENT DISPATCH THREAD (EDT)
+            SwingUtilities.invokeLater(() -> {
+                // Si esta no es la imagen actualmente seleccionada por el modelo de lista,
+                // PERO SÍ es una carga directa, igual la mostramos.
+                // Sin embargo, si el usuario ha hecho una nueva selección en la lista principal,
+                // esa selección tiene prioridad y esta carga directa podría ser descartada.
+                // Aquí, la clave es que esta función no altera `model.selectedImageKey`
+                // para no interferir con la navegación de listas.
+
+                if (finalImagenCargada != null) {
+                    // --- Caso de Éxito ---
+                    model.setCurrentImage(finalImagenCargada); // Establecer la imagen cargada en el modelo
+                    displayPanel.limpiar(); // Limpiar el texto de "Cargando..."
+
+                    // Aplicar el modo de zoom. Siempre se aplica el del contexto actual.
+                    if (zoomManager != null) {
+                         zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
+                    } else {
+                         displayPanel.repaint(); // Fallback si no hay zoomManager
+                    }
+
+                    // No actualizamos el estado del botón "Marcar" aquí directamente,
+                    // ya que esta imagen puede no estar marcada o no ser del proyecto.
+                    // Esa lógica debería ser manejada por la selección de lista, no por la previsualización.
+
+                } else { 
+                    // --- Caso de Error de Carga ---
+                    model.setCurrentImage(null);
+                    if (iconUtils != null) {
+                         ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
+                         displayPanel.mostrarError("Error al cargar:\n" + finalPath.getFileName().toString(), errorIcon);
+                    }
+                }
+
+                // 8. ACTUALIZACIÓN FINAL DE COMPONENTES DE INFORMACIÓN
+                //    Estos managers deben leer del model.getCurrentImage()
+                if (infobarImageManager != null) infobarImageManager.actualizar();
+                if (statusBarManager != null) statusBarManager.actualizar();
+                // No forzamos actualización de acciones aquí, ya que no cambiamos la selección de lista.
+            });
+        });
+    }// --- Fin del nuevo método actualizarImagenPrincipalPorPath ---
+    
+    
     public void limpiarUI() {
         System.out.println("[Controller] Limpiando UI y Modelo a estado vacío...");
 
