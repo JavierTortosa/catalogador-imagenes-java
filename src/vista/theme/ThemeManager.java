@@ -44,116 +44,229 @@ public class ThemeManager {
     
     
     private void cargarTemasPredeterminados() {
-        // --- 1. Tema Claro (Clear) - Revisado ---
+        // --- 1. Tema Claro (Clear) ---
         // Objetivo: Un look profesional, limpio y legible. El azul como color de acento.
         Color claroAcento = new Color(57, 105, 138); // Un azul corporativo, serio.
         Tema temaClaro = new Tema(
             "clear", "Tema Claro", "black",
-            new Color(245, 245, 245), 	// colorFondoPrincipal: Un blanco roto, menos duro que el blanco puro.
-            new Color(255, 255, 255), 	// colorFondoSecundario: Blanco puro para paneles de contenido.
-            new Color(20, 20, 20),    	// colorTextoPrimario: Casi negro, pero no 100% para menos fatiga.
-            new Color(85, 85, 85),    	// colorTextoSecundario: Gris oscuro para info menos importante.
-            new Color(200, 200, 200), 	// colorBorde: Un gris claro para separadores sutiles.
-            new Color(20, 20, 20),    	// colorBordeTitulo: Mismo que el texto principal.
-            claroAcento,              	// colorSeleccionFondo: El azul de acento.
-            Color.WHITE,              	// colorSeleccionTexto: Blanco para máximo contraste sobre el azul.
-            new Color(230, 230, 230), 	// colorBotonFondo: Un gris ligeramente más oscuro que el fondo para que destaque un poco.
-            new Color(20, 20, 20),    	// colorBotonTexto.
-            new Color(179, 205, 224), 	// colorBotonFondoActivado: El mismo azul de acento. Coherencia.
-            new Color(173, 216, 230), 	// colorBotonFondoAnimacion: Un azul claro para el feedback de hover/clic.
-            new Color(0, 122, 204),   	// colorBordeSeleccionActiva: Un azul más brillante para bordes de foco.
-            claroAcento					// colorLabelActivo: El azul de acento.
+            new Color(245, 245, 245),   // colorFondoPrincipal: Un blanco roto, menos duro que el blanco puro.
+            new Color(255, 255, 255),   // colorFondoSecundario: Blanco puro para paneles de contenido.
+            new Color(20, 20, 20),      // colorTextoPrimario: Casi negro, pero no 100% para menos fatiga.
+            new Color(85, 85, 85),      // colorTextoSecundario: Gris oscuro para info menos importante.
+            new Color(200, 200, 200),   // colorBorde: Un gris claro para separadores sutiles.
+            new Color(20, 20, 20),      // colorBordeTitulo: Mismo que el texto principal.
+            claroAcento,                // colorSeleccionFondo: El azul de acento.
+            Color.WHITE,                // colorSeleccionTexto: Blanco para máximo contraste sobre el azul.
+            new Color(230, 230, 230),   // colorBotonFondo: Un gris ligeramente más oscuro que el fondo para que destaque un poco.
+            new Color(20, 20, 20),      // colorBotonTexto.
+            new Color(179, 205, 224),   // colorBotonFondoActivado: El mismo azul de acento. Coherencia.
+            new Color(173, 216, 230),   // colorBotonFondoAnimacion: Un azul claro para el feedback de hover/clic.
+            new Color(0, 122, 204),     // colorBordeSeleccionActiva: Un azul más brillante para bordes de foco.
+            claroAcento                 // colorLabelActivo: El azul de acento.
         );
         temasDisponibles.put(temaClaro.nombreInterno(), temaClaro);
 
-        // --- 2. Tema Oscuro (Dark) - Revisado ---
+        // --- 2. Tema Oscuro (Dark) ---
         // Objetivo: Clásico tema oscuro, fácil para la vista, con un azul eléctrico como acento.
         Color oscuroAcentoSeleccion = new Color(0, 122, 204); // Azul brillante para selección de lista
         Tema temaOscuro = new Tema(
             "dark", "Tema Oscuro", "white",
-            new Color(50, 53, 59),    	// colorFondoPrincipal: Un gris "pizarra" para menús y barras. Es el color principal de la "carcasa".
-            new Color(43, 45, 49),    	// colorFondoSecundario: Un gris aún más oscuro para el área de contenido (visor y lista), para que la imagen destaque.
-            new Color(220, 221, 222), 	// colorTextoPrimario: Un blanco roto muy legible.
-            new Color(140, 142, 145), 	// colorTextoSecundario: Un gris más suave para info secundaria.
-            new Color(60, 63, 68),    	// colorBorde: Un borde sutil que separa paneles.
-            new Color(200, 201, 202), 	// colorBordeTitulo: Un color de texto claro para los títulos de panel.
-            oscuroAcentoSeleccion,    	// colorSeleccionFondo: El Azul Acero, claro y visible.
-            Color.WHITE,              	// colorSeleccionTexto: Blanco para máximo contraste sobre la selección.
-            new Color(66, 70, 77),    	// colorBotonFondo: Un gris ligeramente más claro que la barra, para que los botones "apagados" sean visibles pero integrados.
-            new Color(220, 221, 222), 	// colorBotonTexto.
-            new Color(88, 101, 242),  	// colorBotonFondoActivado: Un azul/púrpura tipo Discord, muy claro y moderno para indicar estado "ON".
-            new Color(75, 78, 84),    	// colorBotonFondoAnimacion: Un gris más claro para el efecto "hover".
-            oscuroAcentoSeleccion,     	// colorBordeSeleccionActiva: El mismo color de acento para el foco.
-            oscuroAcentoSeleccion		// colorLabelActivo: El Azul Acero, claro y visible.
+            new Color(50, 53, 59),      // colorFondoPrincipal: Un gris "pizarra" para menús y barras. Es el color principal de la "carcasa".
+            new Color(43, 45, 49),      // colorFondoSecundario: Un gris aún más oscuro para el área de contenido (visor y lista), para que la imagen destaque.
+            new Color(220, 221, 222),   // colorTextoPrimario: Un blanco roto muy legible.
+            new Color(140, 142, 145),   // colorTextoSecundario: Un gris más suave para info secundaria.
+            new Color(60, 63, 68),      // colorBorde: Un borde sutil que separa paneles.
+            new Color(200, 201, 202),   // colorBordeTitulo: Un color de texto claro para los títulos de panel.
+            oscuroAcentoSeleccion,      // colorSeleccionFondo: El Azul Acero, claro y visible.
+            Color.WHITE,                // colorSeleccionTexto: Blanco para máximo contraste sobre la selección.
+            new Color(66, 70, 77),      // colorBotonFondo: Un gris ligeramente más claro que la barra, para que los botones "apagados" sean visibles pero integrados.
+            new Color(220, 221, 222),   // colorBotonTexto.
+            new Color(88, 101, 242),    // colorBotonFondoActivado: Un azul/púrpura tipo Discord, muy claro y moderno para indicar estado "ON".
+            new Color(75, 78, 84),      // colorBotonFondoAnimacion: Un gris más claro para el efecto "hover".
+            oscuroAcentoSeleccion,      // colorBordeSeleccionActiva: El mismo color de acento para el foco.
+            oscuroAcentoSeleccion       // colorLabelActivo: El Azul Acero, claro y visible.
        );
         temasDisponibles.put(temaOscuro.nombreInterno(), temaOscuro);
 
-        // --- 3. Tema Azul (Blue) - Revisado ---
+        // --- 3. Tema Azul (Blue) ---
         // Objetivo: Un tema claro pero con un toque de color azul en los fondos.
         Color azulAcento = new Color(0, 100, 180); // Un azul más profundo que el del tema claro.
         Tema temaAzul = new Tema(
              "blue", "Tema Azul", "black", // Iconos negros sobre fondo claro.
-             new Color(237, 244, 252), 	// colorFondoPrincipal: Un blanco muy ligeramente azulado.
-             new Color(255, 255, 255), 	// colorFondoSecundario: Blanco puro.
-             new Color(10, 25, 40),    	// colorTextoPrimario: Un azul muy oscuro, casi negro.
-             new Color(60, 80, 100),   	// colorTextoSecundario: Un gris azulado.
-             new Color(180, 210, 240), 	// colorBorde: Un azul pálido.
-             new Color(10, 25, 40),    	// colorBordeTitulo.
-             azulAcento,               	// colorSeleccionFondo: El azul profundo de acento.
-             Color.WHITE,              	// colorSeleccionTexto.
-             new Color(225, 235, 245), 	// colorBotonFondo: Un blanco azulado que destaca un poco.
-             new Color(10, 25, 40),    	// colorBotonTexto.
-             azulAcento,               	// colorBotonFondoActivado: El mismo azul profundo. Coherencia.
-             new Color(200, 220, 240), 	// colorBotonFondoAnimacion: Un azul claro para hover.
-             new Color(0, 122, 204),   	// colorBordeSeleccionActiva.
-             azulAcento					// colorLabelActivo: colorSeleccionFondo: El azul profundo de acento.
+             new Color(237, 244, 252),  // colorFondoPrincipal: Un blanco muy ligeramente azulado.
+             new Color(255, 255, 255),  // colorFondoSecundario: Blanco puro.
+             new Color(10, 25, 40),     // colorTextoPrimario: Un azul muy oscuro, casi negro.
+             new Color(60, 80, 100),    // colorTextoSecundario: Un gris azulado.
+             new Color(180, 210, 240),  // colorBorde: Un azul pálido.
+             new Color(10, 25, 40),     // colorBordeTitulo.
+             azulAcento,                // colorSeleccionFondo: El azul profundo de acento.
+             Color.WHITE,               // colorSeleccionTexto.
+             new Color(225, 235, 245),  // colorBotonFondo: Un blanco azulado que destaca un poco.
+             new Color(10, 25, 40),     // colorBotonTexto.
+             azulAcento,                // colorBotonFondoActivado: El mismo azul profundo. Coherencia.
+             new Color(200, 220, 240),  // colorBotonFondoAnimacion: Un azul claro para hover.
+             new Color(0, 122, 204),    // colorBordeSeleccionActiva.
+             azulAcento                 // colorLabelActivo: colorSeleccionFondo: El azul profundo de acento.
         );
         temasDisponibles.put(temaAzul.nombreInterno(), temaAzul);
 
-        // --- 4. Tema Verde (Green) - Revisado ---
+        // --- 4. Tema Verde (Green) ---
         // Objetivo: Un look "hacker" o "matrix", oscuro y con acentos verdes.
         Color verdeAcento = new Color(0, 204, 102); // Un verde menta brillante y moderno.
         Tema temaVerde = new Tema(
              "green", "Tema Verde", "green", // Iconos verdes sobre fondo oscuro.
-             new Color(20, 30, 25),    	// colorFondoPrincipal: Verde muy oscuro.
-             new Color(30, 45, 38),   	// colorFondoSecundario: Verde oscuro algo más claro.
-             new Color(230, 255, 230), 	// colorTextoPrimario: Blanco con un levísimo tinte verde.
-             new Color(140, 190, 150), 	// colorTextoSecundario: Verde pálido.
-             new Color(40, 60, 50),    	// colorBorde: Verde grisáceo oscuro.
-             new Color(140, 190, 150), 	// colorBordeTitulo.
-             verdeAcento,              	// colorSeleccionFondo: El verde menta de acento.
-             Color.BLACK,              	// colorSeleccionTexto: Negro para el máximo contraste sobre el verde menta.
-             new Color(45, 65, 55),    	// colorBotonFondo.
-             new Color(230, 255, 230), 	// colorBotonTexto.
-             verdeAcento,              	// colorBotonFondoActivado: El mismo verde menta. Coherencia.
-             new Color(60, 80, 70),    	// colorBotonFondoAnimacion: Verde oscuro para hover.
+             new Color(20, 30, 25),     // colorFondoPrincipal: Verde muy oscuro.
+             new Color(30, 45, 38),     // colorFondoSecundario: Verde oscuro algo más claro.
+             new Color(230, 255, 230),  // colorTextoPrimario: Blanco con un levísimo tinte verde.
+             new Color(140, 190, 150),  // colorTextoSecundario: Verde pálido.
+             new Color(40, 60, 50),     // colorBorde: Verde grisáceo oscuro.
+             new Color(140, 190, 150),  // colorBordeTitulo.
+             verdeAcento,               // colorSeleccionFondo: El verde menta de acento.
+             Color.BLACK,               // colorSeleccionTexto: Negro para el máximo contraste sobre el verde menta.
+             new Color(45, 65, 55),     // colorBotonFondo.
+             new Color(230, 255, 230),  // colorBotonTexto.
+             verdeAcento,               // colorBotonFondoActivado: El mismo verde menta. Coherencia.
+             new Color(60, 80, 70),     // colorBotonFondoAnimacion: Verde oscuro para hover.
              new Color(50, 255, 150),   // colorBordeSeleccionActiva: Verde neón para foco.
-             verdeAcento				// colorLabelActivo: El verde menta de acento.
+             verdeAcento                // colorLabelActivo: El verde menta de acento.
         );
         temasDisponibles.put(temaVerde.nombreInterno(), temaVerde);
 
-        // --- 5. Tema Naranja (Orange) - Revisado ---
+        // --- 5. Tema Naranja (Orange) ---
         // Objetivo: Un tema oscuro, cálido y energético, con acentos en ámbar/naranja.
         Color naranjaAcento = new Color(230, 126, 34); // Un naranja elegante, no tan estridente.
         Tema temaNaranja = new Tema(
              "orange", "Tema Naranja", "orange", // Iconos naranjas sobre fondo oscuro.
-             new Color(35, 30, 25),    	// colorFondoPrincipal: Gris oscuro cálido.
-             new Color(50, 40, 35),    	// colorFondoSecundario: Marrón oscuro.
-             new Color(250, 230, 210), 	// colorTextoPrimario: Blanco cálido (hueso).
-             new Color(190, 160, 140), 	// colorTextoSecundario: "Beige" oscuro.
-             new Color(70, 60, 50),    	// colorBorde.
-             new Color(190, 160, 140), 	// colorBordeTitulo.
-             naranjaAcento,            	// colorSeleccionFondo: El naranja de acento.
-             Color.WHITE,              	// colorSeleccionTexto: Blanco para contraste.
-             new Color(65, 55, 50),    	// colorBotonFondo.
-             new Color(250, 230, 210), 	// colorBotonTexto.
-             naranjaAcento,            	// colorBotonFondoActivado: El mismo naranja. Coherencia.
-             new Color(80, 70, 65),    	// colorBotonFondoAnimacion: Marrón más claro para hover.
+             new Color(35, 30, 25),     // colorFondoPrincipal: Gris oscuro cálido.
+             new Color(50, 40, 35),     // colorFondoSecundario: Marrón oscuro.
+             new Color(250, 230, 210),  // colorTextoPrimario: Blanco cálido (hueso).
+             new Color(190, 160, 140),  // colorTextoSecundario: "Beige" oscuro.
+             new Color(70, 60, 50),     // colorBorde.
+             new Color(190, 160, 140),  // colorBordeTitulo.
+             naranjaAcento,             // colorSeleccionFondo: El naranja de acento.
+             Color.WHITE,               // colorSeleccionTexto: Blanco para contraste.
+             new Color(65, 55, 50),     // colorBotonFondo.
+             new Color(250, 230, 210),  // colorBotonTexto.
+             naranjaAcento,             // colorBotonFondoActivado: El mismo naranja. Coherencia.
+             new Color(80, 70, 65),     // colorBotonFondoAnimacion: Marrón más claro para hover.
              new Color(255, 152, 0),    // colorBordeSeleccionActiva: Naranja brillante para foco.
-             naranjaAcento				// colorLabelActivo: El naranja de acento.
+             naranjaAcento              // colorLabelActivo: El naranja de acento.
         );
         temasDisponibles.put(temaNaranja.nombreInterno(), temaNaranja);
-    }
+    }// --- FIN DEL METODO cargarTemasPredeterminados ---
+    
+    
+//    private void cargarTemasPredeterminados() {
+//        // --- 1. Tema Claro (Clear) - Revisado ---
+//        // Objetivo: Un look profesional, limpio y legible. El azul como color de acento.
+//        Color claroAcento = new Color(57, 105, 138); // Un azul corporativo, serio.
+//        Tema temaClaro = new Tema(
+//            "clear", "Tema Claro", "black",
+//            new Color(245, 245, 245), 	// colorFondoPrincipal: Un blanco roto, menos duro que el blanco puro.
+//            new Color(255, 255, 255), 	// colorFondoSecundario: Blanco puro para paneles de contenido.
+//            new Color(20, 20, 20),    	// colorTextoPrimario: Casi negro, pero no 100% para menos fatiga.
+//            new Color(85, 85, 85),    	// colorTextoSecundario: Gris oscuro para info menos importante.
+//            new Color(200, 200, 200), 	// colorBorde: Un gris claro para separadores sutiles.
+//            new Color(20, 20, 20),    	// colorBordeTitulo: Mismo que el texto principal.
+//            claroAcento,              	// colorSeleccionFondo: El azul de acento.
+//            Color.WHITE,              	// colorSeleccionTexto: Blanco para máximo contraste sobre el azul.
+//            new Color(230, 230, 230), 	// colorBotonFondo: Un gris ligeramente más oscuro que el fondo para que destaque un poco.
+//            new Color(20, 20, 20),    	// colorBotonTexto.
+//            new Color(179, 205, 224), 	// colorBotonFondoActivado: El mismo azul de acento. Coherencia.
+//            new Color(173, 216, 230), 	// colorBotonFondoAnimacion: Un azul claro para el feedback de hover/clic.
+//            new Color(0, 122, 204),   	// colorBordeSeleccionActiva: Un azul más brillante para bordes de foco.
+//            claroAcento					// colorLabelActivo: El azul de acento.
+//        );
+//        temasDisponibles.put(temaClaro.nombreInterno(), temaClaro);
+//
+//        // --- 2. Tema Oscuro (Dark) - Revisado ---
+//        // Objetivo: Clásico tema oscuro, fácil para la vista, con un azul eléctrico como acento.
+//        Color oscuroAcentoSeleccion = new Color(0, 122, 204); // Azul brillante para selección de lista
+//        Tema temaOscuro = new Tema(
+//            "dark", "Tema Oscuro", "white",
+//            new Color(50, 53, 59),    	// colorFondoPrincipal: Un gris "pizarra" para menús y barras. Es el color principal de la "carcasa".
+//            new Color(43, 45, 49),    	// colorFondoSecundario: Un gris aún más oscuro para el área de contenido (visor y lista), para que la imagen destaque.
+//            new Color(220, 221, 222), 	// colorTextoPrimario: Un blanco roto muy legible.
+//            new Color(140, 142, 145), 	// colorTextoSecundario: Un gris más suave para info secundaria.
+//            new Color(60, 63, 68),    	// colorBorde: Un borde sutil que separa paneles.
+//            new Color(200, 201, 202), 	// colorBordeTitulo: Un color de texto claro para los títulos de panel.
+//            oscuroAcentoSeleccion,    	// colorSeleccionFondo: El Azul Acero, claro y visible.
+//            Color.WHITE,              	// colorSeleccionTexto: Blanco para máximo contraste sobre la selección.
+//            new Color(66, 70, 77),    	// colorBotonFondo: Un gris ligeramente más claro que la barra, para que los botones "apagados" sean visibles pero integrados.
+//            new Color(220, 221, 222), 	// colorBotonTexto.
+//            new Color(88, 101, 242),  	// colorBotonFondoActivado: Un azul/púrpura tipo Discord, muy claro y moderno para indicar estado "ON".
+//            new Color(75, 78, 84),    	// colorBotonFondoAnimacion: Un gris más claro para el efecto "hover".
+//            oscuroAcentoSeleccion,     	// colorBordeSeleccionActiva: El mismo color de acento para el foco.
+//            oscuroAcentoSeleccion		// colorLabelActivo: El Azul Acero, claro y visible.
+//       );
+//        temasDisponibles.put(temaOscuro.nombreInterno(), temaOscuro);
+//
+//        // --- 3. Tema Azul (Blue) - Revisado ---
+//        // Objetivo: Un tema claro pero con un toque de color azul en los fondos.
+//        Color azulAcento = new Color(0, 100, 180); // Un azul más profundo que el del tema claro.
+//        Tema temaAzul = new Tema(
+//             "blue", "Tema Azul", "black", // Iconos negros sobre fondo claro.
+//             new Color(237, 244, 252), 	// colorFondoPrincipal: Un blanco muy ligeramente azulado.
+//             new Color(255, 255, 255), 	// colorFondoSecundario: Blanco puro.
+//             new Color(10, 25, 40),    	// colorTextoPrimario: Un azul muy oscuro, casi negro.
+//             new Color(60, 80, 100),   	// colorTextoSecundario: Un gris azulado.
+//             new Color(180, 210, 240), 	// colorBorde: Un azul pálido.
+//             new Color(10, 25, 40),    	// colorBordeTitulo.
+//             azulAcento,               	// colorSeleccionFondo: El azul profundo de acento.
+//             Color.WHITE,              	// colorSeleccionTexto.
+//             new Color(225, 235, 245), 	// colorBotonFondo: Un blanco azulado que destaca un poco.
+//             new Color(10, 25, 40),    	// colorBotonTexto.
+//             azulAcento,               	// colorBotonFondoActivado: El mismo azul profundo. Coherencia.
+//             new Color(200, 220, 240), 	// colorBotonFondoAnimacion: Un azul claro para hover.
+//             new Color(0, 122, 204),   	// colorBordeSeleccionActiva.
+//             azulAcento					// colorLabelActivo: colorSeleccionFondo: El azul profundo de acento.
+//        );
+//        temasDisponibles.put(temaAzul.nombreInterno(), temaAzul);
+//
+//        // --- 4. Tema Verde (Green) - Revisado ---
+//        // Objetivo: Un look "hacker" o "matrix", oscuro y con acentos verdes.
+//        Color verdeAcento = new Color(0, 204, 102); // Un verde menta brillante y moderno.
+//        Tema temaVerde = new Tema(
+//             "green", "Tema Verde", "green", // Iconos verdes sobre fondo oscuro.
+//             new Color(20, 30, 25),    	// colorFondoPrincipal: Verde muy oscuro.
+//             new Color(30, 45, 38),   	// colorFondoSecundario: Verde oscuro algo más claro.
+//             new Color(230, 255, 230), 	// colorTextoPrimario: Blanco con un levísimo tinte verde.
+//             new Color(140, 190, 150), 	// colorTextoSecundario: Verde pálido.
+//             new Color(40, 60, 50),    	// colorBorde: Verde grisáceo oscuro.
+//             new Color(140, 190, 150), 	// colorBordeTitulo.
+//             verdeAcento,              	// colorSeleccionFondo: El verde menta de acento.
+//             Color.BLACK,              	// colorSeleccionTexto: Negro para el máximo contraste sobre el verde menta.
+//             new Color(45, 65, 55),    	// colorBotonFondo.
+//             new Color(230, 255, 230), 	// colorBotonTexto.
+//             verdeAcento,              	// colorBotonFondoActivado: El mismo verde menta. Coherencia.
+//             new Color(60, 80, 70),    	// colorBotonFondoAnimacion: Verde oscuro para hover.
+//             new Color(50, 255, 150),   // colorBordeSeleccionActiva: Verde neón para foco.
+//             verdeAcento				// colorLabelActivo: El verde menta de acento.
+//        );
+//        temasDisponibles.put(temaVerde.nombreInterno(), temaVerde);
+//
+//        // --- 5. Tema Naranja (Orange) - Revisado ---
+//        // Objetivo: Un tema oscuro, cálido y energético, con acentos en ámbar/naranja.
+//        Color naranjaAcento = new Color(230, 126, 34); // Un naranja elegante, no tan estridente.
+//        Tema temaNaranja = new Tema(
+//             "orange", "Tema Naranja", "orange", // Iconos naranjas sobre fondo oscuro.
+//             new Color(35, 30, 25),    	// colorFondoPrincipal: Gris oscuro cálido.
+//             new Color(50, 40, 35),    	// colorFondoSecundario: Marrón oscuro.
+//             new Color(250, 230, 210), 	// colorTextoPrimario: Blanco cálido (hueso).
+//             new Color(190, 160, 140), 	// colorTextoSecundario: "Beige" oscuro.
+//             new Color(70, 60, 50),    	// colorBorde.
+//             new Color(190, 160, 140), 	// colorBordeTitulo.
+//             naranjaAcento,            	// colorSeleccionFondo: El naranja de acento.
+//             Color.WHITE,              	// colorSeleccionTexto: Blanco para contraste.
+//             new Color(65, 55, 50),    	// colorBotonFondo.
+//             new Color(250, 230, 210), 	// colorBotonTexto.
+//             naranjaAcento,            	// colorBotonFondoActivado: El mismo naranja. Coherencia.
+//             new Color(80, 70, 65),    	// colorBotonFondoAnimacion: Marrón más claro para hover.
+//             new Color(255, 152, 0),    // colorBordeSeleccionActiva: Naranja brillante para foco.
+//             naranjaAcento				// colorLabelActivo: El naranja de acento.
+//        );
+//        temasDisponibles.put(temaNaranja.nombreInterno(), temaNaranja);
+//    }
     
 
 //    private void cargarTemasPredeterminados() {

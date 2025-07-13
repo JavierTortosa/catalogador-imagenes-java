@@ -208,182 +208,7 @@ https://www.streamlinehq.com/icons/streamline-colors?icon=ico_cqBlbF5QkFCCCVKo	-
 https://www.streamlinehq.com/icons/core-duo-color/interface-essential
 
 
--------------------------------------------------------------------------
---- PLAN DE IMPLEMENTACIÓN SELECCIÓN DE PROYECTO ---
--------------------------------------------------------------------------
 
-== Plan Detallado para la Funcionalidad de "Selección de Imágenes para Proyecto" ==
-
-OBJETIVO PRINCIPAL:
-Permitir al usuario marcar imágenes individuales de interés dentro de un directorio
-grande, guardar esta selección como un "proyecto", y poder ver/cargar estas
-selecciones posteriormente. Esto es para ayudar en proyectos de impresión 3D
-donde las imágenes representan los archivos STL.
-
-TERMINOLOGÍA:
-- "Selección de Proyecto" o "Imágenes Marcadas": El conjunto de imágenes que el usuario ha marcado.
-- "Archivo de Proyecto": El archivo en disco (ej. .prj, .txt) que guarda una Selección de Proyecto.
-- "Archivo de Selección Temporal": Un archivo por defecto donde se guardan las marcas si no se ha guardado/cargado un proyecto.
-
-============================
-ITERACIÓN 1: FUNCIONALIDAD BÁSICA (Archivo Temporal Único, Marcar/Desmarcar, Ver Lista Simple)
-============================
-
-1. ProjectSelectionManager (Clase Principal):
-   - Campos:
-       - `private final Path archivoSeleccionTemporal = Paths.get(System.getProperty("user.home"), ".miVisorImagenes", "seleccion_temporal.txt");`
-         (Asegurar que el directorio `~/.miVisorImagenes` se cree si no existe).
-       - `private Set<String> clavesMarcadasEnMemoria;` (claves relativas de imágenes).
-   - Constructor:
-       - Llama a `cargarDesdeArchivo(archivoSeleccionTemporal)` para poblar `clavesMarcadasEnMemoria`.
-   - Métodos Privados:
-       - `cargarDesdeArchivo(Path rutaArchivo)`: Lee el archivo, llena `clavesMarcadasEnMemoria`. Maneja si el archivo no existe.
-       - `guardarAArchivo(Path rutaArchivo, Set<String> claves)`: Escribe el Set al archivo, una clave por línea.
-   - Métodos Públicos:
-       - `marcarImagen(String claveRelativa)`:
-           - Añade `claveRelativa` a `clavesMarcadasEnMemoria`.
-           - Llama a `guardarAArchivo(archivoSeleccionTemporal, clavesMarcadasEnMemoria)`.
-       - `desmarcarImagen(String claveRelativa)`:
-           - Quita `claveRelativa` de `clavesMarcadasEnMemoria`.
-           - Llama a `guardarAArchivo(archivoSeleccionTemporal, clavesMarcadasEnMemoria)`.
-       - `estaMarcada(String claveRelativa)`:
-           - Devuelve `clavesMarcadasEnMemoria.contains(claveRelativa)`.
-       - `getClavesMarcadas()`:
-           - Devuelve `new ArrayList<>(clavesMarcadasEnMemoria)` (o una copia inmutable).
-       - `alternarMarcaImagen(String claveRelativa)`:
-           - Si `estaMarcada`, llama a `desmarcarImagen`. Sino, llama a `marcarImagen`.
-           - Devuelve el nuevo estado (true si quedó marcada, false si desmarcada).
-
-2. AppActionCommands:
-   - `CMD_PROYECTO_TOGGLE_MARCA = "cmd.proyecto.toggle_marca";`
-   - `CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO = "cmd.proyecto.mostrar_seleccion_dialogo";` // Para el JOptionPane inicial
-
-3. Nuevas Actions (en controlador.actions.proyecto o similar):
-   - `ToggleMarkImageAction extends BaseVisorAction`:
-       - Comando: `CMD_PROYECTO_TOGGLE_MARCA`.
-       - Icono: `5003-marcar_imagen_48x48.png` (o el nombre final).
-       - Tooltip: "Marcar/Desmarcar imagen para el proyecto actual".
-       - `actionPerformed`:
-           - Obtiene `selectedImageKey` del `VisorModel`.
-           - Si no es null, llama a `controller.toggleMarcaImagenActual(selectedImageKey);` (nuevo método en controller).
-   - `ShowProjectSelectionDialogAction extends BaseVisorAction`:
-       - Comando: `CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO`.
-       - Icono: `7003-Mostrar_Favoritos_48x48.png` (o el nombre final).
-       - Tooltip: "Mostrar imágenes marcadas para el proyecto actual".
-       - `actionPerformed`:
-           - Llama a `controller.mostrarDialogoSeleccionProyectoActual();` (nuevo método en controller).
-
-4. VisorController:
-   - Añadir campo: `private ProjectSelectionManager projectManager;` (inicializar en `AppInitializer`).
-   - Inicializar `toggleMarkImageAction` y `showProjectSelectionDialogAction`. Añadirlas al `actionMap`.
-   - Nuevo método: `public void toggleMarcaImagenActual(String claveImagen)`:
-       - Llama a `projectManager.alternarMarcaImagen(claveImagen)` para obtener `boolean nuevoEstadoMarcada`.
-       - Actualiza `toggleMarkImageAction.putValue(Action.SELECTED_KEY, nuevoEstadoMarcada);`.
-       - Llama a `actualizarEstadoVisualBotonMarcarYBarraEstado(nuevoEstadoMarcada);` (nuevo método).
-   - Nuevo método: `public void actualizarEstadoVisualBotonMarcarYBarraEstado(boolean estaMarcada)`:
-       - Llama a `view.actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);`.
-       - Actualiza `view.setTextoRuta()` para añadir/quitar "[MARCADA]".
-   - Nuevo método: `public void mostrarDialogoSeleccionProyectoActual()`:
-       - Llama a `projectManager.getClavesMarcadas()`.
-       - Construye un String con estas claves.
-       - Muestra el String en un `JOptionPane.showMessageDialog`.
-   - En `actualizarImagenPrincipal(int indiceSeleccionado)`:
-       - Después de cargar la imagen y actualizar el modelo, obtener `selectedImageKey`.
-       - Llamar a `boolean marcada = projectManager.estaMarcada(selectedImageKey);`.
-       - Llamar a `actualizarEstadoVisualBotonMarcarYBarraEstado(marcada);`.
-
-5. UIDefinitionService:
-   - `generateMenuStructure()`:
-       - En Menú "Imagen": `new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, MenuItemType.CHECKBOX_ITEM, "Marcar para Proyecto", null)`
-       - En Menú "Vista" (o nuevo menú "Proyecto"): `new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO, MenuItemType.ITEM, "Ver Selección de Proyecto", null)`
-   - `generateToolbarStructure()`:
-       - Botón "Marcar": `new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "5003-marcar_imagen_48x48.png", "Marcar/Desmarcar Imagen", "control")` (o la categoría que prefieras).
-       - Botón "Mostrar Selección": `new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO, "7003-Mostrar_Favoritos_48x48.png", "Mostrar Imágenes Marcadas", "control")` (o la categoría que prefieras).
-
-6. VisorView (Opcional para Iteración 1, pero bueno para el futuro):
-   - Si `ToggleMarkImageAction` no cambia el icono del botón directamente, `actualizarAspectoBotonToggle` podría necesitar lógica para cambiar entre icono de estrella vacía/llena.
-
-============================
-ITERACIÓN 2: GESTIÓN DE PROYECTOS CON NOMBRE (Guardar Como, Abrir, Nuevo)
-============================
-
-1. ProjectSelectionManager:
-   - Campo: `private Path archivoProyectoActivo;` (puede ser null si es el temporal).
-   - Modificar constructor y métodos para usar `archivoProyectoActivo` si no es null, sino `archivoSeleccionTemporal`.
-   - `nuevoProyecto()`: `clavesMarcadasEnMemoria.clear(); archivoProyectoActivo = null; guardarAArchivo(archivoSeleccionTemporal, ...);` Actualizar título de ventana.
-   - `guardarProyectoComo(Path destino)`: `guardarAArchivo(destino, clavesMarcadasEnMemoria); archivoProyectoActivo = destino;` Actualizar título.
-   - `abrirProyecto(Path origen)`: `cargarDesdeArchivo(origen); archivoProyectoActivo = origen;` Actualizar título.
-   - `hayCambiosSinGuardar()`: Compara `clavesMarcadasEnMemoria` con el contenido de `archivoProyectoActivo` (si existe).
-
-2. AppActionCommands:
-   - `CMD_PROYECTO_NUEVO`, `CMD_PROYECTO_ABRIR`, `CMD_PROYECTO_GUARDAR_COMO`, `CMD_PROYECTO_GUARDAR` (si el proyecto activo tiene nombre).
-
-3. Nuevas Actions: `NuevoProyectoAction`, `AbrirProyectoAction`, `GuardarProyectoComoAction`, `GuardarProyectoAction`.
-
-4. VisorController:
-   - Métodos para manejar estas nuevas acciones, usando `JFileChooser` para guardar/abrir.
-   - Lógica para "Guardar" (si `archivoProyectoActivo` no es null, guarda ahí; sino, actúa como "Guardar Como").
-   - Modificar `ShutdownHook`: Si `projectManager.hayCambiosSinGuardar()`, preguntar al usuario si desea guardar antes de salir. Si guarda, y es temporal, preguntar si quiere darle nombre. Si no guarda y es temporal, se podría borrar `archivoSeleccionTemporal`.
-   - Actualizar título de la `JFrame` (`VisorView`) para incluir el nombre del proyecto activo o "(Temporal)".
-
-5. UIDefinitionService:
-   - Nuevo Menú "Proyecto" con ítems para Nuevo, Abrir, Guardar, Guardar Como.
-
-============================
-ITERACIÓN 3: VISTA INTEGRADA DE SELECCIÓN DE PROYECTO (Toggle de ListModel)
-============================
-
-1. AppActionCommands:
-   - `CMD_PROYECTO_TOGGLE_VISTA_SELECCION = "cmd.proyecto.toggle_vista_seleccion";`
-
-2. Nueva Action: `ToggleVistaSeleccionProyectoAction extends BaseVisorAction`.
-   - `actionPerformed` llama a `controller.toggleVistaSeleccionProyecto();`.
-   - Mantiene `Action.SELECTED_KEY` para el estado del toggle.
-
-3. VisorModel:
-   - `private boolean mostrandoSeleccionProyecto = false;`
-   - `private DefaultListModel<String> modeloListaCarpetaOriginal;`
-   - `private String claveSeleccionadaEnCarpetaOriginal;`
-
-4. VisorController:
-   - `toggleVistaSeleccionProyecto()`:
-       - Invierte `model.mostrandoSeleccionProyecto`.
-       - Actualiza `Action.SELECTED_KEY` de `ToggleVistaSeleccionProyectoAction`.
-       - Llama a `actualizarAspectoBotonToggle(...)` para el botón de la toolbar.
-       - Llama a `refrescarVistaPrincipalSegunModo();` (nuevo método).
-   - `refrescarVistaPrincipalSegunModo()`:
-       - Si `model.mostrandoSeleccionProyecto`:
-           - Guarda `model.getModeloLista()` en `model.modeloListaCarpetaOriginal`.
-           - Guarda `model.getSelectedImageKey()` en `model.claveSeleccionadaEnCarpetaOriginal`.
-           - Obtiene `projectManager.getClavesMarcadas()`.
-           - Crea `nuevoModeloSeleccion` a partir de esas claves.
-           - Llama a `model.setModeloLista(nuevoModeloSeleccion);` (¡OJO! Este método debe ser cuidadoso para no limpiar `selectedImageKey` si la clave anterior está en el nuevo modelo).
-           - Llama a `view.setListaImagenesModel(nuevoModeloSeleccion);` (o que `cargarListaImagenes` lo haga).
-           - Llama a `cargarListaImagenes(primeraClaveDeSeleccionSiExiste)`.
-           - Cambia título del panel izquierdo: "Selección: [Nombre Proyecto]".
-       - Else (volviendo a vista de carpeta):
-           - Llama a `model.setModeloLista(model.modeloListaCarpetaOriginal);`.
-           - Llama a `view.setListaImagenesModel(...)`.
-           - Llama a `cargarListaImagenes(model.claveSeleccionadaEnCarpetaOriginal)`.
-           - Cambia título del panel izquierdo: "Lista de Archivos".
-
-5. UIDefinitionService:
-   - Botón en Toolbar para `CMD_PROYECTO_TOGGLE_VISTA_SELECCION`.
-   - Ítem de Menú (quizás `JCheckBoxMenuItem`) en "Vista" para `CMD_PROYECTO_TOGGLE_VISTA_SELECCION`.
-
-============================
-CONSIDERACIONES ADICIONALES (Futuras):
-============================
-- **Modo Grid y Marcar:** Deshabilitar `ToggleMarkImageAction` general. Añadir menú contextual en el grid.
-- **Rendimiento:** Si `getClavesMarcadas()` es muy grande y se llama frecuentemente para la UI, optimizar.
-- **Multi-selección para Marcar/Desmarcar:** En `listaNombres` o Grid.
-- **Internacionalización (i18n)** de todos los textos.
-- **Deshacer/Rehacer** para marcado/desmarcado.
-
-
--------------------------------------------------------------------------
---- FIN DEL PLAN DE IMPLEMENTACIÓN SELECCIÓN DE PROYECTO ---
--------------------------------------------------------------------------
 
 
 
@@ -424,9 +249,18 @@ Ejemplo: chore: Update gitignore to exclude log files o chore: Upgrade Swing ver
 
 ----------------------------------------------------------------
 
-----------------------------------------------------------------
-Hoja de Ruta: Implementación del Componente D-Pad Configurable
-----------------------------------------------------------------
+
+======================================================================
+librerias externas para implementas
+======================================================================
+Thumbnailator: para crear miniaturas fácilmente.
+Caffeine: Caché en memoria ultra rápida (mejor que HashMap + LRU manual).
+TwelveMonkeys ImageIO: Soporte extendido para formatos de imagen: PSD, TIFF, BMP, etc.
+
+
+-------------------------------------------------------------------------
+--- PLAN DE IMPLEMENTACIÓN COMPONENTE D-PAD ---
+-------------------------------------------------------------------------
 
 1. Objetivo Final:
 Implementar un componente de UI DPadComponent reutilizable y genérico. La configuración de sus "hotspots" (zonas interactivas), su layout (cruz, grid, etc.) y su comportamiento se definirá de forma declarativa en UIDefinitionService, manteniendo el componente agnóstico al proyecto. El componente se usará para implementar una funcionalidad de paneo de imagen.
@@ -610,53 +444,333 @@ Serialización/deserialización de definiciones en UIDefinitionService
 6. Extensión con Iconos Dinámicos
 Podrías permitir iconos cambiantes por estado (ej. presionado/no presionado) desde la definición, agregando más expresividad a HotspotDefinition.
 
+-------------------------------------------------------------------------
+--- FIN DEL PLAN DE IMPLEMENTACIÓN COMPONENTE D-PAD ---
+-------------------------------------------------------------------------
+
+
 ***********************************************************************************************************************************
 
-************************************************************************************************************************************************
-Plan de Acción: Rediseño del Panel de Exportación
-Objetivo General: Transformar el panel de exportación en una interfaz más compacta, intuitiva y robusta, usando iconos para el estado, una toolbar para las acciones y manejando la posible inexistencia de archivos.
-FASE 1: Fortalecer el Modelo y la Lógica de Negocio
-1.1. Ampliar ExportStatus (el enum):
-Añadir el nuevo estado: IMAGEN_NO_ENCONTRADA.
-Asociar a cada estado un nombre de archivo de icono y un ToolTipText descriptivo.
-1.2. Reforzar ExportQueueManager:
-Modificar el método prepararColaDesdeSeleccion.
-Dentro de su bucle, por cada ruta de imagen leída del proyecto, lo primero será verificar si el archivo existe (Files.exists(rutaImagen)).
-Si no existe, crear el ExportItem y establecer su estado a IMAGEN_NO_ENCONTRADA.
-Si sí existe, proceder con la lógica actual de buscar el archivo comprimido asociado.
-1.3. Crear/Verificar la Acción "Relocalizar":
-Verificar que ActionFactory crea una Action para relocalizar archivos (CMD_EXPORT_RELOCALIZAR_IMAGEN).
-La acción llamará a un nuevo método en ProjectController (ej. solicitarRelocalizacionImagen()) que abrirá un JFileChooser.
-La Action será sensible al contexto: solo se habilitará si la fila seleccionada tiene el estado IMAGEN_NO_ENCONTRADA.
-FASE 2: Rediseñar la JTable y sus Componentes
-2.1. Adaptar ExportTableModel:
-Modificar la estructura de columnas para que sea: [Checkbox], [Imagen], [Estado (Icono + Texto)].
-El método getColumnClass() deberá devolver ImageIcon.class para la nueva columna de estado.
-El método getValueAt() para la columna de estado devolverá el ImageIcon y el texto correspondiente al ExportStatus del ExportItem.
-El método setValueAt() se mantiene para la columna del checkbox.
-2.2. Crear/Modificar TableCellRenderer para la Columna de Estado:
-Crear un StatusCellRenderer personalizado.
-Será responsable de dibujar el icono y el texto en la misma celda.
-Establecerá el ToolTipText de la celda basándose en el tooltip del ExportStatus.
-Aplicará el color de fondo (rojo, verde, amarillo) según el estado.
-2.3. Crear HeaderRenderer para la Columna Checkbox (Check General):
-Crear un CheckHeaderRenderer para el encabezado de la primera columna que dibujará un JCheckBox.
-Añadir un MouseListener a la cabecera de la tabla (JTableHeader) para detectar clics en este checkbox e implementar "Seleccionar/Deseleccionar Todo".
-FASE 3: Reconstruir la Interfaz (ExportPanel y ProjectBuilder)
-3.1. Implementar Carga Automática:
-En ProjectBuilder, al crear el JTabbedPane de herramientas, se le añadirá un ChangeListener.
-Cuando se seleccione la pestaña "Exportar", este listener llamará a projectController.solicitarPreparacionColaExportacion().
-3.2. Adaptar la Creación de la JTable en ExportPanel:
-Ajustar el ancho de las columnas para la nueva estructura.
-Asignar los nuevos TableCellRenderer y HeaderRenderer a las columnas correspondientes.
-3.3. Reemplazar Panel de Botones por JToolBar:
-Eliminar el JPanel inferior con los botones de texto.
-Crear y añadir una JToolBar en ExportPanel.
-Poblar la toolbar con JButtons basados en las Actions de ActionFactory (Iniciar Exportación, Quitar de la cola, Asignar manualmente, Ignorar, Relocalizar).
-Añadir la etiqueta de resumen (lblResumen) a la toolbar.
+-------------------------------------------------------------------------
+--- PLAN DE IMPLEMENTACIÓN SELECCIÓN DE PROYECTO ---
+-------------------------------------------------------------------------
 
-*******************************************************************************************************************************
+== Plan Detallado para la Funcionalidad de "Selección de Imágenes para Proyecto" ==
+
+OBJETIVO PRINCIPAL:
+Permitir al usuario marcar imágenes individuales de interés dentro de un directorio
+grande, guardar esta selección como un "proyecto", y poder ver/cargar estas
+selecciones posteriormente. Esto es para ayudar en proyectos de impresión 3D
+donde las imágenes representan los archivos STL.
+
+TERMINOLOGÍA:
+- "Selección de Proyecto" o "Imágenes Marcadas": El conjunto de imágenes que el usuario ha marcado.
+- "Archivo de Proyecto": El archivo en disco (ej. .prj, .txt) que guarda una Selección de Proyecto.
+- "Archivo de Selección Temporal": Un archivo por defecto donde se guardan las marcas si no se ha guardado/cargado un proyecto.
+
+============================
+ITERACIÓN 1: FUNCIONALIDAD BÁSICA (Archivo Temporal Único, Marcar/Desmarcar, Ver Lista Simple)
+============================
+
+1. ProjectSelectionManager (Clase Principal):
+   - Campos:
+       - `private final Path archivoSeleccionTemporal = Paths.get(System.getProperty("user.home"), ".miVisorImagenes", "seleccion_temporal.txt");`
+         (Asegurar que el directorio `~/.miVisorImagenes` se cree si no existe).
+       - `private Set<String> clavesMarcadasEnMemoria;` (claves relativas de imágenes).
+   - Constructor:
+       - Llama a `cargarDesdeArchivo(archivoSeleccionTemporal)` para poblar `clavesMarcadasEnMemoria`.
+   - Métodos Privados:
+       - `cargarDesdeArchivo(Path rutaArchivo)`: Lee el archivo, llena `clavesMarcadasEnMemoria`. Maneja si el archivo no existe.
+       - `guardarAArchivo(Path rutaArchivo, Set<String> claves)`: Escribe el Set al archivo, una clave por línea.
+   - Métodos Públicos:
+       - `marcarImagen(String claveRelativa)`:
+           - Añade `claveRelativa` a `clavesMarcadasEnMemoria`.
+           - Llama a `guardarAArchivo(archivoSeleccionTemporal, clavesMarcadasEnMemoria)`.
+       - `desmarcarImagen(String claveRelativa)`:
+           - Quita `claveRelativa` de `clavesMarcadasEnMemoria`.
+           - Llama a `guardarAArchivo(archivoSeleccionTemporal, clavesMarcadasEnMemoria)`.
+       - `estaMarcada(String claveRelativa)`:
+           - Devuelve `clavesMarcadasEnMemoria.contains(claveRelativa)`.
+       - `getClavesMarcadas()`:
+           - Devuelve `new ArrayList<>(clavesMarcadasEnMemoria)` (o una copia inmutable).
+       - `alternarMarcaImagen(String claveRelativa)`:
+           - Si `estaMarcada`, llama a `desmarcarImagen`. Sino, llama a `marcarImagen`.
+           - Devuelve el nuevo estado (true si quedó marcada, false si desmarcada).
+
+2. AppActionCommands:
+   - `CMD_PROYECTO_TOGGLE_MARCA = "cmd.proyecto.toggle_marca";`
+   - `CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO = "cmd.proyecto.mostrar_seleccion_dialogo";` // Para el JOptionPane inicial
+
+3. Nuevas Actions (en controlador.actions.proyecto o similar):
+   - `ToggleMarkImageAction extends BaseVisorAction`:
+       - Comando: `CMD_PROYECTO_TOGGLE_MARCA`.
+       - Icono: `5003-marcar_imagen_48x48.png` (o el nombre final).
+       - Tooltip: "Marcar/Desmarcar imagen para el proyecto actual".
+       - `actionPerformed`:
+           - Obtiene `selectedImageKey` del `VisorModel`.
+           - Si no es null, llama a `controller.toggleMarcaImagenActual(selectedImageKey);` (nuevo método en controller).
+   - `ShowProjectSelectionDialogAction extends BaseVisorAction`:
+       - Comando: `CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO`.
+       - Icono: `7003-Mostrar_Favoritos_48x48.png` (o el nombre final).
+       - Tooltip: "Mostrar imágenes marcadas para el proyecto actual".
+       - `actionPerformed`:
+           - Llama a `controller.mostrarDialogoSeleccionProyectoActual();` (nuevo método en controller).
+
+4. VisorController:
+   - Añadir campo: `private ProjectSelectionManager projectManager;` (inicializar en `AppInitializer`).
+   - Inicializar `toggleMarkImageAction` y `showProjectSelectionDialogAction`. Añadirlas al `actionMap`.
+   - Nuevo método: `public void toggleMarcaImagenActual(String claveImagen)`:
+       - Llama a `projectManager.alternarMarcaImagen(claveImagen)` para obtener `boolean nuevoEstadoMarcada`.
+       - Actualiza `toggleMarkImageAction.putValue(Action.SELECTED_KEY, nuevoEstadoMarcada);`.
+       - Llama a `actualizarEstadoVisualBotonMarcarYBarraEstado(nuevoEstadoMarcada);` (nuevo método).
+   - Nuevo método: `public void actualizarEstadoVisualBotonMarcarYBarraEstado(boolean estaMarcada)`:
+       - Llama a `view.actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);`.
+       - Actualiza `view.setTextoRuta()` para añadir/quitar "[MARCADA]".
+   - Nuevo método: `public void mostrarDialogoSeleccionProyectoActual()`:
+       - Llama a `projectManager.getClavesMarcadas()`.
+       - Construye un String con estas claves.
+       - Muestra el String en un `JOptionPane.showMessageDialog`.
+   - En `actualizarImagenPrincipal(int indiceSeleccionado)`:
+       - Después de cargar la imagen y actualizar el modelo, obtener `selectedImageKey`.
+       - Llamar a `boolean marcada = projectManager.estaMarcada(selectedImageKey);`.
+       - Llamar a `actualizarEstadoVisualBotonMarcarYBarraEstado(marcada);`.
+
+5. UIDefinitionService:
+   - `generateMenuStructure()`:
+       - En Menú "Imagen": `new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, MenuItemType.CHECKBOX_ITEM, "Marcar para Proyecto", null)`
+       - En Menú "Vista" (o nuevo menú "Proyecto"): `new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO, MenuItemType.ITEM, "Ver Selección de Proyecto", null)`
+   - `generateToolbarStructure()`:
+       - Botón "Marcar": `new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, "5003-marcar_imagen_48x48.png", "Marcar/Desmarcar Imagen", "control")` (o la categoría que prefieras).
+       - Botón "Mostrar Selección": `new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_MOSTRAR_SELECCION_DIALOGO, "7003-Mostrar_Favoritos_48x48.png", "Mostrar Imágenes Marcadas", "control")` (o la categoría que prefieras).
+
+6. VisorView (Opcional para Iteración 1, pero bueno para el futuro):
+   - Si `ToggleMarkImageAction` no cambia el icono del botón directamente, `actualizarAspectoBotonToggle` podría necesitar lógica para cambiar entre icono de estrella vacía/llena.
+
+============================
+ITERACIÓN 2: GESTIÓN DE PROYECTOS CON NOMBRE (Guardar Como, Abrir, Nuevo)
+============================
+
+1. ProjectSelectionManager:
+   - Campo: `private Path archivoProyectoActivo;` (puede ser null si es el temporal).
+   - Modificar constructor y métodos para usar `archivoProyectoActivo` si no es null, sino `archivoSeleccionTemporal`.
+   - `nuevoProyecto()`: `clavesMarcadasEnMemoria.clear(); archivoProyectoActivo = null; guardarAArchivo(archivoSeleccionTemporal, ...);` Actualizar título de ventana.
+   - `guardarProyectoComo(Path destino)`: `guardarAArchivo(destino, clavesMarcadasEnMemoria); archivoProyectoActivo = destino;` Actualizar título.
+   - `abrirProyecto(Path origen)`: `cargarDesdeArchivo(origen); archivoProyectoActivo = origen;` Actualizar título.
+   - `hayCambiosSinGuardar()`: Compara `clavesMarcadasEnMemoria` con el contenido de `archivoProyectoActivo` (si existe).
+
+2. AppActionCommands:
+   - `CMD_PROYECTO_NUEVO`, `CMD_PROYECTO_ABRIR`, `CMD_PROYECTO_GUARDAR_COMO`, `CMD_PROYECTO_GUARDAR` (si el proyecto activo tiene nombre).
+
+3. Nuevas Actions: `NuevoProyectoAction`, `AbrirProyectoAction`, `GuardarProyectoComoAction`, `GuardarProyectoAction`.
+
+4. VisorController:
+   - Métodos para manejar estas nuevas acciones, usando `JFileChooser` para guardar/abrir.
+   - Lógica para "Guardar" (si `archivoProyectoActivo` no es null, guarda ahí; sino, actúa como "Guardar Como").
+   - Modificar `ShutdownHook`: Si `projectManager.hayCambiosSinGuardar()`, preguntar al usuario si desea guardar antes de salir. Si guarda, y es temporal, preguntar si quiere darle nombre. Si no guarda y es temporal, se podría borrar `archivoSeleccionTemporal`.
+   - Actualizar título de la `JFrame` (`VisorView`) para incluir el nombre del proyecto activo o "(Temporal)".
+
+5. UIDefinitionService:
+   - Nuevo Menú "Proyecto" con ítems para Nuevo, Abrir, Guardar, Guardar Como.
+
+============================
+ITERACIÓN 3: VISTA INTEGRADA DE SELECCIÓN DE PROYECTO (Toggle de ListModel)
+============================
+
+1. AppActionCommands:
+   - `CMD_PROYECTO_TOGGLE_VISTA_SELECCION = "cmd.proyecto.toggle_vista_seleccion";`
+
+2. Nueva Action: `ToggleVistaSeleccionProyectoAction extends BaseVisorAction`.
+   - `actionPerformed` llama a `controller.toggleVistaSeleccionProyecto();`.
+   - Mantiene `Action.SELECTED_KEY` para el estado del toggle.
+
+3. VisorModel:
+   - `private boolean mostrandoSeleccionProyecto = false;`
+   - `private DefaultListModel<String> modeloListaCarpetaOriginal;`
+   - `private String claveSeleccionadaEnCarpetaOriginal;`
+
+4. VisorController:
+   - `toggleVistaSeleccionProyecto()`:
+       - Invierte `model.mostrandoSeleccionProyecto`.
+       - Actualiza `Action.SELECTED_KEY` de `ToggleVistaSeleccionProyectoAction`.
+       - Llama a `actualizarAspectoBotonToggle(...)` para el botón de la toolbar.
+       - Llama a `refrescarVistaPrincipalSegunModo();` (nuevo método).
+   - `refrescarVistaPrincipalSegunModo()`:
+       - Si `model.mostrandoSeleccionProyecto`:
+           - Guarda `model.getModeloLista()` en `model.modeloListaCarpetaOriginal`.
+           - Guarda `model.getSelectedImageKey()` en `model.claveSeleccionadaEnCarpetaOriginal`.
+           - Obtiene `projectManager.getClavesMarcadas()`.
+           - Crea `nuevoModeloSeleccion` a partir de esas claves.
+           - Llama a `model.setModeloLista(nuevoModeloSeleccion);` (¡OJO! Este método debe ser cuidadoso para no limpiar `selectedImageKey` si la clave anterior está en el nuevo modelo).
+           - Llama a `view.setListaImagenesModel(nuevoModeloSeleccion);` (o que `cargarListaImagenes` lo haga).
+           - Llama a `cargarListaImagenes(primeraClaveDeSeleccionSiExiste)`.
+           - Cambia título del panel izquierdo: "Selección: [Nombre Proyecto]".
+       - Else (volviendo a vista de carpeta):
+           - Llama a `model.setModeloLista(model.modeloListaCarpetaOriginal);`.
+           - Llama a `view.setListaImagenesModel(...)`.
+           - Llama a `cargarListaImagenes(model.claveSeleccionadaEnCarpetaOriginal)`.
+           - Cambia título del panel izquierdo: "Lista de Archivos".
+
+5. UIDefinitionService:
+   - Botón en Toolbar para `CMD_PROYECTO_TOGGLE_VISTA_SELECCION`.
+   - Ítem de Menú (quizás `JCheckBoxMenuItem`) en "Vista" para `CMD_PROYECTO_TOGGLE_VISTA_SELECCION`.
+
+============================
+CONSIDERACIONES ADICIONALES (Futuras):
+============================
+- **Modo Grid y Marcar:** Deshabilitar `ToggleMarkImageAction` general. Añadir menú contextual en el grid.
+- **Rendimiento:** Si `getClavesMarcadas()` es muy grande y se llama frecuentemente para la UI, optimizar.
+- **Multi-selección para Marcar/Desmarcar:** En `listaNombres` o Grid.
+- **Internacionalización (i18n)** de todos los textos.
+- **Deshacer/Rehacer** para marcado/desmarcado.
 
 
+-------------------------------------------------------------------------
+--- FIN DEL PLAN DE IMPLEMENTACIÓN SELECCIÓN DE PROYECTO ---
+-------------------------------------------------------------------------
 
+-------------------------------------------------------------------------
+--- HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS ---
+-------------------------------------------------------------------------
+
+Fase 1: Diseño y Arquitectura de la Base de Datos
+
+1. Diseñar la estructura de la BD:
+   - Tabla imagenes:
+     - id (PK, autoincrement)
+     - ruta (String, path completo en disco)
+     - nombre_archivo (String)
+     - fecha_modificacion
+     - carpeta (posiblemente desglosada o sólo la carpeta padre)
+     - Otros metadatos útiles (tamaño, dimensiones, etc.)
+   - Tabla tags:
+     - id (PK)
+     - nombre_tag (único)
+   - Tabla intermedia imagen_tags (muchos a muchos):
+     - imagen_id (FK a imagenes)
+     - tag_id (FK a tags)
+   - Tabla proyectos (opcional, para vincular proyectos con imágenes):
+     - id
+     - nombre_proyecto
+     - Otros metadatos del proyecto
+   - Tabla intermedia proyecto_imagen (muchos a muchos):
+     - proyecto_id
+     - imagen_id
+
+2. Elegir la tecnología para la BD:
+   - Recomendación: SQLite (ligera, embebida, sin servidor, perfecta para escritorio).
+   - Usar JDBC para conexión.
+
+3. Crear capa de acceso a datos (DAO):
+   - Clases Java que abstraen el acceso a la BD para:
+     - Añadir/modificar/eliminar imágenes
+     - Añadir/modificar/eliminar tags
+     - Relacionar imágenes y tags
+     - Consultas (búsquedas, filtros)
+
+Fase 2: Población inicial y sincronización
+
+1. Escaneo inicial del directorio raíz:
+   - Leer todas las imágenes en disco (recursivo).
+   - Insertar sus rutas y metadatos en la tabla imagenes si no existen.
+   - Crear tags automáticos basados en la estructura de carpetas.
+     - Ejemplo: si una imagen está en /figuras/cine/star wars/droides/, asignar tags: figuras, cine, star wars, droides.
+   - Esto puede hacerse con un proceso batch o incremental.
+
+2. Sincronización periódica:
+   - Controlar si imágenes han sido añadidas, eliminadas o movidas.
+   - Actualizar base de datos en consecuencia.
+   - Marcar imágenes huérfanas (en BD pero no en disco) para revisión.
+
+Fase 3: Sistema de Tags
+
+1. Crear UI para gestión de tags:
+   - Añadir tags individuales a una imagen.
+   - Añadir tags masivos a selección de imágenes (desde modo Proyecto o desde modo Datos).
+   - Eliminar tags de imágenes.
+
+2. Tags en modo Proyecto:
+   - Al seleccionar imágenes en proyecto, poder asignar un tag común a todas.
+   - Esto ayudará a alimentar la BD sin procesar imagen por imagen.
+
+3. Tags en modo Datos:
+   - Sistema para filtrar imágenes por tags positivos y negativos.
+   - Buscar imágenes sin tags (huérfanas).
+   - Ordenar imágenes por tags (por ejemplo: mostrar primero imágenes con determinado tag).
+
+4. Persistencia y consistencia:
+   - Asegurar que cada cambio en tags se refleje inmediatamente en la BD.
+   - Actualizar la UI en tiempo real.
+
+Fase 4: Filtros y Búsquedas Avanzadas en Visualizador
+
+1. Integración de filtros en visualizador:
+   - Filtros positivos: solo imágenes con estos tags.
+   - Filtros negativos: excluir imágenes con estos tags.
+   - Combinación de filtros (AND, OR, NOT).
+
+2. Mostrar resultados filtrados en lista de nombres y miniaturas.
+
+3. Opciones de ordenación:
+   - Por nombre, fecha, carpeta, o tags.
+
+4. Visualización en modo datos:
+   - Permitir previsualizar imágenes dentro del modo Datos (lista/miniaturas + imagen seleccionada).
+
+Fase 5: Control y Gestión de Imágenes Huérfanas y Sin Tags
+
+1. Detectar imágenes en BD que no existen en disco (huérfanas).
+   - Mostrar alertas o listado para limpiar BD.
+
+2. Detectar imágenes sin tags.
+   - Mostrar para facilitar etiquetado.
+
+3. Opciones para etiquetar rápido o eliminar registros huérfanos.
+
+Fase 6: Movimiento y Reubicación de Archivos desde Modo Proyecto
+
+1. UI para seleccionar imágenes y destino de carpeta:
+   - Confirmación de movimiento masivo.
+   - Posibilidad de crear subcarpetas destino automáticamente.
+
+2. Actualizar en BD las rutas de las imágenes movidas.
+
+3. Actualizar tags si la carpeta destino implica nuevos tags automáticos.
+
+4. Mantener histórico (log) de movimientos.
+
+Fase 7: Validación y Control de Acceso a Datos
+
+1. No se requiere autentificación, pero sí:
+   - Verificación de integridad en cada acceso a BD.
+   - Manejo de excepciones si los datos no existen o están corruptos.
+
+2. Sincronización con disco:
+   - Validar que las rutas en BD coincidan con disco.
+
+3. Opciones de reparación automática o manual.
+
+Extras Recomendados
+
+- Cache de consultas frecuentes para acelerar filtros y búsquedas.
+- Indexación de tags en BD para consultas rápidas.
+- Exportación/Importación de proyectos con sus tags.
+- Interfaz para asignar múltiples tags a la vez con autocompletado.
+- Vista previa rápida al pasar el cursor sobre tags o imágenes.
+
+Resumen
+
+| Paso | Qué Implementar | Impacto en otros modos |
+|-------|-----------------|-----------------------|
+| 1 | BD estructurada y DAO | Base de datos central |
+| 2 | Escaneo inicial y sincronización | Población de datos, base para búsquedas |
+| 3 | Gestión y asignación de tags | En proyecto y datos, alimenta filtros |
+| 4 | Filtros en visualizador y modo datos | Navegación rápida y específica |
+| 5 | Control huérfanos y sin tags | Limpieza y etiquetado |
+| 6 | Movimiento archivos desde proyecto | Reubicación, actualización BD |
+| 7 | Control acceso y validación | Robustez del sistema |
+
+
+-------------------------------------------------------------------------
+--- FIN DE LA HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS ---
+-------------------------------------------------------------------------
 

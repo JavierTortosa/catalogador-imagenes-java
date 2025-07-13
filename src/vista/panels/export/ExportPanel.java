@@ -125,6 +125,7 @@ public class ExportPanel extends JPanel {
         if (toolbarManager != null) {
             // 2. Pedimos la barra de herramientas de acciones de exportación
             JToolBar exportActionsToolbar = toolbarManager.getToolbar("acciones_exportacion");
+            exportActionsToolbar.setOpaque(false);
             
             if (exportActionsToolbar != null) {
                 // 3. Añadimos el resumen de texto al final de la toolbar

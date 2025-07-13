@@ -34,10 +34,7 @@ public class VisorV2
 			//-Marcar Imagen: debe desmarcar la imagen en modo proyecto y por lo tanto eliminarla del proyecto o debe mandar la imagen a descartes
 			//-Selector de Carpeta: en modo proyecto se deberia usar para abrir un proyecto, no para iniciar la exploracion de imagenes como en el visualizador
 		//TODO ajustar opciones del menu para que se activen o desactiven las que son o no relevantes en modo proyecto
-		//TODO hacer que cuando se pulse en las imagenes de exportacion se vean en la imagen principal
-		//TODO hacer que cuando entramos en exportacion se apague el foco de seleccion
 		//TODO implementar la barra de multiproyectos
-		//TODO implementar el uso de teclado y raton de todas las listas (que no mueva el scroll si no el selector)
 	
 	//TOOLBAR
 		//TODO hacer que ToolbarManager reciba un parametro "libre" para las toolbars que no tiene que añadir a la barra de botones general
