@@ -130,12 +130,17 @@ public class AppInitializer {
         this.model.setSaltoDeBloque(saltoBloque);
         this.model.setMiniaturasAntes(configuration.getInt(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, 8));
         
+        boolean pantallaCompleta = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, false);
+        this.model.setModoPantallaCompletaActivado(pantallaCompleta);
+        
     } // --- fin del método aplicarConfiguracionAlModelo ---
 
     private boolean inicializarServiciosEsenciales() {
          System.out.println("  [AppInitializer Fase A.3] Inicializando Servicios Esenciales...");
          try {
              this.themeManager = new ThemeManager(this.configuration);
+             this.themeManager.install();
+             
              this.controller.setThemeManager(this.themeManager);
              if (this.themeManager != null && this.controller != null) {
                  this.themeManager.setControllerParaNotificacion(this.controller);
@@ -283,6 +288,7 @@ public class AppInitializer {
 
             // 2. Inyectar el ActionMap (parcial) en los builders/managers que lo necesitan para construir.
             toolbarBuilder.setActionMap(this.actionMap);
+            viewBuilder.setActionMap(this.actionMap);
 
             // 3. Crear el frame principal (VisorView).
             this.view = viewBuilder.createMainFrame();
@@ -312,6 +318,7 @@ public class AppInitializer {
             this.generalController.setActionMap(this.actionMap);
             
             this.statusBarManager = new InfobarStatusManager(this.model, registry, this.themeManager, this.configuration, this.projectManagerService, this.actionMap, this.iconUtils);
+            this.statusBarManager.setController(this.controller);
             this.controller.setZoomManager(this.zoomManager);
             this.controller.setListCoordinator(this.listCoordinator);
             this.controller.setViewManager(this.viewManager);
@@ -329,7 +336,7 @@ public class AppInitializer {
             
             this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
             
-            Map<String, javax.swing.JButton> botones = toolbarBuilder.getBotonesPorNombre();
+            Map<String, javax.swing.AbstractButton> botones = toolbarBuilder.getBotonesPorNombre();
             this.controller.setBotonesPorNombre(botones);
             this.viewManager.setBotonesPorNombre(botones);
             
@@ -344,6 +351,8 @@ public class AppInitializer {
 
             // En una fase posterior, eliminaremos los listeners de teclado/ratón duplicados de VisorController.
             this.controller.configurarListenersVistaInternal(); 
+            
+            this.controller.configurarMenusContextuales();
 
             
             // ------------------ FIN DE LAS MODIFICACIONES CLAVE ------------------
@@ -357,22 +366,35 @@ public class AppInitializer {
                 public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
             });
             
-            this.controller.configurarListenerDePrimerRenderizado();
+//            this.controller.configurarListenerDePrimerRenderizado();
             this.controller.establecerCarpetaRaizDesdeConfigInternal();
             
             this.view.setVisible(true);
             
-            System.out.println("  [AppInitializer] Forzando sincronización visual inicial de botones toggle...");
-            if (this.configAppManager != null) {
-                this.configAppManager.sincronizarAparienciaTodosLosToggles();
-            }
+//            System.out.println("  [AppInitializer] Forzando sincronización visual inicial de botones toggle...");
+//            if (this.configAppManager != null) {
+//                this.configAppManager.sincronizarAparienciaTodosLosToggles();
+//            }
             
             SwingUtilities.invokeLater(() -> {
                 String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
                 if (this.model.getCarpetaRaizActual() != null) {
-                    this.controller.cargarListaImagenes(imagenInicialKey, null);
+                    this.controller.cargarListaImagenes(imagenInicialKey, () -> {
+                        // --- INICIO DE LA MODIFICACIÓN ---
+                        // Una vez que la carga de imágenes ha terminado,
+                        // llamamos al método maestro de sincronización en GeneralController.
+                        System.out.println("  [AppInitializer Callback] Carga inicial de imágenes completada. Llamando a sincronización maestra de UI...");
+                        this.generalController.sincronizarTodaLaUIConElModelo();
+                        // --- FIN DE LA MODIFICACIÓN ---
+                    });
                 } else {
                     this.controller.limpiarUI();
+                    // --- INICIO DE LA MODIFICACIÓN ---
+                    // También llamamos a la sincronización aquí para que los botones
+                    // reflejen un estado "desactivado" correcto.
+                    System.out.println("  [AppInitializer] No hay carpeta inicial. Llamando a sincronización maestra de UI...");
+                    this.generalController.sincronizarTodaLaUIConElModelo();
+                    // --- FIN DE LA MODIFICACIÓN ---
                 }
             });
 

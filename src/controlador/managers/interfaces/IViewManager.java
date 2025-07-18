@@ -2,8 +2,9 @@ package controlador.managers.interfaces;
 
 import java.awt.Color;
 import java.util.Map;
+
+import javax.swing.AbstractButton;
 import javax.swing.Action;
-import javax.swing.JButton;
 
 // --- INICIO DE LA MODIFICACIÓN: Añadir imports faltantes ---
 import controlador.utils.ComponentRegistry;
@@ -34,7 +35,7 @@ public interface IViewManager {
     void sincronizarAccionesFormatoBarraInferior();
     void sincronizarEstadoVisualInicialDeRadiosDeFormato();
     void setBotonMenuEspecialVisible(boolean visible);
-    void cambiarAVista(String nombreVista);
+//    void cambiarAVista(String nombreVista);
 
     // --- MÉTODOS DE INYECCIÓN (SETTERS) ---
 
@@ -48,7 +49,7 @@ public interface IViewManager {
      * Inyecta el mapa de botones de la aplicación.
      * @param botones El mapa de botones (clave larga -> JButton).
      */
-    void setBotonesPorNombre(Map<String, JButton> botones);
+    void setBotonesPorNombre(Map<String, AbstractButton> botones);
 
     /**
      * Inyecta la instancia principal de la vista.
@@ -74,6 +75,19 @@ public interface IViewManager {
      * @param themeManager La instancia de ThemeManager.
      */
     void setThemeManager(ThemeManager themeManager);
-    // --- FIN DE LA MODIFICACIÓN ---
 
+    
+    /**
+     * Devuelve la instancia principal del JFrame de la aplicación.
+     * @return La instancia de VisorView, o null si aún no ha sido creada o inyectada.
+     */
+    VisorView getView();
+    
+    
+    /**
+     * Cambia la vista activa en el contenedor principal de vistas o en un contenedor específico.
+     * @param containerRegistryKey La clave del CardLayout a manipular (ej. "container.vistas" o "container.displaymodes").
+     * @param viewName La clave de la vista a mostrar (el nombre de la "tarjeta" en el CardLayout).
+     */
+    void cambiarAVista(String containerRegistryKey, String viewName);
 } // --- FIN de la interfaz IViewManager ---

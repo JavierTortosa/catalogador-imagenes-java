@@ -23,6 +23,7 @@ import controlador.actions.archivo.RefreshAction;
 import controlador.actions.config.SetInfoBarTextFormatAction;
 import controlador.actions.config.SetSubfolderReadModeAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
+import controlador.actions.displaymode.SwitchDisplayModeAction;
 import controlador.actions.edicion.CropAction;
 import controlador.actions.edicion.FlipHorizontalAction;
 import controlador.actions.edicion.FlipVerticalAction;
@@ -50,10 +51,12 @@ import controlador.actions.vista.SwitchToVisualizadorAction;
 import controlador.actions.vista.ToggleAlwaysOnTopAction;
 import controlador.actions.vista.ToggleCheckeredBackgroundAction;
 import controlador.actions.vista.ToggleFileListAction;
+import controlador.actions.vista.ToggleFullScreenAction;
 import controlador.actions.vista.ToggleMenuBarAction;
 import controlador.actions.vista.ToggleMiniatureTextAction;
 import controlador.actions.vista.ToggleThumbnailsAction;
 import controlador.actions.vista.ToggleToolBarAction;
+import controlador.actions.workmode.SwitchWorkModeAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.actions.zoom.ResetZoomAction;
 import controlador.actions.zoom.ToggleZoomManualAction;
@@ -68,6 +71,8 @@ import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import modelo.VisorModel;
+import modelo.VisorModel.DisplayMode;
+import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.zoom.ZoomModeEnum;
@@ -97,6 +102,7 @@ public class ActionFactory {
     
     private final ProjectController projectControllerRef;
     private final ThemeManager themeManager;
+    
     
     // private final EditionManager editionManager; // Descomentar cuando se implemente y se inyecte
     private final IProjectManager projectService; // Servicio de persistencia de proyectos
@@ -290,6 +296,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, createToggleLocationBarAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, createToggleCheckeredBackgroundAction());
         actionMap.put(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, createMostrarDialogoListaAction());
+        actionMap.put(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA, createToggleFullScreenAction());
         
         // 3.7. Crear y registrar Actions de Tema
         actionMap.put(AppActionCommands.CMD_TEMA_CLEAR, createToggleThemeAction("clear", "Tema Clear"));
@@ -303,7 +310,8 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA,"Mostrar Solo Carpeta Actual",false));
         actionMap.put(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, createSetSubfolderReadModeAction(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS, "Mostrar Imágenes de Subcarpetas", true));
         actionMap.put(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, createToggleProporcionesAction());
-
+        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, createToggleAlwaysOnTopAction());
+        
         // 3.9. Crear y registrar Actions de Proyecto
         actionMap.put(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, createToggleMarkImageAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_GESTIONAR, createGestionarProyectoAction());
@@ -366,6 +374,28 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, createSetBackgroundColorAction("green", "Fondo Tema Verde"));
         actionMap.put(AppActionCommands.CMD_BACKGROUND_CHECKERED, createSetCheckeredBackgroundAction("Fondo a Cuadros"));
         actionMap.put(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, createRequestCustomColorAction("Elegir Color..."));
+        
+    	// --- INICIO AÑADIDO: Acciones para cambio de DisplayMode (Modos de Visualización de Contenido) ---
+        // Estas acciones delegan al GeneralController y son ContextSensitive (para su selección).
+        registerAction(AppActionCommands.CMD_VISTA_SINGLE,
+                createSwitchDisplayModeAction(DisplayMode.SINGLE_IMAGE, AppActionCommands.CMD_VISTA_SINGLE, "Vista Imagen Única"));
+        registerAction(AppActionCommands.CMD_VISTA_GRID,
+                createSwitchDisplayModeAction(DisplayMode.GRID, AppActionCommands.CMD_VISTA_GRID, "Vista Cuadrícula"));
+        registerAction(AppActionCommands.CMD_VISTA_POLAROID,
+                createSwitchDisplayModeAction(DisplayMode.POLAROID, AppActionCommands.CMD_VISTA_POLAROID, "Vista Polaroid"));
+        // --- FIN AÑADIDO ---
+
+        // --- INICIO AÑADIDO: Acciones para cambio de WorkMode (Modos de Trabajo) ---
+        // Asegúrate de que CMD_VISTA_CAROUSEL exista en AppActionCommands
+        registerAction(AppActionCommands.CMD_VISTA_CAROUSEL,
+                       createSwitchWorkModeAction(WorkMode.CARROUSEL, AppActionCommands.CMD_VISTA_CAROUSEL, "Modo Carrusel"));
+        // Acciones para otros WorkModes futuros, si los tienes definidos en UIDefinitionService.
+        // Asegúrate de que sus comandos sean únicos.
+        registerAction(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE + ".ModoDatos", // Sufijo para unicidad
+                       createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE + ".ModoDatos", "Modo Datos"));
+        registerAction(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE + ".ModoEdicion", // Sufijo para unicidad
+                       createSwitchWorkModeAction(WorkMode.CARROUSEL, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE + ".ModoEdicion", "Modo Edición"));
+        // --- FIN AÑADIDO ---
     } // --- FIN del metodo createCoreActions ---
     
 
@@ -378,14 +408,36 @@ public class ActionFactory {
 //        actionMap.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
 
         // Action que depende explícitamente de la 'view'.
-        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, createToggleAlwaysOnTopAction());
+//        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, createToggleAlwaysOnTopAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, createToggleMiniatureTextAction());
 
         // Actions que dependen del 'actionMap' completo para construir menús emergentes.
 //        actionMap.put(AppActionCommands.CMD_ESPECIAL_MENU, createMenuAction());
 //        actionMap.put(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, createHiddenButtonsAction());
     } // --- FIN del metodo createViewDependentActions ---
+    
+    
+    private Action createSwitchDisplayModeAction(DisplayMode displayMode, String commandKey, String displayName) {
+        ImageIcon icon = getIconForCommand(commandKey);
+        return new SwitchDisplayModeAction(generalController, displayMode, displayName, icon, displayName, null, commandKey);
+    }
+    
+    private Action createSwitchWorkModeAction(WorkMode workMode, String commandKey, String displayName) {
+        ImageIcon icon = getIconForCommand(commandKey);
+        return new SwitchWorkModeAction(generalController, workMode, displayName, icon, displayName, null, commandKey);
+    }
+    
+    private Action createSwitchToVisualizadorAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR); 
+        SwitchToVisualizadorAction action = new SwitchToVisualizadorAction("Modo Visualizador", icon, this.generalController);
+        this.contextSensitiveActions.add(action); 
+        return action;
+    }
 
+//    private Action createSwitchToVisualizadorAction() {
+//        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR); 
+//        return new SwitchToVisualizadorAction("Visualizador", icon, this.generalController);
+//    } // --- Fin del método createSwitchToVisualizadorAction ---
 
     // --- SECCIÓN 4: MÉTODOS PRIVADOS AUXILIARES PARA CREAR ACTIONS ---
 
@@ -587,7 +639,7 @@ public class ActionFactory {
    	} // --- Fin del método createToggleCheckeredBackgroundAction ---
     
     private Action createToggleAlwaysOnTopAction() {
-   	    return new ToggleAlwaysOnTopAction("Mantener Ventana Siempre Encima", null, this.view, this.configuration, "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", controlador.commands.AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
+   	    return new ToggleAlwaysOnTopAction("Mantener Ventana Siempre Encima", null, this.viewManager, this.configuration, "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", controlador.commands.AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
    	} // --- Fin del método createToggleAlwaysOnTopAction ---
     
     private Action createMostrarDialogoListaAction() {
@@ -595,14 +647,17 @@ public class ActionFactory {
    	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.generalController.getVisorController());
    	} // --- Fin del método createMostrarDialogoListaAction ---
     
+    private Action createToggleFullScreenAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA);
+        return new ToggleFullScreenAction("Pantalla Completa", icon, this.generalController);
+        
+    } // --- Fin del método createToggleFullScreenAction ---
+    
     private Action createToggleMiniatureTextAction() {
     	return new ToggleMiniatureTextAction("Mostrar Nombres en Miniaturas", null, this.configuration, this.view, ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT);
     } // --- Fin del método createToggleMiniatureTextAction ---
     
-    private Action createSwitchToVisualizadorAction() {
-        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR); 
-        return new SwitchToVisualizadorAction("Visualizador", icon, this.generalController);
-    } // --- Fin del método createSwitchToVisualizadorAction ---
+    
    	 	
 
     // --- 4.8. Métodos Create para Actions de Tema ---

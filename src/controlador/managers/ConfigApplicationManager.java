@@ -6,12 +6,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -106,8 +107,9 @@ public class ConfigApplicationManager {
         // view.getMenuItemsPorNombre() ahora puede iterar sobre los componentes del registro.
         
         for(String key : registry.getAllComponentKeys()) {
+        	
             if (key.startsWith("interfaz.boton.")) {
-                JButton button = registry.get(key);
+            	AbstractButton  button = registry.get(key);
                 if (button != null) {
                     button.setVisible(config.getBoolean(key + ".visible", true));
                     // El estado 'enabled' es mejor que lo gestione la propia Action.
@@ -121,35 +123,60 @@ public class ConfigApplicationManager {
             }
         }
         
-        sincronizarAparienciaTodosLosToggles();
-        
+        // --- INICIO DE LA MODIFICACIÓN ---
         // Aplicar el estado inicial del fondo a cuadros, que es una configuración de la vista.
+        
+        // 1. Definimos la clave de configuración que controla el estado persistente.
         String configKeyFondo = "interfaz.menu.vista.fondo_a_cuadros.seleccionado";
+        
+        // 2. Leemos el valor de la configuración. Si no existe, por defecto es 'false'.
         boolean fondoACuadrosInicial = this.config.getBoolean(configKeyFondo, false);
         
+        // 3. Obtenemos el panel de visualización desde el registro.
         vista.panels.ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
+
         if (displayPanel != null) {
             System.out.println("    -> Aplicando estado inicial de fondo a cuadros desde config: " + fondoACuadrosInicial);
-            // La lógica para decidir si se pone a cuadros o sólido la tiene el propio panel.
-            // Aquí solo le damos la orden inicial.
+            // 4. Le decimos al panel que establezca su estado inicial.
+            //    Si 'fondoACuadrosInicial' es true, se pondrá a cuadros.
+            //    Si es false, se pondrá de un color sólido (el del tema actual),
+            //    porque la lógica interna del panel se encargará de eso.
             displayPanel.setCheckeredBackground(fondoACuadrosInicial);
         } else {
             System.err.println("WARN [ConfigAppManager]: No se encontró 'panel.display.imagen' para aplicar el fondo inicial.");
         }
+        // --- FIN DE LA MODIFICACIÓN ---
         
         System.out.println("    -> Configuración básica de Vista aplicada.");
     } // --- Fin del método aplicarConfiguracionAlaVista ---
 
     
-
-
     private void sincronizarUIFinal() {
         System.out.println("  [ConfigAppManager] Sincronizando UI final...");
         
-        JFrame mainFrame = registry.get("frame.main");
-        if(mainFrame == null) return;
+        if (actionMap == null || actionMap.isEmpty()) {
+            System.err.println("WARN [ConfigAppManager]: ActionMap vacío, no se puede sincronizar la UI final.");
+            return;
+        }
 
-        // Sincronizar Siempre Encima
+        // --- 1. Sincronizar el estado lógico de TODOS los botones toggle ---
+        //    Esto asegura que los botones reflejen el estado cargado desde la config.
+        System.out.println("    -> Sincronizando estado lógico de todos los botones toggle...");
+        for (Action action : actionMap.values()) {
+            Object selectedValue = action.getValue(Action.SELECTED_KEY);
+            // Comprobamos si la Action tiene un estado de selección booleano.
+            if (selectedValue instanceof Boolean) {
+                // Llamamos al método helper para que fuerce la sincronización visual del botón.
+                actualizarAspectoBotonToggle(action, (Boolean) selectedValue);
+            }
+        }
+        System.out.println("    -> Sincronización de estado lógico de toggles completada.");
+
+        // --- 2. Sincronizar estados específicos de la ventana ---
+        JFrame mainFrame = registry.get("frame.main");
+        if (mainFrame == null) return;
+
+        // a) Sincronizar "Siempre Encima"
         Action alwaysOnTopAction = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
         if (alwaysOnTopAction != null) {
             boolean estadoTop = Boolean.TRUE.equals(alwaysOnTopAction.getValue(Action.SELECTED_KEY));
@@ -158,36 +185,31 @@ public class ConfigApplicationManager {
             }
         }
 
-        // Sincronizar Fondo a Cuadros
-        // Esto ahora lo debería hacer directamente la Action sobre la vista o el modelo,
-        // pero si lo mantenemos aquí, lo haríamos a través del registry.
-        JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
-        // ... lógica si fuera necesario.
-
+        // --- 3. (Opcional pero recomendado) Refrescar la UI ---
+        //    A veces, después de cambiar muchos estados, un revalidate/repaint ayuda.
+        if (mainFrame != null) {
+            mainFrame.revalidate();
+            mainFrame.repaint();
+        }
+        
+        System.out.println("  [ConfigAppManager] Sincronización de UI final completada.");
     } // --- Fin del método sincronizarUIFinal ---
     
-    
+
     public void actualizarEstadoControlesZoom(boolean zoomManualActivado, boolean resetHabilitado) {
-        // Obtenemos los componentes desde el registro
-        JButton zoomButton = registry.get("interfaz.boton.zoom.Zoom_48x48");
-        JButton resetButton = registry.get("interfaz.boton.zoom.Reset_48x48");
-        JMenuItem resetMenuItem = registry.get("interfaz.menu.zoom.resetear_zoom");
+        // --- MÉTODO SIMPLIFICADO ---
+        // Ya no cambiaremos el color del botón de zoom aquí.
+        // Solo nos preocupamos de habilitar/deshabilitar el botón de reset.
         
-        Tema temaActual = themeManager.getTemaActual();
+        // Obtenemos la Action de reset desde el mapa de acciones.
+        Action resetAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
         
-        if (zoomButton != null) {
-            zoomButton.setBackground(zoomManualActivado ? temaActual.colorBotonFondoActivado() : temaActual.colorBotonFondo());
-            zoomButton.setOpaque(true);
+        if (resetAction != null) {
+            // Habilitamos o deshabilitamos la Action. Los componentes asociados
+            // (botón y menú item) se actualizarán automáticamente.
+            resetAction.setEnabled(resetHabilitado);
         }
-        
-        if (resetButton != null) {
-            resetButton.setEnabled(resetHabilitado);
-        }
-        
-        if (resetMenuItem != null) {
-            resetMenuItem.setEnabled(resetHabilitado);
-        }
-    }// --- FIN del metodo actualizarEstadoControlesZoom ---
+    } // --- FIN del metodo actualizarEstadoControlesZoom ---
     
     
     /**
@@ -235,85 +257,90 @@ public class ConfigApplicationManager {
     
     
     /**
-     * Actualiza la apariencia visual de un botón toggle (como un JToggleButton)
-     * para reflejar su estado de selección (activado/desactivado).
-     * Busca el botón asociado a la Action proporcionada y le aplica los estilos del tema.
-     * 
+     * Sincroniza el estado visual y lógico de un botón toggle.
+     * Esta versión aplica manualmente los colores de fondo y texto si el botón
+     * es un JToggleButton, para asegurar que el tema se aplique correctamente
+     * incluso si FlatLaf no lo hace por defecto para estos componentes.
+     *
      * @param action La Action cuyo botón asociado se va a actualizar.
      * @param isSelected El estado de selección (true si está activado, false si no).
      */
     public void actualizarAspectoBotonToggle(Action action, boolean isSelected) {
-        if (action == null) return;
-
-        JButton botonAsociado = null;
-        // La búsqueda del botón se mantiene igual.
-        for (JButton boton : registry.getAllComponentsOfType(JButton.class)) {
-            if (action.equals(boton.getAction())) {
-                botonAsociado = boton;
-                break;
-            }
-        }
-        
-        if (botonAsociado == null) {
+        if (action == null) {
             return;
         }
 
-        Tema temaActual = this.themeManager.getTemaActual();
-        if (temaActual == null) return;
+        AbstractButton button = null;
+        for (java.awt.Component comp : registry.getAllComponents()) {
+            if (comp instanceof AbstractButton) {
+                AbstractButton btn = (AbstractButton) comp;
+                if (action.equals(btn.getAction())) {
+                    button = btn;
+                    break;
+                }
+            }
+        }
         
-        // --- LÓGICA DE ACTUALIZACIÓN ---
-        
-        if (isSelected) {
-            // ESTADO "ON": Se pinta el fondo verde de "activado".
-            botonAsociado.setBackground(temaActual.colorBotonFondoActivado());
-            botonAsociado.setOpaque(true);
-            botonAsociado.setContentAreaFilled(true);
-            botonAsociado.setBorderPainted(true); // Opcional: mostrar un borde para destacar más.
+        if (button == null) {
+            return; 
+        }
+
+        // --- INICIO CORRECCIÓN CLAVE: Lógica de selección y HABILITACIÓN/DESHABILITACIÓN ---
+        // 1. Sincronizar el estado .isSelected() del botón con el de la Action.
+        if (button.isSelected() != isSelected) {
+            button.setSelected(isSelected);
+        }
+
+        // 2. Control de habilitación/deshabilitación:
+        // Para JToggleButtons que actúan como radios (seleccionadores de modo),
+        // no los deshabilitamos cuando están seleccionados. Esto es crucial
+        // para que FlatLaf les aplique los colores de 'selected' correctamente
+        // y para que nuestro setBackground manual funcione.
+        if (button instanceof JToggleButton) {
+            // Un JToggleButton que está seleccionado y forma parte de un ButtonGroup
+            // generalmente no se deshabilita, sino que simplemente está "presionado".
+            // La visibilidad de su color de fondo depende de setOpaque(true).
+            // Lo habilitamos siempre (a menos que la Action misma esté globalmente deshabilitada).
+            // setEnabled(true); // Podría causar problemas si la acción debería estar deshabilitada por otra razón.
+            // Mejor: si la Action está deshabilitada (por ejemplo, porque no hay imagen), que se mantenga deshabilitada.
+            // Si la Action está habilitada, entonces el botón también lo estará.
+            button.setEnabled(action.isEnabled()); // <-- Asegura que el estado enabled del botón siga al de la Action.
+                                                  // <-- Y NO LO DESHabilita si está seleccionado.
         } else {
-            // ESTADO "OFF": Se hace el botón completamente transparente.
-            botonAsociado.setOpaque(false);
-            botonAsociado.setContentAreaFilled(false);
-            botonAsociado.setBorderPainted(false);
+            // Para otros tipos de AbstractButton, la lógica anterior de habilitación podría ser válida
+            // si se quiere que se deshabiliten visualmente cuando no tienen sentido.
+            // Para JButtons normales, su estado 'enabled' no afecta el color de fondo de esta manera.
+            button.setEnabled(action.isEnabled());
         }
-        
-        botonAsociado.setSelected(isSelected);
-        
-    } // --- FIN del metodo actualizarAspectoBotonToggle ---
-    
-    /**
-     * Sincroniza la apariencia de TODOS los botones toggle definidos al estado
-     * que dictan sus respectivas Actions. Ideal para llamar al inicio de la app.
-     */
-    public void sincronizarAparienciaTodosLosToggles() {
-        System.out.println("  [ConfigAppManager] Sincronizando apariencia de todos los botones toggle...");
-        if (actionMap == null || actionMap.isEmpty()) {
-            System.err.println("WARN [ConfigAppManager]: ActionMap vacío, no se puede sincronizar apariencia.");
-            return;
-        }
+        // --- FIN CORRECCIÓN CLAVE ---
 
-        // Lista de todos los comandos que corresponden a un botón toggle que queremos gestionar
-        java.util.List<String> toggleCommands = java.util.List.of(
-            AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE,
-            AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,
-            AppActionCommands.CMD_TOGGLE_SUBCARPETAS,
-            AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA,
-            AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR,
-            // Añadir aquí cualquier otro botón toggle individual que exista
-            // Los botones de modo se sincronizan por separado en GeneralController
-            AppActionCommands.CMD_PROYECTO_GESTIONAR,
-            AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR
-        );
 
-        for (String command : toggleCommands) {
-            Action action = actionMap.get(command);
-            if (action != null) {
-                boolean isSelected = Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY));
-                // Llamamos al método bueno para cada uno
-                actualizarAspectoBotonToggle(action, isSelected);
+        // --- LÓGICA DE PINTADO MANUAL PARA JToggleButtons ---
+        // (La que ya habíamos acordado y probado que funciona con Color.RED)
+        if (button instanceof JToggleButton) {
+            Tema tema = themeManager.getTemaActual();
+            if (tema == null) {
+                System.err.println("WARN [actualizarAspectoBotonToggle]: Tema actual es nulo. No se pueden aplicar colores manuales.");
+                return; 
             }
+
+            button.setOpaque(true);
+            button.setContentAreaFilled(true); 
+
+            if (isSelected) {
+                button.setBackground(tema.colorBotonFondoActivado());
+                button.setForeground(tema.colorSeleccionTexto());
+            } else {
+                button.setBackground(tema.colorBotonFondo());
+                button.setForeground(tema.colorBotonTexto());
+            }
+            button.repaint(); 
+            System.out.println("  [ConfigAppManager] Pintado manual aplicado a JToggleButton: " + action.getValue(Action.NAME) + " - Seleccionado: " + isSelected + ", Habilitado: " + button.isEnabled());
+        } else {
+            System.out.println("  [ConfigAppManager] No se aplicó pintado manual a botón tipo: " + button.getClass().getSimpleName());
         }
-        System.out.println("  [ConfigAppManager] Sincronización de apariencia completada.");
-    } // --- Fin del método sincronizarAparienciaTodosLosToggles ---
+    } // --- Fin del método actualizarAspectoBotonToggle ---
+    
     
     /**
      * Inyecta la instancia principal de la vista.

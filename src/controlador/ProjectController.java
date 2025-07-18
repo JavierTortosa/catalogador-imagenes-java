@@ -19,6 +19,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 
 import controlador.interfaces.IModoController;
 import controlador.managers.ExportQueueManager;
@@ -273,24 +274,37 @@ public class ProjectController implements IModoController {
         }
         
         proyectoContext.setNombreListaActiva(focoFinal);
-        seleccionarImagenEnListaActiva(claveParaMostrar);
         
-        if (projectList != null) projectList.setSelectedValue(proyectoContext.getSeleccionListKey(), true);
-        if (descartesList != null) descartesList.setSelectedValue(proyectoContext.getDescartesListKey(), true);
+        final String finalClaveParaMostrar = claveParaMostrar; // Capturar para el lambda
         
-        actualizarEstadoVisualDeListas();
-        actualizarAparienciaListasPorFoco();
-        
-        final JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
-        if (leftSplit != null) {
-            javax.swing.SwingUtilities.invokeLater(() -> leftSplit.setDividerLocation(0.55));
-        }
-        final JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
-        if (mainSplit != null) {
-            javax.swing.SwingUtilities.invokeLater(() -> mainSplit.setDividerLocation(0.25));
-        }
-        
-        System.out.println("  [ProjectController] UI de la vista de proyecto activada y restaurada.");
+        // --- INICIO CORRECCIÓN CLAVE: Retrasar la carga de la imagen con SwingUtilities.invokeLater ---
+        // Esto le da a Swing tiempo para que el CardLayout y el nuevo panel se validen y dibujen.
+        SwingUtilities.invokeLater(() -> {
+            seleccionarImagenEnListaActiva(finalClaveParaMostrar); // La carga de la imagen real ocurre aquí
+            
+            // Después de seleccionar la imagen (y cargarla en el visor),
+            // actualizamos las selecciones visuales en las JList del proyecto.
+            // Esto asegura que la imagen mostrada y la lista seleccionada estén sincronizadas.
+            if (projectList != null) projectList.setSelectedValue(proyectoContext.getSeleccionListKey(), true);
+            if (descartesList != null) descartesList.setSelectedValue(proyectoContext.getDescartesListKey(), true);
+            
+            actualizarEstadoVisualDeListas(); // Limpia la selección en la lista no activa
+            actualizarAparienciaListasPorFoco(); // Pinta el borde de la lista activa
+            
+            // Estos invokeLater para los divisores se pueden quedar aquí.
+            final JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
+            if (leftSplit != null) {
+                leftSplit.setDividerLocation(0.55);
+            }
+            final JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
+            if (mainSplit != null) {
+                mainSplit.setDividerLocation(0.25);
+            }
+
+            System.out.println("  [ProjectController] UI de la vista de proyecto activada y restaurada (después del retardo de UI).");
+        });
+        // --- FIN CORRECCIÓN CLAVE ---
+    
     } // --- Fin del método activarVistaProyecto ---
 
     public void setProjectManager(IProjectManager projectManager) {this.projectManager = Objects.requireNonNull(projectManager);}

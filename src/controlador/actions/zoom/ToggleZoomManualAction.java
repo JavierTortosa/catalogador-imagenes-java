@@ -4,55 +4,50 @@ import java.awt.event.ActionEvent;
 import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ImageIcon;
+import javax.swing.Icon;
 import controlador.VisorController;
-import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IZoomManager;
 import modelo.VisorModel;
 
 public class ToggleZoomManualAction extends AbstractAction {
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	private final IZoomManager zoomManager;
-    private final VisorModel modelRef;
-    private final VisorController controllerRef; // Se mantiene para notificar
+    private static final long serialVersionUID = 1L;
 
-    public ToggleZoomManualAction(String name, ImageIcon icon, IZoomManager zoomManager, VisorController controller, VisorModel model) {
+    private final IZoomManager zoomManager;
+    private final VisorModel model;
+    private final VisorController visorController;
+
+    public ToggleZoomManualAction(String name, Icon icon, IZoomManager zoomManager, VisorController visorController, VisorModel model) {
         super(name, icon);
         this.zoomManager = Objects.requireNonNull(zoomManager);
-        this.modelRef = Objects.requireNonNull(model);
-        this.controllerRef = Objects.requireNonNull(controller); // Se mantiene la referencia
-        putValue(Action.SHORT_DESCRIPTION, "Activar/desactivar la interacción manual (zoom/paneo).");
-        putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-        sincronizarEstadoConModelo();
-    } // --- Fin del método ToggleZoomManualAction (constructor) ---
-
-    // <--- MODIFICADO: Se elimina la responsabilidad de controlar otras acciones ---
+        this.model = Objects.requireNonNull(model);
+        this.visorController = Objects.requireNonNull(visorController);
+        
+        putValue(Action.ACTION_COMMAND_KEY, controlador.commands.AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+        
+        // El estado inicial de la Action se basa en el estado inicial del modelo.
+        putValue(Action.SELECTED_KEY, model.isZoomHabilitado());
+    }
+    
     @Override
     public void actionPerformed(ActionEvent e) {
-        // 1. Determinar el nuevo estado deseado.
-        boolean nuevoEstado = !modelRef.isZoomHabilitado();
         
-        // 2. Ejecutar la lógica de negocio a través del manager.
+        // 1. LEEMOS el estado actual del modelo.
+        boolean estadoActual = model.isZoomHabilitado();
+        
+        // 2. CALCULAMOS el nuevo estado.
+        boolean nuevoEstado = !estadoActual;
+        
+        System.out.println("[ToggleZoomManualAction] Alternando Paneo. Nuevo estado: " + nuevoEstado);
+
+        // 3. APLICAMOS el cambio de estado al modelo.
         zoomManager.setPermisoManual(nuevoEstado);
         
-        // 3. Sincronizar el estado visual de esta acción (SELECTED_KEY).
-        sincronizarEstadoConModelo();
-        
-        // 4. Notificar al controlador que el estado del zoom ha cambiado,
-        //    para que él se encargue de la sincronización global.
-        controllerRef.sincronizarEstadoVisualBotonesYRadiosZoom();
-    } // --- Fin del método actionPerformed ---
-    
-    public void sincronizarEstadoConModelo() {
-        if (modelRef == null) return;
-        // Sincroniza la propiedad 'selected' de esta acción con el estado del modelo.
-        putValue(Action.SELECTED_KEY, modelRef.isZoomHabilitado());
-    } // --- Fin del método sincronizarEstadoConModelo ---
-    
-} // --- FIN de la clase ToggleZoomManualAction ---
+        // 4. ACTUALIZAMOS NUESTRO PROPIO ESTADO.
+        //    Esta es la línea que le dice al JToggleButton: "¡Márcate!" o "¡Desmárcate!".
+        putValue(Action.SELECTED_KEY, nuevoEstado);
 
-
-
+        // 5. NOTIFICAMOS AL CONTROLADOR, pero solo para que sincronice a OTROS
+        //    componentes que dependen de este estado (como el botón Reset).
+        visorController.sincronizarEstadoBotonReset();
+    }
+}

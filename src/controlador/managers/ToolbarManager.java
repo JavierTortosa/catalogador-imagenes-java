@@ -1,11 +1,13 @@
 package controlador.managers;
 
+import java.awt.Component;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.swing.JPanel;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 
@@ -130,13 +132,25 @@ public class ToolbarManager {
         
     } // --- Fin del método buildAndConfigureToolbar ---
     
-
-    /**
-     * Orquesta la reconstrucción completa del contenedor de barras de herramientas.
-     */
+    
     public void reconstruirContenedorDeToolbars(WorkMode modoActual) {
         System.out.println("\n--- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: " + modoActual + " ---");
 
+        
+        for (JToolBar toolbar : managedToolbars.values()) {
+            for (Component comp : toolbar.getComponents()) {
+                if (comp instanceof JToggleButton) {
+                    JToggleButton toggle = (JToggleButton) comp;
+                    // ¡Esta línea es la que nos dará la respuesta final!
+                    System.out.println("Botón: " + toggle.getActionCommand() + 
+                                      ", Selected: " + toggle.isSelected() +
+                                      ", Background: " + toggle.getBackground() +
+                                      ", UI: " + toggle.getUI().getClass().getName());
+                }
+            }
+        }
+        
+        
         final JPanel leftPanel = (JPanel) registry.get("container.toolbars.left");
         final JPanel centerPanel = (JPanel) registry.get("container.toolbars.center");
         final JPanel rightPanel = (JPanel) registry.get("container.toolbars.right");
@@ -147,7 +161,7 @@ public class ToolbarManager {
         }
 
         SwingUtilities.invokeLater(() -> {
-            // Limpiamos los contenedores visuales. Las instancias de JToolBar siguen vivas en 'managedToolbars'.
+            // Limpiamos los contenedores visuales
             leftPanel.removeAll();
             centerPanel.removeAll();
             rightPanel.removeAll();
@@ -160,7 +174,6 @@ public class ToolbarManager {
                 }
 
                 if (def.modosVisibles().contains(modoActual)) {
-                    // Obtenemos la barra. Si no existe, se crea y se guarda en el mapa.
                     JToolBar toolbar = getToolbar(def.claveBarra()); 
 
                     if (toolbar != null) {
@@ -168,7 +181,7 @@ public class ToolbarManager {
                         boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
                         toolbar.setVisible(isVisibleInConfig);
                         
-                        // Reposicionamos la barra existente en el panel correcto.
+                        // Reposicionamos la barra existente en el panel correcto
                         ToolbarAlignment alignment = def.alignment();
                         switch (alignment) {
                             case LEFT: leftPanel.add(toolbar); break;
@@ -176,6 +189,9 @@ public class ToolbarManager {
                             case RIGHT: rightPanel.add(toolbar); break;
                             default: leftPanel.add(toolbar); break;
                         }
+
+                        // Forzar actualización de la UI de la barra
+                        SwingUtilities.updateComponentTreeUI(toolbar);
                     }
                 }
             }
@@ -187,9 +203,82 @@ public class ToolbarManager {
             rightPanel.revalidate();
             rightPanel.repaint();
 
+            // Depuración: Inspeccionar los botones en las barras
+            for (JToolBar toolbar : managedToolbars.values()) {
+                for (Component comp : toolbar.getComponents()) {
+                    if (comp instanceof JToggleButton) {
+                        JToggleButton toggle = (JToggleButton) comp;
+                        System.out.println("Botón: " + toggle.getActionCommand() + 
+                                          ", Selected: " + toggle.isSelected() +
+                                          ", Background: " + toggle.getBackground() +
+                                          ", UI: " + toggle.getUI().getClass().getName());
+                    }
+                }
+            }
+
             System.out.println("--- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---");
         });
-    } // --- Fin del método reconstruirContenedorDeToolbars ---
+    }
+
+//    /**
+//     * Orquesta la reconstrucción completa del contenedor de barras de herramientas.
+//     */
+//    public void reconstruirContenedorDeToolbars(WorkMode modoActual) {
+//        System.out.println("\n--- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: " + modoActual + " ---");
+//
+//        final JPanel leftPanel = (JPanel) registry.get("container.toolbars.left");
+//        final JPanel centerPanel = (JPanel) registry.get("container.toolbars.center");
+//        final JPanel rightPanel = (JPanel) registry.get("container.toolbars.right");
+//
+//        if (leftPanel == null || centerPanel == null || rightPanel == null) {
+//            System.err.println("  ERROR [ToolbarManager]: Uno o más paneles de alineamiento no se encontraron. Abortando.");
+//            return;
+//        }
+//
+//        SwingUtilities.invokeLater(() -> {
+//            // Limpiamos los contenedores visuales. Las instancias de JToolBar siguen vivas en 'managedToolbars'.
+//            leftPanel.removeAll();
+//            centerPanel.removeAll();
+//            rightPanel.removeAll();
+//
+//            List<ToolbarDefinition> todasLasBarras = uiDefService.generateModularToolbarStructure();
+//
+//            for (ToolbarDefinition def : todasLasBarras) {
+//                if ("controles_imagen_inferior".equals(def.claveBarra()) || "acciones_exportacion".equals(def.claveBarra())) {
+//                    continue;
+//                }
+//
+//                if (def.modosVisibles().contains(modoActual)) {
+//                    // Obtenemos la barra. Si no existe, se crea y se guarda en el mapa.
+//                    JToolBar toolbar = getToolbar(def.claveBarra()); 
+//
+//                    if (toolbar != null) {
+//                        String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra(), "visible");
+//                        boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
+//                        toolbar.setVisible(isVisibleInConfig);
+//                        
+//                        // Reposicionamos la barra existente en el panel correcto.
+//                        ToolbarAlignment alignment = def.alignment();
+//                        switch (alignment) {
+//                            case LEFT: leftPanel.add(toolbar); break;
+//                            case CENTER: centerPanel.add(toolbar); break;
+//                            case RIGHT: rightPanel.add(toolbar); break;
+//                            default: leftPanel.add(toolbar); break;
+//                        }
+//                    }
+//                }
+//            }
+//
+//            leftPanel.revalidate();
+//            leftPanel.repaint();
+//            centerPanel.revalidate();
+//            centerPanel.repaint();
+//            rightPanel.revalidate();
+//            rightPanel.repaint();
+//
+//            System.out.println("--- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---");
+//        });
+//    } // --- Fin del método reconstruirContenedorDeToolbars ---
     
     
     /**
@@ -226,6 +315,15 @@ public class ToolbarManager {
     public Map<String, JToolBar> getManagedToolbars() {
         return java.util.Collections.unmodifiableMap(this.managedToolbars);
     } // --- Fin del método getManagedToolbars ---
+    
+    
+    /**
+     * Limpia el caché de barras de herramientas para forzar su recreación.
+     */
+    public void clearToolbarCache() {
+        System.out.println("[ToolbarManager] Limpiando caché de toolbars...");
+        managedToolbars.clear();
+    }
 
 } // --- FIN de la clase ToolbarManager ---
 

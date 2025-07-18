@@ -94,19 +94,19 @@ public final class ConfigKeys {
     
     
     // --- SECCIÓN: ESTADO DE LA VENTANA ---
-    public static final String WINDOW_X = "window.x";
-    public static final String WINDOW_Y = "window.y";
-    public static final String WINDOW_WIDTH = "window.width";
-    public static final String WINDOW_HEIGHT = "window.height";
-    public static final String WINDOW_MAXIMIZED = "window.maximized";
+    public static final String WINDOW_X 						= "window.x";
+    public static final String WINDOW_Y 						= "window.y";
+    public static final String WINDOW_WIDTH 					= "window.width";
+    public static final String WINDOW_HEIGHT 					= "window.height";
+    public static final String WINDOW_MAXIMIZED 				= "window.maximized";
 
     // --- SECCIÓN: INICIO Y PROYECTOS ---
-    public static final String PROYECTOS_CARPETA_BASE = "proyectos.carpeta_base";
-    public static final String PROYECTOS_ARCHIVO_TEMPORAL = "proyectos.archivo_temporal_nombre";
+    public static final String PROYECTOS_CARPETA_BASE 			= "proyectos.carpeta_base";
+    public static final String PROYECTOS_ARCHIVO_TEMPORAL 		= "proyectos.archivo_temporal_nombre";
     
-    public static final String PROYECTOS_LISTA_ACTIVA = "proyectos.estado.lista_activa";
-    public static final String PROYECTOS_ULTIMA_SELECCION_KEY = "proyectos.estado.ultima_seleccion_key";
-    public static final String PROYECTOS_ULTIMA_DESCARTES_KEY = "proyectos.estado.ultima_descartes_key";
+    public static final String PROYECTOS_LISTA_ACTIVA 			= "proyectos.estado.lista_activa";
+    public static final String PROYECTOS_ULTIMA_SELECCION_KEY 	= "proyectos.estado.ultima_seleccion_key";
+    public static final String PROYECTOS_ULTIMA_DESCARTES_KEY 	= "proyectos.estado.ultima_descartes_key";
     
     // Para el futuro:
     // public static final String KEY_PROYECTOS_ULTIMO_ABIERTO = "proyectos.ultimo_abierto_ruta_completa";
@@ -197,5 +197,5 @@ public final class ConfigKeys {
     
     //FIXME pendientes de implementar
     public static final String COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE ="comportamiento.navegacion.tamano_salto_bloque"; //nuevo
-    
+    public static final String COMPORTAMIENTO_PANTALLA_COMPLETA = "comportamiento.ventana.pantalla_completa";
 }

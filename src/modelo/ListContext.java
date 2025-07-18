@@ -76,11 +76,11 @@ public class ListContext {
 	
 	public void setSelectedImageKey(String selectedImageKey)
 	{ 
-		if (selectedImageKey == null && this.selectedImageKey != null) {
-            System.out.println("### DEBUG: ListContext@" + Integer.toHexString(hashCode()) +
-                               ": selectedImageKey se está poniendo a NULL. (Contexto Hash: " + System.identityHashCode(this) + ")");
-            new Throwable("Pila de llamadas a setSelectedImageKey(null)").printStackTrace(System.out);
-        }
+//		if (selectedImageKey == null && this.selectedImageKey != null) {
+//            System.out.println("### DEBUG: ListContext@" + Integer.toHexString(hashCode()) +
+//                               ": selectedImageKey se está poniendo a NULL. (Contexto Hash: " + System.identityHashCode(this) + ")");
+//            new Throwable("Pila de llamadas a setSelectedImageKey(null)").printStackTrace(System.out);
+//        }
 		
 		this.selectedImageKey = selectedImageKey; 
 		

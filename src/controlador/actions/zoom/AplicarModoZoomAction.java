@@ -36,10 +36,15 @@ public class AplicarModoZoomAction extends AbstractAction {
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        // La acción sigue siendo "tonta": solo llama al manager.
-        // PERO ahora, también pasa el callback que se le asignó.
-        Runnable callback = (Runnable) getValue("uiSyncCallback");
-        zoomManager.aplicarModoDeZoom(this.modoDeZoomQueRepresentaEstaAction, callback);
+        // --- LÓGICA DE CONTROL AÑADIDA ---
+        // La acción solo se ejecuta si el modo que representa NO es ya el modo activo.
+        // Esto evita que al hacer clic en un botón ya seleccionado se produzcan efectos no deseados.
+        if (modelRef.getCurrentZoomMode() != this.modoDeZoomQueRepresentaEstaAction) {
+            Runnable callback = (Runnable) getValue("uiSyncCallback");
+            zoomManager.aplicarModoDeZoom(this.modoDeZoomQueRepresentaEstaAction, callback);
+        } else {
+            System.out.println("[AplicarModoZoomAction] El modo '" + this.modoDeZoomQueRepresentaEstaAction + "' ya está activo. No se hace nada.");
+        }
     }
     
     public void sincronizarEstadoSeleccionConModelo() {

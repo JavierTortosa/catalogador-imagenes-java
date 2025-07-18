@@ -2,10 +2,11 @@ package controlador.managers;
 
 import java.awt.CardLayout;
 import java.awt.Component;
+import java.awt.GraphicsDevice;
 import java.util.Map;
 
+import javax.swing.AbstractButton;
 import javax.swing.Action;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -31,7 +32,7 @@ public class ViewManager implements IViewManager {
     private ComponentRegistry registry;
     private ThemeManager themeManager;
     private Map<String, Action> actionMap;
-    private Map<String, JButton> botonesPorNombre;
+    private Map<String, AbstractButton> botonesPorNombre;
     
     /**
      * Constructor refactorizado de ViewManager.
@@ -43,6 +44,47 @@ public class ViewManager implements IViewManager {
         // en los setters.
     } // --- Fin del método ViewManager (constructor) ---
 
+    
+    /**
+     * Realiza la operación técnica de poner o quitar el modo de pantalla completa.
+     * Este método es "sin estado" (stateless) y solo ejecuta la orden recibida.
+     *
+     * @param fullScreenState true para entrar en pantalla completa, false para salir.
+     */
+    public void setFullScreen(boolean fullScreenState) {
+        if (view == null) {
+            System.err.println("ERROR [ViewManager.setFullScreen]: La vista (JFrame) es nula.");
+            return;
+        }
+
+        GraphicsDevice device = view.getGraphicsConfiguration().getDevice();
+        
+        System.out.println("  [ViewManager] Ejecutando cambio a pantalla completa. Estado solicitado: " + (fullScreenState ? "ACTIVADO" : "DESACTIVADO"));
+
+        // Comprobar si el cambio es realmente necesario para evitar trabajo extra.
+        // device.getFullScreenWindow() devuelve la ventana actual en pantalla completa, o null si no hay ninguna.
+        boolean isCurrentlyFullScreen = (device.getFullScreenWindow() == view);
+        if (isCurrentlyFullScreen == fullScreenState) {
+            System.out.println("  -> La ventana ya está en el estado solicitado. No se realiza ninguna acción.");
+            return;
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            view.dispose();
+            view.setUndecorated(fullScreenState);
+            
+            if (fullScreenState) {
+                device.setFullScreenWindow(view);
+            } else {
+                device.setFullScreenWindow(null);
+            }
+            
+            view.setVisible(true);
+        });
+        
+    } // --- Fin del método setFullScreen ---
+    
+    
     /**
      * Cambia la visibilidad de un componente principal de la UI y actualiza la configuración.
      *
@@ -377,7 +419,7 @@ public class ViewManager implements IViewManager {
     public void setBotonMenuEspecialVisible(boolean visible) {
         if (this.botonesPorNombre == null) return;
         
-        JButton boton = this.botonesPorNombre.get("interfaz.boton.especiales.Menu_48x48");
+        AbstractButton boton = this.botonesPorNombre.get("interfaz.boton.especiales.Menu_48x48");
 
         if (boton != null) {
             if (boton.isVisible() != visible) {
@@ -388,24 +430,26 @@ public class ViewManager implements IViewManager {
     } // --- Fin del método setBotonMenuEspecialVisible ---
     
     /**
-     * Cambia la vista activa en el contenedor principal de vistas.
-     * @param nombreVista El identificador de la vista a mostrar (ej. "VISTA_VISUALIZADOR").
+     * **CORRECCIÓN CLAVE:** Cambia la vista activa en un contenedor de CardLayout específico.
+     * @param containerRegistryKey La clave en el ComponentRegistry del JPanel que usa CardLayout (ej. "container.vistas", "container.displaymodes").
+     * @param viewName La clave de la vista a mostrar (el nombre de la "tarjeta" en el CardLayout).
      */
-    @Override
-    public void cambiarAVista(String nombreVista) {
+    @Override // <--- Asegúrate de que esta anotación esté presente
+    public void cambiarAVista(String containerRegistryKey, String viewName) { // <--- MODIFICADO
         if (registry == null) {
             System.err.println("ERROR [ViewManager]: Registry es nulo, no se puede cambiar de vista.");
             return;
         }
         
-        JPanel vistasContainer = registry.get("container.vistas");
+        JPanel container = registry.get(containerRegistryKey); // Obtener el contenedor específico
         
-        if (vistasContainer != null && vistasContainer.getLayout() instanceof CardLayout) {
-            CardLayout cl = (CardLayout) vistasContainer.getLayout();
-            cl.show(vistasContainer, nombreVista);
-            System.out.println("[ViewManager] Vista cambiada a: " + nombreVista);
+        if (container != null && container.getLayout() instanceof CardLayout) {
+            CardLayout cl = (CardLayout) container.getLayout();
+            cl.show(container, viewName);
+            System.out.println("[ViewManager] Vista cambiada en '" + containerRegistryKey + "' a: " + viewName);
         } else {
-            System.err.println("ERROR [ViewManager]: No se encontró 'container.vistas' o no usa CardLayout.");
+            // Este es el error que estás viendo: "No se encontró 'container.vistas' o no usa CardLayout."
+            System.err.println("ERROR [ViewManager]: No se encontró el contenedor '" + containerRegistryKey + "' o no usa CardLayout.");
         }
     } // --- Fin del método cambiarAVista ---
 
@@ -415,7 +459,7 @@ public class ViewManager implements IViewManager {
     } // --- Fin del método setActionMap ---
 
     @Override
-    public void setBotonesPorNombre(Map<String, JButton> botones) {
+    public void setBotonesPorNombre(Map<String, AbstractButton> botones) {
         this.botonesPorNombre = botones;
     } // --- Fin del método setBotonesPorNombre ---
 
@@ -438,8 +482,12 @@ public class ViewManager implements IViewManager {
     public void setThemeManager(ThemeManager themeManager) {
         this.themeManager = themeManager;
     } // --- Fin del método setThemeManager ---
-    // --- FIN DE LA MODIFICACIÓN ---
 
+    
+    @Override // <-- La anotación @Override es buena práctica aquí
+    public VisorView getView() {
+        return this.view;
+    }
     
 } // --- Fin de la clase ViewManager ---
 

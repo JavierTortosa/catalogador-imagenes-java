@@ -15,10 +15,7 @@ public class VisorV2
 	    //TODO CTRL + ALT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
 	    //TODO Pasar las imagenes rapido con la rueda del raton no debe mostrar las imagenes, 
 			//solo un placebo que parezca que estan pasando imagenes pero en realidad no se ve nada
-	    //TODO conectar a internet en busca de una imgen para un zip que no la tiene
 		//TODO añadir botones de agrandar o encoger las miniaturas y que se ajuste a la pantalla
-		//TODO añadir el popup menu
-			// -marcar imagen, mostrar ubicacion de imagen, modo paneo, 
 		//TODO mostrar arbol de carpetas
     
 	// PROYECTO

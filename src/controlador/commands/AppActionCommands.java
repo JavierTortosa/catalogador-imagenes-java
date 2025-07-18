@@ -88,6 +88,11 @@ public interface AppActionCommands {
 	    String CMD_EXPORT_SELECCIONAR_CARPETA 	= "cmd.export.seleccionar.carpeta";
 
  // --- Vista (Toggles de UI) ---
+	    String CMD_VISTA_SINGLE					= "cmd.vista.single";				// Para Vista de 1 imagen
+	    String CMD_VISTA_GRID 					= "cmd.vista.grid";					// Para Vista de Grid
+	    String CMD_VISTA_POLAROID 				= "cmd.vista.polaroid";				// Para Vista de Polaroid
+	    String CMD_VISTA_PANTALLA_COMPLETA 		= "cmd.vista.pantalla_completa";	// Para Vista de Pantalla Completa
+	    
     String CMD_VISTA_TOGGLE_MENU_BAR 		= "cmd.vista.toggle.menu_bar";      	// Para ToggleMenuBarAction
     String CMD_VISTA_TOGGLE_TOOL_BAR 		= "cmd.vista.toggle.tool_bar";      	// Para ToggleToolBarAction
     String CMD_VISTA_TOGGLE_FILE_LIST		= "cmd.vista.toggle.file_list";     	// Para ToggleFileListAction
@@ -99,7 +104,7 @@ public interface AppActionCommands {
 
     String CMD_VISTA_TOGGLE_MINIATURE_TEXT 	= "cmd.vista.toggle_miniature_text"; 	//Muestra el texto del nombre de las miniaturas
     String CMD_VISTA_SWITCH_TO_VISUALIZADOR = "cmd.vista.switch_to_visualizador";
-    
+    String CMD_VISTA_CAROUSEL 				= "cmd.vista.carousel";
     
     // --- Comportamiento/Toggles Generales ---
     String CMD_TOGGLE_SUBCARPETAS 			= "cmd.toggle.subcarpetas";             // Para ToggleSubfoldersAction
@@ -107,28 +112,32 @@ public interface AppActionCommands {
     String CMD_TOGGLE_WRAP_AROUND 			= "cmd.toggle.wrap_around";           	// (Futuro?) Para 'Volver al inicio al llegar al final'
     
     // --- Tema ---
-    String CMD_TEMA_CLEAR 					= "cmd.tema.clear";     // Para ToggleThemeAction("clear",...)
-    String CMD_TEMA_DARK 					= "cmd.tema.dark";      // Para ToggleThemeAction("dark",...)
-    String CMD_TEMA_BLUE 					= "cmd.tema.blue";      // etc.
+    String CMD_TEMA_CLEAR 					= "cmd.tema.clear";     				// Para ToggleThemeAction("clear",...)
+    String CMD_TEMA_DARK 					= "cmd.tema.dark";      				// Para ToggleThemeAction("dark",...)
+    String CMD_TEMA_BLUE 					= "cmd.tema.blue";      				// etc.
     String CMD_TEMA_GREEN					= "cmd.tema.green";
     String CMD_TEMA_ORANGE 					= "cmd.tema.orange";
 
     // --- Configuración ---
-    String CMD_CONFIG_GUARDAR 				= "cmd.config.guardar";         // Para menú "Guardar Configuración Actual"
-    String CMD_CONFIG_CARGAR_INICIAL 		= "cmd.config.cargar_inicial"; // Para menú "Cargar Configuración Inicial"
-    String CMD_CONFIG_MOSTRAR_VERSION 		= "cmd.config.mostrar_version"; // Para menú "Version"
-    String CMD_CONFIG_CARGA_SOLO_CARPETA 	= "cmd.config.carga.solo_carpeta"; //Mostrar Solo Carpeta Actual
-    String CMD_CONFIG_CARGA_CON_SUBCARPETAS = "cmd.config.carga.con_subcarpetas";//Mostrar Imagenes de Subcarpetas
-
+    String CMD_CONFIG_GUARDAR 				= "cmd.config.guardar";         		// Para menú "Guardar Configuración Actual"
+    String CMD_CONFIG_CARGAR_INICIAL 		= "cmd.config.cargar_inicial"; 			// Para menú "Cargar Configuración Inicial"
+    String CMD_CONFIG_MOSTRAR_VERSION 		= "cmd.config.mostrar_version";	 		// Para menú "Version"
+    String CMD_CONFIG_CARGA_SOLO_CARPETA 	= "cmd.config.carga.solo_carpeta"; 		// Mostrar Solo Carpeta Actual
+    String CMD_CONFIG_CARGA_CON_SUBCARPETAS = "cmd.config.carga.con_subcarpetas";	// Mostrar Imagenes de Subcarpetas
+    
+    String DISPLAY_MODE 					= "display.mode"; 						// Para guardar el modo actual (SINGLE_IMAGE, GRID, POLAROID)
+    String MINIATURAS_TAMANO_GRID_ANCHO 	= "miniaturas.tamano.grid.ancho"; 		// Para el ancho de miniaturas en Grid
+    String MINIATURAS_TAMANO_GRID_ALTO 		= "miniaturas.tamano.grid.alto";		// Para el ancho de miniaturas en Grid
+    
     // --- Especiales / Otros ---
-    String CMD_ESPECIAL_REFRESCAR 			= "cmd.especial.refrescar";      // Para RefreshAction (si es necesaria además de recargar lista)
-    String CMD_ESPECIAL_REFRESCAR_UI		= "cmd.especial.refrescar_ui";	//Para Refrescar la UI
-    String CMD_ESPECIAL_MENU 				= "cmd.especial.menu";             // Para MenuAction (si hace algo específico)
-    String CMD_ESPECIAL_BOTONES_OCULTOS 	= "cmd.especial.botones_ocultos"; // Para HiddenButtonsAction
+    String CMD_ESPECIAL_REFRESCAR 			= "cmd.especial.refrescar";      		// Para RefreshAction (si es necesaria además de recargar lista)
+    String CMD_ESPECIAL_REFRESCAR_UI		= "cmd.especial.refrescar_ui";			// Para Refrescar la UI
+    String CMD_ESPECIAL_MENU 				= "cmd.especial.menu";             		// Para MenuAction (si hace algo específico)
+    String CMD_ESPECIAL_BOTONES_OCULTOS 	= "cmd.especial.botones_ocultos"; 		// Para HiddenButtonsAction
 
     // --- Favoritos (Futuro) ---
-    String CMD_FAVORITO_TOGGLE 				= "cmd.favorito.toggle";       // Para botón/menú Añadir/Quitar Favorito
-    String CMD_FAVORITO_MOSTRAR_LISTA 		= "cmd.favorito.mostrar"; // Para botón/menú Ver lista de Favoritos
+    String CMD_FAVORITO_TOGGLE 				= "cmd.favorito.toggle";       			// Para botón/menú Añadir/Quitar Favorito
+    String CMD_FAVORITO_MOSTRAR_LISTA 		= "cmd.favorito.mostrar"; 				// Para botón/menú Ver lista de Favoritos
 
     // --- Comandos para Configurar Visibilidad y Formato de Barras de Información ---
 

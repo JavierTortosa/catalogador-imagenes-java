@@ -586,6 +586,7 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, "false");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, "true");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, "10");
+	    defaults.put(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, "false");
 
 //	    defaults.put(ConfigKeys.WINDOW_X, "-1");
 //	    defaults.put(ConfigKeys.WINDOW_Y, "-1");

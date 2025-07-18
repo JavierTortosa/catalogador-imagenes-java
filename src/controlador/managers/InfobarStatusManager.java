@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 
+import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -36,6 +37,7 @@ import vista.util.IconUtils;
 
 public class InfobarStatusManager {
 
+    private VisorController visorController;
     private final VisorModel model;
     private final ComponentRegistry registry;
     private final ThemeManager themeManager;
@@ -53,7 +55,7 @@ public class InfobarStatusManager {
             ConfigurationManager configuration, 
             ProjectManager projectService,
             Map<String, Action> actionMap,
-            IconUtils iconUtils) // <--- DEPENDENCIA AÑADIDA
+            IconUtils iconUtils) 
     {
         this.model = Objects.requireNonNull(model);
         this.registry = Objects.requireNonNull(registry);
@@ -61,7 +63,7 @@ public class InfobarStatusManager {
         this.configuration = Objects.requireNonNull(configuration);
         this.projectService = Objects.requireNonNull(projectService);
         this.actionMap = Objects.requireNonNull(actionMap);
-        this.iconUtils = Objects.requireNonNull(iconUtils); // <--- DEPENDENCIA AÑADIDA
+        this.iconUtils = Objects.requireNonNull(iconUtils); 
         this.uiDefService = new UIDefinitionService();
         
         configurarListenersControles();
@@ -174,35 +176,28 @@ public class InfobarStatusManager {
     }// --- Fin del método actualizarRutaArchivoInferior ---
 
     private void actualizarIndicadoresDeEstado() {
-        // Determinamos si los controles que dependen del modo Visualizador deben estar habilitados.
         boolean enModoVisualizador = (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR);
 
-        actualizarUnIndicador("label.indicador.zoomManual", ConfigKeys.INFOBAR_INF_ICONO_ZM_VISIBLE, model.isZoomHabilitado(), "Zoom Manual", true); // El zoom manual siempre está disponible
-        actualizarUnIndicador("label.indicador.proporciones", ConfigKeys.INFOBAR_INF_ICONO_PROP_VISIBLE, model.isMantenerProporcion(), "Mantener Proporciones", true); // Las proporciones también
-        
-        // El indicador de subcarpetas SOLO está habilitado en modo Visualizador.
-        actualizarUnIndicador("label.indicador.subcarpetas", ConfigKeys.INFOBAR_INF_ICONO_SUBC_VISIBLE, !model.isMostrarSoloCarpetaActual(), "Incluir Subcarpetas", enModoVisualizador);
+        Action zoomManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+        Action proporcionesAction = actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
+        Action subcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+
+        if (subcarpetasAction != null) {
+            subcarpetasAction.setEnabled(enModoVisualizador);
+        }
     } // --- Fin del método actualizarIndicadoresDeEstado ---
+    
 
     private void actualizarControlesDeZoom() {
-        // Actualizar el JLabel del Porcentaje
-        JLabel porcentajeLabel = registry.get("label.control.zoomPorcentaje");
-        if (porcentajeLabel != null) {
-            boolean esVisible = configuration.getBoolean(ConfigKeys.INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE, true);
-            if(porcentajeLabel.isVisible() != esVisible) porcentajeLabel.setVisible(esVisible);
-            if(esVisible) {
-                double pConfig = configuration.getDouble(ConfigKeys.COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO, 100.0);
-                porcentajeLabel.setText(String.format("Z: %.0f%%", pConfig));
-                porcentajeLabel.setToolTipText("Clic para configurar el 'Zoom Personalizado'");
-            }
-        }
+        actualizarLabelZoom();
 
-        // Actualizar el JButton del Modo de Zoom
         JButton modoZoomBoton = registry.get("button.control.modoZoom");
         if (modoZoomBoton != null) {
             boolean esVisible = configuration.getBoolean(ConfigKeys.INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE, true);
-            if(modoZoomBoton.isVisible() != esVisible) modoZoomBoton.setVisible(esVisible);
-            if(esVisible && model.getCurrentZoomMode() != null && iconUtils != null) {
+            if (modoZoomBoton.isVisible() != esVisible) {
+                modoZoomBoton.setVisible(esVisible);
+            }
+            if (esVisible && model.getCurrentZoomMode() != null && iconUtils != null) {
                 ZoomModeEnum modoActual = model.getCurrentZoomMode();
                 modoZoomBoton.setToolTipText("Modo actual: " + modoActual.getNombreLegible() + " (Clic para cambiar)");
                 
@@ -211,11 +206,64 @@ public class InfobarStatusManager {
                     modoZoomBoton.setIcon(iconUtils.getScaledIcon(iconKey, 18, 18));
                 } else {
                     modoZoomBoton.setIcon(null);
-                    modoZoomBoton.setText(modoActual.name().substring(0, 1)); // Pone la inicial como fallback
+                    modoZoomBoton.setText(modoActual.name().length() > 0 ? modoActual.name().substring(0, 1) : "?");
                 }
             }
         }
-    }// --- Fin del métodoactualizarControlesDeZoom
+    } // --- Fin del método actualizarControlesDeZoom ---
+    
+    
+    private void actualizarLabelZoom() {
+        ZoomModeEnum modo = model.getCurrentZoomMode();
+        JLabel porcentajeLabel = registry.get("label.control.zoomPorcentaje");
+
+        if (porcentajeLabel == null) {
+            System.err.println("WARN [InfobarStatusManager]: label.control.zoomPorcentaje no encontrado en el registro.");
+            return;
+        }
+
+        boolean esVisible = configuration.getBoolean(ConfigKeys.INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE, true);
+        if (porcentajeLabel.isVisible() != esVisible) {
+            porcentajeLabel.setVisible(esVisible);
+        }
+        
+        if (esVisible) {
+            // Lógica existente para el texto y el tooltip (NO SE MODIFICA)
+            if (modo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM || modo == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
+                double zoomFactorModelo = model.getZoomFactor();
+                double porcentajeModelo = zoomFactorModelo * 100.0;
+                porcentajeLabel.setText("%"+String.format("Z: %.0f%%", porcentajeModelo));
+                porcentajeLabel.setToolTipText("Clic para establecer un nuevo zoom. Actual: " + String.format("%.2f%%", porcentajeModelo));
+            } else {
+                // Si el modo es automático, el label conserva su último valor numérico.
+                // El tooltip podría indicar que no está en modo manual, pero el requisito es mantener el tooltip actual.
+            }
+
+            // Lógica para el cambio de colores (IMPLEMENTACIÓN)
+            Tema tema = themeManager.getTemaActual();
+            if (tema == null) {
+                System.err.println("WARN [InfobarStatusManager]: Tema actual es nulo. No se pueden aplicar colores.");
+                return;
+            }
+
+            boolean estaActivoVisualmente = (modo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM || modo == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE);
+
+            if (estaActivoVisualmente) {
+            	porcentajeLabel.setBackground(tema.colorBotonFondo());
+                porcentajeLabel.setForeground(tema.colorTextoSecundario());
+            } else {
+            	porcentajeLabel.setBackground(tema.colorBotonFondoActivado());
+                porcentajeLabel.setForeground(tema.colorSeleccionTexto());
+            	
+            	
+                
+            }
+            porcentajeLabel.setOpaque(true);
+        } else {
+            porcentajeLabel.setOpaque(false);
+        }
+    } // --- FIN del metodo actualizarLabelZoom ---
+    
 
     private void actualizarMensajeDeEstado() {
         JLabel mensajesLabel = registry.get("label.estado.mensajes");
@@ -223,40 +271,34 @@ public class InfobarStatusManager {
             return;
         }
 
-        // 1. Obtener la ruta de la imagen actual desde el modelo.
         Path rutaActual = null;
         if (model != null && model.getSelectedImageKey() != null) {
             rutaActual = model.getRutaCompleta(model.getSelectedImageKey());
         }
 
-        // 2. Comprobar si la imagen está marcada usando el ProjectManager.
         boolean estaMarcada = false;
         if (rutaActual != null && projectService != null) {
             estaMarcada = projectService.estaMarcada(rutaActual);
         }
 
-        // 3. Actualizar el texto y el color del JLabel.
         if (estaMarcada) {
             mensajesLabel.setText("[MARCADA]");
-            // Usar un color que destaque, por ejemplo el de un botón activado
             if (themeManager != null) {
                 mensajesLabel.setForeground(themeManager.getTemaActual().colorBotonFondoActivado()); 
             }
         } else {
-            // Si no está marcada, limpiamos el mensaje.
-            mensajesLabel.setText(" "); // Un espacio para mantener la altura del panel.
+            mensajesLabel.setText(" ");
         }
     } // --- Fin del método actualizarMensajeDeEstado ---
 
+    
     private void configurarListenersControles() {
         System.out.println("  [StatusBarManager] Configurando Listeners para controles de la barra de estado...");
-        configurarListenerParaIndicador("label.indicador.zoomManual", AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-        configurarListenerParaIndicador("label.indicador.proporciones", AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
-        configurarListenerParaIndicador("label.indicador.subcarpetas", AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-
+        
         JLabel porcentajeLabel = registry.get("label.control.zoomPorcentaje");
         if (porcentajeLabel != null) {
             for(MouseListener l : porcentajeLabel.getMouseListeners()) porcentajeLabel.removeMouseListener(l);
+            
             porcentajeLabel.addMouseListener(new MouseAdapter() {
                 @Override public void mouseClicked(MouseEvent e) { mostrarMenuPorcentajes(porcentajeLabel); }
                 @Override public void mouseEntered(MouseEvent e) { porcentajeLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR)); }
@@ -268,11 +310,13 @@ public class InfobarStatusManager {
         JButton modoZoomBoton = registry.get("button.control.modoZoom");
         if (modoZoomBoton != null) {
             for(ActionListener l : modoZoomBoton.getActionListeners()) modoZoomBoton.removeActionListener(l);
+            
             modoZoomBoton.addActionListener(e -> mostrarMenuModosZoom(modoZoomBoton));
             System.out.println("    -> ActionListener añadido a 'button.control.modoZoom'.");
         }
-    }// --- Fin del métodoconfigurarListenersControles
-
+    } // --- Fin del método configurarListenersControles
+    
+    
     private void mostrarMenuPorcentajes(Component invoker) {
         JPopupMenu menu = new JPopupMenu();
         int[] porcentajes = {25, 50, 75, 100, 150, 200};
@@ -288,21 +332,25 @@ public class InfobarStatusManager {
             if (input != null && !input.trim().isEmpty()) {
                 try {
                     aplicarZoomPersonalizado(Double.parseDouble(input.replace('%', ' ').trim()));
-                } catch (NumberFormatException ex) {
+                } catch (NumberFormatException ex) { // <-- ¡CORRECCIÓN AQUÍ!
                     JOptionPane.showMessageDialog(invoker, "Porcentaje inválido.", "Error", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
         menu.add(otrosItem);
         menu.show(invoker, 0, -invoker.getHeight());
-    }// --- Fin del métodomostrarMenuPorcentajes
+    }// --- Fin del método mostrarMenuPorcentajes
     
     private void mostrarMenuModosZoom(Component invoker) {
         JPopupMenu menu = new JPopupMenu();
         ZoomModeEnum[] modosParaMenu = {
-            ZoomModeEnum.FIT_TO_SCREEN, ZoomModeEnum.FIT_TO_WIDTH, ZoomModeEnum.FIT_TO_HEIGHT,
-            ZoomModeEnum.DISPLAY_ORIGINAL, ZoomModeEnum.FILL,
-            ZoomModeEnum.MAINTAIN_CURRENT_ZOOM, ZoomModeEnum.USER_SPECIFIED_PERCENTAGE
+            ZoomModeEnum.FIT_TO_SCREEN, 
+            ZoomModeEnum.FIT_TO_WIDTH, 
+            ZoomModeEnum.FIT_TO_HEIGHT,
+            ZoomModeEnum.DISPLAY_ORIGINAL, 
+            ZoomModeEnum.FILL,
+            ZoomModeEnum.MAINTAIN_CURRENT_ZOOM, 
+            ZoomModeEnum.USER_SPECIFIED_PERCENTAGE
         };
         for (ZoomModeEnum modo : modosParaMenu) {
             Action accionAsociada = actionMap.get(modo.getAssociatedActionCommand());
@@ -314,16 +362,20 @@ public class InfobarStatusManager {
             }
         }
         menu.show(invoker, 0, -menu.getPreferredSize().height);
-    }// --- Fin del métodomostrarMenuModosZoom
+    }// --- Fin del método mostrarMenuModosZoom
+    
     
     private void aplicarZoomPersonalizado(double porcentaje) {
-        configuration.setZoomPersonalizadoPorcentaje(porcentaje);
-        Action accionZoomEspec = actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-        if (accionZoomEspec != null) {
-            accionZoomEspec.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
+        System.out.println("[StatusBarManager] ---> Delegando al VisorController la solicitud de zoom: " + porcentaje + "%");
+        
+        if (this.visorController != null) {
+            this.visorController.solicitarZoomPersonalizado(porcentaje);
+        } else {
+            System.err.println("ERROR: visorController es nulo. No se puede delegar la acción.");
         }
-    }// --- Fin del métodoaplicarZoomPersonalizado
-
+    } // --- FIN del metodo aplicarZoomPersonalizado ---
+    
+    
     private void configurarListenerParaIndicador(String componentKey, String actionCommand) {
         JLabel label = registry.get(componentKey);
         Action action = actionMap.get(actionCommand);
@@ -335,7 +387,7 @@ public class InfobarStatusManager {
                 @Override public void mouseExited(MouseEvent e) { label.setCursor(java.awt.Cursor.getDefaultCursor()); }
             });
         }
-    }// --- Fin del métodoconfigurarListenerParaIndicador
+    }// --- Fin del método configurarListenerParaIndicador
 
     
      /**
@@ -370,13 +422,11 @@ public class InfobarStatusManager {
                      label.setToolTipText(tooltipPrefix + ": " + (activo ? "Activado" : "Desactivado"));
                      
                      if (activo) {
-                         // Tomamos el color original del botón activado...
                          Color colorOriginal = tema.colorBotonFondoActivado();
-                         // ... y lo aclaramos un poco para crear un nuevo color "anónimo".
-                         Color colorAclarado = aclararColor(colorOriginal, 40); // Aclaramos en 40 (puedes ajustar este valor)
+                         Color colorAclarado = aclararColor(colorOriginal, 40);
                          
                          label.setBackground(colorAclarado);
-                         label.setForeground(tema.colorSeleccionTexto()); // Usamos el texto de selección para contraste
+                         label.setForeground(tema.colorSeleccionTexto());
                      } else {
                          label.setBackground(tema.colorFondoSecundario());
                          label.setForeground(tema.colorTextoPrimario());
@@ -396,7 +446,6 @@ public class InfobarStatusManager {
     
     private String getIconKeyForZoomMode(ZoomModeEnum modo) {
         String command = modo.getAssociatedActionCommand();
-        // Busca en la definición de la barra de "zoom" el botón que corresponde a este comando
         for (ToolbarDefinition def : uiDefService.generateModularToolbarStructure()) {
             if ("zoom".equals(def.claveBarra())) {
                 for (ToolbarButtonDefinition buttonDef : def.botones()) {
@@ -406,7 +455,43 @@ public class InfobarStatusManager {
                 }
             }
         }
-        return null; // No se encontró el icono
+        return null;
     }// --- Fin del métodogetIconKeyForZoomMode ---
     
+    
+    /**
+     * Lee el texto del JLabel del zoom en la barra de estado, lo parsea y
+     * devuelve el valor numérico del porcentaje que está mostrando.
+     *
+     * @return El valor del porcentaje de zoom (ej. 150.0) o un valor por defecto
+     *         (ej. 100.0) si el label no existe o el texto es inválido.
+     */
+    public double getValorActualDelLabelZoom() {
+        JLabel porcentajeLabel = registry.get("label.control.zoomPorcentaje");
+        if (porcentajeLabel == null) {
+            System.err.println("WARN [getValorActualDelLabelZoom]: El componente 'label.control.zoomPorcentaje' no se encontró en el registro.");
+            return 100.0;
+        }
+
+        String textoActual = porcentajeLabel.getText();
+        if (textoActual == null || textoActual.isBlank()) {
+            System.err.println("WARN [getValorActualDelLabelZoom]: El texto del label de zoom está vacío.");
+            return 100.0;
+        }
+
+        try {
+            String numeroComoTexto = textoActual.replace("Z:", "").replace("%", "").trim();
+            return Double.parseDouble(numeroComoTexto);
+        } catch (NumberFormatException e) {
+            System.err.println("WARN [getValorActualDelLabelZoom]: No se pudo parsear el valor del label de zoom: '" + textoActual + "'. Devolviendo 100.");
+            return 100.0;
+        }
+    }// --- FIN DEL METODO getValorActualDelLabelZoom ---
+    
+    
+    public void setController(VisorController controller) {
+        this.visorController = Objects.requireNonNull(controller);
+    }
+    
 }// --- Fin de la clase InfobarStatusManager ---
+

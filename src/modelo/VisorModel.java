@@ -16,10 +16,22 @@ public class VisorModel {
         VISUALIZADOR,
         PROYECTO,
         DATOS,
+        EDICION,
         CARROUSEL
+        
     }
+    
+    public enum DisplayMode {
+        SINGLE_IMAGE, // Vista de una única imagen
+        GRID,         // Vista de cuadrícula de miniaturas
+        POLAROID      // Vista de imagen única con estilo "polaroid"
+    }
+    
+    
 
     private WorkMode currentWorkMode;
+    private DisplayMode currentDisplayMode;
+    
     private ListContext visualizadorListContext;
     private ListContext proyectoListContext;
     private ListContext datosListContext;
@@ -29,6 +41,7 @@ public class VisorModel {
     private ZoomContext datosZoomContext;
     
     private BufferedImage currentImage;
+    
     
     private int miniaturasAntes;
     private int miniaturasDespues;
@@ -40,10 +53,13 @@ public class VisorModel {
     private boolean navegacionCircularActivada = false;
     private int saltoDeBloque;
     
-    private boolean enModoProyecto = false; 
+    private boolean enModoProyecto = false;
+    
+    private boolean modoPantallaCompletaActivado = false;
 
     public VisorModel() {
         this.currentWorkMode = WorkMode.VISUALIZADOR;
+        this.currentDisplayMode = DisplayMode.SINGLE_IMAGE; 
         this.visualizadorListContext = new ListContext();
         this.proyectoListContext = new ListContext();
         this.datosListContext = new ListContext();
@@ -55,7 +71,14 @@ public class VisorModel {
     }
 
     // Añadimos el nuevo parámetro 'zoomAlCursor' a la firma del método
-    public void initializeContexts(boolean mantenerPropInicial, boolean soloCarpetaInicial, ZoomModeEnum modoZoomInicial, boolean zoomManualInicial, boolean navCircularInicial, boolean zoomAlCursor) {
+    public void initializeContexts(
+    		boolean mantenerPropInicial, 
+    		boolean soloCarpetaInicial, 
+    		ZoomModeEnum modoZoomInicial, 
+    		boolean zoomManualInicial, 
+    		boolean navCircularInicial, 
+    		boolean zoomAlCursor
+    ) {
         System.out.println("[VisorModel] Inicializando estado por defecto de todos los contextos...");
 
         this.visualizadorZoomContext.setMantenerProporcion(mantenerPropInicial);
@@ -80,10 +103,7 @@ public class VisorModel {
         this.navegacionCircularActivada = navCircularInicial;
     }
     
-    public WorkMode getCurrentWorkMode() {
-        return this.currentWorkMode;
-    }
-    
+    public WorkMode getCurrentWorkMode() {return this.currentWorkMode;}    
     public void setCurrentWorkMode(WorkMode newMode) {
         if (this.currentWorkMode != newMode) {
             System.out.println("[Model] Cambiando modo de trabajo de " + this.currentWorkMode + " a: " + newMode);
@@ -93,6 +113,18 @@ public class VisorModel {
         }
     }
 
+    
+    public DisplayMode getCurrentDisplayMode() {return currentDisplayMode;}
+    public void setCurrentDisplayMode(DisplayMode newDisplayMode) {
+        if (this.currentDisplayMode != newDisplayMode) {
+            System.out.println("[Model] Cambiando modo de visualización de contenido de " + this.currentDisplayMode + " a: " + newDisplayMode);
+            this.currentDisplayMode = newDisplayMode;
+            // Aquí no es necesario resetear currentImage, ya que la imagen principal
+            // puede seguir siendo la misma, solo cambia cómo se presenta (ej. de Single a Grid).
+        }
+    }
+    
+    
     public ListContext getCurrentListContext() {
         switch (this.currentWorkMode) {
             case PROYECTO: return this.proyectoListContext;
@@ -109,38 +141,27 @@ public class VisorModel {
         }
     }
 
-    public DefaultListModel<String> getModeloLista() { 
-        return getCurrentListContext().getModeloLista(); 
-    }
     
-    public Map<String, Path> getRutaCompletaMap() { return getCurrentListContext().getRutaCompletaMap(); }
-    public Path getRutaCompleta(String key) { return getCurrentListContext().getRutaCompleta(key); }
-    public String getSelectedImageKey() { return getCurrentListContext().getSelectedImageKey(); }
-    public void setSelectedImageKey(String selectedImageKey) { getCurrentListContext().setSelectedImageKey(selectedImageKey); }
+    
+    
     
     public void actualizarListaCompleta(DefaultListModel<String> nuevoModelo, Map<String, java.nio.file.Path> nuevoMapaRutas) {
         System.out.println("[Model] Actualizando contexto de lista para el modo: " + this.currentWorkMode);
         getCurrentListContext().actualizarContextoCompleto(nuevoModelo, nuevoMapaRutas);
     }
 
+    public String getSelectedImageKey() { return getCurrentListContext().getSelectedImageKey(); }
+    public void setSelectedImageKey(String selectedImageKey) { getCurrentListContext().setSelectedImageKey(selectedImageKey); }
     public ZoomModeEnum getCurrentZoomMode() { return getCurrentZoomContext().getZoomMode(); }
     public void setCurrentZoomMode(ZoomModeEnum newMode) { getCurrentZoomContext().setZoomMode(newMode); }
-
-    
     public int getImageOffsetX() { return getCurrentZoomContext().getImageOffsetX(); }
     public void setImageOffsetX(int x) { getCurrentZoomContext().setImageOffsetX(x); }
     public void addImageOffsetX(int deltaX) { setImageOffsetX(getImageOffsetX() + deltaX); }
     public int getImageOffsetY() { return getCurrentZoomContext().getImageOffsetY(); }
     public void setImageOffsetY(int y) { getCurrentZoomContext().setImageOffsetY(y); }
     public void addImageOffsetY(int deltaY) { setImageOffsetY(getImageOffsetY() + deltaY); }
-    public boolean isZoomHabilitado() { return getCurrentZoomContext().isZoomHabilitado(); }
-    public void setZoomHabilitado(boolean b) { getCurrentZoomContext().setZoomHabilitado(b); }
-    public void resetPan() { getCurrentZoomContext().resetPan(); }
-    public void resetZoomState() {this.setZoomFactor(1.0); this.resetPan();}
     public BufferedImage getCurrentImage() { return currentImage; }
     public void setCurrentImage(BufferedImage currentImage) { this.currentImage = currentImage; }
-    public ListContext getProyectoListContext() { return this.proyectoListContext; }
-    public ListContext getVisualizadorListContext() {return this.visualizadorListContext;}
     public int getMiniaturasAntes() { return miniaturasAntes; }
     public void setMiniaturasAntes(int val) { this.miniaturasAntes = val; }
     public int getMiniaturasDespues() { return miniaturasDespues; }
@@ -157,6 +178,17 @@ public class VisorModel {
     public void setEnModoProyecto(boolean enModoProyecto) { setCurrentWorkMode(enModoProyecto ? WorkMode.PROYECTO : WorkMode.VISUALIZADOR); }
     public int getSaltoDeBloque() { return saltoDeBloque; }
     public void setSaltoDeBloque(int salto) { this.saltoDeBloque = salto; }
+
+    public DefaultListModel<String> getModeloLista() {return getCurrentListContext().getModeloLista();}
+    public Map<String, Path> getRutaCompletaMap() { return getCurrentListContext().getRutaCompletaMap(); }
+    public Path getRutaCompleta(String key) { return getCurrentListContext().getRutaCompleta(key); }
+    public void setZoomHabilitado(boolean b) { getCurrentZoomContext().setZoomHabilitado(b); }
+    
+    public boolean isZoomHabilitado() { return getCurrentZoomContext().isZoomHabilitado(); }
+    public void resetPan() { getCurrentZoomContext().resetPan(); }
+    public void resetZoomState() {this.setZoomFactor(1.0); this.resetPan();}
+    public ListContext getProyectoListContext() { return this.proyectoListContext; }
+    public ListContext getVisualizadorListContext() {return this.visualizadorListContext;}
 
     public double getZoomFactor() { return getCurrentZoomContext().getZoomFactor(); }
     public void setZoomFactor(double zoomFactor) {
@@ -203,5 +235,14 @@ public class VisorModel {
             System.out.println("  [Model " + currentWorkMode + "] Estado zoomToCursorEnabled cambiado a: " + enabled);
         }
     }
+    
+    
+    public boolean isModoPantallaCompletaActivado() {return this.modoPantallaCompletaActivado;}
+    public void setModoPantallaCompletaActivado(boolean activado) {
+        if (this.modoPantallaCompletaActivado != activado) {
+            this.modoPantallaCompletaActivado = activado;
+            System.out.println("  [VisorModel] Estado de pantalla completa cambiado a: " + activado);
+        }
+    } // --- Fin del método setModoPantallaCompletaActivado ---
         
 } // --- FIN DE LA CLASE VisorModel ---

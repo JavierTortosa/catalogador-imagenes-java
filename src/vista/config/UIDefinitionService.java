@@ -187,33 +187,56 @@ public class UIDefinitionService {
         		MenuItemType.MAIN_MENU, "Imagen", imagenSubItems));
 
         // --- SECCIÓN 5: MENÚ "VISTA" ---
-        List<MenuItemDefinition> vistaSubItems = List.of(
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR, 
-            		MenuItemType.CHECKBOX_ITEM, "Barra de Menú", null),
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR, 
-            		MenuItemType.CHECKBOX_ITEM, "Barra de Botones", null),
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST, 
-            		MenuItemType.CHECKBOX_ITEM, "Lista de Archivos", null),
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, 
-            		MenuItemType.CHECKBOX_ITEM, "Barra de Miniaturas", null),
-            // new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, MenuItemType.CHECKBOX_ITEM, "Barra de Ubicación", null), // Integrado en Barra Inferior
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, 
-            		MenuItemType.CHECKBOX_ITEM, "Barra de Estado", null),
-            new MenuItemDefinition(null, 
-            		MenuItemType.SEPARATOR, null, null),
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, 
-            		MenuItemType.CHECKBOX_ITEM, "Fondo a Cuadros", null),
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, 
-            		MenuItemType.CHECKBOX_ITEM, "Mantener Ventana Siempre Encima", null),
-            new MenuItemDefinition(null, 
-            		MenuItemType.SEPARATOR, null, null),
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, 
-            		MenuItemType.CHECKBOX_ITEM, "Mostrar Nombres en Miniaturas", null),
-            new MenuItemDefinition(null, 
-            		MenuItemType.SEPARATOR, null, null),
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, 
-            		MenuItemType.ITEM, "Mostrar Diálogo Lista de Imágenes...", null)
+     // Submenú para MODOS DE VISUALIZACIÓN DE CONTENIDO (DisplayMode)
+        List<MenuItemDefinition> tiposVistaDisplayModesSubItems = List.of(
+	            new MenuItemDefinition(null, 
+	            	MenuItemType.RADIO_GROUP_START, null, null),
+	            new MenuItemDefinition(AppActionCommands.CMD_VISTA_SINGLE, 
+	            	MenuItemType.RADIO_BUTTON_ITEM, "Vista Imagen Única", null),
+	            new MenuItemDefinition(AppActionCommands.CMD_VISTA_GRID,   
+	            	MenuItemType.RADIO_BUTTON_ITEM, "Vista Cuadrícula (Grid)", null),
+	            new MenuItemDefinition(AppActionCommands.CMD_VISTA_POLAROID, 
+	            	MenuItemType.RADIO_BUTTON_ITEM, "Vista Polaroid", null),
+	            new MenuItemDefinition(null, 
+	            	MenuItemType.RADIO_GROUP_END, null, null)
         );
+        
+        List<MenuItemDefinition> vistaSubItems = List.of(
+            new MenuItemDefinition(null, 
+            	MenuItemType.SUB_MENU, "Modos de Visualización de Contenido", tiposVistaDisplayModesSubItems),
+            new MenuItemDefinition(null, 
+            	MenuItemType.SEPARATOR, null, null),
+            // Pantalla Completa: Ahora es una configuración de vista (CHECKBOX_ITEM) al mismo nivel.
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA, 
+            	MenuItemType.CHECKBOX_ITEM, "Modo Pantalla Completa", null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, 
+            	MenuItemType.CHECKBOX_ITEM, "Mantener Ventana Siempre Encima", null),
+            new MenuItemDefinition(null, 
+        		MenuItemType.SEPARATOR, null, null), 
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR, 
+        		MenuItemType.CHECKBOX_ITEM, "Barra de Menú", null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR, 
+        		MenuItemType.CHECKBOX_ITEM, "Barra de Botones", null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST, 
+        		MenuItemType.CHECKBOX_ITEM, "Lista de Archivos", null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, 
+        		MenuItemType.CHECKBOX_ITEM, "Barra de Miniaturas", null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, 
+        		MenuItemType.CHECKBOX_ITEM, "Barra de Estado", null),
+            new MenuItemDefinition(null, 
+        		MenuItemType.SEPARATOR, null, null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, 
+        		MenuItemType.CHECKBOX_ITEM, "Fondo a Cuadros", null),
+            new MenuItemDefinition(null, 
+        		MenuItemType.SEPARATOR, null, null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, 
+        		MenuItemType.CHECKBOX_ITEM, "Mostrar Nombres en Miniaturas", null),
+            new MenuItemDefinition(null, 
+        		MenuItemType.SEPARATOR, null, null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, 
+        		MenuItemType.ITEM, "Mostrar Diálogo Lista de Imágenes...", null)
+        );
+        
         menuBarStructure.add(new MenuItemDefinition(null, 
         		MenuItemType.MAIN_MENU, "Vista", vistaSubItems));
 
@@ -258,7 +281,7 @@ public class UIDefinitionService {
         List<MenuItemDefinition> configSubItems = new ArrayList<>();
 
         // 7.2. Submenú "Carga de Imágenes"
-        List<MenuItemDefinition> ordenCriterioSubItems = List.of(
+        	List<MenuItemDefinition> ordenCriterioSubItems = List.of(
             	new MenuItemDefinition(null, 
             			MenuItemType.RADIO_GROUP_START, null, null),
                 new MenuItemDefinition("cmd.orden.criterio.nombre", 
@@ -271,7 +294,7 @@ public class UIDefinitionService {
                 		MenuItemType.RADIO_BUTTON_ITEM, "Extension", null),
                 new MenuItemDefinition(null, 
                 		MenuItemType.RADIO_GROUP_END, null, null)
-                );
+        	);
                 
         List<MenuItemDefinition> ordenDireccionSubItems = List.of(
             new MenuItemDefinition(null, 
@@ -549,25 +572,27 @@ public class UIDefinitionService {
 		
 		// --- BARRA DE ZOOM ---
 		List<ToolbarButtonDefinition> botonesZoom = List.of(
-            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, 			"3005-Escalar_Para_Ajustar_48x48.png", "Escalar para Ajustar", "zoom")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AUTO, 				"3002-Zoom_Auto_48x48.png", "Zoom Automático", "zoom")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, 				"3003-Ajustar_al_Ancho_48x48.png", "Ajustar al Ancho", "zoom")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, 				"3004-Ajustar_al_Alto_48x48.png", "Ajustar al Alto", "zoom")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, 			"3009-rellenar_48x48.png", "Rellenar Zoom", "zoom")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, 				"3006-Zoom_Fijo_48x48.png", "Zoom Actual Fijo", "zoom")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, 		"3007-zoom_especifico_48x48.png", "Zoom Especificado", "zoom")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 			"3001-Zoom_48x48.png", "Activar/Desactivar Zoom Manual", "zoom")//, ButtonType.TOGGLE)
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, 					"3008-Reset_48x48.png", "Resetear Zoom", "zoom")
+				//INICIO GRUPO DE BOTONES
+            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, 			"3005-Escalar_Para_Ajustar_48x48.png", "Escalar para Ajustar", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AUTO, 				"3002-Zoom_Auto_48x48.png", "Zoom Automático", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, 				"3003-Ajustar_al_Ancho_48x48.png", "Ajustar al Ancho", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, 				"3004-Ajustar_al_Alto_48x48.png", "Ajustar al Alto", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, 			"3009-rellenar_48x48.png", "Rellenar Zoom", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, 				"3006-Zoom_Fijo_48x48.png", "Zoom Actual Fijo", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, 		"3007-zoom_especifico_48x48.png", "Zoom Especificado", "zoom", ButtonType.TOGGLE)
+           		//FIN GRUPO DE BOTONES
+           
         );             
 		 
 		
 		// --- BARRA DE VISTA ---
 		List<ToolbarButtonDefinition> botonesVista = List.of( 
-		    new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4001-Panel-Galeria_48x48.png", "Panel Galería", "vista")
-		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4002-Grid_48x48.png", "Vista Grid", "vista")
-		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4006-Polaroid48x48.png", "Vista Polaroid", "vista")
-		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4003-Pantalla_Completa_48x48.png", "Pantalla Completa", "vista")
-//		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4005-Carrousel_48x48.png", "Vista Carrusel", "vista")
+//		    new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4001-Panel-Galeria_48x48.png", "Panel Galería", "vista")
+				//INICIO GRUPO DE BOTONES
+			new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SINGLE, 				"4007-imagen_unica_48x48.png", "Vista Imagen Unica", "vista", ButtonType.TOGGLE)
+		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_POLAROID, 				"4006-Polaroid48x48.png", "Vista Polaroid", "vista", ButtonType.TOGGLE)
+		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_GRID, 					"4002-Grid_48x48.png", "Vista Grid", "vista", ButtonType.TOGGLE)
+		   		//FIN GRUPO DE BOTONES
 		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, 	"4004-Lista_48x48.png", "Vista Lista", "vista")
 		);
             
@@ -590,18 +615,22 @@ public class UIDefinitionService {
 		
 		// --- BARRA DE BOTONES TOGGLE ---
 		List<ToolbarButtonDefinition> botonesToggle = List.of(
-             new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 			"7001-Subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "toggle")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,"7002-Mantener_Proporciones_48x48.png", "Mantener Proporciones", "toggle")//, ButtonType.TOGGLE)
+             new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 			"7001-Subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "toggle", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,"7002-Mantener_Proporciones_48x48.png", "Mantener Proporciones", "toggle", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP,	"7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "toggle", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA,     "4003-Pantalla_Completa_48x48.png", "Modo Pantalla Completa", "toggle", ButtonType.TOGGLE)
         );
 		
              
 		// --- BARRA DE PROYECTOS ---
 		List<ToolbarButtonDefinition> botonesProyectoEnVista = List.of(
-             new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7003-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyectoVista")
+             new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7003-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyectoVista", ButtonType.TOGGLE)
+             ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 		"3001-Zoom_48x48.png", "Activar/Desactivar Zoom Manual", "zoom", ButtonType.TOGGLE)
+             ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, 				"3008-Reset_48x48.png", "Resetear Zoom", "zoom")
         );
 		
 		List<ToolbarButtonDefinition> botonesProyectoEnProyecto = List.of(
-			 new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7101-marcar_imagen_48x48.png", "Cambia la iamgen de Seleccion a Descartes", "proyecto")
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7101-marcar_imagen_48x48.png", "Cambia la iamgen de Seleccion a Descartes", "proyecto", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7102-nuevo_proyecto_48x48.png", "Nuevo Proyecto", "proyecto")//, ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7103-abrir_proyecto_48x48.png", "Abrir Proyecto", "proyecto")//, ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7104-guardar_proyecto_48x48.png", "Guardar Proyecto", "proyecto")//, ButtonType.TOGGLE)
@@ -612,10 +641,12 @@ public class UIDefinitionService {
 		
 		// --- BARRA DE BOTONES modos ---
 		List<ToolbarButtonDefinition> botonesModo = List.of(
-			 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,"8001-modod_visualizador_48x48.png", "Modo Visualizador", "modo")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 			"8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "modo")//, ButtonType.TOGGLE)2
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"8003-datos_48x48.png", "Modo Datos", "modo")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"4005-Carrousel_48x48.png", "Vista Carrusel", "modo")
+				//INICIO GRUPO DE BOTONES
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,"8001-modod_visualizador_48x48.png", "Modo Visualizador", "modo", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 			"8002-Mostrar_Favoritos_48x48.png", "Mostrar/Ocultar Favoritos", "modo", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"8003-datos_48x48.png", "Modo Datos", "modo", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"4005-Carrousel_48x48.png", "Vista Carrusel", "modo", ButtonType.TOGGLE)
+            	//FIN GRUPO DE BOTONES
             
 	    );
 		// botones para los modos de edicion, carrousel, proyectos, gestion de Datos...
@@ -625,7 +656,7 @@ public class UIDefinitionService {
 		List<ToolbarButtonDefinition> botonesCarrousel = List.of(
 			 new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_PRIMERO,		"9001-primer_fotograma_48x48.png", "Primer Fotograma", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_ANTERIOR,		"9003-fotograma_anterior_48x48.png", "Fotograma Anterior", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_SIGUIENTE,	"9008-fotograma_siguiente_48x48.png", "Fotograma Siguiente", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_SIGUIENTE,		"9008-fotograma_siguiente_48x48.png", "Fotograma Siguiente", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_ULTIMO,		"9010-ultimo_fotograma_48x48.png", "Ultimo Fotograma", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9002-retroceso_rapido_48x48.png", "Retroceso Rapido", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9004-play_48x48.png", "Play", "carrousel")
@@ -669,17 +700,19 @@ public class UIDefinitionService {
                 dpadPaneoHotspots // La lista de hotspots definida arriba
             ),
         		
-            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, 	"20001-zoom_al_cursor_48x48.png", "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior"),//, ButtonType.TOGGLE),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, 	"20001-zoom_al_cursor_48x48.png", "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior", ButtonType.TOGGLE),
             
             // 2. Botones de color de fondo
+            	//INICIO GRUPO DE BOTONES
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Claro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Oscuro", "controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Azul", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Naranja","controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Oscuro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Azul", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Naranja",	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Verde", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
             
             // 3. Botón de fondo a cuadros
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo a Cuadros", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+            	//FIN GRUPO DE BOTONES
             
             // 4. Botón de selección de color personalizado
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, 	"Paint-Palette--Streamline-Core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", "controles_imagen_inferior", ButtonType.TRANSPARENT)
@@ -703,7 +736,7 @@ public class UIDefinitionService {
             new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion, ToolbarAlignment.CENTER),
             new ToolbarDefinition("zoom", 		"Zoom", 		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesZoom, ToolbarAlignment.CENTER),
             new ToolbarDefinition("vistas",	    "Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesVista, ToolbarAlignment.CENTER),
-//            new ToolbarDefinition("carrousel",	"Carrousel", 	110, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesCarrousel, ToolbarAlignment.CENTER),
+            new ToolbarDefinition("vistas",	    "Vistas", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesVista, ToolbarAlignment.CENTER), // Vista y Proyecto pueden usar DisplayModes
             
             // Grupo Derecha
             new ToolbarDefinition("utils",		"Utilidades", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils, ToolbarAlignment.RIGHT),
@@ -712,9 +745,11 @@ public class UIDefinitionService {
             new ToolbarDefinition("proyectoVista","Proyecto", 	70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesProyectoEnVista, ToolbarAlignment.RIGHT),
             new ToolbarDefinition("proyecto",	"Proyecto", 	90, EnumSet.of(WorkMode.PROYECTO), botonesProyectoEnProyecto, ToolbarAlignment.RIGHT),
             
-            new ToolbarDefinition("modo",		"Modo",			80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesModo, ToolbarAlignment.RIGHT),
+            new ToolbarDefinition("modo",		"Modo",			80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL), botonesModo, ToolbarAlignment.RIGHT),
             
             new ToolbarDefinition("apoyo", 	    "Apoyo", 		100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesApoyo, ToolbarAlignment.RIGHT),
+            
+            new ToolbarDefinition("carrousel",	"Carrousel", 	110, EnumSet.of(WorkMode.CARROUSEL), botonesCarrousel, ToolbarAlignment.CENTER),
             
             // Barra especial que no se añade al contenedor principal. Su alineamiento no importa.
             new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 98, EnumSet.of(WorkMode.PROYECTO), botonesExportacion, ToolbarAlignment.LEFT),
@@ -725,7 +760,8 @@ public class UIDefinitionService {
 //            //new ToolbarDefinition("orden","Orden", botonesOrden)
 //            //new ToolbarDefinition("filtros","Filtros", botonesFiltros)
 //    	);
-    }
+        
+    }// --- FIN DEL METODO generateModularToolbarStructure --- 
     
     
     private String extraerNombreClave(String comandoCanonico) {

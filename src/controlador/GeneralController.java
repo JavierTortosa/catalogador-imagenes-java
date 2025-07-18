@@ -22,6 +22,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
+import controlador.actions.displaymode.SwitchDisplayModeAction;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.IModoController;
 import controlador.managers.ConfigApplicationManager;
@@ -30,6 +31,7 @@ import controlador.managers.ToolbarManager; // <-- Importación necesaria
 import controlador.managers.ViewManager;
 import controlador.utils.ComponentRegistry; // <-- NUEVO: Importación para ComponentRegistry
 import modelo.VisorModel;
+import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode; // <-- Importación necesaria
 import vista.components.Direction; // <-- NUEVO: Importación para Direction
 import vista.panels.ImageDisplayPanel; // <-- NUEVO: Importación para ImageDisplayPanel
@@ -176,37 +178,60 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * @param modoAlQueSeEntra El nuevo modo activo.
      */
 	private void entrarModo(WorkMode modoAlQueSeEntra) {
-        System.out.println("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
-        
-        // Lógica específica de preparación de cada controlador
-        switch (modoAlQueSeEntra) {
-            case VISUALIZADOR:
-                this.visorController.restaurarUiVisualizador();
-                break;
-            case PROYECTO:
-                this.projectController.activarVistaProyecto();
-                break;
-            case DATOS:
-                // Lógica para el modo datos en el futuro
-                break;
-        }
+	    System.out.println("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
+	    
+	    // El cambio de tarjeta del CardLayout debe ocurrir PRIMERO y de forma síncrona.
+	    switch (modoAlQueSeEntra) {
+	        case VISUALIZADOR:
+	            this.viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR");
+	            break;
+	        case PROYECTO:
+	            this.viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS");
+	            break;
+	        case DATOS:
+	            this.viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS");
+	            break;
+	        case CARROUSEL:
+	            this.viewManager.cambiarAVista("container.workmodes", "VISTA_CAROUSEL_WORKMODE");
+	            break;
+	    }
+	    
+	    // --- INICIO DE LA MODIFICACIÓN CLAVE ---
+	    // Ahora, encolamos el resto de la lógica de inicialización del modo en el EDT.
+	    // Esto garantiza que se ejecutará DESPUÉS de que el CardLayout haya procesado el cambio de vista.
+	    SwingUtilities.invokeLater(() -> {
+	        System.out.println("  [GeneralController - invokeLater] Ejecutando restauración de UI para: " + modoAlQueSeEntra);
+	        
+	        switch (modoAlQueSeEntra) {
+	            case VISUALIZADOR:
+	                this.visorController.restaurarUiVisualizador();
+	                this.cambiarDisplayMode(model.getCurrentDisplayMode()); 
+	                break;
+	            case PROYECTO:
+	                this.projectController.activarVistaProyecto();
+	                break;
+	            // No hay lógica de restauración para DATOS y CARROUSEL por ahora
+	            case DATOS: 
+	            case CARROUSEL:
+	                break;
+	        }
 
-        // --- LÓGICA CENTRALIZADA PARA LA UI ---
-        // Después de que el controlador específico ha preparado sus datos,
-        // ajustamos el estado global de la UI.
-        actualizarEstadoUiParaModo(modoAlQueSeEntra);
-        
-        // Cambiar la "página" visible en el CardLayout
-        this.viewManager.cambiarAVista(modoAlQueSeEntra == VisorModel.WorkMode.PROYECTO ? "VISTA_PROYECTOS" : "VISTA_VISUALIZADOR");
-        
-        // --- LLAMADA AÑADIDA para reconstruir las barras de herramientas ---
-        if (this.toolbarManager != null) {
-            this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
-        }
-        
-        // Sincronizar los botones que indican el modo activo
-        sincronizarEstadoBotonesDeModo();
-    } // --- Fin del método entrarModo ---
+	        // Estas tareas también deben ocurrir después de la restauración.
+	        actualizarEstadoUiParaModo(modoAlQueSeEntra);
+	        
+	        if (this.toolbarManager != null) {
+	            this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
+	        }
+	        
+	        sincronizarEstadoBotonesDeModo();
+	        sincronizarEstadoBotonesDisplayMode();
+	        
+	        System.out.println("  [GeneralController - invokeLater] Restauración de UI para " + modoAlQueSeEntra + " completada.");
+	    });
+	    // --- FIN DE LA MODIFICACIÓN CLAVE ---
+	    
+	} // --- Fin del método entrarModo ---
+	
     
     /**
      * MÉTODO CENTRALIZADOR: Habilita o deshabilita acciones y componentes de la UI
@@ -252,6 +277,131 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     } // --- Fin del método actualizarEstadoUiParaModo ---
     
     /**
+     * **CORRECCIÓN CLAVE:** Método para cambiar el modo de visualización de contenido.
+     * Orquesta la transición entre los diferentes DisplayModes.
+     * @param newDisplayMode El DisplayMode al que se desea cambiar.
+     */
+    public void cambiarDisplayMode(DisplayMode newDisplayMode) { // <-- MÉTODO AÑADIDO
+        DisplayMode currentDisplayMode = this.model.getCurrentDisplayMode();
+        if (currentDisplayMode == newDisplayMode) {
+            System.out.println("[GeneralController] Intento de cambiar al DisplayMode que ya está activo: " + newDisplayMode + ". No se hace nada.");
+            return;
+        }
+        
+        System.out.println("\n--- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: " + currentDisplayMode + " -> " + newDisplayMode + " ---");
+        
+        // 1. Actualizar el modelo con el nuevo DisplayMode.
+        this.model.setCurrentDisplayMode(newDisplayMode);
+        
+        // 2. Determinar la clave del panel en el CardLayout de la vista.
+        String viewNameInCardLayout = mapDisplayModeToCardLayoutViewName(newDisplayMode);
+        
+        // 3. Solicitar a ViewManager que cambie el panel visible.
+        this.viewManager.cambiarAVista("container.displaymodes", viewNameInCardLayout);
+        
+        // 4. Sincronizar los botones/radios que indican el DisplayMode activo.
+        sincronizarEstadoBotonesDisplayMode();
+        
+        System.out.println("--- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a " + newDisplayMode + " ---\n");
+    }
+    
+    /**
+     * Sincroniza el estado LÓGICO Y VISUAL de los botones de modo de visualización de contenido (DisplayMode).
+     * Asegura que solo el botón del DisplayMode activo esté seleccionado y que se aplique
+     * el estilo visual personalizado.
+     */
+    public void sincronizarEstadoBotonesDisplayMode() {
+        if (this.actionMap == null || this.model == null || this.configAppManager == null) {
+            System.err.println("WARN [GeneralController.sincronizarEstadoBotonesDisplayMode]: Dependencias nulas (ActionMap, Model o ConfigAppManager).");
+            return;
+        }
+
+        // Obtiene el DisplayMode actual del modelo.
+        DisplayMode currentDisplayMode = this.model.getCurrentDisplayMode();
+
+        // Define una lista con los comandos de las acciones que corresponden a los DisplayModes.
+        List<String> comandosDeDisplayMode = List.of(
+            AppActionCommands.CMD_VISTA_SINGLE,
+            AppActionCommands.CMD_VISTA_GRID,
+            AppActionCommands.CMD_VISTA_POLAROID
+        );
+
+        // Itera sobre cada comando para encontrar la acción y sincronizar su estado.
+        for (String comando : comandosDeDisplayMode) {
+            Action action = this.actionMap.get(comando);
+            if (action != null) {
+                // Si la acción es una instancia de SwitchDisplayModeAction,
+                // le pedimos que sincronice su estado de selección con el DisplayMode actual del modelo.
+                if (action instanceof SwitchDisplayModeAction) {
+                    ((SwitchDisplayModeAction) action).sincronizarEstadoSeleccionConModelo(currentDisplayMode);
+                }
+                
+                // Después de que la acción haya actualizado su SELECTED_KEY,
+                // pedimos al ConfigApplicationManager que actualice el aspecto visual del botón
+                // asociado a esa acción (esto es el "pintado manual" que discutimos).
+                // Pasamos el estado SELECTED_KEY actual de la acción.
+                this.configAppManager.actualizarAspectoBotonToggle(action, Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY)));
+            }
+        }
+        System.out.println("[GeneralController] Sincronizados botones de DisplayMode. Activo: " + currentDisplayMode);
+    }
+    
+    /**
+     * Método auxiliar para mapear un DisplayMode a la clave de vista utilizada en el CardLayout de VisorView.
+     * Esta clave es el nombre del panel que ViewBuilder debe haber añadido al CardLayout.
+     *
+     * @param displayMode El DisplayMode a mapear.
+     * @return La clave de String para el CardLayout (ej. "VISTA_SINGLE_IMAGE").
+     */
+    private String mapDisplayModeToCardLayoutViewName(DisplayMode displayMode) {
+        // Estas claves de CardLayout DEBEN coincidir con los nombres
+        // que uses en ViewBuilder.createMainFrame() al añadir los paneles
+        // a 'vistasContainer' o a cualquier CardLayout que uses para los DisplayModes.
+        switch (displayMode) {
+            case SINGLE_IMAGE: return "VISTA_SINGLE_IMAGE"; // Clave para el panel de imagen única
+            case GRID:         return "VISTA_GRID";         // Clave para el panel de cuadrícula
+            case POLAROID:     return "VISTA_POLAROID";     // Clave para el panel Polaroid
+            //case CAROUSEL:   // Si CAROUSEL fuera un DisplayMode, iría aquí.
+            //                  // Pero ya confirmamos que es un WorkMode, no un DisplayMode.
+            default:           return "VISTA_SINGLE_IMAGE"; // Fallback defensivo por si DisplayMode es nulo o no manejado.
+        }
+    }
+    
+    
+    /**
+     * Orquesta la transición para entrar o salir del modo de pantalla completa.
+     * Este método es llamado por la ToggleFullScreenAction y delega la manipulación
+     * directa del JFrame al ViewManager, manteniendo la lógica de decisión centralizada.
+     */
+    public void solicitarToggleFullScreen() {
+        System.out.println("[GeneralController] Solicitud para alternar pantalla completa.");
+
+        if (viewManager == null || model == null) {
+            System.err.println("ERROR [solicitarToggleFullScreen]: ViewManager o Model son nulos.");
+            return;
+        }
+
+        // 1. Determinar el nuevo estado invirtiendo el estado actual del MODELO.
+        boolean nuevoEstado = !model.isModoPantallaCompletaActivado();
+
+        // 2. Actualizar el MODELO con el nuevo estado.
+        model.setModoPantallaCompletaActivado(nuevoEstado);
+
+        // 3. Comandar al ViewManager para que aplique el cambio visual.
+        viewManager.setFullScreen(nuevoEstado);
+        
+        // 4. Sincronizar la Action para que refleje el nuevo estado del MODELO.
+        if (actionMap != null) {
+            Action fullScreenAction = actionMap.get(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA);
+            if (fullScreenAction != null) {
+                fullScreenAction.putValue(Action.SELECTED_KEY, nuevoEstado);
+            }
+        }
+    } // --- Fin del método solicitarToggleFullScreen ---
+    
+// *********************************************************************************************************************** INICIO SINCRONIZACION    
+    
+    /**
 	 * Sincroniza el estado LÓGICO Y VISUAL de los botones de modo de trabajo.
 	 * Asegura que solo el botón del modo activo esté seleccionado y que se aplique
      * el estilo visual personalizado.
@@ -285,10 +435,39 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	    }
 	    System.out.println("[GeneralController] Sincronizados botones de modo. Activo: " + comandoModoActivo);
 	} // --- Fin del método sincronizarEstadoBotonesDeModo ---
+	
+	
+	/**
+     * Orquesta una sincronización completa del estado lógico de todas las Actions
+     * y la apariencia de la UI basándose en el estado actual del modelo.
+     * Este es el método que se debe llamar al arrancar la aplicación para asegurar
+     * que la vista inicial sea coherente.
+     */
+    public void sincronizarTodaLaUIConElModelo() {
+        System.out.println("--- [GeneralController] INICIANDO SINCRONIZACIÓN MAESTRA DE UI ---");
 
+        if (model == null || actionMap == null || visorController == null) {
+            System.err.println("  -> ERROR: Modelo, ActionMap o VisorController nulos. Abortando sincronización.");
+            return;
+        }
 
-    // --- INICIO BLOQUE DE MODIFICACIÓN ---
-    // Línea anterior: public void sincronizarEstadoBotonesDeModo() { ... }
+        // 1. Sincronizar los botones de MODO DE TRABAJO.
+        //    Esto asegura que el botón del modo actual (Visualizador/Proyecto) esté seleccionado.
+        sincronizarEstadoBotonesDeModo();
+
+        // 2. Delegar la sincronización específica del modo VISUALIZADOR a su controlador.
+        //    VisorController se encargará de los botones de zoom, proporciones, subcarpetas, etc.
+        visorController.sincronizarComponentesDeModoVisualizador();
+        
+        // 3. Delegar la sincronización específica del modo PROYECTO a su controlador (cuando sea necesario).
+        // projectController.sincronizarComponentesDeModoProyecto(); // <- Futura implementación
+
+        System.out.println("--- [GeneralController] SINCRONIZACIÓN MAESTRA DE UI COMPLETADA ---");
+    }
+	
+	
+// ************************************************************************************************************************** FIN SINCRONIZACION 
+
 
     /**
      * Panea la imagen al borde especificado del panel de visualización.
@@ -867,10 +1046,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     
 //  *************************************************************************************************************** INICIO GETTERS    
     
-    public ToolbarManager getToolbarManager() {
-        return this.toolbarManager;
-    }
+    public ToolbarManager getToolbarManager() {return this.toolbarManager;}
 
+    public VisorModel getModel() { return this.model;}
 
 //  ****************************************************************************************************************** FIN GETTERS
     

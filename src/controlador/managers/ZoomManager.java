@@ -4,6 +4,7 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 
+import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import controlador.ListCoordinator;
@@ -54,10 +55,21 @@ public class ZoomManager implements IZoomManager {
     
     @Override
     public void aplicarModoDeZoom(ZoomModeEnum modo, Runnable onComplete) {
-        if (model == null || model.getCurrentImage() == null) {
-            ImageDisplayPanel panelActivo = getActiveDisplayPanel();
-            if (panelActivo != null) panelActivo.limpiar();
+        // 1. Validaciones iniciales
+        if (model == null || statusBarManager == null || registry == null) {
+            System.err.println("ERROR [aplicarModoDeZoom]: Modelo, StatusBarManager o Registry nulos.");
             if (onComplete != null) onComplete.run();
+            return;
+        }
+
+        if (model.getCurrentImage() == null) {
+            ImageDisplayPanel panelActivo = getActiveDisplayPanel();
+            if (panelActivo != null) {
+                panelActivo.limpiar();
+            }
+            if (onComplete != null) {
+                onComplete.run();
+            }
             return;
         }
         
@@ -68,23 +80,53 @@ public class ZoomManager implements IZoomManager {
             return;
         }
 
-        // --- LÓGICA DE SINCRONIZACIÓN PARA ZOOM FIJO ---
+        // --- INICIO DE LA LÓGICA DE ZOOM ---
+
+        double factorDeZoomParaAplicar;
+        
+        // 2. Lógica de "Captura" para el Modo Fijo (el candado)
+        // Si el modo al que estamos cambiando es "Zoom Fijo"...
         if (modo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
-            double factorActual = model.getZoomFactor();
-            configuration.setZoomPersonalizadoPorcentaje(factorActual * 100);
+            
+            // ...capturamos el factor de zoom REAL que la imagen tiene en este momento.
+            factorDeZoomParaAplicar = model.getZoomFactor();
+            
+            // Actualizamos explícitamente el JLabel de la barra de estado con este nuevo valor.
+            JLabel porcentajeLabel = registry.get("label.control.zoomPorcentaje");
+            if (porcentajeLabel != null) {
+                double porcentaje = factorDeZoomParaAplicar * 100.0;
+                porcentajeLabel.setText(String.format("Z: %.0f%%", porcentaje));
+                System.out.println("[ZoomManager] Modo Fijo activado. Label de Status Bar actualizado a: " + porcentaje + "%");
+            }
+
+        } 
+        // 3. Lógica para el Modo Personalizado (el del icono del 7)
+        // Si el modo es "Personalizado", usamos el valor que ya está mostrando el JLabel.
+        else if (modo == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
+            
+            double porcentajeDelLabel = statusBarManager.getValorActualDelLabelZoom();
+            factorDeZoomParaAplicar = porcentajeDelLabel / 100.0;
+            
+            System.out.println("[ZoomManager] Modo Personalizado activado. Usando valor del label: " + porcentajeDelLabel + "%");
+
+        } 
+        // 4. Lógica para todos los demás modos (Ancho, Alto, etc.)
+        else {
+            // Para los modos automáticos, simplemente calculamos el factor.
+            factorDeZoomParaAplicar = _calcularFactorDeZoom(modo);
         }
         
+        // 5. Aplicación final
         model.setCurrentZoomMode(modo);
-
-        double nuevoFactor = _calcularFactorDeZoom(modo);
-        model.setZoomFactor(nuevoFactor);
+        model.setZoomFactor(factorDeZoomParaAplicar);
         model.resetPan();
-        
         refrescarVistaSincrono();
 
-
-
-        if (onComplete != null) onComplete.run();
+        // 6. Sincronización de la UI
+        if (onComplete != null) {
+            onComplete.run();
+        }
+        
     } // --- Fin del método aplicarModoDeZoom (con callback) ---
     
     
@@ -267,16 +309,18 @@ public class ZoomManager implements IZoomManager {
         int panelW = displayPanel.getWidth();
         int panelH = displayPanel.getHeight();
         
+        // Si las dimensiones no son válidas, devolvemos el zoom actual para no causar errores.
         if (imgW <= 0 || imgH <= 0 || panelW <= 0 || panelH <= 0) {
             return model.getZoomFactor();
         }
 
-        boolean modoSeguroActivado = model.isMantenerProporcion();
-        double factorIntencional;
-
         switch (modo) {
             case MAINTAIN_CURRENT_ZOOM:
+                // Para el modo fijo, el factor es el que ya está en el modelo.
+//                return model.getZoomFactor(); 
+                
             case USER_SPECIFIED_PERCENTAGE:
+                // Para el modo personalizado, leemos el porcentaje de la configuración.
                 return configuration.getZoomPersonalizadoPorcentaje() / 100.0;
                 
             case FIT_TO_SCREEN:
@@ -286,35 +330,19 @@ public class ZoomManager implements IZoomManager {
                 return Math.max((double) panelW / imgW, (double) panelH / imgH);
 
             case FIT_TO_WIDTH:
-                factorIntencional = (double) panelW / imgW;
-                if (modoSeguroActivado) {
-                    int altoProyectado = (int) (imgH * factorIntencional);
-                    if (altoProyectado > panelH) {
-                        return Math.min((double) panelW / imgW, (double) panelH / imgH);
-                    }
-                }
-                return factorIntencional;
+                // Simplemente calcula y devuelve el factor para ajustar al ancho. Sin condiciones.
+                return (double) panelW / imgW;
 
             case FIT_TO_HEIGHT:
-                factorIntencional = (double) panelH / imgH;
-                if (modoSeguroActivado) {
-                    int anchoProyectado = (int) (imgW * factorIntencional);
-                    if (anchoProyectado > panelW) {
-                        return Math.min((double) panelW / imgW, (double) panelH / imgH);
-                    }
-                }
-                return factorIntencional;
+                // Simplemente calcula y devuelve el factor para ajustar al alto. Sin condiciones.
+                return (double) panelH / imgH;
 
             case DISPLAY_ORIGINAL:
-                factorIntencional = 1.0;
-                if (modoSeguroActivado) {
-                    if (imgW > panelW || imgH > panelH) {
-                        return Math.min((double) panelW / imgW, (double) panelH / imgH);
-                    }
-                }
-                return factorIntencional;
+                // Simplemente devuelve 1.0 (100%). Sin condiciones.
+                return 1.0;
                 
             default:
+                // Como fallback, devuelve el zoom actual.
                 return model.getZoomFactor(); 
         }
     } // --- Fin del método _calcularFactorDeZoom ---
