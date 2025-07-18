@@ -37,7 +37,10 @@ public class ImageDisplayPanel extends JPanel {
     private Color colorFondoSolido;
 
     public ImageDisplayPanel(ThemeManager themeManager, VisorModel model) {
-        this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null");
+//        this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null");
+    	
+    	this.themeManager = themeManager; 
+    	
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null");
         this.setLayout(new BorderLayout());
         this.internalLabel = new JLabel();
@@ -45,7 +48,21 @@ public class ImageDisplayPanel extends JPanel {
         this.internalLabel.setVerticalAlignment(SwingConstants.CENTER);
         this.add(this.internalLabel, BorderLayout.CENTER);
         this.setOpaque(false);
-        this.colorFondoSolido = themeManager.getTemaActual().colorFondoSecundario();
+        
+     // --- LÓGICA DE CORRECCIÓN ---
+        // Comprobamos si themeManager es nulo ANTES de usarlo.
+        if (themeManager != null) {
+            // Si no es nulo (caso normal), usamos el color del tema.
+            this.colorFondoSolido = themeManager.getTemaActual().colorFondoSecundario();
+        } else {
+            // Si es nulo (caso del ThumbnailPreviewer), usamos un color por defecto seguro.
+            this.colorFondoSolido = new Color(40, 40, 40); // Gris oscuro
+            System.out.println("WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defecto.");
+        }
+        // --- FIN DE LA CORRECCIÓN ---
+        
+//        this.colorFondoSolido = themeManager.getTemaActual().colorFondoSecundario();
+        
     } // --- Fin del método ImageDisplayPanel (constructor) ---
     
     public JLabel getInternalLabel() {

@@ -45,6 +45,7 @@ public interface AppActionCommands {
     String CMD_ZOOM_MANUAL_TOGGLE 			= "cmd.zoom.manual.toggle"; 			// Para ToggleZoomManualAction
     String CMD_ZOOM_RESET 					= "cmd.zoom.reset";         			// Para ResetZoomAction
     String CMD_ZOOM_TOGGLE_TO_CURSOR 		= "cmd.zoom.toggle_to_cursor";			// para zoom al cursor
+    String CMD_ZOOM_TIPO_SMART_FIT 			= "cmd.zoom.tipo.smart_fit";
     
     // Tipos de Zoom (cada uno es una Action)
 	    String CMD_ZOOM_TIPO_AUTO 				= "cmd.zoom.tipo.auto";       			// Para ZoomAutoAction

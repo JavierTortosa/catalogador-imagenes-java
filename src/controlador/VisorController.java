@@ -507,46 +507,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
 
 	} // --- Fin del método configurarListenersVistaInternal ---
 	
-	
-//    /**
-//     * Configura un listener que se dispara UNA SOLA VEZ para corregir el zoom inicial.
-//     * Espera a que el panel de la imagen tenga un tamaño válido y haya una imagen cargada,
-//     * y entonces fuerza un refresco del zoom y de las barras de información.
-//     */
-//    /*public-package*/ void configurarListenerDePrimerRenderizado() {
-//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
-//        if (displayPanel == null) {
-//            System.err.println("WARN [configurarListenerDePrimerRenderizado]: ImageDisplayPanel no encontrado en el registro.");
-//            return;
-//        }
-//
-//        displayPanel.addComponentListener(new java.awt.event.ComponentAdapter() {
-//            @Override
-//            public void componentResized(java.awt.event.ComponentEvent e) {
-//                if (displayPanel.getWidth() > 0 && displayPanel.getHeight() > 0 && model != null && model.getCurrentImage() != null) {
-//                    
-//                    System.out.println("--- [Listener Primer Renderizado]: Panel listo (" + displayPanel.getWidth() + "x" + displayPanel.getHeight() + "). Forzando refresco de zoom y UI. ---");
-//                    
-//                    if (zoomManager != null) {
-//                        // 1. Llama al método de zoom, PASANDO EL CALLBACK para sincronizar la UI.
-//                        zoomManager.aplicarModoDeZoom(
-//                            model.getCurrentZoomMode(), 
-//                            VisorController.this::sincronizarEstadoVisualBotonesYRadiosZoom
-//                        );
-//
-//                        // 2. Notifica a las barras para que lean el nuevo estado de zoom.
-//                        if (infobarImageManager != null) infobarImageManager.actualizar();
-//                        if (statusBarManager != null) statusBarManager.actualizar();
-//                    }
-//                    
-//                    // 3. ¡Importante! Eliminar el listener después de que se haya ejecutado una vez.
-//                    displayPanel.removeComponentListener(this);
-//                    System.out.println("--- [Listener Primer Renderizado]: Tarea completada. Listener eliminado. ---");
-//                }
-//            }
-//        });
-//    } // --- FIN del metodo configurarListenerDePrimerRenderizado ---
-    
     
     /**
      * Revalida y repinta el panel que contiene las barras de herramientas.
@@ -3008,59 +2968,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
     } // --- FIN del metodo handleSetCustomZoomFromMenu ---
     
     
-//    private void handleSetCustomZoomFromMenu() {
-//        // 1. Validar que la vista exista para mostrar el diálogo.
-//        if (this.view == null) {
-//            System.err.println("ERROR [handleSetCustomZoomFromMenu]: La vista es nula, no se puede mostrar el diálogo de entrada.");
-//            return;
-//        }
-//
-//        // 2. Mostrar el diálogo para pedir el porcentaje al usuario.
-//        String input = JOptionPane.showInputDialog(
-//            this.view,
-//            "Introduce el porcentaje de zoom deseado (ej: 150):",
-//            "Establecer Zoom Personalizado",
-//            JOptionPane.PLAIN_MESSAGE
-//        );
-//
-//        // 3. Procesar la entrada del usuario.
-//        if (input != null && !input.trim().isEmpty()) {
-//            try {
-//                // 3.1. Parsear el valor introducido.
-//                double percentValue = Double.parseDouble(input.replace('%', ' ').trim());
-//
-//                // 3.2. Validar el rango del porcentaje.
-//                if (percentValue >= 1 && percentValue <= 5000) { // O el rango que consideres apropiado
-//                    
-//                    // --- CAMBIO CLAVE ---
-//                    // En lugar de disparar una Action, llamamos directamente a nuestro
-//                    // método orquestador, pasándole el valor que el usuario introdujo.
-//                    System.out.println("[VisorController] Llamando a solicitarZoomPersonalizado con " + percentValue + "% desde el menú.");
-//                    solicitarZoomPersonalizado(percentValue);
-//                    // --- FIN DEL CAMBIO CLAVE ---
-//
-//                } else {
-//                    // Mensaje de error si el porcentaje está fuera de rango.
-//                    JOptionPane.showMessageDialog(
-//                        this.view,
-//                        "Porcentaje inválido. Debe estar entre 1 y 5000.",
-//                        "Error de Entrada",
-//                        JOptionPane.ERROR_MESSAGE
-//                    );
-//                }
-//            } catch (NumberFormatException ex) {
-//                // Mensaje de error si la entrada no es un número.
-//                JOptionPane.showMessageDialog(
-//                    this.view,
-//                    "Entrada inválida. Por favor, introduce un número.",
-//                    "Error de Formato",
-//                    JOptionPane.ERROR_MESSAGE
-//                );
-//            }
-//        }
-//	}// --- FIN del metodo handleSetCustomZoomFromMenu ---
-    
-    
     /**
      * Sincroniza explícitamente el estado visual de los JCheckBoxMenuItems que controlan
      * la visibilidad de los botones de la toolbar.
@@ -4142,54 +4049,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
     } // --- FIN del metodo solicitarZoomPersonalizado ---
 
     
-//    public void solicitarZoomPersonalizado(double nuevoPorcentaje) {
-//        System.out.println("[VisorController] Solicitud de zoom personalizado recibida: " + nuevoPorcentaje + "%");
-//        if (model == null || zoomManager == null || actionMap == null) {
-//            System.err.println("ERROR: Dependencias nulas, no se puede aplicar zoom.");
-//            return;
-//        }
-//
-//        // 1. OBTENER EL MODO ACTUAL
-//        ZoomModeEnum modoActual = model.getCurrentZoomMode();
-//
-//        // 2. CAMBIAR AL MODO "USER_SPECIFIED_PERCENTAGE" SI ES NECESARIO
-//        //    Esto se hace disparando la Action correspondiente, lo que asegura que
-//        //    toda la UI (botones, radios) se sincronice automáticamente.
-//        if (modoActual != ZoomModeEnum.MAINTAIN_CURRENT_ZOOM && modoActual != ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
-//            System.out.println("  -> Modo actual es automático. Disparando Action para cambiar a USER_SPECIFIED_PERCENTAGE.");
-//            
-//            Action accionZoomEspecificado = actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-//            
-//            if (accionZoomEspecificado instanceof AplicarModoZoomAction) {
-//                // Llamamos a la acción. El constructor de la Action ya le pasó el callback
-//                // para que se llame a sincronizarEstadoVisualBotonesYRadiosZoom() al final.
-//                accionZoomEspecificado.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
-//            } else {
-//                System.err.println("ERROR: No se encontró la Action de tipo AplicarModoZoomAction para el comando especificado.");
-//                // Fallback: cambiar el modo manualmente si la Action no es del tipo esperado.
-//                model.setCurrentZoomMode(ZoomModeEnum.USER_SPECIFIED_PERCENTAGE);
-//            }
-//        }
-//        
-//        // 3. ESTABLECER EL NUEVO FACTOR DE ZOOM EN EL MODELO
-//        double nuevoFactor = nuevoPorcentaje / 100.0;
-//        model.setZoomFactor(nuevoFactor);
-//        System.out.println("  -> Nuevo zoomFactor establecido en el modelo: " + nuevoFactor);
-//        
-//        // 4. REFRESAR LA VISTA Y TODA LA UI
-//        //    Llamamos a refrescar la vista para que se aplique el nuevo zoomFactor.
-//        zoomManager.refrescarVistaSincrono();
-//        
-//        //    Llamamos a la sincronización global para asegurar que ambas barras de info
-//        //    y todos los botones/radios estén actualizados.
-//        sincronizarEstadoVisualBotonesYRadiosZoom(); // Esto actualizará la barra inferior y los botones
-//        if (infobarImageManager != null) {
-//            infobarImageManager.actualizar(); // Esto actualiza la barra superior
-//        }
-//    } // --- FIN DEL METODO solicitarZoomPersonalizado ---
-    
-    
-    
     public void notificarCambioEstadoZoomManual() {
         System.out.println("[VisorController] Notificado cambio de estado de zoom manual. Actualizando barras...");
         
@@ -4250,37 +4109,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
         }
     }
 
-    
-//    public void forzarColorRojoEnTogglesSeleccionadosParaTest() {
-//    	// FIXME PRUEBA RARA 
-//        System.out.println("--- [DEBUG] Iniciando FORZADO DE COLOR ROJO en Toggles Seleccionados ---");
-//        if (registry == null) {
-//            System.err.println("ERROR [forzarColorRojoEnTogglesSeleccionadosParaTest]: ComponentRegistry es nulo.");
-//            return;
-//        }
-//
-//        //Iterar sobre todos los AbstractButtons registrados
-//        for (java.awt.Component comp : registry.getAllComponents()) {
-//            if (comp instanceof javax.swing.JToggleButton) {
-//                javax.swing.JToggleButton toggleButton = (javax.swing.JToggleButton) comp;
-//                // Solo actuar si el botón está seleccionado
-//                if (toggleButton.isSelected()) {
-//                    System.out.println("  -> Botón seleccionado encontrado: '" + toggleButton.getActionCommand() + "'. Forzando fondo ROJO.");
-//                    toggleButton.setOpaque(true); // Asegurar que sea opaco para que el fondo se pinte
-//                    toggleButton.setContentAreaFilled(true); // Asegurar que el área de contenido se rellene
-//                    toggleButton.setBackground(java.awt.Color.RED);
-//                    toggleButton.setForeground(java.awt.Color.WHITE); // Para que el icono/texto se vea
-//                }
-//            }
-//        }
-//        // Forzar un repintado de todo el JFrame para que los cambios visuales sean inmediatos
-//        if (view != null) {
-//            view.revalidate();
-//            view.repaint();
-//        }
-//        System.out.println("--- [DEBUG] FORZADO DE COLOR ROJO completado. ---");
-//    }
-    
     
 // ********************************************************************************************* FIN METODOS DE SINCRONIZACION
 // ***************************************************************************************************************************    

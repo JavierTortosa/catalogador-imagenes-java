@@ -10,8 +10,9 @@ public enum ZoomModeEnum {
     FIT_TO_WIDTH("Ajustar a Ancho", AppActionCommands.CMD_ZOOM_TIPO_ANCHO),
     FILL("Rellenar Pantalla", AppActionCommands.CMD_ZOOM_TIPO_RELLENAR),
     MAINTAIN_CURRENT_ZOOM("Mantener Zoom Actual", AppActionCommands.CMD_ZOOM_TIPO_FIJO),
-    USER_SPECIFIED_PERCENTAGE("Porcentaje Personalizado", AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-
+    USER_SPECIFIED_PERCENTAGE("Porcentaje Personalizado", AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO),
+	SMART_FIT("Ajuste Inteligente", AppActionCommands.CMD_ZOOM_TIPO_SMART_FIT);
+	
     private final String nombreLegible;
     private final String actionCommand;
 
@@ -32,4 +33,8 @@ public enum ZoomModeEnum {
     public String toString() { 
         return nombreLegible; 
     }
+    
+    
+    
+    
 }

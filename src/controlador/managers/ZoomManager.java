@@ -28,6 +28,8 @@ public class ZoomManager implements IZoomManager {
     private ListCoordinator listCoordinator;
 
     private int lastMouseX, lastMouseY;
+    
+    private ImageDisplayPanel specificPanel = null;
 
     public ZoomManager() {
         // El constructor ahora está vacío. Las dependencias se inyectan.
@@ -268,6 +270,17 @@ public class ZoomManager implements IZoomManager {
         }
     } // --- Fin del método manejarRuedaInteracciona ---
 
+    
+    /**
+     * Asigna un panel de visualización específico para que este ZoomManager opere sobre él.
+     * Si se establece, getActiveDisplayPanel() devolverá este panel en lugar de buscar en el registro.
+     * @param panel El ImageDisplayPanel a controlar.
+     */
+    public void setSpecificPanel(ImageDisplayPanel panel) {
+        this.specificPanel = panel;
+    } // --- Fin del método setSpecificPanel ---
+    
+    
     // =================================================================================
     // MÉTODOS PRIVADOS
     // =================================================================================
@@ -278,6 +291,12 @@ public class ZoomManager implements IZoomManager {
      * @return El ImageDisplayPanel correcto (visualizador o proyecto) o null si no se encuentra.
      */
     private ImageDisplayPanel getActiveDisplayPanel() {
+        // PRIORIDAD 1: Si se ha establecido un panel específico, lo usamos.
+        if (specificPanel != null) {
+            return specificPanel;
+        }
+
+        // PRIORIDAD 2: Si no, usamos la lógica existente del registro (para la app principal).
         if (registry == null || model == null) {
             return null;
         }
@@ -285,7 +304,6 @@ public class ZoomManager implements IZoomManager {
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             return registry.get("panel.proyecto.display");
         } else {
-            // Para VISUALIZADOR y DATOS (por defecto) usamos el panel principal.
             return registry.get("panel.display.imagen");
         }
     } // --- Fin del método getActiveDisplayPanel ---
@@ -315,9 +333,26 @@ public class ZoomManager implements IZoomManager {
         }
 
         switch (modo) {
+        
+	        case SMART_FIT:
+	            // Calcula la relación de aspecto (ratio ancho/alto) de la imagen y del panel.
+	            double imgAspectRatio = (double) imgW / imgH;
+	            double panelAspectRatio = (double) panelW / panelH;
+	            
+	            // Compara las relaciones de aspecto.
+	            if (imgAspectRatio > panelAspectRatio) {
+	                // Si la imagen es proporcionalmente MÁS ANCHA que el panel,
+	                // la limitación es el ANCHO. La ajustamos al ancho del panel.
+	                return (double) panelW / imgW;
+	            } else {
+	                // Si la imagen es proporcionalmente MÁS ALTA (o igual) que el panel,
+	                // la limitación es el ALTO. La ajustamos al alto del panel.
+	                return (double) panelH / imgH;
+	            }
+        
             case MAINTAIN_CURRENT_ZOOM:
                 // Para el modo fijo, el factor es el que ya está en el modelo.
-//                return model.getZoomFactor(); 
+                return model.getZoomFactor(); 
                 
             case USER_SPECIFIED_PERCENTAGE:
                 // Para el modo personalizado, leemos el porcentaje de la configuración.

@@ -7,6 +7,7 @@ import java.util.concurrent.Executors;
 
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
+import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
@@ -34,6 +35,7 @@ import vista.builders.ViewBuilder;
 import vista.config.UIDefinitionService;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
+import vista.util.ThumbnailPreviewer;
 
 public class AppInitializer {
 
@@ -138,7 +140,7 @@ public class AppInitializer {
     private boolean inicializarServiciosEsenciales() {
          System.out.println("  [AppInitializer Fase A.3] Inicializando Servicios Esenciales...");
          try {
-             this.themeManager = new ThemeManager(this.configuration);
+        	 this.themeManager = new ThemeManager(this.configuration);
              this.themeManager.install();
              
              this.controller.setThemeManager(this.themeManager);
@@ -360,21 +362,35 @@ public class AppInitializer {
             this.projectController.configurarListeners();
             this.generalController.initialize();
             
+            
+            
+            
+            // Activacion de la Thumnail Preview
+         // --- ESTA ES LA SECCIÓN A CORREGIR ---
+            System.out.println("  [AppInitializer] Instalando el previsualizador de miniaturas...");
+            JList<String> miniaturasList = registry.get("list.miniaturas");
+
+            if (miniaturasList != null) {
+                // La llamada ya no necesita el ThemeManager
+                new ThumbnailPreviewer(miniaturasList, this.model);
+                System.out.println("    -> Previsualizador instalado en la lista de miniaturas.");
+            } else {
+                System.err.println("WARN: No se pudo instalar el previsualizador, 'list.miniaturas' no encontrada en el registro.");
+            }
+            // --- FIN DE LA CORRECCIÓN ---
+            
+            
+            
+            
             this.controller.configurarListenerGlobalDeToolbars();
             
             this.view.addWindowListener(new java.awt.event.WindowAdapter() {
                 public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
             });
             
-//            this.controller.configurarListenerDePrimerRenderizado();
             this.controller.establecerCarpetaRaizDesdeConfigInternal();
             
             this.view.setVisible(true);
-            
-//            System.out.println("  [AppInitializer] Forzando sincronización visual inicial de botones toggle...");
-//            if (this.configAppManager != null) {
-//                this.configAppManager.sincronizarAparienciaTodosLosToggles();
-//            }
             
             SwingUtilities.invokeLater(() -> {
                 String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
