@@ -28,26 +28,45 @@ public class ToggleZoomManualAction extends AbstractAction {
         putValue(Action.SELECTED_KEY, model.isZoomHabilitado());
     }
     
+    
     @Override
     public void actionPerformed(ActionEvent e) {
-        
-        // 1. LEEMOS el estado actual del modelo.
-        boolean estadoActual = model.isZoomHabilitado();
-        
-        // 2. CALCULAMOS el nuevo estado.
-        boolean nuevoEstado = !estadoActual;
-        
-        System.out.println("[ToggleZoomManualAction] Alternando Paneo. Nuevo estado: " + nuevoEstado);
+        // El patrón ahora es idéntico al de ToggleSubfoldersAction.
+        // La Action ya no gestiona su propio estado.
 
-        // 3. APLICAMOS el cambio de estado al modelo.
-        zoomManager.setPermisoManual(nuevoEstado);
+        System.out.println("[ToggleZoomManualAction] Solicitando al controlador que alterne el modo de paneo...");
         
-        // 4. ACTUALIZAMOS NUESTRO PROPIO ESTADO.
-        //    Esta es la línea que le dice al JToggleButton: "¡Márcate!" o "¡Desmárcate!".
-        putValue(Action.SELECTED_KEY, nuevoEstado);
-
-        // 5. NOTIFICAMOS AL CONTROLADOR, pero solo para que sincronice a OTROS
-        //    componentes que dependen de este estado (como el botón Reset).
-        visorController.sincronizarEstadoBotonReset();
+        // Simplemente llamamos a un método en el VisorController que se encargará de TODO.
+        // Este método es el que ya tienes: solicitarTogglePaneo()
+        // (O un nombre similar si lo cambiaste).
+        visorController.solicitarTogglePaneo(); 
+        
+        // ¡¡ELIMINAMOS TODO LO DEMÁS!!
+        // La lógica de leer el modelo, calcular el nuevo estado, actualizar el modelo
+        // y actualizar el SELECTED_KEY se traslada al método del controlador.
     }
+    
+    
+//    @Override
+//    public void actionPerformed(ActionEvent e) {
+//        
+//        // 1. LEEMOS el estado actual del modelo.
+//        boolean estadoActual = model.isZoomHabilitado();
+//        
+//        // 2. CALCULAMOS el nuevo estado.
+//        boolean nuevoEstado = !estadoActual;
+//        
+//        System.out.println("[ToggleZoomManualAction] Alternando Paneo. Nuevo estado: " + nuevoEstado);
+//
+//        // 3. APLICAMOS el cambio de estado al modelo.
+//        zoomManager.setPermisoManual(nuevoEstado);
+//        
+//        // 4. ACTUALIZAMOS NUESTRO PROPIO ESTADO.
+//        //    Esta es la línea que le dice al JToggleButton: "¡Márcate!" o "¡Desmárcate!".
+//        putValue(Action.SELECTED_KEY, nuevoEstado);
+//
+//        // 5. NOTIFICAMOS AL CONTROLADOR, pero solo para que sincronice a OTROS
+//        //    componentes que dependen de este estado (como el botón Reset).
+//        visorController.sincronizarEstadoBotonReset();
+//    }
 }

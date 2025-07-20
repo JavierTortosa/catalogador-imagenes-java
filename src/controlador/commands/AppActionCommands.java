@@ -48,13 +48,13 @@ public interface AppActionCommands {
     String CMD_ZOOM_TIPO_SMART_FIT 			= "cmd.zoom.tipo.smart_fit";
     
     // Tipos de Zoom (cada uno es una Action)
-	    String CMD_ZOOM_TIPO_AUTO 				= "cmd.zoom.tipo.auto";       			// Para ZoomAutoAction
-	    String CMD_ZOOM_TIPO_ANCHO 				= "cmd.zoom.tipo.ancho";      			// Para ZoomAnchoAction
-	    String CMD_ZOOM_TIPO_ALTO 				= "cmd.zoom.tipo.alto";       			// Para ZoomAltoAction
-	    String CMD_ZOOM_TIPO_AJUSTAR 			= "cmd.zoom.tipo.ajustar";   			// Para ZoomFitAction
-	    String CMD_ZOOM_TIPO_FIJO 				= "cmd.zoom.tipo.fijo";       			// Para ZoomFixedAction
-	    String CMD_ZOOM_TIPO_ESPECIFICADO 		= "cmd.zoom.tipo.especificado"; 		// Para ZoomFijadoAction (o el nombre que le des)
-	    String CMD_ZOOM_TIPO_RELLENAR 			= "cmd.zoom.tipo.rellenar"; 			// (Asumiendo Action futura)
+    String CMD_ZOOM_TIPO_AUTO 				= "cmd.zoom.tipo.auto";       			// Para ZoomAutoAction
+    String CMD_ZOOM_TIPO_ANCHO 				= "cmd.zoom.tipo.ancho";      			// Para ZoomAnchoAction
+    String CMD_ZOOM_TIPO_ALTO 				= "cmd.zoom.tipo.alto";       			// Para ZoomAltoAction
+    String CMD_ZOOM_TIPO_AJUSTAR 			= "cmd.zoom.tipo.ajustar";   			// Para ZoomFitAction
+    String CMD_ZOOM_TIPO_FIJO 				= "cmd.zoom.tipo.fijo";       			// Para ZoomFixedAction
+    String CMD_ZOOM_TIPO_ESPECIFICADO 		= "cmd.zoom.tipo.especificado"; 		// Para ZoomFijadoAction (o el nombre que le des)
+    String CMD_ZOOM_TIPO_RELLENAR 			= "cmd.zoom.tipo.rellenar"; 			// (Asumiendo Action futura)
 
  // --- Imagen/Edición ---
     String CMD_IMAGEN_ROTAR_IZQ 			= "cmd.imagen.rotar.izq";    			// Para RotateLeftAction
@@ -174,6 +174,9 @@ public interface AppActionCommands {
     String CMD_INFOBAR_CONFIG_FORMATO_INFERIOR_NOMBRE_RUTA_RUTA_COMPLETA = "cmd.infobar.config.formato.inferior.nombre_ruta.ruta_completa";
     
     
+    
+    
+    
     //public static final 
     String CMD_REFRESH_TOOLBARS = "cmd.refresh.toolbars";
     
@@ -203,13 +206,14 @@ public interface AppActionCommands {
     String CMD_PAN_RIGHT_INCREMENTAL= "cmd.pan.right_incremental";
 
     // --- Comandos para Control de Fondo de Imagen (NUEVOS) ---
-    String CMD_BACKGROUND_COLOR_SLOT_1  = "cmd.background.color.slot_1";
-    String CMD_BACKGROUND_COLOR_SLOT_2  = "cmd.background.color.slot_2";
-    String CMD_BACKGROUND_COLOR_SLOT_3  = "cmd.background.color.slot_3";
-    String CMD_BACKGROUND_COLOR_SLOT_4  = "cmd.background.color.slot_4";
-    String CMD_BACKGROUND_COLOR_SLOT_5  = "cmd.background.color.slot_5";
+    String CMD_BACKGROUND_THEME_COLOR  	= "cmd.background.color.theme_default";
+    String CMD_BACKGROUND_COLOR_SLOT_1 	= "cmd.background.color.slot_1";
+    String CMD_BACKGROUND_COLOR_SLOT_2 	= "cmd.background.color.slot_2";
+    String CMD_BACKGROUND_COLOR_SLOT_3 	= "cmd.background.color.slot_3";
+    String CMD_BACKGROUND_COLOR_SLOT_4 	= "cmd.background.color.slot_4";
     String CMD_BACKGROUND_CHECKERED     = "cmd.background.checkered";
     String CMD_BACKGROUND_CUSTOM_COLOR  = "cmd.background.custom_color";
+    
     
     
 

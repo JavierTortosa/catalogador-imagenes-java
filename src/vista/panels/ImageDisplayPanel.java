@@ -49,7 +49,6 @@ public class ImageDisplayPanel extends JPanel {
         this.add(this.internalLabel, BorderLayout.CENTER);
         this.setOpaque(false);
         
-     // --- LÓGICA DE CORRECCIÓN ---
         // Comprobamos si themeManager es nulo ANTES de usarlo.
         if (themeManager != null) {
             // Si no es nulo (caso normal), usamos el color del tema.
@@ -59,7 +58,8 @@ public class ImageDisplayPanel extends JPanel {
             this.colorFondoSolido = new Color(40, 40, 40); // Gris oscuro
             System.out.println("WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defecto.");
         }
-        // --- FIN DE LA CORRECCIÓN ---
+        
+        this.setBackground(this.colorFondoSolido);
         
 //        this.colorFondoSolido = themeManager.getTemaActual().colorFondoSecundario();
         
@@ -174,5 +174,13 @@ public class ImageDisplayPanel extends JPanel {
         
         repaint();
     } // --- Fin del método mostrarCargando ---
+    
+    /**
+     * Devuelve si el panel está configurado actualmente para mostrar el fondo a cuadros.
+     * @return true si el fondo a cuadros está activo, false en caso contrario.
+     */
+    public boolean isCheckeredBackground() {
+        return this.fondoACuadros;
+    }
     
 } // --- FIN DE LA CLASE ImageDisplayPanel ---

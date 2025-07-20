@@ -367,11 +367,18 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_PAN_RIGHT_INCREMENTAL, createPanActionIncremental(AppActionCommands.CMD_PAN_RIGHT_INCREMENTAL, Direction.RIGHT));
         
         // 3.12. Crear y registrar Actions de Control de Fondo
-        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, createSetBackgroundColorAction("clear", "Fondo Tema Claro"));
-        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, createSetBackgroundColorAction("dark", "Fondo Tema Oscuro"));
-        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, createSetBackgroundColorAction("blue", "Fondo Tema Azul"));
-        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, createSetBackgroundColorAction("orange", "Fondo Tema Naranja"));
-        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, createSetBackgroundColorAction("green", "Fondo Tema Verde"));
+//        actionMap.put(AppActionCommands.CMD_BACKGROUND_THEME_COLOR, createSetBackgroundColorAction("clear", "Fondo Tema Claro"));
+//        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, createSetBackgroundColorAction("dark", "Fondo Tema Oscuro"));
+//        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, createSetBackgroundColorAction("blue", "Fondo Tema Azul"));
+//        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, createSetBackgroundColorAction("orange", "Fondo Tema Naranja"));
+//        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4 , createSetBackgroundColorAction("green", "Fondo Tema Verde"));
+        
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_THEME_COLOR, createSetBackgroundColorAction(AppActionCommands.CMD_BACKGROUND_THEME_COLOR, "clear", "Fondo Tema Claro"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, createSetBackgroundColorAction(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, "dark", "Fondo Tema Oscuro"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, createSetBackgroundColorAction(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, "blue", "Fondo Tema Azul"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, createSetBackgroundColorAction(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, "orange", "Fondo Tema Naranja"));
+        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, createSetBackgroundColorAction(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, "green", "Fondo Tema Verde"));
+        
         actionMap.put(AppActionCommands.CMD_BACKGROUND_CHECKERED, createSetCheckeredBackgroundAction("Fondo a Cuadros"));
         actionMap.put(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, createRequestCustomColorAction("Elegir Color..."));
         
@@ -863,42 +870,97 @@ public class ActionFactory {
      } // --- Fin del método createPanActionIncremental ---
 
      // --- 4.13. Métodos Create para Actions de Control de Fondo ---
-     private Action createSetBackgroundColorAction(String themeKey, String name) {
-         return new AbstractAction(name) {
-             private static final long serialVersionUID = 1L;
-             @Override
-             public void actionPerformed(ActionEvent e) {
-                 if (viewManager != null && themeManager != null) {
-                     java.awt.Color color = themeManager.getFondoSecundarioParaTema(themeKey);
-                     viewManager.setSessionBackgroundColor(color);
-                 }
-             }
-         };
-     } // --- Fin del método createSetBackgroundColorAction ---
      
-     private Action createSetCheckeredBackgroundAction(String name) {
-         return new AbstractAction(name) {
-             private static final long serialVersionUID = 1L;
-             @Override
-             public void actionPerformed(ActionEvent e) {
-                 if (viewManager != null) {
-                     viewManager.setSessionCheckeredBackground();
-                 }
-             }
-         };
-     } // --- Fin del método createSetCheckeredBackgroundAction ---
+     private Action createSetBackgroundColorAction(String command, String themeKey, String name) {
+    	    Action action = new AbstractAction(name) {
+    	        private static final long serialVersionUID = 1L;
+    	        @Override
+    	        public void actionPerformed(ActionEvent e) {
+    	            if (viewManager != null && themeManager != null) {
+    	                java.awt.Color color = themeManager.getFondoSecundarioParaTema(themeKey);
+    	                viewManager.setSessionBackgroundColor(color);
+    	            }
+    	        }
+    	    };
+    	    // ¡LA LÍNEA CLAVE! Asignamos el comando a la acción.
+    	    action.putValue(Action.ACTION_COMMAND_KEY, command);
+    	    return action;
+    	} // --- Fin del método createSetBackgroundColorAction ---
      
-     private Action createRequestCustomColorAction(String name) {
-         return new AbstractAction(name) {
-             private static final long serialVersionUID = 1L;
-             @Override
-             public void actionPerformed(ActionEvent e) {
-                 if (viewManager != null) {
-                     viewManager.requestCustomBackgroundColor();
-                 }
-             }
-         };
-     } // --- Fin del método createRequestCustomColorAction ---
+     
+//     private Action createSetBackgroundColorAction(String themeKey, String name) {
+//         return new AbstractAction(name) {
+//             private static final long serialVersionUID = 1L;
+//             @Override
+//             public void actionPerformed(ActionEvent e) {
+//                 if (viewManager != null && themeManager != null) {
+//                     java.awt.Color color = themeManager.getFondoSecundarioParaTema(themeKey);
+//                     viewManager.setSessionBackgroundColor(color);
+//                 }
+//             }
+//         };
+//     } // --- Fin del método createSetBackgroundColorAction ---
+     
+     
+		private Action createSetCheckeredBackgroundAction(String name){
+			Action action = new AbstractAction(name){
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public void actionPerformed(ActionEvent e){
+
+					if (viewManager != null){
+						viewManager.setSessionCheckeredBackground();
+					}
+				}
+			};
+			action.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_BACKGROUND_CHECKERED);
+			return action;
+			
+		}// --- Fin del método createSetCheckeredBackgroundAction ---
+     
+     
+//     private Action createSetCheckeredBackgroundAction(String name) {
+//         return new AbstractAction(name) {
+//             private static final long serialVersionUID = 1L;
+//             @Override
+//             public void actionPerformed(ActionEvent e) {
+//                 if (viewManager != null) {
+//                     viewManager.setSessionCheckeredBackground();
+//                 }
+//             }
+//         };
+//     } // --- Fin del método createSetCheckeredBackgroundAction ---
+     
+
+		private Action createRequestCustomColorAction(String name) {
+		    Action action = new AbstractAction(name) {
+		        private static final long serialVersionUID = 1L;
+		        @Override
+		        public void actionPerformed(ActionEvent e) {
+		            if (viewManager != null) {
+		                viewManager.requestCustomBackgroundColor();
+		            }
+		        }
+		    };
+		    // ¡LA LÍNEA CLAVE!
+		    action.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR);
+		    return action;
+		    
+		}// --- Fin del método createRequestCustomColorAction ---
+
+		
+//     private Action createRequestCustomColorAction(String name) {
+//         return new AbstractAction(name) {
+//             private static final long serialVersionUID = 1L;
+//             @Override
+//             public void actionPerformed(ActionEvent e) {
+//                 if (viewManager != null) {
+//                     viewManager.requestCustomBackgroundColor();
+//                 }
+//             }
+//         };
+//     } // --- Fin del método createRequestCustomColorAction ---
      
     // --- SECCIÓN 5: GETTERS Y SETTERS ---
     public Map<String, Action> getActionMap() {

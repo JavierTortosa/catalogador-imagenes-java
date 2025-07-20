@@ -3,6 +3,7 @@ package controlador.managers;
 import java.awt.Color;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -12,13 +13,13 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
-import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.VisorView; // Mantener solo si es necesario para el JOptionPane o setAlwaysOnTop
 import vista.theme.Tema;
@@ -33,6 +34,7 @@ public class ConfigApplicationManager {
     private final ComponentRegistry registry;
     private Map<String, Action> actionMap;
     private VisorView view;
+    private BackgroundControlManager backgroundControlManager;
     
     // --- ESTADO ---
     private final Map<String, String> configAlInicio;
@@ -64,14 +66,81 @@ public class ConfigApplicationManager {
 
     // --- MÉTODOS PÚBLICOS ---
      
+    
     public void aplicarConfiguracionGlobalmente() {
-        System.out.println("--- [ConfigApplicationManager] Aplicando configuración globalmente... ---");
+    	System.out.println("--- [ConfigApplicationManager] Aplicando configuración globalmente... ---");
+        
+        // El orden es importante:
+        // 1. Aplicamos la config leída del archivo al modelo.
         aplicarConfiguracionAlModelo();
+        
+        // 2. AHORA sembramos los colores custom si es necesario.
+        seedInitialCustomColors(); // <-- AÑADE ESTA LÍNEA AQUÍ
+        
+        // 3. Finalmente, aplicamos toda la configuración (incluida la recién sembrada) a la vista.
         SwingUtilities.invokeLater(() -> {
             aplicarConfiguracionAlaVista();
             sincronizarUIFinal();
         });
-    } // --- Fin del método aplicarConfiguracionGlobalmente ---
+    }// --- Fin del método aplicarConfiguracionGlobalmente ---
+    
+    
+    /**
+     * Rota inteligentemente los colores de fondo por defecto en las ranuras
+     * personalizables cuando el tema de la aplicación cambia.
+     *
+     * Si una ranura no ha sido modificada por el usuario (es decir, su color
+     * coincide con el de un tema por defecto), su color se actualizará para
+     * reflejar el nuevo conjunto de "temas no activos".
+     *
+     * Si una ranura ha sido personalizada, su color se mantendrá intacto.
+     *
+     * @param temaAnterior El tema que estaba activo ANTES del cambio.
+     * @param temaNuevo    El tema que está activo AHORA.
+     */
+    public void rotarColoresDeSlotPorCambioDeTema(Tema temaAnterior, Tema temaNuevo) {
+        if (temaAnterior == null || temaNuevo == null || temaAnterior.equals(temaNuevo)) {
+            return; // No hay nada que rotar.
+        }
+        
+        System.out.println("[ConfigApplicationManager] Rotando colores de slot por cambio de tema de '" + temaAnterior.nombreInterno() + "' a '" + temaNuevo.nombreInterno() + "'.");
+
+        // Los dos colores clave en esta operación de "intercambio".
+        Color colorTemaViejo = temaAnterior.colorFondoSecundario();
+        Color colorTemaNuevo = temaNuevo.colorFondoSecundario();
+
+        // La lista de claves de configuración para las ranuras personalizables.
+        List<String> colorKeys = List.of(
+            ConfigKeys.BACKGROUND_CUSTOM_COLOR_1,
+            ConfigKeys.BACKGROUND_CUSTOM_COLOR_2,
+            ConfigKeys.BACKGROUND_CUSTOM_COLOR_3,
+            ConfigKeys.BACKGROUND_CUSTOM_COLOR_4
+        );
+
+        // Iteramos sobre cada ranura para ver si alguna tiene el color del NUEVO tema.
+        for (String key : colorKeys) {
+            Color colorActualEnSlot = config.getColor(key, null);
+
+            // Comprobamos si la ranura tiene un color y si ese color es igual al del NUEVO tema.
+            if (colorActualEnSlot != null && colorActualEnSlot.equals(colorTemaNuevo)) {
+                
+                // ¡Bingo! Esta es la ranura que ha quedado "ocupada" por el nuevo tema de reset.
+                // La "liberamos" asignándole el color del tema que acabamos de dejar.
+                config.setColor(key, colorTemaViejo);
+                
+                System.out.println("    -> ROTADO: La clave '" + key + "' (que coincidía con el nuevo tema '" + temaNuevo.nombreInterno() + "') " +
+                                   "ahora tiene el color del tema anterior '" + temaAnterior.nombreInterno() + "'.");
+                
+                // Ya hemos hecho el intercambio, no necesitamos seguir buscando.
+                return; 
+            }
+        }
+
+        // Si el bucle termina sin encontrar ninguna coincidencia, significa que todas las
+        // ranuras tienen colores personalizados o de otros temas. No hacemos nada.
+        System.out.println("    -> No se encontró ninguna ranura con el color del nuevo tema. No se realizó ninguna rotación.");
+    } // --- FIN del metodo rotarColoresDeSlotPorCambioDeTema ---
+    
 
     public void restaurarConfiguracionPredeterminada() {
         System.out.println("--- [ConfigApplicationManager] Restaurando configuración predeterminada... ---");
@@ -89,7 +158,22 @@ public class ConfigApplicationManager {
             JFrame mainFrame = registry.get("frame.main");
             JOptionPane.showMessageDialog(mainFrame, "La configuración actual ha sido guardada en config.cfg.", "Configuración Guardada", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
-            // ...
+        	System.err.println("ERROR CRÍTICO [ConfigApplicationManager]: Fallo al guardar la configuración en el archivo.");
+            e.printStackTrace();
+
+            // 2. Para el usuario: Muestra un diálogo de error claro y útil.
+            JFrame mainFrame = registry.get("frame.main"); // Obtener el frame para centrar el diálogo
+            String mensajeUsuario = "No se pudo guardar el archivo de configuración 'config.cfg'.\n\n" +
+                                    "Sus cambios actuales solo se mantendrán durante esta sesión.\n" +
+                                    "Por favor, verifique que tiene permisos de escritura en la carpeta de la aplicación.\n\n" +
+                                    "Detalle del error: " + e.getMessage();
+            
+            JOptionPane.showMessageDialog(
+                mainFrame, 
+                mensajeUsuario, 
+                "Error al Guardar Configuración", 
+                JOptionPane.ERROR_MESSAGE
+            );
         }
     } // --- Fin del método guardarConfiguracionActual ---
 
@@ -97,7 +181,46 @@ public class ConfigApplicationManager {
     // --- MÉTODOS PRIVADOS DE AYUDA ---
 
     private void aplicarConfiguracionAlModelo() {
-        // ... (Este método no necesita cambios, ya que solo interactúa con el modelo y la config) ...
+        System.out.println("  [ConfigAppManager] Aplicando configuración al Modelo...");
+        if (this.config == null || this.model == null) {
+            System.err.println("WARN [ConfigAppManager]: No se puede aplicar config al modelo por dependencias nulas.");
+            return;
+        }
+
+        // --- Lee todas las configuraciones de comportamiento y estado ---
+        boolean mantenerProp = config.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true);
+        boolean incluirSubcarpetas = config.getBoolean(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, true);
+        boolean soloCarpeta = !incluirSubcarpetas;
+        boolean navCircular = config.getBoolean(ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR, false);
+        boolean zoomManualInicial = config.getBoolean(ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL, true);
+        boolean zoomAlCursor = config.getBoolean("comportamiento.zoom.al_cursor.activado", false);
+        int saltoBloque = config.getInt(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10);
+        
+        // Lógica para obtener el modo de zoom inicial de forma segura
+        servicios.zoom.ZoomModeEnum modoZoomInicial;
+        String ultimoModoStr = config.getString(ConfigKeys.COMPORTAMIENTO_ZOOM_ULTIMO_MODO, "FIT_TO_SCREEN").toUpperCase();
+        try {
+            modoZoomInicial = servicios.zoom.ZoomModeEnum.valueOf(ultimoModoStr);
+        } catch (IllegalArgumentException e) {
+            System.err.println("WARN: Modo de zoom guardado '" + ultimoModoStr + "' no es válido. Usando FIT_TO_SCREEN.");
+            modoZoomInicial = servicios.zoom.ZoomModeEnum.FIT_TO_SCREEN;
+        }
+        
+        // --- Aplica las configuraciones leídas al modelo ---
+        this.model.initializeContexts(mantenerProp, soloCarpeta, modoZoomInicial, zoomManualInicial, navCircular, zoomAlCursor);
+        
+        this.model.setMiniaturasAntes(config.getInt(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, 8));
+        this.model.setMiniaturasDespues(config.getInt(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES, 8));
+        this.model.setMiniaturaSelAncho(config.getInt(ConfigKeys.MINIATURAS_TAMANO_SEL_ANCHO, 60));
+        this.model.setMiniaturaSelAlto(config.getInt(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO, 60));
+        this.model.setMiniaturaNormAncho(config.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40));
+        this.model.setMiniaturaNormAlto(config.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, 40));
+        this.model.setSaltoDeBloque(saltoBloque);
+        
+        boolean pantallaCompleta = config.getBoolean(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, false);
+        this.model.setModoPantallaCompletaActivado(pantallaCompleta);
+        
+        System.out.println("  -> Configuración del Modelo aplicada.");
     } // --- Fin del método aplicarConfiguracionAlModelo ---
 
     private void aplicarConfiguracionAlaVista() {
@@ -123,7 +246,6 @@ public class ConfigApplicationManager {
             }
         }
         
-        // --- INICIO DE LA MODIFICACIÓN ---
         // Aplicar el estado inicial del fondo a cuadros, que es una configuración de la vista.
         
         // 1. Definimos la clave de configuración que controla el estado persistente.
@@ -145,9 +267,15 @@ public class ConfigApplicationManager {
         } else {
             System.err.println("WARN [ConfigAppManager]: No se encontró 'panel.display.imagen' para aplicar el fondo inicial.");
         }
-        // --- FIN DE LA MODIFICACIÓN ---
+        
+        if (this.backgroundControlManager != null) {
+            // Este método ya lo teníamos, pero ahora lo llamamos en el momento justo.
+            this.backgroundControlManager.initializeAndLinkControls();
+            this.backgroundControlManager.sincronizarSeleccionConEstadoActual(); 
+        }
         
         System.out.println("    -> Configuración básica de Vista aplicada.");
+        
     } // --- Fin del método aplicarConfiguracionAlaVista ---
 
     
@@ -194,6 +322,47 @@ public class ConfigApplicationManager {
         
         System.out.println("  [ConfigAppManager] Sincronización de UI final completada.");
     } // --- Fin del método sincronizarUIFinal ---
+    
+    
+    /**
+     * Revisa si los colores personalizados de fondo existen en la configuración.
+     * Si no existen (porque es el primer arranque o se borró el config), 
+     * los "siembra" en el mapa de configuración EN MEMORIA con los colores 
+     * por defecto de los otros temas disponibles.
+     */
+    private void seedInitialCustomColors() {
+        System.out.println("  [ConfigAppManager] Verificando y sembrando colores de fondo por defecto...");
+
+        // Lista de las claves que vamos a revisar.
+        List<String> colorKeys = List.of(
+            ConfigKeys.BACKGROUND_CUSTOM_COLOR_1,
+            ConfigKeys.BACKGROUND_CUSTOM_COLOR_2,
+            ConfigKeys.BACKGROUND_CUSTOM_COLOR_3,
+            ConfigKeys.BACKGROUND_CUSTOM_COLOR_4
+        );
+
+        // Obtenemos la lista ordenada de temas y quitamos el actual para tener los "otros".
+        List<Tema> otrosTemas = new java.util.ArrayList<>(themeManager.getTemasOrdenados());
+        otrosTemas.remove(themeManager.getTemaActual());
+
+        for (int i = 0; i < colorKeys.size(); i++) {
+            String key = colorKeys.get(i);
+            
+            // Usamos containsKey() para una comprobación de solo lectura.
+            if (!config.getConfigMap().containsKey(key)) {
+                
+                if (i < otrosTemas.size()) {
+                    Color colorPorDefecto = otrosTemas.get(i).colorFondoSecundario();
+                    
+                    // "Sembramos" el valor en el mapa de configuración en memoria.
+                    // Este es el ÚNICO lugar (fuera de la acción del usuario) donde se escribe en config.
+                    config.setColor(key, colorPorDefecto);
+                    
+                    System.out.println("    -> SEMBRADO: La clave '" + key + "' se ha inicializado en memoria con el color del tema '" + otrosTemas.get(i).nombreInterno() + "'.");
+                }
+            }
+        }
+    } // --- FIN DEL Metodo seedInitialCustomColors ---
     
 
     public void actualizarEstadoControlesZoom(boolean zoomManualActivado, boolean resetHabilitado) {
@@ -291,54 +460,54 @@ public class ConfigApplicationManager {
             button.setSelected(isSelected);
         }
 
-        // 2. Control de habilitación/deshabilitación:
-        // Para JToggleButtons que actúan como radios (seleccionadores de modo),
-        // no los deshabilitamos cuando están seleccionados. Esto es crucial
-        // para que FlatLaf les aplique los colores de 'selected' correctamente
-        // y para que nuestro setBackground manual funcione.
-        if (button instanceof JToggleButton) {
-            // Un JToggleButton que está seleccionado y forma parte de un ButtonGroup
-            // generalmente no se deshabilita, sino que simplemente está "presionado".
-            // La visibilidad de su color de fondo depende de setOpaque(true).
-            // Lo habilitamos siempre (a menos que la Action misma esté globalmente deshabilitada).
-            // setEnabled(true); // Podría causar problemas si la acción debería estar deshabilitada por otra razón.
-            // Mejor: si la Action está deshabilitada (por ejemplo, porque no hay imagen), que se mantenga deshabilitada.
-            // Si la Action está habilitada, entonces el botón también lo estará.
-            button.setEnabled(action.isEnabled()); // <-- Asegura que el estado enabled del botón siga al de la Action.
-                                                  // <-- Y NO LO DESHabilita si está seleccionado.
-        } else {
-            // Para otros tipos de AbstractButton, la lógica anterior de habilitación podría ser válida
-            // si se quiere que se deshabiliten visualmente cuando no tienen sentido.
-            // Para JButtons normales, su estado 'enabled' no afecta el color de fondo de esta manera.
-            button.setEnabled(action.isEnabled());
-        }
-        // --- FIN CORRECCIÓN CLAVE ---
-
-
-        // --- LÓGICA DE PINTADO MANUAL PARA JToggleButtons ---
-        // (La que ya habíamos acordado y probado que funciona con Color.RED)
-        if (button instanceof JToggleButton) {
-            Tema tema = themeManager.getTemaActual();
-            if (tema == null) {
-                System.err.println("WARN [actualizarAspectoBotonToggle]: Tema actual es nulo. No se pueden aplicar colores manuales.");
-                return; 
-            }
-
-            button.setOpaque(true);
-            button.setContentAreaFilled(true); 
-
-            if (isSelected) {
-                button.setBackground(tema.colorBotonFondoActivado());
-                button.setForeground(tema.colorSeleccionTexto());
-            } else {
-                button.setBackground(tema.colorBotonFondo());
-                button.setForeground(tema.colorBotonTexto());
-            }
-            button.repaint(); 
-            System.out.println("  [ConfigAppManager] Pintado manual aplicado a JToggleButton: " + action.getValue(Action.NAME) + " - Seleccionado: " + isSelected + ", Habilitado: " + button.isEnabled());
-        } else {
-            System.out.println("  [ConfigAppManager] No se aplicó pintado manual a botón tipo: " + button.getClass().getSimpleName());
-        }
+//        // 2. Control de habilitación/deshabilitación:
+//        // Para JToggleButtons que actúan como radios (seleccionadores de modo),
+//        // no los deshabilitamos cuando están seleccionados. Esto es crucial
+//        // para que FlatLaf les aplique los colores de 'selected' correctamente
+//        // y para que nuestro setBackground manual funcione.
+//        if (button instanceof JToggleButton) {
+//            // Un JToggleButton que está seleccionado y forma parte de un ButtonGroup
+//            // generalmente no se deshabilita, sino que simplemente está "presionado".
+//            // La visibilidad de su color de fondo depende de setOpaque(true).
+//            // Lo habilitamos siempre (a menos que la Action misma esté globalmente deshabilitada).
+//            // setEnabled(true); // Podría causar problemas si la acción debería estar deshabilitada por otra razón.
+//            // Mejor: si la Action está deshabilitada (por ejemplo, porque no hay imagen), que se mantenga deshabilitada.
+//            // Si la Action está habilitada, entonces el botón también lo estará.
+//            button.setEnabled(action.isEnabled()); // <-- Asegura que el estado enabled del botón siga al de la Action.
+//                                                  // <-- Y NO LO DESHabilita si está seleccionado.
+//        } else {
+//            // Para otros tipos de AbstractButton, la lógica anterior de habilitación podría ser válida
+//            // si se quiere que se deshabiliten visualmente cuando no tienen sentido.
+//            // Para JButtons normales, su estado 'enabled' no afecta el color de fondo de esta manera.
+//            button.setEnabled(action.isEnabled());
+//        }
+//        // --- FIN CORRECCIÓN CLAVE ---
+//
+//
+//        // --- LÓGICA DE PINTADO MANUAL PARA JToggleButtons ---
+//        // (La que ya habíamos acordado y probado que funciona con Color.RED)
+//        if (button instanceof JToggleButton) {
+//            Tema tema = themeManager.getTemaActual();
+//            if (tema == null) {
+//                System.err.println("WARN [actualizarAspectoBotonToggle]: Tema actual es nulo. No se pueden aplicar colores manuales.");
+//                return; 
+//            }
+//
+//            button.setOpaque(true);
+//            button.setContentAreaFilled(true); 
+//
+//            if (isSelected) {
+//                button.setBackground(tema.colorBotonFondoActivado());
+//                button.setForeground(tema.colorSeleccionTexto());
+//            } else {
+//                button.setBackground(tema.colorBotonFondo());
+//                button.setForeground(tema.colorBotonTexto());
+//            }
+//            button.repaint(); 
+//            System.out.println("  [ConfigAppManager] Pintado manual aplicado a JToggleButton: " + action.getValue(Action.NAME) + " - Seleccionado: " + isSelected + ", Habilitado: " + button.isEnabled());
+//        } else {
+//            System.out.println("  [ConfigAppManager] No se aplicó pintado manual a botón tipo: " + button.getClass().getSimpleName());
+//        }
     } // --- Fin del método actualizarAspectoBotonToggle ---
     
     
@@ -358,5 +527,9 @@ public class ConfigApplicationManager {
         this.actionMap = Objects.requireNonNull(actionMap);
     } // --- Fin del método setActionMap ---
     
-	
+    public void setBackgroundControlManager(BackgroundControlManager backgroundControlManager) {
+        this.backgroundControlManager = Objects.requireNonNull(backgroundControlManager);
+    }
+    
+    
 } // --- FIN de la clase ConfigApplicationManager ---

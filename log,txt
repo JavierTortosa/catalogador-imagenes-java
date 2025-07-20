@@ -2,17 +2,17 @@ Iniciando Visor de Imágenes V2...
 Mapa de configuración por defecto inicializado con 126 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 211
+Configuración leída. Total claves: 215
 --- DEBUG PRE-SINCRONIZACIÓN ---
 Tamaño de DEFAULT_CONFIG: 126
-Tamaño de loadedConfig (del archivo): 211
+Tamaño de loadedConfig (del archivo): 215
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
 Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
-!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 410424423
+!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1641313620
 VisorV2.main: Configurando tema claro FlatLightLaf.
 --- Iniciando VisorController (Constructor Simple) ---
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
@@ -23,9 +23,10 @@ VisorV2.main: Configurando tema claro FlatLightLaf.
 [ThemeManager] Aplicando personalizaciones de color globales...
 [ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...
 [ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.
+[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.
 [ThemeManager] Tema inicial 'clear' con personalizaciones instalado.
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 899912070
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 1440544665
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -63,11 +64,13 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 [ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: DPAD_CRUZ
 [ToolbarBuilder] Creando JToggleButton para: cmd.zoom.toggle_to_cursor, Background: java.awt.Color[r=230,g=230,b=230], SelectedBackground: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
+    -> Barra 'controles_imagen_inferior' registrada en ComponentRegistry con la clave: 'toolbar.controles_imagen_inferior'
   [ProjectBuilder] Construyendo el panel del modo proyecto (Dashboard)...
   [ToolbarManager getToolbar] La barra 'acciones_exportacion' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Acciones de Exportación' ---
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'acciones_exportacion'
+    -> Barra 'acciones_exportacion' registrada en ComponentRegistry con la clave: 'toolbar.acciones_exportacion'
   [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.
   [ViewBuilder] Frame principal construido y ensamblado.
     -> VisorView (JFrame) creado.
@@ -101,6 +104,10 @@ Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
   [Controller] Configurando atajos de teclado globales...
   -> Atajos de teclado globales configurados para teclado estándar y numérico.
 --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
+  [ConfigAppManager] Aplicando configuración al Modelo...
+[VisorModel] Inicializando estado por defecto de todos los contextos...
+  -> Configuración del Modelo aplicada.
+  [ConfigAppManager] Verificando y sembrando colores de fondo por defecto...
 [GeneralController] Configurando listeners de entrada globales para todos los modos...
 [GeneralController] Listeners de entrada globales configurados para todos los modos.
 [VisorController Internal] Configurando listeners ESPECÍFICOS de Vista...
@@ -111,8 +118,6 @@ Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
     -> Menú contextual añadido a list.miniaturas.
   [VisorController] Menús Contextuales configurados.
 [GeneralController] Inicializado.
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
 [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
   [AppInitializer] Instalando el previsualizador de miniaturas...
 WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defecto.
@@ -122,15 +127,22 @@ WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defect
   [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
       -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
     [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+
+--- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
+--- [BackgroundControlManager] Enlace de controles completado. 7 botones de fondo gestionados. ---
+[BackgroundControlManager] Sincronizando selección de botón de color...
+    -> BackgroundControlManager inicializado y enlazado a la UI.
 --- [EDT] Inicialización de UI completada. Carga de datos programada. ---
   [ToolbarManager getToolbar] La barra 'navegacion' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'navegacion'
+    -> Barra 'navegacion' registrada en ComponentRegistry con la clave: 'toolbar.navegacion'
   [ToolbarManager getToolbar] La barra 'edicion' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Edición' ---
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'edicion'
+    -> Barra 'edicion' registrada en ComponentRegistry con la clave: 'toolbar.edicion'
   [ToolbarManager getToolbar] La barra 'zoom' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
@@ -150,6 +162,7 @@ WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defect
 [ToolbarBuilder] Creando JToggleButton para: cmd.zoom.tipo.especificado, Background: java.awt.Color[r=230,g=230,b=230], SelectedBackground: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
       -> Botón 'null' añadido al ButtonGroup.
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'zoom'
+    -> Barra 'zoom' registrada en ComponentRegistry con la clave: 'toolbar.zoom'
   [ToolbarManager getToolbar] La barra 'vistas' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Vistas' ---
@@ -161,10 +174,12 @@ WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defect
 [ToolbarBuilder] Creando JToggleButton para: cmd.vista.grid, Background: java.awt.Color[r=230,g=230,b=230], SelectedBackground: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
       -> Botón 'null' añadido al ButtonGroup.
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'vistas'
+    -> Barra 'vistas' registrada en ComponentRegistry con la clave: 'toolbar.vistas'
   [ToolbarManager getToolbar] La barra 'utils' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'utils'
+    -> Barra 'utils' registrada en ComponentRegistry con la clave: 'toolbar.utils'
   [ToolbarManager getToolbar] La barra 'toggle' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
@@ -173,12 +188,14 @@ WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defect
 [ToolbarBuilder] Creando JToggleButton para: cmd.vista.toggle.always_on_top, Background: java.awt.Color[r=230,g=230,b=230], SelectedBackground: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 [ToolbarBuilder] Creando JToggleButton para: cmd.vista.pantalla_completa, Background: java.awt.Color[r=230,g=230,b=230], SelectedBackground: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'toggle'
+    -> Barra 'toggle' registrada en ComponentRegistry con la clave: 'toolbar.toggle'
   [ToolbarManager getToolbar] La barra 'proyectoVista' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Proyecto' ---
 [ToolbarBuilder] Creando JToggleButton para: cmd.proyecto.toggle_marca, Background: java.awt.Color[r=230,g=230,b=230], SelectedBackground: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 [ToolbarBuilder] Creando JToggleButton para: cmd.zoom.manual.toggle, Background: java.awt.Color[r=230,g=230,b=230], SelectedBackground: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyectoVista'
+    -> Barra 'proyectoVista' registrada en ComponentRegistry con la clave: 'toolbar.proyectoVista'
   [ToolbarManager getToolbar] La barra 'modo' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Modo' ---
@@ -193,10 +210,12 @@ WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defect
 ComponentRegistry WARN: La clave 'interfaz.boton.modo.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
       -> Botón 'null' añadido al ButtonGroup.
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'modo'
+    -> Barra 'modo' registrada en ComponentRegistry con la clave: 'toolbar.modo'
   [ToolbarManager getToolbar] La barra 'apoyo' no está en caché. Construyéndola ahora...
 
 --- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'apoyo'
+    -> Barra 'apoyo' registrada en ComponentRegistry con la clave: 'toolbar.apoyo'
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
@@ -221,68 +240,17 @@ Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
   [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...
     -> Aplicando estado inicial de fondo a cuadros desde config: false
+
+--- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
+--- [BackgroundControlManager] Enlace de controles completado. 7 botones de fondo gestionados. ---
+[BackgroundControlManager] Sincronizando selección de botón de color...
     -> Configuración básica de Vista aplicada.
   [ConfigAppManager] Sincronizando UI final...
     -> Sincronizando estado lógico de todos los botones toggle...
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Zoom Especificado - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Modo Visualizador - Seleccionado: true, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Ajustar a Alto - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Alternar Subcarpetas - Seleccionado: true, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Zoom Automático - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Mantener Proporciones - Seleccionado: true, Habilitado: true
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Pantalla Completa - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Escalar para Rellenar - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Ver Proyecto - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Mantener Ventana Siempre Encima - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Marcar/Desmarcar para Proyecto - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Zoom Fijo - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Ajustar a Pantalla - Seleccionado: true, Habilitado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JCheckBoxMenuItem
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Ajustar a Ancho - Seleccionado: false, Habilitado: true
     -> Sincronización de estado lógico de toggles completada.
   [ConfigAppManager] Sincronización de UI final completada.
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: cyberpunk-city-anime-girl-5k-0e-1.png
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: bam september.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -290,70 +258,49 @@ Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
   -> Vista actualizada a estado vacío (imagen principal y miniaturas).
 [ThumbnailService] Caché de miniaturas limpiado.
   -> Caché de miniaturas limpiado.
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Marcar/Desmarcar para Proyecto - Seleccionado: false, Habilitado: false
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
 [Controller] Limpieza de UI y Modelo completada.
 [Dialogo Progreso] Asignando worker: BuscadorArchivosWorker
   [Worker BG] Iniciando búsqueda en D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources con profundidad 2147483647
-  [Worker BG] Files.walk terminado. Archivos encontrados: 344
+  [Worker BG] Files.walk terminado. Archivos encontrados: 346
 [Worker EDT] Método done() alcanzado.
 [Dialogo Progreso] Solicitud de cierre.
   -> [EDT] Cerrando diálogo...
   -> [EDT] Diálogo cerrado y desechado.
-    WORKER HA TERMINADO. Número de archivos encontrados: 344
-    -> Ordenando 344 claves...
+    WORKER HA TERMINADO. Número de archivos encontrados: 346
+    -> Ordenando 346 claves...
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@71772060: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@71772060 actualizado. Nuevo tamaño: 344
-[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 344
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png'
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 899912070
+### DEBUG CONTEXT: ListContext@62e40e4c: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@62e40e4c actualizado. Nuevo tamaño: 346
+[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 346
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1440544665
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
+[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
   [AppInitializer Callback] Carga inicial de imágenes completada. Llamando a sincronización maestra de UI...
 --- [GeneralController] INICIANDO SINCRONIZACIÓN MAESTRA DE UI ---
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Ver Proyecto - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Modo Visualizador - Seleccionado: true, Habilitado: true
 [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
   [VisorController] Sincronizando componentes específicos del modo Visualizador...
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=false
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
   [Controller] Sincronizando estado visual de Radios Subcarpetas a: Mostrar Subcarpetas
   [Controller] Estado visual de Radios Subcarpetas sincronizado.
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Alternar Subcarpetas - Seleccionado: true, Habilitado: true
 --- [GeneralController] SINCRONIZACIÓN MAESTRA DE UI COMPLETADA ---
   -> Solicitando repintado inicial de listaMiniaturas.
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Marcar/Desmarcar para Proyecto - Seleccionado: false, Habilitado: true
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
 [GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
   [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@1adf87c8: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@1adf87c8 actualizado. Nuevo tamaño: 35
+### DEBUG CONTEXT: ListContext@7e47665c: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@7e47665c actualizado. Nuevo tamaño: 35
     -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): 35
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
@@ -371,31 +318,26 @@ Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.auto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.ancho, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.alto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.rellenar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.fijo, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.especificado, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.toggle.mantener_proporciones, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.toggle.always_on_top, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.pantalla_completa, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.switch_to_visualizador, Selected: false, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.vista.switch_to_visualizador, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.proyecto.gestionar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: SINGLE_IMAGE, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: POLAROID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Ver Proyecto - Seleccionado: true, Habilitado: true
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Modo Visualizador - Seleccionado: false, Habilitado: true
 [GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
   [SwitchDisplayModeAction] Sincronizada acción 'Vista Imagen Única'. Seleccionado: true
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
 [GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
   [GeneralController - invokeLater] Restauración de UI para PROYECTO completada.
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg'
@@ -409,23 +351,24 @@ ComponentRegistry WARN: La clave 'interfaz.boton.proyecto.todo_funcionalidad_pen
 ComponentRegistry WARN: La clave 'interfaz.boton.proyecto.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
 ComponentRegistry WARN: La clave 'interfaz.boton.proyecto.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto'
+    -> Barra 'proyecto' registrada en ComponentRegistry con la clave: 'toolbar.proyecto'
 Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.auto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.ancho, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.alto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.rellenar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.fijo, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.especificado, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.toggle.mantener_proporciones, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.toggle.always_on_top, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.pantalla_completa, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.switch_to_visualizador, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.gestionar, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.proyecto.gestionar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: SINGLE_IMAGE, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
@@ -433,87 +376,356 @@ Botón: POLAROID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230]
 Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Marcar/Desmarcar para Proyecto - Seleccionado: true, Habilitado: true
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
-[AplicarModoZoomAction] El modo 'Ajustar a Pantalla' ya está activo. No se hace nada.
-[SwitchDisplayModeAction] Acción disparada para cambiar a: SINGLE_IMAGE
-[GeneralController] Intento de cambiar al DisplayMode que ya está activo: SINGLE_IMAGE. No se hace nada.
-[SwitchDisplayModeAction] Acción disparada para cambiar a: POLAROID
-
---- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: SINGLE_IMAGE -> POLAROID ---
-[Model] Cambiando modo de visualización de contenido de SINGLE_IMAGE a: POLAROID
-[ViewManager] Vista cambiada en 'container.displaymodes' a: VISTA_POLAROID
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-[GeneralController] Sincronizados botones de DisplayMode. Activo: POLAROID
---- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a POLAROID ---
-
-[SwitchDisplayModeAction] Acción disparada para cambiar a: SINGLE_IMAGE
-
---- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: POLAROID -> SINGLE_IMAGE ---
-[Model] Cambiando modo de visualización de contenido de POLAROID a: SINGLE_IMAGE
-[ViewManager] Vista cambiada en 'container.displaymodes' a: VISTA_SINGLE_IMAGE
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-[GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
---- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a SINGLE_IMAGE ---
-
-[SwitchDisplayModeAction] Acción disparada para cambiar a: POLAROID
-
---- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: SINGLE_IMAGE -> POLAROID ---
-[Model] Cambiando modo de visualización de contenido de SINGLE_IMAGE a: POLAROID
-[ViewManager] Vista cambiada en 'container.displaymodes' a: VISTA_POLAROID
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-[GeneralController] Sincronizados botones de DisplayMode. Activo: POLAROID
---- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a POLAROID ---
-
-[SwitchDisplayModeAction] Acción disparada para cambiar a: GRID
-
---- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: POLAROID -> GRID ---
-[Model] Cambiando modo de visualización de contenido de POLAROID a: GRID
-[ViewManager] Vista cambiada en 'container.displaymodes' a: VISTA_GRID
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-[GeneralController] Sincronizados botones de DisplayMode. Activo: GRID
---- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a GRID ---
-
-[SwitchDisplayModeAction] Acción disparada para cambiar a: SINGLE_IMAGE
-
---- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: GRID -> SINGLE_IMAGE ---
-[Model] Cambiando modo de visualización de contenido de GRID a: SINGLE_IMAGE
-[ViewManager] Vista cambiada en 'container.displaymodes' a: VISTA_SINGLE_IMAGE
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-[GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
---- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a SINGLE_IMAGE ---
-
+[ChangeListener] Pestaña 'Exportar' seleccionada. Solicitando preparación de cola...
+[ExportQueueManager] Preparando cola para 31 imágenes.
+[ExportQueueManager] Preparación de cola finalizada.
+[ProjectController] Modelo de tabla de exportación actualizado.
+  [ProjectController] Estado de exportación UI actualizado. Puede exportar: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\PLAKit\Starwars darth vader!!.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 34). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/PLAKit/Starwars darth vader!!.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 30
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 33). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 29
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Star Wars Easter.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 32). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Star Wars Easter.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 28
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Middle_Finger_Yoda.png
+  -> Imagen encontrada en el contexto del proyecto (índice 31). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Middle_Finger_Yoda.png'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 27
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Hex3D GroguHeart.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 30). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Hex3D GroguHeart.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 26
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\Stormparty - Vader - ND032.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 29). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/Stormparty - Vader - ND032.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 25
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\ChibiSTL - Darth Vader Chibi_@stl_zone.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/ChibiSTL - Darth Vader Chibi_@stl_zone.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\ChibiSTL - Darth Vader Chibi_@stl_zone.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/ChibiSTL - Darth Vader Chibi_@stl_zone.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\Stormparty - Vader - ND032.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 29). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/Stormparty - Vader - ND032.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 25
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Hex3D GroguHeart.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 30). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Hex3D GroguHeart.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 26
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Middle_Finger_Yoda.png
+  -> Imagen encontrada en el contexto del proyecto (índice 31). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Middle_Finger_Yoda.png'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 27
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Star Wars Easter.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 32). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Star Wars Easter.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 28
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 33). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 29
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\PLAKit\Starwars darth vader!!.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 34). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/PLAKit/Starwars darth vader!!.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 30
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 33). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 29
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Star Wars Easter.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 32). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Star Wars Easter.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 28
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Middle_Finger_Yoda.png
+  -> Imagen encontrada en el contexto del proyecto (índice 31). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Middle_Finger_Yoda.png'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 27
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Hex3D GroguHeart.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 30). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Hex3D GroguHeart.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 26
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\Stormparty - Vader - ND032.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 29). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/Stormparty - Vader - ND032.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 25
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\ChibiSTL - Darth Vader Chibi_@stl_zone.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/ChibiSTL - Darth Vader Chibi_@stl_zone.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Super heroes\kratos.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 20). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 16
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\The Emperor on Throne Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 19). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 15
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\STORM.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 18). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/STORM.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 14
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\Mini Ewok.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 17). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 13
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Grogu as Darth Vader Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 16). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 12
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Darth Vader Mythos Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 15). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 11
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Rocket pig Stout hearted\Rocket pig Stout hearted heros 2\Rocket pig Stout hearted heros 2\Ogre.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 14). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 10
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Ralph Mcquarrie Luke vs Vader Chibi.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 13). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 9
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\PlaKit – Star Wars – Stormtrooper – 3D Print Model.png
+  -> Imagen encontrada en el contexto del proyecto (índice 12). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 8
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Star Wars, Pack 1.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 11). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 7
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Matrix.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 10). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 6
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\STREET FIGHTER - CHIBI KEN.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 9). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 5
+[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\Silver+Johnny.jpg
+  -> Imagen encontrada en el contexto del proyecto (índice 8). Cargando...
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg'
+  [navegarTablaExportacionConRueda] Selector movido a la fila: 4
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg'
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=false
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
 [SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR.
 
 --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: PROYECTO -> VISUALIZADOR ---
@@ -525,66 +737,62 @@ Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
 
   [GeneralController - invokeLater] Ejecutando restauración de UI para: VISUALIZADOR
     -> Restaurando UI para el modo VISUALIZADOR...
-      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 344
-### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: 'cyberpunk-city-anime-girl-5k-0e-1.png'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png'
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 899912070
+      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 346
+### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: 'bam september.jpg'
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1440544665
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
-[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
+[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
 [GeneralController] Intento de cambiar al DisplayMode que ya está activo: SINGLE_IMAGE. No se hace nada.
   [GeneralController] Actualizando estado de la UI para el modo: VISUALIZADOR
   [GeneralController] Estado de la UI actualizado.
 
 --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
-Botón: cmd.proyecto.toggle_marca, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.toggle_marca, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.auto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.ancho, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.alto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.rellenar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.fijo, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.especificado, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.toggle.mantener_proporciones, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.toggle.always_on_top, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.pantalla_completa, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.switch_to_visualizador, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.gestionar, Selected: false, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.proyecto.gestionar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: SINGLE_IMAGE, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: POLAROID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Ver Proyecto - Seleccionado: false, Habilitado: true
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Modo Visualizador - Seleccionado: true, Habilitado: true
 [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
-  [ConfigAppManager] No se aplicó pintado manual a botón tipo: JRadioButtonMenuItem
 [GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
   [GeneralController - invokeLater] Restauración de UI para VISUALIZADOR completada.
   -> Solicitando repintado inicial de listaMiniaturas.
-Botón: cmd.proyecto.toggle_marca, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.toggle_marca, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.auto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.ancho, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.alto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.rellenar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.fijo, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.zoom.tipo.especificado, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.toggle.mantener_proporciones, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.toggle.always_on_top, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.vista.pantalla_completa, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.switch_to_visualizador, Selected: true, Background: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
+Botón: cmd.vista.switch_to_visualizador, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: cmd.proyecto.gestionar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
@@ -593,18 +801,13 @@ Botón: POLAROID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230]
 Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
 --- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [ConfigAppManager] Pintado manual aplicado a JToggleButton: Marcar/Desmarcar para Proyecto - Seleccionado: false, Habilitado: true
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Tamaño Real (100%)
-[VisorController] Sincronización de UI de Zoom completada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla
-[VisorController] Sincronización de UI de Zoom completada.
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final de todos los contextos...
-  [Guardar] Estado Visualizador: UltimaKey=cyberpunk-city-anime-girl-5k-0e-1.png
-  [Guardar] Estado Proyecto: Foco=seleccion, SelKey=, DescKey=
-!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 410424423
+  [Guardar] Estado Visualizador: UltimaKey=bam september.jpg
+  [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=
+!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1641313620
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
@@ -613,7 +816,7 @@ Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 211
+Claves a guardar/actualizar: 215
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

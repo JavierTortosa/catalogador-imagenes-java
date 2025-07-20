@@ -229,7 +229,7 @@ public class InfobarStatusManager {
         
         if (esVisible) {
             // Lógica existente para el texto y el tooltip (NO SE MODIFICA)
-            if (modo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM || modo == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
+            if (modo == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {// || modo == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
                 double zoomFactorModelo = model.getZoomFactor();
                 double porcentajeModelo = zoomFactorModelo * 100.0;
                 porcentajeLabel.setText("%"+String.format("Z: %.0f%%", porcentajeModelo));

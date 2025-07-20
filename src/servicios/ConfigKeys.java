@@ -192,6 +192,13 @@ public final class ConfigKeys {
     public static final String HERRAMIENTAS_ZOOM_BOTON_ZOOM_MANUAL_VISIBLE = "interfaz.herramientas.zoom.boton.zoom_manual.visible";
     public static final String HERRAMIENTAS_ZOOM_BOTON_RESET_VISIBLE = "interfaz.herramientas.zoom.boton.reset.visible";
 
+    
+    // --- Claves para los colores de fondo personalizados ---
+    public static final String BACKGROUND_CUSTOM_COLOR_1 = "ui.background.custom.color.1";
+    public static final String BACKGROUND_CUSTOM_COLOR_2 = "ui.background.custom.color.2";
+    public static final String BACKGROUND_CUSTOM_COLOR_3 = "ui.background.custom.color.3";
+    public static final String BACKGROUND_CUSTOM_COLOR_4 = "ui.background.custom.color.4";
+    
     // ... (Añade aquí las claves para el resto de barras: vista, proyecto, etc.) ...
     
     

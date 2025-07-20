@@ -400,125 +400,157 @@ public class ViewBuilder {
     } // --- Fin del método createRightSplitComponent ---
     
     
-	private JToolBar createBackgroundControlPanel() {
-	    if (this.toolbarManager == null) {
-	        System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
-	        return new JToolBar();
-	    }
+//    private JToolBar createBackgroundControlPanel() {
+//        if (this.toolbarManager == null) {
+//            System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
+//            return new JToolBar();
+//        }
+//        
+//        // 1. Obtenemos la barra, que ya tiene los botones creados por ToolbarBuilder
+//        JToolBar imageControlsToolbar = toolbarManager.getToolbar("controles_imagen_inferior");
+//        if (imageControlsToolbar == null) {
+//            System.err.println("WARN [ViewBuilder...]: La toolbar 'controles_imagen_inferior' no se encontró.");
+//            return new JToolBar();
+//        }
+//
+//        // 2. Simplemente la configuramos y la devolvemos. ¡Toda la lógica de pintado se ha ido!
+//        imageControlsToolbar.setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 1));
+//        imageControlsToolbar.setOpaque(false);
+//
+//        return imageControlsToolbar;
+//    } // --- FIN del Metodo createBackgroundControlPanel ---
+    
+    
+    
+    private JToolBar createBackgroundControlPanel() {
+        if (this.toolbarManager == null) {
+            System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
+            // Devolvemos una barra vacía para evitar NullPointerExceptions más adelante.
+            return new JToolBar(); 
+        }
+        
+        // Simplemente obtenemos la barra del manager.
+        // Toda la lógica de pintado, listeners, etc., se hará después por el BackgroundControlManager.
+        JToolBar imageControlsToolbar = toolbarManager.getToolbar("controles_imagen_inferior");
 
-	    JToolBar imageControlsToolbar = toolbarManager.getToolbar("controles_imagen_inferior");
-	    if (imageControlsToolbar == null) {
-	        System.err.println("WARN [ViewBuilder.createBackgroundControlPanel]: La toolbar 'controles_imagen_inferior' no se encontró en ToolbarManager.");
-	        return new JToolBar();
-	    }
+        if (imageControlsToolbar == null) {
+            System.err.println("WARN [ViewBuilder...]: La toolbar 'controles_imagen_inferior' no se encontró. Se devolverá una barra vacía.");
+            return new JToolBar();
+        }
 
-	    imageControlsToolbar.setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 1));
-	    imageControlsToolbar.setOpaque(false);
+        // Configuramos el layout y la opacidad, pero NADA MÁS.
+        imageControlsToolbar.setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 1));
+        imageControlsToolbar.setOpaque(false);
 
-	    this.backgroundControlButtons.clear(); 
-	    
-	    for (java.awt.Component comp : imageControlsToolbar.getComponents()) {
-	        if (comp instanceof JButton) {
-	            JButton button = (JButton) comp;
-	            
-	            ButtonType buttonType = (ButtonType) button.getClientProperty("buttonType");
-	            
-	            if (buttonType == ButtonType.TRANSPARENT) {
-	                String baseIconName = (String) button.getClientProperty("baseIconName");
-	                String customOverlayKey = (String) button.getClientProperty("customOverlayKey");
-	                int iconSize = 16;
-
-	                if ("checkered".equals(customOverlayKey)) {
-	                    if (iconUtils.getCheckeredOverlayIcon(baseIconName, iconSize, iconSize) != null) {
-	                        button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIconName, iconSize, iconSize));
-	                    }
-	                    backgroundControlButtons.add(button);
-	                } else if (customOverlayKey != null) {
-	                    Color colorFondoOriginalTema = themeManager.getFondoSecundarioParaTema(customOverlayKey);
-	                    if (colorFondoOriginalTema == null) colorFondoOriginalTema = Color.GRAY;
-	                    
-	                    Color colorParaTintar = colorFondoOriginalTema;
-	                    int luminosidad = colorFondoOriginalTema.getRed() + colorFondoOriginalTema.getGreen() + colorFondoOriginalTema.getBlue();
-	                    if (luminosidad < 150) { 
-	                        colorParaTintar = aclararColor(colorFondoOriginalTema, 70);
-	                    } else if (luminosidad > 600) { 
-	                        colorParaTintar = oscurecerColor(colorFondoOriginalTema, 70);
-	                    }
-	                    
-	                    ImageIcon mascaraIcono = iconUtils.getScaledCommonIcon(baseIconName, iconSize, iconSize);
-	                    
-	                    if (mascaraIcono != null) {
-	                        java.awt.image.BufferedImage tintedImage = new java.awt.image.BufferedImage(
-	                            iconSize, iconSize, java.awt.image.BufferedImage.TYPE_INT_ARGB);
-	                        java.awt.Graphics2D g2d = tintedImage.createGraphics();
-	                        
-	                        g2d.drawImage(mascaraIcono.getImage(), 0, 0, null);
-	                        g2d.setComposite(java.awt.AlphaComposite.SrcAtop);
-	                        g2d.setColor(colorParaTintar);
-	                        g2d.fillRect(0, 0, iconSize, iconSize);
-	                        g2d.dispose();
-	                        
-	                        button.setIcon(new javax.swing.ImageIcon(tintedImage));
-	                    }
-	                    backgroundControlButtons.add(button);
-	                }
-	                
-	                button.addMouseListener(new MouseAdapter() {
-	                    @Override
-	                    public void mousePressed(MouseEvent e) {
-	                        if (customOverlayKey != null) {
-	                            selectBackgroundControlButton(button);
-	                        }
-	                    }
-	                });
-	            }
-	        }
-	    }
-
-	    SwingUtilities.invokeLater(() -> {
-	        String currentThemeName = themeManager.getTemaActual().nombreInterno();
-	        JButton defaultButton = null;
-	        for (JButton btn : backgroundControlButtons) {
-	            String overlayKey = (String) btn.getClientProperty("customOverlayKey");
-	            if (currentThemeName.equals(overlayKey)) {
-	                defaultButton = btn;
-	                break;
-	            }
-	        }
-	        if (defaultButton != null) {
-	            selectBackgroundControlButton(defaultButton);
-	        } else {
-	             boolean isCheckered = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false);
-	             if (isCheckered) {
-	                for (JButton btn : backgroundControlButtons) {
-	                    if ("checkered".equals(btn.getClientProperty("customOverlayKey"))) {
-	                        selectBackgroundControlButton(btn);
-	                        break;
-	                    }
-	                }
-	             }
-	        }
-	    });
-
-	    return imageControlsToolbar;
-	} // --- Fin del método createBackgroundControlPanel ---
+        // Devolvemos la barra "virgen" para que otros la configuren.
+        return imageControlsToolbar;
+    }
+    
+//	private JToolBar createBackgroundControlPanel() {
+//	    if (this.toolbarManager == null) {
+//	        System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
+//	        return new JToolBar();
+//	    }
+//
+//	    JToolBar imageControlsToolbar = toolbarManager.getToolbar("controles_imagen_inferior");
+//	    if (imageControlsToolbar == null) {
+//	        System.err.println("WARN [ViewBuilder.createBackgroundControlPanel]: La toolbar 'controles_imagen_inferior' no se encontró en ToolbarManager.");
+//	        return new JToolBar();
+//	    }
+//
+//	    imageControlsToolbar.setLayout(new FlowLayout(FlowLayout.RIGHT, 3, 1));
+//	    imageControlsToolbar.setOpaque(false);
+//
+//	    this.backgroundControlButtons.clear(); 
+//	    
+//	    for (java.awt.Component comp : imageControlsToolbar.getComponents()) {
+//	        if (comp instanceof JButton) {
+//	            JButton button = (JButton) comp;
+//	            
+//	            ButtonType buttonType = (ButtonType) button.getClientProperty("buttonType");
+//	            
+//	            if (buttonType == ButtonType.TRANSPARENT) {
+//	                String baseIconName = (String) button.getClientProperty("baseIconName");
+//	                String customOverlayKey = (String) button.getClientProperty("customOverlayKey");
+//	                int iconSize = 16;
+//
+//	                if ("checkered".equals(customOverlayKey)) {
+//	                    if (iconUtils.getCheckeredOverlayIcon(baseIconName, iconSize, iconSize) != null) {
+//	                        button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIconName, iconSize, iconSize));
+//	                    }
+//	                    backgroundControlButtons.add(button);
+//	                } else if (customOverlayKey != null) {
+//	                    Color colorFondoOriginalTema = themeManager.getFondoSecundarioParaTema(customOverlayKey);
+//	                    if (colorFondoOriginalTema == null) colorFondoOriginalTema = Color.GRAY;
+//	                    
+//	                    Color colorParaTintar = colorFondoOriginalTema;
+//	                    int luminosidad = colorFondoOriginalTema.getRed() + colorFondoOriginalTema.getGreen() + colorFondoOriginalTema.getBlue();
+//	                    if (luminosidad < 150) { 
+//	                        colorParaTintar = aclararColor(colorFondoOriginalTema, 70);
+//	                    } else if (luminosidad > 600) { 
+//	                        colorParaTintar = oscurecerColor(colorFondoOriginalTema, 70);
+//	                    }
+//	                    
+//	                    ImageIcon mascaraIcono = iconUtils.getScaledCommonIcon(baseIconName, iconSize, iconSize);
+//	                    
+//	                    if (mascaraIcono != null) {
+//	                        java.awt.image.BufferedImage tintedImage = new java.awt.image.BufferedImage(
+//	                            iconSize, iconSize, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+//	                        java.awt.Graphics2D g2d = tintedImage.createGraphics();
+//	                        
+//	                        g2d.drawImage(mascaraIcono.getImage(), 0, 0, null);
+//	                        g2d.setComposite(java.awt.AlphaComposite.SrcAtop);
+//	                        g2d.setColor(colorParaTintar);
+//	                        g2d.fillRect(0, 0, iconSize, iconSize);
+//	                        g2d.dispose();
+//	                        
+//	                        button.setIcon(new javax.swing.ImageIcon(tintedImage));
+//	                    }
+//	                    backgroundControlButtons.add(button);
+//	                }
+//	                
+//	                button.addMouseListener(new MouseAdapter() {
+//	                    @Override
+//	                    public void mousePressed(MouseEvent e) {
+//	                        if (customOverlayKey != null) {
+//	                            selectBackgroundControlButton(button);
+//	                        }
+//	                    }
+//	                });
+//	            }
+//	        }
+//	    }
+//
+//	    SwingUtilities.invokeLater(() -> {
+//	        String currentThemeName = themeManager.getTemaActual().nombreInterno();
+//	        JButton defaultButton = null;
+//	        for (JButton btn : backgroundControlButtons) {
+//	            String overlayKey = (String) btn.getClientProperty("customOverlayKey");
+//	            if (currentThemeName.equals(overlayKey)) {
+//	                defaultButton = btn;
+//	                break;
+//	            }
+//	        }
+//	        if (defaultButton != null) {
+//	            selectBackgroundControlButton(defaultButton);
+//	        } else {
+//	             boolean isCheckered = configuration.getBoolean("interfaz.menu.vista.fondo_a_cuadros.seleccionado", false);
+//	             if (isCheckered) {
+//	                for (JButton btn : backgroundControlButtons) {
+//	                    if ("checkered".equals(btn.getClientProperty("customOverlayKey"))) {
+//	                        selectBackgroundControlButton(btn);
+//	                        break;
+//	                    }
+//	                }
+//	             }
+//	        }
+//	    });
+//
+//	    return imageControlsToolbar;
+//	} // --- Fin del método createBackgroundControlPanel ---
 	
 
-    private Color aclararColor(Color colorOriginal, int cantidadAclarar) {
-        if (colorOriginal == null) return Color.LIGHT_GRAY;
-        int r = Math.min(255, colorOriginal.getRed() + cantidadAclarar);
-        int g = Math.min(255, colorOriginal.getGreen() + cantidadAclarar);
-        int b = Math.min(255, colorOriginal.getBlue() + cantidadAclarar);
-        return new Color(r, g, b);
-    } // --- Fin del método aclararColor ---
-
-    private Color oscurecerColor(Color colorOriginal, int cantidadOscurecer) {
-        if (colorOriginal == null) return Color.DARK_GRAY;
-        int r = Math.max(0, colorOriginal.getRed() - cantidadOscurecer);
-        int g = Math.max(0, colorOriginal.getGreen() - cantidadOscurecer);
-        int b = Math.max(0, colorOriginal.getBlue() - cantidadOscurecer);
-        return new Color(r, g, b);
-    } // --- Fin del método oscurecerColor ---
+    
 
     private void selectBackgroundControlButton(JButton selectedButton) {
         for (JButton btn : backgroundControlButtons) {

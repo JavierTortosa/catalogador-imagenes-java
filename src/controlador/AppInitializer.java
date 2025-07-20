@@ -1,17 +1,20 @@
 package controlador;
 
+import java.awt.Color;
 import java.awt.KeyboardFocusManager;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Executors;
 
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 import controlador.factory.ActionFactory;
+import controlador.managers.BackgroundControlManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager;
@@ -61,6 +64,7 @@ public class AppInitializer {
     private Map<String, Action> actionMap;
     private final VisorController controller;
 	private ViewManager viewManager;
+	private BackgroundControlManager backgroundControlManager;
 
     public AppInitializer(VisorController controller) {
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null en AppInitializer");
@@ -226,6 +230,22 @@ public class AppInitializer {
             
             this.toolbarManager = new ToolbarManager(registry, this.configuration, toolbarBuilder, uiDefSvc, this.model);
             
+            
+            this.backgroundControlManager = new BackgroundControlManager(
+            	    registry, 
+            	    this.themeManager, 
+            	    this.viewManager, 
+            	    this.configuration, 
+            	    this.iconUtils,
+            	    // Puedes crear los bordes aquí o en el ViewBuilder y pasarlos
+            	    BorderFactory.createLineBorder(Color.GRAY),
+            	    BorderFactory.createCompoundBorder(
+            	        BorderFactory.createLineBorder(Color.CYAN, 2),
+            	        BorderFactory.createLineBorder(Color.BLACK)
+            	    )
+            	);
+            
+            
             //======================================================================
             // BLOQUE 2: CABLEADO (INYECCIÓN DE DEPENDENCIAS)
             //======================================================================
@@ -254,7 +274,6 @@ public class AppInitializer {
             this.projectController.setZoomManager(this.zoomManager); 
             this.projectController.setModel(this.model); 
             this.projectController.setController(this.controller);
-            
             this.projectController.setListCoordinator(this.listCoordinator);
             
             this.controller.setProjectController(this.projectController);
@@ -275,9 +294,13 @@ public class AppInitializer {
             this.controller.setToolbarManager(this.toolbarManager);
             this.controller.setActionFactory(this.actionFactory);
             
+            this.controller.setBackgroundControlManager(this.backgroundControlManager);
+            this.themeManager.setConfigApplicationManager(this.configAppManager);
+            
             viewBuilder.setToolbarManager(this.toolbarManager);
             viewBuilder.setViewManager(this.viewManager);
             menuBuilder.setControllerGlobalActionListener(this.controller);
+            this.configAppManager.setBackgroundControlManager(this.backgroundControlManager);
             
             //======================================================================
             // BLOQUE 3: FASE DE INICIALIZACIÓN SECUENCIADA (ORDEN CORREGIDO)
@@ -356,17 +379,10 @@ public class AppInitializer {
             
             this.controller.configurarMenusContextuales();
 
-            
-            // ------------------ FIN DE LAS MODIFICACIONES CLAVE ------------------
-
             this.projectController.configurarListeners();
             this.generalController.initialize();
             
-            
-            
-            
             // Activacion de la Thumnail Preview
-         // --- ESTA ES LA SECCIÓN A CORREGIR ---
             System.out.println("  [AppInitializer] Instalando el previsualizador de miniaturas...");
             JList<String> miniaturasList = registry.get("list.miniaturas");
 
@@ -377,10 +393,6 @@ public class AppInitializer {
             } else {
                 System.err.println("WARN: No se pudo instalar el previsualizador, 'list.miniaturas' no encontrada en el registro.");
             }
-            // --- FIN DE LA CORRECCIÓN ---
-            
-            
-            
             
             this.controller.configurarListenerGlobalDeToolbars();
             
@@ -392,25 +404,25 @@ public class AppInitializer {
             
             this.view.setVisible(true);
             
+            this.backgroundControlManager.initializeAndLinkControls();
+            this.backgroundControlManager.sincronizarSeleccionConEstadoActual();
+            System.out.println("    -> BackgroundControlManager inicializado y enlazado a la UI.");
+            
             SwingUtilities.invokeLater(() -> {
                 String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
                 if (this.model.getCarpetaRaizActual() != null) {
                     this.controller.cargarListaImagenes(imagenInicialKey, () -> {
-                        // --- INICIO DE LA MODIFICACIÓN ---
                         // Una vez que la carga de imágenes ha terminado,
                         // llamamos al método maestro de sincronización en GeneralController.
                         System.out.println("  [AppInitializer Callback] Carga inicial de imágenes completada. Llamando a sincronización maestra de UI...");
                         this.generalController.sincronizarTodaLaUIConElModelo();
-                        // --- FIN DE LA MODIFICACIÓN ---
                     });
                 } else {
                     this.controller.limpiarUI();
-                    // --- INICIO DE LA MODIFICACIÓN ---
                     // También llamamos a la sincronización aquí para que los botones
                     // reflejen un estado "desactivado" correcto.
                     System.out.println("  [AppInitializer] No hay carpeta inicial. Llamando a sincronización maestra de UI...");
                     this.generalController.sincronizarTodaLaUIConElModelo();
-                    // --- FIN DE LA MODIFICACIÓN ---
                 }
             });
 

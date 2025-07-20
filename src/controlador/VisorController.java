@@ -64,6 +64,7 @@ import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
+import controlador.managers.BackgroundControlManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
@@ -115,6 +116,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
     private ProjectController projectController;
     private ToolbarManager toolbarManager;
     private ActionFactory actionFactory;
+    private BackgroundControlManager backgroundControlManager;
 
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
@@ -2368,7 +2370,12 @@ public class VisorController implements ActionListener, ClipboardOwner {
 
         // 3. Actualizar el modelo a través del ZoomManager.
         zoomManager.setPermisoManual(nuevoEstado);
-
+        
+        Action zoomManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+        if (zoomManualAction != null) {
+            zoomManualAction.putValue(Action.SELECTED_KEY, nuevoEstado);
+        }
+        
         // 4. Llamar al método de sincronización maestro para que actualice TODA la UI.
         sincronizarEstadoVisualBotonesYRadiosZoom();
     } // --- FIN del metodo solicitarTogglePaneo ---
@@ -3530,6 +3537,21 @@ public class VisorController implements ActionListener, ClipboardOwner {
 // ********************************************************************************************************* GETTERS Y SETTERS
 // ***************************************************************************************************************************
 	  
+	
+	public void onThemeChanged() {
+	    if (viewManager != null) {
+	        viewManager.refrescarFondoAlPorDefecto();
+	    }
+	    if (actionFactory != null) {
+	        actionFactory.actualizarIconosDeAcciones();
+	    }
+	    if (backgroundControlManager != null) {
+	        backgroundControlManager.repaintAllButtons();
+	        backgroundControlManager.sincronizarSeleccionConEstadoActual();
+	    }
+	    sincronizarEstadoDeTodasLasToggleThemeActions();
+	}// --- FIN del metodo onThemeChanged ---
+	
 
     /**
      * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
@@ -3810,6 +3832,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
     public void setViewManager				(ViewManager viewManager) {this.viewManager = viewManager;}
     public void setProjectController		(ProjectController projectController) {this.projectController = Objects.requireNonNull(projectController);}
     public void setConfigApplicationManager	(ConfigApplicationManager manager) { this.configAppManager = manager; }
+    public void setBackgroundControlManager	(BackgroundControlManager manager) {this.backgroundControlManager = manager;}
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
@@ -3916,61 +3939,142 @@ public class VisorController implements ActionListener, ClipboardOwner {
     
     
     /**
-     * Sincroniza explícitamente el estado visual de los botones y radios de la UI
-     * que controlan el zoom, basándose en el estado actual del VisorModel.
+     * Sincroniza explícitamente el estado visual y lógico de TODOS los botones y radios 
+     * de la UI que controlan el zoom (modos, paneo manual, zoom al cursor, reset),
+     * basándose en el estado actual del VisorModel.
+     * Este es el método maestro para mantener la UI de zoom coherente.
      */
-    
     public void sincronizarEstadoVisualBotonesYRadiosZoom() {
-        if (this.actionMap == null || this.model == null) {
-            System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: actionMap o model nulos.");
+        // 1. Validar que las dependencias críticas no sean nulas.
+        if (this.actionMap == null || this.model == null || this.configAppManager == null) {
+            System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: Dependencias críticas (actionMap, model, configAppManager) nulas. Abortando sincronización.");
             return;
         }
         
-        // 1. Leer el estado final y correcto desde el modelo una sola vez.
-        ZoomModeEnum modoActivo = model.getCurrentZoomMode();
-        boolean permisoManualActivo = model.isZoomHabilitado();
+        // 2. Leer el estado "de verdad" desde el modelo una sola vez.
+        final ZoomModeEnum modoActivoDelModelo = model.getCurrentZoomMode();
+        final boolean permisoManualActivoDelModelo = model.isZoomHabilitado();
+        final boolean zoomAlCursorActivoDelModelo = model.isZoomToCursorEnabled();
 
-        System.out.println("[VisorController] Sincronizando UI de Zoom: Paneo=" + permisoManualActivo + ", Modo=" + modoActivo);
+        System.out.println("[VisorController] Sincronizando UI de Zoom: Paneo=" + permisoManualActivoDelModelo + ", Modo=" + modoActivoDelModelo + ", ZoomAlCursor=" + zoomAlCursorActivoDelModelo);
 
-        // --- INICIO DE LA MODIFICACIÓN ---
-        // El estado del botón de Paneo es gestionado por su propia Action.
-        // Este método ya no necesita manipularlo. Lo eliminamos para evitar conflictos.
-        /*
+        // --- 3. SINCRONIZAR EL BOTÓN DE PANEO MANUAL (ToggleZoomManualAction) ---
         Action zoomManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
         if (zoomManualAction != null) {
-            zoomManualAction.putValue(Action.SELECTED_KEY, permisoManualActivo);
+            // a) Sincronizar el estado lógico (SELECTED_KEY) de la Action.
+            zoomManualAction.putValue(Action.SELECTED_KEY, permisoManualActivoDelModelo);
+            
+            // b) Llamar al ConfigApplicationManager para que aplique el aspecto visual correcto al botón.
+            configAppManager.actualizarAspectoBotonToggle(zoomManualAction, permisoManualActivoDelModelo);
         }
-        */
-        // --- FIN DE LA MODIFICACIÓN ---
 
-        // 2. Sincronizar OTROS componentes que SÍ dependen del estado de paneo.
-        Action resetAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
-        if (resetAction != null) {
-            resetAction.setEnabled(permisoManualActivo);
-        }
-        
-        // Sincronizar el botón de "Zoom al Cursor" (si lo tienes)
-        Action zoomCursorAction = actionMap.get(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
-        if (zoomCursorAction != null) {
-            zoomCursorAction.putValue(Action.SELECTED_KEY, model.isZoomToCursorEnabled());
-        }
-        
-        // 3. Sincronizar los botones de radio de los modos de zoom.
+        // --- 4. SINCRONIZAR LOS BOTONES DE MODO DE ZOOM (AplicarModoZoomAction) ---
+        // Se itera sobre todas las acciones y se filtran las que son de tipo AplicarModoZoomAction.
         for (Action action : actionMap.values()) {
             if (action instanceof controlador.actions.zoom.AplicarModoZoomAction) {
-                AplicarModoZoomAction zoomAction = (AplicarModoZoomAction) action;
-                // Pone el radio button correcto en 'seleccionado'
-                zoomAction.putValue(Action.SELECTED_KEY, (zoomAction.getModoAsociado() == modoActivo));
+                AplicarModoZoomAction zoomModeAction = (AplicarModoZoomAction) action;
+                
+                // a) Determinar si esta acción representa el modo actualmente activo en el modelo.
+                boolean estaAccionDebeEstarSeleccionada = (zoomModeAction.getModoAsociado() == modoActivoDelModelo);
+                
+                // b) Sincronizar el estado lógico (SELECTED_KEY) de la Action.
+                zoomModeAction.putValue(Action.SELECTED_KEY, estaAccionDebeEstarSeleccionada);
+                
+                // c) Llamar al ConfigApplicationManager para que aplique el aspecto visual.
+                configAppManager.actualizarAspectoBotonToggle(zoomModeAction, estaAccionDebeEstarSeleccionada);
             }
         }
         
-        // 4. Actualizar las barras de información (esto no cambia).
-        if (infobarImageManager != null) infobarImageManager.actualizar();
-        if (statusBarManager != null) statusBarManager.actualizar();
-        
-        System.out.println("[VisorController] Sincronización de UI de Zoom completada.");
+        // --- 5. SINCRONIZAR EL BOTÓN DE ZOOM AL CURSOR (ToggleZoomToCursorAction) ---
+        Action zoomCursorAction = actionMap.get(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
+        if (zoomCursorAction != null) {
+            // a) Sincronizar el estado lógico de la Action.
+            zoomCursorAction.putValue(Action.SELECTED_KEY, zoomAlCursorActivoDelModelo);
 
-    } // --- FIN del metodo sincronizarEstadoVisualBotonesYRadiosZoom ---
+            // b) Llamar al ConfigApplicationManager. Aunque este botón no esté en la toolbar principal,
+            //    el método encontrará el componente asociado (en el menú, por ejemplo) y lo actualizará si es un JCheckBoxMenuItem.
+            //    Si en el futuro lo pones como un JToggleButton en otro sitio, esto ya funcionará.
+            configAppManager.actualizarAspectoBotonToggle(zoomCursorAction, zoomAlCursorActivoDelModelo);
+        }
+
+        // --- 6. SINCRONIZAR EL BOTÓN DE RESET (ResetZoomAction) ---
+        // Este no es un botón de tipo "toggle", solo se habilita o deshabilita.
+        Action resetAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
+        if (resetAction != null) {
+            // Su estado 'enabled' depende de si el paneo manual está activo.
+            resetAction.setEnabled(permisoManualActivoDelModelo);
+        }
+        
+        // --- 7. ACTUALIZAR LAS BARRAS DE INFORMACIÓN (Opcional, pero buena práctica) ---
+        // Esto asegura que cualquier texto que muestre el modo de zoom se actualice.
+        if (infobarImageManager != null) {
+            infobarImageManager.actualizar();
+        }
+        if (statusBarManager != null) {
+            statusBarManager.actualizar();
+        }
+        
+        System.out.println("[VisorController] Sincronización completa de la UI de Zoom finalizada.");
+
+    } // --- FIN del método sincronizarEstadoVisualBotonesYRadiosZoom ---
+    
+    
+//    /**
+//     * Sincroniza explícitamente el estado visual de los botones y radios de la UI
+//     * que controlan el zoom, basándose en el estado actual del VisorModel.
+//     */
+//    
+//    public void sincronizarEstadoVisualBotonesYRadiosZoom() {
+//        if (this.actionMap == null || this.model == null) {
+//            System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: actionMap o model nulos.");
+//            return;
+//        }
+//        
+//        // 1. Leer el estado final y correcto desde el modelo una sola vez.
+//        ZoomModeEnum modoActivo = model.getCurrentZoomMode();
+//        boolean permisoManualActivo = model.isZoomHabilitado();
+//
+//        System.out.println("[VisorController] Sincronizando UI de Zoom: Paneo=" + permisoManualActivo + ", Modo=" + modoActivo);
+//
+//        // --- INICIO DE LA MODIFICACIÓN ---
+//        // El estado del botón de Paneo es gestionado por su propia Action.
+//        // Este método ya no necesita manipularlo. Lo eliminamos para evitar conflictos.
+//        /*
+//        Action zoomManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+//        if (zoomManualAction != null) {
+//            zoomManualAction.putValue(Action.SELECTED_KEY, permisoManualActivo);
+//        }
+//        */
+//        // --- FIN DE LA MODIFICACIÓN ---
+//
+//        // 2. Sincronizar OTROS componentes que SÍ dependen del estado de paneo.
+//        Action resetAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
+//        if (resetAction != null) {
+//            resetAction.setEnabled(permisoManualActivo);
+//        }
+//        
+//        // Sincronizar el botón de "Zoom al Cursor" (si lo tienes)
+//        Action zoomCursorAction = actionMap.get(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
+//        if (zoomCursorAction != null) {
+//            zoomCursorAction.putValue(Action.SELECTED_KEY, model.isZoomToCursorEnabled());
+//        }
+//        
+//        // 3. Sincronizar los botones de radio de los modos de zoom.
+//        for (Action action : actionMap.values()) {
+//            if (action instanceof controlador.actions.zoom.AplicarModoZoomAction) {
+//                AplicarModoZoomAction zoomAction = (AplicarModoZoomAction) action;
+//                // Pone el radio button correcto en 'seleccionado'
+//                zoomAction.putValue(Action.SELECTED_KEY, (zoomAction.getModoAsociado() == modoActivo));
+//            }
+//        }
+//        
+//        // 4. Actualizar las barras de información (esto no cambia).
+//        if (infobarImageManager != null) infobarImageManager.actualizar();
+//        if (statusBarManager != null) statusBarManager.actualizar();
+//        
+//        System.out.println("[VisorController] Sincronización de UI de Zoom completada.");
+//
+//    } // --- FIN del metodo sincronizarEstadoVisualBotonesYRadiosZoom ---
     
     
     /**

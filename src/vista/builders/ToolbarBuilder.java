@@ -25,6 +25,7 @@ import controlador.VisorController;
 import controlador.utils.ComponentRegistry;
 import servicios.ConfigKeys;
 import vista.components.DPadComponent;
+import vista.components.ThemedToggleButton;
 import vista.config.ButtonType;
 import vista.config.HotspotDefinition;
 import vista.config.IconScope;
@@ -148,35 +149,14 @@ public class ToolbarBuilder {
                 break;
 
             case TOGGLE:
-                abstractButtonComponent = new JToggleButton();
-                
-                abstractButtonComponent.setOpaque(true);
-                abstractButtonComponent.setContentAreaFilled(true);
-//                abstractButtonComponent.putClientProperty("JButton.buttonType", "regular"); 
+            	abstractButtonComponent = new ThemedToggleButton(this.themeManager, associatedAction);
+                abstractButtonComponent.putClientProperty("JButton.buttonType", "regular");
 
                 System.out.println("[ToolbarBuilder] Creando JToggleButton para: " + definition.comandoCanonico() +
                                   ", Background: " + abstractButtonComponent.getBackground() +
                                   ", SelectedBackground: " + UIManager.getColor("ToggleButton.selectedBackground") +
                                   ", UI: " + abstractButtonComponent.getUI().getClass().getName());
                 break;
-                
-                
-//            case TOGGLE:
-//                abstractButtonComponent = new JToggleButton();
-////                abstractButtonComponent.setOpaque(true);
-////                abstractButtonComponent.setContentAreaFilled(true);
-//                
-//                System.out.println("[ToolbarBuilder] Creando JToggleButton para: " + definition.comandoCanonico() +
-//                                  ", Background: " + abstractButtonComponent.getBackground() +
-//                                  ", SelectedBackground: " + UIManager.getColor("ToggleButton.selectedBackground") +
-//                                  ", UI: " + abstractButtonComponent.getUI().getClass().getName());
-//                break;
-                
-//            case TOGGLE:
-//                abstractButtonComponent = new JToggleButton();
-//                abstractButtonComponent.setOpaque(true);
-//                abstractButtonComponent.setContentAreaFilled(true);
-//                break;
 
             case COLOR_OVERLAY_ICON_BUTTON:
                 JButton colorButton = new JButton();
@@ -220,6 +200,7 @@ public class ToolbarBuilder {
                 ImageIcon transparentIcon = (definition.scopeIconoBase() == IconScope.COMMON)
                                            ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
                                            : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
+                		
                 transparentButton.setIcon(transparentIcon);
                 abstractButtonComponent = transparentButton;
                 break;
@@ -256,7 +237,8 @@ public class ToolbarBuilder {
                     }
                 }
             } else {
-                System.err.println("WARN [ToolbarBuilder.crearComponenteIndividual]: No se encontró Action para comando '" + definition.comandoCanonico() + "'. Añadiendo listener directo.");
+            	String command = definition.comandoCanonico();
+                System.err.println("WARN [ToolbarBuilder.crearComponenteIndividual]: No se encontró Action para comando '" + command + ".");
                 abstractButtonComponent.setActionCommand(definition.comandoCanonico());
                 abstractButtonComponent.addActionListener(this.controllerRef);
                 
@@ -266,7 +248,11 @@ public class ToolbarBuilder {
                                            : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
                      abstractButtonComponent.setIcon(defaultIcon);
                 }
-                abstractButtonComponent.setText("?");
+                if (command != null && command.startsWith("cmd.background.")) {
+                    abstractButtonComponent.setText(null); // Lo dejamos vacío a propósito
+                } else {
+                    abstractButtonComponent.setText("?"); // Para cualquier otro error, sí ponemos el "?"
+                }
             }
 
             String nombreBotonParaClave = extraerNombreClave(definition.comandoCanonico());
@@ -278,6 +264,8 @@ public class ToolbarBuilder {
             abstractButtonComponent.putClientProperty("buttonType", definition.tipoBoton());
             abstractButtonComponent.putClientProperty("baseIconName", definition.claveIcono());
             abstractButtonComponent.putClientProperty("buttonConfigKey", claveBaseBoton);
+            
+            abstractButtonComponent.putClientProperty("canonicalCommand", definition.comandoCanonico());
             
             finalComponent = abstractButtonComponent;
 

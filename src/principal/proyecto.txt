@@ -1014,3 +1014,88 @@ Resumen
 --- FIN DE LA HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS ---
 -------------------------------------------------------------------------
 
+
+
+=========================================================
+ HOJA DE RUTA - VISOR DE IMÁGENES V2
+=========================================================
+
+FASE 1: REFINAMIENTO DE NAVEGACIÓN Y UX FUNDAMENTALES
+---------------------------------------------------------
+
+[ ] 1.1: Integrar Zoom Inteligente (SMART_FIT) en la UI
+    - [ ] Crear la Action correspondiente en ActionFactory (AplicarModoZoomAction para SMART_FIT).
+    - [ ] Añadir la constante CMD_ZOOM_TIPO_SMART_FIT en AppActionCommands.
+    - [ ] Añadir el botón a la barra de herramientas "zoom" en UIDefinitionService.
+    - [ ] Añadir el JRadioButtonMenuItem al menú "Zoom".
+    - [ ] Confirmar que es el modo por defecto al iniciar la aplicación.
+
+[ ] 1.2: Paneo Rápido con Atajos de Teclado (Ctrl + Alt)
+    - [ ] Modificar GeneralController (KeyEventDispatcher) para detectar la pulsación y liberación de Ctrl+Alt.
+    - [ ] Añadir un flag (ej. `isPanHotkeyPressed`) en GeneralController.
+    - [ ] Modificar los listeners de `mouseDragged` para que activen el paneo si `isZoomHabilitado()` O `isPanHotkeyPressed` es true.
+    - [ ] Implementar la lógica para cambiar el cursor del ratón a una mano (Cursor.HAND_CURSOR) cuando las teclas están presionadas.
+
+[ ] 1.3: Navegación Fluida con Carga Retardada (Debounced Loading)
+    - [ ] En GeneralController (o donde se gestione la rueda del ratón), en lugar de llamar a `navegarSiguiente/Anterior` directamente, reiniciar un `javax.swing.Timer`.
+    - [ ] Cuando el Timer se dispare (el usuario ha parado), ejecutar la lógica de cambio de imagen.
+    - [ ] (Opcional) Mostrar un "placeholder" o simplemente no hacer nada visualmente mientras la rueda se mueve rápido.
+
+[ ] 1.4: Persistencia de la Última Imagen Vista
+    - [ ] En `VisorController.guardarConfiguracionActual()`, asegurarse de guardar `model.getSelectedImageKey()` en una clave de config (ej. `inicio.imagen`).
+    - [ ] En `AppInitializer`, al cargar la configuración, leer esta clave.
+    - [ ] Pasar esta clave a `visorController.cargarListaImagenes()` para que la seleccione al iniciar.
+
+[ ] 1.5: Salto Rápido entre Carpetas (Folder Skipping)
+    - [ ] Crear nuevas Actions en ActionFactory (ej. `NextFolderAction`, `PreviousFolderAction`).
+    - [ ] Implementar la lógica (posiblemente en una nueva clase `FolderNavigationService`) que, dada la carpeta actual, encuentre la siguiente/anterior carpeta hermana.
+    - [ ] El `VisorController` llamará a este servicio y luego a `cargarListaImagenes` con la nueva ruta.
+    - [ ] Añadir botones y atajos para estas nuevas acciones.
+
+[ ] 1.6: Ajuste Dinámico del Tamaño de Miniaturas
+    - [ ] Crear Actions `IncreaseThumbnailSizeAction` y `DecreaseThumbnailSizeAction`.
+    - [ ] Estas acciones modificarán valores en `ConfigurationManager` (ej. `miniaturas.tamano.normal.ancho`).
+    - [ ] El `ListCoordinator` o `VisorController`, al detectar este cambio, debe forzar una recreación del `MiniaturaListCellRenderer` y un `revalidate/repaint` de la `JList` de miniaturas.
+
+[ ] 1.7: Vista de Árbol de Carpetas (Folder Tree)
+    - [ ] Crear una vista alternativa para el panel izquierdo que contenga un `JTree`.
+    - [ ] Implementar un `TreeModel` personalizado que cargue los directorios de forma perezosa (lazy loading) para un buen rendimiento.
+    - [ ] Añadir un `TreeSelectionListener` que actualice la carpeta raíz del `VisorModel` y recargue las imágenes cuando se selecciona una nueva carpeta.
+    - [ ] Añadir una Action para cambiar entre la vista de lista de archivos y la vista de árbol.
+
+
+FASE 2: IMPLEMENTACIÓN DE NUEVOS MODOS DE VISUALIZACIÓN (DisplayMode)
+-------------------------------------------------------------------------
+
+[ ] 2.1: Implementar DisplayMode.GRID (Vista de Cuadrícula)
+    - [ ] Crear la clase `GridDisplayPanel.java` (usando `JList` con `HORIZONTAL_WRAP` y `JScrollPane`).
+    - [ ] Crear `GridCellRenderer.java`, un `ListCellRenderer` que dibuje una miniatura con su nombre debajo. Debe usar la lógica SMART_FIT para escalar la miniatura dentro de la celda.
+    - [ ] Crear nuevas Actions `GridZoomInAction` y `GridZoomOutAction` que llamen a métodos en `GridDisplayPanel` para cambiar el número de columnas/tamaño de celda.
+    - [ ] Añadir una barra de herramientas inferior al `GridDisplayPanel` para estos nuevos controles.
+    - [ ] Habilitar la selección múltiple en la `JList` interna.
+    - [ ] Adaptar las acciones (ej. "Marcar") para que operen sobre todos los elementos seleccionados en el grid.
+
+[ ] 2.2: Implementar DisplayMode.CAROUSEL (Carrusel/Filmstrip)
+    - [ ] Crear la clase `CarouselDisplayPanel.java`.
+    - [ ] El panel tendrá un `ImageDisplayPanel` grande en el centro y un `JScrollPane` horizontal (la tira) en la parte inferior.
+    - [ ] La tira de miniaturas puede ser una `JList` en modo `HORIZONTAL_WRAP` con una sola fila de alto (`setVisibleRowCount(1)`).
+    - [ ] Implementar la lógica de sincronización: al cambiar la imagen principal, la `JList` de la tira hace `ensureIndexIsVisible`. Al hacer clic en la tira, se cambia la imagen principal.
+
+[ ] 2.3: Implementar DisplayMode.POLAROID
+    - [ ] Crear la clase `PolaroidDisplayPanel.java`.
+    - [ ] Sobrescribir `paintComponent` para dibujar un rectángulo blanco de fondo.
+    - [ ] Usar `AffineTransform` para aplicar una rotación ligera (`g2d.rotate(...)`) antes de dibujar la imagen.
+
+
+FASE 3: AJUSTES DE COMPORTAMIENTO POR CONTEXTO (WorkMode)
+----------------------------------------------------------------
+
+[ ] 3.1: Habilitar/Deshabilitar Actions según el Modo
+    - [ ] Modificar el método `updateEnabledState` de todas las `ContextSensitiveAction` para que consideren el `WorkMode` y `DisplayMode` actuales.
+    - [ ] Por ejemplo, las acciones de paneo y zoom de imagen única deben deshabilitarse cuando el `DisplayMode` es `GRID`.
+    - [ ] La acción "Marcar Imagen" debe cambiar su lógica: en modo `PROYECTO`, mueve a descartes/selección; en modo `VISUALIZADOR`, añade al proyecto temporal.
+
+[ ] 3.2: Adaptar el Selector de Archivo/Carpeta
+    - [ ] La acción `OpenFileAction` debe comprobar el `WorkMode` actual.
+    - [ ] Si es `VISUALIZADOR`, abre un `JFileChooser` para seleccionar directorios.
+    - [ ] Si es `PROYECTO`, abre un `JFileChooser` para seleccionar archivos de proyecto (ej. `.visprj`).

@@ -289,22 +289,25 @@ public class ToolbarManager {
      * @return La instancia de JToolBar, ya sea cacheada o recién creada.
      */
     public JToolBar getToolbar(String claveBarra) {
-        // Comprueba si la barra ya existe en nuestro mapa.
         if (!this.managedToolbars.containsKey(claveBarra)) {
             System.out.println("  [ToolbarManager getToolbar] La barra '" + claveBarra + "' no está en caché. Construyéndola ahora...");
             
-            // Busca la definición correspondiente a la clave.
             uiDefService.generateModularToolbarStructure().stream()
                 .filter(def -> def.claveBarra().equals(claveBarra))
                 .findFirst()
                 .ifPresent(def -> {
-                    // Si se encuentra la definición, se construye y configura.
                     JToolBar newToolbar = buildAndConfigureToolbar(def);
-                    // Se guarda en el mapa para futuras reutilizaciones.
                     this.managedToolbars.put(claveBarra, newToolbar);
+
+                    // --- ¡LÍNEA AÑADIDA! ---
+                    // Registramos la toolbar recién creada en el registro global.
+                    // Usamos la misma clave que BackgroundControlManager está buscando.
+                    String registryKey = "toolbar." + claveBarra;
+                    this.registry.register(registryKey, newToolbar);
+                    System.out.println("    -> Barra '" + claveBarra + "' registrada en ComponentRegistry con la clave: '" + registryKey + "'");
+                    // -------------------------
                 });
         }
-        // Devuelve la barra del mapa (ya sea la que existía o la que acabamos de crear).
         return this.managedToolbars.get(claveBarra);
     } // --- Fin del método getToolbar ---
     

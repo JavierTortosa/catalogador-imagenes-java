@@ -1,5 +1,6 @@
 package servicios;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -1121,8 +1122,26 @@ public class ConfigurationManager
 			System.err.println(
 					"[Config Mgr] Intento de actualizar config con null (key=" + key + ", value=" + value + ")");
 		}
-	}
+	} // --- Fin del metodo setString ---
 
+	/**
+     * Elimina una propiedad del mapa de configuración en memoria.
+     * Al guardar, esta clave ya no existirá en el archivo config.cfg.
+     * Este método es 'synchronized' para mantener la consistencia con setString.
+     *
+     * @param key La clave de la propiedad a eliminar.
+     */
+    public synchronized void remove(String key) {
+        if (config != null && key != null) {
+            // Llama al método remove() del mapa 'config' de la instancia.
+            config.remove(key); 
+            System.out.println("  [ConfigManager] Propiedad eliminada de la configuración en memoria: " + key);
+        } else {
+            System.err.println(
+                    "[Config Mgr] Intento de eliminar propiedad con key nula o config nulo.");
+        }
+    } // --- FIN del metodo remove ---
+	
 	// Método específico para inicio.carpeta por conveniencia
 	public void setInicioCarpeta (String path){setString("inicio.carpeta", path != null ? path : "");}
 
@@ -1238,21 +1257,16 @@ public class ConfigurationManager
 
     /**
      * Obtiene un valor String de la configuración.
-     * Si la clave no existe, utiliza el valor por defecto, lo guarda en la configuración
-     * en memoria para que se persista al cerrar, y lo devuelve.
+     * Si la clave no existe, devuelve el valor por defecto proporcionado.
+     * Este método es de SOLO LECTURA y no modifica la configuración en memoria.
      *
      * @param key La clave de configuración.
-     * @param defaultValue El valor a usar y guardar si la clave no se encuentra.
+     * @param defaultValue El valor a devolver si la clave no se encuentra.
      * @return El valor de la configuración o el valor por defecto.
      */
     public String getString(String key, String defaultValue) {
-        String value = config.get(key);
-        if (value == null) {
-            System.out.println("WARN: Clave '" + key + "' no encontrada. Usando default '" + defaultValue + "' y añadiendo a config en memoria.");
-            this.setString(key, defaultValue); // Autocorrección en memoria
-            return defaultValue;
-        }
-        return value;
+        // Usa getOrDefault, que es la forma más limpia y segura.
+        return config.getOrDefault(key, defaultValue);
     }
 
     /**
@@ -1359,116 +1373,59 @@ public class ConfigurationManager
     } // --- FIN del método resetToDefaults ---
     
     
-//    /**
-//     * Obtiene un valor de configuración como un double.
-//     * Si la clave no existe o el valor no puede ser convertido a double,
-//     * devuelve el valor por defecto proporcionado.
-//     *
-//     * @param key La clave de configuración.
-//     * @param defaultValue El valor a devolver si la clave no se encuentra o hay error de parseo.
-//     * @return El valor double de la configuración o el defaultValue.
-//     */
-//    public double getDouble(String key, double defaultValue) {
-//        String valueString = getString(key, null); // Usa tu método getString existente
-//
-//        if (valueString != null) {
-//            try {
-//                return Double.parseDouble(valueString.trim().replace(',', '.')); // Reemplaza coma por punto para parseo
-//            } catch (NumberFormatException e) {
-//                System.err.println("WARN [ConfigurationManager]: No se pudo parsear el valor '" + valueString + "' para la clave '" + key + "' como double. Usando default: " + defaultValue);
-//                // Opcional: loguear e.getMessage()
-//            }
-//        }
-//        return defaultValue;
-//    } // FIN del metodo getDouble
-//
-//    
-// // Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
-// 	public String getString (String key, String defaultValue)
-// 	{
-//
-// 		return config.getOrDefault(key, defaultValue);
-// 	}
-//
-// 	// Sobrecarga para mantener compatibilidad si se quiere pasar un default
-// 	// específico
-// 	public String getString (String key)// , String defaultValue)
-// 	{
-//
-// 		return config.getOrDefault(key, DEFAULT_CONFIG.getOrDefault(key, ""));
-//
-// 	}
-//
-// 	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
-// 	public int getInt (String key)
-// 	{
-//
-// 		String defaultValueStr = DEFAULT_CONFIG.getOrDefault(key, "0"); // Default de String es "0"
-// 		String valueStr = config.getOrDefault(key, defaultValueStr);
-//
-// 		try
-// 		{
-// 			return Integer.parseInt(valueStr);
-// 		} catch (NumberFormatException e)
-// 		{
-// 			System.err.println("WARN: Error parseando int para '" + key + "', valor: '" + valueStr
-// 					+ "'. Usando default int: " + Integer.parseInt(defaultValueStr));
-//
-// 			// Intentar parsear el default string, o usar 0 si falla
-// 			try
-// 			{
-// 				return Integer.parseInt(defaultValueStr);
-// 			} catch (NumberFormatException ne)
-// 			{
-// 				return 0;
-// 			}
-// 		}
-// 	}
-//
-// 	// sobrecarga de metodo
-// 	public int getInt (String key, int defaultValue)
-// 	{
-// 		String value = config.get(key);
-//
-// 		if (value == null) {
-// 			return defaultValue;
-// 		}
-//
-// 		try {
-// 			return Integer.parseInt(value);
-// 		} catch (NumberFormatException e) {
-// 			System.err.println("Advertencia: Error al parsear entero para la clave '" + key + "', valor: '" + value
-// 					+ "'. Usando valor por defecto: " + defaultValue);
-// 			return defaultValue;
-// 		}
-//
-// 	}
-//
-// 	// Devuelve el valor cargado, o el default de DEFAULT_CONFIG si no existe
-// 	public boolean getBoolean (String key)
-// 	{
-//
-// 		String defaultValueStr = DEFAULT_CONFIG.getOrDefault(key, "false"); // Default de String es "false"
-// 		String valueStr = config.getOrDefault(key, defaultValueStr);
-// 		// Boolean.parseBoolean considera "true" (ignorando caso) como true, el resto
-// 		// false.
-// 		return Boolean.parseBoolean(valueStr);
-//
-// 	}
-//
-// 	// sobrecarga de metodo
-// 	public boolean getBoolean (String key, boolean defaultValue)
-// 	{
-// 		String value = config.get(key);
-//
-// 		if (value == null)
-// 		{
-// 			return defaultValue;
-// 		}
-// 		// "true" (ignorando mayúsculas) es true, cualquier otra cosa es false.
-// 		return Boolean.parseBoolean(value);
-//
-// 	}
+    public Color getColor(String key, Color defaultColor) {
+        // Este método AHORA usa nuestro getString seguro y de solo lectura.
+        String rgbString = getString(key, null);
+        
+        if (rgbString == null || rgbString.trim().isEmpty()) {
+            return defaultColor;
+        }
+        
+        String[] components = rgbString.split(",");
+        if (components.length == 3) {
+            try {
+                int r = Integer.parseInt(components[0].trim());
+                int g = Integer.parseInt(components[1].trim());
+                int b = Integer.parseInt(components[2].trim());
+                return new Color(r, g, b);
+            } catch (NumberFormatException e) {
+                return defaultColor;
+            }
+        }
+        return defaultColor;
+    } // --- FIN DEL METODO getColor ---
+    
+
+    /**
+     * Guarda un color en la configuración en formato "R,G,B".
+     * @param key La clave de configuración.
+     * @param color El objeto Color a guardar.
+     */
+    public void setColor(String key, Color color) {
+        if (color == null) {
+            remove(key);
+            return;
+        }
+        String rgbString = color.getRed() + "," + color.getGreen() + "," + color.getBlue();
+        setString(key, rgbString);
+    }
+
+    
+    /**
+     * Elimina una propiedad del mapa de configuración actual.
+     * Este cambio no se guardará en el archivo .cfg hasta que se llame a saveConfig().
+     *
+     * @param key La clave de la propiedad a eliminar.
+     */
+    public void removeProperty(String key) {
+        if (key != null && this.config != null) {
+            // Llama al método remove() del mapa 'config' de la instancia.
+            this.config.remove(key); 
+            System.out.println("  [ConfigManager] Propiedad eliminada (en memoria): " + key);
+        }
+    }
+
+    
     
     
 } //Fin configurationManager

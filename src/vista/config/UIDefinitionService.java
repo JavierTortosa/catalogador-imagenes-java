@@ -703,19 +703,36 @@ public class UIDefinitionService {
             new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, 	"20001-zoom_al_cursor_48x48.png", "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior", ButtonType.TOGGLE),
             
             // 2. Botones de color de fondo
-            	//INICIO GRUPO DE BOTONES
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Claro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Oscuro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Azul", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Naranja",	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Verde", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
             
-            // 3. Botón de fondo a cuadros
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo a Cuadros", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
-            	//FIN GRUPO DE BOTONES
+         // 2. Botones de color de fondo (¡con ActionCommands mejorados!)
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_THEME_COLOR,   "stopw.png", IconScope.COMMON, "Fondo del Tema Actual",   "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1,  "stopw.png", IconScope.COMMON, "Ranura de color 1",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2,  "stopw.png", IconScope.COMMON, "Ranura de color 2",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3,  "stopw.png", IconScope.COMMON, "Ranura de color 3",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4,  "stopw.png", IconScope.COMMON, "Ranura de color 4",      	"controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED,     "stopw.png", IconScope.COMMON, "Fondo a Cuadros",			"controles_imagen_inferior", /*ButtpmType.NORMAL), //*/ButtonType.TRANSPARENT),
             
-            // 4. Botón de selección de color personalizado
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, 	"Paint-Palette--Streamline-Core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", "controles_imagen_inferior", ButtonType.TRANSPARENT)
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_THEME_COLOR,   "color_Button_48x48.png", IconScope.COMMON, "Fondo del Tema Actual",    "controles_imagen_inferior", ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1,  "color_Button_48x48.png", IconScope.COMMON, "Ranura de color 1",        "controles_imagen_inferior", ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2,  "color_Button_48x48.png", IconScope.COMMON, "Ranura de color 2",        "controles_imagen_inferior", ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3,  "color_Button_48x48.png", IconScope.COMMON, "Ranura de color 3",        "controles_imagen_inferior", ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4,  "color_Button_48x48.png", IconScope.COMMON, "Ranura de color 4",        "controles_imagen_inferior", ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED,     "color_Button_48x48.png", IconScope.COMMON, "Fondo a Cuadros",         	"controles_imagen_inferior", ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR,  "Paint-Palette--Streamline-Core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", 	"controles_imagen_inferior", ButtonType.TRANSPARENT)
+            
+//            	//INICIO GRUPO DE BOTONES
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Claro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Oscuro", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Azul", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Naranja",	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_5, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo Tema Verde", 	"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+//            
+//            // 3. Botón de fondo a cuadros
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED, 	"color_Button_48x48.png", IconScope.COMMON, "Fondo a Cuadros", 		"controles_imagen_inferior", 	ButtonType.TRANSPARENT),
+//            	//FIN GRUPO DE BOTONES
+//            
+//            // 4. Botón de selección de color personalizado
+//            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, 	"Paint-Palette--Streamline-Core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", "controles_imagen_inferior", ButtonType.TRANSPARENT)
         );
 
         

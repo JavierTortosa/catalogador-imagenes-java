@@ -327,35 +327,42 @@ public class IconUtils {
 
 
     public ImageIcon getTintedIcon(String iconMaskPath, Color tintColor, int width, int height) {
-        // 1. Cargar el icono que define la FORMA (el círculo, el emoji, etc.)
-        //    Este icono debería ser blanco sobre fondo transparente para mejores resultados.
-        Image maskImage = getRawCommonImage(iconMaskPath); 
+        Image maskImage = getRawCommonImage(iconMaskPath);
         if (maskImage == null) return null;
+        if (tintColor == null) tintColor = Color.GRAY;
 
-        // 2. Crear una imagen del tamaño final, completamente transparente.
         BufferedImage finalImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = finalImage.createGraphics();
 
-        // 3. Dibujar la FORMA (la máscara) en la imagen final.
-        g2d.drawImage(maskImage, 0, 0, width, height, null);
-
-        // 4. ¡EL TRUCO! Cambiar el modo de composición.
-        //    AlphaComposite.SRC_IN significa: "Dibuja la siguiente forma (la fuente, 'SRC'),
-        //    pero solo en las partes donde ya hay algo pintado en la imagen (el destino, 'IN')".
-        g2d.setComposite(AlphaComposite.SrcIn);
-
-        // 5. Pinta un rectángulo del COLOR DE TINTE sobre TODA la imagen.
-        //    Gracias al modo de composición, este color solo afectará a los píxeles
-        //    que ya estaban pintados (es decir, la forma de la máscara).
-        g2d.setColor(tintColor);
-        g2d.fillRect(0, 0, width, height);
-
-        // 6. Liberar recursos y devolver el icono tintado.
-        g2d.dispose();
+        try {
+            g2d.drawImage(maskImage, 0, 0, width, height, null);
+            g2d.setComposite(AlphaComposite.SrcIn);
+            g2d.setColor(tintColor); // Pinta con el color exacto que recibe
+            g2d.fillRect(0, 0, width, height);
+        } finally {
+            g2d.dispose();
+        }
+        
         return new ImageIcon(finalImage);
-    }// --- FIN del metodo getTintedIcon ---
+        
+    } // --- FIN del metodo getTintedIcon ---
     
     
+    public Color aclararColor(Color colorOriginal, int cantidadAclarar) {
+        if (colorOriginal == null) return Color.LIGHT_GRAY;
+        int r = Math.min(255, colorOriginal.getRed() + cantidadAclarar);
+        int g = Math.min(255, colorOriginal.getGreen() + cantidadAclarar);
+        int b = Math.min(255, colorOriginal.getBlue() + cantidadAclarar);
+        return new Color(r, g, b);
+    } // --- Fin del método aclararColor ---
+
+    public Color oscurecerColor(Color colorOriginal, int cantidadOscurecer) {
+        if (colorOriginal == null) return Color.DARK_GRAY;
+        int r = Math.max(0, colorOriginal.getRed() - cantidadOscurecer);
+        int g = Math.max(0, colorOriginal.getGreen() - cantidadOscurecer);
+        int b = Math.max(0, colorOriginal.getBlue() - cantidadOscurecer);
+        return new Color(r, g, b);
+    } // --- Fin del método oscurecerColor ---
     
 } // --- FIN de la clase IconUtils
 

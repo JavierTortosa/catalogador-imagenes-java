@@ -1,7 +1,6 @@
 package vista.builders;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.util.Objects;
 
 import javax.swing.Action;
