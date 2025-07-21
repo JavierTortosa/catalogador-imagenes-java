@@ -116,11 +116,11 @@ public class BackgroundControlManager {
     
     
     private void handleDoubleClickOnSlot(JButton button) {
-    	String command = (String) button.getClientProperty("canonicalCommand");
+        String command = (String) button.getClientProperty("canonicalCommand");
         String configKey = getConfigKeyForCommand(command);
         if (configKey == null) return;
 
-        // Preguntar al usuario
+        // Preguntar al usuario (esto ya estaba bien)
         int response = JOptionPane.showConfirmDialog(
             registry.get("frame.main"),
             "¿Deseas borrar el color personalizado de esta ranura?",
@@ -130,13 +130,54 @@ public class BackgroundControlManager {
         );
 
         if (response == JOptionPane.YES_OPTION) {
-            // Borrar la clave del archivo de configuración
+            // Borrar la clave del archivo de configuración (esto ya estaba bien)
             config.removeProperty(configKey);
-            // Volver a pintar el botón para que tome su color por defecto
+            
+            // Volver a pintar el botón para que tome su color por defecto (esto ya estaba bien)
             updateSwatchAppearance(button);
             System.out.println("Color para la ranura " + command + " restaurado.");
+            
+            // --- INICIO DE LA LÓGICA AÑADIDA ---
+            
+            // 1. Aplicamos el color del tema actual como el nuevo fondo.
+            Color colorDelTema = themeManager.getTemaActual().colorFondoSecundario();
+            viewManager.setSessionBackgroundColor(colorDelTema);
+            
+            // 2. Buscamos el botón de 'reset' por su comando canónico.
+            JButton botonReset = findButtonByCommand(AppActionCommands.CMD_BACKGROUND_THEME_COLOR);
+            
+            // 3. Cambiamos la selección visual al botón de reset.
+            if (botonReset != null) {
+                selectButton(botonReset);
+            } else {
+                // Si por alguna razón no lo encontramos, al menos deseleccionamos el actual.
+                selectButton(null);
+            }
+            
+            // --- FIN DE LA LÓGICA AÑADIDA ---
         }
     } // --- Fin del Metodo handleDoubleClickOnSlot ---
+    
+    
+    /**
+     * Busca y devuelve un botón de la lista de swatches gestionados que coincida
+     * con el comando canónico proporcionado.
+     *
+     * @param command El comando canónico a buscar (ej. AppActionCommands.CMD_BACKGROUND_THEME_COLOR).
+     * @return El JButton correspondiente, o null si no se encuentra.
+     */
+    private JButton findButtonByCommand(String command) {
+        for (JButton btn : this.swatchButtons) {
+            String btnCommand = (String) btn.getClientProperty("canonicalCommand");
+            if (command.equals(btnCommand)) {
+                return btn;
+            }
+        }
+        System.err.println("WARN [BackgroundControlManager]: No se pudo encontrar el botón con comando: " + command);
+        return null; // No se encontró
+        
+    } // FIN del metodo findButtonByCommand ---
+    
     
     
     /**
@@ -245,10 +286,13 @@ public class BackgroundControlManager {
 	                    clickTimer.stop();
 	                }
 	                if (command.startsWith("cmd.background.color.slot_")) {
-	                    handleDoubleClickOnSlot(sourceButton);
+	                    handleDoubleClickOnSlot(sourceButton); // Llama a la lógica que ya tenemos
 	                }
-	                // Marcamos el botón en el que hemos hecho doble clic
-	                selectButton(sourceButton); 
+	                
+	                // --- !! LÍNEA ELIMINADA !! ---
+	                // Se ha eliminado la siguiente línea que causaba el problema:
+	                // selectButton(sourceButton); 
+	                // Ahora, el método handleDoubleClickOnSlot tiene el control total sobre la selección.
 
 	            } else if (e.getClickCount() == 1) {
 	                // --- CLIC SIMPLE (CON TEMPORIZADOR PARA ESPERAR AL DOBLE CLIC) ---
@@ -267,7 +311,7 @@ public class BackgroundControlManager {
 	                        handleCustomColorSlotClick(sourceButton, command);
 	                    }
 	                    
-	                    // Marcamos el botón en el que hemos hecho clic
+	                    // Marcamos el botón en el que hemos hecho clic (esto está bien para clic simple)
 	                    selectButton(sourceButton);
 	                });
 	                clickTimer.setRepeats(false);
@@ -275,84 +319,9 @@ public class BackgroundControlManager {
 	            }
 	        }
 	    };
-	}
+	}// --- FIN DEL METODO createUnifiedMouseListener ---
 	
 	
-    private java.awt.event.MouseListener createUnifiedMouseListenerOLD() {
-        return new java.awt.event.MouseAdapter() {
-            // Un único timer para toda la barra de botones
-            private javax.swing.Timer clickTimer = null;
-
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                JButton sourceButton = (JButton) e.getSource();
-
-                if (e.getClickCount() == 1) {
-                    // Es el PRIMER CLIC
-                    // Creamos un timer que se ejecutará en 250ms (un cuarto de segundo)
-                    clickTimer = new javax.swing.Timer(250, event -> {
-                        // Si el timer llega a ejecutarse, es un CLIC SIMPLE
-                        handleSingleClick(sourceButton);
-                    });
-                    clickTimer.setRepeats(false);
-                    clickTimer.start();
-
-                } else if (e.getClickCount() == 2) {
-                    // Es un DOBLE CLIC
-                    // Si el timer del primer clic todavía está esperando, lo cancelamos.
-                    if (clickTimer != null && clickTimer.isRunning()) {
-                        clickTimer.stop();
-                    }
-                    handleDoubleClick(sourceButton);
-                    sincronizarSeleccionConEstadoActual();
-                }
-            }
-        };
-    } // --- FIN DEL METODO createUnifiedMouseListener ---
-    
-    
-    /**
-     * Contiene la lógica que se ejecuta en un DOBLE CLIC.
-     */
-    private void handleDoubleClick(JButton sourceButton) {
-        String command = (String) sourceButton.getClientProperty("canonicalCommand");
-        if (command == null) return;
-        
-        System.out.println("[BackgroundControlManager] GESTIONANDO Doble Clic en: " + command);
-
-        // La acción de doble clic (borrar) solo aplica a los slots
-        if (command.startsWith("cmd.background.color.slot_")) {
-            // Reutilizamos el método que antes era para el clic largo.
-            handleDoubleClickOnSlot(sourceButton);
-        }
-    } // --- FIN DEL METODO handleDoubleClick ---
-    
-    
-    /**
-     * Contiene la lógica que se ejecuta en un CLIC SIMPLE.
-     */
-    private void handleSingleClick(JButton sourceButton) {
-        String command = (String) sourceButton.getClientProperty("canonicalCommand");
-        if (command == null) return;
-        
-        System.out.println("[BackgroundControlManager] GESTIONANDO Clic Simple en: " + command);
-
-        if (command.equals(AppActionCommands.CMD_BACKGROUND_CHECKERED)) {
-            viewManager.setSessionCheckeredBackground();
-        } else if (command.equals(AppActionCommands.CMD_BACKGROUND_THEME_COLOR)) {
-            viewManager.setSessionBackgroundColor(themeManager.getTemaActual().colorFondoSecundario());
-        } else if (command.equals(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR)) {
-            viewManager.requestCustomBackgroundColor();
-        } else if (command.startsWith("cmd.background.color.slot_")) {
-            handleCustomColorSlotClick(sourceButton, command);
-        }
-        
-        selectButton(sourceButton);
-        
-        sincronizarSeleccionConEstadoActual();
-        
-    } // --- Fin del método handleSingleClick ---
-    
     /**
      * Gestiona la lógica de clic para una ranura de color personalizada.
      * Si la ranura está vacía, abre un selector de color. Si ya tiene un color, lo aplica.

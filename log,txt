@@ -1,4 +1,7 @@
 Iniciando Visor de Imágenes V2...
+--- Iniciando VisorController (Constructor Simple) ---
+--- AppInitializer: Iniciando Proceso de Inicialización Global ---
+  [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
 Mapa de configuración por defecto inicializado con 126 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
@@ -12,11 +15,7 @@ loadedConfig contiene 'salto_bloque'?: true
 Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
-!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1641313620
-VisorV2.main: Configurando tema claro FlatLightLaf.
---- Iniciando VisorController (Constructor Simple) ---
---- AppInitializer: Iniciando Proceso de Inicialización Global ---
-  [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
+!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 435716946
   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
 [VisorModel] Inicializando estado por defecto de todos los contextos...
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
@@ -26,7 +25,7 @@ VisorV2.main: Configurando tema claro FlatLightLaf.
 [ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.
 [ThemeManager] Tema inicial 'clear' con personalizaciones instalado.
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 1440544665
+  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 256946998
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -250,7 +249,7 @@ Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
     -> Sincronización de estado lógico de toggles completada.
   [ConfigAppManager] Sincronización de UI final completada.
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: bam september.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: iconos/black/1003-Siguiente_48x48.png
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -273,14 +272,14 @@ Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@62e40e4c: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@62e40e4c actualizado. Nuevo tamaño: 346
+### DEBUG CONTEXT: ListContext@722d8162: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@722d8162 actualizado. Nuevo tamaño: 346
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 346
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg'
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1440544665
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-Siguiente_48x48.png'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
-[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
   [AppInitializer Callback] Carga inicial de imágenes completada. Llamando a sincronización maestra de UI...
 --- [GeneralController] INICIANDO SINCRONIZACIÓN MAESTRA DE UI ---
@@ -295,519 +294,107 @@ Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[GestionarProyectoAction] Solicitando cambio al modo PROYECTO...
-
---- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
-  [ProjectController] Preparando datos para el modo proyecto...
-### DEBUG CONTEXT: ListContext@7e47665c: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@7e47665c actualizado. Nuevo tamaño: 35
-    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): 35
-  [GeneralController] Saliendo del modo: VISUALIZADOR
-[Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
-  [GeneralController] Entrando en modo: PROYECTO
-[ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_PROYECTOS
---- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
-
-  [GeneralController - invokeLater] Ejecutando restauración de UI para: PROYECTO
-  [ProjectController] Activando la UI de la vista de proyecto...
-  [ProjectController] Lista de descartes actualizada en la UI. Total: 4
-  [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
-  [GeneralController] Estado de la UI actualizado.
-
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: PROYECTO ---
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.auto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ancho, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.alto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.rellenar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.fijo, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.especificado, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.mantener_proporciones, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.toggle.always_on_top, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.pantalla_completa, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.switch_to_visualizador, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.gestionar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: SINGLE_IMAGE, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: POLAROID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-[GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
-  [SwitchDisplayModeAction] Sincronizada acción 'Vista Imagen Única'. Seleccionado: true
-[GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
-  [GeneralController - invokeLater] Restauración de UI para PROYECTO completada.
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg'
-  [ProjectController] UI de la vista de proyecto activada y restaurada (después del retardo de UI).
-  [ToolbarManager getToolbar] La barra 'proyecto' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Proyecto' ---
-[ToolbarBuilder] Creando JToggleButton para: cmd.proyecto.toggle_marca, Background: java.awt.Color[r=230,g=230,b=230], SelectedBackground: java.awt.Color[r=179,g=205,b=224], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-ComponentRegistry WARN: La clave 'interfaz.boton.proyecto.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-ComponentRegistry WARN: La clave 'interfaz.boton.proyecto.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-ComponentRegistry WARN: La clave 'interfaz.boton.proyecto.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-ComponentRegistry WARN: La clave 'interfaz.boton.proyecto.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto'
-    -> Barra 'proyecto' registrada en ComponentRegistry con la clave: 'toolbar.proyecto'
-Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.auto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ancho, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.alto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.rellenar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.fijo, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.especificado, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.mantener_proporciones, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.toggle.always_on_top, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.pantalla_completa, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.switch_to_visualizador, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.gestionar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: SINGLE_IMAGE, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: POLAROID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
---- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
+[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ChangeListener] Pestaña 'Exportar' seleccionada. Solicitando preparación de cola...
-[ExportQueueManager] Preparando cola para 31 imágenes.
-[ExportQueueManager] Preparación de cola finalizada.
-[ProjectController] Modelo de tabla de exportación actualizado.
-  [ProjectController] Estado de exportación UI actualizado. Puede exportar: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\PLAKit\Starwars darth vader!!.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 34). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/PLAKit/Starwars darth vader!!.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 30
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 33). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 29
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Star Wars Easter.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 32). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Star Wars Easter.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 28
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Middle_Finger_Yoda.png
-  -> Imagen encontrada en el contexto del proyecto (índice 31). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Middle_Finger_Yoda.png'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 27
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Hex3D GroguHeart.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 30). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Hex3D GroguHeart.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 26
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\Stormparty - Vader - ND032.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 29). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/Stormparty - Vader - ND032.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 25
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\ChibiSTL - Darth Vader Chibi_@stl_zone.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/ChibiSTL - Darth Vader Chibi_@stl_zone.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\ChibiSTL - Darth Vader Chibi_@stl_zone.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/ChibiSTL - Darth Vader Chibi_@stl_zone.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\Stormparty - Vader - ND032.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 29). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/Stormparty - Vader - ND032.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 25
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Hex3D GroguHeart.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 30). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Hex3D GroguHeart.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 26
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Middle_Finger_Yoda.png
-  -> Imagen encontrada en el contexto del proyecto (índice 31). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Middle_Finger_Yoda.png'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 27
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Star Wars Easter.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 32). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Star Wars Easter.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 28
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 33). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 29
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\PLAKit\Starwars darth vader!!.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 34). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/PLAKit/Starwars darth vader!!.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 30
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: 30
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Love Death -Skull Decor.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 33). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Love Death -Skull Decor.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 29
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Star Wars Easter.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 32). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Star Wars Easter.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 28
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Middle_Finger_Yoda.png
-  -> Imagen encontrada en el contexto del proyecto (índice 31). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Middle_Finger_Yoda.png'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 27
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Hex3D GroguHeart.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 30). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Hex3D GroguHeart.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 26
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\Stormparty - Vader - ND032.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 29). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/Stormparty - Vader - ND032.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 25
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Star Wars\Darth Vader\ChibiSTL - Darth Vader Chibi_@stl_zone.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 28). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader/ChibiSTL - Darth Vader Chibi_@stl_zone.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 24
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Micky as Luke Skywalker.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 27). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Micky as Luke Skywalker.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 23
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Goofy as C3PO.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 26). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Goofy as C3PO.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 22
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Disney\Romwba Designs - Donald as Stormtrooper.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 25). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Disney/Romwba Designs - Donald as Stormtrooper.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 21
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cool Cat.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 24). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cool Cat.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 20
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Figuras\Cartoons\Onicron - Sally.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 23). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Figuras/Cartoons/Onicron - Sally.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 19
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Walter's workshop Platypus.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 22). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Walter's workshop Platypus.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 18
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 21). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/UNIVERSE 3D - Hamster Kombat - Grandmaster.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 17
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Super heroes\kratos.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 20). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Super heroes/kratos.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 16
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\The Emperor on Throne Chibi.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 19). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/The Emperor on Throne Chibi.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 15
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\STORM.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 18). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/STORM.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 14
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\Mini Ewok.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 17). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 13
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Grogu as Darth Vader Chibi.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 16). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 12
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Satr Wars\3DXM - Darth Vader Mythos Chibi.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 15). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 11
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Rocket pig Stout hearted\Rocket pig Stout hearted heros 2\Rocket pig Stout hearted heros 2\Ogre.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 14). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 10
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\Ralph Mcquarrie Luke vs Vader Chibi.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 13). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 9
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\PlaKit – Star Wars – Stormtrooper – 3D Print Model.png
-  -> Imagen encontrada en el contexto del proyecto (índice 12). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 8
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Star Wars, Pack 1.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 11). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 7
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\PLA Kit\Plakit Matrix.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 10). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 6
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\STREET FIGHTER - CHIBI KEN.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 9). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 5
-[ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\personajes varios\Silver+Johnny.jpg
-  -> Imagen encontrada en el contexto del proyecto (índice 8). Cargando...
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg'
-  [navegarTablaExportacionConRueda] Selector movido a la fila: 4
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/Mini Ewok.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Grogu as Darth Vader Chibi.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Satr Wars/3DXM - Darth Vader Mythos Chibi.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Rocket pig Stout hearted/Rocket pig Stout hearted heros 2/Rocket pig Stout hearted heros 2/Ogre.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Ralph Mcquarrie Luke vs Vader Chibi.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/PlaKit – Star Wars – Stormtrooper – 3D Print Model.png'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Star Wars, Pack 1.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/PLA Kit/Plakit Matrix.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/STREET FIGHTER - CHIBI KEN.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Hüper3D - 22-5 May.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Heroes/3DXM - Hulk Hogan Chibi.jpg'
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Star_Wars_Storm_Trooper_Captain_Phasma_Chibi_Style/images/0647f0b37e317b29053665f315dbd55b_preview_featured.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/FutureWorld/Chibi_Vader/images/6635dc6c8757c1f194145439b7fea582_preview_featured.jpg'
-  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
-  [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=false
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[ToggleZoomManualAction] Solicitando al controlador que alterne el modo de paneo...
+[VisorController] Solicitud para alternar paneo. Nuevo estado: false
+[VisorController] Sincronizando UI de Zoom: Paneo=false, Modo=Ajustar a Pantalla, ZoomAlCursor=false
 [VisorController] Sincronización completa de la UI de Zoom finalizada.
-[SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR.
-
---- [GeneralController] INICIANDO TRANSICIÓN DE MODO: PROYECTO -> VISUALIZADOR ---
-  [GeneralController] Saliendo del modo: PROYECTO
-[Model] Cambiando modo de trabajo de PROYECTO a: VISUALIZADOR
-  [GeneralController] Entrando en modo: VISUALIZADOR
-[ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_VISUALIZADOR
---- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a VISUALIZADOR ---
-
-  [GeneralController - invokeLater] Ejecutando restauración de UI para: VISUALIZADOR
-    -> Restaurando UI para el modo VISUALIZADOR...
-      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 346
-### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: 'bam september.jpg'
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
+[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg'
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 1440544665
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
 [Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
 [Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[GeneralController] Intento de cambiar al DisplayMode que ya está activo: SINGLE_IMAGE. No se hace nada.
-  [GeneralController] Actualizando estado de la UI para el modo: VISUALIZADOR
-  [GeneralController] Estado de la UI actualizado.
-
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
-Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.auto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ancho, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.alto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.rellenar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.fijo, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.especificado, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.mantener_proporciones, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.toggle.always_on_top, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.pantalla_completa, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.switch_to_visualizador, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.gestionar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: SINGLE_IMAGE, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: POLAROID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-[GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
-[GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
-  [GeneralController - invokeLater] Restauración de UI para VISUALIZADOR completada.
   -> Solicitando repintado inicial de listaMiniaturas.
-Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.manual.toggle, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.toggle_marca, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ajustar, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.auto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.ancho, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.alto, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.rellenar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.fijo, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.zoom.tipo.especificado, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.subcarpetas, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.toggle.mantener_proporciones, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.toggle.always_on_top, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.pantalla_completa, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.vista.switch_to_visualizador, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: cmd.proyecto.gestionar, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: null, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: SINGLE_IMAGE, Selected: true, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: POLAROID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
-Botón: GRID, Selected: false, Background: java.awt.Color[r=230,g=230,b=230], UI: com.formdev.flatlaf.ui.FlatToggleButtonUI
---- [ToolbarManager] Reconstrucción de toolbars en EDT completada. ---
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
+[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 20 miniaturas...
+[Controller] 20 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png'
+!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[ToggleZoomManualAction] Solicitando al controlador que alterne el modo de paneo...
+[VisorController] Solicitud para alternar paneo. Nuevo estado: true
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=false
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final de todos los contextos...
-  [Guardar] Estado Visualizador: UltimaKey=bam september.jpg
-  [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=
-!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1641313620
+  [Guardar] Estado Visualizador: UltimaKey=cyberpunk-city-anime-girl-5k-0e-1.png
+  [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=null
+!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 435716946
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg

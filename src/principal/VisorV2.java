@@ -5,8 +5,45 @@ import controlador.VisorController;
 /**
  * Punto de entrada principal de la aplicación Visor de Imágenes V2.
  */
-public class VisorV2
-{
+public class VisorV2 {
+
+    // (Tu excelente lista de TODOs se mantiene aquí, no la he borrado)
+	// VISUALIZADOR
+	// ...
+	// PROYECTO
+	// ...
+	// TOOLBAR
+	// ...
+	
+    /**
+     * The main method. Crea e inicia el controlador de la aplicación.
+     * 
+     * @param args los argumentos de línea de comandos (actualmente no usados).
+     */
+    public static void main(String[] args) {
+        System.out.println("Iniciando Visor de Imágenes V2...");
+
+        // La única responsabilidad del método main es programar la creación de la 
+        // aplicación en el Event Dispatch Thread (EDT) de Swing.
+        // Toda la lógica de inicialización, incluyendo la configuración del tema,
+        // será manejada por AppInitializer y ThemeManager.
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            new VisorController();
+            System.out.println("VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.");
+        });
+    }
+
+}
+
+//package principal;
+//
+//import controlador.VisorController; 
+//
+///**
+// * Punto de entrada principal de la aplicación Visor de Imágenes V2.
+// */
+//public class VisorV2
+//{
 
 	// VISUALIZADOR
 		//TODO no se guarda la imagen con la que cerramos la aplicacion
@@ -37,44 +74,44 @@ public class VisorV2
 		//TODO hacer que ToolbarManager reciba un parametro "libre" para las toolbars que no tiene que añadir a la barra de botones general
 	
 	
-	/**
-	 * The main method. Crea e inicia el controlador de la aplicación.
-	 * 
-	 * @param args los argumentos de línea de comandos (actualmente no usados para
-	 *             iniciar).
-	 */
-	public static void main (String[] args) {
-	    // Importaciones necesarias dentro del método si no están ya arriba
-	    // import servicios.ConfigurationManager;
-	    // import servicios.ConfigKeys;
-	    // import javax.swing.SwingUtilities;
-
-	    System.out.println("Iniciando Visor de Imágenes V2...");
-
-	    // PASO 1: Leer la configuración ANTES de hacer nada con la UI.
-	    final servicios.ConfigurationManager config = servicios.ConfigurationManager.getInstance();
-	    String themeName = config.getString(servicios.ConfigKeys.TEMA_NOMBRE, "claro"); // "claro" es el fallback
-
-	    // PASO 2: Configurar el Look and Feel de Swing BASADO en el tema guardado.
-	    try {
-	        if ("dark".equalsIgnoreCase(themeName) || "green".equalsIgnoreCase(themeName) || "orange".equalsIgnoreCase(themeName)) {
-	            System.out.println("VisorV2.main: Configurando tema oscuro FlatDarkLaf.");
-	            com.formdev.flatlaf.FlatDarkLaf.setup();
-	        } else {
-	            System.out.println("VisorV2.main: Configurando tema claro FlatLightLaf.");
-	            com.formdev.flatlaf.FlatLightLaf.setup();
-	        }
-	    } catch (Exception ex) {
-	        System.err.println("Error al inicializar el Look and Feel FlatLaf. La aplicación usará el L&F por defecto del sistema.");
-	    }
-
-	    // PASO 3: Ahora que Swing está configurado, lanzar el resto de la aplicación en el hilo de la UI.
-	    javax.swing.SwingUtilities.invokeLater(() -> {
-	        // El constructor de VisorController iniciará AppInitializer,
-	        // que ahora creará los componentes sobre un L&F ya configurado.
-	        new VisorController();
-	        System.out.println("VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.");
-	    });
-	}
-
-} //fin VisorV2
+//	/**
+//	 * The main method. Crea e inicia el controlador de la aplicación.
+//	 * 
+//	 * @param args los argumentos de línea de comandos (actualmente no usados para
+//	 *             iniciar).
+//	 */
+//	public static void main (String[] args) {
+//	    // Importaciones necesarias dentro del método si no están ya arriba
+//	    // import servicios.ConfigurationManager;
+//	    // import servicios.ConfigKeys;
+//	    // import javax.swing.SwingUtilities;
+//
+//	    System.out.println("Iniciando Visor de Imágenes V2...");
+//
+//	    // PASO 1: Leer la configuración ANTES de hacer nada con la UI.
+//	    final servicios.ConfigurationManager config = servicios.ConfigurationManager.getInstance();
+//	    String themeName = config.getString(servicios.ConfigKeys.TEMA_NOMBRE, "claro"); // "claro" es el fallback
+//
+//	    // PASO 2: Configurar el Look and Feel de Swing BASADO en el tema guardado.
+//	    try {
+//	        if ("dark".equalsIgnoreCase(themeName) || "green".equalsIgnoreCase(themeName) || "orange".equalsIgnoreCase(themeName)) {
+//	            System.out.println("VisorV2.main: Configurando tema oscuro FlatDarkLaf.");
+//	            com.formdev.flatlaf.FlatDarkLaf.setup();
+//	        } else {
+//	            System.out.println("VisorV2.main: Configurando tema claro FlatLightLaf.");
+//	            com.formdev.flatlaf.FlatLightLaf.setup();
+//	        }
+//	    } catch (Exception ex) {
+//	        System.err.println("Error al inicializar el Look and Feel FlatLaf. La aplicación usará el L&F por defecto del sistema.");
+//	    }
+//
+//	    // PASO 3: Ahora que Swing está configurado, lanzar el resto de la aplicación en el hilo de la UI.
+//	    javax.swing.SwingUtilities.invokeLater(() -> {
+//	        // El constructor de VisorController iniciará AppInitializer,
+//	        // que ahora creará los componentes sobre un L&F ya configurado.
+//	        new VisorController();
+//	        System.out.println("VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.");
+//	    });
+//	}
+//
+//} //fin VisorV2

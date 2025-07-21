@@ -5,7 +5,6 @@ import java.awt.Rectangle;
 import java.awt.Window;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
@@ -21,22 +20,26 @@ import modelo.VisorModel;
 import servicios.zoom.ZoomModeEnum;
 import vista.panels.ImageDisplayPanel;
 
+
+/**
+ * Muestra una ventana emergente con una previsualización de la miniatura
+ * sobre la que se hace doble clic en una JList.
+ */
 public class ThumbnailPreviewer {
 
     private final JList<String> thumbnailList;
     private final VisorModel mainModel;
 
-//    private JPopupMenu previewPopup;
     private JWindow previewWindow;
     private ImageDisplayPanel previewPanel;
     private VisorModel previewModel;
     private ZoomManager previewZoomManager;
 
     private Timer closeTimer;
-    private Timer hoverTimer;
-    private int lastHoveredIndex = -1;
+    // ELIMINADO: private Timer hoverTimer;
+    private int lastClickedIndex = -1; // Cambiado de lastHoveredIndex a lastClickedIndex
 
-    private static final int HOVER_DELAY_MS = 500;
+    // ELIMINADO: private static final int HOVER_DELAY_MS = 500;
     private static final int PREVIEW_WIDTH = 400;
     private static final int PREVIEW_HEIGHT = 400;
 
@@ -46,37 +49,26 @@ public class ThumbnailPreviewer {
         
         setupPreviewComponents();
         installListeners();
-    }
+    } // --- FIN del Constructor ---   
 
     private void setupPreviewComponents() {
-        // Crea el modelo y el panel de previsualización aislados
+        // ... ESTE MÉTODO SE MANTIENE EXACTAMENTE IGUAL ...
         this.previewModel = new VisorModel();
         this.previewPanel = new ImageDisplayPanel(null, previewModel);
-        
-        // Crea una ventana emergente (JWindow) sin decoración
         Window owner = SwingUtilities.getWindowAncestor(thumbnailList);
         this.previewWindow = new JWindow(owner);
         this.previewWindow.setSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
         this.previewWindow.getContentPane().add(this.previewPanel);
         this.previewWindow.setFocusableWindowState(false);
-
-        // Crea un ZoomManager dedicado para este panel
         this.previewZoomManager = new ZoomManager();
         this.previewZoomManager.setModel(previewModel);
-
-        // ¡VÍNCULO CLAVE! Le decimos al ZoomManager que opere SOBRE el panel del popup
         this.previewZoomManager.setSpecificPanel(this.previewPanel);
-
-        // ¡PUNTO CLAVE! Obtenemos el JLabel interno del panel, que es el que recibe los eventos
         JLabel internalLabel = this.previewPanel.getInternalLabel();
-
-        // Añadimos los listeners de ratón AL LABEL, no al panel
         internalLabel.addMouseWheelListener(e -> {
             if (previewModel.isZoomHabilitado()) {
                 previewZoomManager.aplicarZoomConRueda(e);
             }
         });
-
         internalLabel.addMouseListener(new MouseAdapter() {
             @Override 
             public void mousePressed(MouseEvent e) { 
@@ -85,7 +77,6 @@ public class ThumbnailPreviewer {
                 }
             }
         });
-
         internalLabel.addMouseMotionListener(new MouseAdapter() {
             @Override 
             public void mouseDragged(MouseEvent e) {
@@ -94,79 +85,58 @@ public class ThumbnailPreviewer {
                 }
             }
         });
+        // ELIMINADO: La configuración del hoverTimer se va.
+    } // --- FIN del metodo setupPreviewComponents ---
 
-        // Configuración de los temporizadores para mostrar/ocultar el popup
-        this.hoverTimer = new Timer(HOVER_DELAY_MS, e -> showPreview());
-        this.hoverTimer.setRepeats(false);
-    } // --- Fin del método setupPreviewComponents ---
-
+    
     private void installListeners() {
-        // 1. EL TEMPORIZADOR DE APARICIÓN (HOVER) - SIN CAMBIOS
-        hoverTimer = new Timer(HOVER_DELAY_MS, e -> showPreview());
-        hoverTimer.setRepeats(false);
+        // 1. ELIMINAMOS EL LISTENER DE MOVIMIENTO (mouseMoved) y el de SALIDA (mouseExited)
 
-        // 2. EL NUEVO TEMPORIZADOR DE CIERRE
-        // Este timer se ejecutará cada 250ms para comprobar si debe cerrar el popup.
+        // 2. CREAMOS EL NUEVO TEMPORIZADOR DE CIERRE
+        // La lógica interna de este timer es correcta y se mantiene.
         closeTimer = new Timer(250, e -> {
-            // Si el popup no está visible, no hay nada que hacer.
             if (previewWindow == null || !previewWindow.isVisible()) {
-                ((Timer)e.getSource()).stop(); // Detenemos el timer si no hay nada que vigilar
+                ((Timer)e.getSource()).stop();
                 return;
             }
-
-            // Obtiene la posición actual del ratón en la pantalla
             Point mousePos = java.awt.MouseInfo.getPointerInfo().getLocation();
-
-            // Convierte la posición del ratón a las coordenadas de la lista y del popup
             Point mouseInListCoords = new Point(mousePos);
             SwingUtilities.convertPointFromScreen(mouseInListCoords, thumbnailList);
-
             Point mouseInPopupCoords = new Point(mousePos);
             SwingUtilities.convertPointFromScreen(mouseInPopupCoords, previewWindow);
-
-            // Comprueba si el ratón está DENTRO de los límites de la lista O del popup
             boolean isMouseOverList = thumbnailList.contains(mouseInListCoords);
             boolean isMouseOverPopup = previewWindow.contains(mouseInPopupCoords);
-
-            // Si el ratón NO está sobre NINGUNO de los dos, cierra el popup
             if (!isMouseOverList && !isMouseOverPopup) {
                 hidePreview();
             }
         });
-        closeTimer.setRepeats(true); // Queremos que se ejecute continuamente mientras el popup esté visible
+        closeTimer.setRepeats(true);
 
-        // 3. LISTENER DE MOVIMIENTO - MUY SIMPLIFICADO
-        // Su única responsabilidad es iniciar el temporizador de aparición.
-        thumbnailList.addMouseMotionListener(new MouseMotionAdapter() {
+        // 3. AÑADIMOS EL NUEVO LISTENER DE DOBLE CLIC
+        thumbnailList.addMouseListener(new MouseAdapter() {
             @Override
-            public void mouseMoved(MouseEvent e) {
-                int index = thumbnailList.locationToIndex(e.getPoint());
-                if (index != -1 && index != lastHoveredIndex) {
-                    lastHoveredIndex = index;
-                    hoverTimer.restart(); // Inicia la cuenta atrás para mostrar el popup
+            public void mouseClicked(MouseEvent e) {
+                // Comprobamos si es un doble clic con el botón izquierdo
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    int index = thumbnailList.locationToIndex(e.getPoint());
+                    if (index != -1) {
+                        lastClickedIndex = index;
+                        // Llamamos a showPreview pasando el evento para saber dónde posicionar la ventana
+                        showPreview(e); 
+                    }
                 }
             }
         });
+    } // --- FIN del metodo installListeners ---
 
-        // 4. LISTENER DE SALIDA - MUY SIMPLIFICADO
-        // Su única responsabilidad es detener el temporizador de aparición.
-        thumbnailList.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseExited(MouseEvent e) {
-                hoverTimer.stop();
-            }
-        });
-
-    } // --- Fin del nuevo método installListeners ---
-    
-    
-    private void showPreview() {
-        if (lastHoveredIndex == -1) return;
+    private void showPreview(MouseEvent eventTrigger) { // Modificado para recibir el evento
+        if (lastClickedIndex == -1) return;
 
         new SwingWorker<BufferedImage, Void>() {
             @Override
             protected BufferedImage doInBackground() throws Exception {
-                String imageKey = thumbnailList.getModel().getElementAt(lastHoveredIndex);
+                // Usamos lastClickedIndex en lugar de lastHoveredIndex
+                String imageKey = thumbnailList.getModel().getElementAt(lastClickedIndex);
                 java.nio.file.Path imagePath = mainModel.getRutaCompleta(imageKey);
                 if (imagePath != null && java.nio.file.Files.exists(imagePath)) {
                     return ImageIO.read(imagePath.toFile());
@@ -179,17 +149,17 @@ public class ThumbnailPreviewer {
                 try {
                     BufferedImage image = get();
                     if (image != null) {
-                        Point mousePos = thumbnailList.getMousePosition();
-                        if (mousePos != null && thumbnailList.locationToIndex(mousePos) == lastHoveredIndex) {
+                        // Comprobación de seguridad: ¿sigue el ratón sobre el mismo ítem? Opcional pero bueno.
+                        Point currentMousePos = thumbnailList.getMousePosition();
+                        if (currentMousePos != null && thumbnailList.locationToIndex(currentMousePos) == lastClickedIndex) {
                             
                             previewModel.setCurrentImage(image);
-                            
+                            // ... (Toda tu lógica de cálculo de zoom se mantiene igual, es perfecta)
                             double factorZoom;
                             int panelW = PREVIEW_WIDTH;
                             int panelH = PREVIEW_HEIGHT;
                             int imgW = image.getWidth();
                             int imgH = image.getHeight();
-
                             if (imgW <= 0 || imgH <= 0 || panelW <= 0 || panelH <= 0) {
                                 factorZoom = 1.0;
                             } else {
@@ -201,19 +171,17 @@ public class ThumbnailPreviewer {
                                     factorZoom = (double) panelH / imgH;
                                 }
                             }
-
                             previewModel.setCurrentZoomMode(ZoomModeEnum.SMART_FIT);
                             previewModel.setZoomFactor(factorZoom);
                             previewModel.resetPan();
-                            previewModel.setZoomHabilitado(true); // Habilitamos el paneo/zoom
-                            
+                            previewModel.setZoomHabilitado(true);
                             previewPanel.repaint();
 
-                            Rectangle cellBounds = thumbnailList.getCellBounds(lastHoveredIndex, lastHoveredIndex);
+                            // Obtenemos la posición de la celda para posicionar la ventana
+                            Rectangle cellBounds = thumbnailList.getCellBounds(lastClickedIndex, lastClickedIndex);
                             Point location = cellBounds.getLocation();
                             SwingUtilities.convertPointToScreen(location, thumbnailList);
                             
-                            // Posicionar la ventana emergente encima de la miniatura
                             previewWindow.setLocation(location.x, location.y - PREVIEW_HEIGHT);
                             previewWindow.setVisible(true);
                             
@@ -231,21 +199,21 @@ public class ThumbnailPreviewer {
                 }
             }
         }.execute();
-    }
+    } // --- FIN del metodo showPreview ---
+    
 
     private void hidePreview() {
-        // --- MODIFICACIÓN CLAVE ---
-        // Al ocultar el popup, también detenemos AMBOS temporizadores.
-        hoverTimer.stop();
+        // ELIMINADO: hoverTimer.stop();
         if (closeTimer.isRunning()) {
             closeTimer.stop();
         }
-        // --- FIN DE LA MODIFICACIÓN ---
-
-        lastHoveredIndex = -1;
+        
+        lastClickedIndex = -1; // Cambiado de lastHoveredIndex
         if (previewWindow != null && previewWindow.isVisible()) {
             previewWindow.setVisible(false);
         }
-    } // --- Fin del método hidePreview ---
+    } // --- FIN del metodo hidePreview ---
+    
+} // --- FIN DE LA CLASE ThumbnailPreviewer ---
 
-}
+
