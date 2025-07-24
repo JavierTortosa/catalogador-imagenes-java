@@ -1,5 +1,6 @@
 package vista.util;
 
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Window;
@@ -19,6 +20,7 @@ import controlador.managers.ZoomManager;
 import modelo.VisorModel;
 import servicios.zoom.ZoomModeEnum;
 import vista.panels.ImageDisplayPanel;
+import vista.theme.ThemeManager;
 
 
 /**
@@ -34,6 +36,7 @@ public class ThumbnailPreviewer {
     private ImageDisplayPanel previewPanel;
     private VisorModel previewModel;
     private ZoomManager previewZoomManager;
+    private final ThemeManager themeManager;
 
     private Timer closeTimer;
     // ELIMINADO: private Timer hoverTimer;
@@ -43,18 +46,36 @@ public class ThumbnailPreviewer {
     private static final int PREVIEW_WIDTH = 400;
     private static final int PREVIEW_HEIGHT = 400;
 
-    public ThumbnailPreviewer(JList<String> thumbnailList, VisorModel mainModel) {
+    public ThumbnailPreviewer(JList<String> thumbnailList, VisorModel mainModel, ThemeManager themeManager) {
         this.thumbnailList = thumbnailList;
         this.mainModel = mainModel;
+        this.themeManager = themeManager;
         
         setupPreviewComponents();
         installListeners();
     } // --- FIN del Constructor ---   
 
     private void setupPreviewComponents() {
-        // ... ESTE MÉTODO SE MANTIENE EXACTAMENTE IGUAL ...
         this.previewModel = new VisorModel();
-        this.previewPanel = new ImageDisplayPanel(null, previewModel);
+        this.previewPanel = new ImageDisplayPanel(this.themeManager, previewModel);
+        
+        // Añadir un borde compuesto
+        // 1. Definir los colores y el grosor del borde usando el ThemeManager
+        Color borderColor = themeManager.getTemaActual().colorBordeSeleccionActiva(); // Un color de acento del tema
+        int borderThickness = 5; // Un borde de 2 píxeles
+        int padding = 10; // 5 píxeles de espacio entre el borde y la imagen
+
+        // 2. Crear un borde compuesto
+        //    - El LineBorder es el contorno exterior.
+        //    - El EmptyBorder es el padding interior.
+        this.previewPanel.setBorder(
+            javax.swing.BorderFactory.createCompoundBorder(
+                javax.swing.BorderFactory.createLineBorder(borderColor, borderThickness),
+                javax.swing.BorderFactory.createEmptyBorder(padding, padding, padding, padding)
+            )
+        );
+        
+        
         Window owner = SwingUtilities.getWindowAncestor(thumbnailList);
         this.previewWindow = new JWindow(owner);
         this.previewWindow.setSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
@@ -85,7 +106,6 @@ public class ThumbnailPreviewer {
                 }
             }
         });
-        // ELIMINADO: La configuración del hoverTimer se va.
     } // --- FIN del metodo setupPreviewComponents ---
 
     

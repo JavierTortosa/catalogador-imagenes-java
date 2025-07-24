@@ -3536,23 +3536,130 @@ public class VisorController implements ActionListener, ClipboardOwner {
 	  
 // ********************************************************************************************************* GETTERS Y SETTERS
 // ***************************************************************************************************************************
-	  
+	 
 	
 	public void onThemeChanged() {
-	    if (viewManager != null) {
-	        viewManager.refrescarFondoAlPorDefecto();
-	    }
-	    if (actionFactory != null) {
-	        actionFactory.actualizarIconosDeAcciones();
-	    }
-	    if (backgroundControlManager != null) {
-	        backgroundControlManager.repaintAllButtons();
-	        backgroundControlManager.sincronizarSeleccionConEstadoActual();
-	    }
-	    sincronizarEstadoDeTodasLasToggleThemeActions();
-	}// --- FIN del metodo onThemeChanged ---
-	
+        System.out.println("--- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---");
+        
+        // FASE 1: Preparación
+        if (actionFactory != null) {
+            actionFactory.actualizarIconosDeAcciones();
+        }
+        if (registry != null) registry.unregisterToolbarComponents();
+        if (toolbarManager != null) toolbarManager.clearToolbarCache();
+        
+        // FASE 2: Reconstrucción de la UI
+        SwingUtilities.invokeLater(() -> {
+            System.out.println("  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...");
 
+            if (toolbarManager != null && model != null) {
+                toolbarManager.reconstruirContenedorDeToolbars(model.getCurrentWorkMode());
+            }
+            
+            if (viewManager != null) {
+                viewManager.refrescarFondoAlPorDefecto();
+                viewManager.refrescarColoresDeFondoUI();
+                viewManager.reconstruirPanelesEspecialesTrasTema();
+            }
+
+            // --- INICIO DE LA NUEVA SOLUCIÓN (PÚBLICA Y SEGURA) ---
+            if (registry != null) {
+                String paletteButtonKey = "interfaz.boton.controles_imagen_inferior.background_custom_color";
+                JButton paletteButton = registry.get(paletteButtonKey);
+                
+                if (paletteButton != null) {
+                    System.out.println("    -> Refrescando icono del botón de la paleta manualmente desde su Action...");
+                    Action associatedAction = paletteButton.getAction();
+                    if (associatedAction != null) {
+                        // 1. Obtenemos el icono ACTUALIZADO que está dentro de la Action.
+                        Icon updatedIcon = (Icon) associatedAction.getValue(Action.SMALL_ICON);
+                        // 2. Se lo ponemos directamente al botón.
+                        paletteButton.setIcon(updatedIcon);
+                        paletteButton.repaint();
+                    }
+                } else {
+                    System.err.println("WARN [onThemeChanged]: No se encontró el botón de la paleta con la clave: " + paletteButtonKey);
+                }
+            }
+            // --- FIN DE LA NUEVA SOLUCIÓN ---
+
+            // FASE 3: Enlace Final
+            SwingUtilities.invokeLater(() -> {
+                System.out.println("  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...");
+
+                if (backgroundControlManager != null) {
+                    backgroundControlManager.initializeAndLinkControls();
+                    backgroundControlManager.sincronizarSeleccionConEstadoActual();
+                    // Como el botón de la paleta ya está arreglado, el repaintAllButtons
+                    // solo se preocupará de los botones de colores, como debe ser.
+                    backgroundControlManager.repaintAllButtons();
+                }
+
+                sincronizarEstadoDeTodasLasToggleThemeActions();
+                
+                System.out.println("--- [VisorController] Reconstrucción de UI por cambio de tema completada. ---");
+            });
+        });
+        
+    } // --- Fin del método onThemeChanged ---
+	
+	
+//	public void onThemeChanged() {
+//        System.out.println("--- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---");
+//        
+//        // FASE 1: Preparación (sin cambios)
+//        if (actionFactory != null) actionFactory.actualizarIconosDeAcciones();
+//        if (registry != null) registry.unregisterToolbarComponents();
+//        if (toolbarManager != null) toolbarManager.clearToolbarCache();
+//
+//        // FASE 2: Reconstrucción de la UI
+//        SwingUtilities.invokeLater(() -> {
+//            System.out.println("  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...");
+//
+//            // 2a. Reconstruir las barras de herramientas (principales y especiales)
+//            if (toolbarManager != null && model != null) {
+//                toolbarManager.reconstruirContenedorDeToolbars(model.getCurrentWorkMode());
+//            }
+//            
+//            // 2b. Actualizar fondos y paneles. ESTO AHORA ES CRUCIAL QUE VAYA DESPUÉS de la reconstrucción
+//            // porque necesita las NUEVAS barras.
+//            if (viewManager != null) {
+//                viewManager.refrescarFondoAlPorDefecto();
+//                viewManager.refrescarColoresDeFondoUI();
+//                viewManager.reconstruirPanelesEspecialesTrasTema();
+//            }
+//
+//            // FASE 3: Enlace Final
+//            SwingUtilities.invokeLater(() -> {
+//                System.out.println("  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...");
+//
+//                // ▼▼▼▼▼ ¡ESTA ES LA CORRECCIÓN CLAVE! ▼▼▼▼▼
+//                if (backgroundControlManager != null) {
+//                    // 1. FORZAMOS al manager a que vuelva a buscar los NUEVOS botones en la UI reconstruida.
+//                    //    Esta llamada ahora es más importante que nunca.
+//                    backgroundControlManager.initializeAndLinkControls();
+//                    
+//                    // 2. AHORA, le pedimos que sincronice la selección. Esto ya debería funcionar porque
+//                    //    initializeAndLinkControls() ya actualizó los iconos.
+//                    backgroundControlManager.sincronizarSeleccionConEstadoActual();
+//
+//                    // ¡OJO! La llamada a repaintAllButtons() ya no es necesaria aquí, porque
+//                    // initializeAndLinkControls() internamente ya llama a updateSwatchAppearance()
+//                    // para cada botón que encuentra, lo cual tiene el mismo efecto.
+//                    // La dejamos por si acaso, pero el log nos dirá si es redundante.
+//                    backgroundControlManager.repaintAllButtons(); 
+//                }
+//                // ▲▲▲▲▲ ¡ESTA ES LA CORRECCIÓN CLAVE! ▲▲▲▲▲
+//
+//                sincronizarEstadoDeTodasLasToggleThemeActions();
+//                
+//                System.out.println("--- [VisorController] Reconstrucción de UI por cambio de tema completada. ---");
+//            });
+//        });
+//        
+//    } // --- Fin del método onThemeChanged ---
+	
+	
     /**
      * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
      * Es un método seguro que comprueba la existencia del modelo y su lista interna.
@@ -4019,64 +4126,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
     } // --- FIN del método sincronizarEstadoVisualBotonesYRadiosZoom ---
     
     
-//    /**
-//     * Sincroniza explícitamente el estado visual de los botones y radios de la UI
-//     * que controlan el zoom, basándose en el estado actual del VisorModel.
-//     */
-//    
-//    public void sincronizarEstadoVisualBotonesYRadiosZoom() {
-//        if (this.actionMap == null || this.model == null) {
-//            System.err.println("WARN [sincronizarEstadoVisualBotonesYRadiosZoom]: actionMap o model nulos.");
-//            return;
-//        }
-//        
-//        // 1. Leer el estado final y correcto desde el modelo una sola vez.
-//        ZoomModeEnum modoActivo = model.getCurrentZoomMode();
-//        boolean permisoManualActivo = model.isZoomHabilitado();
-//
-//        System.out.println("[VisorController] Sincronizando UI de Zoom: Paneo=" + permisoManualActivo + ", Modo=" + modoActivo);
-//
-//        // --- INICIO DE LA MODIFICACIÓN ---
-//        // El estado del botón de Paneo es gestionado por su propia Action.
-//        // Este método ya no necesita manipularlo. Lo eliminamos para evitar conflictos.
-//        /*
-//        Action zoomManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-//        if (zoomManualAction != null) {
-//            zoomManualAction.putValue(Action.SELECTED_KEY, permisoManualActivo);
-//        }
-//        */
-//        // --- FIN DE LA MODIFICACIÓN ---
-//
-//        // 2. Sincronizar OTROS componentes que SÍ dependen del estado de paneo.
-//        Action resetAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
-//        if (resetAction != null) {
-//            resetAction.setEnabled(permisoManualActivo);
-//        }
-//        
-//        // Sincronizar el botón de "Zoom al Cursor" (si lo tienes)
-//        Action zoomCursorAction = actionMap.get(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
-//        if (zoomCursorAction != null) {
-//            zoomCursorAction.putValue(Action.SELECTED_KEY, model.isZoomToCursorEnabled());
-//        }
-//        
-//        // 3. Sincronizar los botones de radio de los modos de zoom.
-//        for (Action action : actionMap.values()) {
-//            if (action instanceof controlador.actions.zoom.AplicarModoZoomAction) {
-//                AplicarModoZoomAction zoomAction = (AplicarModoZoomAction) action;
-//                // Pone el radio button correcto en 'seleccionado'
-//                zoomAction.putValue(Action.SELECTED_KEY, (zoomAction.getModoAsociado() == modoActivo));
-//            }
-//        }
-//        
-//        // 4. Actualizar las barras de información (esto no cambia).
-//        if (infobarImageManager != null) infobarImageManager.actualizar();
-//        if (statusBarManager != null) statusBarManager.actualizar();
-//        
-//        System.out.println("[VisorController] Sincronización de UI de Zoom completada.");
-//
-//    } // --- FIN del metodo sincronizarEstadoVisualBotonesYRadiosZoom ---
-    
-    
     /**
      * Sincroniza ÚNICAMENTE los componentes que dependen del estado de paneo,
      * como el botón de Reset.
@@ -4094,7 +4143,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
             resetAction.setEnabled(permisoManualActivo);
             System.out.println("[VisorController] Botón Reset " + (permisoManualActivo ? "habilitado." : "deshabilitado."));
         }
-    }
+    }// --- FIN del metodo sincronizarEstadoBotonReset ---
     
     
     /**

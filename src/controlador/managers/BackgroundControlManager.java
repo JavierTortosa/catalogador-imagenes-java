@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JOptionPane;
@@ -84,6 +86,11 @@ public class BackgroundControlManager {
                 String command = (String) button.getClientProperty("canonicalCommand");
 
                 if (command != null && command.startsWith("cmd.background.")) {
+                	
+                	if (command.equals(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR)) {
+                        continue; // <-- ¡ESTA LÍNEA ES LA SOLUCIÓN!
+                    }
+                	
                     transformToSwatchButton(button);
                     this.swatchButtons.add(button);
                     updateSwatchAppearance(button);
@@ -199,47 +206,134 @@ public class BackgroundControlManager {
     private void updateSwatchAppearance(JButton button) {
         String command = (String) button.getClientProperty("canonicalCommand");
         if (command == null) return;
+        
+        
 
-        // ... (El código para los botones de cuadros y paleta que no son de color se queda igual)
-        if (command.equals(AppActionCommands.CMD_BACKGROUND_CHECKERED)) {
-            button.setIcon(iconUtils.getCheckeredOverlayIcon("stopw.png", 16, 16));
-            return;
-        }
+        // --- INICIO DE LA MODIFICACIÓN ---
+
+        // CASO ESPECIAL 1: Botón de la Paleta.
+        // Este botón tiene un icono estático y NUNCA debe ser modificado por este método.
+        // Salimos inmediatamente.
         if (command.equals(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR)) {
-            button.setIcon(iconUtils.getScaledCommonIcon("Paint-Palette--Streamline-Core.png", 16, 16));
+            // No hacemos NADA. Dejamos el icono que puso el ToolbarBuilder.
+            return; 
+        }
+
+        // --- AHORA, para el resto de botones, que SÍ son "swatches", continuamos ---
+
+        // Obtenemos el icono base (el círculo "stopw.png").
+        Icon baseIcon = (Icon) button.getClientProperty("baseIcon");
+        if (baseIcon == null) {
+            // Esta lógica de rescate es buena, la mantenemos por robustez.
+            Object baseIconNameObj = button.getClientProperty("baseIconName");
+            if (baseIconNameObj instanceof String) {
+                String baseIconName = (String) baseIconNameObj;
+                ImageIcon reloadedIcon = iconUtils.getScaledCommonIcon(baseIconName, 16, 16);
+                if (reloadedIcon != null) {
+                    baseIcon = reloadedIcon;
+                    button.putClientProperty("baseIcon", baseIcon);
+                }
+            }
+        }
+        
+        // Si después del rescate sigue sin haber icono base, no podemos continuar.
+        if (baseIcon == null) {
+            System.err.println("ERROR GRAVE [updateSwatchAppearance]: El botón para el comando '" + command + "' no tiene un icono base para pintar.");
             return;
         }
 
-        Color colorOriginal;
+        // CASO ESPECIAL 2: Botón de Cuadros.
+        // Este sí lo modificamos, pero con su propia lógica de patrón.
+        if (command.equals(AppActionCommands.CMD_BACKGROUND_CHECKERED)) {
+            button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIcon, 16, 16));
+            return; // Salimos después de aplicar el patrón.
+        }
 
-        // 1. OBTENEMOS EL COLOR ORIGINAL DEL BOTÓN (SEA CUAL SEA SU ORIGEN)
+        // --- FIN DE LA MODIFICACIÓN ---
+        
+        // Lógica para el resto de botones (los de colores tintados).
+        Color colorOriginal;
         if (command.equals(AppActionCommands.CMD_BACKGROUND_THEME_COLOR)) {
-            // Para el botón de RESET, su color original es siempre el del tema actual.
             colorOriginal = themeManager.getTemaActual().colorFondoSecundario();
-        } else { // Para los SLOTS
+        } else {
             String configKey = getConfigKeyForCommand(command);
             String colorGuardadoStr = config.getString(configKey, "");
             if (!colorGuardadoStr.isEmpty()) {
-                colorOriginal = config.getColor(configKey, Color.MAGENTA); // Desde el config
+                colorOriginal = config.getColor(configKey, Color.MAGENTA);
             } else {
-                colorOriginal = getDefaultColorForSlot(command); // Por defecto
+                colorOriginal = getDefaultColorForSlot(command);
             }
         }
 
-        // 2. DECIDIMOS SI HAY QUE AJUSTARLO USANDO TU LÓGICA
-        Color colorFinalParaPintar;
-        if (esUnColorDeTemaPorDefecto(colorOriginal)) {
-            // SÍ, es un color de tema -> lo ajustamos para que se vea bien.
-            colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
-        } else {
-            // NO, es un color personalizado del usuario -> lo respetamos y lo dejamos tal cual.
-            colorFinalParaPintar = colorOriginal;
-        }
-
-        // 3. PINTAMOS EL BOTÓN CON EL COLOR DECIDIDO
-        button.setIcon(iconUtils.getTintedIcon("stopw.png", colorFinalParaPintar, 16, 16));
+        Color colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
         
-    }// FIN del metodo updateSwatchAppearance ---
+        button.setIcon(iconUtils.getTintedIcon(baseIcon, colorFinalParaPintar, 16, 16));
+    
+    } // --- FIN del metodo updateSwatchAppearance ---
+    
+    
+//    private void updateSwatchAppearance(JButton button) {
+//        String command = (String) button.getClientProperty("canonicalCommand");
+//        if (command == null) return;
+//
+//        // --- INICIO DE LA LÓGICA CORREGIDA Y ROBUSTA ---
+//        Icon baseIcon = (Icon) button.getClientProperty("baseIcon");
+//        
+//        // SI NO ENCUENTRA el icono base (porque es un botón nuevo de una toolbar reconstruida),
+//        // lo intentamos cargar AHORA.
+//        if (baseIcon == null) {
+//            System.out.println("  [updateSwatchAppearance] WARN: Icono base no encontrado en el botón para '" + command + "'. Intentando recarga manual...");
+//            Object baseIconNameObj = button.getClientProperty("baseIconName");
+//            if (baseIconNameObj instanceof String) {
+//                String baseIconName = (String) baseIconNameObj;
+//                // Usamos iconUtils para obtener el icono escalado, igual que haría el ToolbarBuilder
+//                ImageIcon reloadedIcon = iconUtils.getScaledCommonIcon(baseIconName, 16, 16);
+//                if (reloadedIcon != null) {
+//                    baseIcon = reloadedIcon;
+//                    // Y lo guardamos para la próxima vez
+//                    button.putClientProperty("baseIcon", baseIcon);
+//                    System.out.println("    -> Icono base '" + baseIconName + "' recargado y cacheado en el botón con éxito.");
+//                }
+//            }
+//        }
+//        
+//        if (baseIcon == null) {
+//            System.err.println("ERROR GRAVE [updateSwatchAppearance]: El botón para el comando '" + command + "' no tiene un icono base para pintar y no se pudo recargar.");
+//            return;
+//        }
+//        // --- FIN DE LA LÓGICA CORREGIDA Y ROBUSTA ---
+//
+//        // El resto de la lógica es la misma
+//        if (command.equals(AppActionCommands.CMD_BACKGROUND_CHECKERED)) {
+//            button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIcon, 16, 16));
+//            return;
+//        }
+//        if (command.equals(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR)) {
+//            return; 
+//        }
+//
+//        
+//        
+//        
+//        
+//        Color colorOriginal;
+//        if (command.equals(AppActionCommands.CMD_BACKGROUND_THEME_COLOR)) {
+//            colorOriginal = themeManager.getTemaActual().colorFondoSecundario();
+//        } else {
+//            String configKey = getConfigKeyForCommand(command);
+//            String colorGuardadoStr = config.getString(configKey, "");
+//            if (!colorGuardadoStr.isEmpty()) {
+//                colorOriginal = config.getColor(configKey, Color.MAGENTA);
+//            } else {
+//                colorOriginal = getDefaultColorForSlot(command);
+//            }
+//        }
+//
+//        Color colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
+//        
+//        button.setIcon(iconUtils.getTintedIcon(baseIcon, colorFinalParaPintar, 16, 16));
+//    
+//    } //--- FIN del metodo updateSwatchAppearance ---
 
     
 	/**

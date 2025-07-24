@@ -123,6 +123,21 @@ public class ComponentRegistry {
     
     
     /**
+     * Elimina del registro todos los componentes cuyas claves comiencen con los prefijos
+     * "interfaz.boton." o "toolbar.". Esencial para limpiar antes de una reconstrucción de UI.
+     */
+    public void unregisterToolbarComponents() {
+        System.out.println("  [ComponentRegistry] Eliminando componentes de toolbars del registro...");
+        // Usamos removeIf para eliminar de forma segura mientras iteramos
+        componentMap.keySet().removeIf(key -> 
+	        key.startsWith("toolbar.")  
+	        || key.startsWith("interfaz.boton.")
+	        || key.startsWith("interfaz.dpad.") 
+        );
+    } // --- Fin del método unregisterToolbarComponents ---
+    
+    
+    /**
      * Devuelve una lista de todos los componentes registrados que son de un tipo específico
      * o una subclase de ese tipo.
      *

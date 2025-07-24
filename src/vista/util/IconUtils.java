@@ -39,7 +39,9 @@ public class IconUtils {
         }
 
         // System.out.println("  [IconUtils loadImageIcon] Intentando cargar: " + classpathResourcePath + " (para " + iconIdentifier + ")");
-        URL imgURL = getClass().getResource(classpathResourcePath);
+        
+//        URL imgURL = getClass().getResource(classpathResourcePath);
+        URL imgURL = IconUtils.class.getResource(classpathResourcePath);
 
         if (imgURL != null) {
             // System.out.println("    -> Icono encontrado en classpath: " + classpathResourcePath);
@@ -217,22 +219,7 @@ public class IconUtils {
     } // --- Fin del método getColoredOverlayIcon (con Color) ---
     
 
-    /**
-     * Obtiene un Icono con una imagen base y un patrón de cuadros.
-     *
-     * @param baseIconName La clave/nombre del archivo de la imagen base (ej. "circular_base.png").
-     * @param width El ancho deseado para el icono.
-     * @param height El alto deseado para el icono.
-     * @return Un Icon que dibuja la imagen base con el patrón de cuadros, o null si hay errores.
-     */
-    public Icon getCheckeredOverlayIcon(String baseIconName, int width, int height) {
-        Image base = getRawCommonImage(baseIconName); // Usar getRawCommonImage para iconos de base comunes
-        if (base == null) {
-            System.err.println("ERROR [IconUtils.getCheckeredOverlayIcon]: Imagen base '" + baseIconName + "' no encontrada.");
-            return null;
-        }
-        return new ColorOverlayIcon(base, width, height);
-    } // --- Fin del método getCheckeredOverlayIcon ---
+
 
     // --- MÉTODOS DE ESCALADO ---
 
@@ -330,6 +317,7 @@ public class IconUtils {
         Image maskImage = getRawCommonImage(iconMaskPath);
         if (maskImage == null) return null;
         if (tintColor == null) tintColor = Color.GRAY;
+        
 
         BufferedImage finalImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = finalImage.createGraphics();
@@ -344,8 +332,84 @@ public class IconUtils {
         }
         
         return new ImageIcon(finalImage);
+
         
     } // --- FIN del metodo getTintedIcon ---
+    
+    
+    /**
+     * Crea un icono tintado a partir de un Icono base ya existente.
+     * Convierte el Icon a Image y luego aplica el tinte.
+     *
+     * @param baseIcon  El Icono que sirve como máscara.
+     * @param tintColor El color para tintar.
+     * @param width     El ancho del icono final.
+     * @param height    El alto del icono final.
+     * @return Un nuevo ImageIcon tintado.
+     */
+    public ImageIcon getTintedIcon(Icon baseIcon, Color tintColor, int width, int height) {
+        if (baseIcon == null) return null;
+        if (tintColor == null) tintColor = Color.GRAY;
+
+        // Convertir el Icon a una BufferedImage para poder manipularla
+        BufferedImage maskImage = new BufferedImage(baseIcon.getIconWidth(), baseIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = maskImage.createGraphics();
+        baseIcon.paintIcon(null, g, 0, 0);
+        g.dispose();
+
+        // El resto de la lógica de pintado es la misma
+        BufferedImage finalImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2d = finalImage.createGraphics();
+        try {
+            g2d.drawImage(maskImage, 0, 0, width, height, null);
+            g2d.setComposite(AlphaComposite.SrcIn);
+            g2d.setColor(tintColor);
+            g2d.fillRect(0, 0, width, height);
+        } finally {
+            g2d.dispose();
+        }
+        return new ImageIcon(finalImage);
+    } // --- FIN del metodo getTintedIcon ---
+
+    
+    /**
+     * Obtiene un Icono con una imagen base y un patrón de cuadros.
+     *
+     * @param baseIconName La clave/nombre del archivo de la imagen base (ej. "circular_base.png").
+     * @param width El ancho deseado para el icono.
+     * @param height El alto deseado para el icono.
+     * @return Un Icon que dibuja la imagen base con el patrón de cuadros, o null si hay errores.
+     */
+    public Icon getCheckeredOverlayIcon(String baseIconName, int width, int height) {
+        Image base = getRawCommonImage(baseIconName); // Usar getRawCommonImage para iconos de base comunes
+        if (base == null) {
+            System.err.println("ERROR [IconUtils.getCheckeredOverlayIcon]: Imagen base '" + baseIconName + "' no encontrada.");
+            return null;
+        }
+        return new ColorOverlayIcon(base, width, height);
+    } // --- Fin del método getCheckeredOverlayIcon ---
+    
+    
+    /**
+     * Crea un icono con patrón de cuadros a partir de un Icono base ya existente.
+     *
+     * @param baseIcon El Icono que sirve como máscara.
+     * @param width    El ancho del icono final.
+     * @param height   El alto del icono final.
+     * @return Un nuevo Icon con el patrón de cuadros.
+     */
+    public Icon getCheckeredOverlayIcon(Icon baseIcon, int width, int height) {
+        if (baseIcon == null) return null;
+
+        BufferedImage maskImage = new BufferedImage(baseIcon.getIconWidth(), baseIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g = maskImage.createGraphics();
+        baseIcon.paintIcon(null, g, 0, 0);
+        g.dispose();
+
+        return new ColorOverlayIcon(maskImage, width, height);
+    } // --- FIN del metodo getCheckeredOverlayIcon ---
+    
+    
     
     
     public Color aclararColor(Color colorOriginal, int cantidadAclarar) {

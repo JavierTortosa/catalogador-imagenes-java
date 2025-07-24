@@ -26,10 +26,46 @@ public final class ConfigKeys {
     public static String menuState(String... parts) {return buildKey(MENU, parts) + ".seleccionado";}
     public static String toolbarVisible(String toolbarKey) {return buildKey(TOOLBAR, normalizePart(toolbarKey)) + ".visible";}
     public static String buttonVisible(String toolbarKey, String buttonKey) { return buildKey("interfaz.boton", toolbarKey, buttonKey, "visible");}
-    public static String toolbarButtonVisible(String toolbarKey, String buttonKey) {
-        return buildKey(BUTTON_PREFIX, normalizePart(toolbarKey), normalizePart(buttonKey)) + ".visible";
-    }
+//    public static String toolbarButtonVisible(String toolbarKey, String buttonKey) {
+//        return buildKey(BUTTON_PREFIX, normalizePart(toolbarKey), normalizePart(buttonKey)) + ".visible";
+//    }
     
+    
+    /**
+     * Normaliza un comando canónico de la aplicación para ser usado como parte final de una clave de botón.
+     * ESTA ES LA LÓGICA CORRECTA Y CENTRALIZADA.
+     * Elimina prefijos como "cmd." y "toggle." y reemplaza '.' por '_'.
+     * @param comandoCanonico El comando a normalizar (ej. "cmd.nav.siguiente").
+     * @return Una parte de clave limpia y segura (ej. "nav_siguiente").
+     */
+    public static String keyPartFromCommand(String comandoCanonico) {
+        if (comandoCanonico == null) return "desconocido";
+        
+        String resultado = comandoCanonico;
+        if (resultado.startsWith("cmd.")) {
+            resultado = resultado.substring(4);
+        }
+        if (resultado.startsWith("toggle.")) {
+            resultado = resultado.substring(7);
+        }
+        resultado = resultado.replace('.', '_');
+        
+        return resultado;
+    } // --- Fin del método keyPartFromCommand ---
+    
+    
+    /**
+     * Genera la clave de configuración para la visibilidad de un botón de toolbar.
+     * USA LA LÓGICA CORRECTA Y CENTRALIZADA.
+     */
+    public static String toolbarButtonVisible(String toolbarKey, String buttonCommand) {
+        // Usa el método centralizado para limpiar el comando del botón
+        String cleanButtonName = keyPartFromCommand(buttonCommand);
+        
+        // normalizePart sigue siendo útil para la clave de la barra (ej. "proyectoVista").
+        // Si toolbarKey es null o vacío, normalizePart lo manejará.
+        return buildKey(BUTTON_PREFIX, normalizePart(toolbarKey), cleanButtonName) + ".visible";
+    } // --- Fin del método toolbarButtonVisible ---
     
     // --- CONSTANTES PARA CLAVES ÚNICAS (las que no se pueden generar) ---
 	    public static final String INICIO_CARPETA = "inicio.carpeta";
@@ -205,4 +241,7 @@ public final class ConfigKeys {
     //FIXME pendientes de implementar
     public static final String COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE ="comportamiento.navegacion.tamano_salto_bloque"; //nuevo
     public static final String COMPORTAMIENTO_PANTALLA_COMPLETA = "comportamiento.ventana.pantalla_completa";
+    
+    
+
 }

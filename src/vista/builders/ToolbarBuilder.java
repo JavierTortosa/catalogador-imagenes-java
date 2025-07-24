@@ -117,14 +117,8 @@ public class ToolbarBuilder {
     } // --- Fin del método buildSingleToolbar ---
     
     
-    /**
-     * Crea un componente Swing individual (JButton, JToggleButton, DPadComponent, etc.)
-     * basado en la definición proporcionada en {@link ToolbarButtonDefinition}.
-     * Aplica configuraciones básicas y asigna acciones e iconos.
-     *
-     * @param definition La definición del botón/componente.
-     * @return El componente Swing creado, o null si la definición es inválida.
-     */
+ // MÉTODO COMPLETO PARA REEMPLAZAR EN ToolbarBuilder.java
+
     private JComponent crearComponenteIndividual(ToolbarButtonDefinition definition) {
         // --- 1. VALIDACIONES INICIALES ---
         if (definition == null || definition.comandoCanonico() == null) {
@@ -136,7 +130,6 @@ public class ToolbarBuilder {
         final int targetIconWidth = this.iconoAncho;
         final int targetIconHeight = this.iconoAlto;
         Action associatedAction = this.actionMap.get(definition.comandoCanonico());
-
         AbstractButton abstractButtonComponent = null;
         JComponent finalComponent = null;
 
@@ -149,44 +142,20 @@ public class ToolbarBuilder {
                 break;
 
             case TOGGLE:
-            	abstractButtonComponent = new ThemedToggleButton(this.themeManager, associatedAction);
+                abstractButtonComponent = new ThemedToggleButton(this.themeManager, associatedAction);
                 abstractButtonComponent.putClientProperty("JButton.buttonType", "regular");
-
-                System.out.println("[ToolbarBuilder] Creando JToggleButton para: " + definition.comandoCanonico() +
-                                  ", Background: " + abstractButtonComponent.getBackground() +
-                                  ", SelectedBackground: " + UIManager.getColor("ToggleButton.selectedBackground") +
-                                  ", UI: " + abstractButtonComponent.getUI().getClass().getName());
                 break;
 
             case COLOR_OVERLAY_ICON_BUTTON:
-                JButton colorButton = new JButton();
-                colorButton.setOpaque(true);
-                colorButton.setContentAreaFilled(true);
-                colorButton.setBorderPainted(false);
-                colorButton.setFocusPainted(false);
-                colorButton.setBorder(null);
-                
-                // Lógica para obtener el color inicial. Usamos textoTooltip como clave de tema, como discutimos.
-                // Para el slot #1 será "clear", "dark", etc. Para los otros, será la clave del color custom.
-                String colorKey = definition.textoTooltip(); 
-                java.awt.Color initialColor = themeManager.getFondoSecundarioParaTema(colorKey);
-                
-                Icon colorOverlayIcon = this.iconUtils.getColoredOverlayIcon(definition.claveIcono(), initialColor, targetIconWidth, targetIconHeight);
-                colorButton.setIcon(colorOverlayIcon);
-                abstractButtonComponent = colorButton;
-                break;
-
             case CHECKERED_OVERLAY_ICON_BUTTON:
-                JButton checkeredButton = new JButton();
-                checkeredButton.setOpaque(true);
-                checkeredButton.setContentAreaFilled(true);
-                checkeredButton.setBorderPainted(false);
-                checkeredButton.setFocusPainted(false);
-                checkeredButton.setBorder(null);
-
-                Icon checkeredOverlayIcon = this.iconUtils.getCheckeredOverlayIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
-                checkeredButton.setIcon(checkeredOverlayIcon);
-                abstractButtonComponent = checkeredButton;
+                // Estos botones se crean como JButtons normales, su icono especial se pone después
+                JButton specialButton = new JButton();
+                specialButton.setOpaque(true);
+                specialButton.setContentAreaFilled(true);
+                specialButton.setBorderPainted(false);
+                specialButton.setFocusPainted(false);
+                specialButton.setBorder(null);
+                abstractButtonComponent = specialButton;
                 break;
 
             case TRANSPARENT:
@@ -196,12 +165,6 @@ public class ToolbarBuilder {
                 transparentButton.setBorderPainted(false);
                 transparentButton.setFocusPainted(false);
                 transparentButton.setBorder(null);
-                
-                ImageIcon transparentIcon = (definition.scopeIconoBase() == IconScope.COMMON)
-                                           ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
-                                           : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
-                		
-                transparentButton.setIcon(transparentIcon);
                 abstractButtonComponent = transparentButton;
                 break;
 
@@ -212,8 +175,6 @@ public class ToolbarBuilder {
             default:
                 System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: Tipo de botón no reconocido: " + definition.tipoBoton());
                 abstractButtonComponent = new JButton();
-                abstractButtonComponent.setOpaque(true);
-                abstractButtonComponent.setContentAreaFilled(true);
                 break;
         }
 
@@ -221,57 +182,50 @@ public class ToolbarBuilder {
         if (abstractButtonComponent != null) {
             abstractButtonComponent.setMargin(new Insets(2, 2, 2, 2));
             abstractButtonComponent.setToolTipText(definition.textoTooltip());
-            
+
             if (associatedAction != null) {
                 abstractButtonComponent.setAction(associatedAction);
-                abstractButtonComponent.setText(null);
-                
-                if (abstractButtonComponent.getIcon() == null) {
-                    if (associatedAction.getValue(Action.SMALL_ICON) instanceof Icon) {
-                        abstractButtonComponent.setIcon((Icon) associatedAction.getValue(Action.SMALL_ICON));
-                    } else if (definition.claveIcono() != null) {
-                        ImageIcon defaultIcon = (definition.scopeIconoBase() == IconScope.COMMON)
-                                                ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
-                                                : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
-                        abstractButtonComponent.setIcon(defaultIcon);
-                    }
-                }
             } else {
-            	String command = definition.comandoCanonico();
-                System.err.println("WARN [ToolbarBuilder.crearComponenteIndividual]: No se encontró Action para comando '" + command + ".");
                 abstractButtonComponent.setActionCommand(definition.comandoCanonico());
                 abstractButtonComponent.addActionListener(this.controllerRef);
-                
-                if (abstractButtonComponent.getIcon() == null && definition.claveIcono() != null) {
-                     ImageIcon defaultIcon = (definition.scopeIconoBase() == IconScope.COMMON)
-                                           ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
-                                           : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
-                     abstractButtonComponent.setIcon(defaultIcon);
-                }
-                if (command != null && command.startsWith("cmd.background.")) {
-                    abstractButtonComponent.setText(null); // Lo dejamos vacío a propósito
-                } else {
-                    abstractButtonComponent.setText("?"); // Para cualquier otro error, sí ponemos el "?"
-                }
+            }
+            abstractButtonComponent.setText(null);
+
+            Icon finalIcon = null;
+            if (associatedAction != null && associatedAction.getValue(Action.SMALL_ICON) != null) {
+                finalIcon = (Icon) associatedAction.getValue(Action.SMALL_ICON);
+            } else if (definition.claveIcono() != null && !definition.claveIcono().isBlank()) {
+                finalIcon = (definition.scopeIconoBase() == IconScope.COMMON)
+                    ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
+                    : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
+            }
+            abstractButtonComponent.setIcon(finalIcon);
+            
+            // Asignar iconos especiales a los botones de color/cuadros
+            if (definition.tipoBoton() == ButtonType.COLOR_OVERLAY_ICON_BUTTON) {
+                String colorKey = definition.textoTooltip();
+                java.awt.Color initialColor = themeManager.getFondoSecundarioParaTema(colorKey);
+                abstractButtonComponent.setIcon(this.iconUtils.getColoredOverlayIcon(definition.claveIcono(), initialColor, targetIconWidth, targetIconHeight));
+            } else if (definition.tipoBoton() == ButtonType.CHECKERED_OVERLAY_ICON_BUTTON) {
+                abstractButtonComponent.setIcon(this.iconUtils.getCheckeredOverlayIcon(definition.claveIcono(), targetIconWidth, targetIconHeight));
             }
 
-            String nombreBotonParaClave = extraerNombreClave(definition.comandoCanonico());
+            if (abstractButtonComponent.getIcon() != null) {
+                abstractButtonComponent.putClientProperty("baseIcon", abstractButtonComponent.getIcon());
+            }
+
+            String nombreBotonParaClave = ConfigKeys.keyPartFromCommand(definition.comandoCanonico());
             String claveBaseBoton = ConfigKeys.buildKey("interfaz.boton", definition.categoriaLayout(), nombreBotonParaClave);
-            
-//            this.botonesPorNombre.put(claveBaseBoton, (JButton) abstractButtonComponent);
             this.registry.register(claveBaseBoton, abstractButtonComponent);
-            
+
             abstractButtonComponent.putClientProperty("buttonType", definition.tipoBoton());
             abstractButtonComponent.putClientProperty("baseIconName", definition.claveIcono());
             abstractButtonComponent.putClientProperty("buttonConfigKey", claveBaseBoton);
-            
             abstractButtonComponent.putClientProperty("canonicalCommand", definition.comandoCanonico());
-            
+
             finalComponent = abstractButtonComponent;
 
         } else if (definition.tipoBoton() == ButtonType.DPAD_CRUZ || definition.tipoBoton() == ButtonType.DPAD_GRID) {
-            // ... (Tu lógica para DPadComponent se mantiene aquí sin cambios) ...
-            // Por completitud, la pego aquí de nuevo:
             System.out.println("[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: " + definition.tipoBoton());
             final int DPAD_DISPLAY_SIZE = 32;
 
@@ -302,15 +256,19 @@ public class ToolbarBuilder {
                 hotspotActions.add(currentHotspotAction);
             }
 
-            DPadComponent dpadComponent;
-            dpadComponent = DPadComponent.createCrossLayout(
+            DPadComponent dpadComponent = DPadComponent.createCrossLayout(
                 new Dimension(DPAD_DISPLAY_SIZE, DPAD_DISPLAY_SIZE),
                 dpadBaseImage, pressedImage, hotspotKeys, hoverImages, hotspotActions
             );
             dpadComponent.setToolTipText(definition.textoTooltip());
+            
             finalComponent = dpadComponent;
             
-            String dpadClave = ConfigKeys.buildKey("interfaz.dpad", definition.categoriaLayout(), extraerNombreClave(definition.comandoCanonico()));
+            String dpadClave = ConfigKeys.buildKey(
+            		"interfaz.dpad", 
+            		definition.categoriaLayout(), 
+            		ConfigKeys.keyPartFromCommand(definition.comandoCanonico())
+            		);
             this.registry.register(dpadClave, finalComponent);
         } else {
             System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: No se pudo crear componente. Tipo no manejado: " + definition.tipoBoton());
@@ -321,12 +279,214 @@ public class ToolbarBuilder {
     } // --- Fin del método crearComponenteIndividual ---
     
     
-     private String extraerNombreClave(String comandoCanonico) {
-        if (comandoCanonico == null) return "desconocido";
-        String resultado = comandoCanonico.startsWith("cmd.") ? comandoCanonico.substring(4) : comandoCanonico;
-        resultado = resultado.startsWith("toggle.") ? resultado.substring(7) : resultado;
-        return resultado.replace('.', '_');
-    } // --- Fin del método extraerNombreClave ---
+    
+//    /**
+//     * Crea un componente Swing individual (JButton, JToggleButton, DPadComponent, etc.)
+//     * basado en la definición proporcionada en {@link ToolbarButtonDefinition}.
+//     * Aplica configuraciones básicas y asigna acciones e iconos.
+//     *
+//     * @param definition La definición del botón/componente.
+//     * @return El componente Swing creado, o null si la definición es inválida.
+//     */
+//    private JComponent crearComponenteIndividual(ToolbarButtonDefinition definition) {
+//        // --- 1. VALIDACIONES INICIALES ---
+//        if (definition == null || definition.comandoCanonico() == null) {
+//            System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: Definición de botón o comando canónico es nulo.");
+//            return null;
+//        }
+//
+//        // --- 2. VARIABLES COMUNES ---
+//        final int targetIconWidth = this.iconoAncho;
+//        final int targetIconHeight = this.iconoAlto;
+//        Action associatedAction = this.actionMap.get(definition.comandoCanonico());
+//
+//        AbstractButton abstractButtonComponent = null;
+//        JComponent finalComponent = null;
+//
+//        // --- 3. CREACIÓN DEL COMPONENTE SWING SEGÚN EL ButtonType ---
+//        switch (definition.tipoBoton()) {
+//            case NORMAL:
+//                abstractButtonComponent = new JButton();
+//                abstractButtonComponent.setOpaque(true);
+//                abstractButtonComponent.setContentAreaFilled(true);
+//                break;
+//
+//            case TOGGLE:
+//                abstractButtonComponent = new ThemedToggleButton(this.themeManager, associatedAction);
+//                abstractButtonComponent.putClientProperty("JButton.buttonType", "regular");
+//                System.out.println("[ToolbarBuilder] Creando JToggleButton para: " + definition.comandoCanonico());
+//                break;
+//
+//            case COLOR_OVERLAY_ICON_BUTTON:
+//                JButton colorButton = new JButton();
+//                colorButton.setOpaque(true);
+//                colorButton.setContentAreaFilled(true);
+//                colorButton.setBorderPainted(false);
+//                colorButton.setFocusPainted(false);
+//                colorButton.setBorder(null);
+//                abstractButtonComponent = colorButton;
+//                break;
+//
+//            case CHECKERED_OVERLAY_ICON_BUTTON:
+//                JButton checkeredButton = new JButton();
+//                checkeredButton.setOpaque(true);
+//                checkeredButton.setContentAreaFilled(true);
+//                checkeredButton.setBorderPainted(false);
+//                checkeredButton.setFocusPainted(false);
+//                checkeredButton.setBorder(null);
+//                abstractButtonComponent = checkeredButton;
+//                break;
+//
+//            case TRANSPARENT:
+//                JButton transparentButton = new JButton();
+//                transparentButton.setOpaque(false);
+//                transparentButton.setContentAreaFilled(false);
+//                transparentButton.setBorderPainted(false);
+//                transparentButton.setFocusPainted(false);
+//                transparentButton.setBorder(null);
+//                abstractButtonComponent = transparentButton;
+//                break;
+//
+//            case DPAD_CRUZ:
+//            case DPAD_GRID:
+//                break; // Se manejan después
+//
+//            default:
+//                System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: Tipo de botón no reconocido: " + definition.tipoBoton());
+//                abstractButtonComponent = new JButton();
+//                abstractButtonComponent.setOpaque(true);
+//                abstractButtonComponent.setContentAreaFilled(true);
+//                break;
+//        }
+//
+//        // --- 4. LÓGICA COMÚN PARA AbstractButton ---
+//        if (abstractButtonComponent != null) {
+//            abstractButtonComponent.setMargin(new Insets(2, 2, 2, 2));
+//            abstractButtonComponent.setToolTipText(definition.textoTooltip());
+//            
+//            if (associatedAction != null) {
+//                abstractButtonComponent.setAction(associatedAction);
+//            } else {
+//                String command = definition.comandoCanonico();
+//                System.err.println("WARN [ToolbarBuilder.crearComponenteIndividual]: No se encontró Action para comando '" + command + ".");
+//                abstractButtonComponent.setActionCommand(definition.comandoCanonico());
+//                abstractButtonComponent.addActionListener(this.controllerRef);
+//            }
+//
+//            // --- INICIO DE LA LÓGICA DE ICONO CORREGIDA Y DEFINITIVA ---
+//            
+//            // Siempre quitamos el texto después de asignar la acción.
+//            abstractButtonComponent.setText(null);
+//
+//            Icon iconParaPoner = null;
+//
+//            // Prioridad 1: Intentar obtener el icono desde la Action.
+//            if (associatedAction != null && associatedAction.getValue(Action.SMALL_ICON) instanceof Icon) {
+//                iconParaPoner = (Icon) associatedAction.getValue(Action.SMALL_ICON);
+//            }
+//            
+//            // Prioridad 2: Si la Action no tenía icono, cargarlo desde la definición.
+//            // Esto es crucial para el botón de la paleta y otros botones "transparentes".
+//            if (iconParaPoner == null && definition.claveIcono() != null && !definition.claveIcono().isBlank()) {
+//                System.out.println("  -> Icono no encontrado en Action para '" + definition.comandoCanonico() + "'. Cargando desde definición: " + definition.claveIcono());
+//                iconParaPoner = (definition.scopeIconoBase() == IconScope.COMMON)
+//                                ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
+//                                : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
+//            }
+//
+//            // Asignamos el icono encontrado. Si sigue siendo null, el botón no tendrá icono.
+//            abstractButtonComponent.setIcon(iconParaPoner);
+//
+//            // Guardamos el icono base para el BackgroundControlManager, si existe.
+//            if (iconParaPoner != null) {
+//                abstractButtonComponent.putClientProperty("baseIcon", iconParaPoner);
+//            }
+//            
+//            // Para los botones de overlay, necesitamos aplicarles el color/patrón inicial.
+//            if (definition.tipoBoton() == ButtonType.COLOR_OVERLAY_ICON_BUTTON) {
+//                String colorKey = definition.textoTooltip(); 
+//                java.awt.Color initialColor = themeManager.getFondoSecundarioParaTema(colorKey);
+//                Icon colorOverlayIcon = this.iconUtils.getColoredOverlayIcon(definition.claveIcono(), initialColor, targetIconWidth, targetIconHeight);
+//                abstractButtonComponent.setIcon(colorOverlayIcon);
+//            } else if (definition.tipoBoton() == ButtonType.CHECKERED_OVERLAY_ICON_BUTTON) {
+//                Icon checkeredOverlayIcon = this.iconUtils.getCheckeredOverlayIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
+//                abstractButtonComponent.setIcon(checkeredOverlayIcon);
+//            }
+//
+//            // --- FIN DE LA LÓGICA DE ICONO ---
+//            
+//            String nombreBotonParaClave = ConfigKeys.keyPartFromCommand(definition.comandoCanonico());
+//            String claveBaseBoton = ConfigKeys.buildKey("interfaz.boton", definition.categoriaLayout(), nombreBotonParaClave);
+//            this.registry.register(claveBaseBoton, abstractButtonComponent);
+//            
+//            abstractButtonComponent.putClientProperty("buttonType", definition.tipoBoton());
+//            abstractButtonComponent.putClientProperty("baseIconName", definition.claveIcono());
+//            abstractButtonComponent.putClientProperty("buttonConfigKey", claveBaseBoton);
+//            abstractButtonComponent.putClientProperty("canonicalCommand", definition.comandoCanonico());
+//            
+//            finalComponent = abstractButtonComponent;
+//
+//        } else if (definition.tipoBoton() == ButtonType.DPAD_CRUZ || definition.tipoBoton() == ButtonType.DPAD_GRID) {
+//            System.out.println("[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: " + definition.tipoBoton());
+//            final int DPAD_DISPLAY_SIZE = 32;
+//
+//            if (definition.listaDeHotspots() == null || definition.listaDeHotspots().isEmpty()) {
+//                System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: La definición de DPAD_CRUZ/GRID no contiene una lista de hotspots.");
+//                return new JButton("Error D-Pad");
+//            }
+//            
+//            Image dpadBaseImage = (definition.scopeIconoBase() == IconScope.COMMON)
+//                                ? iconUtils.getRawCommonImage(definition.claveIcono())
+//                                : iconUtils.getRawIcon(definition.claveIcono());
+//            Image pressedImage = iconUtils.getRawCommonImage("D-Pad_all_48x48.png"); 
+//            
+//            List<String> hotspotKeys = new ArrayList<>();
+//            List<Image> hoverImages = new ArrayList<>();
+//            List<Action> hotspotActions = new ArrayList<>();
+//            
+//            for (int i = 0; i < definition.listaDeHotspots().size(); i++) {
+//                HotspotDefinition hotspotDef = definition.listaDeHotspots().get(i);
+//                Action currentHotspotAction = actionMap.get(hotspotDef.comando());
+//                
+//                Image hoverImage = (hotspotDef.scope() == IconScope.COMMON)
+//                                 ? iconUtils.getRawCommonImage(hotspotDef.icono())
+//                                 : iconUtils.getRawIcon(hotspotDef.icono());
+//                
+//                hotspotKeys.add(definition.comandoCanonico() + "-hotspot-" + i);
+//                hoverImages.add(hoverImage);
+//                hotspotActions.add(currentHotspotAction);
+//            }
+//
+//            DPadComponent dpadComponent;
+//            dpadComponent = DPadComponent.createCrossLayout(
+//                new Dimension(DPAD_DISPLAY_SIZE, DPAD_DISPLAY_SIZE),
+//                dpadBaseImage, pressedImage, hotspotKeys, hoverImages, hotspotActions
+//            );
+//            dpadComponent.setToolTipText(definition.textoTooltip());
+//            
+//            finalComponent = dpadComponent;
+//            
+//            String dpadClave = ConfigKeys.buildKey(
+//            		"interfaz.dpad", 
+//            		definition.categoriaLayout(), 
+//            		ConfigKeys.keyPartFromCommand(definition.comandoCanonico())
+//            		);
+//            this.registry.register(dpadClave, finalComponent);
+//        } else {
+//            System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: No se pudo crear componente. Tipo no manejado: " + definition.tipoBoton());
+//            return null;
+//        }
+//
+//        return finalComponent;
+//    } // --- Fin del método crearComponenteIndividual ---
+    
+    
+//     private String extraerNombreClave(String comandoCanonico) {
+//        if (comandoCanonico == null) return "desconocido";
+//        String resultado = comandoCanonico.startsWith("cmd.") ? comandoCanonico.substring(4) : comandoCanonico;
+//        resultado = resultado.startsWith("toggle.") ? resultado.substring(7) : resultado;
+//        return resultado.replace('.', '_');
+//    } // --- Fin del método extraerNombreClave ---
 
      public Map<String, AbstractButton> getBotonesPorNombre() {
          return Collections.unmodifiableMap(this.botonesPorNombre);

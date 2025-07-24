@@ -2,17 +2,14 @@ package controlador.actions.tema;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JFrame; // Importar JFrame
-import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 
 import controlador.VisorController; // Importar VisorController
-import vista.theme.ThemeManager;
 import vista.theme.Tema;
-// No se necesita importar VisorView
+
+import vista.theme.ThemeManager;
 
 public class ToggleThemeAction extends AbstractAction {
 
@@ -56,20 +53,21 @@ public class ToggleThemeAction extends AbstractAction {
             System.out.println("  -> Tema cambiado en ThemeManager a: " + this.nombreInternoTemaQueRepresenta);
             
             // Notificar al usuario
-            SwingUtilities.invokeLater(() -> {
-                // Obtenemos el frame principal desde el controlador.
-                JFrame mainFrame = controllerRef.getView();
-                
-                JOptionPane.showMessageDialog(
-                    mainFrame, // Usamos el frame obtenido
-                    "El tema se ha cambiado a '" + this.nombreDisplayTema + "'.\n" +
-                    "Los cambios visuales completos se aplicarán la próxima vez\n" +
-                    "que inicie la aplicación.",
-                    "Cambio de Tema",
-                    JOptionPane.INFORMATION_MESSAGE
-                );
-            });
-        } else {
+//            SwingUtilities.invokeLater(() -> {
+//                // Obtenemos el frame principal desde el controlador.
+//                JFrame mainFrame = controllerRef.getView();
+//                
+//                JOptionPane.showMessageDialog(
+//                    mainFrame, // Usamos el frame obtenido
+//                    "El tema se ha cambiado a '" + this.nombreDisplayTema + "'.\n" +
+//                    "Los cambios visuales completos se aplicarán la próxima vez\n" +
+//                    "que inicie la aplicación.",
+//                    "Cambio de Tema",
+//                    JOptionPane.INFORMATION_MESSAGE
+//                );
+//            });
+//        } else {
+            
             System.out.println("  -> El tema '" + this.nombreInternoTemaQueRepresenta + "' ya era el actual. No se realizaron cambios.");
             sincronizarEstadoSeleccionConManager();
         }

@@ -199,20 +199,38 @@ public class AppInitializer {
             DefaultListModel<String> modeloMiniaturas = this.controller.getModeloMiniaturas();
             
             ViewBuilder viewBuilder = new ViewBuilder(
-                registry, this.model, this.themeManager, this.configuration,
-                this.controller, this.iconUtils, this.servicioMiniaturas,
+                registry, 
+                this.model, 
+                this.themeManager, 
+                this.configuration,
+                this.iconUtils, 
+                this.servicioMiniaturas,
                 projectBuilder,
                 modeloMiniaturas
             );
 
             UIDefinitionService uiDefSvc = new UIDefinitionService();
-            Map<String, String> iconMap = new java.util.HashMap<>();
-            uiDefSvc.generateModularToolbarStructure().forEach(td -> td.botones().forEach(bd -> iconMap.put(bd.comandoCanonico(), bd.claveIcono())));
             
+            // Creamos el nuevo mapa que guarda más información
+            Map<String, ActionFactory.IconInfo> iconMap = new java.util.HashMap<>();
+            
+            // 2. LLENAMOS el mapa con la información de los iconos.
+            uiDefSvc.generateModularToolbarStructure().forEach(toolbarDef -> 
+                toolbarDef.botones().forEach(buttonDef -> 
+                    iconMap.put(
+                        buttonDef.comandoCanonico(), 
+                        new ActionFactory.IconInfo(buttonDef.claveIcono(), buttonDef.scopeIconoBase())
+                    )
+                )
+            );
+
+            // 3. Creamos ActionFactory y le PASAMOS la variable 'iconMap' que acabamos de crear.
             this.actionFactory = new ActionFactory(
                  this.model, null, this.zoomManager, this.fileOperationsManager, 
                  this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
-                 this.projectManagerService, iconMap, this.viewManager, this.themeManager, 
+                 this.projectManagerService, 
+                 iconMap, // <-- Esta línea ahora funciona porque 'iconMap' existe.
+                 this.viewManager, this.themeManager, 
                  this.generalController, this.projectController
             );
             
@@ -265,6 +283,10 @@ public class AppInitializer {
             this.viewManager.setConfiguration(this.configuration);
             this.viewManager.setRegistry(registry);
             this.viewManager.setThemeManager(this.themeManager);
+            
+            this.viewManager.setToolbarManager(this.toolbarManager);     // <-- AÑADIDO (Inyección que faltaba)
+            this.viewManager.setViewBuilder(viewBuilder);               // <-- AÑADIDO (Inyección para la solución)
+            
             this.listCoordinator.setModel(this.model);
             this.listCoordinator.setController(this.controller);
             this.listCoordinator.setRegistry(registry);
@@ -298,7 +320,6 @@ public class AppInitializer {
             this.themeManager.setConfigApplicationManager(this.configAppManager);
             
             viewBuilder.setToolbarManager(this.toolbarManager);
-            viewBuilder.setViewManager(this.viewManager);
             menuBuilder.setControllerGlobalActionListener(this.controller);
             this.configAppManager.setBackgroundControlManager(this.backgroundControlManager);
             
@@ -388,7 +409,7 @@ public class AppInitializer {
 
             if (miniaturasList != null) {
                 // La llamada ya no necesita el ThemeManager
-                new ThumbnailPreviewer(miniaturasList, this.model);
+            	new ThumbnailPreviewer(miniaturasList, this.model, this.themeManager);
                 System.out.println("    -> Previsualizador instalado en la lista de miniaturas.");
             } else {
                 System.err.println("WARN: No se pudo instalar el previsualizador, 'list.miniaturas' no encontrada en el registro.");

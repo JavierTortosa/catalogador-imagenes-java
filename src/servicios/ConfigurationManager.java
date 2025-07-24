@@ -588,6 +588,7 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, "true");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, "10");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, "false");
+	    defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO, "true");
 
 //	    defaults.put(ConfigKeys.WINDOW_X, "-1");
 //	    defaults.put(ConfigKeys.WINDOW_Y, "-1");
@@ -657,7 +658,7 @@ public class ConfigurationManager
 	    // Visibilidad de botones individuales
 	    uiDefs.generateModularToolbarStructure().forEach(toolbarDef -> {
 	        toolbarDef.botones().forEach(buttonDef -> {
-	            // Corregido para evitar duplicados como "apoyo" y "especiales" para la misma acción
+	            // AHORA ESTA LLAMADA GENERARÁ LA CLAVE CORRECTA
 	            String buttonVisibilityKey = ConfigKeys.toolbarButtonVisible(
 	            		toolbarDef.claveBarra(), 
 	            	    buttonDef.comandoCanonico()

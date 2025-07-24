@@ -76,6 +76,7 @@ public interface AppActionCommands {
     String CMD_PROYECTO_GESTIONAR 			= "cmd.proyecto.gestionar";     		// Para abrir el diálogo/funcionalidad de gestión de proyectos (el JOptionPane por ahora)
     String CMD_PROYECTO_TOGGLE_VISTA 		= "cmd.proyecto.toggle_vista_seleccion";//  botón/menú para alternar vista
     
+    
     // Gestor de proyectos - POPUP MENU
 	    String CMD_PROYECTO_MOVER_A_DESCARTES 	= "cmd.proyecto.mover_a_descartes";
 	    String CMD_EXPORT_ASIGNAR_ARCHIVO 		= "cmd.export.asignar_archivo";
@@ -105,6 +106,9 @@ public interface AppActionCommands {
 
     String CMD_VISTA_TOGGLE_MINIATURE_TEXT 	= "cmd.vista.toggle_miniature_text"; 	//Muestra el texto del nombre de las miniaturas
     String CMD_VISTA_SWITCH_TO_VISUALIZADOR = "cmd.vista.switch_to_visualizador";
+    String CMD_MODO_DATOS 					= "cmd.modo.datos";
+    String CMD_MODO_EDICION 				= "cmd.modo.edicion";
+    
     String CMD_VISTA_CAROUSEL 				= "cmd.vista.carousel";
     
     // --- Comportamiento/Toggles Generales ---

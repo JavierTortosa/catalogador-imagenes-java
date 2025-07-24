@@ -2,8 +2,10 @@
 package controlador.actions.zoom;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 
 import controlador.VisorController;
 import controlador.interfaces.ContextSensitiveAction; // <-- 1. Importar la interfaz
@@ -19,8 +21,8 @@ public class ToggleZoomToCursorAction extends AbstractAction implements ContextS
     private final ConfigurationManager config;
     private final VisorController controller;
 
-    public ToggleZoomToCursorAction(String name, VisorController controller) {
-        super(name);
+    public ToggleZoomToCursorAction(String name, Icon icon, VisorController controller) {
+        super(name, icon);
         this.controller = controller;
         this.model = controller.getModel();
         this.config = controller.getConfigurationManager();

@@ -6,12 +6,10 @@ import java.util.Map;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 
-// --- INICIO DE LA MODIFICACIÓN: Añadir imports faltantes ---
 import controlador.utils.ComponentRegistry;
 import servicios.ConfigurationManager;
 import vista.VisorView;
 import vista.theme.ThemeManager;
-// --- FIN DE LA MODIFICACIÓN ---
 
 /**
  * Interfaz (Contrato) que define las responsabilidades del ViewManager.
@@ -35,7 +33,9 @@ public interface IViewManager {
     void sincronizarAccionesFormatoBarraInferior();
     void sincronizarEstadoVisualInicialDeRadiosDeFormato();
     void setBotonMenuEspecialVisible(boolean visible);
-//    void cambiarAVista(String nombreVista);
+    void refrescarColoresDeFondoUI();
+    void reconstruirPanelesEspecialesTrasTema();
+    
 
     // --- MÉTODOS DE INYECCIÓN (SETTERS) ---
 

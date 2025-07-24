@@ -85,6 +85,8 @@ import vista.util.IconUtils;
 
 
 public class ActionFactory {
+	
+	public record IconInfo(String iconKey, vista.config.IconScope scope) {}
 
     // --- SECCIÓN 1: CAMPOS DE INSTANCIA (DEPENDENCIAS INYECTADAS) ---
     // 1.1. Referencias a componentes principales
@@ -92,6 +94,7 @@ public class ActionFactory {
     private VisorView view;
     private final ConfigurationManager configuration;
     private final IconUtils iconUtils;
+    
     
     // 1.2. Referencias a Managers y Coordinadores
     private FileOperationsManager fileOperationsManager;
@@ -110,8 +113,8 @@ public class ActionFactory {
     private IEditionManager editionManager;
 
     // 1.3. Mapa para obtener claves de icono
-    private final Map<String, String> comandoToIconKeyMap; 
-
+    private final Map<String, IconInfo> comandoToIconKeyMap;
+    
     // 1.4. Dimensiones de iconos (leídas de config)
     private final int iconoAncho;
     private final int iconoAlto;
@@ -158,7 +161,7 @@ public class ActionFactory {
             IconUtils iconUtils, 
             ConfigurationManager configuration,
             IProjectManager projectService,
-            Map<String, String> comandoToIconKeyMap,
+            Map<String, IconInfo> comandoToIconInfoMap,
             IViewManager viewManager,
             ThemeManager themeManager,
             
@@ -189,7 +192,7 @@ public class ActionFactory {
         this.projectService 			= Objects.requireNonNull(projectService, "IProjectManager (servicio) no puede ser null");
         
         // 2.3. Asignar mapa de iconos.
-        this.comandoToIconKeyMap 		= Objects.requireNonNull(comandoToIconKeyMap, "comandoToIconKeyMap no puede ser null");
+        this.comandoToIconKeyMap 		= Objects.requireNonNull(comandoToIconInfoMap, "comandoToIconInfoMap no puede ser null");
         
         // 2.4. Leer dimensiones de iconos desde la configuración.
         this.iconoAncho 				= configuration.getInt("iconos.ancho", 24);
@@ -367,12 +370,6 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_PAN_RIGHT_INCREMENTAL, createPanActionIncremental(AppActionCommands.CMD_PAN_RIGHT_INCREMENTAL, Direction.RIGHT));
         
         // 3.12. Crear y registrar Actions de Control de Fondo
-//        actionMap.put(AppActionCommands.CMD_BACKGROUND_THEME_COLOR, createSetBackgroundColorAction("clear", "Fondo Tema Claro"));
-//        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, createSetBackgroundColorAction("dark", "Fondo Tema Oscuro"));
-//        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, createSetBackgroundColorAction("blue", "Fondo Tema Azul"));
-//        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3, createSetBackgroundColorAction("orange", "Fondo Tema Naranja"));
-//        actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4 , createSetBackgroundColorAction("green", "Fondo Tema Verde"));
-        
         actionMap.put(AppActionCommands.CMD_BACKGROUND_THEME_COLOR, createSetBackgroundColorAction(AppActionCommands.CMD_BACKGROUND_THEME_COLOR, "clear", "Fondo Tema Claro"));
         actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, createSetBackgroundColorAction(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1, "dark", "Fondo Tema Oscuro"));
         actionMap.put(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, createSetBackgroundColorAction(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2, "blue", "Fondo Tema Azul"));
@@ -390,19 +387,22 @@ public class ActionFactory {
                 createSwitchDisplayModeAction(DisplayMode.GRID, AppActionCommands.CMD_VISTA_GRID, "Vista Cuadrícula"));
         registerAction(AppActionCommands.CMD_VISTA_POLAROID,
                 createSwitchDisplayModeAction(DisplayMode.POLAROID, AppActionCommands.CMD_VISTA_POLAROID, "Vista Polaroid"));
-        // --- FIN AÑADIDO ---
 
-        // --- INICIO AÑADIDO: Acciones para cambio de WorkMode (Modos de Trabajo) ---
+        // --- Acciones para cambio de WorkMode (Modos de Trabajo) ---
         // Asegúrate de que CMD_VISTA_CAROUSEL exista en AppActionCommands
         registerAction(AppActionCommands.CMD_VISTA_CAROUSEL,
                        createSwitchWorkModeAction(WorkMode.CARROUSEL, AppActionCommands.CMD_VISTA_CAROUSEL, "Modo Carrusel"));
-        // Acciones para otros WorkModes futuros, si los tienes definidos en UIDefinitionService.
+        
         // Asegúrate de que sus comandos sean únicos.
-        registerAction(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE + ".ModoDatos", // Sufijo para unicidad
-                       createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE + ".ModoDatos", "Modo Datos"));
-        registerAction(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE + ".ModoEdicion", // Sufijo para unicidad
-                       createSwitchWorkModeAction(WorkMode.CARROUSEL, AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE + ".ModoEdicion", "Modo Edición"));
-        // --- FIN AÑADIDO ---
+        registerAction(AppActionCommands.CMD_MODO_DATOS, 
+                createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_MODO_DATOS, "Modo Datos"));
+                
+        registerAction(AppActionCommands.CMD_MODO_EDICION, 
+                createSwitchWorkModeAction(WorkMode.EDICION, AppActionCommands.CMD_MODO_EDICION, "Modo Edición"));
+
+        // Acciones para otros WorkModes futuros, si los tienes definidos en UIDefinitionService.
+        
+        
     } // --- FIN del metodo createCoreActions ---
     
 
@@ -478,9 +478,24 @@ public class ActionFactory {
      * 4.2. Helper para obtener el ImageIcon para un comando dado.
      */
     private ImageIcon getIconForCommand(String appCommand) {
-        String claveIcono = this.comandoToIconKeyMap.get(appCommand);
-        if (claveIcono != null && !claveIcono.isBlank()) {
-        	return this.iconUtils.getScaledIcon(claveIcono, this.iconoAncho, this.iconoAlto);
+        // Buscamos la información completa del icono en el nuevo mapa
+        IconInfo info = this.comandoToIconKeyMap.get(appCommand);
+        
+        if (info != null && info.iconKey() != null && !info.iconKey().isBlank()) {
+            // --- ¡LA LÓGICA CLAVE! ---
+            // Si el scope es COMMON, llamamos al método para iconos comunes.
+            if (info.scope() == vista.config.IconScope.COMMON) {
+            	
+            	System.out.println("[ActionFactory] cargando icono comun: " + info.iconKey );
+                
+            	return this.iconUtils.getScaledCommonIcon(info.iconKey(), this.iconoAncho, this.iconoAlto);
+            } else {
+            // Si no, llamamos al método para iconos tematizados (comportamiento por defecto).
+            	
+            	System.out.println("[ActionFactory] cargando icono Tematizado: " + info.iconKey );
+            	
+                return this.iconUtils.getScaledIcon(info.iconKey(), this.iconoAncho, this.iconoAlto);
+            }
         }
         return null; 
     } // --- Fin del método getIconForCommand ---
@@ -498,13 +513,12 @@ public class ActionFactory {
     
     private Action createToggleZoomToCursorAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
-        // Creamos la acción. El nombre "Zoom al Cursor" se usará para el tooltip del botón
-        // y el texto del item de menú. Le pasamos el VisorController.
-        ToggleZoomToCursorAction action = new ToggleZoomToCursorAction("Zoom al Cursor", this.generalController.getVisorController());
         
-        // --- ¡IMPORTANTE! ---
-        // Como este es un botón que debe reflejar un estado (ON/OFF), lo registramos
-        // como sensible al contexto para futuras actualizaciones.
+        // --- LA CORRECCIÓN CLAVE ---
+        // Ahora llamamos al nuevo constructor y le pasamos el 'icon' que hemos cargado.
+        ToggleZoomToCursorAction action = new ToggleZoomToCursorAction("Zoom al Cursor", icon, this.generalController.getVisorController());
+        
+        // El resto se queda igual...
         this.contextSensitiveActions.add(action);
         
         return action;
@@ -872,96 +886,54 @@ public class ActionFactory {
      // --- 4.13. Métodos Create para Actions de Control de Fondo ---
      
      private Action createSetBackgroundColorAction(String command, String themeKey, String name) {
-    	    Action action = new AbstractAction(name) {
-    	        private static final long serialVersionUID = 1L;
-    	        @Override
-    	        public void actionPerformed(ActionEvent e) {
-    	            if (viewManager != null && themeManager != null) {
-    	                java.awt.Color color = themeManager.getFondoSecundarioParaTema(themeKey);
-    	                viewManager.setSessionBackgroundColor(color);
-    	            }
-    	        }
-    	    };
-    	    // ¡LA LÍNEA CLAVE! Asignamos el comando a la acción.
-    	    action.putValue(Action.ACTION_COMMAND_KEY, command);
-    	    return action;
-    	} // --- Fin del método createSetBackgroundColorAction ---
+	    Action action = new AbstractAction(name) {
+	        private static final long serialVersionUID = 1L;
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            if (viewManager != null && themeManager != null) {
+	                java.awt.Color color = themeManager.getFondoSecundarioParaTema(themeKey);
+	                viewManager.setSessionBackgroundColor(color);
+	            }
+	        }
+	    };
+	    // ¡LA LÍNEA CLAVE! Asignamos el comando a la acción.
+	    action.putValue(Action.ACTION_COMMAND_KEY, command);
+	    return action;
+	} // --- Fin del método createSetBackgroundColorAction ---
      
      
-//     private Action createSetBackgroundColorAction(String themeKey, String name) {
-//         return new AbstractAction(name) {
-//             private static final long serialVersionUID = 1L;
-//             @Override
-//             public void actionPerformed(ActionEvent e) {
-//                 if (viewManager != null && themeManager != null) {
-//                     java.awt.Color color = themeManager.getFondoSecundarioParaTema(themeKey);
-//                     viewManager.setSessionBackgroundColor(color);
-//                 }
-//             }
-//         };
-//     } // --- Fin del método createSetBackgroundColorAction ---
-     
-     
-		private Action createSetCheckeredBackgroundAction(String name){
-			Action action = new AbstractAction(name){
-				private static final long serialVersionUID = 1L;
+	private Action createSetCheckeredBackgroundAction(String name){
+		Action action = new AbstractAction(name){
+			private static final long serialVersionUID = 1L;
 
-				@Override
-				public void actionPerformed(ActionEvent e){
+			@Override
+			public void actionPerformed(ActionEvent e){
 
-					if (viewManager != null){
-						viewManager.setSessionCheckeredBackground();
-					}
+				if (viewManager != null){
+					viewManager.setSessionCheckeredBackground();
 				}
-			};
-			action.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_BACKGROUND_CHECKERED);
-			return action;
-			
-		}// --- Fin del método createSetCheckeredBackgroundAction ---
-     
-     
-//     private Action createSetCheckeredBackgroundAction(String name) {
-//         return new AbstractAction(name) {
-//             private static final long serialVersionUID = 1L;
-//             @Override
-//             public void actionPerformed(ActionEvent e) {
-//                 if (viewManager != null) {
-//                     viewManager.setSessionCheckeredBackground();
-//                 }
-//             }
-//         };
-//     } // --- Fin del método createSetCheckeredBackgroundAction ---
-     
-
-		private Action createRequestCustomColorAction(String name) {
-		    Action action = new AbstractAction(name) {
-		        private static final long serialVersionUID = 1L;
-		        @Override
-		        public void actionPerformed(ActionEvent e) {
-		            if (viewManager != null) {
-		                viewManager.requestCustomBackgroundColor();
-		            }
-		        }
-		    };
-		    // ¡LA LÍNEA CLAVE!
-		    action.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR);
-		    return action;
-		    
-		}// --- Fin del método createRequestCustomColorAction ---
+			}
+		};
+		action.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_BACKGROUND_CHECKERED);
+		return action;
+		
+	}// --- Fin del método createSetCheckeredBackgroundAction ---
+ 
+	private Action createRequestCustomColorAction(String name) {
+	    Action action = new AbstractAction(name) {
+	        private static final long serialVersionUID = 1L;
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	            if (viewManager != null) {
+	                viewManager.requestCustomBackgroundColor();
+	            }
+	        }
+	    };
+	    action.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR);
+	    return action;
+	} // --- Fin del método createRequestCustomColorAction ---
 
 		
-//     private Action createRequestCustomColorAction(String name) {
-//         return new AbstractAction(name) {
-//             private static final long serialVersionUID = 1L;
-//             @Override
-//             public void actionPerformed(ActionEvent e) {
-//                 if (viewManager != null) {
-//                     viewManager.requestCustomBackgroundColor();
-//                 }
-//             }
-//         };
-//     } // --- Fin del método createRequestCustomColorAction ---
-     
     // --- SECCIÓN 5: GETTERS Y SETTERS ---
     public Map<String, Action> getActionMap() {
          return this.actionMap; 
@@ -971,7 +943,7 @@ public class ActionFactory {
         return Collections.unmodifiableList(this.contextSensitiveActions);
     } // --- Fin del método getContextSensitiveActions ---
     
-    public Map<String, String> getComandoToIconKeyMap() {return Collections.unmodifiableMap(this.comandoToIconKeyMap);}
+    public Map<String, IconInfo> getComandoToIconKeyMap() {return Collections.unmodifiableMap(this.comandoToIconKeyMap);}
     public int getIconoAncho() { return this.iconoAncho;}
     public int getIconoAlto() { return this.iconoAlto;}
     
@@ -1000,6 +972,7 @@ public class ActionFactory {
         int iconosActualizados = 0;
         // Iteramos sobre todas las entradas del mapa de acciones.
         for (Map.Entry<String, Action> entry : actionMap.entrySet()) {
+        	
             String comando = entry.getKey();
             Action action = entry.getValue();
 
@@ -1010,6 +983,18 @@ public class ActionFactory {
 
             // Solo actualizamos si se encontró un nuevo icono.
             // Algunas acciones pueden no tener icono por diseño.
+            
+            // LOG DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR
+            if (comando.equals(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR)) {
+                System.out.println("DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: " + (nuevoIcono != null ? nuevoIcono.toString() : "NULL"));
+                IconInfo info = this.comandoToIconKeyMap.get(comando);
+                if (info != null) {
+                     System.out.println("DEBUG TEMA: ... a partir de la clave de icono: " + info.iconKey());
+                }
+            }
+            // --- FIN DE AÑADIDO ---
+            
+            
             if (nuevoIcono != null) {
                 // Actualizamos la propiedad Action.SMALL_ICON de la Action.
                 // Los componentes de Swing (JButton, JMenuItem) que usan esta Action

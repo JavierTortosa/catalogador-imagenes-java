@@ -182,18 +182,11 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	    
 	    // El cambio de tarjeta del CardLayout debe ocurrir PRIMERO y de forma síncrona.
 	    switch (modoAlQueSeEntra) {
-	        case VISUALIZADOR:
-	            this.viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR");
-	            break;
-	        case PROYECTO:
-	            this.viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS");
-	            break;
-	        case DATOS:
-	            this.viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS");
-	            break;
-	        case CARROUSEL:
-	            this.viewManager.cambiarAVista("container.workmodes", "VISTA_CAROUSEL_WORKMODE");
-	            break;
+	        case VISUALIZADOR: this.viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR"); break;
+	        case PROYECTO: this.viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS"); break;
+	        case DATOS: this.viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS"); break;
+	        case EDICION: this.viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION"); break;
+	        case CARROUSEL: this.viewManager.cambiarAVista("container.workmodes", "VISTA_CAROUSEL_WORKMODE"); break;
 	    }
 	    
 	    // --- INICIO DE LA MODIFICACIÓN CLAVE ---
@@ -212,6 +205,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	                break;
 	            // No hay lógica de restauración para DATOS y CARROUSEL por ahora
 	            case DATOS: 
+	            case EDICION:
 	            case CARROUSEL:
 	                break;
 	        }
@@ -408,28 +402,59 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	 */
 	public void sincronizarEstadoBotonesDeModo() {
 	    if (this.actionMap == null || this.model == null || this.configAppManager == null) {
-	        System.err.println("WARN [GeneralController.sincronizarEstadoBotonesDeModo]: Dependencias nulas (ActionMap, Model o ConfigAppManager).");
+	        System.err.println("WARN [GeneralController.sincronizarEstadoBotonesDeModo]: Dependencias nulas.");
 	        return;
 	    }
 
-	    String comandoModoActivo = this.model.isEnModoProyecto()
-	                               ? AppActionCommands.CMD_PROYECTO_GESTIONAR
-	                               : AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
+        // --- INICIO DE LA CORRECCIÓN ---
+        
+        // 1. Obtener el WorkMode actual del modelo.
+        WorkMode modoActivo = this.model.getCurrentWorkMode();
+        String comandoModoActivo;
 
+        // 2. Mapear el WorkMode actual a su comando de acción correspondiente.
+        switch (modoActivo) {
+            case VISUALIZADOR:
+                comandoModoActivo = AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
+                break;
+            case PROYECTO:
+                comandoModoActivo = AppActionCommands.CMD_PROYECTO_GESTIONAR;
+                break;
+            case DATOS:
+                comandoModoActivo = AppActionCommands.CMD_MODO_DATOS;
+                break;
+            case EDICION:
+                comandoModoActivo = AppActionCommands.CMD_MODO_EDICION;
+                break;
+            case CARROUSEL:
+                comandoModoActivo = AppActionCommands.CMD_VISTA_CAROUSEL;
+                break;
+            default:
+                // Fallback por si acaso
+                comandoModoActivo = AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR;
+                break;
+        }
+
+	    // 3. Crear una lista de TODOS los comandos de los botones de modo.
 	    List<String> comandosDeModo = List.of(
+	        AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,
 	        AppActionCommands.CMD_PROYECTO_GESTIONAR,
-	        AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR
-	        // Añadir aquí el comando para el "Modo Datos" cuando exista.
+	        AppActionCommands.CMD_MODO_DATOS,
+	        AppActionCommands.CMD_MODO_EDICION,
+	        AppActionCommands.CMD_VISTA_CAROUSEL
 	    );
 
+        // --- FIN DE LA CORRECCIÓN ---
+
+        // El resto del método se queda igual, ya que la lógica de iteración es correcta.
 	    for (String comando : comandosDeModo) {
 	        Action action = this.actionMap.get(comando);
 	        if (action != null) {
-                // 1. Actualizar el estado lógico de la Action
+                // a) Actualizar el estado lógico de la Action
 	            boolean isSelected = comando.equals(comandoModoActivo);
 	            action.putValue(Action.SELECTED_KEY, isSelected);
 
-                // 2. Actualizar el estado visual del botón asociado
+                // b) Actualizar el estado visual del botón asociado
                 this.configAppManager.actualizarAspectoBotonToggle(action, isSelected);
 	        }
 	    }
