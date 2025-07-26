@@ -65,17 +65,19 @@ public class UIDefinitionService {
             new MenuItemDefinition(AppActionCommands.CMD_NAV_IR_A, 
             		MenuItemType.ITEM, "Ir a...", null),
             new MenuItemDefinition(AppActionCommands.CMD_NAV_BUSCAR, 
-            		MenuItemType.ITEM, "Buscar...", null),
-            new MenuItemDefinition(null, 
-            		MenuItemType.SEPARATOR, null, null),
-            new MenuItemDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_ANTERIOR, 
-            		MenuItemType.ITEM, "Anterior Fotograma (GIF)", null),
-            new MenuItemDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_SIGUIENTE, 
-            		MenuItemType.ITEM, "Siguiente Fotograma (GIF)", null),
-            new MenuItemDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_PRIMERO, 
-            		MenuItemType.ITEM, "Primer Fotograma (GIF)", null),
-            new MenuItemDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_ULTIMO, 
-            		MenuItemType.ITEM, "Último Fotograma (GIF)", null)
+            		MenuItemType.ITEM, "Buscar...", null)
+            
+//            new MenuItemDefinition(null, 
+//            		MenuItemType.SEPARATOR, null, null),
+//            new MenuItemDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ANTERIOR, 
+//            		MenuItemType.ITEM, "Anterior Fotograma (GIF)", null),
+//            new MenuItemDefinition(AppActionCommands.CMD_CAROUSEL_NAV_SIGUIENTE, 
+//            		MenuItemType.ITEM, "Siguiente Fotograma (GIF)", null),
+//            new MenuItemDefinition(AppActionCommands.CMD_CAROUSEL_NAV_PRIMERA, 
+//            		MenuItemType.ITEM, "Primer Fotograma (GIF)", null),
+//            new MenuItemDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ULTIMA, 
+//            		MenuItemType.ITEM, "Último Fotograma (GIF)", null)
+            
         );
         menuBarStructure.add(new MenuItemDefinition(null, 
         		MenuItemType.MAIN_MENU, "Navegación", navSubItems));
@@ -187,7 +189,7 @@ public class UIDefinitionService {
         		MenuItemType.MAIN_MENU, "Imagen", imagenSubItems));
 
         // --- SECCIÓN 5: MENÚ "VISTA" ---
-     // Submenú para MODOS DE VISUALIZACIÓN DE CONTENIDO (DisplayMode)
+        // Submenú para MODOS DE VISUALIZACIÓN DE CONTENIDO (DisplayMode)
         List<MenuItemDefinition> tiposVistaDisplayModesSubItems = List.of(
 	            new MenuItemDefinition(null, 
 	            	MenuItemType.RADIO_GROUP_START, null, null),
@@ -508,7 +510,6 @@ public class UIDefinitionService {
 
         // 7.6.3. Añadir el submenú "Configurar Visibilidad Barras" al menú "Configuración"
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SUB_MENU,"Paneles de Datos", configVisibilidadBarrasSubItems));
-        // --- FIN DE LA SECCIÓN PARA CONFIGURAR VISIBILIDAD DE BARRAS ---
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
 
 
@@ -553,32 +554,32 @@ public class UIDefinitionService {
 
     	// --- BARRA DE NAVEGACIÓN ---
 		List<ToolbarButtonDefinition> botonesNavegacion = List.of(	
-             new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_PRIMERA, 				"1001-Primera_48x48.png", "Primera Imagen", "navegacion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ANTERIOR, 				"1002-Anterior_48x48.png", "Imagen Anterior", "navegacion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_SIGUIENTE, 				"1003-Siguiente_48x48.png", "Imagen Siguiente", "navegacion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ULTIMA, 					"1004-Ultima_48x48.png", "Última Imagen", "navegacion")
+             new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_PRIMERA, 				"1001-primera_48x48.png", "Primera Imagen", "navegacion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ANTERIOR, 				"1002-anterior_48x48.png", "Imagen Anterior", "navegacion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_SIGUIENTE, 				"1003-siguiente_48x48.png", "Imagen Siguiente", "navegacion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_ULTIMA, 					"1004-ultima_48x48.png", "Última Imagen", "navegacion")
         );
 		
 		
 		// --- BARRA DE EDICIÓN ---
 		List<ToolbarButtonDefinition> botonesEdicion = List.of(
-             new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ,			"2001-Rotar_Izquierda_48x48.png", "Rotar Izquierda", "edicion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_DER, 			"2002-Rotar_Derecha_48x48.png", "Rotar Derecha", "edicion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_H, 			"2003-Espejo_Horizontal_48x48.png", "Voltear Horizontal", "edicion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_V, 			"2004-Espejo_Vertical_48x48.png", "Voltear Vertical", "edicion")
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_RECORTAR, 			"2005-Recortar_48x48.png", "Recortar", "edicion")
+             new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ,			"2001-rotar_izquierda_48x48.png", "Rotar Izquierda", "edicion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ROTAR_DER, 			"2002-rotar_derecha_48x48.png", "Rotar Derecha", "edicion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_H, 			"2003-espejo_horizontal_48x48.png", "Voltear Horizontal", "edicion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_VOLTEAR_V, 			"2004-espejo_vertical_48x48.png", "Voltear Vertical", "edicion")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_RECORTAR, 			"2005-recortar_48x48.png", "Recortar", "edicion")
         );
 
 		
 		// --- BARRA DE ZOOM ---
 		List<ToolbarButtonDefinition> botonesZoom = List.of(
 				//INICIO GRUPO DE BOTONES
-            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, 			"3005-Escalar_Para_Ajustar_48x48.png", "Escalar para Ajustar", "zoom", ButtonType.TOGGLE)
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AUTO, 				"3002-Zoom_Auto_48x48.png", "Zoom Automático", "zoom", ButtonType.TOGGLE)
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, 				"3003-Ajustar_al_Ancho_48x48.png", "Ajustar al Ancho", "zoom", ButtonType.TOGGLE)
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, 				"3004-Ajustar_al_Alto_48x48.png", "Ajustar al Alto", "zoom", ButtonType.TOGGLE)
+            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, 			"3005-escalar_para_ajustar_48x48.png", "Escalar para Ajustar", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_AUTO, 				"3002-zoom_auto_48x48.png", "Zoom Automático", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, 				"3003-ajustar_al_ancho_48x48.png", "Ajustar al Ancho", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ALTO, 				"3004-ajustar_al_alto_48x48.png", "Ajustar al Alto", "zoom", ButtonType.TOGGLE)
            ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, 			"3009-rellenar_48x48.png", "Rellenar Zoom", "zoom", ButtonType.TOGGLE)
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, 				"3006-Zoom_Fijo_48x48.png", "Zoom Actual Fijo", "zoom", ButtonType.TOGGLE)
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_FIJO, 				"3006-zoom_fijo_48x48.png", "Zoom Actual Fijo", "zoom", ButtonType.TOGGLE)
            ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, 		"3007-zoom_especifico_48x48.png", "Zoom Especificado", "zoom", ButtonType.TOGGLE)
            		//FIN GRUPO DE BOTONES
            
@@ -590,18 +591,18 @@ public class UIDefinitionService {
 //		    new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 		"4001-Panel-Galeria_48x48.png", "Panel Galería", "vista")
 				//INICIO GRUPO DE BOTONES
 			new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SINGLE, 				"4007-imagen_unica_48x48.png", "Vista Imagen Unica", "vista", ButtonType.TOGGLE)
-		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_POLAROID, 				"4006-Polaroid48x48.png", "Vista Polaroid", "vista", ButtonType.TOGGLE)
-		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_GRID, 					"4002-Grid_48x48.png", "Vista Grid", "vista", ButtonType.TOGGLE)
+		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_POLAROID, 				"4006-polaroid48x48.png", "Vista Polaroid", "vista", ButtonType.TOGGLE)
+		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_GRID, 					"4002-grid_48x48.png", "Vista Grid", "vista", ButtonType.TOGGLE)
 		   		//FIN GRUPO DE BOTONES
-		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, 	"4004-Lista_48x48.png", "Vista Lista", "vista")
+		   ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, 	"4004-lista_48x48.png", "Vista Lista", "vista")
 		);
             
 		
 		// --- BARRA DE UITILS ---
 		List<ToolbarButtonDefinition> botonesUtils = List.of( 
 			new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_ELIMINAR, 				"5002-borrar_48x48.png", "Eliminar Imagen", "control")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, 			"5001-Refrescar_48x48.png", "Refrescar", "control")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_LOCALIZAR, 			"5003-Ubicacion_de_Archivo_48x48.png", "Abrir Ubicación", "control")
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, 			"5001-refrescar_48x48.png", "Refrescar", "control")
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_IMAGEN_LOCALIZAR, 			"5003-ubicacion_de_archivo_48x48.png", "Abrir Ubicación", "control")
 		);
              
 		
@@ -609,24 +610,24 @@ public class UIDefinitionService {
 		List<ToolbarButtonDefinition> botonesApoyo = List.of( 
             new ToolbarButtonDefinition(AppActionCommands.CMD_ARCHIVO_ABRIR, 				"6001-selector_de_carpetas_48x48.png", "Abrir Carpeta", "especiales")
            ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_MENU, 				"6002-menu_48x48.png", "Menú Principal", "especiales")
-           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, 	"6003-Botones_Ocultos_48x48.png", "Mostrar Botones Ocultos", "especiales")
+           ,new ToolbarButtonDefinition(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, 	"6003-botones_ocultos_48x48.png", "Mostrar Botones Ocultos", "especiales")
         );
 		
 		
 		// --- BARRA DE BOTONES TOGGLE ---
 		List<ToolbarButtonDefinition> botonesToggle = List.of(
-             new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 			"7001-Subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "toggle", ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,"7002-Mantener_Proporciones_48x48.png", "Mantener Proporciones", "toggle", ButtonType.TOGGLE)
+             new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 			"7001-subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "toggle", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,"7002-mantener_proporciones_48x48.png", "Mantener Proporciones", "toggle", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP,	"7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "toggle", ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA,     "4003-Pantalla_Completa_48x48.png", "Modo Pantalla Completa", "toggle", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA,     "4003-pantalla_completa_48x48.png", "Modo Pantalla Completa", "toggle", ButtonType.TOGGLE)
         );
 		
              
 		// --- BARRA DE PROYECTOS ---
 		List<ToolbarButtonDefinition> botonesProyectoEnVista = List.of(
              new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7003-marcar_imagen_48x48.png", "Marcar Imagen para Proyecto", "proyecto_vista", ButtonType.TOGGLE)
-             ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 		"3001-Zoom_48x48.png", "Activar/Desactivar Zoom Manual", "proyecto_vista", ButtonType.TOGGLE)
-             ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, 				"3008-Reset_48x48.png", "Resetear Zoom", "proyecto_vista")
+             ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 		"3001-zoom_48x48.png", "Activar/Desactivar Zoom Manual", "proyecto_vista", ButtonType.TOGGLE)
+             ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, 				"3008-reset_48x48.png", "Resetear Zoom", "proyecto_vista")
         );
 		
 		List<ToolbarButtonDefinition> botonesProyectoEnProyecto = List.of(
@@ -642,11 +643,11 @@ public class UIDefinitionService {
 		// --- BARRA DE BOTONES modos ---
 		List<ToolbarButtonDefinition> botonesModo = List.of(
 				//INICIO GRUPO DE BOTONES
-			 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,"8001-modod_visualizador_48x48.png", 	"Modo Visualizador", "modo", ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 			"8002-Mostrar_Favoritos_48x48.png", 	"Mostrar/Ocultar Favoritos", "modo", ButtonType.TOGGLE)
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,"8001-modo_visualizador_48x48.png", 	"Modo Visualizador", "modo", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 			"8002-mostrar_favoritos_48x48.png", 	"Mostrar/Ocultar Favoritos", "modo", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_DATOS, 					"8003-datos_48x48.png", 				"Modo Datos", "modo", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_EDICION,			 	"8004-edicion_48x48.png", 				"Modo Edicion", "modo", ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, 				"4005-Carrousel_48x48.png", 			"Vista Carrusel", "modo", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, 				"4005-carrousel_48x48.png", 			"Vista Carrusel", "modo", ButtonType.TOGGLE)
             
             	//FIN GRUPO DE BOTONES
             
@@ -656,15 +657,18 @@ public class UIDefinitionService {
 		
 		// --- BARRA DE BOTONES carrousel ---
 		List<ToolbarButtonDefinition> botonesCarrousel = List.of(
-			 new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_PRIMERO,		"9001-primer_fotograma_48x48.png", "Primer Fotograma", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_ANTERIOR,		"9003-fotograma_anterior_48x48.png", "Fotograma Anterior", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_SIGUIENTE,		"9008-fotograma_siguiente_48x48.png", "Fotograma Siguiente", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_NAV_FOTOGRAMA_ULTIMO,		"9010-ultimo_fotograma_48x48.png", "Ultimo Fotograma", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9002-retroceso_rapido_48x48.png", "Retroceso Rapido", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9004-play_48x48.png", "Play", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9005-pausa_48x48.png", "Pausa", "carrousel")
+//			 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_PRIMERA,		"9001-primer_fotograma_48x48.png", "Primera Imagen", "carrousel")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ANTERIOR, 		"9003-fotograma_anterior_48x48.png", "Fotograma Anterior", "carrousel")
+				
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_PLAY,				"9004-play_48x48.png", "Play", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_PAUSE,				"9005-pausa_48x48.png", "Pausa", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_STOP,				"9007-stop_48x48.png", "Stop", "carrousel")
+			
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_SIGUIENTE, 		"9008-fotograma_siguiente_48x48.png", "Fotograma Siguiente", "carrousel")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ULTIMA,			"9010-ultimo_fotograma_48x48.png", "Ultimo Fotograma", "carrousel")
+
 //			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9006-play-pausa_48x48.png", "Play-Pausa", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9007-stop_48x48.png", "Stop", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9002-retroceso_rapido_48x48.png", "Retroceso Rapido", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9009-avance_rapido_48x48.png", "Avance Rapido", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9011-maxima_velocidad_48x48.png", "Maxima Velocidad", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9012-velocidad_normal_48x48.png", "Velocidad Normal", "carrousel")
@@ -685,17 +689,17 @@ public class UIDefinitionService {
 		// -- ICONOS INTERNOS DEL DPAD
 		// 0: UP, 1: DOWN, 2: LEFT, 3: RIGHT
 		List<HotspotDefinition> dpadPaneoHotspots = List.of(
-             new HotspotDefinition(AppActionCommands.CMD_PAN_TOP_EDGE, 						"D-Pad_up_48x48.png", "Panear Arriba", IconScope.COMMON)
-            ,new HotspotDefinition(AppActionCommands.CMD_PAN_BOTTOM_EDGE, 					"D-Pad_down_48x48.png", "Panear Abajo", IconScope.COMMON)
-            ,new HotspotDefinition(AppActionCommands.CMD_PAN_LEFT_EDGE, 					"D-Pad_Left_48x48.png", "Panear Izquierda", IconScope.COMMON)
-            ,new HotspotDefinition(AppActionCommands.CMD_PAN_RIGHT_EDGE, 					"D-Pad_right_48x48.png", "Panear Derecha", IconScope.COMMON)
+             new HotspotDefinition(AppActionCommands.CMD_PAN_TOP_EDGE, 						"d-pad_up_48x48.png", "Panear Arriba", IconScope.COMMON)
+            ,new HotspotDefinition(AppActionCommands.CMD_PAN_BOTTOM_EDGE, 					"d-pad_down_48x48.png", "Panear Abajo", IconScope.COMMON)
+            ,new HotspotDefinition(AppActionCommands.CMD_PAN_LEFT_EDGE, 					"d-pad_left_48x48.png", "Panear Izquierda", IconScope.COMMON)
+            ,new HotspotDefinition(AppActionCommands.CMD_PAN_RIGHT_EDGE, 					"d-pad_right_48x48.png", "Panear Derecha", IconScope.COMMON)
         );
 
         List<ToolbarButtonDefinition> botonesControlesImagenInferior = List.of(
             // 1. D-Pad (Definición actualizada)
             new ToolbarButtonDefinition(
                 "dpad.paneo", // Comando canónico/clave base para el componente D-Pad
-                "D-Pad_none_48x48.png", // Icono base (cuando no hay hover)
+                "d-pad_none_48x48.png", // Icono base (cuando no hay hover)
                 IconScope.COMMON, // El icono base es común
                 "Control de Paneo", // Tooltip general
                 "controles_imagen_inferior", // Categoría
@@ -713,8 +717,7 @@ public class UIDefinitionService {
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3,  "stopw.png", IconScope.COMMON, "Ranura de color 3",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4,  "stopw.png", IconScope.COMMON, "Ranura de color 4",      	"controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED,     "stopw.png", IconScope.COMMON, "Fondo a Cuadros",			"controles_imagen_inferior", /*ButtpmType.NORMAL), //*/ButtonType.TRANSPARENT),
-            
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR,  "Paint-Palette--Streamline-Core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", 	"controles_imagen_inferior", ButtonType.TRANSPARENT)
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR,  "paint-palette--streamline-core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", 	"controles_imagen_inferior", ButtonType.TRANSPARENT)
         );
 
         
@@ -729,7 +732,7 @@ public class UIDefinitionService {
 
         return List.of(
             // Grupo Izquierda
-            new ToolbarDefinition("navegacion", "Navegación", 	10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesNavegacion, ToolbarAlignment.LEFT),
+            new ToolbarDefinition("navegacion", "Navegación", 	10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL), botonesNavegacion, ToolbarAlignment.LEFT),
 
             // Grupo Centro
             new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion, ToolbarAlignment.CENTER),
@@ -740,15 +743,10 @@ public class UIDefinitionService {
             new ToolbarDefinition("control",	"Utilidades", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils, ToolbarAlignment.RIGHT),
             new ToolbarDefinition("toggle",	    "Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle, ToolbarAlignment.RIGHT),
             
-//            new ToolbarDefinition("proyecto_vista","Proyecto", 	70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesProyectoEnVista, ToolbarAlignment.RIGHT),
             new ToolbarDefinition("proyecto_vista","Proyecto (en Vista)", 70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesProyectoEnVista, ToolbarAlignment.RIGHT),
-//            new ToolbarDefinition("proyecto",	"Control del Proyecto", 	90, EnumSet.of(WorkMode.PROYECTO), botonesProyectoEnProyecto, ToolbarAlignment.RIGHT),
             new ToolbarDefinition("proyecto",	"Acciones de Proyecto", 90, EnumSet.of(WorkMode.PROYECTO), botonesProyectoEnProyecto, ToolbarAlignment.RIGHT),
-            
             new ToolbarDefinition("modo",		"Modo",			80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION), botonesModo, ToolbarAlignment.RIGHT),
-            
             new ToolbarDefinition("especiales",   "Apoyo", 		100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.EDICION, WorkMode.CARROUSEL), botonesApoyo, ToolbarAlignment.RIGHT),
-            
             new ToolbarDefinition("carrousel",	"Carrousel", 	110, EnumSet.of(WorkMode.CARROUSEL), botonesCarrousel, ToolbarAlignment.CENTER),
             
             // Barra especial que no se añade al contenedor principal. Su alineamiento no importa.
@@ -786,153 +784,3 @@ public class UIDefinitionService {
     
 } // ---FIN de la clase UIDefinitionService
 
-
-
-
-
-
-
-/*
-**********************************************************************************************************************
-*********************************************************************************** MEGACOMENTARIO PARAA CARGA Y ORDEN
-**********************************************************************************************************************
-
-¡Excelente decisión! La disciplina ahora te ahorrará dolores de cabeza después.
-
-Aquí tienes un prompt detallado que resume lo que hemos discutido sobre la refactorización de la funcionalidad de "Carga y Orden", moviendo la configuración por defecto al menú "Configuración" y añadiendo una barra de herramientas para la ordenación temporal. Puedes usar esto como tu hoja de ruta cuando retomes esta parte.
-
----
-
-**Prompt para la Refactorización de la Funcionalidad de "Carga y Orden"**
-
-**Objetivo General:**
-Separar la configuración de la ordenación *por defecto* (persistente) de la capacidad de aplicar una ordenación *temporal* a la vista actual. Mejorar la usabilidad proporcionando acceso rápido a la ordenación temporal mediante una nueva sección en la barra de herramientas y simplificando los menús.
-
-**Fases y Tareas Detalladas:**
-
-**FASE 1: Definición de Comandos y Estados en el Modelo**
-
-1.  **`controlador.commands.AppActionCommands.java`:**
-    *   **Definir/Verificar Comandos para Ordenación por Defecto (Configuración):**
-        *   `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_NOMBRE` (ej: "cmd.config.orden.default.crit.nombre")
-        *   `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_TAMANO`
-        *   `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_FECHA`
-        *   `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_EXTENSION`
-        *   `CMD_CONFIG_ORDEN_DEFAULT_DIRECCION_ASC`
-        *   `CMD_CONFIG_ORDEN_DEFAULT_DIRECCION_DESC`
-        *   `CMD_CONFIG_ORDEN_DEFAULT_DIRECCION_NINGUNO` (si se mantiene "Sin Ordenar" como opción default)
-    *   **Definir/Verificar Comandos para Ordenación Temporal (Toolbar/Acción Rápida):**
-        *   `CMD_ORDEN_TEMP_SET_CRITERIO_NOMBRE` (ej: "cmd.orden.temp.crit.nombre")
-        *   `CMD_ORDEN_TEMP_SET_CRITERIO_TAMANO`
-        *   `CMD_ORDEN_TEMP_SET_CRITERIO_FECHA`
-        *   `CMD_ORDEN_TEMP_SET_CRITERIO_EXTENSION`
-        *   `CMD_ORDEN_TEMP_TOGGLE_DIRECCION` (para un botón que cicle Asc/Desc) O:
-        *   `CMD_ORDEN_TEMP_SET_DIRECCION_ASC`
-        *   `CMD_ORDEN_TEMP_SET_DIRECCION_DESC`
-        *   `CMD_ORDEN_TEMP_SET_DIRECCION_NINGUNO` (si se mantiene "Sin Ordenar" como opción temporal)
-
-2.  **`modelo.VisorModel.java`:**
-    *   **Añadir Enums para Criterio y Dirección (si no existen):**
-        ```java
-        public enum CriterioOrdenacion { NOMBRE, TAMANO, FECHA, EXTENSION, NINGUNO }
-        public enum DireccionOrdenacion { ASCENDENTE, DESCENDENTE, NINGUNO } // 'NINGUNO' para dirección puede ser implícito si el criterio es NINGUNO
-        ```
-    *   **Campos para Configuración de Ordenación por Defecto:**
-        *   `private CriterioOrdenacion criterioOrdenacionDefault = CriterioOrdenacion.NOMBRE;`
-        *   `private DireccionOrdenacion direccionOrdenacionDefault = DireccionOrdenacion.ASCENDENTE;`
-        *   Getters y Setters (los setters serán llamados por las Actions de Configuración).
-        *   Estos campos se inicializarán desde `ConfigurationManager` al arrancar la aplicación.
-    *   **Campos para Ordenación Temporal de la Vista Actual:**
-        *   `private CriterioOrdenacion criterioOrdenacionTemporal;`
-        *   `private DireccionOrdenacion direccionOrdenacionTemporal;`
-        *   Getters y Setters (los setters serán llamados por las Actions de la Toolbar).
-        *   Al cargar una nueva carpeta, estos campos temporales se resetean a los valores `...Default` o a un estado "sin ordenación temporal activa".
-
-**FASE 2: Definición de la Interfaz de Usuario (`UIDefinitionService.java`)**
-
-1.  **Menú "Imagen":**
-    *   **Eliminar** el submenú "Carga y Orden" y todos sus ítems.
-
-2.  **Menú "Configuración" -> Submenú "Carga y Ordenación" (o similar):**
-    *   Este submenú ahora contendrá las opciones para establecer los **defaults persistentes**.
-    *   **Sub-Submenú "Criterio de Ordenación Predeterminado":**
-        *   Grupo de `JRadioButtonMenuItem`s vinculados a `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_...`.
-        *   Textos: "Nombre", "Tamaño", "Fecha", "Extensión".
-    *   **Sub-Submenú "Dirección de Ordenación Predeterminada":**
-        *   Grupo de `JRadioButtonMenuItem`s vinculados a `CMD_CONFIG_ORDEN_DEFAULT_DIRECCION_...`.
-        *   Textos: "Ascendente", "Descendente", "Sin Ordenar" (opcional).
-
-3.  **Barra de Herramientas (Nueva Sección "Ordenación"):**
-    *   **Botón/Control para Criterio de Ordenación Temporal:**
-        *   **Opción A (Botón con `JPopupMenu`):**
-            *   `ToolbarButtonDefinition` para un `JButton` principal (ej. `CMD_ORDEN_TEMP_MOSTRAR_CRITERIOS`, texto "Ordenar Por:", icono genérico de orden).
-            *   El `JPopupMenu` se construiría dinámicamente en `ToolbarBuilder` o se asociaría en `VisorController`, conteniendo ítems para "Nombre", "Tamaño", etc., cada uno vinculado a su `CMD_ORDEN_TEMP_SET_CRITERIO_...`.
-        *   **Opción B (`JComboBox`):**
-            *   No se define directamente como `ToolbarButtonDefinition`. `ToolbarBuilder` crearía un `JComboBox` y lo poblaría. Se necesitaría un `ActionListener` o `ItemListener` para él.
-    *   **Botón/Control para Dirección de Ordenación Temporal:**
-        *   **Opción A (Botón Cíclico `JButton`):**
-            *   `ToolbarButtonDefinition` para un `JButton` (ej. `CMD_ORDEN_TEMP_TOGGLE_DIRECCION`). Icono y texto cambiarán según el estado (A-Z, Z-A, ---).
-        *   **Opción B (Grupo de `JToggleButton`):**
-            *   Dos o tres `ToolbarButtonDefinition` para `JToggleButton`s (ej. `CMD_ORDEN_TEMP_SET_DIRECCION_ASC`, `CMD_ORDEN_TEMP_SET_DIRECCION_DESC`), agrupados visualmente y en un `ButtonGroup`.
-
-**FASE 3: Implementación de Actions (`ActionFactory.java`)**
-
-1.  **Actions para Configuración de Orden por Defecto:**
-    *   Clase: `SetOrdenDefaultAction` (o nombres más específicos como `SetCriterioOrdenDefaultAction`, `SetDireccionOrdenDefaultAction`).
-    *   Constructor: Recibe `ConfigurationManager`, el criterio/dirección que representa, y la clave de config a modificar.
-    *   `actionPerformed()`: Llama a `configuration.setString("clave.default.criterio", "valor_criterio")` y `configuration.setString("clave.default.direccion", "valor_direccion")`. Actualiza el estado `.seleccionado` de los radios en su grupo.
-    *   Estas `Action`s se asignarán a los `JRadioButtonMenuItem` del menú "Configuración".
-
-2.  **Actions para Ordenación Temporal (Toolbar):**
-    *   **Para Criterio:**
-        *   Si es `JPopupMenu`: Cada `JMenuItem` del popup necesita una `Action` (ej. `AplicarCriterioOrdenTemporalAction`) que tome el criterio como parámetro.
-        *   `actionPerformed()`: Llama a `model.setCriterioOrdenacionTemporal(nuevoCriterio)`, actualiza el texto/icono del botón principal de la toolbar, y dispara la reordenación (`controller.solicitarReordenacionVistaActual()`).
-    *   **Para Dirección:**
-        *   Si es botón cíclico: Una `Action` (`ToggleDireccionOrdenTemporalAction`).
-            *   `actionPerformed()`: Ciclac `model.getDireccionOrdenacionTemporal()`, actualiza el icono/texto del botón, y dispara la reordenación.
-        *   Si son `JToggleButton`s: `Action`s individuales (`SetDireccionAscTemporalAction`, `SetDireccionDescTemporalAction`).
-            *   `actionPerformed()`: Establece `model.setDireccionOrdenacionTemporal(...)`, actualiza `Action.SELECTED_KEY`, y dispara reordenación.
-
-**FASE 4: Lógica en Controladores y Servicios**
-
-1.  **`VisorController.java`:**
-    *   **`cargarListaImagenes(String claveImagenAMantener)`:**
-        *   Al inicio, obtener `criterioActivo` y `direccionActiva`:
-            *   Si `model.getCriterioOrdenacionTemporal()` no es "ninguno" o `null`, usar los valores temporales.
-            *   Si no, usar `model.getCriterioOrdenacionDefault()` y `model.getDireccionOrdenacionDefault()`.
-        *   Usar `criterioActivo` y `direccionActiva` para ordenar `clavesOrdenadas` (o el `mapaResultado`) ANTES de crear el `DefaultListModel` para `listaNombres`. Esto requerirá un `Comparator` personalizado.
-    *   **`solicitarReordenacionVistaActual()` (Nuevo método):**
-        *   Llamado por las `Action`s de ordenación temporal.
-        *   Obtiene la `claveImagenAMantener` del `model.getSelectedImageKey()`.
-        *   Llama a `cargarListaImagenes(claveImagenAMantener)` para forzar una recarga y reordenación con los nuevos criterios temporales.
-        *   Actualiza la UI de la toolbar de ordenación para reflejar el estado actual.
-
-2.  **`ConfigurationManager.java`:**
-    *   **`DEFAULT_CONFIG`:** Añadir las nuevas claves para la ordenación por defecto:
-        *   `comportamiento.orden.default.criterio = NOMBRE` (o el que prefieras)
-        *   `comportamiento.orden.default.direccion = ASCENDENTE`
-        *   Claves `.seleccionado` para los `JRadioButtonMenuItem` del menú "Configuración" que controlan estos defaults.
-    *   **`createDefaultGroupCommentsMap()`:** Añadir comentarios para estas nuevas secciones/claves.
-    *   **`guardarConfiguracionActual()` en `VisorController`:** Debe asegurar que los valores de `model.getCriterioOrdenacionDefault()` y `model.getDireccionOrdenacionDefault()` se escriban en `estadoFinalAGuardar` con las claves correctas (esto podría hacerse obteniéndolos de las `Action`s de configuración si estas actualizan `this.configuration`, o directamente del modelo si las `Action`s solo actualizan el modelo y el `config.cfg`).
-
-3.  **`MenuBarBuilder.java` y `ToolbarBuilder.java`:**
-    *   Adaptarlos para construir los nuevos ítems de menú y los componentes de la toolbar de ordenación, asignando las `Action`s correctas.
-    *   `ToolbarBuilder` podría necesitar lógica especial para el botón de criterio con `JPopupMenu` o para los `JToggleButton` agrupados.
-
-4.  **`AppInitializer.java`:**
-    *   En `aplicarConfiguracionAlModelo()`: Leer `comportamiento.orden.default.criterio` y `comportamiento.orden.default.direccion` de `configuration` y establecerlos en `model.setCriterioOrdenacionDefault()` y `model.setDireccionOrdenacionDefault()`.
-    *   En `aplicarConfigAlaVistaInternal()`: Asegurar que los `JRadioButtonMenuItem` del menú "Configuración" para la ordenación por defecto reflejen el estado cargado.
-
-**FASE 5: Sincronización Visual**
-
-*   Cuando se cambia un criterio o dirección de ordenación temporal (desde la toolbar), los botones de la toolbar deben actualizar su apariencia.
-*   Cuando se cambia un criterio o dirección de ordenación por defecto (desde el menú Configuración), los `JRadioButtonMenuItem` de ese menú deben actualizar su estado seleccionado. (Las `Action`s deberían manejar esto con `Action.SELECTED_KEY` y `ButtonGroup`).
-
----
-
-Este prompt es bastante exhaustivo, pero cubre los cambios necesarios en las diferentes capas de tu aplicación para implementar la funcionalidad de ordenación de forma clara y separada para la configuración persistente y la manipulación temporal.
-
-Cuando estés listo, puedes ir abordando cada fase. ¡No dudes en preguntar si algo no está claro o si necesitas ayuda con una parte específica!
-
-  
-*/

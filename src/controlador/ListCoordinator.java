@@ -1,236 +1,250 @@
-package controlador; 
+package controlador;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-
-import javax.swing.Action;
+import java.util.Objects;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
-
-import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
+import modelo.ListContext;
 import modelo.VisorModel;
+import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
-import vista.VisorView;
 
+/**
+ * Servicio especializado en coordinar la selección y sincronización entre
+ * múltiples JLists (ej. lista de nombres y tira de miniaturas) para un
+ * contexto de lista dado.
+ * Mantiene un estado interno del índice seleccionado para mayor robustez.
+ */
 public class ListCoordinator implements IListCoordinator {
 
     // --- Dependencias ---
     private VisorModel model;
-    private VisorView view;
     private VisorController controller;
     private ComponentRegistry registry;
     private List<ContextSensitiveAction> contextSensitiveActions = Collections.emptyList();
     
     // --- Estado Interno ---
-    private int indiceOficialSeleccionado = -1;
-    private boolean sincronizandoUI = false;
+    private boolean isSyncingUI = false;
     private int pageScrollIncrement;
-    
+    // ¡LA MEMORIA VUELVE! Este es el índice oficial para este coordinador.
+    private int officialSelectedIndex = -1;
+
     public ListCoordinator() {
-        this.pageScrollIncrement = 10;
+        // Constructor simple. Las dependencias se inyectan.
     } // --- Fin del método ListCoordinator (constructor) ---
 
-    // --- PUNTO DE ENTRADA ÚNICO Y CENTRALIZADO PARA LA SELECCIÓN ---
+    // =================================================================================
+    // === LÓGICA CENTRAL DE SELECCIÓN Y SINCRONIZACIÓN ===
+    // =================================================================================
+
     @Override
-    public synchronized void seleccionarImagenPorIndice(int indiceDeseado) {
-        if (sincronizandoUI) return;
+    public synchronized void seleccionarImagenPorIndice(int desiredIndex) {
+        if (isSyncingUI) {
+            return; // Prevenir bucles de eventos
+        }
         
-        DefaultListModel<String> currentModel = model.getModeloLista();
-        if (indiceDeseado < -1 || indiceDeseado >= currentModel.getSize() || indiceDeseado == this.indiceOficialSeleccionado) {
+        // Obtiene el contexto del modo de trabajo ACTUAL.
+        // Esto hace que el coordinador sea reutilizable para Visualizador y Carrusel.
+        ListContext currentContext = model.getCurrentListContext();
+        if (currentContext == null || currentContext.getModeloLista() == null) {
             return;
         }
 
-        this.indiceOficialSeleccionado = indiceDeseado;
-        String claveSeleccionada = (indiceDeseado != -1) ? currentModel.getElementAt(indiceDeseado) : null;
-        
-        model.setSelectedImageKey(claveSeleccionada);
-        
-        controller.actualizarImagenPrincipal(indiceDeseado);
-        
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
-            actualizarModeloYVistaMiniaturas(indiceDeseado);
+        DefaultListModel<String> listModel = currentContext.getModeloLista();
+
+        // Validaciones: No hacer nada si el índice es inválido o es el mismo que ya está seleccionado.
+        if (desiredIndex < -1 || desiredIndex >= listModel.getSize() || desiredIndex == this.officialSelectedIndex) {
+            return;
         }
+
+        System.out.println("[ListCoordinator] Nueva selección. Modo: " + model.getCurrentWorkMode() + ". Índice: " + desiredIndex);
+
+        // 1. Actualizar el estado interno y el del Modelo (la fuente de verdad)
+        this.officialSelectedIndex = desiredIndex;
+        String selectedKey = (desiredIndex != -1) ? listModel.getElementAt(desiredIndex) : null;
+        currentContext.setSelectedImageKey(selectedKey);
         
-        JList<String> listaNombres = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) 
-                                     ? registry.get("list.proyecto.nombres") 
-                                     : registry.get("list.nombresArchivo");
-        sincronizarListaUI(listaNombres, indiceDeseado);
+        // 2. Cargar la imagen principal en la vista
+        // El índice que pasamos es el del modelo principal del contexto, que es el que espera el método.
+        controller.actualizarImagenPrincipal(desiredIndex);
         
+        // 3. Sincronizar las Vistas (JLists)
+        // Solo actualizamos las miniaturas si estamos en modo Visualizador o Carrusel (modos con tira de miniaturas).
+        if (model.getCurrentWorkMode() == WorkMode.VISUALIZADOR || model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
+            sincronizarVistasConMiniaturas(desiredIndex);
+        } else {
+            // Para otros modos futuros que solo tengan una lista de nombres.
+            JList<String> mainList = getMainJListForCurrentMode();
+            sincronizarSeleccionJList(mainList, desiredIndex);
+        }
+
+        // 4. Actualizar el estado de los botones (enabled/disabled)
         forzarActualizacionEstadoAcciones();
     } // --- Fin del método seleccionarImagenPorIndice ---
-    
-    // --- MÉTODOS DE NAVEGACIÓN (DELEGAN AL MÉTODO CENTRAL) ---
-    
-    @Override
-    public synchronized void seleccionarSiguiente() {
-        if (model.getModeloLista().isEmpty()) return;
-        int total = model.getModeloLista().getSize();
-        int nuevoIndice = (this.indiceOficialSeleccionado == -1) ? 0 : this.indiceOficialSeleccionado + 1;
-        if (model.isNavegacionCircularActivada() && nuevoIndice >= total) {
-            nuevoIndice = 0;
-        } else {
-            nuevoIndice = Math.min(nuevoIndice, total - 1);
-        }
-        seleccionarImagenPorIndice(nuevoIndice);
-    } // --- Fin del método seleccionarSiguiente ---
-    
-    @Override
-    public synchronized void seleccionarAnterior() {
-        if (model.getModeloLista().isEmpty()) return;
-        int total = model.getModeloLista().getSize();
-        int nuevoIndice;
-        if (model.isNavegacionCircularActivada()) {
-            nuevoIndice = (this.indiceOficialSeleccionado <= 0) ? total - 1 : this.indiceOficialSeleccionado - 1;
-        } else {
-            nuevoIndice = Math.max(0, this.indiceOficialSeleccionado - 1);
-        }
-        seleccionarImagenPorIndice(nuevoIndice);
-    } // --- Fin del método seleccionarAnterior ---
 
-    @Override
-    public synchronized void seleccionarPrimero() {
-        if (!model.getModeloLista().isEmpty()) seleccionarImagenPorIndice(0);
-    } // --- Fin del método seleccionarPrimero ---
+    /**
+     * Orquesta la actualización de la lista de nombres y la tira de miniaturas.
+     * @param selectedIndex El índice a seleccionar.
+     */
+    private void sincronizarVistasConMiniaturas(int selectedIndex) {
+        // Actualiza la JList de nombres de archivo (si existe para este modo)
+        JList<String> listaNombres = getMainJListForCurrentMode();
+        sincronizarSeleccionJList(listaNombres, selectedIndex);
 
-    @Override
-    public synchronized void seleccionarUltimo() {
-        if (!model.getModeloLista().isEmpty()) seleccionarImagenPorIndice(model.getModeloLista().getSize() - 1);
-    } // --- Fin del método seleccionarUltimo ---
+        // Actualiza la JList de la tira de miniaturas
+        actualizarTiraDeMiniaturas(selectedIndex);
+    } // --- Fin del método sincronizarVistasConMiniaturas ---
 
-    @Override
-    public synchronized void seleccionarBloqueSiguiente() {
-        if (model.getModeloLista().isEmpty()) return;
-        int total = model.getModeloLista().getSize();
-        int nuevoIndice = Math.min(this.indiceOficialSeleccionado + pageScrollIncrement, total - 1);
-        seleccionarImagenPorIndice(nuevoIndice);
-    } // --- Fin del método seleccionarBloqueSiguiente ---
+    /**
+     * Lógica CLAVE para actualizar el modelo de la tira de miniaturas y su selección.
+     */
+    private void actualizarTiraDeMiniaturas(int selectedIndex) {
+        if (controller.getModeloMiniaturas() == null || model.getCurrentListContext() == null) return;
 
-    @Override
-    public synchronized void seleccionarBloqueAnterior() {
-        if (model.getModeloLista().isEmpty()) return;
-        int nuevoIndice = Math.max(0, this.indiceOficialSeleccionado - pageScrollIncrement);
-        seleccionarImagenPorIndice(nuevoIndice);
-    } // --- Fin del método seleccionarBloqueAnterior ---
-
-    @Override
-    public synchronized void reiniciarYSeleccionarIndice(int indiceDeseado) {
-        this.indiceOficialSeleccionado = -1;
-        JList<String> listaNombres = registry.get("list.nombresArchivo");
-        if (listaNombres != null) listaNombres.clearSelection();
-        JList<String> listaProyecto = registry.get("list.proyecto.nombres");
-        if (listaProyecto != null) listaProyecto.clearSelection();
+        DefaultListModel<String> modeloMiniaturas = controller.getModeloMiniaturas();
+        DefaultListModel<String> modeloPrincipal = model.getCurrentListContext().getModeloLista();
         
-        seleccionarImagenPorIndice(indiceDeseado);
-    } // --- Fin del método reiniciarYSeleccionarIndice ---
-
-    // --- MÉTODOS DE SINCRONIZACIÓN DE UI ---
-    
-    private void sincronizarListaUI(JList<String> lista, int indice) {
-        if (lista == null || lista.getSelectedIndex() == indice) return;
-        setSincronizandoUI(true);
-        try {
-            if (indice == -1) {
-                lista.clearSelection();
-            } else if (indice < lista.getModel().getSize()) {
-                lista.setSelectedIndex(indice);
-                lista.ensureIndexIsVisible(indice);
-            }
-        } finally {
-            SwingUtilities.invokeLater(() -> setSincronizandoUI(false));
-        }
-    } // --- Fin del método sincronizarListaUI ---
-    
-    
-    private void actualizarModeloYVistaMiniaturas(int indiceSeleccionadoPrincipal) {
-        // --- 1. Validaciones ---
-        if (model == null || controller == null || registry == null || controller.getModeloMiniaturas() == null) {
-            System.err.println("WARN [actualizarModeloYVistaMiniaturas]: Dependencias nulas. Abortando.");
+        if (selectedIndex < 0 || modeloPrincipal.isEmpty()) {
+            if (!modeloMiniaturas.isEmpty()) modeloMiniaturas.clear();
             return;
         }
 
-        // LOG *** AÑADIR ESTA LÍNEA DE DEBUG ***
-        System.out.println("!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: " + System.identityHashCode(controller.getModeloMiniaturas()));
-        
-        DefaultListModel<String> modeloMiniaturasReal = controller.getModeloMiniaturas();
-
-        if (indiceSeleccionadoPrincipal < 0) {
-            if (!modeloMiniaturasReal.isEmpty()) {
-                modeloMiniaturasReal.clear();
-            }
-            return;
-        }
-        
-        DefaultListModel<String> modeloPrincipal = model.getModeloLista();
-        if (indiceSeleccionadoPrincipal >= modeloPrincipal.getSize()) {
-            if (!modeloMiniaturasReal.isEmpty()) {
-                modeloMiniaturasReal.clear();
-            }
-            return;
-        }
-        
-        // --- 2. Calcular rango y preparar datos (sin cambios) ---
         VisorController.RangoMiniaturasCalculado rango = controller.calcularNumMiniaturasDinamicas();
-        int inicio = Math.max(0, indiceSeleccionadoPrincipal - rango.antes);
-        int fin = Math.min(modeloPrincipal.getSize() - 1, indiceSeleccionadoPrincipal + rango.despues);
+        int inicio = Math.max(0, selectedIndex - rango.antes);
+        int fin = Math.min(modeloPrincipal.getSize() - 1, selectedIndex + rango.despues);
 
         List<String> clavesParaMiniaturas = new ArrayList<>();
         List<Path> rutasParaCache = new ArrayList<>();
         for (int i = inicio; i <= fin; i++) {
             String clave = modeloPrincipal.getElementAt(i);
             clavesParaMiniaturas.add(clave);
-            rutasParaCache.add(model.getRutaCompleta(clave));
+            rutasParaCache.add(model.getCurrentListContext().getRutaCompleta(clave));
         }
         
-        // --- 3. Precalentar caché (sin cambios) ---
         controller.precalentarCacheMiniaturasAsync(rutasParaCache);
         
-        // --- 4. ACTUALIZACIÓN ATÓMICA Y EFICIENTE DEL MODELO ---
-        // Esta es la corrección principal. En lugar de un bucle, usamos los métodos
-        // de DefaultListModel para reemplazar el contenido de forma eficiente.
-        // Esto dispara un único evento de cambio en la lista, evitando parpadeos.
+        modeloMiniaturas.clear();
+        modeloMiniaturas.addAll(clavesParaMiniaturas);
         
-        modeloMiniaturasReal.clear(); // Limpiamos el modelo existente.
-        modeloMiniaturasReal.addAll(clavesParaMiniaturas); // Añadimos todos los nuevos elementos de una vez.
-                                                           // Nota: addAll() existe desde Java 11.
-                                                           // Si usas una versión anterior, el bucle era necesario,
-                                                           // pero la causa del error sigue siendo probable en otro punto.
-                                                           // Con este enfoque, eliminamos esa posibilidad.
+        // --- LÓGICA CORREGIDA ---
+        // Determinamos qué JList de miniaturas usar según el modo actual.
+        JList<String> listaMiniaturasActiva = (model.getCurrentWorkMode() == WorkMode.CARROUSEL)
+                                            ? registry.get("list.miniaturas.carousel")
+                                            : registry.get("list.miniaturas");
+
+        int indiceRelativo = selectedIndex - inicio;
+        sincronizarSeleccionJList(listaMiniaturasActiva, indiceRelativo);
+
+    } // --- Fin del método actualizarTiraDeMiniaturas ---
+
+    /**
+     * Sincroniza de forma segura la selección de una JList.
+     */
+    private void sincronizarSeleccionJList(JList<String> lista, int index) {
+        if (lista == null || lista.getSelectedIndex() == index) return;
         
-        // --- 5. Sincronizar UI (sin cambios en la lógica) ---
-        JList<String> listaMiniaturas = registry.get("list.miniaturas");
-        int indiceRelativo = indiceSeleccionadoPrincipal - inicio;
-        sincronizarListaUI(listaMiniaturas, indiceRelativo);
-        
-        if (listaMiniaturas != null) {
-            listaMiniaturas.revalidate();
-            listaMiniaturas.repaint();
+        isSyncingUI = true;
+        try {
+            if (index >= 0 && index < lista.getModel().getSize()) {
+                lista.setSelectedIndex(index);
+                lista.ensureIndexIsVisible(index);
+            } else {
+                lista.clearSelection();
+            }
+        } finally {
+            SwingUtilities.invokeLater(() -> isSyncingUI = false);
         }
+    } // --- Fin del método sincronizarSeleccionJList ---
 
-    } // --- Fin del método actualizarModeloYVistaMiniaturas (CORREGIDO) ---
-    
-
+    // =================================================================================
+    // === MÉTODOS DE NAVEGACIÓN (Robustos gracias al estado interno) ===
+    // =================================================================================
     
     @Override
-    public synchronized void forzarActualizacionEstadoAcciones() {
-        if (model == null || controller == null || controller.getActionMap() == null) return;
+    public void seleccionarSiguiente() {
+        DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
+        if (listModel.isEmpty()) return;
+        
+        int total = listModel.getSize();
+        int nextIndex = (this.officialSelectedIndex == -1) ? 0 : this.officialSelectedIndex + 1;
+        
+        if (model.isNavegacionCircularActivada() && nextIndex >= total) {
+            nextIndex = 0;
+        } else {
+            nextIndex = Math.min(nextIndex, total - 1);
+        }
+        seleccionarImagenPorIndice(nextIndex);
+    } // --- Fin del método seleccionarSiguiente ---
 
-        boolean hayImagenes = !model.getModeloLista().isEmpty();
-        int ultimoIndice = hayImagenes ? model.getModeloLista().getSize() - 1 : -1;
-        boolean navCircular = model.isNavegacionCircularActivada();
+    @Override
+    public void seleccionarAnterior() {
+        DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
+        if (listModel.isEmpty()) return;
+
+        int total = listModel.getSize();
+        int prevIndex;
+        if (model.isNavegacionCircularActivada()) {
+            prevIndex = (this.officialSelectedIndex <= 0) ? total - 1 : this.officialSelectedIndex - 1;
+        } else {
+            prevIndex = Math.max(0, this.officialSelectedIndex - 1);
+        }
+        seleccionarImagenPorIndice(prevIndex);
+    } // --- Fin del método seleccionarAnterior ---
+
+    @Override
+    public void seleccionarPrimero() {
+        if (!model.getCurrentListContext().getModeloLista().isEmpty()) {
+            seleccionarImagenPorIndice(0);
+        }
+    } // --- Fin del método seleccionarPrimero ---
+
+    @Override
+    public void seleccionarUltimo() {
+        DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
+        if (!listModel.isEmpty()) {
+            seleccionarImagenPorIndice(listModel.getSize() - 1);
+        }
+    } // --- Fin del método seleccionarUltimo ---
+
+    @Override
+    public void seleccionarBloqueSiguiente() {
+        DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
+        if (listModel.isEmpty()) return;
+        int next = Math.min(this.officialSelectedIndex + pageScrollIncrement, listModel.getSize() - 1);
+        seleccionarImagenPorIndice(next);
+    } // --- Fin del método seleccionarBloqueSiguiente ---
+
+    @Override
+    public void seleccionarBloqueAnterior() {
+        if (model.getCurrentListContext().getModeloLista().isEmpty()) return;
+        int prev = Math.max(0, this.officialSelectedIndex - pageScrollIncrement);
+        seleccionarImagenPorIndice(prev);
+    } // --- Fin del método seleccionarBloqueAnterior ---
+
+    @Override
+    public void reiniciarYSeleccionarIndice(int desiredIndex) {
+        // MÉTODO REFORZADO: Resetea el estado interno y limpia las vistas
+        this.officialSelectedIndex = -1; 
         
-        Map<String, Action> actionMap = controller.getActionMap();
-        actionMap.get(AppActionCommands.CMD_NAV_ANTERIOR).setEnabled(hayImagenes && (navCircular || indiceOficialSeleccionado > 0));
-        actionMap.get(AppActionCommands.CMD_NAV_SIGUIENTE).setEnabled(hayImagenes && (navCircular || indiceOficialSeleccionado < ultimoIndice));
-        actionMap.get(AppActionCommands.CMD_NAV_PRIMERA).setEnabled(hayImagenes && indiceOficialSeleccionado > 0);
-        actionMap.get(AppActionCommands.CMD_NAV_ULTIMA).setEnabled(hayImagenes && indiceOficialSeleccionado < ultimoIndice);
+        JList<String> listaNombres = registry.get("list.nombresArchivo");
+        if (listaNombres != null) listaNombres.clearSelection();
         
+        JList<String> listaMiniaturas = registry.get("list.miniaturas");
+        if (listaMiniaturas != null) listaMiniaturas.clearSelection();
+        
+        // Ahora sí, selecciona el nuevo índice desde un estado limpio.
+        seleccionarImagenPorIndice(desiredIndex);
+    } // --- Fin del método reiniciarYSeleccionarIndice ---
+
+    @Override
+    public void forzarActualizacionEstadoAcciones() {
         if (contextSensitiveActions != null) {
             for (ContextSensitiveAction action : contextSensitiveActions) {
                 action.updateEnabledState(model);
@@ -238,56 +252,49 @@ public class ListCoordinator implements IListCoordinator {
         }
     } // --- Fin del método forzarActualizacionEstadoAcciones ---
 
-    
-    /**
-     * Unifica la navegación de la rueda del ratón. Llama a seleccionarSiguiente()
-     * o seleccionarAnterior() basándose en la dirección de la rotación de la rueda.
-     *
-     * @param wheelRotation El valor de getWheelRotation() del MouseWheelEvent.
-     */
-    public void seleccionarSiguienteOAnterior(int wheelRotation) {
-        if (wheelRotation < 0) {
-            seleccionarAnterior();
-        } else if (wheelRotation > 0) {
-            seleccionarSiguiente();
-        }
-    } // --- Fin del método seleccionarSiguienteOAnterior ---
-    
-    
-    /**
-     * Navega directamente a un índice específico en la lista principal.
-     * Este método simplemente delega la llamada al método central de selección.
-     *
-     * @param index El índice del elemento al que se desea navegar.
-     */
-    public void navegarAIndice(int index) {
-        if (model == null || model.getModeloLista() == null) {
-            return;
-        }
+    // =================================================================================
+    // === MÉTODOS VARIOS (DELEGACIÓN) ===
+    // =================================================================================
 
-        if (index >= 0 && index < model.getModeloLista().getSize()) {
+    @Override
+    public void seleccionarSiguienteOAnterior(int wheelRotation) {
+        if (wheelRotation < 0) seleccionarAnterior();
+        else if (wheelRotation > 0) seleccionarSiguiente();
+    } // --- Fin del método seleccionarSiguienteOAnterior ---
+
+    @Override
+    public void navegarAIndice(int index) {
+        ListContext ctx = model.getCurrentListContext();
+        if (ctx != null && ctx.getModeloLista() != null && index >= 0 && index < ctx.getModeloLista().getSize()) {
             seleccionarImagenPorIndice(index);
         }
     } // --- Fin del método navegarAIndice ---
+
+    private JList<String> getMainJListForCurrentMode() {
+        if (model.getCurrentWorkMode() == WorkMode.VISUALIZADOR) {
+            return registry.get("list.nombresArchivo");
+        }
+        // Para el carrusel, no hay lista de nombres principal, así que devolvemos null.
+        return null; 
+    } // --- Fin del método getMainJListForCurrentMode ---
+
+    // =================================================================================
+    // === SETTERS Y GETTERS ===
+    // =================================================================================
     
-    
-    
-    // --- Getters y Setters de dependencias ---
     public void setModel(VisorModel model) { this.model = model; }
-    public void setView(VisorView view) { this.view = view; }
     public void setController(VisorController controller) {
         this.controller = controller;
         if (this.controller != null && this.controller.getConfigurationManager() != null) {
             this.pageScrollIncrement = this.controller.getConfigurationManager().getInt(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE, 10);
         }
     } // --- Fin del método setController ---
-    
     public void setRegistry(ComponentRegistry registry) { this.registry = registry; }
     public void setContextSensitiveActions(List<ContextSensitiveAction> actions) { this.contextSensitiveActions = actions; }
-    public synchronized boolean isSincronizandoUI() { return sincronizandoUI; }
-    public synchronized void setSincronizandoUI(boolean sincronizando) { this.sincronizandoUI = sincronizando; }
+    public synchronized boolean isSincronizandoUI() { return isSyncingUI; }
+    public synchronized void setSincronizandoUI(boolean sincronizando) { this.isSyncingUI = sincronizando; }
+
+    public int getOfficialSelectedIndex() {return this.officialSelectedIndex;}
     
 } // --- Fin de la clase ListCoordinator ---
-
-
 

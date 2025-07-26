@@ -78,6 +78,7 @@ import controlador.worker.BuscadorArchivosWorker;
 import modelo.ListContext;
 // --- Imports de Modelo, Servicios y Vista ---
 import modelo.VisorModel;
+import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager;
@@ -129,7 +130,8 @@ public class VisorController implements ActionListener, ClipboardOwner {
     private Future<?> cargaImagenPrincipalFuture;
     private volatile boolean estaCargandoLista = false;
     
-    private DefaultListModel<String> modeloMiniaturas;
+    private DefaultListModel<String> modeloMiniaturasVisualizador;
+    private DefaultListModel<String> modeloMiniaturasCarrusel;
     
     private Map<String, Action> actionMap;
 
@@ -175,6 +177,10 @@ public class VisorController implements ActionListener, ClipboardOwner {
         } else {
              System.out.println("--- VisorController: Inicialización delegada completada con éxito ---");
         }
+        
+        this.modeloMiniaturasVisualizador = new DefaultListModel<>();
+        this.modeloMiniaturasCarrusel = new DefaultListModel<>();
+        
     } // --- FIN CONSTRUCTOR ---
     
     
@@ -182,152 +188,152 @@ public class VisorController implements ActionListener, ClipboardOwner {
 
 // ************************************************************************************************************* ACTIONS
     
-    /**
-     * Asigna el modelo de datos de las miniaturas (`this.modeloMiniaturas`, que es
-     * gestionado por el VisorController y actualizado por
-     * `actualizarModeloYVistaMiniaturas`) a la JList correspondiente en la VisorView.
-     *
-     * Se llama desde AppInitializer (en el EDT) después de crear la Vista y
-     * antes de cargar el estado inicial, para asegurar que la JList de miniaturas
-     * tenga un modelo asignado desde el principio (aunque inicialmente esté vacío).
-     *
-     * También se podría llamar a este método si se necesitara cambiar
-     * fundamentalmente el *tipo* de modelo usado por las miniaturas en tiempo de ejecución,
-     * pero su uso principal aquí es durante la inicialización.
-     */
-    /*package-private*/ void assignModeloMiniaturasToViewInternal() {
-        // --- SECCIÓN 1: Log de Inicio y Validaciones ---
-        // 1.1. Imprimir log indicando la acción que se va a realizar.
-        System.out.println("    [EDT Internal] Asignando modelo de miniaturas a la Vista...");
-        // 1.2. Validar que la Vista exista.
-        if (view == null) {
-            System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: Vista es null. No se puede asignar el modelo.");
-            return; // Salir si no hay vista.
-        }
-        // 1.3. Validar que la JList de miniaturas dentro de la Vista exista.
-        if (registry.get("list.miniaturas") == null) {
-             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: listaMiniaturas en Vista es null. No se puede asignar el modelo.");
-             return; // Salir si el componente específico no existe.
-        }
-        // 1.4. Validar que el modelo de miniaturas del controlador (`this.modeloMiniaturas`) exista.
-        //      AppInitializer debería haberlo creado e inyectado.
-        if (this.modeloMiniaturas == null) {
-             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: El modelo de miniaturas del controlador es null. Creando uno vacío como fallback.");
-             // Crear un modelo vacío para evitar NullPointerException en setModeloListaMiniaturas,
-             // aunque esto indica un problema en la inicialización previa.
-             this.modeloMiniaturas = new DefaultListModel<>();
-        }
-
-        // --- SECCIÓN 2: Asignación del Modelo ---
-        // 2.1. Llamar al método de la Vista (`setModeloListaMiniaturas`) para que
-        //      la `JList` de miniaturas utilice el `DefaultListModel` que gestiona
-        //      este controlador (`this.modeloMiniaturas`).
-        //      Inicialmente, este modelo estará vacío. Se poblará dinámicamente
-        //      por `actualizarModeloYVistaMiniaturas`.
-        try {
-            view.setModeloListaMiniaturas(this.modeloMiniaturas);
-            // 2.2. Log de confirmación (el método setModeloListaMiniaturas ya tiene su propio log).
-            // System.out.println("      -> Modelo de miniaturas asignado a JList en Vista.");
-        } catch (Exception e) {
-            // 2.3. Capturar cualquier excepción inesperada durante la asignación.
-             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: Excepción al asignar modelo de miniaturas a la vista: " + e.getMessage());
-             e.printStackTrace();
-        }
-
-        // --- SECCIÓN 3: Log Final ---
-        // 3.1. Indicar que la asignación ha finalizado.
-        System.out.println("    [EDT Internal] Fin assignModeloMiniaturasToViewInternal.");
-
-    } // --- FIN assignModeloMiniaturasToViewInternal ---
+//    /**
+//     * Asigna el modelo de datos de las miniaturas (`this.modeloMiniaturas`, que es
+//     * gestionado por el VisorController y actualizado por
+//     * `actualizarModeloYVistaMiniaturas`) a la JList correspondiente en la VisorView.
+//     *
+//     * Se llama desde AppInitializer (en el EDT) después de crear la Vista y
+//     * antes de cargar el estado inicial, para asegurar que la JList de miniaturas
+//     * tenga un modelo asignado desde el principio (aunque inicialmente esté vacío).
+//     *
+//     * También se podría llamar a este método si se necesitara cambiar
+//     * fundamentalmente el *tipo* de modelo usado por las miniaturas en tiempo de ejecución,
+//     * pero su uso principal aquí es durante la inicialización.
+//     */
+//    /*package-private*/ void assignModeloMiniaturasToViewInternal() {
+//        // --- SECCIÓN 1: Log de Inicio y Validaciones ---
+//        // 1.1. Imprimir log indicando la acción que se va a realizar.
+//        System.out.println("    [EDT Internal] Asignando modelo de miniaturas a la Vista...");
+//        // 1.2. Validar que la Vista exista.
+//        if (view == null) {
+//            System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: Vista es null. No se puede asignar el modelo.");
+//            return; // Salir si no hay vista.
+//        }
+//        // 1.3. Validar que la JList de miniaturas dentro de la Vista exista.
+//        if (registry.get("list.miniaturas") == null) {
+//             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: listaMiniaturas en Vista es null. No se puede asignar el modelo.");
+//             return; // Salir si el componente específico no existe.
+//        }
+//        // 1.4. Validar que el modelo de miniaturas del controlador (`this.modeloMiniaturas`) exista.
+//        //      AppInitializer debería haberlo creado e inyectado.
+//        if (this.modeloMiniaturas == null) {
+//             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: El modelo de miniaturas del controlador es null. Creando uno vacío como fallback.");
+//             // Crear un modelo vacío para evitar NullPointerException en setModeloListaMiniaturas,
+//             // aunque esto indica un problema en la inicialización previa.
+//             this.modeloMiniaturas = new DefaultListModel<>();
+//        }
+//
+//        // --- SECCIÓN 2: Asignación del Modelo ---
+//        // 2.1. Llamar al método de la Vista (`setModeloListaMiniaturas`) para que
+//        //      la `JList` de miniaturas utilice el `DefaultListModel` que gestiona
+//        //      este controlador (`this.modeloMiniaturas`).
+//        //      Inicialmente, este modelo estará vacío. Se poblará dinámicamente
+//        //      por `actualizarModeloYVistaMiniaturas`.
+//        try {
+//            view.setModeloListaMiniaturas(this.modeloMiniaturas);
+//            // 2.2. Log de confirmación (el método setModeloListaMiniaturas ya tiene su propio log).
+//            // System.out.println("      -> Modelo de miniaturas asignado a JList en Vista.");
+//        } catch (Exception e) {
+//            // 2.3. Capturar cualquier excepción inesperada durante la asignación.
+//             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: Excepción al asignar modelo de miniaturas a la vista: " + e.getMessage());
+//             e.printStackTrace();
+//        }
+//
+//        // --- SECCIÓN 3: Log Final ---
+//        // 3.1. Indicar que la asignación ha finalizado.
+//        System.out.println("    [EDT Internal] Fin assignModeloMiniaturasToViewInternal.");
+//
+//    } // --- FIN assignModeloMiniaturasToViewInternal ---
 
     
-    /**
-     * Establece la variable de instancia `carpetaRaizActual` leyendo la ruta
-     * guardada en la configuración (clave "inicio.carpeta").
-     * Valida que la ruta leída desde la configuración sea un directorio válido
-     * antes de asignarla a `carpetaRaizActual`.
-     * Si la ruta de la configuración no es válida o no existe, `carpetaRaizActual`
-     * puede quedar como null (indicando que no hay una carpeta raíz válida definida).
-     *
-     * Se llama desde AppInitializer (en el EDT, aunque podría llamarse antes si
-     * no interactúa con UI) durante la inicialización.
-     */
-    /*package-private*/ void establecerCarpetaRaizDesdeConfigInternal() {
-        // --- SECCIÓN 1: Log de Inicio y Validación de Dependencias ---
-        // 1.1. Imprimir log indicando la acción.
-        System.out.println("    [EDT Internal] Estableciendo carpeta raíz inicial desde config...");
-        
-        // 1.2. Validar que el gestor de configuración exista.
-        if (configuration == null) {
-            System.err.println("ERROR [establecerCarpetaRaizDesdeConfigInternal]: ConfigurationManager es null. No se puede leer la carpeta.");
-            
-            if (this.model != null) { // Asegurarse que el modelo existe antes de intentar ponerle null
-                this.model.setCarpetaRaizActual(null); // <<< CAMBIO AQUÍ: Actualizar el modelo
-            } else {
-                // Esto sería un problema de orden de inicialización muy grave si model es null aquí
-                System.err.println("ERROR CRÍTICO [establecerCarpetaRaizDesdeConfigInternal]: VisorModel también es null. No se puede establecer carpetaRaizActual a null.");
-            }
-            
-            return; // Salir si falta la configuración.
-        }
-
-        // --- SECCIÓN 2: Lectura y Validación de la Ruta ---
-        // 2.1. Obtener la cadena de la ruta desde la configuración.
-        //      Usar la clave "inicio.carpeta" y "" como valor por defecto si no se encuentra.
-        String folderInitPath = configuration.getString("inicio.carpeta", "");
-        // 2.2. Inicializar el Path resultante a null.
-        Path candidatePath = null;
-
-        // 2.3. Comprobar si se obtuvo una ruta no vacía desde la configuración.
-        if (!folderInitPath.isEmpty()) {
-            // 2.3.1. Bloque try-catch para manejar errores al convertir la cadena a Path o al verificar el directorio.
-            try {
-                // 2.3.1.1. Intentar crear un objeto Path desde la cadena.
-                candidatePath = Paths.get(folderInitPath);
-                // 2.3.1.2. Verificar si el Path resultante es un directorio válido y existente.
-                if (Files.isDirectory(candidatePath)) {
-                    // 2.3.1.2.1. Si es válido, asignar este Path a la variable de instancia `carpetaRaizActual`.
-                	
-                	this.model.setCarpetaRaizActual(candidatePath);
-                	
-                    System.out.println("      -> Carpeta raíz establecida a: " +
-                    		//this.carpetaRaizActual);
-                    		this.model.getCarpetaRaizActual());
-                } else {
-                    // 2.3.1.2.2. Si la ruta existe pero no es un directorio, loguear advertencia y poner `carpetaRaizActual` a null.
-                    System.err.println("WARN [establecerCarpetaRaizDesdeConfigInternal]: La ruta en config no es un directorio: " + folderInitPath);
-                    this.model.setCarpetaRaizActual(null);
-                }
-            // 2.3.2. Capturar excepciones (p.ej., formato de ruta inválido).
-            } catch (Exception e) {
-                // 2.3.2.1. Loguear el error y poner `carpetaRaizActual` a null.
-                System.err.println("WARN [establecerCarpetaRaizDesdeConfigInternal]: Ruta de carpeta inicial inválida en config: '" + folderInitPath + "' - Error: " + e.getMessage());
-                
-                this.model.setCarpetaRaizActual(null);
-                
-            }
-        // 2.4. Si la ruta en la configuración estaba vacía.
-        } else {
-            // 2.4.1. Log indicando que no había ruta definida.
-            System.out.println("      -> No hay ruta de inicio definida en la configuración.");
-            // 2.4.2. Asegurar que `carpetaRaizActual` sea null.
-            this.model.setCarpetaRaizActual(null);
-        }
-
-        // --- SECCIÓN 3: Log Final ---
-        // 3.1. Indicar si se estableció una carpeta raíz o no.
-        
-        if (this.model.getCarpetaRaizActual() != null) {
-        	
-            System.out.println("    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: " 
-            		//+ this.carpetaRaizActual);
-            		+ this.model.getCarpetaRaizActual());
-            
-        } else {
-        	System.out.println("    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. No se estableció carpeta raíz válida en MODELO.");
-        }
-
-    } // --- FIN establecerCarpetaRaizDesdeConfigInternal ---
+//    /**
+//     * Establece la variable de instancia `carpetaRaizActual` leyendo la ruta
+//     * guardada en la configuración (clave "inicio.carpeta").
+//     * Valida que la ruta leída desde la configuración sea un directorio válido
+//     * antes de asignarla a `carpetaRaizActual`.
+//     * Si la ruta de la configuración no es válida o no existe, `carpetaRaizActual`
+//     * puede quedar como null (indicando que no hay una carpeta raíz válida definida).
+//     *
+//     * Se llama desde AppInitializer (en el EDT, aunque podría llamarse antes si
+//     * no interactúa con UI) durante la inicialización.
+//     */
+//    /*package-private*/ void establecerCarpetaRaizDesdeConfigInternal() {
+//        // --- SECCIÓN 1: Log de Inicio y Validación de Dependencias ---
+//        // 1.1. Imprimir log indicando la acción.
+//        System.out.println("    [EDT Internal] Estableciendo carpeta raíz inicial desde config...");
+//        
+//        // 1.2. Validar que el gestor de configuración exista.
+//        if (configuration == null) {
+//            System.err.println("ERROR [establecerCarpetaRaizDesdeConfigInternal]: ConfigurationManager es null. No se puede leer la carpeta.");
+//            
+//            if (this.model != null) { // Asegurarse que el modelo existe antes de intentar ponerle null
+//                this.model.setCarpetaRaizActual(null); // <<< CAMBIO AQUÍ: Actualizar el modelo
+//            } else {
+//                // Esto sería un problema de orden de inicialización muy grave si model es null aquí
+//                System.err.println("ERROR CRÍTICO [establecerCarpetaRaizDesdeConfigInternal]: VisorModel también es null. No se puede establecer carpetaRaizActual a null.");
+//            }
+//            
+//            return; // Salir si falta la configuración.
+//        }
+//
+//        // --- SECCIÓN 2: Lectura y Validación de la Ruta ---
+//        // 2.1. Obtener la cadena de la ruta desde la configuración.
+//        //      Usar la clave "inicio.carpeta" y "" como valor por defecto si no se encuentra.
+//        String folderInitPath = configuration.getString("inicio.carpeta", "");
+//        // 2.2. Inicializar el Path resultante a null.
+//        Path candidatePath = null;
+//
+//        // 2.3. Comprobar si se obtuvo una ruta no vacía desde la configuración.
+//        if (!folderInitPath.isEmpty()) {
+//            // 2.3.1. Bloque try-catch para manejar errores al convertir la cadena a Path o al verificar el directorio.
+//            try {
+//                // 2.3.1.1. Intentar crear un objeto Path desde la cadena.
+//                candidatePath = Paths.get(folderInitPath);
+//                // 2.3.1.2. Verificar si el Path resultante es un directorio válido y existente.
+//                if (Files.isDirectory(candidatePath)) {
+//                    // 2.3.1.2.1. Si es válido, asignar este Path a la variable de instancia `carpetaRaizActual`.
+//                	
+//                	this.model.setCarpetaRaizActual(candidatePath);
+//                	
+//                    System.out.println("      -> Carpeta raíz establecida a: " +
+//                    		//this.carpetaRaizActual);
+//                    		this.model.getCarpetaRaizActual());
+//                } else {
+//                    // 2.3.1.2.2. Si la ruta existe pero no es un directorio, loguear advertencia y poner `carpetaRaizActual` a null.
+//                    System.err.println("WARN [establecerCarpetaRaizDesdeConfigInternal]: La ruta en config no es un directorio: " + folderInitPath);
+//                    this.model.setCarpetaRaizActual(null);
+//                }
+//            // 2.3.2. Capturar excepciones (p.ej., formato de ruta inválido).
+//            } catch (Exception e) {
+//                // 2.3.2.1. Loguear el error y poner `carpetaRaizActual` a null.
+//                System.err.println("WARN [establecerCarpetaRaizDesdeConfigInternal]: Ruta de carpeta inicial inválida en config: '" + folderInitPath + "' - Error: " + e.getMessage());
+//                
+//                this.model.setCarpetaRaizActual(null);
+//                
+//            }
+//        // 2.4. Si la ruta en la configuración estaba vacía.
+//        } else {
+//            // 2.4.1. Log indicando que no había ruta definida.
+//            System.out.println("      -> No hay ruta de inicio definida en la configuración.");
+//            // 2.4.2. Asegurar que `carpetaRaizActual` sea null.
+//            this.model.setCarpetaRaizActual(null);
+//        }
+//
+//        // --- SECCIÓN 3: Log Final ---
+//        // 3.1. Indicar si se estableció una carpeta raíz o no.
+//        
+//        if (this.model.getCarpetaRaizActual() != null) {
+//        	
+//            System.out.println("    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: " 
+//            		//+ this.carpetaRaizActual);
+//            		+ this.model.getCarpetaRaizActual());
+//            
+//        } else {
+//        	System.out.println("    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. No se estableció carpeta raíz válida en MODELO.");
+//        }
+//
+//    } // --- FIN establecerCarpetaRaizDesdeConfigInternal ---
 
     
 	/**
@@ -453,59 +459,77 @@ public class VisorController implements ActionListener, ClipboardOwner {
 
 	
 	/**
-	 * Configura los listeners específicos de la vista del visualizador.
-	 * La lógica global de teclado y ratón ahora es manejada por GeneralController.
+	 * Configura los listeners de selección para las JLists del MODO VISUALIZADOR y MODO CARRUSEL.
+	 * Este método ahora es responsable de "cablear" la interacción del usuario en ambos modos.
 	 */
-	void configurarListenersVistaInternal()
-	{
-		if (view == null || listCoordinator == null || model == null || registry == null)
-		{
-			System.err.println("WARN [configurarListenersVistaInternal]: Dependencias críticas nulas. Abortando.");
-			return;
-		}
-		System.out.println("[VisorController Internal] Configurando listeners ESPECÍFICOS de Vista...");
+	void configurarListenersVistaInternal() {
+	    if (view == null || listCoordinator == null || model == null || registry == null) {
+	        System.err.println("WARN [configurarListenersVistaInternal]: Dependencias críticas nulas. Abortando.");
+	        return;
+	    }
+	    System.out.println("[VisorController Internal] Configurando listeners para listas de VISUALIZADOR y CARRUSEL...");
 
-		// --- LISTENERS DE SELECCIÓN DE LISTAS (SE MANTIENEN) ---
-		JList<String> listaNombres = registry.get("list.nombresArchivo");
+	    // --- 1. LISTENER PARA LA LISTA DE NOMBRES (Solo existe en el modo Visualizador) ---
+	    JList<String> listaNombres = registry.get("list.nombresArchivo");
+	    if (listaNombres != null) {
+	        // Limpiamos listeners antiguos para evitar duplicados
+	        for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners()) {
+	            listaNombres.removeListSelectionListener(lsl);
+	        }
+	        
+	        listaNombres.addListSelectionListener(e -> {
+	            if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
+	                listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
+	            }
+	        });
+	        System.out.println("  -> Listener añadido a 'list.nombresArchivo'");
+	    }
 
-		if (listaNombres != null)
-		{
-			// Limpiar listeners anteriores para evitar duplicados
-			for (javax.swing.event.ListSelectionListener lsl : listaNombres.getListSelectionListeners())
-				listaNombres.removeListSelectionListener(lsl);
-			
-			listaNombres.addListSelectionListener(e -> {
-				if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI())
-				{
-					listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
-				}
-			});
-		}
+	    // --- 2. CREACIÓN DE UN LISTENER DE MINIATURAS REUTILIZABLE E INTELIGENTE ---
+	    javax.swing.event.ListSelectionListener thumbnailListener = e -> {
+	        if (e.getValueIsAdjusting() || listCoordinator.isSincronizandoUI()) {
+	            return;
+	        }
 
-		JList<String> listaMiniaturas = registry.get("list.miniaturas");
+	        // a) Obtenemos la JList que originó el evento. Puede ser la del visor o la del carrusel.
+	        JList<String> sourceList = (JList<String>) e.getSource();
+	        String claveSeleccionada = sourceList.getSelectedValue();
+	        
+	        if (claveSeleccionada == null) return;
 
-		if (listaMiniaturas != null)
-		{
-			// Limpiar listeners anteriores para evitar duplicados
-			for (javax.swing.event.ListSelectionListener lsl : listaMiniaturas.getListSelectionListeners())
-				listaMiniaturas.removeListSelectionListener(lsl);
-			
-			listaMiniaturas.addListSelectionListener(e -> {
-				if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI())
-				{
-					int indiceRelativo = listaMiniaturas.getSelectedIndex();
+	        // b) TRADUCCIÓN: Buscamos el índice REAL de esa clave en el modelo de datos del CONTEXTO ACTUAL.
+	        //    model.getCurrentListContext() devolverá el del visualizador o el del carrusel según corresponda.
+	        int indiceEnListaPrincipal = model.getCurrentListContext().getModeloLista().indexOf(claveSeleccionada);
+	        
+	        // c) Si se encuentra, se lo comunicamos al coordinador.
+	        if (indiceEnListaPrincipal != -1) {
+	            listCoordinator.seleccionarImagenPorIndice(indiceEnListaPrincipal);
+	        }
+	    };
 
-					if (indiceRelativo != -1)
-					{
-						String clave = listaMiniaturas.getModel().getElementAt(indiceRelativo);
-						int indicePrincipal = model.getModeloLista().indexOf(clave);
-						listCoordinator.seleccionarImagenPorIndice(indicePrincipal);
-					}
-				}
-			});
-		}
+	    // --- 3. APLICAR EL LISTENER REUTILIZABLE A AMBAS JLISTS DE MINIATURAS ---
+	    
+	    // a) Aplicar al JList de miniaturas del VISUALIZADOR
+	    JList<String> listaMiniaturasVisor = registry.get("list.miniaturas");
+	    if (listaMiniaturasVisor != null) {
+	        for (javax.swing.event.ListSelectionListener lsl : listaMiniaturasVisor.getListSelectionListeners()) {
+	            listaMiniaturasVisor.removeListSelectionListener(lsl);
+	        }
+	        listaMiniaturasVisor.addListSelectionListener(thumbnailListener);
+	        System.out.println("  -> Listener de miniaturas añadido a 'list.miniaturas' (VISOR)");
+	    }
 
-		System.out.println("[VisorController Internal] Listeners específicos de Vista configurados.");
+	    // b) Aplicar al JList de miniaturas del CARRUSEL
+	    JList<String> listaMiniaturasCarrusel = registry.get("list.miniaturas.carousel");
+	    if (listaMiniaturasCarrusel != null) {
+	        for (javax.swing.event.ListSelectionListener lsl : listaMiniaturasCarrusel.getListSelectionListeners()) {
+	            listaMiniaturasCarrusel.removeListSelectionListener(lsl);
+	        }
+	        listaMiniaturasCarrusel.addListSelectionListener(thumbnailListener);
+	        System.out.println("  -> Listener de miniaturas añadido a 'list.miniaturas.carousel' (CARRUSEL)");
+	    }
+
+	    System.out.println("[VisorController Internal] Listeners de listas configurados.");
 
 	} // --- Fin del método configurarListenersVistaInternal ---
 	
@@ -1213,6 +1237,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
      * @param direccion Un entero que indica la dirección de navegación: -1 para anterior, 1 para siguiente.
      */
     public void navegarImagen(int direccion) {
+/*
         // 1. Validar dependencias y estado
         if (model == null || registry == null || model.getModeloLista() == null) {
             System.err.println("WARN [navegarImagen]: Modelo o Registry no inicializados.");
@@ -1274,7 +1299,8 @@ public class VisorController implements ActionListener, ClipboardOwner {
             System.out.println("[navegarImagen] El índice no cambió o es inválido. Índice actual: " + indiceActual + ", Siguiente calculado: " + indiceSiguiente);
         }
 
-    } // --- FIN navegarImagen ---
+*/
+	} // --- FIN navegarImagen ---
 
 
     /**
@@ -1287,6 +1313,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
      *              Debe estar dentro del rango [0, tamañoLista - 1].
      */
     public void navegarAIndice(int index) {
+/*
         // --- 1. Validar dependencias y estado ---
         if (model == null || registry == null || model.getModeloLista() == null) {
             System.err.println("WARN [navegarAIndice]: Modelo o Registry no inicializados.");
@@ -1327,7 +1354,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
         } else {
             System.out.println("[navegarAIndice] El índice solicitado (" + index + ") ya es el actual. No se hace nada.");
         }
-        
+*/    
     } // --- Fin del método navegarAIndice ---
     
     
@@ -1665,15 +1692,18 @@ public class VisorController implements ActionListener, ClipboardOwner {
             }
 
             if (view != null) {
-                // INICIO DEL CAMBIO
                 // Si la JList está vinculada a un modelo que NO se limpia aquí,
                 // entonces la vista no necesita que le asignemos un modelo vacío.
                 // Simplemente limpiar la imagen mostrada.
                 view.limpiarImagenMostrada();
-                // FIN DEL CAMBIO
-                if (this.modeloMiniaturas != null) {
-                    this.modeloMiniaturas.clear(); // Esto sí puede limpiarse, es el modelo de la ventana deslizante
+
+                if (this.modeloMiniaturasVisualizador != null) {
+                    this.modeloMiniaturasVisualizador.clear();
                 }
+                if (this.modeloMiniaturasCarrusel != null) {
+                    this.modeloMiniaturasCarrusel.clear();
+                }
+                
                 System.out.println("  -> Vista actualizada a estado vacío (imagen principal y miniaturas).");
             }
 
@@ -3249,45 +3279,46 @@ public class VisorController implements ActionListener, ClipboardOwner {
   	} // --- FIN parseColor ---
   
   
-  private void guardarConfiguracionActual() {
-      if (configuration == null || model == null) {
-          System.err.println("ERROR [guardarConfiguracionActual]: Configuración o Modelo nulos.");
-          return;
-      }
-      System.out.println("  [Guardar] Guardando estado final de todos los contextos...");
+//EN VisorController.java
+//REEMPLAZA EL MÉTODO guardarConfiguracionActual() COMPLETO
 
-      // --- Obtener explícitamente el estado de CADA contexto ---
-      
-      // 1. Guardar estado del MODO VISUALIZADOR
-      //    Obtenemos la clave directamente del visualizadorListContext.
-      String visualizadorKey = model.getVisualizadorListContext().getSelectedImageKey(); 
-      configuration.setString(ConfigKeys.INICIO_IMAGEN, visualizadorKey != null ? visualizadorKey : "");
-      System.out.println("  [Guardar] Estado Visualizador: UltimaKey=" + visualizadorKey);
-      
-      // 2. Guardar estado del MODO PROYECTO
-      ListContext proyectoContext = model.getProyectoListContext();
-      
-      String focoActivo = proyectoContext.getNombreListaActiva();
-      configuration.setString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, focoActivo != null ? focoActivo : "seleccion");
+private void guardarConfiguracionActual() {
+   if (configuration == null || model == null) {
+       System.err.println("ERROR [guardarConfiguracionActual]: Configuración o Modelo nulos.");
+       return;
+   }
+   System.out.println("  [Guardar] Guardando estado final de todos los contextos...");
 
-      String seleccionKey = proyectoContext.getSeleccionListKey();
-      configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, seleccionKey != null ? seleccionKey : "");
+   // --- Guardar estado del MODO VISUALIZADOR (Nuestra "sesión principal") ---
+   ListContext visualizadorContext = model.getVisualizadorListContext();
+   String visualizadorKey = visualizadorContext.getSelectedImageKey();
+   Path ultimaCarpetaVisor = model.getCarpetaRaizDelVisualizador(); // Usamos el nuevo getter
+   
+   configuration.setString(ConfigKeys.INICIO_IMAGEN, visualizadorKey != null ? visualizadorKey : "");
+   configuration.setString(ConfigKeys.INICIO_CARPETA, (ultimaCarpetaVisor != null) ? ultimaCarpetaVisor.toString() : "");
+   System.out.println("  [Guardar] Estado Visualizador: UltimaKey=" + visualizadorKey + ", UltimaCarpeta=" + ultimaCarpetaVisor);
 
-      String descartesKey = proyectoContext.getDescartesListKey();
-      configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, descartesKey != null ? descartesKey : "");
-      
-      configuration.setString(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, String.valueOf(model.isModoPantallaCompletaActivado()));
-      
-      System.out.println("  [Guardar] Estado Proyecto: Foco=" + focoActivo + ", SelKey=" + seleccionKey + ", DescKey=" + descartesKey);
+   // --- Guardar estado del MODO PROYECTO (sin cambios) ---
+   ListContext proyectoContext = model.getProyectoListContext();
+   String focoActivo = proyectoContext.getNombreListaActiva();
+   configuration.setString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, focoActivo != null ? focoActivo : "seleccion");
+   String seleccionKey = proyectoContext.getSeleccionListKey();
+   configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, seleccionKey != null ? seleccionKey : "");
+   String descartesKey = proyectoContext.getDescartesListKey();
+   configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, descartesKey != null ? descartesKey : "");
+   System.out.println("  [Guardar] Estado Proyecto: Foco=" + focoActivo + ", SelKey=" + seleccionKey + ", DescKey=" + descartesKey);
+   
+   // --- Guardar otros estados globales (sin cambios) ---
+   configuration.setString(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, String.valueOf(model.isModoPantallaCompletaActivado()));
 
-      // 3. Guardar el archivo de configuración en el disco
-      try {
-          configuration.guardarConfiguracion(configuration.getConfig());
-          System.out.println("  [Guardar] Configuración guardada exitosamente.");
-      } catch (IOException e) {
-          System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
-      }
-  } // --- FIN del metodo guardarConfiguracionActual ---
+   // --- Guardar el archivo físico ---
+   try {
+       configuration.guardarConfiguracion(configuration.getConfig());
+       System.out.println("  [Guardar] Configuración guardada exitosamente.");
+   } catch (IOException e) {
+       System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
+   }
+} // --- FIN del metodo guardarConfiguracionActual ---
      
      
      /**
@@ -3488,6 +3519,38 @@ public class VisorController implements ActionListener, ClipboardOwner {
     } // --- Fin del método restaurarUiVisualizador ---
 	
 	
+	/**
+     * Restaura la UI específica del modo CARRUSEL.
+     * Este método asume que el model.carouselListContext ya ha sido
+     * cargado (ya sea clonado o restaurado). Su trabajo es reflejar
+     * ese estado en la UI.
+     */
+    public void restaurarUiCarrusel() {
+        System.out.println("    -> Restaurando UI para el modo CARRUSEL...");
+        
+        // 1. Obtener la clave de la imagen que debe estar seleccionada desde el contexto del carrusel.
+        String claveGuardada = model.getSelectedImageKey(); // getCurrentListContext() devolverá el del carrusel.
+        System.out.println("      -> Clave guardada en contexto CARRUSEL: '" + claveGuardada + "'");
+        
+        // 2. Encontrar el índice de esa clave en el modelo de lista del carrusel.
+        int indiceARestaurar = (claveGuardada != null) ? model.getModeloLista().indexOf(claveGuardada) : -1;
+        
+        // 3. Lógica de fallback: si no hay clave o no se encuentra, seleccionar la primera imagen.
+        if (indiceARestaurar == -1 && !model.getModeloLista().isEmpty()) {
+            indiceARestaurar = 0;
+        }
+
+        // 4. Delegar al ListCoordinator para que haga la selección.
+        //    Esto cargará la imagen principal, actualizará las miniaturas, etc.
+        if (listCoordinator != null) {
+            // Usamos reiniciarYSeleccionarIndice para asegurar un estado limpio.
+            listCoordinator.reiniciarYSeleccionarIndice(indiceARestaurar);
+        } else {
+             System.err.println("ERROR: ListCoordinator es nulo al restaurar UI del carrusel.");
+        }
+        
+    } // --- Fin del método restaurarUiCarrusel ---
+	
 	public void toggleMarcaImagenActual (boolean marcarDeseado)
 	{
 	    Action toggleMarkImageAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA) : null;
@@ -3604,62 +3667,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
     } // --- Fin del método onThemeChanged ---
 	
 	
-//	public void onThemeChanged() {
-//        System.out.println("--- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---");
-//        
-//        // FASE 1: Preparación (sin cambios)
-//        if (actionFactory != null) actionFactory.actualizarIconosDeAcciones();
-//        if (registry != null) registry.unregisterToolbarComponents();
-//        if (toolbarManager != null) toolbarManager.clearToolbarCache();
-//
-//        // FASE 2: Reconstrucción de la UI
-//        SwingUtilities.invokeLater(() -> {
-//            System.out.println("  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...");
-//
-//            // 2a. Reconstruir las barras de herramientas (principales y especiales)
-//            if (toolbarManager != null && model != null) {
-//                toolbarManager.reconstruirContenedorDeToolbars(model.getCurrentWorkMode());
-//            }
-//            
-//            // 2b. Actualizar fondos y paneles. ESTO AHORA ES CRUCIAL QUE VAYA DESPUÉS de la reconstrucción
-//            // porque necesita las NUEVAS barras.
-//            if (viewManager != null) {
-//                viewManager.refrescarFondoAlPorDefecto();
-//                viewManager.refrescarColoresDeFondoUI();
-//                viewManager.reconstruirPanelesEspecialesTrasTema();
-//            }
-//
-//            // FASE 3: Enlace Final
-//            SwingUtilities.invokeLater(() -> {
-//                System.out.println("  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...");
-//
-//                // ▼▼▼▼▼ ¡ESTA ES LA CORRECCIÓN CLAVE! ▼▼▼▼▼
-//                if (backgroundControlManager != null) {
-//                    // 1. FORZAMOS al manager a que vuelva a buscar los NUEVOS botones en la UI reconstruida.
-//                    //    Esta llamada ahora es más importante que nunca.
-//                    backgroundControlManager.initializeAndLinkControls();
-//                    
-//                    // 2. AHORA, le pedimos que sincronice la selección. Esto ya debería funcionar porque
-//                    //    initializeAndLinkControls() ya actualizó los iconos.
-//                    backgroundControlManager.sincronizarSeleccionConEstadoActual();
-//
-//                    // ¡OJO! La llamada a repaintAllButtons() ya no es necesaria aquí, porque
-//                    // initializeAndLinkControls() internamente ya llama a updateSwatchAppearance()
-//                    // para cada botón que encuentra, lo cual tiene el mismo efecto.
-//                    // La dejamos por si acaso, pero el log nos dirá si es redundante.
-//                    backgroundControlManager.repaintAllButtons(); 
-//                }
-//                // ▲▲▲▲▲ ¡ESTA ES LA CORRECCIÓN CLAVE! ▲▲▲▲▲
-//
-//                sincronizarEstadoDeTodasLasToggleThemeActions();
-//                
-//                System.out.println("--- [VisorController] Reconstrucción de UI por cambio de tema completada. ---");
-//            });
-//        });
-//        
-//    } // --- Fin del método onThemeChanged ---
-	
-	
     /**
      * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
      * Es un método seguro que comprueba la existencia del modelo y su lista interna.
@@ -3694,7 +3701,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
     public ExecutorService getExecutorService() {return this.executorService;}
     public IViewManager getViewManager() {return this.viewManager;}
     public IListCoordinator getListCoordinator() {return this.listCoordinator;}
-    public DefaultListModel<String> getModeloMiniaturas()	{ return this.modeloMiniaturas; }
+    
     public ViewUIConfig getUiConfigForView() { return uiConfigForView; }
 	public ThumbnailService getServicioMiniaturas() { return servicioMiniaturas; }
 	public IconUtils getIconUtils() { return iconUtils; } 
@@ -3707,6 +3714,21 @@ public class VisorController implements ActionListener, ClipboardOwner {
     public ProjectManager getProjectManager() {return this.projectManager;}
     public ActionFactory getActionFactory() {return this.actionFactory;}
     public ThemeManager getThemeManager() {return this.themeManager;}
+    
+    public DefaultListModel<String> getModeloMiniaturasVisualizador() {return this.modeloMiniaturasVisualizador;}
+    public DefaultListModel<String> getModeloMiniaturasCarrusel() {return this.modeloMiniaturasCarrusel;}
+    
+    /**
+     * Devuelve el modelo de lista de miniaturas correcto según el modo de trabajo actual.
+     * @return El DefaultListModel para el modo Visualizador o Carrusel.
+     */
+    public DefaultListModel<String> getModeloMiniaturas() {
+        if (model != null && model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
+            return this.modeloMiniaturasCarrusel;
+        }
+        // Por defecto, o si el modo es Visualizador, devuelve el del visualizador.
+        return this.modeloMiniaturasVisualizador;
+    } // --- Fin del método getModeloMiniaturas ---
     
     /**
      * Establece si se deben mostrar los nombres de archivo debajo de las miniaturas
@@ -3909,12 +3931,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
         System.out.println("[VisorController setMostrarSubcarpetasLogicaYUi] Proceso de cambio y recarga iniciado.");
     } // --- FIN del metodo setMostrarSubcarpetasLogicaYUi ---
  	
- 	public void setModeloMiniaturas(DefaultListModel<String> modeloMiniaturas) {
-	    this.modeloMiniaturas = Objects.requireNonNull(modeloMiniaturas, 
-	            "El modelo de miniaturas no puede ser inyectado como nulo en VisorController.");
-	    
-	    System.out.println("  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: " + System.identityHashCode(this.modeloMiniaturas));
-	} // --- Fin del método setModeloMiniaturas ---
  	
  	public void setCalculatedMiniaturePanelHeight(int calculatedMiniaturePanelHeight) { this.calculatedMiniaturePanelHeight = calculatedMiniaturePanelHeight; }
  	public void setModel					(VisorModel model) { this.model = model; }

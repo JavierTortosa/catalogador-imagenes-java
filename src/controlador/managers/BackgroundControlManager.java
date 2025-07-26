@@ -59,15 +59,13 @@ public class BackgroundControlManager {
         Color selectionColor = themeManager.getTemaActual().colorBordeSeleccionActiva();
         this.bordeSeleccionado = new vista.util.UnderlineBorder(selectionColor, underlineThickness);
         
-        // --- INICIO DE LA CORRECCIÓN CLAVE ---
         // El borde NORMAL debe ser un borde vacío que reserve espacio ABAJO,
         // exactamente igual que el UnderlineBorder.
         // ANTES: createEmptyBorder(underlineThickness, 0, 0, 0) <-- Mal, espacio arriba
         // AHORA: createEmptyBorder(0, 0, underlineThickness, 0) <-- Bien, espacio abajo
         this.bordeNormal = javax.swing.BorderFactory.createEmptyBorder(0, 0, underlineThickness, 0);
         
-        // --- FIN DE LA CORRECCIÓN CLAVE ---
-    }
+    } // --- FIN del constructor ---
     
     
     public void initializeAndLinkControls() {
@@ -111,12 +109,6 @@ public class BackgroundControlManager {
                 }
             }
         }
-        
-        // ======================= BLOQUE ELIMINADO =======================
-        // El siguiente bucle que intentaba forzar la selección ha sido eliminado
-        // porque ahora el método de sincronización se encargará de esto de
-        // forma más robusta.
-        // ================================================================
         
         System.out.println("--- [BackgroundControlManager] Enlace de controles completado. " + this.swatchButtons.size() + " botones de fondo gestionados. ---");
     } // --- Fin del método initializeAndLinkControls ---
@@ -208,9 +200,6 @@ public class BackgroundControlManager {
         if (command == null) return;
         
         
-
-        // --- INICIO DE LA MODIFICACIÓN ---
-
         // CASO ESPECIAL 1: Botón de la Paleta.
         // Este botón tiene un icono estático y NUNCA debe ser modificado por este método.
         // Salimos inmediatamente.
@@ -265,76 +254,23 @@ public class BackgroundControlManager {
             }
         }
 
-        Color colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
+        Color colorFinalParaPintar;
+
+        // Usamos el método para comprobar si es un color "de fábrica"
+	    if (esUnColorDeTemaPorDefecto(colorOriginal)) {
+	        // Si lo es, aplicamos la corrección de contraste para mejorar la visibilidad del ICONO.
+	        System.out.println("    -> El color para '" + command + "' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.");
+	        colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
+	    } else {
+	        // Si NO lo es, es un color personalizado por el usuario. Lo respetamos y lo mostramos tal cual.
+	        System.out.println("    -> El color para '" + command + "' es personalizado. Se usará el color original sin ajustes.");
+	        colorFinalParaPintar = colorOriginal;
+	    }
         
         button.setIcon(iconUtils.getTintedIcon(baseIcon, colorFinalParaPintar, 16, 16));
     
     } // --- FIN del metodo updateSwatchAppearance ---
     
-    
-//    private void updateSwatchAppearance(JButton button) {
-//        String command = (String) button.getClientProperty("canonicalCommand");
-//        if (command == null) return;
-//
-//        // --- INICIO DE LA LÓGICA CORREGIDA Y ROBUSTA ---
-//        Icon baseIcon = (Icon) button.getClientProperty("baseIcon");
-//        
-//        // SI NO ENCUENTRA el icono base (porque es un botón nuevo de una toolbar reconstruida),
-//        // lo intentamos cargar AHORA.
-//        if (baseIcon == null) {
-//            System.out.println("  [updateSwatchAppearance] WARN: Icono base no encontrado en el botón para '" + command + "'. Intentando recarga manual...");
-//            Object baseIconNameObj = button.getClientProperty("baseIconName");
-//            if (baseIconNameObj instanceof String) {
-//                String baseIconName = (String) baseIconNameObj;
-//                // Usamos iconUtils para obtener el icono escalado, igual que haría el ToolbarBuilder
-//                ImageIcon reloadedIcon = iconUtils.getScaledCommonIcon(baseIconName, 16, 16);
-//                if (reloadedIcon != null) {
-//                    baseIcon = reloadedIcon;
-//                    // Y lo guardamos para la próxima vez
-//                    button.putClientProperty("baseIcon", baseIcon);
-//                    System.out.println("    -> Icono base '" + baseIconName + "' recargado y cacheado en el botón con éxito.");
-//                }
-//            }
-//        }
-//        
-//        if (baseIcon == null) {
-//            System.err.println("ERROR GRAVE [updateSwatchAppearance]: El botón para el comando '" + command + "' no tiene un icono base para pintar y no se pudo recargar.");
-//            return;
-//        }
-//        // --- FIN DE LA LÓGICA CORREGIDA Y ROBUSTA ---
-//
-//        // El resto de la lógica es la misma
-//        if (command.equals(AppActionCommands.CMD_BACKGROUND_CHECKERED)) {
-//            button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIcon, 16, 16));
-//            return;
-//        }
-//        if (command.equals(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR)) {
-//            return; 
-//        }
-//
-//        
-//        
-//        
-//        
-//        Color colorOriginal;
-//        if (command.equals(AppActionCommands.CMD_BACKGROUND_THEME_COLOR)) {
-//            colorOriginal = themeManager.getTemaActual().colorFondoSecundario();
-//        } else {
-//            String configKey = getConfigKeyForCommand(command);
-//            String colorGuardadoStr = config.getString(configKey, "");
-//            if (!colorGuardadoStr.isEmpty()) {
-//                colorOriginal = config.getColor(configKey, Color.MAGENTA);
-//            } else {
-//                colorOriginal = getDefaultColorForSlot(command);
-//            }
-//        }
-//
-//        Color colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
-//        
-//        button.setIcon(iconUtils.getTintedIcon(baseIcon, colorFinalParaPintar, 16, 16));
-//    
-//    } //--- FIN del metodo updateSwatchAppearance ---
-
     
 	/**
 	 * Revisa la luminosidad de un color y, si es demasiado claro o demasiado oscuro,
@@ -342,26 +278,31 @@ public class BackgroundControlManager {
 	 * @param colorOriginal El color a revisar.
 	 * @return El color ajustado o el original.
 	 */
-	private Color ajustarContrasteSiEsNecesario(Color colorOriginal) {
-	    if (colorOriginal == null) return Color.GRAY;
-	
-	    int luminosidad = colorOriginal.getRed() + colorOriginal.getGreen() + colorOriginal.getBlue();
-	    
-	    final int UMBRAL_OSCURO = 150;
-	    final int UMBRAL_CLARO = 700;
-	    final int CANTIDAD_AJUSTE = 55;
-	
-	    if (luminosidad < UMBRAL_OSCURO) {
-	        // El iconUtils ahora tiene los métodos públicos.
-	        return iconUtils.aclararColor(colorOriginal, CANTIDAD_AJUSTE);
-	    } else if (luminosidad > UMBRAL_CLARO) {
-	        return iconUtils.oscurecerColor(colorOriginal, CANTIDAD_AJUSTE);
-	    }
-	    
-	    // Si el color está en un rango aceptable, lo devolvemos sin cambios.
-	    return colorOriginal;
-	    
-	}// --- FIN del metodo ajustarContrasteSiEsNecesario ---
+    private Color ajustarContrasteSiEsNecesario(Color colorOriginal) {
+        if (colorOriginal == null) return Color.GRAY;
+
+        // Usamos los mismos umbrales de luminosidad para decidir si actuar
+        int luminosidad = colorOriginal.getRed() + colorOriginal.getGreen() + colorOriginal.getBlue();
+        
+        final int UMBRAL_OSCURO = 150;
+        final int UMBRAL_CLARO = 700;
+        
+        // Ahora usamos factores en lugar de cantidades fijas. Puedes ajustar estos valores.
+        // Un 40% (0.4f) suele ser un buen punto de partida.
+        final float FACTOR_ACLARADO = 1.1f;//0.6f; // Aumentar brillo un 110%
+        final float FACTOR_OSCURECIDO = 0.5f; // Reducir brillo un 50%
+
+        if (luminosidad < UMBRAL_OSCURO) {
+            // El color es muy oscuro, lo aclaramos usando el método HSB
+            return iconUtils.aclararColorHSB(colorOriginal, FACTOR_ACLARADO); // <-- Llamada nueva
+        } else if (luminosidad > UMBRAL_CLARO) {
+            // El color es muy claro, lo oscurecemos usando el método HSB
+            return iconUtils.oscurecerColorHSB(colorOriginal, FACTOR_OSCURECIDO); // <-- Llamada nueva
+        }
+        
+        // Si el color está en un rango aceptable, lo devolvemos sin cambios.
+        return colorOriginal;
+    }// --- FIN del metodo ajustarContrasteSiEsNecesario ---
     
     
 	private java.awt.event.MouseListener createUnifiedMouseListener() {
@@ -383,12 +324,8 @@ public class BackgroundControlManager {
 	                    handleDoubleClickOnSlot(sourceButton); // Llama a la lógica que ya tenemos
 	                }
 	                
-	                // --- !! LÍNEA ELIMINADA !! ---
-	                // Se ha eliminado la siguiente línea que causaba el problema:
-	                // selectButton(sourceButton); 
-	                // Ahora, el método handleDoubleClickOnSlot tiene el control total sobre la selección.
-
 	            } else if (e.getClickCount() == 1) {
+	            	
 	                // --- CLIC SIMPLE (CON TEMPORIZADOR PARA ESPERAR AL DOBLE CLIC) ---
 	                clickTimer = new javax.swing.Timer(250, event -> {
 	                    

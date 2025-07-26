@@ -40,7 +40,6 @@ public class IconUtils {
 
         // System.out.println("  [IconUtils loadImageIcon] Intentando cargar: " + classpathResourcePath + " (para " + iconIdentifier + ")");
         
-//        URL imgURL = getClass().getResource(classpathResourcePath);
         URL imgURL = IconUtils.class.getResource(classpathResourcePath);
 
         if (imgURL != null) {
@@ -427,6 +426,58 @@ public class IconUtils {
         int b = Math.max(0, colorOriginal.getBlue() - cantidadOscurecer);
         return new Color(r, g, b);
     } // --- Fin del método oscurecerColor ---
+    
+    
+    /**
+     * Aclara un color preservando su tono (Hue) y saturación (Saturation) originales.
+     * Trabaja en el espacio de color HSB para un resultado visualmente más natural.
+     *
+     * @param colorOriginal El color a aclarar.
+     * @param factor El factor de aclarado (ej. 0.4f para aumentar el brillo en un 40%).
+     * @return Un nuevo objeto Color más claro.
+     */
+    public Color aclararColorHSB(Color colorOriginal, float factor) {
+        if (colorOriginal == null) return Color.LIGHT_GRAY;
+
+        // 1. Convertir de RGB a HSB
+        float[] hsbVals = Color.RGBtoHSB(colorOriginal.getRed(), colorOriginal.getGreen(), colorOriginal.getBlue(), null);
+
+        // 2. Aumentar el brillo (el tercer componente, hsbVals[2])
+        //    Nos aseguramos de que no supere 1.0f (blanco total)
+        float nuevoBrillo = Math.min(1.0f, hsbVals[2] * (1.0f + factor));
+
+        // Opcional pero recomendado: Aumentar un poco la saturación para que no se vea "lavado"
+        float nuevaSaturacion = Math.min(1.0f, hsbVals[1] + 0.1f);
+
+        // 3. Convertir de vuelta a RGB
+        int rgb = Color.HSBtoRGB(hsbVals[0], nuevaSaturacion, nuevoBrillo);
+
+        return new Color(rgb);
+    } // FIN del metodo aclararColorHSB
+
+    /**
+     * Oscurece un color preservando su tono (Hue) y saturación (Saturation) originales.
+     * Trabaja en el espacio de color HSB para un resultado visualmente más natural.
+     *
+     * @param colorOriginal El color a oscurecer.
+     * @param factor El factor de oscurecido (ej. 0.4f para reducir el brillo en un 40%).
+     * @return Un nuevo objeto Color más oscuro.
+     */
+    public Color oscurecerColorHSB(Color colorOriginal, float factor) {
+        if (colorOriginal == null) return Color.DARK_GRAY;
+
+        // 1. Convertir de RGB a HSB
+        float[] hsbVals = Color.RGBtoHSB(colorOriginal.getRed(), colorOriginal.getGreen(), colorOriginal.getBlue(), null);
+
+        // 2. Reducir el brillo (el tercer componente, hsbVals[2])
+        //    Nos aseguramos de que no sea menor que 0.0f (negro total)
+        float nuevoBrillo = Math.max(0.0f, hsbVals[2] * (1.0f - factor));
+
+        // 3. Convertir de vuelta a RGB
+        int rgb = Color.HSBtoRGB(hsbVals[0], hsbVals[1], nuevoBrillo);
+
+        return new Color(rgb);
+    } // FIN del metodo oscurecerColorHSB
     
 } // --- FIN de la clase IconUtils
 

@@ -83,5 +83,11 @@ public interface IZoomManager {
      * @param onComplete Un Runnable que se ejecutará después de que el zoom se haya aplicado. Puede ser null.
      */
     void aplicarModoDeZoom(ZoomModeEnum modo, Runnable onComplete);
+    
+    /**
+     * Inyecta el gestor de la vista.
+     * @param viewManager La instancia de IViewManager.
+     */
+    void setViewManager(IViewManager viewManager);
 
 } // --- FIN de la interfaz IZoomManager ---

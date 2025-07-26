@@ -55,33 +55,27 @@ public class ViewBuilder{
     private final IconUtils iconUtils;
     private final ThumbnailService thumbnailService;
     private final ProjectBuilder projectBuilder;
-    private final DefaultListModel<String> modeloMiniaturas;
     
     private Map<String, Action> actionMap;
     private ToolbarManager toolbarManager;
-    // Ya no hay IViewManager, VisorController, etc. aquí.
 
+    
     public ViewBuilder(
             ComponentRegistry registry,
             VisorModel model,
             ThemeManager themeManager,
             ConfigurationManager configuration,
-            // Se elimina VisorController de los parámetros
             IconUtils iconUtils,
             ThumbnailService thumbnailService,
-            ProjectBuilder projectBuilder,
-            DefaultListModel<String> modeloMiniaturas
+            ProjectBuilder projectBuilder
         ){
         this.registry = registry;
         this.model = model;
         this.themeManager = themeManager;
         this.configuration = configuration;
-        // this.controller = controller; // Se elimina esta línea
         this.iconUtils = iconUtils;
-        // this.uiDefService = new UIDefinitionService(); // Se elimina, se crea donde se necesita
         this.thumbnailService = Objects.requireNonNull(thumbnailService);
         this.projectBuilder = Objects.requireNonNull(projectBuilder, "ProjectBuilder no puede ser null");
-        this.modeloMiniaturas = Objects.requireNonNull(modeloMiniaturas, "El modelo de miniaturas no puede ser null en el constructor de ViewBuilder.");
 
     } // --- Fin del método ViewBuilder (constructor) ---
 
@@ -122,41 +116,56 @@ public class ViewBuilder{
         JPanel bottomStatusBar = createBottomStatusBar();
         mainFrame.add(bottomStatusBar, BorderLayout.SOUTH);
         
-        // --- INICIO CORRECCIÓN: CardLayout para MODOS DE TRABAJO (WorkModes) ---
-        // Este será el CardLayout de nivel superior para cambiar entre Visualizador, Proyecto, Carrusel, Datos.
+        // --- CardLayout para MODOS DE TRABAJO (WorkModes) ---
         JPanel workModesContainer = new JPanel(new CardLayout());
-        registry.register("container.workmodes", workModesContainer); // Nueva clave en el registro
+        registry.register("container.workmodes", workModesContainer);
         
-        // Panel para el WorkMode VISUALIZADOR (que tendrá su propio CardLayout para DisplayModes)
+        // Panel para el WorkMode VISUALIZADOR
         JPanel visualizerWorkModePanel = createVisualizerWorkModePanel(); 
-        workModesContainer.add(visualizerWorkModePanel, "VISTA_VISUALIZADOR"); // Clave para el CardLayout
-        registry.register("panel.workmode.visualizador", visualizerWorkModePanel); // Registrar el panel del WorkMode
+        workModesContainer.add(visualizerWorkModePanel, "VISTA_VISUALIZADOR");
+        registry.register("panel.workmode.visualizador", visualizerWorkModePanel);
 
-        // Panel para el WorkMode PROYECTO (ya existente)
+        // Panel para el WorkMode PROYECTO
         JPanel projectWorkModePanel = this.projectBuilder.buildProjectViewPanel();
-        workModesContainer.add(projectWorkModePanel, "VISTA_PROYECTOS"); // Clave para el CardLayout
-        registry.register("panel.workmode.proyectos", projectWorkModePanel); // Registrar el panel del WorkMode
+        workModesContainer.add(projectWorkModePanel, "VISTA_PROYECTOS");
+        registry.register("panel.workmode.proyectos", projectWorkModePanel);
 
-        // Paneles para otros WorkModes futuros (por ahora vacíos como placeholder)
-        JPanel carouselWorkModePanel = new JPanel(); // Placeholder para el WorkMode.CARROUSEL
-        carouselWorkModePanel.add(new JLabel("Modo Carrusel en desarrollo...", SwingConstants.CENTER));
-        workModesContainer.add(carouselWorkModePanel, "VISTA_CAROUSEL_WORKMODE");
-        registry.register("panel.workmode.carousel", carouselWorkModePanel);
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Panel para el WorkMode CARROUSEL
+        JPanel carouselWorkModePanel = new JPanel(new BorderLayout());
+
+	    // a) Creamos una NUEVA INSTANCIA de ImageDisplayPanel para este modo.
+	    ImageDisplayPanel carouselDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
+	    carouselWorkModePanel.add(carouselDisplayPanel, BorderLayout.CENTER); // Lo añadimos al centro
+	    
+        // b) Creamos un JScrollPane de miniaturas específico para el modo carrusel.
+//        JScrollPane carouselThumbnailScrollPane = createThumbnailScrollPane();
         
+	    JScrollPane carouselThumbnailScrollPane = createThumbnailScrollPane("list.miniaturas.carousel", "scroll.miniaturas.carousel");
+	    
+        carouselWorkModePanel.add(carouselThumbnailScrollPane, BorderLayout.SOUTH); // Lo añadimos abajo
+	    
+	    // c) Registramos los componentes para que el sistema pueda encontrarlos con claves ÚNICAS.
+	    workModesContainer.add(carouselWorkModePanel, "VISTA_CAROUSEL_WORKMODE");
+	    registry.register("panel.workmode.carousel", carouselWorkModePanel);
+	    registry.register("panel.display.carousel", carouselDisplayPanel);
+        // Registramos el scroll de miniaturas para poder ocultarlo/mostrarlo después
+        registry.register("scroll.miniaturas.carousel", carouselThumbnailScrollPane); 
+	    // --- FIN DE LA MODIFICACIÓN ---
+
+        // Paneles para otros WorkModes futuros
         JPanel dataWorkModePanel = new JPanel();
-        dataWorkModePanel.add(new JLabel("Modo Datos en desarrollo..."));// Placeholder para el WorkMode.DATOS
-        workModesContainer.add(dataWorkModePanel, "VISTA_DATOS"); // <-- Usaremos esta clave
+        dataWorkModePanel.add(new JLabel("Modo Datos en desarrollo..."));
+        workModesContainer.add(dataWorkModePanel, "VISTA_DATOS");
         registry.register("panel.workmode.datos", dataWorkModePanel);
 
         JPanel editionWorkModePanel = new JPanel();
-        editionWorkModePanel.add(new JLabel("Modo Edición en desarrollo..."));// Placeholder para el WorkMode.EDICION
-        workModesContainer.add(editionWorkModePanel, "VISTA_EDICION"); // <-- Usaremos esta clave
+        editionWorkModePanel.add(new JLabel("Modo Edición en desarrollo..."));
+        workModesContainer.add(editionWorkModePanel, "VISTA_EDICION");
         registry.register("panel.workmode.edicion", editionWorkModePanel);
 
         // Asignar el CardLayout de WorkModes al centro del mainFrame
         mainFrame.add(workModesContainer, BorderLayout.CENTER);
-        // --- FIN CORRECCIÓN ---
-
 
         int x = configuration.getInt(ConfigKeys.WINDOW_X, -1);
         int y = configuration.getInt(ConfigKeys.WINDOW_Y, -1);
@@ -186,6 +195,7 @@ public class ViewBuilder{
         return mainFrame;
     }  // --- Fin del método createMainFrame ---
     
+    
     /**
      * Crea el panel principal para el WorkMode VISUALIZADOR.
      * Este panel contendrá su propio CardLayout para los diferentes DisplayModes (SINGLE_IMAGE, GRID, POLAROID).
@@ -199,7 +209,10 @@ public class ViewBuilder{
         visualizerPanel.add(mainSplitPane, BorderLayout.CENTER); // Añadir el split pane al centro del visualizadorPanel.
 
         // --- Panel de miniaturas inferior ---
-        JScrollPane thumbnailScrollPane = createThumbnailScrollPane();
+//        JScrollPane thumbnailScrollPane = createThumbnailScrollPane();
+        
+        JScrollPane thumbnailScrollPane = createThumbnailScrollPane("list.miniaturas", "scroll.miniaturas");
+        
         visualizerPanel.add(thumbnailScrollPane, BorderLayout.SOUTH);
 
         // --- CardLayout para los DisplayModes DENTRO del panel de visualizador ---
@@ -260,38 +273,10 @@ public class ViewBuilder{
     } // --- Fin del método createToolbarContainer ---
     
     
-    private JSplitPane createMainSplitPane() {
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createLeftSplitComponent(), createRightSplitComponent());
-        splitPane.setResizeWeight(0.25);
-        splitPane.setContinuousLayout(true);
-        splitPane.setBorder(null);
-        registry.register("splitpane.main", splitPane);
-        
-        return splitPane;
-    } // --- Fin del método createMainSplitPane ---
-
-    private JPanel createLeftSplitComponent() {
-        JPanel panelIzquierdo = new JPanel(new BorderLayout());
-        TitledBorder border = BorderFactory.createTitledBorder("Archivos: 0");
-        panelIzquierdo.setBorder(border);
-        registry.register("panel.izquierdo.listaArchivos", panelIzquierdo);
-
-        JList<String> fileList = new JList<>(model.getModeloLista());
-        fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
-        registry.register("list.nombresArchivo", fileList);
-
-        JScrollPane scrollPane = new JScrollPane(fileList);
-        registry.register("scroll.nombresArchivo", scrollPane);
-
-        panelIzquierdo.add(scrollPane, BorderLayout.CENTER);
-        return panelIzquierdo;
-    } // --- Fin del método createLeftSplitComponent ---
-    
-    
-    private JScrollPane createThumbnailScrollPane() {
-        JList<String> thumbnailList = new JList<>(this.modeloMiniaturas);
-        registry.register("list.miniaturas", thumbnailList);
+    private JScrollPane createThumbnailScrollPane(String listRegistryKey, String scrollRegistryKey) {
+        // Usa el modelo de miniaturas compartido que se le inyecta al builder
+    	JList<String> thumbnailList = new JList<>();
+    	registry.register(listRegistryKey, thumbnailList, "WHEEL_NAVIGABLE");
 
         MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
             this.thumbnailService,
@@ -311,21 +296,50 @@ public class ViewBuilder{
         JScrollPane scrollPane = new JScrollPane(thumbnailList);
         
         TitledBorder border = BorderFactory.createTitledBorder("Miniaturas");
-        // border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo()); // <-- COMENTADO
         scrollPane.setBorder(border);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_NEVER);
-        registry.register("scroll.miniaturas", scrollPane);
+        registry.register(scrollRegistryKey, scrollPane, "WHEEL_NAVIGABLE");
 
         return scrollPane;
-    } // --- Fin del método createThumbnailScrollPane ---
+        
+    } // --- Fin del método createThumbnailScrollPane (con parámetros) ---
+    
+    
+    private JSplitPane createMainSplitPane() {
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createLeftSplitComponent(), createRightSplitComponent());
+        splitPane.setResizeWeight(0.25);
+        splitPane.setContinuousLayout(true);
+        splitPane.setBorder(null);
+        registry.register("splitpane.main", splitPane);
+        
+        return splitPane;
+    } // --- Fin del método createMainSplitPane ---
+    
+
+    private JPanel createLeftSplitComponent() {
+        JPanel panelIzquierdo = new JPanel(new BorderLayout());
+        TitledBorder border = BorderFactory.createTitledBorder("Archivos: 0");
+        panelIzquierdo.setBorder(border);
+        registry.register("panel.izquierdo.listaArchivos", panelIzquierdo);
+
+        JList<String> fileList = new JList<>(model.getModeloLista());
+        fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
+        registry.register("list.nombresArchivo", fileList, "WHEEL_NAVIGABLE");
+
+        JScrollPane scrollPane = new JScrollPane(fileList);
+        registry.register("scroll.nombresArchivo", scrollPane);
+
+        panelIzquierdo.add(scrollPane, BorderLayout.CENTER);
+        return panelIzquierdo;
+        
+    } // --- Fin del método createLeftSplitComponent ---
     
     
     private JPanel createRightSplitComponent() {
         // El panel general derecho sigue usando BorderLayout. Contendrá el CardLayout y los controles inferiores.
         JPanel rightPanel = new JPanel(new BorderLayout());
         registry.register("panel.derecho.visor", rightPanel);
-
-        // --- INICIO DE LA MODIFICACIÓN ---
 
         // 1. Crear el contenedor que usará CardLayout para los DisplayModes.
         //    Este es el panel que tu GeneralController está buscando.
@@ -335,7 +349,8 @@ public class ViewBuilder{
         // 2. Crear el panel para la vista SINGLE_IMAGE (el que ya tenías).
         ImageDisplayPanel singleImageViewPanel = new ImageDisplayPanel(this.themeManager, this.model);
         registry.register("panel.display.imagen", singleImageViewPanel); // Mantenemos el registro para el zoom, etc.
-        registry.register("label.imagenPrincipal", singleImageViewPanel.getInternalLabel());
+        registry.register("label.imagenPrincipal", singleImageViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+        
         TitledBorder border = BorderFactory.createTitledBorder("");
         singleImageViewPanel.setBorder(border);
         
@@ -357,8 +372,6 @@ public class ViewBuilder{
 
         // 5. Añadir el contenedor CardLayout al centro del panel derecho.
         rightPanel.add(displayModesContainer, BorderLayout.CENTER);
-
-        // --- FIN DE LA MODIFICACIÓN ---
 
         // La lógica de los controles de fondo no cambia, se queda en la parte sur.
         JToolBar imageControlsToolbar = createBackgroundControlPanel();
@@ -413,20 +426,16 @@ public class ViewBuilder{
 
         final int iconSize = 18;
 
-        // --- CORRECCIÓN ---
-        // Asegurarse de que this.actionMap ha sido inyectado por AppInitializer
         if (this.actionMap == null) {
             System.err.println("CRITICAL ERROR [ViewBuilder]: El campo 'actionMap' de la clase es nulo. Se usará un mapa vacío.");
             this.actionMap = new java.util.HashMap<>();
         }
 
-        // Crear los botones usando this.actionMap
-        JToggleButton zoomManualButton = createStatusBarToggleButton(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-Zoom_48x48.png", iconSize, this.actionMap);
-        JToggleButton subcarpetasButton = createStatusBarToggleButton(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, "7001-Subcarpetas_48x48.png", iconSize, this.actionMap);
-        JToggleButton proporcionesButton = createStatusBarToggleButton(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, "7002-Mantener_Proporciones_48x48.png", iconSize, this.actionMap);
+        JToggleButton zoomManualButton = createStatusBarToggleButton(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-zoom_48x48.png", iconSize, this.actionMap);
+        JToggleButton subcarpetasButton = createStatusBarToggleButton(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, "7001-subcarpetas_48x48.png", iconSize, this.actionMap);
+        JToggleButton proporcionesButton = createStatusBarToggleButton(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, "7002-mantener_proporciones_48x48.png", iconSize, this.actionMap);
         JToggleButton mantenerEncimaButton = createStatusBarToggleButton(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, "7004-siempre_encima_48x48.png", iconSize, this.actionMap);
         
-        // ... registro y añadido de botones no cambia ...
         registry.register("button.indicador.zoomManual", zoomManualButton);
         registry.register("button.indicador.proporciones", proporcionesButton);
         registry.register("button.indicador.subcarpetas", subcarpetasButton);
@@ -448,23 +457,45 @@ public class ViewBuilder{
         
         panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER);
 
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Creamos un subpanel para la parte derecha, para que el contador y los mensajes convivan.
+        JPanel eastStatusBarPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
+        eastStatusBarPanel.setOpaque(false);
+
+        // Creamos el nuevo JLabel para el temporizador del carrusel.
+        JLabel carouselTimerLabel = new JLabel("--:--");
+        carouselTimerLabel.setVisible(false); // Inicialmente oculto
+        carouselTimerLabel.setToolTipText("Tiempo para la siguiente imagen");
+        registry.register("label.estado.carouselTimer", carouselTimerLabel); // Lo registramos
+        
         JLabel mensajesAppLabel = new JLabel(" ");
         registry.register("label.estado.mensajes", mensajesAppLabel);
+        
+        // Establecemos la alineación del texto al CENTRO del JLabel
         mensajesAppLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        mensajesAppLabel.setPreferredSize(new Dimension(200, mensajesAppLabel.getPreferredSize().height));
-        panelDerechoContenedor.add(mensajesAppLabel, BorderLayout.EAST);
+        
+        // Creamos un tamaño preferido. 150 píxeles de ancho es un buen punto de partida.
+        // La altura se calcula automáticamente.
+        mensajesAppLabel.setPreferredSize(new java.awt.Dimension(150, mensajesAppLabel.getPreferredSize().height));
+        
+        // Añadimos AMBOS labels al nuevo subpanel.
+        eastStatusBarPanel.add(carouselTimerLabel);
+        eastStatusBarPanel.add(mensajesAppLabel);
+
+        // Añadimos el subpanel al contenedor derecho.
+        panelDerechoContenedor.add(eastStatusBarPanel, BorderLayout.EAST);
+        // --- FIN DE LA MODIFICACIÓN ---
 
         bottomStatusBar.add(panelDerechoContenedor, BorderLayout.EAST);
 
         return bottomStatusBar;
     } // --- Fin del método createBottomStatusBar ---
     
-    
+
     private JToggleButton createStatusBarToggleButton(String command, String iconName, int iconSize, Map<String, Action> actionMap) {
         JToggleButton button = new JToggleButton();
         
         button.putClientProperty("JButton.buttonType", "regular");
-
         
         // 1. Configurar apariencia base
         button.setOpaque(true);
@@ -528,7 +559,7 @@ public class ViewBuilder{
         registry.register("label.info.formatoImagen", formatoImagenInfoLabel);
         formatoImagenInfoLabel.setToolTipText("Formato del archivo de imagen actual");
         
-        // La lógica de GridBagLayout se mantiene igual
+        // GridBagLayout 
         gbc.gridx = 0; gbc.gridy = 0; gbc.weightx = 0.0; gbc.fill = GridBagConstraints.NONE;
         panel.add(nombreArchivoInfoLabel, gbc);
 

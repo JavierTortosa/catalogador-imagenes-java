@@ -20,6 +20,9 @@ import controlador.actions.archivo.DeleteAction;
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
 import controlador.actions.archivo.OpenFileAction;
 import controlador.actions.archivo.RefreshAction;
+import controlador.actions.carousel.PauseCarouselAction;
+import controlador.actions.carousel.PlayCarouselAction;
+import controlador.actions.carousel.StopCarouselAction;
 import controlador.actions.config.SetInfoBarTextFormatAction;
 import controlador.actions.config.SetSubfolderReadModeAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
@@ -64,7 +67,9 @@ import controlador.actions.zoom.ToggleZoomToCursorAction;
 import controlador.commands.AppActionCommands;
 import controlador.imagen.LocateFileAction;
 import controlador.interfaces.ContextSensitiveAction;
+import controlador.managers.CarouselManager;
 import controlador.managers.FileOperationsManager;
+import controlador.managers.interfaces.ICarouselListCoordinator;
 import controlador.managers.interfaces.IEditionManager;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IProjectManager;
@@ -105,6 +110,10 @@ public class ActionFactory {
     
     private final ProjectController projectControllerRef;
     private final ThemeManager themeManager;
+    
+    private CarouselManager carouselManager;
+    private ICarouselListCoordinator carouselListCoordinator;
+    private List<ContextSensitiveAction> carouselContextSensitiveActions;
     
     
     // private final EditionManager editionManager; // Descomentar cuando se implemente y se inyecte
@@ -278,6 +287,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_NAV_ULTIMA, createLastImageAction());
         actionMap.put(AppActionCommands.CMD_TOGGLE_WRAP_AROUND, createToggleNavegacionCircularAction());
         
+        
         // 3.4. Crear y registrar Actions de Edición
         actionMap.put(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ, createRotateLeftAction());
         actionMap.put(AppActionCommands.CMD_IMAGEN_ROTAR_DER, createRotateRightAction());
@@ -379,29 +389,20 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_BACKGROUND_CHECKERED, createSetCheckeredBackgroundAction("Fondo a Cuadros"));
         actionMap.put(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, createRequestCustomColorAction("Elegir Color..."));
         
-    	// --- INICIO AÑADIDO: Acciones para cambio de DisplayMode (Modos de Visualización de Contenido) ---
+    	// --- Acciones para cambio de DisplayMode (Modos de Visualización de Contenido) ---
         // Estas acciones delegan al GeneralController y son ContextSensitive (para su selección).
-        registerAction(AppActionCommands.CMD_VISTA_SINGLE,
-                createSwitchDisplayModeAction(DisplayMode.SINGLE_IMAGE, AppActionCommands.CMD_VISTA_SINGLE, "Vista Imagen Única"));
-        registerAction(AppActionCommands.CMD_VISTA_GRID,
-                createSwitchDisplayModeAction(DisplayMode.GRID, AppActionCommands.CMD_VISTA_GRID, "Vista Cuadrícula"));
-        registerAction(AppActionCommands.CMD_VISTA_POLAROID,
-                createSwitchDisplayModeAction(DisplayMode.POLAROID, AppActionCommands.CMD_VISTA_POLAROID, "Vista Polaroid"));
+        registerAction(AppActionCommands.CMD_VISTA_SINGLE,createSwitchDisplayModeAction(DisplayMode.SINGLE_IMAGE, AppActionCommands.CMD_VISTA_SINGLE, "Vista Imagen Única"));
+        registerAction(AppActionCommands.CMD_VISTA_GRID,createSwitchDisplayModeAction(DisplayMode.GRID, AppActionCommands.CMD_VISTA_GRID, "Vista Cuadrícula"));
+        registerAction(AppActionCommands.CMD_VISTA_POLAROID,createSwitchDisplayModeAction(DisplayMode.POLAROID, AppActionCommands.CMD_VISTA_POLAROID, "Vista Polaroid"));
 
         // --- Acciones para cambio de WorkMode (Modos de Trabajo) ---
         // Asegúrate de que CMD_VISTA_CAROUSEL exista en AppActionCommands
-        registerAction(AppActionCommands.CMD_VISTA_CAROUSEL,
-                       createSwitchWorkModeAction(WorkMode.CARROUSEL, AppActionCommands.CMD_VISTA_CAROUSEL, "Modo Carrusel"));
-        
-        // Asegúrate de que sus comandos sean únicos.
-        registerAction(AppActionCommands.CMD_MODO_DATOS, 
-                createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_MODO_DATOS, "Modo Datos"));
-                
-        registerAction(AppActionCommands.CMD_MODO_EDICION, 
-                createSwitchWorkModeAction(WorkMode.EDICION, AppActionCommands.CMD_MODO_EDICION, "Modo Edición"));
+        registerAction(AppActionCommands.CMD_VISTA_CAROUSEL, createSwitchWorkModeAction(WorkMode.CARROUSEL, AppActionCommands.CMD_VISTA_CAROUSEL, "Modo Carrusel"));
+        registerAction(AppActionCommands.CMD_MODO_DATOS, createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_MODO_DATOS, "Modo Datos"));
+        registerAction(AppActionCommands.CMD_MODO_EDICION, createSwitchWorkModeAction(WorkMode.EDICION, AppActionCommands.CMD_MODO_EDICION, "Modo Edición"));
 
         // Acciones para otros WorkModes futuros, si los tienes definidos en UIDefinitionService.
-        
+
         
     } // --- FIN del metodo createCoreActions ---
     
@@ -411,16 +412,15 @@ public class ActionFactory {
      */
     private void createViewDependentActions() {
         // Crear la Action genérica para funcionalidades pendientes primero, ya que necesita la 'view'.
-//        this.funcionalidadPendienteAction = createFuncionalidadPendienteAction();
-//        actionMap.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
 
         // Action que depende explícitamente de la 'view'.
-//        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, createToggleAlwaysOnTopAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, createToggleMiniatureTextAction());
 
+        registerAction(AppActionCommands.CMD_CAROUSEL_PLAY, new PlayCarouselAction("Iniciar Carrusel", this.carouselManager));
+        registerAction(AppActionCommands.CMD_CAROUSEL_PAUSE, new PauseCarouselAction("Pausar Carrusel", this.carouselManager));
+        registerAction(AppActionCommands.CMD_CAROUSEL_STOP, new StopCarouselAction("Detener Carrusel", this.carouselManager));
+        
         // Actions que dependen del 'actionMap' completo para construir menús emergentes.
-//        actionMap.put(AppActionCommands.CMD_ESPECIAL_MENU, createMenuAction());
-//        actionMap.put(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS, createHiddenButtonsAction());
     } // --- FIN del metodo createViewDependentActions ---
     
     
@@ -441,10 +441,6 @@ public class ActionFactory {
         return action;
     }
 
-//    private Action createSwitchToVisualizadorAction() {
-//        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR); 
-//        return new SwitchToVisualizadorAction("Visualizador", icon, this.generalController);
-//    } // --- Fin del método createSwitchToVisualizadorAction ---
 
     // --- SECCIÓN 4: MÉTODOS PRIVADOS AUXILIARES PARA CREAR ACTIONS ---
 
@@ -474,6 +470,7 @@ public class ActionFactory {
         };
     } // --- FIN del metodo createFuncionalidadPendienteAction ---
 
+    
     /**
      * 4.2. Helper para obtener el ImageIcon para un comando dado.
      */
@@ -482,7 +479,6 @@ public class ActionFactory {
         IconInfo info = this.comandoToIconKeyMap.get(appCommand);
         
         if (info != null && info.iconKey() != null && !info.iconKey().isBlank()) {
-            // --- ¡LA LÓGICA CLAVE! ---
             // Si el scope es COMMON, llamamos al método para iconos comunes.
             if (info.scope() == vista.config.IconScope.COMMON) {
             	
@@ -500,21 +496,23 @@ public class ActionFactory {
         return null; 
     } // --- Fin del método getIconForCommand ---
 
+    
     // --- 4.3. Métodos Create para Actions de Zoom ---
     private Action createToggleZoomManualAction() { 
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
         return new ToggleZoomManualAction("Activar Zoom Manual", icon, this.zoomManager, this.generalController.getVisorController(), this.model);
     } // --- Fin del método createToggleZoomManualAction ---
     
+    
     private Action createResetZoomAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_RESET);
         return new ResetZoomAction("Resetear Zoom", icon, this.zoomManager);
     } // --- Fin del método createResetZoomAction ---
     
+    
     private Action createToggleZoomToCursorAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
         
-        // --- LA CORRECCIÓN CLAVE ---
         // Ahora llamamos al nuevo constructor y le pasamos el 'icon' que hemos cargado.
         ToggleZoomToCursorAction action = new ToggleZoomToCursorAction("Zoom al Cursor", icon, this.generalController.getVisorController());
         
@@ -524,10 +522,11 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createToggleZoomToCursorAction ---
     
+    
     private Action createAplicarModoZoomAction(String commandKey, String displayName, ZoomModeEnum modo) {
         ImageIcon icon = getIconForCommand(commandKey);
         
-        // MODIFICACIÓN: Creamos un Runnable (un callback) que llama al método de sincronización del VisorController.
+        // Creamos un Runnable (un callback) que llama al método de sincronización del VisorController.
         // El VisorController es inyectado en ActionFactory a través del constructor, así que tenemos acceso.
         Runnable syncCallback = () -> {
             if (this.generalController.getVisorController() != null) {
@@ -540,26 +539,43 @@ public class ActionFactory {
         
     } // --- Fin del método createAplicarModoZoomAction ---
     
+    
     // --- 4.4. Métodos Create para Actions de Navegación ---
     private Action createFirstImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_PRIMERA);
-        return new FirstImageAction(this.listCoordinator, "Primera Imagen", icon);
+        // Cambiamos la dependencia de listCoordinator a generalController (que implementa IModoController)
+        FirstImageAction action = new FirstImageAction(this.generalController, "Primera Imagen", icon);
+        this.contextSensitiveActions.add(action); // Registramos la acción para que se actualice su estado
+        return action;
     } // --- Fin del método createFirstImageAction ---
+    
     
     private Action createPreviousImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_ANTERIOR);
-        return new PreviousImageAction(this.listCoordinator, "Imagen Anterior", icon);
+        // Cambiamos la dependencia
+        PreviousImageAction action = new PreviousImageAction(this.generalController, "Imagen Anterior", icon);
+        this.contextSensitiveActions.add(action); // La registramos
+        return action;
     } // --- Fin del método createPreviousImageAction ---
+    
     
     private Action createNextImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_SIGUIENTE);
-        return new NextImageAction(this.listCoordinator, "Siguiente Imagen", icon);
+        // Cambiamos la dependencia
+        NextImageAction action = new NextImageAction(this.generalController, "Siguiente Imagen", icon);
+        this.contextSensitiveActions.add(action); // La registramos
+        return action;
     } // --- Fin del método createNextImageAction ---
+    
     
     private Action createLastImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_ULTIMA);
-        return new LastImageAction(this.listCoordinator, "Última Imagen", icon);
+        // Cambiamos la dependencia
+        LastImageAction action = new LastImageAction(this.generalController, "Última Imagen", icon);
+        this.contextSensitiveActions.add(action); // La registramos
+        return action;
     } // --- Fin del método createLastImageAction ---
+    
     
     private Action createToggleNavegacionCircularAction() {
         return new ToggleNavegacionCircularAction("Alternar Navegación Circular", null, this.configuration, this.model, this.generalController.getVisorController(), ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR,AppActionCommands.CMD_TOGGLE_WRAP_AROUND);
@@ -574,12 +590,14 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createRotateRightAction ---
     
+    
     private Action createRotateLeftAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
         RotateLeftAction action = new RotateLeftAction(this.editionManager, this.model, "Girar Izquierda", icon);
         this.contextSensitiveActions.add(action); 
         return action;
     } // --- Fin del método createRotateLeftAction ---
+    
     
     private Action createFlipHorizontalAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_VOLTEAR_H);
@@ -588,12 +606,14 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createFlipHorizontalAction ---
     
+    
     private Action createFlipVerticalAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_VOLTEAR_V);
     	FlipVerticalAction action = new FlipVerticalAction(this.editionManager, this.model, "Voltear Vertical", icon);
         this.contextSensitiveActions.add(action); 
         return action;
     } // --- Fin del método createFlipVerticalAction ---
+    
     
     private Action createCropAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_RECORTAR);
@@ -603,21 +623,25 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createCropAction ---
 
+    
     // --- 4.6. Métodos Create para Actions de Archivo (usarán FileOperationsManager o lógica interna) ---
     private Action createOpenFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_ABRIR);
         return new OpenFileAction("Abrir Carpeta...", icon, this.fileOperationsManager);
     } // --- Fin del método createOpenFileAction ---
     
+    
     private Action createDeleteAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ELIMINAR);
         return new DeleteAction("Eliminar Imagen", icon, this.fileOperationsManager, this.model);
     } // --- Fin del método createDeleteAction ---
     
+    
     private Action createRefreshAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_REFRESCAR); 
         return new RefreshAction("Refrescar", icon, this.generalController.getVisorController());
     } // --- Fin del método createRefreshAction ---
+    
     
     private Action createLocateFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
@@ -626,23 +650,28 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createLocateFileAction ---    
 
+    
     // --- 4.7. Métodos Create para Actions de Vista (Toggles UI) ---
      
     private Action createToggleMenuBarAction() {
     	return new ToggleMenuBarAction("Barra de Menú", null, this.configuration, this.viewManager, "interfaz.menu.vista.barra_de_menu.seleccionado", "Barra_de_Menu", AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
     } // --- Fin del método createToggleMenuBarAction ---
     
+    
     private Action createToggleToolBarAction() {
         return new ToggleToolBarAction("Barra de Botones", null, this.configuration, this.viewManager, "interfaz.menu.vista.barra_de_botones", "Barra_de_Botones", AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
     } // --- Fin del método createToggleToolBarAction ---
       
+    
     private Action createToggleFileListAction() {
         return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.viewManager, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
     } // --- Fin del método createToggleFileListAction ---
     
+    
     private Action createToggleThumbnailsAction() {
     	return new ToggleThumbnailsAction( "Barra de Miniaturas", null, this.configuration, this.viewManager, "interfaz.menu.vista.imagenes_en_miniatura.seleccionado", "imagenes_en_miniatura", AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
    	} // --- Fin del método createToggleThumbnailsAction ---
+    
     
     private Action createToggleLocationBarAction() {
     	return new ToggleUIElementVisibilityAction(
@@ -655,18 +684,22 @@ public class ActionFactory {
     	    );
     } // --- Fin del método createToggleLocationBarAction ---
     
+    
     private Action createToggleCheckeredBackgroundAction() {
     		return new ToggleCheckeredBackgroundAction("Fondo a Cuadros", null, this.viewManager, this.configuration, "interfaz.menu.vista.fondo_a_cuadros.seleccionado", AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
    	} // --- Fin del método createToggleCheckeredBackgroundAction ---
+    
     
     private Action createToggleAlwaysOnTopAction() {
    	    return new ToggleAlwaysOnTopAction("Mantener Ventana Siempre Encima", null, this.viewManager, this.configuration, "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", controlador.commands.AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
    	} // --- Fin del método createToggleAlwaysOnTopAction ---
     
+    
     private Action createMostrarDialogoListaAction() {
    	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA);
    	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.generalController.getVisorController());
    	} // --- Fin del método createMostrarDialogoListaAction ---
+    
     
     private Action createToggleFullScreenAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA);
@@ -674,12 +707,11 @@ public class ActionFactory {
         
     } // --- Fin del método createToggleFullScreenAction ---
     
+    
     private Action createToggleMiniatureTextAction() {
     	return new ToggleMiniatureTextAction("Mostrar Nombres en Miniaturas", null, this.configuration, this.view, ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT);
     } // --- Fin del método createToggleMiniatureTextAction ---
     
-    
-   	 	
 
     // --- 4.8. Métodos Create para Actions de Tema ---
     private Action createToggleThemeAction(String themeNameInternal, String displayNameForMenu) {
@@ -696,22 +728,26 @@ public class ActionFactory {
         return new ToggleThemeAction(this.themeManager, this.generalController.getVisorController(), themeNameInternal, displayNameForMenu, commandKey);
     } // --- Fin del método createToggleThemeAction ---
    
+    
     // --- 4.9. Métodos Create para Actions de Toggle Generales ---
     private Action createToggleSubfoldersAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
         return new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.configuration, this.model, this.generalController.getVisorController());
     } // --- Fin del método createToggleSubfoldersAction ---
     
+    
     private Action createSetSubfolderReadModeAction(String commandKey, String displayName, boolean representaModoIncluirSubcarpetas) {
     	ImageIcon icon = null; 
     	return new SetSubfolderReadModeAction(displayName, icon, this.generalController.getVisorController(), this.model,representaModoIncluirSubcarpetas, commandKey);
     } // --- Fin del método createSetSubfolderReadModeAction ---
         
+    
     private Action createToggleProporcionesAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
         return new ToggleProporcionesAction("Mantener Proporciones", icon, this.model, this.generalController.getVisorController());
     } // --- Fin del método createToggleProporcionesAction ---
    
+    
     // --- 4.10. Métodos Create para Actions de Proyecto ---
     private Action createToggleMarkImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
@@ -721,65 +757,65 @@ public class ActionFactory {
         return action;
     } // --- FIN del método createToggleMarkImageAction ---
     
+    
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
         return new GestionarProyectoAction(this.generalController, "Ver Proyecto", icon);
     } // --- Fin del método createGestionarProyectoAction ---
+    
     
     private Action createMoveToDiscardsAction() {
         // Esta acción no necesita icono ya que es para un menú contextual
         return new MoveToDiscardsAction(this.generalController, this.model);
     } // --- FIN del método createMoveToDiscardsAction ---
 
+    
     private Action createRestoreFromDiscardsAction() {
         // Esta acción no necesita icono
         return new RestoreFromDiscardsAction(this.generalController, this.generalController.getVisorController().getComponentRegistry());
     } // --- FIN del método createRestoreFromDiscardsAction ---
     
+    
     private Action createAssignFileAction() {
         return new AbstractAction("Asignar archivo manualmente...") {
-
         	private static final long serialVersionUID = 1L;
-
 			@Override public void actionPerformed(ActionEvent e) {
                 generalController.getProjectController().solicitarAsignacionManual();
             }
         };
     } // --- Fin del método createAssignFileAction ---
 
+    
     private Action createOpenLocationAction() {
         return new AbstractAction("Abrir ubicación de la imagen") {
-
         	private static final long serialVersionUID = 1L;
-
 			@Override public void actionPerformed(ActionEvent e) {
                 generalController.getProjectController().solicitarAbrirUbicacionImagen();
             }
         };
     } // --- Fin del método createOpenLocationAction ---
 
+    
     private Action createRemoveFromQueueAction() {
         return new AbstractAction("Quitar de la cola") {
-
         	private static final long serialVersionUID = 1L;
-
 			@Override public void actionPerformed(ActionEvent e) {
                 generalController.getProjectController().solicitarQuitarDeLaCola();
             }
         };
     } // --- Fin del método createRemoveFromQueueAction ---
     
+    
     private Action createToggleIgnoreCompressedAction() {
         // Esta acción será un JCheckBoxMenuItem en el menú, así que no necesita icono.
         return new AbstractAction("Ignorar archivo comprimido") {
-        	
 			private static final long serialVersionUID = 1L;
-
 			@Override public void actionPerformed(ActionEvent e) {
                 generalController.getProjectController().solicitarAlternarIgnorarComprimido();
             }
         };
     } // --- Fin del método createToggleIgnoreCompressedAction ---
+
     
     /**
      * Crea la acción para eliminar permanentemente una imagen del proyecto.
@@ -799,6 +835,7 @@ public class ActionFactory {
         };
     } // --- Fin del método createEliminarDeProyectoAction ---
     
+    
     /**
      * Crea la acción para relocalizar una imagen no encontrada.
      * Es sensible al contexto.
@@ -809,6 +846,7 @@ public class ActionFactory {
         this.contextSensitiveActions.add(action); // ¡Importante! Registrarla como sensible al contexto.
         return action;
     } // --- Fin del método createRelocateImageAction ---
+    
     
     private Action createIniciarExportacionAction() {
         // Obtenemos un icono (ej. un 'play' o un 'exportar')
@@ -825,6 +863,7 @@ public class ActionFactory {
         action.setEnabled(false);
         return action;
     } // --- Fin del método createIniciarExportacionAction ---
+    
     
     /**
      * Crea la acción para seleccionar la carpeta de destino de la exportación.
@@ -843,6 +882,7 @@ public class ActionFactory {
         };
     } // --- Fin del método createSeleccionarCarpetaAction ---
     
+    
     // --- 4.11. Métodos Create para Actions Especiales ---
      private Action createMenuAction() { 
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_MENU);
@@ -851,11 +891,13 @@ public class ActionFactory {
          return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.themeManager, this.configuration, this.generalController.getVisorController());
      } // --- Fin del método createMenuAction ---
      
+     
      private Action createHiddenButtonsAction() {
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
          return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration, this.generalController.getVisorController() );
      } // --- Fin del método createHiddenButtonsAction ---
 
+     
      // --- 4.12. Métodos Create para Actions de Paneo ---
      private Action createPanActionAbsolute(String command, Direction direction) {
          PanAction action = new PanAction(generalController, command, direction);
@@ -864,11 +906,11 @@ public class ActionFactory {
          if (icon != null) {
              action.putValue(Action.SMALL_ICON, icon);
          }
-         
          this.contextSensitiveActions.add(action);
          return action;
      } // --- Fin del método createPanActionAbsolute ---
 
+     
      private Action createPanActionIncremental(String command, Direction direction) {
          PanAction action = new PanAction(generalController, command, direction, INCREMENTAL_PAN_AMOUNT);
          
@@ -878,11 +920,11 @@ public class ActionFactory {
          if (icon != null) {
              action.putValue(Action.SMALL_ICON, icon);
          }
-         
          this.contextSensitiveActions.add(action);
          return action;
      } // --- Fin del método createPanActionIncremental ---
 
+     
      // --- 4.13. Métodos Create para Actions de Control de Fondo ---
      
      private Action createSetBackgroundColorAction(String command, String themeKey, String name) {
@@ -896,7 +938,7 @@ public class ActionFactory {
 	            }
 	        }
 	    };
-	    // ¡LA LÍNEA CLAVE! Asignamos el comando a la acción.
+	    // Asignamos el comando a la acción.
 	    action.putValue(Action.ACTION_COMMAND_KEY, command);
 	    return action;
 	} // --- Fin del método createSetBackgroundColorAction ---
@@ -905,7 +947,6 @@ public class ActionFactory {
 	private Action createSetCheckeredBackgroundAction(String name){
 		Action action = new AbstractAction(name){
 			private static final long serialVersionUID = 1L;
-
 			@Override
 			public void actionPerformed(ActionEvent e){
 
@@ -919,6 +960,7 @@ public class ActionFactory {
 		
 	}// --- Fin del método createSetCheckeredBackgroundAction ---
  
+	
 	private Action createRequestCustomColorAction(String name) {
 	    Action action = new AbstractAction(name) {
 	        private static final long serialVersionUID = 1L;
@@ -939,6 +981,7 @@ public class ActionFactory {
          return this.actionMap; 
     } // --- Fin del método getActionMap ---
      
+    
     public List<ContextSensitiveAction> getContextSensitiveActions() {
         return Collections.unmodifiableList(this.contextSensitiveActions);
     } // --- Fin del método getContextSensitiveActions ---
@@ -1012,9 +1055,17 @@ public class ActionFactory {
     public void setViewManager(IViewManager viewManager) {this.viewManager = Objects.requireNonNull(viewManager);}
     public void setEditionManager(IEditionManager editionManager) {this.editionManager = Objects.requireNonNull(editionManager);}
     public void setListCoordinator(IListCoordinator listCoordinator) {this.listCoordinator = Objects.requireNonNull(listCoordinator);}
+    public void setCarouselManager(CarouselManager carouselManager) {this.carouselManager = carouselManager;}
+    public CarouselManager getCarouselManager() {return this.carouselManager;}
+    public void setCarouselListCoordinator(ICarouselListCoordinator coordinator) {this.carouselListCoordinator = coordinator;}    
+    public List<ContextSensitiveAction> getCarouselContextSensitiveActions() {return Collections.unmodifiableList(this.carouselContextSensitiveActions);}
     public void setFileOperationsManager(FileOperationsManager fileOperationsManager) {
         this.fileOperationsManager = Objects.requireNonNull(fileOperationsManager, "FileOperationsManager no puede ser null en setFileOperationsManager");
-    } // --- Fin del método setFileOperationsManager ---
+    }
+    
+    
+    
+    
     
 }	// --- FIN de la clase ActionFactory ---
 

@@ -7,8 +7,10 @@ import javax.swing.AbstractButton;
 import javax.swing.Action;
 
 import controlador.utils.ComponentRegistry;
+import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import vista.VisorView;
+import vista.panels.ImageDisplayPanel;
 import vista.theme.ThemeManager;
 
 /**
@@ -82,6 +84,21 @@ public interface IViewManager {
      * @return La instancia de VisorView, o null si aún no ha sido creada o inyectada.
      */
     VisorView getView();
+    
+    
+    /**
+     * Inyecta el modelo de datos principal de la aplicación.
+     * @param model La instancia de VisorModel.
+     */
+    void setModel(VisorModel model);
+
+    /**
+     * Devuelve la instancia del ImageDisplayPanel que está actualmente activa y visible
+     * basándose en el WorkMode actual del modelo.
+     *
+     * @return El ImageDisplayPanel activo, o null si no se encuentra.
+     */
+    ImageDisplayPanel getActiveDisplayPanel();
     
     
     /**

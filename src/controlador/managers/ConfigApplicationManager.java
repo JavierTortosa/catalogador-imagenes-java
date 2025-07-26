@@ -100,7 +100,7 @@ public class ConfigApplicationManager {
      */
     public void rotarColoresDeSlotPorCambioDeTema(Tema temaAnterior, Tema temaNuevo) {
         if (temaAnterior == null || temaNuevo == null || temaAnterior.equals(temaNuevo)) {
-            return; // No hay nada que rotar.
+            return; 
         }
         
         System.out.println("[ConfigApplicationManager] Rotando colores de slot por cambio de tema de '" + temaAnterior.nombreInterno() + "' a '" + temaNuevo.nombreInterno() + "'.");
@@ -139,19 +139,23 @@ public class ConfigApplicationManager {
         // Si el bucle termina sin encontrar ninguna coincidencia, significa que todas las
         // ranuras tienen colores personalizados o de otros temas. No hacemos nada.
         System.out.println("    -> No se encontró ninguna ranura con el color del nuevo tema. No se realizó ninguna rotación.");
+        
     } // --- FIN del metodo rotarColoresDeSlotPorCambioDeTema ---
     
 
     public void restaurarConfiguracionPredeterminada() {
+    	
         System.out.println("--- [ConfigApplicationManager] Restaurando configuración predeterminada... ---");
         this.config.resetToDefaults();
         aplicarConfiguracionGlobalmente();
         
         JFrame mainFrame = registry.get("frame.main");
         JOptionPane.showMessageDialog(mainFrame, "La configuración ha sido restaurada a los valores de fábrica.", "Configuración Restaurada", JOptionPane.INFORMATION_MESSAGE);
+        
     } // --- Fin del método restaurarConfiguracionPredeterminada ---
 
     public void guardarConfiguracionActual() {
+    	
         System.out.println("--- [ConfigApplicationManager] Guardando configuración actual... ---");
         try {
             this.config.guardarConfiguracion(this.config.getConfigMap());
@@ -175,12 +179,15 @@ public class ConfigApplicationManager {
                 JOptionPane.ERROR_MESSAGE
             );
         }
+        
     } // --- Fin del método guardarConfiguracionActual ---
 
 
     // --- MÉTODOS PRIVADOS DE AYUDA ---
 
+    
     private void aplicarConfiguracionAlModelo() {
+    	
         System.out.println("  [ConfigAppManager] Aplicando configuración al Modelo...");
         if (this.config == null || this.model == null) {
             System.err.println("WARN [ConfigAppManager]: No se puede aplicar config al modelo por dependencias nulas.");
@@ -221,8 +228,10 @@ public class ConfigApplicationManager {
         this.model.setModoPantallaCompletaActivado(pantallaCompleta);
         
         System.out.println("  -> Configuración del Modelo aplicada.");
+    
     } // --- Fin del método aplicarConfiguracionAlModelo ---
 
+    
     private void aplicarConfiguracionAlaVista() {
         System.out.println("  [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...");
         
@@ -269,7 +278,6 @@ public class ConfigApplicationManager {
         }
         
         if (this.backgroundControlManager != null) {
-            // Este método ya lo teníamos, pero ahora lo llamamos en el momento justo.
             this.backgroundControlManager.initializeAndLinkControls();
             this.backgroundControlManager.sincronizarSeleccionConEstadoActual(); 
         }
@@ -362,6 +370,7 @@ public class ConfigApplicationManager {
                 }
             }
         }
+
     } // --- FIN DEL Metodo seedInitialCustomColors ---
     
 
@@ -378,6 +387,7 @@ public class ConfigApplicationManager {
             // (botón y menú item) se actualizarán automáticamente.
             resetAction.setEnabled(resetHabilitado);
         }
+    
     } // --- FIN del metodo actualizarEstadoControlesZoom ---
     
     
@@ -422,6 +432,7 @@ public class ConfigApplicationManager {
 
         finalBoton.setBackground(colorAnimacion);
         timer.start();
+    
     } // --- FIN del metodo aplicarAnimacionBoton ---
     
     
@@ -460,54 +471,6 @@ public class ConfigApplicationManager {
             button.setSelected(isSelected);
         }
 
-//        // 2. Control de habilitación/deshabilitación:
-//        // Para JToggleButtons que actúan como radios (seleccionadores de modo),
-//        // no los deshabilitamos cuando están seleccionados. Esto es crucial
-//        // para que FlatLaf les aplique los colores de 'selected' correctamente
-//        // y para que nuestro setBackground manual funcione.
-//        if (button instanceof JToggleButton) {
-//            // Un JToggleButton que está seleccionado y forma parte de un ButtonGroup
-//            // generalmente no se deshabilita, sino que simplemente está "presionado".
-//            // La visibilidad de su color de fondo depende de setOpaque(true).
-//            // Lo habilitamos siempre (a menos que la Action misma esté globalmente deshabilitada).
-//            // setEnabled(true); // Podría causar problemas si la acción debería estar deshabilitada por otra razón.
-//            // Mejor: si la Action está deshabilitada (por ejemplo, porque no hay imagen), que se mantenga deshabilitada.
-//            // Si la Action está habilitada, entonces el botón también lo estará.
-//            button.setEnabled(action.isEnabled()); // <-- Asegura que el estado enabled del botón siga al de la Action.
-//                                                  // <-- Y NO LO DESHabilita si está seleccionado.
-//        } else {
-//            // Para otros tipos de AbstractButton, la lógica anterior de habilitación podría ser válida
-//            // si se quiere que se deshabiliten visualmente cuando no tienen sentido.
-//            // Para JButtons normales, su estado 'enabled' no afecta el color de fondo de esta manera.
-//            button.setEnabled(action.isEnabled());
-//        }
-//        // --- FIN CORRECCIÓN CLAVE ---
-//
-//
-//        // --- LÓGICA DE PINTADO MANUAL PARA JToggleButtons ---
-//        // (La que ya habíamos acordado y probado que funciona con Color.RED)
-//        if (button instanceof JToggleButton) {
-//            Tema tema = themeManager.getTemaActual();
-//            if (tema == null) {
-//                System.err.println("WARN [actualizarAspectoBotonToggle]: Tema actual es nulo. No se pueden aplicar colores manuales.");
-//                return; 
-//            }
-//
-//            button.setOpaque(true);
-//            button.setContentAreaFilled(true); 
-//
-//            if (isSelected) {
-//                button.setBackground(tema.colorBotonFondoActivado());
-//                button.setForeground(tema.colorSeleccionTexto());
-//            } else {
-//                button.setBackground(tema.colorBotonFondo());
-//                button.setForeground(tema.colorBotonTexto());
-//            }
-//            button.repaint(); 
-//            System.out.println("  [ConfigAppManager] Pintado manual aplicado a JToggleButton: " + action.getValue(Action.NAME) + " - Seleccionado: " + isSelected + ", Habilitado: " + button.isEnabled());
-//        } else {
-//            System.out.println("  [ConfigAppManager] No se aplicó pintado manual a botón tipo: " + button.getClass().getSimpleName());
-//        }
     } // --- Fin del método actualizarAspectoBotonToggle ---
     
     
@@ -519,6 +482,7 @@ public class ConfigApplicationManager {
         this.view = view;
     } // --- Fin del método setView ---
 
+    
     /**
      * Inyecta el mapa de acciones de la aplicación.
      * @param actionMap El mapa de acciones (comando -> Action).
@@ -526,6 +490,7 @@ public class ConfigApplicationManager {
     public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = Objects.requireNonNull(actionMap);
     } // --- Fin del método setActionMap ---
+    
     
     public void setBackgroundControlManager(BackgroundControlManager backgroundControlManager) {
         this.backgroundControlManager = Objects.requireNonNull(backgroundControlManager);

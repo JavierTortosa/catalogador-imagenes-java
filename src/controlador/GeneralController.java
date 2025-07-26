@@ -30,6 +30,7 @@ import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager; // <-- Importación necesaria
 import controlador.managers.ViewManager;
 import controlador.utils.ComponentRegistry; // <-- NUEVO: Importación para ComponentRegistry
+import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode; // <-- Importación necesaria
@@ -180,7 +181,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	private void entrarModo(WorkMode modoAlQueSeEntra) {
 	    System.out.println("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
 	    
-	    // El cambio de tarjeta del CardLayout debe ocurrir PRIMERO y de forma síncrona.
 	    switch (modoAlQueSeEntra) {
 	        case VISUALIZADOR: this.viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR"); break;
 	        case PROYECTO: this.viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS"); break;
@@ -189,9 +189,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	        case CARROUSEL: this.viewManager.cambiarAVista("container.workmodes", "VISTA_CAROUSEL_WORKMODE"); break;
 	    }
 	    
-	    // --- INICIO DE LA MODIFICACIÓN CLAVE ---
-	    // Ahora, encolamos el resto de la lógica de inicialización del modo en el EDT.
-	    // Esto garantiza que se ejecutará DESPUÉS de que el CardLayout haya procesado el cambio de vista.
 	    SwingUtilities.invokeLater(() -> {
 	        System.out.println("  [GeneralController - invokeLater] Ejecutando restauración de UI para: " + modoAlQueSeEntra);
 	        
@@ -203,28 +200,103 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	            case PROYECTO:
 	                this.projectController.activarVistaProyecto();
 	                break;
-	            // No hay lógica de restauración para DATOS y CARROUSEL por ahora
+	            case CARROUSEL:
+                    // --- INICIO LÓGICA DE CARGA INTELIGENTE PARA CARRUSEL ---
+                    ListContext contextoCarrusel = model.getCarouselListContext();
+                    
+                    // Comprobamos si el carrusel ya tiene una lista.
+                    // La condición es que su modelo de lista sea nulo o esté vacío.
+                    if (contextoCarrusel.getModeloLista() == null || contextoCarrusel.getModeloLista().isEmpty()) {
+                        System.out.println("      -> El contexto del Carrusel está vacío. Se clonará desde el Visualizador (primera vez).");
+                        
+                        ListContext contextoVisualizador = model.getVisualizadorListContext();
+                        contextoCarrusel.clonarDesde(contextoVisualizador);
+                        
+                        System.out.println("      -> Contexto de lista del Carrusel clonado.");
+                        System.out.println("      -> Imagen a seleccionar: " + contextoCarrusel.getSelectedImageKey());
+                    } else {
+                        System.out.println("      -> El contexto del Carrusel ya tiene una lista. Se restaurará su propio estado.");
+                    }
+
+	                this.visorController.restaurarUiCarrusel();
+	                
+	                if (visorController.getActionFactory().getCarouselManager() != null) {
+	                    visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
+	                }
+	                break;
+                    // --- FIN LÓGICA DE CARGA INTELIGENTE PARA CARRUSEL ---
 	            case DATOS: 
 	            case EDICION:
-	            case CARROUSEL:
 	                break;
 	        }
 
-	        // Estas tareas también deben ocurrir después de la restauración.
 	        actualizarEstadoUiParaModo(modoAlQueSeEntra);
-	        
 	        if (this.toolbarManager != null) {
 	            this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
 	        }
-	        
 	        sincronizarEstadoBotonesDeModo();
 	        sincronizarEstadoBotonesDisplayMode();
 	        
 	        System.out.println("  [GeneralController - invokeLater] Restauración de UI para " + modoAlQueSeEntra + " completada.");
 	    });
-	    // --- FIN DE LA MODIFICACIÓN CLAVE ---
 	    
 	} // --- Fin del método entrarModo ---
+	
+//	private void entrarModo(WorkMode modoAlQueSeEntra) {
+//	    System.out.println("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
+//	    
+//	    // El cambio de tarjeta del CardLayout debe ocurrir PRIMERO y de forma síncrona.
+//	    switch (modoAlQueSeEntra) {
+//	        case VISUALIZADOR: this.viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR"); break;
+//	        case PROYECTO: this.viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS"); break;
+//	        case DATOS: this.viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS"); break;
+//	        case EDICION: this.viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION"); break;
+//	        case CARROUSEL: this.viewManager.cambiarAVista("container.workmodes", "VISTA_CAROUSEL_WORKMODE"); break;
+//	    }
+//	    
+//	    // --- INICIO DE LA MODIFICACIÓN CLAVE ---
+//	    // Ahora, encolamos el resto de la lógica de inicialización del modo en el EDT.
+//	    // Esto garantiza que se ejecutará DESPUÉS de que el CardLayout haya procesado el cambio de vista.
+//	    SwingUtilities.invokeLater(() -> {
+//	        System.out.println("  [GeneralController - invokeLater] Ejecutando restauración de UI para: " + modoAlQueSeEntra);
+//	        
+//	        switch (modoAlQueSeEntra) {
+//	            case VISUALIZADOR:
+//	                this.visorController.restaurarUiVisualizador();
+//	                this.cambiarDisplayMode(model.getCurrentDisplayMode()); 
+//	                break;
+//	            case PROYECTO:
+//	                this.projectController.activarVistaProyecto();
+//	                break;
+//	            // --- INICIO CÓDIGO AÑADIDO ---
+//	            case CARROUSEL:
+//	                // Notificar al CarouselManager que hemos entrado en su modo.
+//	                // Esto es un buen sitio para resetear su estado.
+//	                if (visorController != null && visorController.getActionFactory() != null && visorController.getActionFactory().getCarouselManager() != null) {
+//	                    visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
+//	                }
+//	                break;
+//	            // --- FIN CÓDIGO AÑADIDO ---
+//	            case DATOS: 
+//	            case EDICION:
+//	                break;
+//	        }
+//
+//	        // Estas tareas también deben ocurrir después de la restauración.
+//	        actualizarEstadoUiParaModo(modoAlQueSeEntra);
+//	        
+//	        if (this.toolbarManager != null) {
+//	            this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
+//	        }
+//	        
+//	        sincronizarEstadoBotonesDeModo();
+//	        sincronizarEstadoBotonesDisplayMode();
+//	        
+//	        System.out.println("  [GeneralController - invokeLater] Restauración de UI para " + modoAlQueSeEntra + " completada.");
+//	    });
+//	    // --- FIN DE LA MODIFICACIÓN CLAVE ---
+//	    
+//	} // --- Fin del método entrarModo ---
 	
     
     /**
@@ -506,10 +578,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             return;
         }
 
-        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen"); // Obtener el panel activo.
-        // TODO: Si tu aplicación usa múltiples paneles de visualización (ej. para modo proyecto),
-        // necesitas una lógica más sofisticada aquí para obtener el panel CORRECTO.
-        // Una forma sería: ImageDisplayPanel displayPanel = (model.getCurrentWorkMode() == WorkMode.PROYECTO) ? registry.get("panel.proyecto.display") : registry.get("panel.display.imagen");
+//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen"); // Obtener el panel activo.
+        ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
 
         if (displayPanel == null || displayPanel.getWidth() <= 0 || displayPanel.getHeight() <= 0) {
             System.err.println("ERROR [GeneralController.panImageToEdge]: ImageDisplayPanel no encontrado o sin dimensiones válidas.");
@@ -608,7 +678,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             return;
         }
 
-        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen"); // Obtener el panel activo
+//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen"); // Obtener el panel activo
+        ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
+        
         // TODO: Igual que arriba, si hay múltiples paneles de display, obtener el correcto.
         if (displayPanel == null || displayPanel.getWidth() <= 0 || displayPanel.getHeight() <= 0) {
             System.err.println("ERROR [GeneralController.panImageIncrementally]: ImageDisplayPanel no encontrado o sin dimensiones válidas.");
@@ -701,85 +773,78 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     
 //  ************************************************************************************** IMPLEMENTACION INTERFAZ IModoController
     
+    
+ // REEMPLAZA ESTE MÉTODO COMPLETO EN GeneralController.java
+
     /**
-     * Configura los listeners globales de teclado y ratón para la aplicación.
-     * MODIFICADO: Ahora adjunta listeners a los componentes de AMBOS modos (Visualizador y Proyecto).
+     * Configura los listeners globales de teclado y ratón para la aplicación,
+     * utilizando un sistema de etiquetado para desacoplar el controlador de la vista.
+     * Añade un MouseWheelListener universal a todos los componentes etiquetados
+     * como "WHEEL_NAVIGABLE" en el ComponentRegistry.
      */
     public void configurarListenersDeEntradaGlobal() {
         System.out.println("[GeneralController] Configurando listeners de entrada globales para todos los modos...");
 
-        // --- Obtener componentes de la UI desde el registro para AMBOS modos ---
-        
-        // Componentes del modo VISUALIZADOR
-        JLabel etiquetaImagenVisualizador = registry.get("label.imagenPrincipal");
-        JList<String> listaNombresVisualizador = registry.get("list.nombresArchivo");
-        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-
-        // Componentes del modo PROYECTO
-        ImageDisplayPanel panelDisplayProyecto = registry.get("panel.proyecto.display");
-        JLabel etiquetaImagenProyecto = (panelDisplayProyecto != null) ? panelDisplayProyecto.getInternalLabel() : null;
-        JList<String> listaNombresProyecto = registry.get("list.proyecto.nombres");
-        JList<String> listaDescartesProyecto = registry.get("list.proyecto.descartes");
-
-        // --- NUEVO COMPONENTE: TABLA DE EXPORTACIÓN ---
-        JTable tablaExportacion = projectController.getTablaExportacionDesdeRegistro(); // <-- Obtener la tabla
-
-
-        // --- Master Mouse Wheel Listener ---
+        // --- Definición del Master Mouse Wheel Listener (Lógica Centralizada) ---
         java.awt.event.MouseWheelListener masterWheelListener = e -> {
-            // Determinar si el evento de rueda ocurrió sobre una de las etiquetas de imagen
-            boolean sobreLaImagen = (etiquetaImagenVisualizador != null && e.getComponent() == etiquetaImagenVisualizador) ||
-                                    (etiquetaImagenProyecto != null && e.getComponent() == etiquetaImagenProyecto);
-            
-            // --- NUEVA LÓGICA: Si la rueda se usó sobre la tabla de exportación ---
-            boolean sobreTablaExportacion = (tablaExportacion != null && (e.getComponent() == tablaExportacion || SwingUtilities.isDescendingFrom(e.getComponent(), tablaExportacion.getTableHeader()) || SwingUtilities.isDescendingFrom(e.getComponent(), ((JScrollPane)tablaExportacion.getParent().getParent()).getVerticalScrollBar()) || SwingUtilities.isDescendingFrom(e.getComponent(), ((JScrollPane)tablaExportacion.getParent().getParent()).getHorizontalScrollBar())));
-            
-            if (sobreTablaExportacion && model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
-                // Delegar al ProjectController para manejar la navegación de la tabla de exportación
-                projectController.navegarTablaExportacionConRueda(e);
-                e.consume(); // Consumir el evento para que no se propague al scroll de la tabla
-                return; // Salir de la lógica del listener
-            }
-            // --- FIN NUEVA LÓGICA ---
+            // Obtenemos los componentes relevantes una sola vez
+            JLabel etiquetaImagenVisualizador = registry.get("label.imagenPrincipal");
+            JLabel etiquetaImagenProyecto = registry.get("label.proyecto.imagen");
+            JTable tablaExportacion = registry.get("tabla.exportacion");
 
-            // Lógica existente para Ctrl+Alt (navegación por bloque)
+            // Detección de la ubicación del cursor
+            boolean sobreLaImagen = (e.getComponent() == etiquetaImagenVisualizador) ||
+                                    (e.getComponent() == etiquetaImagenProyecto);
+            
+            boolean sobreTablaExportacion = (tablaExportacion != null && SwingUtilities.isDescendingFrom(e.getComponent(), tablaExportacion));
+            
+            // --- LÓGICA DE PRIORIDADES CORREGIDA ---
+
+            // PRIORIDAD 1: Navegación especial por bloque con Ctrl+Alt
             if (e.isControlDown() && e.isAltDown()) {
                 if (e.getWheelRotation() < 0) this.navegarBloqueAnterior();
                 else this.navegarBloqueSiguiente();
-            } 
-            // Lógica existente para zoom/pan sobre la imagen
-            else if (sobreLaImagen && model.isZoomHabilitado()) {
-                if (e.isControlDown() && !e.isShiftDown()) {
-                    this.aplicarPan(0, e.getWheelRotation() * 30);
-                } else if (e.isShiftDown() && !e.isControlDown()) {
+                e.consume();
+                return;
+            }
+
+            // PRIORIDAD 2: Si estamos sobre la IMAGEN y el ZOOM MANUAL está ACTIVO
+            if (sobreLaImagen && model.isZoomHabilitado()) {
+                if (e.isShiftDown()) { // Con Shift, SIEMPRE paneo horizontal rápido
                     this.aplicarPan(-e.getWheelRotation() * 30, 0);
-                } else {
+                } else if (e.isControlDown()) { // Con Control, SIEMPRE paneo vertical rápido
+                    this.aplicarPan(0, e.getWheelRotation() * 30);
+                } else { // Sin modificadores, HACEMOS ZOOM
                     this.aplicarZoomConRueda(e);
                 }
-            } 
-            // Lógica existente para navegación general (siguiente/anterior imagen)
-            else {
-                this.navegarSiguienteOAnterior(e.getWheelRotation());
+                e.consume();
+                return;
             }
-            e.consume(); // Consumir el evento si fue manejado
+            
+            // PRIORIDAD 3: Si estamos sobre la tabla de exportación en modo Proyecto
+            if (sobreTablaExportacion && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
+                projectController.navegarTablaExportacionConRueda(e);
+                e.consume();
+                return;
+            }
+
+            // PRIORIDAD 4 (Por defecto): Navegación normal por la lista (siguiente/anterior)
+            this.navegarSiguienteOAnterior(e.getWheelRotation());
+            e.consume();
         };
 
-        // --- Adjuntar el master MouseWheelListener a los componentes de AMBOS modos ---
-        // Se asegura que la tablaExportacion también reciba eventos de rueda
-        Component[] componentesConRueda = {
-            listaNombresVisualizador, scrollMiniaturas, etiquetaImagenVisualizador,
-            listaNombresProyecto, listaDescartesProyecto, etiquetaImagenProyecto,
-            tablaExportacion // <-- Añadida la tabla de exportación aquí
-        };
-
+        // --- Añadir el Master Wheel Listener a todos los componentes etiquetados ---
+        List<Component> componentesConRueda = registry.getComponentsByTag("WHEEL_NAVIGABLE");
+        System.out.println("[GeneralController] Encontrados " + componentesConRueda.size() + " componentes etiquetados como 'WHEEL_NAVIGABLE'.");
         for (Component c : componentesConRueda) {
-            if (c != null) {
-                // Es seguro añadir el listener aunque ya exista; no se duplicará si es la misma instancia.
-                c.addMouseWheelListener(masterWheelListener);
+            // Limpiamos listeners antiguos para evitar duplicados si este método se llama más de una vez
+            for (java.awt.event.MouseWheelListener mwl : c.getMouseWheelListeners()) {
+                c.removeMouseWheelListener(mwl);
             }
+            c.addMouseWheelListener(masterWheelListener);
         }
 
-        // --- Listeners de clic y arrastre para paneo para AMBAS etiquetas de imagen ---
+        // --- Listeners de clic y arrastre para paneo (sin cambios) ---
         MouseAdapter paneoMouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent ev) {
@@ -794,16 +859,20 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             }
         };
         
-        if (etiquetaImagenVisualizador != null) {
-            etiquetaImagenVisualizador.addMouseListener(paneoMouseAdapter);
-            etiquetaImagenVisualizador.addMouseMotionListener(paneoMouseMotionAdapter);
+        // Obtenemos los componentes una vez y aplicamos
+        Component etiquetaVisor = registry.get("label.imagenPrincipal");
+        Component etiquetaProyecto = registry.get("label.proyecto.imagen");
+
+        if (etiquetaVisor != null) {
+            etiquetaVisor.addMouseListener(paneoMouseAdapter);
+            etiquetaVisor.addMouseMotionListener(paneoMouseMotionAdapter);
         }
-        if (etiquetaImagenProyecto != null) {
-            etiquetaImagenProyecto.addMouseListener(paneoMouseAdapter);
-            etiquetaImagenProyecto.addMouseMotionListener(paneoMouseMotionAdapter);
+        if (etiquetaProyecto != null) {
+            etiquetaProyecto.addMouseListener(paneoMouseAdapter);
+            etiquetaProyecto.addMouseMotionListener(paneoMouseMotionAdapter);
         }
 
-        System.out.println("[GeneralController] Listeners de entrada globales configurados para todos los modos.");
+        System.out.println("[GeneralController] Listeners de entrada globales configurados.");
         
     } // --- Fin del método configurarListenersDeEntradaGlobal ---
     
@@ -898,89 +967,79 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         return false;
     }// --- Fin del método dispatchKeyEvent ---
 
+// *************************************************************************************************************************
+// *************************************************************************   IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+// *************************************************************************************************************************
+    
     // --- Implementación de IModoController (delegando al controlador de modo activo) ---
     // NOTA: La lógica interna de estos métodos seguirá residiendo en VisorController y ProjectController
     // tal como están ahora. GeneralController solo actúa como un router.
 
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    @Override
     public void navegarSiguiente() {
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
-            visorController.navegarSiguiente();
-        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+        System.out.println("[GeneralController] Delegando navegarSiguiente para modo: " + model.getCurrentWorkMode());
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarSiguiente();
+        } else {
+            // Sirve tanto para VISUALIZADOR como para CARROUSEL
+            visorController.navegarSiguiente();
         }
-        
-        //LOG [GeneralController] Delegando navegarSiguiente
-        //System.out.println("[GeneralController] Delegando navegarSiguiente a " + model.getCurrentWorkMode());
-        
-    }// --- FIN del metodo navegarSiguiente ---
+    } // --- FIN del metodo navegarSiguiente ---
 
     
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    @Override
     public void navegarAnterior() {
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
-            visorController.navegarAnterior();
-        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+        System.out.println("[GeneralController] Delegando navegarAnterior para modo: " + model.getCurrentWorkMode());
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarAnterior();
+        } else {
+            visorController.navegarAnterior();
         }
-        // LOG [GeneralController] Delegando navegarAnterior
-        //System.out.println("[GeneralController] Delegando navegarAnterior a " + model.getCurrentWorkMode());
-        
-    }// --- FIN del metodo navegarAnterior ---
+    } // --- FIN del metodo navegarAnterior ---
 
     
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    @Override
     public void navegarPrimero() {
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
-            visorController.navegarPrimero();
-        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+        System.out.println("[GeneralController] Delegando navegarPrimero para modo: " + model.getCurrentWorkMode());
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarPrimero();
+        } else {
+            visorController.navegarPrimero();
         }
-        
-        // LOG [GeneralController] Delegando navegarPrimero
-        //System.out.println("[GeneralController] Delegando navegarPrimero a " + model.getCurrentWorkMode());
-    
-    }// --- FIN del metodo navegarPrimero ---
+    } // --- FIN del metodo navegarPrimero ---
     
 
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    @Override
     public void navegarUltimo() {
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
-            visorController.navegarUltimo();
-        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+        System.out.println("[GeneralController] Delegando navegarUltimo para modo: " + model.getCurrentWorkMode());
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarUltimo();
+        } else {
+            visorController.navegarUltimo();
         }
-        // LOG [GeneralController] Delegando navegarUltimo
-        //System.out.println("[GeneralController] Delegando navegarUltimo a " + model.getCurrentWorkMode());
-    
-    }// --- FIN del metodo navegarUltimo ---
+    } // --- FIN del metodo navegarUltimo ---
     
 
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    @Override
     public void navegarBloqueAnterior() {
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
-            visorController.navegarBloqueAnterior();
-        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+        System.out.println("[GeneralController] Delegando navegarBloqueAnterior para modo: " + model.getCurrentWorkMode());
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarBloqueAnterior();
+        } else {
+            visorController.navegarBloqueAnterior();
         }
-        
-        //LOG [GeneralController] Delegando navegarBloqueAnterior
-        //System.out.println("[GeneralController] Delegando navegarBloqueAnterior a " + model.getCurrentWorkMode());
-    
-    }// --- FIN del metodo navegarBloqueAnterior ---
+    } // --- FIN del metodo navegarBloqueAnterior ---
     
 
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    @Override
     public void navegarBloqueSiguiente() {
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
-            visorController.navegarBloqueSiguiente();
-        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+        System.out.println("[GeneralController] Delegando navegarBloqueSiguiente para modo: " + model.getCurrentWorkMode());
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarBloqueSiguiente();
+        } else {
+            visorController.navegarBloqueSiguiente();
         }
-        //LOG [GeneralController] Delegando navegarBloqueSiguiente
-        //System.out.println("[GeneralController] Delegando navegarBloqueSiguiente a " + model.getCurrentWorkMode());
-    
-    }// --- FIN del metodo navegarBloqueSiguiente ---
+    } // --- FIN del metodo navegarBloqueSiguiente ---
     
 
     /**
@@ -1072,8 +1131,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 //  *************************************************************************************************************** INICIO GETTERS    
     
     public ToolbarManager getToolbarManager() {return this.toolbarManager;}
-
     public VisorModel getModel() { return this.model;}
+    
 
 //  ****************************************************************************************************************** FIN GETTERS
     

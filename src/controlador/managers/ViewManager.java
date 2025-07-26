@@ -22,6 +22,7 @@ import controlador.actions.config.SetInfoBarTextFormatAction;
 import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IViewManager;
 import controlador.utils.ComponentRegistry;
+import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import vista.VisorView;
 import vista.builders.ViewBuilder;
@@ -39,6 +40,8 @@ public class ViewManager implements IViewManager {
     private Map<String, AbstractButton> botonesPorNombre;
     private ToolbarManager toolbarManager;
     private ViewBuilder viewBuilder;
+    private VisorModel model;
+    
     
     /**
      * Constructor refactorizado de ViewManager.
@@ -637,12 +640,61 @@ public class ViewManager implements IViewManager {
         System.out.println("  [ViewManager] Reconstrucción de paneles especiales finalizada.");
     } // --- Fin del método reconstruirPanelesEspecialesTrasTema ---
 
+    
+    /**
+     * Devuelve la instancia del ImageDisplayPanel que está actualmente activa y visible
+     * basándose en el WorkMode actual del modelo. Este método centraliza la lógica
+     * para determinar qué panel de visualización debe usarse para operaciones como
+     * zoom y paneo.
+     *
+     * @return El ImageDisplayPanel activo, o null si no se encuentra o las dependencias no están listas.
+     */
+    @Override
+    public ImageDisplayPanel getActiveDisplayPanel() {
+        // 1. Validar dependencias (necesitamos el modelo y el registro)
+        if (model == null || registry == null) {
+            System.err.println("ERROR [ViewManager.getActiveDisplayPanel]: Modelo o Registry son nulos.");
+            return null;
+        }
+
+        // 2. Determinar la clave del panel basándose en el modo de trabajo actual
+        String panelKey;
+        switch (model.getCurrentWorkMode()) {
+            case VISUALIZADOR:
+                panelKey = "panel.display.imagen";
+                break;
+            case PROYECTO:
+                panelKey = "panel.proyecto.display";
+                break;
+            case CARROUSEL:
+                panelKey = "panel.display.carousel";
+                break;
+            case DATOS:
+            case EDICION:
+                System.out.println("WARN [ViewManager.getActiveDisplayPanel]: El modo " + model.getCurrentWorkMode() + " no tiene un ImageDisplayPanel asociado.");
+                return null;
+            default:
+                System.err.println("ERROR [ViewManager.getActiveDisplayPanel]: WorkMode no reconocido: " + model.getCurrentWorkMode());
+                return null;
+        }
+
+        // 3. Obtener y devolver el panel desde el registro usando la clave determinada.
+        return registry.get(panelKey);
+        
+    } // --- FIN del método getActiveDisplayPanel ---
+    
+    
     public void setToolbarManager(ToolbarManager toolbarManager) {
         this.toolbarManager = toolbarManager;
     }
     
     public void setViewBuilder(ViewBuilder viewBuilder) {
         this.viewBuilder = viewBuilder;
+    }
+    
+    @Override
+    public void setModel(VisorModel model) {
+        this.model = model;
     }
     
 } // --- Fin de la clase ViewManager ---

@@ -87,6 +87,7 @@ public class ProjectBuilder {
 
         ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
         registry.register("panel.proyecto.display", imageDisplayPanel);
+        registry.register("label.proyecto.imagen", imageDisplayPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
         
         TitledBorder border = BorderFactory.createTitledBorder("");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
@@ -133,7 +134,7 @@ public class ProjectBuilder {
         
         projectFileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         projectFileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model)); // Se pasa el modelo
-        registry.register("list.proyecto.nombres", projectFileList);
+        registry.register("list.proyecto.nombres", projectFileList, "WHEEL_NAVIGABLE");
 
         // Se obtiene la acción correspondiente del ActionFactory a través del GeneralController.
         Action moveToDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES);
@@ -174,7 +175,7 @@ public class ProjectBuilder {
         descartesList.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
         descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager, model, true));
-        registry.register("list.proyecto.descartes", descartesList);
+        registry.register("list.proyecto.descartes", descartesList, "WHEEL_NAVIGABLE");
         
         Action restoreFromDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
         Action deleteFromProjectAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE);
@@ -206,10 +207,11 @@ public class ProjectBuilder {
         	);
         registry.register("panel.proyecto.herramientas.exportar", panelExportar);
         
-        // --- LÍNEA ELIMINADA ---
-        // panelExportar.getBotonSeleccionarCarpeta().addActionListener(e -> generalController.getProjectController().solicitarSeleccionCarpetaDestino());
-
-        JTable tablaExportacion = (JTable) ((JScrollPane) panelExportar.getComponent(1)).getViewport().getView();
+        JTable tablaExportacion = panelExportar.getTablaExportacion();
+        if (tablaExportacion != null && tablaExportacion.getParent() instanceof javax.swing.JViewport && tablaExportacion.getParent().getParent() instanceof JScrollPane) {
+            JScrollPane scrollPaneTabla = (JScrollPane) tablaExportacion.getParent().getParent();
+            registry.register("scroll.tabla.exportacion", scrollPaneTabla, "WHEEL_NAVIGABLE");
+        }
         
         Action assignAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO);
         Action openLocationAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ABRIR_UBICACION);

@@ -2,20 +2,20 @@ Iniciando Visor de Imágenes V2...
 --- Iniciando VisorController (Constructor Simple) ---
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
-Mapa de configuración por defecto inicializado con 129 claves.
+Mapa de configuración por defecto inicializado con 128 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 137
+Configuración leída. Total claves: 136
 --- DEBUG PRE-SINCRONIZACIÓN ---
-Tamaño de DEFAULT_CONFIG: 129
-Tamaño de loadedConfig (del archivo): 137
+Tamaño de DEFAULT_CONFIG: 128
+Tamaño de loadedConfig (del archivo): 136
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
 Sincronizando configuración cargada con mapa de defaults...
 La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 ConfigurationManager inicializado.
-!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 435716946
+!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 146496152
   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
 [VisorModel] Inicializando estado por defecto de todos los contextos...
   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
@@ -25,7 +25,6 @@ ConfigurationManager inicializado.
 [ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.
 [ThemeManager] Tema inicial 'clear' con personalizaciones instalado.
 [ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de 200 entradas.
-  [VisorController] Inyección de dependencia: modeloMiniaturas asignado. HashCode: 256946998
   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
 --- AppInitializer: Inicialización base (fuera de EDT) completada. ---
@@ -39,55 +38,55 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
 [ToolbarBuilder Constructor] Iniciando...
 [ToolbarBuilder Constructor] Finalizado.
 [ToolbarManager] Instancia creada con éxito.
-  -> BLOQUE 2: Cableando dependencias...
+  -> BLOQUE 2: Cableando dependencias (orden corregido)...
 [MenuBarBuilder] ControllerGlobalActionListener establecido: controlador.VisorController
   -> BLOQUE 3: Ejecutando inicialización secuenciada...
   [ActionFactory] Inicializando Actions principales (no dependientes de la vista)...
-[ActionFactory] cargando icono Tematizado: 3008-Reset_48x48.png
-[ActionFactory] cargando icono Tematizado: 3001-Zoom_48x48.png
-[ActionFactory] cargando icono Tematizado: 3002-Zoom_Auto_48x48.png
-[ActionFactory] cargando icono Tematizado: 3003-Ajustar_al_Ancho_48x48.png
-[ActionFactory] cargando icono Tematizado: 3004-Ajustar_al_Alto_48x48.png
-[ActionFactory] cargando icono Tematizado: 3005-Escalar_Para_Ajustar_48x48.png
-[ActionFactory] cargando icono Tematizado: 3006-Zoom_Fijo_48x48.png
+[ActionFactory] cargando icono Tematizado: 3008-reset_48x48.png
+[ActionFactory] cargando icono Tematizado: 3001-zoom_48x48.png
+[ActionFactory] cargando icono Tematizado: 3002-zoom_auto_48x48.png
+[ActionFactory] cargando icono Tematizado: 3003-ajustar_al_ancho_48x48.png
+[ActionFactory] cargando icono Tematizado: 3004-ajustar_al_alto_48x48.png
+[ActionFactory] cargando icono Tematizado: 3005-escalar_para_ajustar_48x48.png
+[ActionFactory] cargando icono Tematizado: 3006-zoom_fijo_48x48.png
 [ActionFactory] cargando icono Tematizado: 3007-zoom_especifico_48x48.png
 [ActionFactory] cargando icono Tematizado: 3009-rellenar_48x48.png
 [ActionFactory] cargando icono Tematizado: 20001-zoom_al_cursor_48x48.png
-[ActionFactory] cargando icono Tematizado: 1001-Primera_48x48.png
-[ActionFactory] cargando icono Tematizado: 1002-Anterior_48x48.png
-[ActionFactory] cargando icono Tematizado: 1003-Siguiente_48x48.png
-[ActionFactory] cargando icono Tematizado: 1004-Ultima_48x48.png
-[ActionFactory] cargando icono Tematizado: 2001-Rotar_Izquierda_48x48.png
-[ActionFactory] cargando icono Tematizado: 2002-Rotar_Derecha_48x48.png
-[ActionFactory] cargando icono Tematizado: 2003-Espejo_Horizontal_48x48.png
-[ActionFactory] cargando icono Tematizado: 2004-Espejo_Vertical_48x48.png
-[ActionFactory] cargando icono Tematizado: 2005-Recortar_48x48.png
-[ActionFactory] cargando icono Tematizado: 5003-Ubicacion_de_Archivo_48x48.png
+[ActionFactory] cargando icono Tematizado: 1001-primera_48x48.png
+[ActionFactory] cargando icono Tematizado: 1002-anterior_48x48.png
+[ActionFactory] cargando icono Tematizado: 1003-siguiente_48x48.png
+[ActionFactory] cargando icono Tematizado: 1004-ultima_48x48.png
+[ActionFactory] cargando icono Tematizado: 2001-rotar_izquierda_48x48.png
+[ActionFactory] cargando icono Tematizado: 2002-rotar_derecha_48x48.png
+[ActionFactory] cargando icono Tematizado: 2003-espejo_horizontal_48x48.png
+[ActionFactory] cargando icono Tematizado: 2004-espejo_vertical_48x48.png
+[ActionFactory] cargando icono Tematizado: 2005-recortar_48x48.png
+[ActionFactory] cargando icono Tematizado: 5003-ubicacion_de_archivo_48x48.png
 [ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
 [ActionFactory] cargando icono Tematizado: 5002-borrar_48x48.png
-[ActionFactory] cargando icono Tematizado: 5001-Refrescar_48x48.png
-[ActionFactory] cargando icono Tematizado: 4004-Lista_48x48.png
-[ActionFactory] cargando icono Tematizado: 4003-Pantalla_Completa_48x48.png
-[ActionFactory] cargando icono Tematizado: 7001-Subcarpetas_48x48.png
+[ActionFactory] cargando icono Tematizado: 5001-refrescar_48x48.png
+[ActionFactory] cargando icono Tematizado: 4004-lista_48x48.png
+[ActionFactory] cargando icono Tematizado: 4003-pantalla_completa_48x48.png
+[ActionFactory] cargando icono Tematizado: 7001-subcarpetas_48x48.png
 [ToggleSubfoldersAction Constructor] Estado inicial SELECTED_KEY: true
   [SetSubfolderReadModeAction Constructor: 'Mostrar Solo Carpeta Actual'] representaModoIncluir=false, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: false
   [SetSubfolderReadModeAction Constructor: 'Mostrar Imágenes de Subcarpetas'] representaModoIncluir=true, modeloActualIncluyeSubcarpetas=true, SELECTED_KEY inicializado a: true
-[ActionFactory] cargando icono Tematizado: 7002-Mantener_Proporciones_48x48.png
+[ActionFactory] cargando icono Tematizado: 7002-mantener_proporciones_48x48.png
 [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
 [ActionFactory] cargando icono Tematizado: 7101-marcar_imagen_48x48.png
-[ActionFactory] cargando icono Tematizado: 8002-Mostrar_Favoritos_48x48.png
-[ActionFactory] cargando icono Tematizado: 8001-modod_visualizador_48x48.png
+[ActionFactory] cargando icono Tematizado: 8002-mostrar_favoritos_48x48.png
+[ActionFactory] cargando icono Tematizado: 8001-modo_visualizador_48x48.png
 [ActionFactory] cargando icono Tematizado: 21005-iniciar_exportación.png
 [ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
 [ActionFactory] cargando icono Tematizado: 6002-menu_48x48.png
-[ActionFactory] cargando icono Tematizado: 6003-Botones_Ocultos_48x48.png
+[ActionFactory] cargando icono Tematizado: 6003-botones_ocultos_48x48.png
 [ActionFactory] cargando icono Tematizado: 4007-imagen_unica_48x48.png
   [ActionFactory] Action registrada/actualizada para comando: cmd.vista.single
-[ActionFactory] cargando icono Tematizado: 4002-Grid_48x48.png
+[ActionFactory] cargando icono Tematizado: 4002-grid_48x48.png
   [ActionFactory] Action registrada/actualizada para comando: cmd.vista.grid
-[ActionFactory] cargando icono Tematizado: 4006-Polaroid48x48.png
+[ActionFactory] cargando icono Tematizado: 4006-polaroid48x48.png
   [ActionFactory] Action registrada/actualizada para comando: cmd.vista.polaroid
-[ActionFactory] cargando icono Tematizado: 4005-Carrousel_48x48.png
+[ActionFactory] cargando icono Tematizado: 4005-carrousel_48x48.png
   [ActionFactory] Action registrada/actualizada para comando: cmd.vista.carousel
 [ActionFactory] cargando icono Tematizado: 8003-datos_48x48.png
   [ActionFactory] Action registrada/actualizada para comando: cmd.modo.datos
@@ -110,12 +109,26 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'acciones_exportacion'
     -> Barra 'acciones_exportacion' registrada en ComponentRegistry con la clave: 'toolbar.acciones_exportacion'
   [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.
+ComponentRegistry WARN: La clave 'scroll.miniaturas.carousel' ya existe. El componente anterior será sobrescrito.
   [ViewBuilder] Frame principal construido y ensamblado.
+    -> Cableando modelos de miniaturas a las JLists...
     -> VisorView (JFrame) creado.
     -> Inyectando la instancia de 'view' en los componentes...
   [ActionFactory] Inicializando Actions dependientes de la vista...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
-  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 101
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.play
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.pause
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.stop
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 104
+  [ActionFactory] Inicializando Actions dependientes de la vista...
+[ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
+WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carousel.play
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.play
+WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carousel.pause
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.pause
+WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carousel.stop
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.stop
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 104
   [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 31, Descartes: 4
 [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
   -> Proyecto inicial cargado. Selección: 31, Descartes: 4
@@ -123,11 +136,11 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 101 acciones.
+  [MenuBarBuilder] ActionMap recibido con 104 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 223
+  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 215
   [MenuBarBuilder] JMenuBar registrada en ComponentRegistry con la clave 'menubar.main'.
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
 
@@ -200,9 +213,13 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   -> Configuración del Modelo aplicada.
   [ConfigAppManager] Verificando y sembrando colores de fondo por defecto...
 [GeneralController] Configurando listeners de entrada globales para todos los modos...
-[GeneralController] Listeners de entrada globales configurados para todos los modos.
-[VisorController Internal] Configurando listeners ESPECÍFICOS de Vista...
-[VisorController Internal] Listeners específicos de Vista configurados.
+[GeneralController] Encontrados 10 componentes etiquetados como 'WHEEL_NAVIGABLE'.
+[GeneralController] Listeners de entrada globales configurados.
+[VisorController Internal] Configurando listeners para listas de VISUALIZADOR y CARRUSEL...
+  -> Listener añadido a 'list.nombresArchivo'
+  -> Listener de miniaturas añadido a 'list.miniaturas' (VISOR)
+  -> Listener de miniaturas añadido a 'list.miniaturas.carousel' (CARRUSEL)
+[VisorController Internal] Listeners de listas configurados.
   [VisorController] Configurando Menús Contextuales...
     -> Menú contextual añadido a label.imagenPrincipal.
     -> Menú contextual añadido a list.nombresArchivo.
@@ -213,12 +230,15 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [AppInitializer] Instalando el previsualizador de miniaturas...
     -> Previsualizador instalado en la lista de miniaturas.
   [Controller] configurarListenerGlobalDeToolbars: Lógica deshabilitada en favor de PropertyChangeListener.
-    [EDT Internal] Estableciendo carpeta raíz inicial desde config...
-  [VisorModel] carpetaRaizActual cambiada de 'null' a 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources'
-      -> Carpeta raíz establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
-    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
+  [AppInitializer] Estableciendo carpeta raíz inicial desde config en el Modelo...
+  [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
 
 --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
+    -> El color para 'cmd.background.color.theme_default' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
+    -> El color para 'cmd.background.color.slot_1' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
+    -> El color para 'cmd.background.color.slot_2' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
+    -> El color para 'cmd.background.color.slot_3' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
+    -> El color para 'cmd.background.color.slot_4' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
 --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [BackgroundControlManager] Sincronizando selección de botón de color...
     -> BackgroundControlManager inicializado y enlazado a la UI.
@@ -227,6 +247,11 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Aplicando estado inicial de fondo a cuadros desde config: false
 
 --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
+    -> El color para 'cmd.background.color.theme_default' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
+    -> El color para 'cmd.background.color.slot_1' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
+    -> El color para 'cmd.background.color.slot_2' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
+    -> El color para 'cmd.background.color.slot_3' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
+    -> El color para 'cmd.background.color.slot_4' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.
 --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [BackgroundControlManager] Sincronizando selección de botón de color...
     -> Configuración básica de Vista aplicada.
@@ -235,7 +260,7 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Sincronización de estado lógico de toggles completada.
   [ConfigAppManager] Sincronización de UI final completada.
 
--->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: A-gigante de hierro.jpg
+-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: Land of The Frost.jpg
   -> Limpiando caché de ThumbnailService antes de nueva carga...
 [ThumbnailService] Caché de miniaturas limpiado.
 [Controller] Limpiando UI y Modelo a estado vacío...
@@ -258,14 +283,14 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@13f317af: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@13f317af actualizado. Nuevo tamaño: 351
+### DEBUG CONTEXT: ListContext@661d9784: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@661d9784 actualizado. Nuevo tamaño: 351
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 351
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg'
-!!! DEBUG ListCoordinator: Voy a modificar el modelo con hashCode: 256946998
+[ListCoordinator] Nueva selección. Modo: VISUALIZADOR. Índice: 3
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg'
   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
-[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
   [AppInitializer Callback] Carga inicial de imágenes completada. Llamando a sincronización maestra de UI...
 --- [GeneralController] INICIANDO SINCRONIZACIÓN MAESTRA DE UI ---
@@ -280,795 +305,128 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[ToggleThemeAction actionPerformed] Aplicando tema: dark
-[ThemeManager] Solicitud para cambiar tema a: dark
-  -> Tema cambiado en ThemeManager a: dark
-  -> El tema 'dark' ya era el actual. No se realizaron cambios.
-[ThemeManager] Aplicando personalizaciones de color globales...
-[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...
-[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.
-[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.
-[ConfigApplicationManager] Rotando colores de slot por cambio de tema de 'clear' a 'dark'.
-    -> ROTADO: La clave 'ui.background.custom.color.1' (que coincidía con el nuevo tema 'dark') ahora tiene el color del tema anterior 'clear'.
---- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---
-[ActionFactory] Iniciando actualización de iconos para todas las acciones...
-[ActionFactory] cargando icono Tematizado: 3001-Zoom_48x48.png
-[ActionFactory] cargando icono Tematizado: 4005-Carrousel_48x48.png
-[ActionFactory] cargando icono Tematizado: 3007-zoom_especifico_48x48.png
-[ActionFactory] cargando icono Tematizado: 8001-modod_visualizador_48x48.png
-DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: javax.swing.ImageIcon@71828250
-DEBUG TEMA: ... a partir de la clave de icono: 8001-modod_visualizador_48x48.png
-[ActionFactory] cargando icono Tematizado: 6003-Botones_Ocultos_48x48.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 21002-asignar_archivo.png
-[ActionFactory] cargando icono Tematizado: 2005-Recortar_48x48.png
-[ActionFactory] cargando icono Tematizado: 21004-relocalizar_imagen.png
-[ActionFactory] cargando icono Tematizado: 1003-Siguiente_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 4004-Lista_48x48.png
-[ActionFactory] cargando icono Tematizado: 3004-Ajustar_al_Alto_48x48.png
-[ActionFactory] cargando icono Tematizado: 1002-Anterior_48x48.png
-[ActionFactory] cargando icono comun: Paint-Palette--Streamline-Core.png
-[ActionFactory] cargando icono Tematizado: 7001-Subcarpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 6002-menu_48x48.png
-[ActionFactory] cargando icono Tematizado: 2002-Rotar_Derecha_48x48.png
-[ActionFactory] cargando icono Tematizado: 4007-imagen_unica_48x48.png
-[ActionFactory] cargando icono Tematizado: 8004-edicion_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 3002-Zoom_Auto_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 5002-borrar_48x48.png
-[ActionFactory] cargando icono Tematizado: 4002-Grid_48x48.png
-[ActionFactory] cargando icono Tematizado: 21001-quitar_de_cola.png
-[ActionFactory] cargando icono Tematizado: 21003-ignorar_comprimido.png
-[ActionFactory] cargando icono Tematizado: 4006-Polaroid48x48.png
-[ActionFactory] cargando icono Tematizado: 8003-datos_48x48.png
-[ActionFactory] cargando icono Tematizado: 7002-Mantener_Proporciones_48x48.png
-[ActionFactory] cargando icono Tematizado: 4003-Pantalla_Completa_48x48.png
-[ActionFactory] cargando icono Tematizado: 3009-rellenar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2001-Rotar_Izquierda_48x48.png
-[ActionFactory] cargando icono Tematizado: 8002-Mostrar_Favoritos_48x48.png
-[ActionFactory] cargando icono Tematizado: 1004-Ultima_48x48.png
-[ActionFactory] cargando icono Tematizado: 5001-Refrescar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2004-Espejo_Vertical_48x48.png
-[ActionFactory] cargando icono Tematizado: 21005-iniciar_exportación.png
-[ActionFactory] cargando icono Tematizado: 1001-Primera_48x48.png
-[ActionFactory] cargando icono Tematizado: 7004-siempre_encima_48x48.png
-[ActionFactory] cargando icono Tematizado: 2003-Espejo_Horizontal_48x48.png
-[ActionFactory] cargando icono Tematizado: 7101-marcar_imagen_48x48.png
-[ActionFactory] cargando icono Tematizado: 5003-Ubicacion_de_Archivo_48x48.png
-[ActionFactory] cargando icono Tematizado: 9013-minima_velocidad_48x48.png
-[ActionFactory] cargando icono Tematizado: 3006-Zoom_Fijo_48x48.png
-[ActionFactory] cargando icono Tematizado: 20001-zoom_al_cursor_48x48.png
-[ActionFactory] cargando icono Tematizado: 3005-Escalar_Para_Ajustar_48x48.png
-[ActionFactory] cargando icono Tematizado: 3003-Ajustar_al_Ancho_48x48.png
-[ActionFactory] cargando icono Tematizado: 3008-Reset_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] Actualización de iconos completada. Se actualizaron 53 acciones con un nuevo icono.
-  [ComponentRegistry] Eliminando componentes de toolbars del registro...
-  [ToolbarManager] Limpiando caché de toolbars...
-  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...
+[SwitchWorkModeAction] Acción disparada para cambiar a WorkMode: CARROUSEL
+
+--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> CARROUSEL ---
+  [GeneralController] Saliendo del modo: VISUALIZADOR
+[Model] Cambiando modo de trabajo de VISUALIZADOR a: CARROUSEL
+  [GeneralController] Entrando en modo: CARROUSEL
+[ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_CAROUSEL_WORKMODE
+--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a CARROUSEL ---
+
+  [GeneralController - invokeLater] Ejecutando restauración de UI para: CARROUSEL
+      -> El contexto del Carrusel está vacío. Se clonará desde el Visualizador (primera vez).
+      -> Contexto de lista del Carrusel clonado.
+      -> Imagen a seleccionar: Land of The Frost.jpg
+    -> Restaurando UI para el modo CARRUSEL...
+      -> Clave guardada en contexto CARRUSEL: 'Land of The Frost.jpg'
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 3
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[CarouselManager] Deteniendo carrusel.
+  [GeneralController] Actualizando estado de la UI para el modo: CARROUSEL
+  [GeneralController] Estado de la UI actualizado.
+
+--- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: CARROUSEL ---
+  [ToolbarManager getToolbar] La barra 'carrousel' no está en caché. Construyéndola ahora...
+
+--- [ToolbarBuilder] Construyendo barra: 'Carrousel' ---
+ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
+ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
+ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
+ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
+  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'carrousel'
+    -> Barra 'carrousel' registrada en ComponentRegistry con la clave: 'toolbar.carrousel'
+--- [ToolbarManager] Reconstrucción de toolbars completada. ---
+[GeneralController] Sincronizados botones de modo. Activo: cmd.vista.carousel
+  [SwitchDisplayModeAction] Sincronizada acción 'Vista Imagen Única'. Seleccionado: true
+[GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
+  [GeneralController - invokeLater] Restauración de UI para CARROUSEL completada.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR.
+
+--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: CARROUSEL -> VISUALIZADOR ---
+  [GeneralController] Saliendo del modo: CARROUSEL
+[Model] Cambiando modo de trabajo de CARROUSEL a: VISUALIZADOR
+  [GeneralController] Entrando en modo: VISUALIZADOR
+[ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_VISUALIZADOR
+--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a VISUALIZADOR ---
+
+  [GeneralController - invokeLater] Ejecutando restauración de UI para: VISUALIZADOR
+    -> Restaurando UI para el modo VISUALIZADOR...
+      -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 351
+### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: 'Land of The Frost.jpg'
+[ListCoordinator] Nueva selección. Modo: VISUALIZADOR. Índice: 3
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg'
+  [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[GeneralController] Intento de cambiar al DisplayMode que ya está activo: SINGLE_IMAGE. No se hace nada.
+  [GeneralController] Actualizando estado de la UI para el modo: VISUALIZADOR
+  [GeneralController] Estado de la UI actualizado.
 
 --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
-  [ToolbarManager getToolbar] La barra 'navegacion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'navegacion'
-    -> Barra 'navegacion' registrada en ComponentRegistry con la clave: 'toolbar.navegacion'
-  [ToolbarManager getToolbar] La barra 'edicion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Edición' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'edicion'
-    -> Barra 'edicion' registrada en ComponentRegistry con la clave: 'toolbar.edicion'
-  [ToolbarManager getToolbar] La barra 'zoom' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
-    -> Creado ButtonGroup para la barra: 'zoom'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'zoom'
-    -> Barra 'zoom' registrada en ComponentRegistry con la clave: 'toolbar.zoom'
-  [ToolbarManager getToolbar] La barra 'vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Vista' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'vista'
-    -> Barra 'vista' registrada en ComponentRegistry con la clave: 'toolbar.vista'
-  [ToolbarManager getToolbar] La barra 'control' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'control'
-    -> Barra 'control' registrada en ComponentRegistry con la clave: 'toolbar.control'
-  [ToolbarManager getToolbar] La barra 'toggle' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'toggle'
-    -> Barra 'toggle' registrada en ComponentRegistry con la clave: 'toolbar.toggle'
-  [ToolbarManager getToolbar] La barra 'proyecto_vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Proyecto (en Vista)' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto_vista'
-    -> Barra 'proyecto_vista' registrada en ComponentRegistry con la clave: 'toolbar.proyecto_vista'
-  [ToolbarManager getToolbar] La barra 'modo' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Modo' ---
-    -> Creado ButtonGroup para la barra: 'modo'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'modo'
-    -> Barra 'modo' registrada en ComponentRegistry con la clave: 'toolbar.modo'
-  [ToolbarManager getToolbar] La barra 'especiales' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'especiales'
-    -> Barra 'especiales' registrada en ComponentRegistry con la clave: 'toolbar.especiales'
-  [ToolbarManager getToolbar] La barra 'controles_imagen_inferior' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Controles de Imagen' ---
-[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: DPAD_CRUZ
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
-    -> Barra 'controles_imagen_inferior' registrada en ComponentRegistry con la clave: 'toolbar.controles_imagen_inferior'
 --- [ToolbarManager] Reconstrucción de toolbars completada. ---
-[ViewManager] Refrescando fondo al estado por defecto...
-  -> El defecto es color de tema. Aplicando color: java.awt.Color[r=43,g=45,b=49]
-  [ViewManager] Refrescando colores de fondo de los paneles principales...
-  [ViewManager] Reconstruyendo paneles con barras de herramientas especiales...
-    -> Componente sur antiguo eliminado de 'panel.derecho.visor'.
-    -> Nueva barra 'controles_imagen_inferior' añadida y panel actualizado.
-  [ViewManager] Reconstrucción de paneles especiales finalizada.
-    -> Refrescando icono del botón de la paleta manualmente desde su Action...
-  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...
+[GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
+[GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
+  [GeneralController - invokeLater] Restauración de UI para VISUALIZADOR completada.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[SwitchWorkModeAction] Acción disparada para cambiar a WorkMode: CARROUSEL
 
---- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
---- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
-[BackgroundControlManager] Sincronizando selección de botón de color...
-[BackgroundControlManager] Solicitud de repintado para todos los botones de fondo.
-[VisorController] Sincronizando estado de todas las ToggleThemeAction...
---- [VisorController] Reconstrucción de UI por cambio de tema completada. ---
-[ToggleThemeAction actionPerformed] Aplicando tema: blue
-[ThemeManager] Solicitud para cambiar tema a: blue
-  -> Tema cambiado en ThemeManager a: blue
-  -> El tema 'blue' ya era el actual. No se realizaron cambios.
-[ThemeManager] Aplicando personalizaciones de color globales...
-[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...
-[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.
-[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.
-[ConfigApplicationManager] Rotando colores de slot por cambio de tema de 'dark' a 'blue'.
-    -> ROTADO: La clave 'ui.background.custom.color.2' (que coincidía con el nuevo tema 'blue') ahora tiene el color del tema anterior 'dark'.
---- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---
-[ActionFactory] Iniciando actualización de iconos para todas las acciones...
-[ActionFactory] cargando icono Tematizado: 3001-Zoom_48x48.png
-[ActionFactory] cargando icono Tematizado: 4005-Carrousel_48x48.png
-[ActionFactory] cargando icono Tematizado: 3007-zoom_especifico_48x48.png
-[ActionFactory] cargando icono Tematizado: 8001-modod_visualizador_48x48.png
-DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: javax.swing.ImageIcon@a574638
-DEBUG TEMA: ... a partir de la clave de icono: 8001-modod_visualizador_48x48.png
-[ActionFactory] cargando icono Tematizado: 6003-Botones_Ocultos_48x48.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 21002-asignar_archivo.png
-[ActionFactory] cargando icono Tematizado: 2005-Recortar_48x48.png
-[ActionFactory] cargando icono Tematizado: 21004-relocalizar_imagen.png
-[ActionFactory] cargando icono Tematizado: 1003-Siguiente_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 4004-Lista_48x48.png
-[ActionFactory] cargando icono Tematizado: 3004-Ajustar_al_Alto_48x48.png
-[ActionFactory] cargando icono Tematizado: 1002-Anterior_48x48.png
-[ActionFactory] cargando icono comun: Paint-Palette--Streamline-Core.png
-[ActionFactory] cargando icono Tematizado: 7001-Subcarpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 6002-menu_48x48.png
-[ActionFactory] cargando icono Tematizado: 2002-Rotar_Derecha_48x48.png
-[ActionFactory] cargando icono Tematizado: 4007-imagen_unica_48x48.png
-[ActionFactory] cargando icono Tematizado: 8004-edicion_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 3002-Zoom_Auto_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 5002-borrar_48x48.png
-[ActionFactory] cargando icono Tematizado: 4002-Grid_48x48.png
-[ActionFactory] cargando icono Tematizado: 21001-quitar_de_cola.png
-[ActionFactory] cargando icono Tematizado: 21003-ignorar_comprimido.png
-[ActionFactory] cargando icono Tematizado: 4006-Polaroid48x48.png
-[ActionFactory] cargando icono Tematizado: 8003-datos_48x48.png
-[ActionFactory] cargando icono Tematizado: 7002-Mantener_Proporciones_48x48.png
-[ActionFactory] cargando icono Tematizado: 4003-Pantalla_Completa_48x48.png
-[ActionFactory] cargando icono Tematizado: 3009-rellenar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2001-Rotar_Izquierda_48x48.png
-[ActionFactory] cargando icono Tematizado: 8002-Mostrar_Favoritos_48x48.png
-[ActionFactory] cargando icono Tematizado: 1004-Ultima_48x48.png
-[ActionFactory] cargando icono Tematizado: 5001-Refrescar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2004-Espejo_Vertical_48x48.png
-[ActionFactory] cargando icono Tematizado: 21005-iniciar_exportación.png
-[ActionFactory] cargando icono Tematizado: 1001-Primera_48x48.png
-[ActionFactory] cargando icono Tematizado: 7004-siempre_encima_48x48.png
-[ActionFactory] cargando icono Tematizado: 2003-Espejo_Horizontal_48x48.png
-[ActionFactory] cargando icono Tematizado: 7101-marcar_imagen_48x48.png
-[ActionFactory] cargando icono Tematizado: 5003-Ubicacion_de_Archivo_48x48.png
-[ActionFactory] cargando icono Tematizado: 9013-minima_velocidad_48x48.png
-[ActionFactory] cargando icono Tematizado: 3006-Zoom_Fijo_48x48.png
-[ActionFactory] cargando icono Tematizado: 20001-zoom_al_cursor_48x48.png
-[ActionFactory] cargando icono Tematizado: 3005-Escalar_Para_Ajustar_48x48.png
-[ActionFactory] cargando icono Tematizado: 3003-Ajustar_al_Ancho_48x48.png
-[ActionFactory] cargando icono Tematizado: 3008-Reset_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] Actualización de iconos completada. Se actualizaron 53 acciones con un nuevo icono.
-  [ComponentRegistry] Eliminando componentes de toolbars del registro...
-  [ToolbarManager] Limpiando caché de toolbars...
-  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...
+--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> CARROUSEL ---
+  [GeneralController] Saliendo del modo: VISUALIZADOR
+[Model] Cambiando modo de trabajo de VISUALIZADOR a: CARROUSEL
+  [GeneralController] Entrando en modo: CARROUSEL
+[ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_CAROUSEL_WORKMODE
+--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a CARROUSEL ---
 
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
-  [ToolbarManager getToolbar] La barra 'navegacion' no está en caché. Construyéndola ahora...
+  [GeneralController - invokeLater] Ejecutando restauración de UI para: CARROUSEL
+      -> El contexto del Carrusel ya tiene una lista. Se restaurará su propio estado.
+    -> Restaurando UI para el modo CARRUSEL...
+      -> Clave guardada en contexto CARRUSEL: 'Land of The Frost.jpg'
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 3
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[CarouselManager] Deteniendo carrusel.
+  [GeneralController] Actualizando estado de la UI para el modo: CARROUSEL
+  [GeneralController] Estado de la UI actualizado.
 
---- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'navegacion'
-    -> Barra 'navegacion' registrada en ComponentRegistry con la clave: 'toolbar.navegacion'
-  [ToolbarManager getToolbar] La barra 'edicion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Edición' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'edicion'
-    -> Barra 'edicion' registrada en ComponentRegistry con la clave: 'toolbar.edicion'
-  [ToolbarManager getToolbar] La barra 'zoom' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
-    -> Creado ButtonGroup para la barra: 'zoom'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'zoom'
-    -> Barra 'zoom' registrada en ComponentRegistry con la clave: 'toolbar.zoom'
-  [ToolbarManager getToolbar] La barra 'vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Vista' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'vista'
-    -> Barra 'vista' registrada en ComponentRegistry con la clave: 'toolbar.vista'
-  [ToolbarManager getToolbar] La barra 'control' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'control'
-    -> Barra 'control' registrada en ComponentRegistry con la clave: 'toolbar.control'
-  [ToolbarManager getToolbar] La barra 'toggle' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'toggle'
-    -> Barra 'toggle' registrada en ComponentRegistry con la clave: 'toolbar.toggle'
-  [ToolbarManager getToolbar] La barra 'proyecto_vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Proyecto (en Vista)' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto_vista'
-    -> Barra 'proyecto_vista' registrada en ComponentRegistry con la clave: 'toolbar.proyecto_vista'
-  [ToolbarManager getToolbar] La barra 'modo' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Modo' ---
-    -> Creado ButtonGroup para la barra: 'modo'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'modo'
-    -> Barra 'modo' registrada en ComponentRegistry con la clave: 'toolbar.modo'
-  [ToolbarManager getToolbar] La barra 'especiales' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'especiales'
-    -> Barra 'especiales' registrada en ComponentRegistry con la clave: 'toolbar.especiales'
-  [ToolbarManager getToolbar] La barra 'controles_imagen_inferior' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Controles de Imagen' ---
-[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: DPAD_CRUZ
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
-    -> Barra 'controles_imagen_inferior' registrada en ComponentRegistry con la clave: 'toolbar.controles_imagen_inferior'
+--- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: CARROUSEL ---
 --- [ToolbarManager] Reconstrucción de toolbars completada. ---
-[ViewManager] Refrescando fondo al estado por defecto...
-  -> El defecto es color de tema. Aplicando color: java.awt.Color[r=225,g=235,b=245]
-  [ViewManager] Refrescando colores de fondo de los paneles principales...
-  [ViewManager] Reconstruyendo paneles con barras de herramientas especiales...
-    -> Componente sur antiguo eliminado de 'panel.derecho.visor'.
-    -> Nueva barra 'controles_imagen_inferior' añadida y panel actualizado.
-  [ViewManager] Reconstrucción de paneles especiales finalizada.
-    -> Refrescando icono del botón de la paleta manualmente desde su Action...
-  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...
-
---- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
---- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
-[BackgroundControlManager] Sincronizando selección de botón de color...
-[BackgroundControlManager] Solicitud de repintado para todos los botones de fondo.
-[VisorController] Sincronizando estado de todas las ToggleThemeAction...
---- [VisorController] Reconstrucción de UI por cambio de tema completada. ---
-[ToggleThemeAction actionPerformed] Aplicando tema: orange
-[ThemeManager] Solicitud para cambiar tema a: orange
-  -> Tema cambiado en ThemeManager a: orange
-  -> El tema 'orange' ya era el actual. No se realizaron cambios.
-[ThemeManager] Aplicando personalizaciones de color globales...
-[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...
-[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.
-[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.
-[ConfigApplicationManager] Rotando colores de slot por cambio de tema de 'blue' a 'orange'.
-    -> ROTADO: La clave 'ui.background.custom.color.4' (que coincidía con el nuevo tema 'orange') ahora tiene el color del tema anterior 'blue'.
---- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---
-[ActionFactory] Iniciando actualización de iconos para todas las acciones...
-[ActionFactory] cargando icono Tematizado: 3001-Zoom_48x48.png
-[ActionFactory] cargando icono Tematizado: 4005-Carrousel_48x48.png
-[ActionFactory] cargando icono Tematizado: 3007-zoom_especifico_48x48.png
-[ActionFactory] cargando icono Tematizado: 8001-modod_visualizador_48x48.png
-DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: javax.swing.ImageIcon@450c2d73
-DEBUG TEMA: ... a partir de la clave de icono: 8001-modod_visualizador_48x48.png
-[ActionFactory] cargando icono Tematizado: 6003-Botones_Ocultos_48x48.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 21002-asignar_archivo.png
-[ActionFactory] cargando icono Tematizado: 2005-Recortar_48x48.png
-[ActionFactory] cargando icono Tematizado: 21004-relocalizar_imagen.png
-[ActionFactory] cargando icono Tematizado: 1003-Siguiente_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 4004-Lista_48x48.png
-[ActionFactory] cargando icono Tematizado: 3004-Ajustar_al_Alto_48x48.png
-[ActionFactory] cargando icono Tematizado: 1002-Anterior_48x48.png
-[ActionFactory] cargando icono comun: Paint-Palette--Streamline-Core.png
-[ActionFactory] cargando icono Tematizado: 7001-Subcarpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 6002-menu_48x48.png
-[ActionFactory] cargando icono Tematizado: 2002-Rotar_Derecha_48x48.png
-[ActionFactory] cargando icono Tematizado: 4007-imagen_unica_48x48.png
-[ActionFactory] cargando icono Tematizado: 8004-edicion_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 3002-Zoom_Auto_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 5002-borrar_48x48.png
-[ActionFactory] cargando icono Tematizado: 4002-Grid_48x48.png
-[ActionFactory] cargando icono Tematizado: 21001-quitar_de_cola.png
-[ActionFactory] cargando icono Tematizado: 21003-ignorar_comprimido.png
-[ActionFactory] cargando icono Tematizado: 4006-Polaroid48x48.png
-[ActionFactory] cargando icono Tematizado: 8003-datos_48x48.png
-[ActionFactory] cargando icono Tematizado: 7002-Mantener_Proporciones_48x48.png
-[ActionFactory] cargando icono Tematizado: 4003-Pantalla_Completa_48x48.png
-[ActionFactory] cargando icono Tematizado: 3009-rellenar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2001-Rotar_Izquierda_48x48.png
-[ActionFactory] cargando icono Tematizado: 8002-Mostrar_Favoritos_48x48.png
-[ActionFactory] cargando icono Tematizado: 1004-Ultima_48x48.png
-[ActionFactory] cargando icono Tematizado: 5001-Refrescar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2004-Espejo_Vertical_48x48.png
-[ActionFactory] cargando icono Tematizado: 21005-iniciar_exportación.png
-[ActionFactory] cargando icono Tematizado: 1001-Primera_48x48.png
-[ActionFactory] cargando icono Tematizado: 7004-siempre_encima_48x48.png
-[ActionFactory] cargando icono Tematizado: 2003-Espejo_Horizontal_48x48.png
-[ActionFactory] cargando icono Tematizado: 7101-marcar_imagen_48x48.png
-[ActionFactory] cargando icono Tematizado: 5003-Ubicacion_de_Archivo_48x48.png
-[ActionFactory] cargando icono Tematizado: 9013-minima_velocidad_48x48.png
-[ActionFactory] cargando icono Tematizado: 3006-Zoom_Fijo_48x48.png
-[ActionFactory] cargando icono Tematizado: 20001-zoom_al_cursor_48x48.png
-[ActionFactory] cargando icono Tematizado: 3005-Escalar_Para_Ajustar_48x48.png
-[ActionFactory] cargando icono Tematizado: 3003-Ajustar_al_Ancho_48x48.png
-[ActionFactory] cargando icono Tematizado: 3008-Reset_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] Actualización de iconos completada. Se actualizaron 53 acciones con un nuevo icono.
-  [ComponentRegistry] Eliminando componentes de toolbars del registro...
-  [ToolbarManager] Limpiando caché de toolbars...
-  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...
-
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
-  [ToolbarManager getToolbar] La barra 'navegacion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'navegacion'
-    -> Barra 'navegacion' registrada en ComponentRegistry con la clave: 'toolbar.navegacion'
-  [ToolbarManager getToolbar] La barra 'edicion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Edición' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'edicion'
-    -> Barra 'edicion' registrada en ComponentRegistry con la clave: 'toolbar.edicion'
-  [ToolbarManager getToolbar] La barra 'zoom' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
-    -> Creado ButtonGroup para la barra: 'zoom'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'zoom'
-    -> Barra 'zoom' registrada en ComponentRegistry con la clave: 'toolbar.zoom'
-  [ToolbarManager getToolbar] La barra 'vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Vista' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'vista'
-    -> Barra 'vista' registrada en ComponentRegistry con la clave: 'toolbar.vista'
-  [ToolbarManager getToolbar] La barra 'control' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'control'
-    -> Barra 'control' registrada en ComponentRegistry con la clave: 'toolbar.control'
-  [ToolbarManager getToolbar] La barra 'toggle' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'toggle'
-    -> Barra 'toggle' registrada en ComponentRegistry con la clave: 'toolbar.toggle'
-  [ToolbarManager getToolbar] La barra 'proyecto_vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Proyecto (en Vista)' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto_vista'
-    -> Barra 'proyecto_vista' registrada en ComponentRegistry con la clave: 'toolbar.proyecto_vista'
-  [ToolbarManager getToolbar] La barra 'modo' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Modo' ---
-    -> Creado ButtonGroup para la barra: 'modo'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'modo'
-    -> Barra 'modo' registrada en ComponentRegistry con la clave: 'toolbar.modo'
-  [ToolbarManager getToolbar] La barra 'especiales' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'especiales'
-    -> Barra 'especiales' registrada en ComponentRegistry con la clave: 'toolbar.especiales'
-  [ToolbarManager getToolbar] La barra 'controles_imagen_inferior' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Controles de Imagen' ---
-[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: DPAD_CRUZ
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
-    -> Barra 'controles_imagen_inferior' registrada en ComponentRegistry con la clave: 'toolbar.controles_imagen_inferior'
---- [ToolbarManager] Reconstrucción de toolbars completada. ---
-[ViewManager] Refrescando fondo al estado por defecto...
-  -> El defecto es color de tema. Aplicando color: java.awt.Color[r=50,g=40,b=35]
-  [ViewManager] Refrescando colores de fondo de los paneles principales...
-  [ViewManager] Reconstruyendo paneles con barras de herramientas especiales...
-    -> Componente sur antiguo eliminado de 'panel.derecho.visor'.
-    -> Nueva barra 'controles_imagen_inferior' añadida y panel actualizado.
-  [ViewManager] Reconstrucción de paneles especiales finalizada.
-    -> Refrescando icono del botón de la paleta manualmente desde su Action...
-  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...
-
---- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
---- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
-[BackgroundControlManager] Sincronizando selección de botón de color...
-[BackgroundControlManager] Solicitud de repintado para todos los botones de fondo.
-[VisorController] Sincronizando estado de todas las ToggleThemeAction...
---- [VisorController] Reconstrucción de UI por cambio de tema completada. ---
-[ToggleThemeAction actionPerformed] Aplicando tema: clear
-[ThemeManager] Solicitud para cambiar tema a: clear
-  -> Tema cambiado en ThemeManager a: clear
-  -> El tema 'clear' ya era el actual. No se realizaron cambios.
-[ThemeManager] Aplicando personalizaciones de color globales...
-[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...
-[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.
-[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.
-[ConfigApplicationManager] Rotando colores de slot por cambio de tema de 'orange' a 'clear'.
-    -> ROTADO: La clave 'ui.background.custom.color.1' (que coincidía con el nuevo tema 'clear') ahora tiene el color del tema anterior 'orange'.
---- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---
-[ActionFactory] Iniciando actualización de iconos para todas las acciones...
-[ActionFactory] cargando icono Tematizado: 3001-Zoom_48x48.png
-[ActionFactory] cargando icono Tematizado: 4005-Carrousel_48x48.png
-[ActionFactory] cargando icono Tematizado: 3007-zoom_especifico_48x48.png
-[ActionFactory] cargando icono Tematizado: 8001-modod_visualizador_48x48.png
-DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: javax.swing.ImageIcon@265fc023
-DEBUG TEMA: ... a partir de la clave de icono: 8001-modod_visualizador_48x48.png
-[ActionFactory] cargando icono Tematizado: 6003-Botones_Ocultos_48x48.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 21002-asignar_archivo.png
-[ActionFactory] cargando icono Tematizado: 2005-Recortar_48x48.png
-[ActionFactory] cargando icono Tematizado: 21004-relocalizar_imagen.png
-[ActionFactory] cargando icono Tematizado: 1003-Siguiente_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 4004-Lista_48x48.png
-[ActionFactory] cargando icono Tematizado: 3004-Ajustar_al_Alto_48x48.png
-[ActionFactory] cargando icono Tematizado: 1002-Anterior_48x48.png
-[ActionFactory] cargando icono comun: Paint-Palette--Streamline-Core.png
-[ActionFactory] cargando icono Tematizado: 7001-Subcarpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 6002-menu_48x48.png
-[ActionFactory] cargando icono Tematizado: 2002-Rotar_Derecha_48x48.png
-[ActionFactory] cargando icono Tematizado: 4007-imagen_unica_48x48.png
-[ActionFactory] cargando icono Tematizado: 8004-edicion_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 3002-Zoom_Auto_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 5002-borrar_48x48.png
-[ActionFactory] cargando icono Tematizado: 4002-Grid_48x48.png
-[ActionFactory] cargando icono Tematizado: 21001-quitar_de_cola.png
-[ActionFactory] cargando icono Tematizado: 21003-ignorar_comprimido.png
-[ActionFactory] cargando icono Tematizado: 4006-Polaroid48x48.png
-[ActionFactory] cargando icono Tematizado: 8003-datos_48x48.png
-[ActionFactory] cargando icono Tematizado: 7002-Mantener_Proporciones_48x48.png
-[ActionFactory] cargando icono Tematizado: 4003-Pantalla_Completa_48x48.png
-[ActionFactory] cargando icono Tematizado: 3009-rellenar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2001-Rotar_Izquierda_48x48.png
-[ActionFactory] cargando icono Tematizado: 8002-Mostrar_Favoritos_48x48.png
-[ActionFactory] cargando icono Tematizado: 1004-Ultima_48x48.png
-[ActionFactory] cargando icono Tematizado: 5001-Refrescar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2004-Espejo_Vertical_48x48.png
-[ActionFactory] cargando icono Tematizado: 21005-iniciar_exportación.png
-[ActionFactory] cargando icono Tematizado: 1001-Primera_48x48.png
-[ActionFactory] cargando icono Tematizado: 7004-siempre_encima_48x48.png
-[ActionFactory] cargando icono Tematizado: 2003-Espejo_Horizontal_48x48.png
-[ActionFactory] cargando icono Tematizado: 7101-marcar_imagen_48x48.png
-[ActionFactory] cargando icono Tematizado: 5003-Ubicacion_de_Archivo_48x48.png
-[ActionFactory] cargando icono Tematizado: 9013-minima_velocidad_48x48.png
-[ActionFactory] cargando icono Tematizado: 3006-Zoom_Fijo_48x48.png
-[ActionFactory] cargando icono Tematizado: 20001-zoom_al_cursor_48x48.png
-[ActionFactory] cargando icono Tematizado: 3005-Escalar_Para_Ajustar_48x48.png
-[ActionFactory] cargando icono Tematizado: 3003-Ajustar_al_Ancho_48x48.png
-[ActionFactory] cargando icono Tematizado: 3008-Reset_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] Actualización de iconos completada. Se actualizaron 53 acciones con un nuevo icono.
-  [ComponentRegistry] Eliminando componentes de toolbars del registro...
-  [ToolbarManager] Limpiando caché de toolbars...
-  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...
-
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
-  [ToolbarManager getToolbar] La barra 'navegacion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'navegacion'
-    -> Barra 'navegacion' registrada en ComponentRegistry con la clave: 'toolbar.navegacion'
-  [ToolbarManager getToolbar] La barra 'edicion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Edición' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'edicion'
-    -> Barra 'edicion' registrada en ComponentRegistry con la clave: 'toolbar.edicion'
-  [ToolbarManager getToolbar] La barra 'zoom' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
-    -> Creado ButtonGroup para la barra: 'zoom'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'zoom'
-    -> Barra 'zoom' registrada en ComponentRegistry con la clave: 'toolbar.zoom'
-  [ToolbarManager getToolbar] La barra 'vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Vista' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'vista'
-    -> Barra 'vista' registrada en ComponentRegistry con la clave: 'toolbar.vista'
-  [ToolbarManager getToolbar] La barra 'control' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'control'
-    -> Barra 'control' registrada en ComponentRegistry con la clave: 'toolbar.control'
-  [ToolbarManager getToolbar] La barra 'toggle' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'toggle'
-    -> Barra 'toggle' registrada en ComponentRegistry con la clave: 'toolbar.toggle'
-  [ToolbarManager getToolbar] La barra 'proyecto_vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Proyecto (en Vista)' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto_vista'
-    -> Barra 'proyecto_vista' registrada en ComponentRegistry con la clave: 'toolbar.proyecto_vista'
-  [ToolbarManager getToolbar] La barra 'modo' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Modo' ---
-    -> Creado ButtonGroup para la barra: 'modo'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'modo'
-    -> Barra 'modo' registrada en ComponentRegistry con la clave: 'toolbar.modo'
-  [ToolbarManager getToolbar] La barra 'especiales' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'especiales'
-    -> Barra 'especiales' registrada en ComponentRegistry con la clave: 'toolbar.especiales'
-  [ToolbarManager getToolbar] La barra 'controles_imagen_inferior' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Controles de Imagen' ---
-[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: DPAD_CRUZ
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
-    -> Barra 'controles_imagen_inferior' registrada en ComponentRegistry con la clave: 'toolbar.controles_imagen_inferior'
---- [ToolbarManager] Reconstrucción de toolbars completada. ---
-[ViewManager] Refrescando fondo al estado por defecto...
-  -> El defecto es color de tema. Aplicando color: java.awt.Color[r=255,g=255,b=255]
-  [ViewManager] Refrescando colores de fondo de los paneles principales...
-  [ViewManager] Reconstruyendo paneles con barras de herramientas especiales...
-    -> Componente sur antiguo eliminado de 'panel.derecho.visor'.
-    -> Nueva barra 'controles_imagen_inferior' añadida y panel actualizado.
-  [ViewManager] Reconstrucción de paneles especiales finalizada.
-    -> Refrescando icono del botón de la paleta manualmente desde su Action...
-  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...
-
---- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
---- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
-[BackgroundControlManager] Sincronizando selección de botón de color...
-[BackgroundControlManager] Solicitud de repintado para todos los botones de fondo.
-[VisorController] Sincronizando estado de todas las ToggleThemeAction...
---- [VisorController] Reconstrucción de UI por cambio de tema completada. ---
-[ToggleThemeAction actionPerformed] Aplicando tema: dark
-[ThemeManager] Solicitud para cambiar tema a: dark
-  -> Tema cambiado en ThemeManager a: dark
-  -> El tema 'dark' ya era el actual. No se realizaron cambios.
-[ThemeManager] Aplicando personalizaciones de color globales...
-[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...
-[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.
-[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.
-[ConfigApplicationManager] Rotando colores de slot por cambio de tema de 'clear' a 'dark'.
-    -> ROTADO: La clave 'ui.background.custom.color.2' (que coincidía con el nuevo tema 'dark') ahora tiene el color del tema anterior 'clear'.
---- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---
-[ActionFactory] Iniciando actualización de iconos para todas las acciones...
-[ActionFactory] cargando icono Tematizado: 3001-Zoom_48x48.png
-[ActionFactory] cargando icono Tematizado: 4005-Carrousel_48x48.png
-[ActionFactory] cargando icono Tematizado: 3007-zoom_especifico_48x48.png
-[ActionFactory] cargando icono Tematizado: 8001-modod_visualizador_48x48.png
-DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: javax.swing.ImageIcon@5fefd901
-DEBUG TEMA: ... a partir de la clave de icono: 8001-modod_visualizador_48x48.png
-[ActionFactory] cargando icono Tematizado: 6003-Botones_Ocultos_48x48.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 21002-asignar_archivo.png
-[ActionFactory] cargando icono Tematizado: 2005-Recortar_48x48.png
-[ActionFactory] cargando icono Tematizado: 21004-relocalizar_imagen.png
-[ActionFactory] cargando icono Tematizado: 1003-Siguiente_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 4004-Lista_48x48.png
-[ActionFactory] cargando icono Tematizado: 3004-Ajustar_al_Alto_48x48.png
-[ActionFactory] cargando icono Tematizado: 1002-Anterior_48x48.png
-[ActionFactory] cargando icono comun: Paint-Palette--Streamline-Core.png
-[ActionFactory] cargando icono Tematizado: 7001-Subcarpetas_48x48.png
-[ActionFactory] cargando icono Tematizado: 6002-menu_48x48.png
-[ActionFactory] cargando icono Tematizado: 2002-Rotar_Derecha_48x48.png
-[ActionFactory] cargando icono Tematizado: 4007-imagen_unica_48x48.png
-[ActionFactory] cargando icono Tematizado: 8004-edicion_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 3002-Zoom_Auto_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] cargando icono Tematizado: 5002-borrar_48x48.png
-[ActionFactory] cargando icono Tematizado: 4002-Grid_48x48.png
-[ActionFactory] cargando icono Tematizado: 21001-quitar_de_cola.png
-[ActionFactory] cargando icono Tematizado: 21003-ignorar_comprimido.png
-[ActionFactory] cargando icono Tematizado: 4006-Polaroid48x48.png
-[ActionFactory] cargando icono Tematizado: 8003-datos_48x48.png
-[ActionFactory] cargando icono Tematizado: 7002-Mantener_Proporciones_48x48.png
-[ActionFactory] cargando icono Tematizado: 4003-Pantalla_Completa_48x48.png
-[ActionFactory] cargando icono Tematizado: 3009-rellenar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2001-Rotar_Izquierda_48x48.png
-[ActionFactory] cargando icono Tematizado: 8002-Mostrar_Favoritos_48x48.png
-[ActionFactory] cargando icono Tematizado: 1004-Ultima_48x48.png
-[ActionFactory] cargando icono Tematizado: 5001-Refrescar_48x48.png
-[ActionFactory] cargando icono Tematizado: 2004-Espejo_Vertical_48x48.png
-[ActionFactory] cargando icono Tematizado: 21005-iniciar_exportación.png
-[ActionFactory] cargando icono Tematizado: 1001-Primera_48x48.png
-[ActionFactory] cargando icono Tematizado: 7004-siempre_encima_48x48.png
-[ActionFactory] cargando icono Tematizado: 2003-Espejo_Horizontal_48x48.png
-[ActionFactory] cargando icono Tematizado: 7101-marcar_imagen_48x48.png
-[ActionFactory] cargando icono Tematizado: 5003-Ubicacion_de_Archivo_48x48.png
-[ActionFactory] cargando icono Tematizado: 9013-minima_velocidad_48x48.png
-[ActionFactory] cargando icono Tematizado: 3006-Zoom_Fijo_48x48.png
-[ActionFactory] cargando icono Tematizado: 20001-zoom_al_cursor_48x48.png
-[ActionFactory] cargando icono Tematizado: 3005-Escalar_Para_Ajustar_48x48.png
-[ActionFactory] cargando icono Tematizado: 3003-Ajustar_al_Ancho_48x48.png
-[ActionFactory] cargando icono Tematizado: 3008-Reset_48x48.png
-[ActionFactory] cargando icono comun: stopw.png
-[ActionFactory] Actualización de iconos completada. Se actualizaron 53 acciones con un nuevo icono.
-  [ComponentRegistry] Eliminando componentes de toolbars del registro...
-  [ToolbarManager] Limpiando caché de toolbars...
-  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...
-
---- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
-  [ToolbarManager getToolbar] La barra 'navegacion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Navegación' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'navegacion'
-    -> Barra 'navegacion' registrada en ComponentRegistry con la clave: 'toolbar.navegacion'
-  [ToolbarManager getToolbar] La barra 'edicion' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Edición' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'edicion'
-    -> Barra 'edicion' registrada en ComponentRegistry con la clave: 'toolbar.edicion'
-  [ToolbarManager getToolbar] La barra 'zoom' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Zoom' ---
-    -> Creado ButtonGroup para la barra: 'zoom'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'zoom'
-    -> Barra 'zoom' registrada en ComponentRegistry con la clave: 'toolbar.zoom'
-  [ToolbarManager getToolbar] La barra 'vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Vista' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'vista'
-    -> Barra 'vista' registrada en ComponentRegistry con la clave: 'toolbar.vista'
-  [ToolbarManager getToolbar] La barra 'control' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Utilidades' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'control'
-    -> Barra 'control' registrada en ComponentRegistry con la clave: 'toolbar.control'
-  [ToolbarManager getToolbar] La barra 'toggle' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Toggles' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'toggle'
-    -> Barra 'toggle' registrada en ComponentRegistry con la clave: 'toolbar.toggle'
-  [ToolbarManager getToolbar] La barra 'proyecto_vista' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Proyecto (en Vista)' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto_vista'
-    -> Barra 'proyecto_vista' registrada en ComponentRegistry con la clave: 'toolbar.proyecto_vista'
-  [ToolbarManager getToolbar] La barra 'modo' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Modo' ---
-    -> Creado ButtonGroup para la barra: 'modo'
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-      -> Botón 'null' añadido al ButtonGroup.
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'modo'
-    -> Barra 'modo' registrada en ComponentRegistry con la clave: 'toolbar.modo'
-  [ToolbarManager getToolbar] La barra 'especiales' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Apoyo' ---
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'especiales'
-    -> Barra 'especiales' registrada en ComponentRegistry con la clave: 'toolbar.especiales'
-  [ToolbarManager getToolbar] La barra 'controles_imagen_inferior' no está en caché. Construyéndola ahora...
-
---- [ToolbarBuilder] Construyendo barra: 'Controles de Imagen' ---
-[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: DPAD_CRUZ
-  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
-    -> Barra 'controles_imagen_inferior' registrada en ComponentRegistry con la clave: 'toolbar.controles_imagen_inferior'
---- [ToolbarManager] Reconstrucción de toolbars completada. ---
-[ViewManager] Refrescando fondo al estado por defecto...
-  -> El defecto es color de tema. Aplicando color: java.awt.Color[r=43,g=45,b=49]
-  [ViewManager] Refrescando colores de fondo de los paneles principales...
-  [ViewManager] Reconstruyendo paneles con barras de herramientas especiales...
-    -> Componente sur antiguo eliminado de 'panel.derecho.visor'.
-    -> Nueva barra 'controles_imagen_inferior' añadida y panel actualizado.
-  [ViewManager] Reconstrucción de paneles especiales finalizada.
-    -> Refrescando icono del botón de la paleta manualmente desde su Action...
-  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...
-
---- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
---- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
-[BackgroundControlManager] Sincronizando selección de botón de color...
-[BackgroundControlManager] Solicitud de repintado para todos los botones de fondo.
-[VisorController] Sincronizando estado de todas las ToggleThemeAction...
---- [VisorController] Reconstrucción de UI por cambio de tema completada. ---
+[GeneralController] Sincronizados botones de modo. Activo: cmd.vista.carousel
+[GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
+  [GeneralController - invokeLater] Restauración de UI para CARROUSEL completada.
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final de todos los contextos...
-  [Guardar] Estado Visualizador: UltimaKey=A-gigante de hierro.jpg
+  [Guardar] Estado Visualizador: UltimaKey=Land of The Frost.jpg, UltimaCarpeta=D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
   [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=null
-!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 435716946
+!!! DEBUG: Guardando mapa. HashCode del mapa recibido: 146496152
 
 [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
-[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'dark'
+[ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'clear'
 --- DEBUG: Contenido del mapa a guardar ---
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 137
+Claves a guardar/actualizar: 136
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

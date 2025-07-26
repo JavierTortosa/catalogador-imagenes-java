@@ -18,7 +18,6 @@ public class VisorModel {
         DATOS,
         EDICION,
         CARROUSEL
-        
     }
     
     public enum DisplayMode {
@@ -35,7 +34,9 @@ public class VisorModel {
     private ListContext visualizadorListContext;
     private ListContext proyectoListContext;
     private ListContext datosListContext;
+    private ListContext carouselListContext;
 
+    private ZoomContext carouselZoomContext;
     private ZoomContext visualizadorZoomContext;
     private ZoomContext proyectoZoomContext;
     private ZoomContext datosZoomContext;
@@ -49,13 +50,15 @@ public class VisorModel {
     private int miniaturaSelAlto;
     private int miniaturaNormAncho;
     private int miniaturaNormAlto;
-    private Path carpetaRaizActual = null;
+//    private Path carpetaRaizActual = null;
     private boolean navegacionCircularActivada = false;
     private int saltoDeBloque;
+    private int carouselDelay;
     
     private boolean enModoProyecto = false;
     
     private boolean modoPantallaCompletaActivado = false;
+    
 
     public VisorModel() {
         this.currentWorkMode = WorkMode.VISUALIZADOR;
@@ -63,12 +66,15 @@ public class VisorModel {
         this.visualizadorListContext = new ListContext();
         this.proyectoListContext = new ListContext();
         this.datosListContext = new ListContext();
+        this.carouselListContext = new ListContext();
+        this.carouselZoomContext = new ZoomContext();
         this.visualizadorZoomContext = new ZoomContext();
         this.proyectoZoomContext = new ZoomContext();
         this.datosZoomContext = new ZoomContext();
         this.currentImage = null;
         this.saltoDeBloque = 10;
-    }
+        this.carouselDelay = 3000;
+    } // FIN del constructor
 
     // Añadimos el nuevo parámetro 'zoomAlCursor' a la firma del método
     public void initializeContexts(
@@ -129,21 +135,24 @@ public class VisorModel {
         switch (this.currentWorkMode) {
             case PROYECTO: return this.proyectoListContext;
             case DATOS: return this.datosListContext;
-            case VISUALIZADOR: default: return this.visualizadorListContext;
+            case CARROUSEL: return this.carouselListContext; // <<< AÑADIDO
+            case VISUALIZADOR: 
+            default: 
+                return this.visualizadorListContext;
         }
-    }
+    } // --- Fin del método getCurrentListContext ---
 
     public ZoomContext getCurrentZoomContext() {
         switch (this.currentWorkMode) {
             case PROYECTO: return this.proyectoZoomContext;
             case DATOS: return this.datosZoomContext;
-            case VISUALIZADOR: default: return this.visualizadorZoomContext;
+            case CARROUSEL: return this.carouselZoomContext; // <<< AÑADIDO
+            case VISUALIZADOR: 
+            default: 
+                return this.visualizadorZoomContext;
         }
-    }
+    } // --- Fin del método getCurrentZoomContext --
 
-    
-    
-    
     
     public void actualizarListaCompleta(DefaultListModel<String> nuevoModelo, Map<String, java.nio.file.Path> nuevoMapaRutas) {
         System.out.println("[Model] Actualizando contexto de lista para el modo: " + this.currentWorkMode);
@@ -178,23 +187,24 @@ public class VisorModel {
     public void setEnModoProyecto(boolean enModoProyecto) { setCurrentWorkMode(enModoProyecto ? WorkMode.PROYECTO : WorkMode.VISUALIZADOR); }
     public int getSaltoDeBloque() { return saltoDeBloque; }
     public void setSaltoDeBloque(int salto) { this.saltoDeBloque = salto; }
-
+    public ListContext getCarouselListContext() {return this.carouselListContext;} 
+    public ListContext getVisualizadorListContext() {return this.visualizadorListContext;}
     public DefaultListModel<String> getModeloLista() {return getCurrentListContext().getModeloLista();}
     public Map<String, Path> getRutaCompletaMap() { return getCurrentListContext().getRutaCompletaMap(); }
     public Path getRutaCompleta(String key) { return getCurrentListContext().getRutaCompleta(key); }
     public void setZoomHabilitado(boolean b) { getCurrentZoomContext().setZoomHabilitado(b); }
-    
     public boolean isZoomHabilitado() { return getCurrentZoomContext().isZoomHabilitado(); }
     public void resetPan() { getCurrentZoomContext().resetPan(); }
     public void resetZoomState() {this.setZoomFactor(1.0); this.resetPan();}
     public ListContext getProyectoListContext() { return this.proyectoListContext; }
-    public ListContext getVisualizadorListContext() {return this.visualizadorListContext;}
-
+    public int getCarouselDelay() {return this.carouselDelay;} 
+    public void setCarouselDelay(int delayMs) {this.carouselDelay = delayMs;}
+    
     public double getZoomFactor() { return getCurrentZoomContext().getZoomFactor(); }
     public void setZoomFactor(double zoomFactor) {
         double validFactor = Math.max(0.01, Math.min(zoomFactor, 50.0));
         getCurrentZoomContext().setZoomFactor(validFactor);
-    }
+    } // --- Fin del método setZoomFactor ---
 
     public boolean isMostrarSoloCarpetaActual() { return getCurrentListContext().isMostrarSoloCarpetaActual(); }
     public void setMostrarSoloCarpetaActual(boolean mostrarSoloCarpetaActual) {
@@ -202,7 +212,7 @@ public class VisorModel {
             getCurrentListContext().setMostrarSoloCarpetaActual(mostrarSoloCarpetaActual);
             System.out.println("  [Model " + currentWorkMode + "] Estado mostrarSoloCarpetaActual cambiado a: " + mostrarSoloCarpetaActual);
         }
-    }
+    } // --- Fin del método setMostrarSoloCarpetaActual ---
 
     public boolean isMantenerProporcion() { return getCurrentZoomContext().isMantenerProporcion(); }
     public void setMantenerProporcion(boolean mantenerProporcion) {
@@ -210,15 +220,18 @@ public class VisorModel {
             getCurrentZoomContext().setMantenerProporcion(mantenerProporcion);
             System.out.println("  [Model " + currentWorkMode + "] Estado mantenerProporcion cambiado a: " + mantenerProporcion);
         }
-    }
+    } // --- Fin del método setMantenerProporcion ---
 
-    public Path getCarpetaRaizActual() { return carpetaRaizActual; }
-    public void setCarpetaRaizActual(Path carpetaRaizActual) {
-        if (!Objects.equals(this.carpetaRaizActual, carpetaRaizActual)) {
-            System.out.println("  [VisorModel] carpetaRaizActual cambiada de '" + this.carpetaRaizActual + "' a '" + carpetaRaizActual + "'");
-            this.carpetaRaizActual = carpetaRaizActual;
+    public Path getCarpetaRaizActual() {return getCurrentListContext().getCarpetaRaizContexto();}
+    public void setCarpetaRaizActual(Path carpetaRaiz) {
+        ListContext currentContext = getCurrentListContext();
+        if (currentContext != null) {
+            if (!Objects.equals(currentContext.getCarpetaRaizContexto(), carpetaRaiz)) {
+                System.out.println("  [VisorModel] Carpeta raíz para contexto " + currentWorkMode + " cambiada a '" + carpetaRaiz + "'");
+                currentContext.setCarpetaRaizContexto(carpetaRaiz);
+            }
         }
-    }
+    } // --- Fin del método setCarpetaRaizActual ---
     
     public boolean isNavegacionCircularActivada() { return navegacionCircularActivada; }
     public void setNavegacionCircularActivada(boolean activada) {
@@ -226,7 +239,7 @@ public class VisorModel {
             this.navegacionCircularActivada = activada;
             System.out.println("  [VisorModel] Navegación Circular cambiada a: " + activada);
         }
-    }
+    } // --- Fin del método setNavegacionCircularActivada ---
     
     public boolean isZoomToCursorEnabled() { return getCurrentZoomContext().isZoomToCursorEnabled(); }
     public void setZoomToCursorEnabled(boolean enabled) {
@@ -234,7 +247,7 @@ public class VisorModel {
             getCurrentZoomContext().setZoomToCursorEnabled(enabled);
             System.out.println("  [Model " + currentWorkMode + "] Estado zoomToCursorEnabled cambiado a: " + enabled);
         }
-    }
+    } // --- Fin del método setZoomToCursorEnabled ---
     
     
     public boolean isModoPantallaCompletaActivado() {return this.modoPantallaCompletaActivado;}
@@ -244,5 +257,15 @@ public class VisorModel {
             System.out.println("  [VisorModel] Estado de pantalla completa cambiado a: " + activado);
         }
     } // --- Fin del método setModoPantallaCompletaActivado ---
-        
+    
+    public Path getCarpetaRaizDelVisualizador() {return (this.visualizadorListContext != null) ? this.visualizadorListContext.getCarpetaRaizContexto() : null;}
+    public void setCarpetaRaizInicialParaVisualizador(Path carpetaRaiz) {
+        if (this.visualizadorListContext != null) {
+            this.visualizadorListContext.setCarpetaRaizContexto(carpetaRaiz);
+            System.out.println("  [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: " + carpetaRaiz);
+        }
+    } // --- Fin del método setCarpetaRaizInicialParaVisualizador ---
+    
+    
+    
 } // --- FIN DE LA CLASE VisorModel ---

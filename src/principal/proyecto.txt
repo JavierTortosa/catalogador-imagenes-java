@@ -1099,3 +1099,151 @@ FASE 3: AJUSTES DE COMPORTAMIENTO POR CONTEXTO (WorkMode)
     - [ ] La acción `OpenFileAction` debe comprobar el `WorkMode` actual.
     - [ ] Si es `VISUALIZADOR`, abre un `JFileChooser` para seleccionar directorios.
     - [ ] Si es `PROYECTO`, abre un `JFileChooser` para seleccionar archivos de proyecto (ej. `.visprj`).
+    
+    
+    
+    
+/*
+**********************************************************************************************************************
+*********************************************************************************** MEGACOMENTARIO PARAA CARGA Y ORDEN
+**********************************************************************************************************************
+
+¡Excelente decisión! La disciplina ahora te ahorrará dolores de cabeza después.
+
+Aquí tienes un prompt detallado que resume lo que hemos discutido sobre la refactorización de la funcionalidad de "Carga y Orden", moviendo la configuración por defecto al menú "Configuración" y añadiendo una barra de herramientas para la ordenación temporal. Puedes usar esto como tu hoja de ruta cuando retomes esta parte.
+
+---
+
+**Prompt para la Refactorización de la Funcionalidad de "Carga y Orden"**
+
+**Objetivo General:**
+Separar la configuración de la ordenación *por defecto* (persistente) de la capacidad de aplicar una ordenación *temporal* a la vista actual. Mejorar la usabilidad proporcionando acceso rápido a la ordenación temporal mediante una nueva sección en la barra de herramientas y simplificando los menús.
+
+**Fases y Tareas Detalladas:**
+
+**FASE 1: Definición de Comandos y Estados en el Modelo**
+
+1.  **`controlador.commands.AppActionCommands.java`:**
+    *   **Definir/Verificar Comandos para Ordenación por Defecto (Configuración):**
+        *   `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_NOMBRE` (ej: "cmd.config.orden.default.crit.nombre")
+        *   `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_TAMANO`
+        *   `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_FECHA`
+        *   `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_EXTENSION`
+        *   `CMD_CONFIG_ORDEN_DEFAULT_DIRECCION_ASC`
+        *   `CMD_CONFIG_ORDEN_DEFAULT_DIRECCION_DESC`
+        *   `CMD_CONFIG_ORDEN_DEFAULT_DIRECCION_NINGUNO` (si se mantiene "Sin Ordenar" como opción default)
+    *   **Definir/Verificar Comandos para Ordenación Temporal (Toolbar/Acción Rápida):**
+        *   `CMD_ORDEN_TEMP_SET_CRITERIO_NOMBRE` (ej: "cmd.orden.temp.crit.nombre")
+        *   `CMD_ORDEN_TEMP_SET_CRITERIO_TAMANO`
+        *   `CMD_ORDEN_TEMP_SET_CRITERIO_FECHA`
+        *   `CMD_ORDEN_TEMP_SET_CRITERIO_EXTENSION`
+        *   `CMD_ORDEN_TEMP_TOGGLE_DIRECCION` (para un botón que cicle Asc/Desc) O:
+        *   `CMD_ORDEN_TEMP_SET_DIRECCION_ASC`
+        *   `CMD_ORDEN_TEMP_SET_DIRECCION_DESC`
+        *   `CMD_ORDEN_TEMP_SET_DIRECCION_NINGUNO` (si se mantiene "Sin Ordenar" como opción temporal)
+
+2.  **`modelo.VisorModel.java`:**
+    *   **Añadir Enums para Criterio y Dirección (si no existen):**
+        ```java
+        public enum CriterioOrdenacion { NOMBRE, TAMANO, FECHA, EXTENSION, NINGUNO }
+        public enum DireccionOrdenacion { ASCENDENTE, DESCENDENTE, NINGUNO } // 'NINGUNO' para dirección puede ser implícito si el criterio es NINGUNO
+        ```
+    *   **Campos para Configuración de Ordenación por Defecto:**
+        *   `private CriterioOrdenacion criterioOrdenacionDefault = CriterioOrdenacion.NOMBRE;`
+        *   `private DireccionOrdenacion direccionOrdenacionDefault = DireccionOrdenacion.ASCENDENTE;`
+        *   Getters y Setters (los setters serán llamados por las Actions de Configuración).
+        *   Estos campos se inicializarán desde `ConfigurationManager` al arrancar la aplicación.
+    *   **Campos para Ordenación Temporal de la Vista Actual:**
+        *   `private CriterioOrdenacion criterioOrdenacionTemporal;`
+        *   `private DireccionOrdenacion direccionOrdenacionTemporal;`
+        *   Getters y Setters (los setters serán llamados por las Actions de la Toolbar).
+        *   Al cargar una nueva carpeta, estos campos temporales se resetean a los valores `...Default` o a un estado "sin ordenación temporal activa".
+
+**FASE 2: Definición de la Interfaz de Usuario (`UIDefinitionService.java`)**
+
+1.  **Menú "Imagen":**
+    *   **Eliminar** el submenú "Carga y Orden" y todos sus ítems.
+
+2.  **Menú "Configuración" -> Submenú "Carga y Ordenación" (o similar):**
+    *   Este submenú ahora contendrá las opciones para establecer los **defaults persistentes**.
+    *   **Sub-Submenú "Criterio de Ordenación Predeterminado":**
+        *   Grupo de `JRadioButtonMenuItem`s vinculados a `CMD_CONFIG_ORDEN_DEFAULT_CRITERIO_...`.
+        *   Textos: "Nombre", "Tamaño", "Fecha", "Extensión".
+    *   **Sub-Submenú "Dirección de Ordenación Predeterminada":**
+        *   Grupo de `JRadioButtonMenuItem`s vinculados a `CMD_CONFIG_ORDEN_DEFAULT_DIRECCION_...`.
+        *   Textos: "Ascendente", "Descendente", "Sin Ordenar" (opcional).
+
+3.  **Barra de Herramientas (Nueva Sección "Ordenación"):**
+    *   **Botón/Control para Criterio de Ordenación Temporal:**
+        *   **Opción A (Botón con `JPopupMenu`):**
+            *   `ToolbarButtonDefinition` para un `JButton` principal (ej. `CMD_ORDEN_TEMP_MOSTRAR_CRITERIOS`, texto "Ordenar Por:", icono genérico de orden).
+            *   El `JPopupMenu` se construiría dinámicamente en `ToolbarBuilder` o se asociaría en `VisorController`, conteniendo ítems para "Nombre", "Tamaño", etc., cada uno vinculado a su `CMD_ORDEN_TEMP_SET_CRITERIO_...`.
+        *   **Opción B (`JComboBox`):**
+            *   No se define directamente como `ToolbarButtonDefinition`. `ToolbarBuilder` crearía un `JComboBox` y lo poblaría. Se necesitaría un `ActionListener` o `ItemListener` para él.
+    *   **Botón/Control para Dirección de Ordenación Temporal:**
+        *   **Opción A (Botón Cíclico `JButton`):**
+            *   `ToolbarButtonDefinition` para un `JButton` (ej. `CMD_ORDEN_TEMP_TOGGLE_DIRECCION`). Icono y texto cambiarán según el estado (A-Z, Z-A, ---).
+        *   **Opción B (Grupo de `JToggleButton`):**
+            *   Dos o tres `ToolbarButtonDefinition` para `JToggleButton`s (ej. `CMD_ORDEN_TEMP_SET_DIRECCION_ASC`, `CMD_ORDEN_TEMP_SET_DIRECCION_DESC`), agrupados visualmente y en un `ButtonGroup`.
+
+**FASE 3: Implementación de Actions (`ActionFactory.java`)**
+
+1.  **Actions para Configuración de Orden por Defecto:**
+    *   Clase: `SetOrdenDefaultAction` (o nombres más específicos como `SetCriterioOrdenDefaultAction`, `SetDireccionOrdenDefaultAction`).
+    *   Constructor: Recibe `ConfigurationManager`, el criterio/dirección que representa, y la clave de config a modificar.
+    *   `actionPerformed()`: Llama a `configuration.setString("clave.default.criterio", "valor_criterio")` y `configuration.setString("clave.default.direccion", "valor_direccion")`. Actualiza el estado `.seleccionado` de los radios en su grupo.
+    *   Estas `Action`s se asignarán a los `JRadioButtonMenuItem` del menú "Configuración".
+
+2.  **Actions para Ordenación Temporal (Toolbar):**
+    *   **Para Criterio:**
+        *   Si es `JPopupMenu`: Cada `JMenuItem` del popup necesita una `Action` (ej. `AplicarCriterioOrdenTemporalAction`) que tome el criterio como parámetro.
+        *   `actionPerformed()`: Llama a `model.setCriterioOrdenacionTemporal(nuevoCriterio)`, actualiza el texto/icono del botón principal de la toolbar, y dispara la reordenación (`controller.solicitarReordenacionVistaActual()`).
+    *   **Para Dirección:**
+        *   Si es botón cíclico: Una `Action` (`ToggleDireccionOrdenTemporalAction`).
+            *   `actionPerformed()`: Ciclac `model.getDireccionOrdenacionTemporal()`, actualiza el icono/texto del botón, y dispara la reordenación.
+        *   Si son `JToggleButton`s: `Action`s individuales (`SetDireccionAscTemporalAction`, `SetDireccionDescTemporalAction`).
+            *   `actionPerformed()`: Establece `model.setDireccionOrdenacionTemporal(...)`, actualiza `Action.SELECTED_KEY`, y dispara reordenación.
+
+**FASE 4: Lógica en Controladores y Servicios**
+
+1.  **`VisorController.java`:**
+    *   **`cargarListaImagenes(String claveImagenAMantener)`:**
+        *   Al inicio, obtener `criterioActivo` y `direccionActiva`:
+            *   Si `model.getCriterioOrdenacionTemporal()` no es "ninguno" o `null`, usar los valores temporales.
+            *   Si no, usar `model.getCriterioOrdenacionDefault()` y `model.getDireccionOrdenacionDefault()`.
+        *   Usar `criterioActivo` y `direccionActiva` para ordenar `clavesOrdenadas` (o el `mapaResultado`) ANTES de crear el `DefaultListModel` para `listaNombres`. Esto requerirá un `Comparator` personalizado.
+    *   **`solicitarReordenacionVistaActual()` (Nuevo método):**
+        *   Llamado por las `Action`s de ordenación temporal.
+        *   Obtiene la `claveImagenAMantener` del `model.getSelectedImageKey()`.
+        *   Llama a `cargarListaImagenes(claveImagenAMantener)` para forzar una recarga y reordenación con los nuevos criterios temporales.
+        *   Actualiza la UI de la toolbar de ordenación para reflejar el estado actual.
+
+2.  **`ConfigurationManager.java`:**
+    *   **`DEFAULT_CONFIG`:** Añadir las nuevas claves para la ordenación por defecto:
+        *   `comportamiento.orden.default.criterio = NOMBRE` (o el que prefieras)
+        *   `comportamiento.orden.default.direccion = ASCENDENTE`
+        *   Claves `.seleccionado` para los `JRadioButtonMenuItem` del menú "Configuración" que controlan estos defaults.
+    *   **`createDefaultGroupCommentsMap()`:** Añadir comentarios para estas nuevas secciones/claves.
+    *   **`guardarConfiguracionActual()` en `VisorController`:** Debe asegurar que los valores de `model.getCriterioOrdenacionDefault()` y `model.getDireccionOrdenacionDefault()` se escriban en `estadoFinalAGuardar` con las claves correctas (esto podría hacerse obteniéndolos de las `Action`s de configuración si estas actualizan `this.configuration`, o directamente del modelo si las `Action`s solo actualizan el modelo y el `config.cfg`).
+
+3.  **`MenuBarBuilder.java` y `ToolbarBuilder.java`:**
+    *   Adaptarlos para construir los nuevos ítems de menú y los componentes de la toolbar de ordenación, asignando las `Action`s correctas.
+    *   `ToolbarBuilder` podría necesitar lógica especial para el botón de criterio con `JPopupMenu` o para los `JToggleButton` agrupados.
+
+4.  **`AppInitializer.java`:**
+    *   En `aplicarConfiguracionAlModelo()`: Leer `comportamiento.orden.default.criterio` y `comportamiento.orden.default.direccion` de `configuration` y establecerlos en `model.setCriterioOrdenacionDefault()` y `model.setDireccionOrdenacionDefault()`.
+    *   En `aplicarConfigAlaVistaInternal()`: Asegurar que los `JRadioButtonMenuItem` del menú "Configuración" para la ordenación por defecto reflejen el estado cargado.
+
+**FASE 5: Sincronización Visual**
+
+*   Cuando se cambia un criterio o dirección de ordenación temporal (desde la toolbar), los botones de la toolbar deben actualizar su apariencia.
+*   Cuando se cambia un criterio o dirección de ordenación por defecto (desde el menú Configuración), los `JRadioButtonMenuItem` de ese menú deben actualizar su estado seleccionado. (Las `Action`s deberían manejar esto con `Action.SELECTED_KEY` y `ButtonGroup`).
+
+---
+
+Este prompt es bastante exhaustivo, pero cubre los cambios necesarios en las diferentes capas de tu aplicación para implementar la funcionalidad de ordenación de forma clara y separada para la configuración persistente y la manipulación temporal.
+
+Cuando estés listo, puedes ir abordando cada fase. ¡No dudes en preguntar si algo no está claro o si necesitas ayuda con una parte específica!
+
+  
+*/    

@@ -22,8 +22,6 @@ public class ConfigurationManager
 	// variables de la clase
 	public static final String CONFIG_FILE_PATH = "config.cfg";
 
-//	private static final Map<String, String> DEFAULT_COMMENTS;
-
 	private Map<String, String> config;
 
 	private static final Map<String, String> DEFAULT_GROUP_COMMENTS;
@@ -33,56 +31,21 @@ public class ConfigurationManager
 	public static final String KEY_INICIO_CARPETA = "inicio.carpeta";
 	
 	// --- CONSTANTES PARA ESTADO VENTANA ---
-//    public static final String WINDOW_X = "window.x";
-//    public static final String WINDOW_Y = "window.y";
-//    public static final String WINDOW_WIDTH = "window.width";
-//    public static final String WINDOW_HEIGHT = "window.height";
-//    public static final String WINDOW_MAXIMIZED = "window.maximized";
 	
     // --- CONSTANTES PARA PROYECTOS
-//    public static final String PROYECTOS_CARPETA_BASE = "proyectos.carpeta_base";
-//    public static final String PROYECTOS_ARCHIVO_TEMPORAL = "proyectos.archivo_temporal_nombre";
-//    public static final String TEMA_NOMBRE = "tema.nombre";
 	
     // Para el futuro:
-    // public static final String KEY_PROYECTOS_ULTIMO_ABIERTO = "proyectos.ultimo_abierto_ruta_completa";
-    // public static final String KEY_PROYECTOS_INICIO_ACCION = "proyectos.inicio.accion"; // ej. "cargar_ultimo", "nuevo_temporal"
 
     // --- 	CONSTANTES PARA COMPORTAMIENTO ---
-//    public static final String COMPORTAMIENTO_ZOOM_MODO_INICIAL = "comportamiento.display.zoom.initial_mode";
-//    public static final String COMPORTAMIENTO_ZOOM_MANUAL_INICIAL = "comportamiento.zoom.manual_inicial_activo";
-//    public static final String COMPORTAMIENTO_ZOOM_ULTIMO_MODO = "comportamiento.zoom.ultimo_modo_seleccionado";
-//    public static final String COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO = "comportamiento.zoom.personalizado.porcentaje";
     
     
- // --- CONSTANTES PARA VISIBILIDAD Y FORMATO DE BARRAS DE INFORMACIÓN ---
+	// --- CONSTANTES PARA VISIBILIDAD Y FORMATO DE BARRAS DE INFORMACIÓN ---
 
     // -- Visibilidad de Barras Completas --
-//    public static final String INFOBAR_SUP_VISIBLE = "interfaz.infobar.superior.visible";
 
     // -- Elementos Barra Superior --
-//    public static final String INFOBAR_SUP_NOMBRE_RUTA_VISIBLE = "interfaz.infobar.superior.nombre_ruta.visible";
-//    public static final String INFOBAR_SUP_NOMBRE_RUTA_FORMATO = "interfaz.infobar.superior.nombre_ruta.formato"; // Valores: "solo_nombre", "ruta_completa"
-//    public static final String INFOBAR_SUP_INDICE_TOTAL_VISIBLE = "interfaz.infobar.superior.indice_total.visible";
-//    public static final String INFOBAR_SUP_DIMENSIONES_VISIBLE = "interfaz.infobar.superior.dimensiones.visible";
-//    public static final String INFOBAR_SUP_TAMANO_ARCHIVO_VISIBLE = "interfaz.infobar.superior.tamano_archivo.visible";
-//    public static final String INFOBAR_SUP_FECHA_ARCHIVO_VISIBLE = "interfaz.infobar.superior.fecha_archivo.visible";
-//    public static final String INFOBAR_SUP_FORMATO_IMAGEN_VISIBLE = "interfaz.infobar.superior.formato_imagen.visible";
-//    public static final String INFOBAR_SUP_MODO_ZOOM_VISIBLE = "interfaz.infobar.superior.modo_zoom.visible";
-//    public static final String INFOBAR_SUP_ZOOM_REAL_PCT_VISIBLE = "interfaz.infobar.superior.zoom_real_pct.visible";
 
     // --- SECCIÓN: BARRAS DE INFORMACIÓN (INFERIOR) ---
-//    public static final String INFOBAR_INF_VISIBLE = "interfaz.infobar.inferior.visible";
-//    // -- Elementos Barra Inferior --
-//    public static final String INFOBAR_INF_NOMBRE_RUTA_VISIBLE = "interfaz.infobar.inferior.nombre_ruta.visible";
-//    public static final String INFOBAR_INF_NOMBRE_RUTA_FORMATO = "interfaz.infobar.inferior.nombre_ruta.formato"; // Valores: "solo_nombre", "ruta_completa"
-//    public static final String INFOBAR_INF_ICONO_ZM_VISIBLE = "interfaz.infobar.inferior.icono_zm.visible";
-//    public static final String INFOBAR_INF_ICONO_PROP_VISIBLE = "interfaz.infobar.inferior.icono_prop.visible";
-//    public static final String INFOBAR_INF_ICONO_SUBC_VISIBLE = "interfaz.infobar.inferior.icono_subc.visible";
-//    public static final String INFOBAR_INF_CTRL_ZOOM_PCT_VISIBLE = "interfaz.infobar.inferior.ctrl_zoom_pct.visible";
-//    public static final String INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE = "interfaz.infobar.inferior.ctrl_modo_zoom.visible";
-//    public static final String INFOBAR_INF_MENSAJES_APP_VISIBLE = "interfaz.infobar.inferior.mensajes_app.visible";
-//    
     
     
     
@@ -93,7 +56,6 @@ public class ConfigurationManager
 		System.out.println("Mapa de configuración por defecto inicializado con " + DEFAULT_CONFIG.size() + " claves.");
 		DEFAULT_GROUP_COMMENTS = Collections.unmodifiableMap(createDefaultGroupCommentsMap());
 		System.out.println("Mapa DEFAULT_GROUP_COMMENTS inicializado con " + DEFAULT_GROUP_COMMENTS.size() + " entradas.");
-		
 		
 	}
 
@@ -206,55 +168,8 @@ public class ConfigurationManager
 	    return loadedConfig;
 	}
 	
-	
-//	public Map<String, String> cargarConfiguracion () throws IOException
-//	{
-//
-//		File configFile = new File(CONFIG_FILE_PATH);
-//
-//		if (!configFile.exists())
-//		{
-//			System.out.println("Config no encontrado. Creando por defecto...");
-//
-//			try
-//			{
-//				crearConfigPorDefecto(configFile);
-//				// Leemos el archivo recién creado
-//				return leerArchivoConfigExistente(configFile);
-//			} catch (IOException e)
-//			{
-//				System.err.println("¡FALLO CRÍTICO al crear/leer config! Usando defaults internos.");
-//				// Devolver una COPIA del mapa de defaults como último recurso
-//				return new HashMap<>(DEFAULT_CONFIG);
-//				// O podrías lanzar una excepción si la config es obligatoria:
-//				// throw new IOException("No se pudo crear ni leer config, y los defaults
-//				// internos podrían no ser suficientes.", e);
-//			}
-//		} else
-//		{
-//			// Si existe, intentar leerlo
-//			try
-//			{
-//				return leerArchivoConfigExistente(configFile);
-//				
-//				
-//			} catch (IOException e)
-//			{
-//				System.err.println(
-//						"¡FALLO CRÍTICO al leer config existente! Usando defaults internos. Error: " + e.getMessage());
-//				// Devolver una COPIA del mapa de defaults como último recurso
-//				return new HashMap<>(DEFAULT_CONFIG);
-//				// O lanzar excepción
-//				// throw new IOException("Error al leer config existente, usando defaults
-//				// internos.", e);
-//			}
-//		}
-//	}
 
-
-
-	
-    private Map<String, String> leerArchivoConfigExistente (File configFile) throws IOException
+	private Map<String, String> leerArchivoConfigExistente (File configFile) throws IOException
     {
         Map<String, String> loadedConfig = new HashMap<>();
         System.out.println("Leyendo configuración desde: " + configFile.getAbsolutePath());
@@ -289,9 +204,11 @@ public class ConfigurationManager
                         } else { System.err.println("WARN: Clave vacía en línea " + lineNumber); }
                     } else { System.err.println("WARN: Línea mal formada en " + lineNumber + ": " + lineaOriginal); }
                 } else {
+                	
                 	// LOG Loguear líneas de comentario/vacías si quieres ver todo
                      // Opcional: Loguear líneas de comentario/vacías si quieres ver todo
                      // System.out.println("  Línea " + lineNumber + ": Ignorada (comentario/vacía)");
+                	
                 }
             }
         } catch (IOException e) { /* ... */ throw e; } // Asegúrate que el throw esté fuera del try-catch interno si lo hubiera
@@ -375,8 +292,6 @@ public class ConfigurationManager
 							writer.write(key + " = " + newValue + "\n");
 							configPendiente.remove(key); // Marcar como procesada
 							
-							//SYSO LOG actualizacion config
-							//System.out.println("  Actualizado: " + key + " = " + newValue);
 						} else
 						{
 							writer.write(currentLine + "\n"); // Opción: mantenerla
@@ -1425,9 +1340,6 @@ public class ConfigurationManager
             System.out.println("  [ConfigManager] Propiedad eliminada (en memoria): " + key);
         }
     }
-
-    
-    
     
 } //Fin configurationManager
 

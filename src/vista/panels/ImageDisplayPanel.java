@@ -37,7 +37,6 @@ public class ImageDisplayPanel extends JPanel {
     private Color colorFondoSolido;
 
     public ImageDisplayPanel(ThemeManager themeManager, VisorModel model) {
-//        this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null");
     	
     	this.themeManager = themeManager; 
     	
@@ -61,9 +60,8 @@ public class ImageDisplayPanel extends JPanel {
         
         this.setBackground(this.colorFondoSolido);
         
-//        this.colorFondoSolido = themeManager.getTemaActual().colorFondoSecundario();
-        
     } // --- Fin del método ImageDisplayPanel (constructor) ---
+    
     
     public JLabel getInternalLabel() {
         return this.internalLabel;
@@ -143,7 +141,7 @@ public class ImageDisplayPanel extends JPanel {
         }
     } // --- Fin del método setCheckeredBackground ---
 
-    // --- CAMBIO: Este método ahora solo actualiza el label. El controlador limpia el modelo. ---
+    // --- Este método ahora solo actualiza el label. El controlador limpia el modelo. ---
     public void mostrarError(String mensaje, ImageIcon iconoError) {
         this.internalLabel.setText(mensaje);
         this.internalLabel.setIcon(iconoError);
@@ -151,16 +149,15 @@ public class ImageDisplayPanel extends JPanel {
         repaint(); // Forzamos repintado para que se vea el error y desaparezca la imagen vieja.
     } // --- Fin del método mostrarError ---
     
-    // --- CAMBIO: ELIMINAMOS setImagen() ya que el panel leerá directamente del modelo ---
     
-    // --- CAMBIO: limpiar() ahora solo limpia el label. El controlador limpia el modelo. ---
+    // --- limpiar() ahora solo limpia el label. El controlador limpia el modelo. ---
     public void limpiar() {
         this.internalLabel.setText(null);
         this.internalLabel.setIcon(null);
         repaint();
     } // --- Fin del método limpiar ---
     
-    // --- CAMBIO: mostrarCargando() ya no necesita tocar la imagen, solo el label. ---
+    // --- mostrarCargando() ya no necesita tocar la imagen, solo el label. ---
     public void mostrarCargando(String mensaje) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> mostrarCargando(mensaje));
