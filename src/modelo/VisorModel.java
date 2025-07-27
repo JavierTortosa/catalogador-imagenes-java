@@ -102,6 +102,11 @@ public class VisorModel {
         this.datosZoomContext.setZoomHabilitado(zoomManualInicial);
         this.datosZoomContext.setZoomToCursorEnabled(zoomAlCursor); // Asignar el nuevo estado
 
+        this.carouselZoomContext.setMantenerProporcion(mantenerPropInicial);
+        this.carouselZoomContext.setZoomMode(modoZoomInicial);
+        this.carouselZoomContext.setZoomHabilitado(zoomManualInicial);
+        this.carouselZoomContext.setZoomToCursorEnabled(zoomAlCursor);
+        
         this.visualizadorListContext.setMostrarSoloCarpetaActual(soloCarpetaInicial);
         this.proyectoListContext.setMostrarSoloCarpetaActual(soloCarpetaInicial);
         this.datosListContext.setMostrarSoloCarpetaActual(soloCarpetaInicial);

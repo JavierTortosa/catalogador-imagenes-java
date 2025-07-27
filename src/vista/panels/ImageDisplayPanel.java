@@ -26,9 +26,6 @@ public class ImageDisplayPanel extends JPanel {
     private final VisorModel model;
     private final JLabel internalLabel;
 
-    // --- CAMBIO: El panel YA NO ALMACENA LA IMAGEN ---
-    // private BufferedImage imagenOriginal; // <--- ELIMINADO
-
     // --- Estado del fondo (sin cambios) ---
     private boolean fondoACuadros = false;
     private final Color colorCuadroClaro = new Color(204, 204, 204);

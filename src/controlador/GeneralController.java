@@ -230,6 +230,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	                break;
 	        }
 
+	        if (this.visorController != null) {
+	            this.visorController.sincronizarComponentesDeModoVisualizador();
+	        }
+	        
 	        actualizarEstadoUiParaModo(modoAlQueSeEntra);
 	        if (this.toolbarManager != null) {
 	            this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
@@ -787,18 +791,20 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
         // --- Definición del Master Mouse Wheel Listener (Lógica Centralizada) ---
         java.awt.event.MouseWheelListener masterWheelListener = e -> {
-            // Obtenemos los componentes relevantes una sola vez
+            // Obtenemos las referencias a TODOS los componentes relevantes una sola vez, al principio del evento.
             JLabel etiquetaImagenVisualizador = registry.get("label.imagenPrincipal");
             JLabel etiquetaImagenProyecto = registry.get("label.proyecto.imagen");
+            JLabel etiquetaImagenCarrusel = registry.get("label.carousel.imagen");
             JTable tablaExportacion = registry.get("tabla.exportacion");
 
             // Detección de la ubicación del cursor
             boolean sobreLaImagen = (e.getComponent() == etiquetaImagenVisualizador) ||
-                                    (e.getComponent() == etiquetaImagenProyecto);
+                                    (e.getComponent() == etiquetaImagenProyecto) ||
+                                    (e.getComponent() == etiquetaImagenCarrusel);
             
             boolean sobreTablaExportacion = (tablaExportacion != null && SwingUtilities.isDescendingFrom(e.getComponent(), tablaExportacion));
             
-            // --- LÓGICA DE PRIORIDADES CORREGIDA ---
+            // --- LÓGICA DE PRIORIDADES ---
 
             // PRIORIDAD 1: Navegación especial por bloque con Ctrl+Alt
             if (e.isControlDown() && e.isAltDown()) {
@@ -808,14 +814,21 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                 return;
             }
 
-            // PRIORIDAD 2: Si estamos sobre la IMAGEN y el ZOOM MANUAL está ACTIVO
-            if (sobreLaImagen && model.isZoomHabilitado()) {
-                if (e.isShiftDown()) { // Con Shift, SIEMPRE paneo horizontal rápido
-                    this.aplicarPan(-e.getWheelRotation() * 30, 0);
-                } else if (e.isControlDown()) { // Con Control, SIEMPRE paneo vertical rápido
-                    this.aplicarPan(0, e.getWheelRotation() * 30);
-                } else { // Sin modificadores, HACEMOS ZOOM
-                    this.aplicarZoomConRueda(e);
+            // PRIORIDAD 2: Si estamos sobre la IMAGEN
+            if (sobreLaImagen) {
+                // Y el MODO ZOOM MANUAL está ACTIVO...
+                if (model.isZoomHabilitado()) {
+                    // ...la rueda hace zoom o paneo rápido.
+                    if (e.isShiftDown()) {
+                        this.aplicarPan(-e.getWheelRotation() * 30, 0);
+                    } else if (e.isControlDown()) {
+                        this.aplicarPan(0, e.getWheelRotation() * 30);
+                    } else {
+                        this.aplicarZoomConRueda(e);
+                    }
+                } else {
+                    // Si el zoom manual está DESACTIVADO, la rueda navega por la lista.
+                    this.navegarSiguienteOAnterior(e.getWheelRotation());
                 }
                 e.consume();
                 return;
@@ -828,7 +841,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                 return;
             }
 
-            // PRIORIDAD 4 (Por defecto): Navegación normal por la lista (siguiente/anterior)
+            // PRIORIDAD 4 (Por defecto): Navegación normal para otras listas (Nombres, Miniaturas)
             this.navegarSiguienteOAnterior(e.getWheelRotation());
             e.consume();
         };
@@ -837,21 +850,20 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         List<Component> componentesConRueda = registry.getComponentsByTag("WHEEL_NAVIGABLE");
         System.out.println("[GeneralController] Encontrados " + componentesConRueda.size() + " componentes etiquetados como 'WHEEL_NAVIGABLE'.");
         for (Component c : componentesConRueda) {
-            // Limpiamos listeners antiguos para evitar duplicados si este método se llama más de una vez
+            // Limpiamos listeners antiguos para evitar duplicados
             for (java.awt.event.MouseWheelListener mwl : c.getMouseWheelListeners()) {
                 c.removeMouseWheelListener(mwl);
             }
             c.addMouseWheelListener(masterWheelListener);
         }
 
-        // --- Listeners de clic y arrastre para paneo (sin cambios) ---
+        // --- Listeners de clic y arrastre para paneo ---
         MouseAdapter paneoMouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent ev) {
                 GeneralController.this.iniciarPaneo(ev);
             }
         };
-
         MouseMotionAdapter paneoMouseMotionAdapter = new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent ev) {
@@ -859,9 +871,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             }
         };
         
-        // Obtenemos los componentes una vez y aplicamos
+        // Obtenemos los componentes y aplicamos los listeners de paneo
         Component etiquetaVisor = registry.get("label.imagenPrincipal");
         Component etiquetaProyecto = registry.get("label.proyecto.imagen");
+        Component etiquetaCarrusel = registry.get("label.carousel.imagen");
 
         if (etiquetaVisor != null) {
             etiquetaVisor.addMouseListener(paneoMouseAdapter);
@@ -871,10 +884,118 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             etiquetaProyecto.addMouseListener(paneoMouseAdapter);
             etiquetaProyecto.addMouseMotionListener(paneoMouseMotionAdapter);
         }
+        if (etiquetaCarrusel != null) {
+            etiquetaCarrusel.addMouseListener(paneoMouseAdapter);
+            etiquetaCarrusel.addMouseMotionListener(paneoMouseMotionAdapter);
+        }
 
         System.out.println("[GeneralController] Listeners de entrada globales configurados.");
         
     } // --- Fin del método configurarListenersDeEntradaGlobal ---
+    
+    
+//    public void configurarListenersDeEntradaGlobal() {
+//        System.out.println("[GeneralController] Configurando listeners de entrada globales para todos los modos...");
+//
+//        // --- Definición del Master Mouse Wheel Listener (Lógica Centralizada) ---
+//        java.awt.event.MouseWheelListener masterWheelListener = e -> {
+//            // Obtenemos los componentes relevantes una sola vez
+//            JLabel etiquetaImagenVisualizador = registry.get("label.imagenPrincipal");
+//            JLabel etiquetaImagenProyecto = registry.get("label.proyecto.imagen");
+//            JLabel etiquetaImagenCarrusel = registry.get("label.carousel.imagen");
+//            JTable tablaExportacion = registry.get("tabla.exportacion");
+//
+//            // Detección de la ubicación del cursor
+//            boolean sobreLaImagen = 
+//            		(e.getComponent() == etiquetaImagenVisualizador) ||
+//                    (e.getComponent() == etiquetaImagenProyecto) ||
+//                    (e.getComponent() == etiquetaImagenCarrusel);
+//            
+//            boolean sobreTablaExportacion = (tablaExportacion != null && SwingUtilities.isDescendingFrom(e.getComponent(), tablaExportacion));
+//            
+//            // --- LÓGICA DE PRIORIDADES CORREGIDA ---
+//
+//            // PRIORIDAD 1: Navegación especial por bloque con Ctrl+Alt
+//            if (e.isControlDown() && e.isAltDown()) {
+//                if (e.getWheelRotation() < 0) this.navegarBloqueAnterior();
+//                else this.navegarBloqueSiguiente();
+//                e.consume();
+//                return;
+//            }
+//
+//            // PRIORIDAD 2: Si estamos sobre la IMAGEN y el ZOOM MANUAL está ACTIVO
+//            if (sobreLaImagen && model.isZoomHabilitado()) {
+//                if (e.isShiftDown()) { // Con Shift, SIEMPRE paneo horizontal rápido
+//                    this.aplicarPan(-e.getWheelRotation() * 30, 0);
+//                } else if (e.isControlDown()) { // Con Control, SIEMPRE paneo vertical rápido
+//                    this.aplicarPan(0, e.getWheelRotation() * 30);
+//                } else { // Sin modificadores, HACEMOS ZOOM
+//                    this.aplicarZoomConRueda(e);
+//                }
+//                e.consume();
+//                return;
+//            }
+//            
+//            // PRIORIDAD 3: Si estamos sobre la tabla de exportación en modo Proyecto
+//            if (sobreTablaExportacion && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
+//                projectController.navegarTablaExportacionConRueda(e);
+//                e.consume();
+//                return;
+//            }
+//
+//            // PRIORIDAD 4 (Por defecto): Navegación normal por la lista (siguiente/anterior)
+//            this.navegarSiguienteOAnterior(e.getWheelRotation());
+//            e.consume();
+//        };
+//
+//        // --- Añadir el Master Wheel Listener a todos los componentes etiquetados ---
+//        List<Component> componentesConRueda = registry.getComponentsByTag("WHEEL_NAVIGABLE");
+//        System.out.println("[GeneralController] Encontrados " + componentesConRueda.size() + " componentes etiquetados como 'WHEEL_NAVIGABLE'.");
+//        for (Component c : componentesConRueda) {
+//            // Limpiamos listeners antiguos para evitar duplicados si este método se llama más de una vez
+//            for (java.awt.event.MouseWheelListener mwl : c.getMouseWheelListeners()) {
+//                c.removeMouseWheelListener(mwl);
+//            }
+//            c.addMouseWheelListener(masterWheelListener);
+//        }
+//
+//        // --- Listeners de clic y arrastre para paneo (sin cambios) ---
+//        MouseAdapter paneoMouseAdapter = new MouseAdapter() {
+//            @Override
+//            public void mousePressed(MouseEvent ev) {
+//                GeneralController.this.iniciarPaneo(ev);
+//            }
+//        };
+//
+//        MouseMotionAdapter paneoMouseMotionAdapter = new MouseMotionAdapter() {
+//            @Override
+//            public void mouseDragged(MouseEvent ev) {
+//                GeneralController.this.continuarPaneo(ev);
+//            }
+//        };
+//        
+//        //FIXME crear metodo para no tener que poner un bloque por componente
+//        // Obtenemos los componentes una vez y aplicamos
+//        Component etiquetaVisor = registry.get("label.imagenPrincipal");
+//        Component etiquetaProyecto = registry.get("label.proyecto.imagen");
+//        Component etiquetaCarrusel = registry.get("label.carousel.imagen"); // <-- Obtenemos la nueva etiqueta
+//        										   
+//        if (etiquetaVisor != null) {
+//            etiquetaVisor.addMouseListener(paneoMouseAdapter);
+//            etiquetaVisor.addMouseMotionListener(paneoMouseMotionAdapter);
+//        }
+//        if (etiquetaProyecto != null) {
+//            etiquetaProyecto.addMouseListener(paneoMouseAdapter);
+//            etiquetaProyecto.addMouseMotionListener(paneoMouseMotionAdapter);
+//        }
+//        if (etiquetaCarrusel != null) { // <-- Le añadimos los listeners
+//            etiquetaCarrusel.addMouseListener(paneoMouseAdapter);
+//            etiquetaCarrusel.addMouseMotionListener(paneoMouseMotionAdapter);
+//        }
+//
+//        System.out.println("[GeneralController] Listeners de entrada globales configurados.");
+//        
+//    } // --- Fin del método configurarListenersDeEntradaGlobal ---
     
 
     /**
@@ -1063,6 +1184,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             visorController.aplicarZoomConRueda(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarZoomConRueda(e);
+        }else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
+            projectController.aplicarZoomConRueda(e);
         }
         
         //LOG [GeneralController] Delegando aplicarZoomConRueda
@@ -1079,7 +1202,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             visorController.aplicarPan(deltaX, deltaY);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarPan(deltaX, deltaY);
+        }else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
+            projectController.aplicarPan(deltaX, deltaY);
         }
+        
         //LOG [GeneralController] Delegando aplicarPan
         //System.out.println("[GeneralController] Delegando aplicarPan a " + model.getCurrentWorkMode());
     
@@ -1096,6 +1222,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
             visorController.iniciarPaneo(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            projectController.iniciarPaneo(e);
+        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
             projectController.iniciarPaneo(e);
         }
         
@@ -1118,12 +1246,33 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             visorController.aplicarPan(deltaX, deltaY);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarPan(deltaX, deltaY);
+        }else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
+            projectController.aplicarPan(deltaX, deltaY);
         }
+        
         
         //LOG [GeneralController] Delegando continuarPaneo
         //System.out.println("[GeneralController] Delegando continuarPaneo a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo continuarPaneo ---
+    
+    
+    private boolean isComponentTagged(Component component, String tag) {
+        // Itera hacia arriba en la jerarquía de componentes
+        for (Component c = component; c != null; c = c.getParent()) {
+            // Comprueba si el ComponentRegistry tiene alguna etiqueta para este componente
+            // (Necesitaríamos un método en ComponentRegistry para buscar por componente,
+            // pero por ahora, vamos a simplificar asumiendo que el componente principal está etiquetado)
+            
+            // La forma más simple es comprobar si el componente es uno de los que etiquetamos.
+            if (c == registry.get("label.imagenPrincipal") ||
+                c == registry.get("label.proyecto.imagen") ||
+                c == registry.get("label.carousel.imagen")) {
+                return true;
+            }
+        }
+        return false;
+    } // --- Fin del método isComponentTagged ---
     
     
 //  ********************************************************************************** FIN IMPLEMENTACION INTERFAZ IModoController

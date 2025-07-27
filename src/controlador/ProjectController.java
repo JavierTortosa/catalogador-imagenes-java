@@ -33,8 +33,6 @@ import controlador.worker.ExportWorker;
 import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.proyecto.ExportItem;
-import servicios.ConfigKeys;
-import servicios.ConfigurationManager;
 import vista.VisorView;
 import vista.dialogos.ExportProgressDialog;
 import vista.panels.export.ExportTableModel;
@@ -48,6 +46,8 @@ public class ProjectController implements IModoController {
     private VisorModel model;
     private VisorController controllerRef;
     private ExportQueueManager exportQueueManager;
+    private ProjectListCoordinator projectListCoordinator;
+    
     private IViewManager viewManager;
     private IListCoordinator listCoordinator; 
     private Map<String, Action> actionMap;
@@ -59,13 +59,9 @@ public class ProjectController implements IModoController {
     } // --- Fin del método ProjectController (constructor) ---
 
     
-    public VisorController getController() {
-        return this.controllerRef;
-    } // --- Fin del método getController ---
-
     void configurarListeners() {
-        if (registry == null || model == null) {
-            System.err.println("ERROR [ProjectController]: Dependencias nulas (registry, model).");
+        if (registry == null || model == null || projectListCoordinator == null) {
+            System.err.println("ERROR [ProjectController]: Dependencias nulas (registry, model o projectListCoordinator).");
             return;
         }
 
@@ -73,6 +69,7 @@ public class ProjectController implements IModoController {
         JList<String> projectList = registry.get("list.proyecto.nombres");
         JList<String> descartesList = registry.get("list.proyecto.descartes");
 
+        // Listener para detectar el cambio de FOCO (sin cambios, esta lógica sigue siendo del ProjectController)
         MouseAdapter listMouseAdapter = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
@@ -84,30 +81,43 @@ public class ProjectController implements IModoController {
             }
         };
 
+        // --- Listener de SELECCIÓN para la lista de "Selección" (MODIFICADO) ---
         if (projectList != null) {
             projectList.addMouseListener(listMouseAdapter);
+            // Limpiamos listeners antiguos
+            for (javax.swing.event.ListSelectionListener lsl : projectList.getListSelectionListeners()) {
+                projectList.removeListSelectionListener(lsl);
+            }
             projectList.addListSelectionListener(e -> {
-                if (e.getValueIsAdjusting()) return;
+                if (e.getValueIsAdjusting() || projectListCoordinator.isSincronizandoUI()) return;
+                
+                // Solo actuamos si esta es la lista activa
                 if ("seleccion".equals(model.getProyectoListContext().getNombreListaActiva())) {
-                    String selectedKey = projectList.getSelectedValue();
-                    model.getProyectoListContext().setSeleccionListKey(selectedKey);
-                    seleccionarImagenEnListaActiva(selectedKey);
+                    // Delegamos la selección al coordinador con el índice de la lista de selección
+                    projectListCoordinator.seleccionarImagenPorIndice(projectList.getSelectedIndex());
                 }
             });
         }
+
+        // --- Listener de SELECCIÓN para la lista de "Descartes" (MODIFICADO) ---
         if (descartesList != null) {
             descartesList.addMouseListener(listMouseAdapter);
+            // Limpiamos listeners antiguos
+            for (javax.swing.event.ListSelectionListener lsl : descartesList.getListSelectionListeners()) {
+                descartesList.removeListSelectionListener(lsl);
+            }
             descartesList.addListSelectionListener(e -> {
-                if (e.getValueIsAdjusting()) return;
+                if (e.getValueIsAdjusting() || projectListCoordinator.isSincronizandoUI()) return;
+
+                // Solo actuamos si esta es la lista activa
                 if ("descartes".equals(model.getProyectoListContext().getNombreListaActiva())) {
-                    String selectedKey = descartesList.getSelectedValue();
-                    model.getProyectoListContext().setDescartesListKey(selectedKey);
-                    seleccionarImagenEnListaActiva(selectedKey);
+                    // Delegamos la selección al coordinador con el índice de la lista de descartes
+                    projectListCoordinator.seleccionarImagenPorIndice(descartesList.getSelectedIndex());
                 }
             });
         }
         
-        // --- Listeners para el Panel de Exportación ---
+        // --- Listeners para el Panel de Exportación (sin cambios) ---
         vista.panels.export.ExportPanel panelExportar = registry.get("panel.proyecto.herramientas.exportar");
         if(panelExportar != null) {
             JButton btnSeleccionarCarpeta = panelExportar.getBotonSeleccionarCarpeta();
@@ -117,70 +127,35 @@ public class ProjectController implements IModoController {
         }
     } // --- Fin del método configurarListeners ---
     
-
-    private void seleccionarImagenEnListaActiva(String clave) {
-        if (model == null || controllerRef == null) return;
-        
-        if (clave == null || clave.equals(model.getSelectedImageKey())) {
-            if (clave == null) controllerRef.actualizarImagenPrincipal(-1);
-            return;
-        }
-        
-        model.setSelectedImageKey(clave);
-        int indiceMaestro = model.getProyectoListContext().getModeloLista().indexOf(clave);
-        if (indiceMaestro >= 0) {
-            controllerRef.actualizarImagenPrincipal(indiceMaestro);
-        } else {
-            controllerRef.actualizarImagenPrincipal(-1);
-        }
-    } // --- Fin del método seleccionarImagenEnListaActiva ---
-
+    
     private void cambiarFocoListaActiva(String nuevoFoco) {
         System.out.println("  [ProjectController] Cambiando foco a lista: " + nuevoFoco);
         model.getProyectoListContext().setNombreListaActiva(nuevoFoco);
         
         String claveARestaurar;
         JList<String> listaQueGanaFoco;
-        JList<String> listaQuePierdeFoco;
-
+        
         if ("seleccion".equals(nuevoFoco)) {
             claveARestaurar = model.getProyectoListContext().getSeleccionListKey();
             listaQueGanaFoco = registry.get("list.proyecto.nombres");
-            listaQuePierdeFoco = registry.get("list.proyecto.descartes");
         } else {
             claveARestaurar = model.getProyectoListContext().getDescartesListKey();
             listaQueGanaFoco = registry.get("list.proyecto.descartes");
-            listaQuePierdeFoco = registry.get("list.proyecto.nombres");
-        }
-        
-        if (listaQuePierdeFoco != null) {
-            listaQuePierdeFoco.clearSelection();
         }
 
+        // Si no hay clave guardada para la lista que gana el foco, seleccionamos la primera.
         if (claveARestaurar == null && listaQueGanaFoco != null && listaQueGanaFoco.getModel().getSize() > 0) {
             claveARestaurar = listaQueGanaFoco.getModel().getElementAt(0);
         }
         
-        seleccionarImagenEnListaActiva(claveARestaurar);
+        // Usamos el nuevo método del coordinador, que es mucho más robusto.
+        projectListCoordinator.seleccionarImagenPorClave(claveARestaurar);
         
-        final JList<String> finalListaActiva = listaQueGanaFoco;
-        final String finalClaveActiva = claveARestaurar;
+        actualizarAparienciaListasPorFoco();
 
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            if (finalListaActiva != null && finalClaveActiva != null) {
-                finalListaActiva.setSelectedValue(finalClaveActiva, true);
-                int index = finalListaActiva.getSelectedIndex();
-                if (index != -1) {
-                    java.awt.Rectangle rect = finalListaActiva.getCellBounds(index, index);
-                    if (rect != null) {
-                        finalListaActiva.scrollRectToVisible(rect);
-                    }
-                }
-            }
-            actualizarAparienciaListasPorFoco();
-        });
     } // --- Fin del método cambiarFocoListaActiva ---
-
+    
+    
     public boolean prepararDatosProyecto() {
         System.out.println("  [ProjectController] Preparando datos para el modo proyecto...");
         if (projectManager == null || model == null) {
@@ -218,25 +193,17 @@ public class ProjectController implements IModoController {
         System.out.println("    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): " + modeloUnificado.getSize());
         return true;
     } // --- Fin del método prepararDatosProyecto ---
+
     
     public void activarVistaProyecto() {
         System.out.println("  [ProjectController] Activando la UI de la vista de proyecto...");
-        if (registry == null || model == null || projectManager == null || controllerRef == null) {
+        if (registry == null || model == null || projectManager == null || projectListCoordinator == null) {
             System.err.println("ERROR [ProjectController.activarVistaProyecto]: Dependencias nulas.");
             return;
         }
 
+        // 1. Lógica para poblar las JList (se queda igual)
         ListContext proyectoContext = model.getProyectoListContext();
-        if (proyectoContext.getSeleccionListKey() == null && proyectoContext.getDescartesListKey() == null) {
-            ConfigurationManager config = controllerRef.getConfigurationManager();
-            String focoGuardado = config.getString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, "seleccion");
-            String seleccionGuardada = config.getString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, null);
-            String descartesGuardado = config.getString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, null);
-            proyectoContext.setNombreListaActiva(focoGuardado);
-            proyectoContext.setSeleccionListKey(seleccionGuardada);
-            proyectoContext.setDescartesListKey(descartesGuardado);
-        }
-        
         JList<String> projectList = registry.get("list.proyecto.nombres");
         JList<String> descartesList = registry.get("list.proyecto.descartes");
 
@@ -247,157 +214,81 @@ public class ProjectController implements IModoController {
         }
         if (projectList != null) projectList.setModel(modeloSeleccion);
         
-        poblarListaDescartes();
+        poblarListaDescartes(); // Este método ya llena la lista de descartes
 
-        JPanel panelListas = registry.get("panel.proyecto.listas.container");
-        if (panelListas != null && panelListas.getBorder() instanceof javax.swing.border.TitledBorder) {
-            ((javax.swing.border.TitledBorder) panelListas.getBorder()).setTitle("Selección Actual: " + modeloSeleccion.getSize());
-            panelListas.repaint();
-        }
-        
+        // 2. Lógica para determinar la CLAVE a seleccionar (lógica simplificada)
         String claveParaMostrar = null;
-        String focoFinal = proyectoContext.getNombreListaActiva();
-        if ("descartes".equals(focoFinal)) {
+        String focoActual = proyectoContext.getNombreListaActiva();
+        
+        if ("descartes".equals(focoActual)) {
             claveParaMostrar = proyectoContext.getDescartesListKey();
         } else {
             claveParaMostrar = proyectoContext.getSeleccionListKey();
         }
-        boolean claveValida = claveParaMostrar != null && proyectoContext.getModeloLista().contains(claveParaMostrar);
-        if (!claveValida) {
-            if (projectList != null && projectList.getModel().getSize() > 0) {
-                claveParaMostrar = projectList.getModel().getElementAt(0);
-                focoFinal = "seleccion";
-            } else if (descartesList != null && descartesList.getModel().getSize() > 0) {
+
+        // Si no hay clave guardada para el foco actual, o si la clave ya no es válida,
+        // intentamos seleccionar la primera de la lista con foco.
+        if (claveParaMostrar == null || !proyectoContext.getModeloLista().contains(claveParaMostrar)) {
+            if ("descartes".equals(focoActual) && descartesList.getModel().getSize() > 0) {
                 claveParaMostrar = descartesList.getModel().getElementAt(0);
-                focoFinal = "descartes";
+            } else if (projectList.getModel().getSize() > 0) {
+                // Si el foco no es descartes, o si descartes está vacía, intentamos con selección.
+                claveParaMostrar = projectList.getModel().getElementAt(0);
+                proyectoContext.setNombreListaActiva("seleccion"); // Corregimos el foco si es necesario
             }
         }
         
-        proyectoContext.setNombreListaActiva(focoFinal);
-        
-        final String finalClaveParaMostrar = claveParaMostrar; // Capturar para el lambda
-        
-        // --- INICIO CORRECCIÓN CLAVE: Retrasar la carga de la imagen con SwingUtilities.invokeLater ---
-        // Esto le da a Swing tiempo para que el CardLayout y el nuevo panel se validen y dibujen.
+        // 3. ¡LA LLAMADA CLAVE!
+        // Le pasamos la clave a nuestro nuevo método del coordinador. Él se encarga del resto.
+        projectListCoordinator.seleccionarImagenPorClave(claveParaMostrar);
+
+        // 4. Lógica de UI que se ejecuta después
         SwingUtilities.invokeLater(() -> {
-            seleccionarImagenEnListaActiva(finalClaveParaMostrar); // La carga de la imagen real ocurre aquí
+            actualizarAparienciaListasPorFoco();
             
-            // Después de seleccionar la imagen (y cargarla en el visor),
-            // actualizamos las selecciones visuales en las JList del proyecto.
-            // Esto asegura que la imagen mostrada y la lista seleccionada estén sincronizadas.
-            if (projectList != null) projectList.setSelectedValue(proyectoContext.getSeleccionListKey(), true);
-            if (descartesList != null) descartesList.setSelectedValue(proyectoContext.getDescartesListKey(), true);
-            
-            actualizarEstadoVisualDeListas(); // Limpia la selección en la lista no activa
-            actualizarAparienciaListasPorFoco(); // Pinta el borde de la lista activa
-            
-            // Estos invokeLater para los divisores se pueden quedar aquí.
             final JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
-            if (leftSplit != null) {
-                leftSplit.setDividerLocation(0.55);
-            }
+            if (leftSplit != null) leftSplit.setDividerLocation(0.55);
+            
             final JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
-            if (mainSplit != null) {
-                mainSplit.setDividerLocation(0.25);
-            }
+            if (mainSplit != null) mainSplit.setDividerLocation(0.25);
 
-            System.out.println("  [ProjectController] UI de la vista de proyecto activada y restaurada (después del retardo de UI).");
+            System.out.println("  [ProjectController] UI de la vista de proyecto activada y restaurada.");
         });
-        // --- FIN CORRECCIÓN CLAVE ---
-    
+
     } // --- Fin del método activarVistaProyecto ---
-
-    public void setProjectManager(IProjectManager projectManager) {this.projectManager = Objects.requireNonNull(projectManager);}
-    public void setViewManager(IViewManager viewManager) { this.viewManager = Objects.requireNonNull(viewManager); }
-    public void setRegistry(ComponentRegistry registry) { this.registry = Objects.requireNonNull(registry); }
-    public void setZoomManager(IZoomManager zoomManager) { this.zoomManager = Objects.requireNonNull(zoomManager); }
-    public void setListCoordinator(IListCoordinator listCoordinator) { this.listCoordinator = Objects.requireNonNull(listCoordinator); }
-    public void setView(VisorView view) { this.view = Objects.requireNonNull(view); }
-    public void setActionMap(Map<String, Action> actionMap) { this.actionMap = Objects.requireNonNull(actionMap); }
-    public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model); }
-    public void setController(VisorController controller) { this.controllerRef = Objects.requireNonNull(controller); }
-
+    
+    
     @Override
     public void navegarSiguiente() {
-        JList<?> listaParaNavegar = obtenerListaActivaDesdeModelo();
-        if (listaParaNavegar != null) {
-            int total = listaParaNavegar.getModel().getSize();
-            if (total == 0) return;
-            int idx = listaParaNavegar.getSelectedIndex();
-            idx = idx + 1;
-            if (idx >= total) {
-                idx = model.isNavegacionCircularActivada() ? 0 : total - 1;
-            }
-            listaParaNavegar.setSelectedIndex(idx);
-            listaParaNavegar.ensureIndexIsVisible(idx);
+        if (projectListCoordinator != null) {
+            projectListCoordinator.seleccionarSiguiente();
         }
-    } // --- Fin del método navegarSiguiente ---
-
+    } 
+    
     @Override
     public void navegarAnterior() {
-        JList<?> listaParaNavegar = obtenerListaActivaDesdeModelo();
-        if (listaParaNavegar != null) {
-            int total = listaParaNavegar.getModel().getSize();
-            if (total == 0) return;
-            int idx = listaParaNavegar.getSelectedIndex();
-            if (idx == -1) idx = 0;
-            idx = idx - 1;
-            if (idx < 0) {
-                idx = model.isNavegacionCircularActivada() ? total - 1 : 0;
-            }
-            listaParaNavegar.setSelectedIndex(idx);
-            listaParaNavegar.ensureIndexIsVisible(idx);
-        }
-    } // --- Fin del método navegarAnterior ---
+        if (projectListCoordinator != null) projectListCoordinator.seleccionarAnterior();
+    }
 
     @Override
     public void navegarPrimero() {
-        JList<?> listaParaNavegar = obtenerListaActivaDesdeModelo();
-        if (listaParaNavegar != null && listaParaNavegar.getModel().getSize() > 0) {
-            listaParaNavegar.setSelectedIndex(0);
-            listaParaNavegar.ensureIndexIsVisible(0);
-        }
-    } // --- Fin del método navegarPrimero ---
+        if (projectListCoordinator != null) projectListCoordinator.seleccionarPrimero();
+    }
 
     @Override
     public void navegarUltimo() {
-        JList<?> listaParaNavegar = obtenerListaActivaDesdeModelo();
-        if (listaParaNavegar != null) {
-            int ultimoIdx = listaParaNavegar.getModel().getSize() - 1;
-            if (ultimoIdx >= 0) {
-                listaParaNavegar.setSelectedIndex(ultimoIdx);
-                listaParaNavegar.ensureIndexIsVisible(ultimoIdx);
-            }
-        }
-    } // --- Fin del método navegarUltimo ---
+        if (projectListCoordinator != null) projectListCoordinator.seleccionarUltimo();
+    }
 
     @Override
     public void navegarBloqueSiguiente() {
-        JList<?> listaActiva = obtenerListaActivaDesdeModelo();
-        if (listaActiva != null && listaActiva.getModel().getSize() > 0) {
-            int indiceActual = listaActiva.getSelectedIndex();
-            if (indiceActual == -1) indiceActual = 0;
-            int nuevoIndice = Math.min(indiceActual + model.getSaltoDeBloque(), listaActiva.getModel().getSize() - 1);
-            if (nuevoIndice != indiceActual) {
-                listaActiva.setSelectedIndex(nuevoIndice);
-                listaActiva.ensureIndexIsVisible(nuevoIndice);
-            }
-        }
-    } // --- Fin del método navegarBloqueSiguiente ---
+        if (projectListCoordinator != null) projectListCoordinator.seleccionarBloqueSiguiente();
+    }
 
     @Override
     public void navegarBloqueAnterior() {
-        JList<?> listaActiva = obtenerListaActivaDesdeModelo();
-        if (listaActiva != null && listaActiva.getModel().getSize() > 0) {
-            int indiceActual = listaActiva.getSelectedIndex();
-            if (indiceActual == -1) indiceActual = 0;
-            int nuevoIndice = Math.max(0, indiceActual - model.getSaltoDeBloque());
-            if (nuevoIndice != indiceActual) {
-                listaActiva.setSelectedIndex(nuevoIndice);
-                listaActiva.ensureIndexIsVisible(nuevoIndice);
-            }
-        }
-    } // --- Fin del método navegarBloqueAnterior ---
+        if (projectListCoordinator != null) projectListCoordinator.seleccionarBloqueAnterior();
+    }
 
     @Override
     public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
@@ -694,22 +585,7 @@ public class ProjectController implements IModoController {
         }
     } // --- Fin del método solicitarEliminacionPermanente ---
     
-    private void actualizarEstadoVisualDeListas() {
-        if (registry == null || model == null || model.getProyectoListContext() == null) {
-            return;
-        }
-        String nombreListaActiva = model.getProyectoListContext().getNombreListaActiva();
-        JList<String> projectList = registry.get("list.proyecto.nombres");
-        JList<String> descartesList = registry.get("list.proyecto.descartes");
-        if (projectList != null && descartesList != null) {
-            if ("seleccion".equals(nombreListaActiva)) {
-                descartesList.clearSelection();
-            } else {
-                projectList.clearSelection();
-            }
-        }
-    } // --- Fin del método actualizarEstadoVisualDeListas ---
-    
+        
     private void actualizarAparienciaListasPorFoco() {
         if (registry == null || model == null || controllerRef.getThemeManager() == null) return;
         JList<String> projectList = registry.get("list.proyecto.nombres");
@@ -733,34 +609,6 @@ public class ProjectController implements IModoController {
             descartesList.setForeground(colorTextoActivo);
         }
     } // --- Fin del método actualizarAparienciaListasPorFoco ---
-    
-    private JList<?> obtenerListaActivaDesdeModelo() {
-        if (registry == null || model == null || model.getProyectoListContext() == null) {
-            return null;
-        }
-        String nombreListaActiva = model.getProyectoListContext().getNombreListaActiva();
-        if ("descartes".equals(nombreListaActiva)) {
-            return registry.get("list.proyecto.descartes");
-        } else {
-            return registry.get("list.proyecto.nombres");
-        }
-    } // --- Fin del método obtenerListaActivaDesdeModelo ---
-    
-    /**
-     * Obtiene la JTable de exportación a través del registro de componentes.
-     * Accede al ExportPanel registrado y luego usa su método getTablaExportacion().
-     * @return La JTable de la cola de exportación, o null si no se encuentra.
-     */
-    public JTable getTablaExportacionDesdeRegistro() {
-        if (registry == null) return null;
-        vista.panels.export.ExportPanel exportPanel = registry.get("panel.proyecto.herramientas.exportar");
-        if (exportPanel != null) {
-            // --- CAMBIO: Accedemos directamente al getter de la tabla ---
-            return exportPanel.getTablaExportacion(); 
-        }
-        System.err.println("WARN [ProjectController]: No se pudo encontrar 'tablaExportacion' a través del registro.");
-        return null;
-    } // --- Fin del método getTablaExportacionDesdeRegistro ---
     
 
     public void solicitarRelocalizacionImagen() {
@@ -896,5 +744,41 @@ public class ProjectController implements IModoController {
         }
     }// --- Fin del nuevo método mostrarImagenDeExportacion ---
     
+    
+// *********************************************************************************************************
+// *************************************************************************************** GETTERS Y SETTERS    
+// *********************************************************************************************************    
+    
+    public void setViewManager(IViewManager viewManager) { this.viewManager = Objects.requireNonNull(viewManager); }
+    public void setProjectManager(IProjectManager projectManager) {this.projectManager = Objects.requireNonNull(projectManager);}
+    public void setRegistry(ComponentRegistry registry) { this.registry = Objects.requireNonNull(registry); }
+    public void setZoomManager(IZoomManager zoomManager) { this.zoomManager = Objects.requireNonNull(zoomManager); }
+    public void setListCoordinator(IListCoordinator listCoordinator) { this.listCoordinator = Objects.requireNonNull(listCoordinator); }
+    public void setView(VisorView view) { this.view = Objects.requireNonNull(view); }
+    public void setActionMap(Map<String, Action> actionMap) { this.actionMap = Objects.requireNonNull(actionMap); }
+    public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model); }
+    public void setController(VisorController controller) { this.controllerRef = Objects.requireNonNull(controller); }
+    public VisorController getController() {return this.controllerRef;}
+    
+    /**
+     * Obtiene la JTable de exportación a través del registro de componentes.
+     * Accede al ExportPanel registrado y luego usa su método getTablaExportacion().
+     * @return La JTable de la cola de exportación, o null si no se encuentra.
+     */
+    public JTable getTablaExportacionDesdeRegistro() {
+        if (registry == null) return null;
+        vista.panels.export.ExportPanel exportPanel = registry.get("panel.proyecto.herramientas.exportar");
+        if (exportPanel != null) {
+            // --- CAMBIO: Accedemos directamente al getter de la tabla ---
+            return exportPanel.getTablaExportacion(); 
+        }
+        System.err.println("WARN [ProjectController]: No se pudo encontrar 'tablaExportacion' a través del registro.");
+        return null;
+    } // --- Fin del método getTablaExportacionDesdeRegistro ---
+    
+    
+    public void setProjectListCoordinator(ProjectListCoordinator coordinator) {
+        this.projectListCoordinator = coordinator;
+    }
     
 } // --- FIN de la clase ProjectController ---

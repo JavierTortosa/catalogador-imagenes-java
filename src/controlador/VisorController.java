@@ -188,153 +188,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
 
 // ************************************************************************************************************* ACTIONS
     
-//    /**
-//     * Asigna el modelo de datos de las miniaturas (`this.modeloMiniaturas`, que es
-//     * gestionado por el VisorController y actualizado por
-//     * `actualizarModeloYVistaMiniaturas`) a la JList correspondiente en la VisorView.
-//     *
-//     * Se llama desde AppInitializer (en el EDT) después de crear la Vista y
-//     * antes de cargar el estado inicial, para asegurar que la JList de miniaturas
-//     * tenga un modelo asignado desde el principio (aunque inicialmente esté vacío).
-//     *
-//     * También se podría llamar a este método si se necesitara cambiar
-//     * fundamentalmente el *tipo* de modelo usado por las miniaturas en tiempo de ejecución,
-//     * pero su uso principal aquí es durante la inicialización.
-//     */
-//    /*package-private*/ void assignModeloMiniaturasToViewInternal() {
-//        // --- SECCIÓN 1: Log de Inicio y Validaciones ---
-//        // 1.1. Imprimir log indicando la acción que se va a realizar.
-//        System.out.println("    [EDT Internal] Asignando modelo de miniaturas a la Vista...");
-//        // 1.2. Validar que la Vista exista.
-//        if (view == null) {
-//            System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: Vista es null. No se puede asignar el modelo.");
-//            return; // Salir si no hay vista.
-//        }
-//        // 1.3. Validar que la JList de miniaturas dentro de la Vista exista.
-//        if (registry.get("list.miniaturas") == null) {
-//             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: listaMiniaturas en Vista es null. No se puede asignar el modelo.");
-//             return; // Salir si el componente específico no existe.
-//        }
-//        // 1.4. Validar que el modelo de miniaturas del controlador (`this.modeloMiniaturas`) exista.
-//        //      AppInitializer debería haberlo creado e inyectado.
-//        if (this.modeloMiniaturas == null) {
-//             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: El modelo de miniaturas del controlador es null. Creando uno vacío como fallback.");
-//             // Crear un modelo vacío para evitar NullPointerException en setModeloListaMiniaturas,
-//             // aunque esto indica un problema en la inicialización previa.
-//             this.modeloMiniaturas = new DefaultListModel<>();
-//        }
-//
-//        // --- SECCIÓN 2: Asignación del Modelo ---
-//        // 2.1. Llamar al método de la Vista (`setModeloListaMiniaturas`) para que
-//        //      la `JList` de miniaturas utilice el `DefaultListModel` que gestiona
-//        //      este controlador (`this.modeloMiniaturas`).
-//        //      Inicialmente, este modelo estará vacío. Se poblará dinámicamente
-//        //      por `actualizarModeloYVistaMiniaturas`.
-//        try {
-//            view.setModeloListaMiniaturas(this.modeloMiniaturas);
-//            // 2.2. Log de confirmación (el método setModeloListaMiniaturas ya tiene su propio log).
-//            // System.out.println("      -> Modelo de miniaturas asignado a JList en Vista.");
-//        } catch (Exception e) {
-//            // 2.3. Capturar cualquier excepción inesperada durante la asignación.
-//             System.err.println("ERROR [assignModeloMiniaturasToViewInternal]: Excepción al asignar modelo de miniaturas a la vista: " + e.getMessage());
-//             e.printStackTrace();
-//        }
-//
-//        // --- SECCIÓN 3: Log Final ---
-//        // 3.1. Indicar que la asignación ha finalizado.
-//        System.out.println("    [EDT Internal] Fin assignModeloMiniaturasToViewInternal.");
-//
-//    } // --- FIN assignModeloMiniaturasToViewInternal ---
-
-    
-//    /**
-//     * Establece la variable de instancia `carpetaRaizActual` leyendo la ruta
-//     * guardada en la configuración (clave "inicio.carpeta").
-//     * Valida que la ruta leída desde la configuración sea un directorio válido
-//     * antes de asignarla a `carpetaRaizActual`.
-//     * Si la ruta de la configuración no es válida o no existe, `carpetaRaizActual`
-//     * puede quedar como null (indicando que no hay una carpeta raíz válida definida).
-//     *
-//     * Se llama desde AppInitializer (en el EDT, aunque podría llamarse antes si
-//     * no interactúa con UI) durante la inicialización.
-//     */
-//    /*package-private*/ void establecerCarpetaRaizDesdeConfigInternal() {
-//        // --- SECCIÓN 1: Log de Inicio y Validación de Dependencias ---
-//        // 1.1. Imprimir log indicando la acción.
-//        System.out.println("    [EDT Internal] Estableciendo carpeta raíz inicial desde config...");
-//        
-//        // 1.2. Validar que el gestor de configuración exista.
-//        if (configuration == null) {
-//            System.err.println("ERROR [establecerCarpetaRaizDesdeConfigInternal]: ConfigurationManager es null. No se puede leer la carpeta.");
-//            
-//            if (this.model != null) { // Asegurarse que el modelo existe antes de intentar ponerle null
-//                this.model.setCarpetaRaizActual(null); // <<< CAMBIO AQUÍ: Actualizar el modelo
-//            } else {
-//                // Esto sería un problema de orden de inicialización muy grave si model es null aquí
-//                System.err.println("ERROR CRÍTICO [establecerCarpetaRaizDesdeConfigInternal]: VisorModel también es null. No se puede establecer carpetaRaizActual a null.");
-//            }
-//            
-//            return; // Salir si falta la configuración.
-//        }
-//
-//        // --- SECCIÓN 2: Lectura y Validación de la Ruta ---
-//        // 2.1. Obtener la cadena de la ruta desde la configuración.
-//        //      Usar la clave "inicio.carpeta" y "" como valor por defecto si no se encuentra.
-//        String folderInitPath = configuration.getString("inicio.carpeta", "");
-//        // 2.2. Inicializar el Path resultante a null.
-//        Path candidatePath = null;
-//
-//        // 2.3. Comprobar si se obtuvo una ruta no vacía desde la configuración.
-//        if (!folderInitPath.isEmpty()) {
-//            // 2.3.1. Bloque try-catch para manejar errores al convertir la cadena a Path o al verificar el directorio.
-//            try {
-//                // 2.3.1.1. Intentar crear un objeto Path desde la cadena.
-//                candidatePath = Paths.get(folderInitPath);
-//                // 2.3.1.2. Verificar si el Path resultante es un directorio válido y existente.
-//                if (Files.isDirectory(candidatePath)) {
-//                    // 2.3.1.2.1. Si es válido, asignar este Path a la variable de instancia `carpetaRaizActual`.
-//                	
-//                	this.model.setCarpetaRaizActual(candidatePath);
-//                	
-//                    System.out.println("      -> Carpeta raíz establecida a: " +
-//                    		//this.carpetaRaizActual);
-//                    		this.model.getCarpetaRaizActual());
-//                } else {
-//                    // 2.3.1.2.2. Si la ruta existe pero no es un directorio, loguear advertencia y poner `carpetaRaizActual` a null.
-//                    System.err.println("WARN [establecerCarpetaRaizDesdeConfigInternal]: La ruta en config no es un directorio: " + folderInitPath);
-//                    this.model.setCarpetaRaizActual(null);
-//                }
-//            // 2.3.2. Capturar excepciones (p.ej., formato de ruta inválido).
-//            } catch (Exception e) {
-//                // 2.3.2.1. Loguear el error y poner `carpetaRaizActual` a null.
-//                System.err.println("WARN [establecerCarpetaRaizDesdeConfigInternal]: Ruta de carpeta inicial inválida en config: '" + folderInitPath + "' - Error: " + e.getMessage());
-//                
-//                this.model.setCarpetaRaizActual(null);
-//                
-//            }
-//        // 2.4. Si la ruta en la configuración estaba vacía.
-//        } else {
-//            // 2.4.1. Log indicando que no había ruta definida.
-//            System.out.println("      -> No hay ruta de inicio definida en la configuración.");
-//            // 2.4.2. Asegurar que `carpetaRaizActual` sea null.
-//            this.model.setCarpetaRaizActual(null);
-//        }
-//
-//        // --- SECCIÓN 3: Log Final ---
-//        // 3.1. Indicar si se estableció una carpeta raíz o no.
-//        
-//        if (this.model.getCarpetaRaizActual() != null) {
-//        	
-//            System.out.println("    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. Raíz actual: " 
-//            		//+ this.carpetaRaizActual);
-//            		+ this.model.getCarpetaRaizActual());
-//            
-//        } else {
-//        	System.out.println("    [EDT Internal] Fin establecerCarpetaRaizDesdeConfigInternal. No se estableció carpeta raíz válida en MODELO.");
-//        }
-//
-//    } // --- FIN establecerCarpetaRaizDesdeConfigInternal ---
-
     
 	/**
 	 * Carga la carpeta y la imagen iniciales definidas en la configuración.
@@ -3279,121 +3132,130 @@ public class VisorController implements ActionListener, ClipboardOwner {
   	} // --- FIN parseColor ---
   
   
-//EN VisorController.java
-//REEMPLAZA EL MÉTODO guardarConfiguracionActual() COMPLETO
-
-private void guardarConfiguracionActual() {
-   if (configuration == null || model == null) {
-       System.err.println("ERROR [guardarConfiguracionActual]: Configuración o Modelo nulos.");
-       return;
-   }
-   System.out.println("  [Guardar] Guardando estado final de todos los contextos...");
-
-   // --- Guardar estado del MODO VISUALIZADOR (Nuestra "sesión principal") ---
-   ListContext visualizadorContext = model.getVisualizadorListContext();
-   String visualizadorKey = visualizadorContext.getSelectedImageKey();
-   Path ultimaCarpetaVisor = model.getCarpetaRaizDelVisualizador(); // Usamos el nuevo getter
-   
-   configuration.setString(ConfigKeys.INICIO_IMAGEN, visualizadorKey != null ? visualizadorKey : "");
-   configuration.setString(ConfigKeys.INICIO_CARPETA, (ultimaCarpetaVisor != null) ? ultimaCarpetaVisor.toString() : "");
-   System.out.println("  [Guardar] Estado Visualizador: UltimaKey=" + visualizadorKey + ", UltimaCarpeta=" + ultimaCarpetaVisor);
-
-   // --- Guardar estado del MODO PROYECTO (sin cambios) ---
-   ListContext proyectoContext = model.getProyectoListContext();
-   String focoActivo = proyectoContext.getNombreListaActiva();
-   configuration.setString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, focoActivo != null ? focoActivo : "seleccion");
-   String seleccionKey = proyectoContext.getSeleccionListKey();
-   configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, seleccionKey != null ? seleccionKey : "");
-   String descartesKey = proyectoContext.getDescartesListKey();
-   configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, descartesKey != null ? descartesKey : "");
-   System.out.println("  [Guardar] Estado Proyecto: Foco=" + focoActivo + ", SelKey=" + seleccionKey + ", DescKey=" + descartesKey);
-   
-   // --- Guardar otros estados globales (sin cambios) ---
-   configuration.setString(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, String.valueOf(model.isModoPantallaCompletaActivado()));
-
-   // --- Guardar el archivo físico ---
-   try {
-       configuration.guardarConfiguracion(configuration.getConfig());
-       System.out.println("  [Guardar] Configuración guardada exitosamente.");
-   } catch (IOException e) {
-       System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
-   }
-} // --- FIN del metodo guardarConfiguracionActual ---
+	private void guardarConfiguracionActual() {
+	   if (configuration == null || model == null) {
+	       System.err.println("ERROR [guardarConfiguracionActual]: Configuración o Modelo nulos.");
+	       return;
+	   }
+	   System.out.println("  [Guardar] Guardando estado final de todos los contextos...");
+	
+	   // --- Guardar estado del MODO VISUALIZADOR (Nuestra "sesión principal") ---
+	   ListContext visualizadorContext = model.getVisualizadorListContext();
+	   String visualizadorKey = visualizadorContext.getSelectedImageKey();
+	   Path ultimaCarpetaVisor = model.getCarpetaRaizDelVisualizador(); // Usamos el nuevo getter
+	   
+	   configuration.setString(ConfigKeys.INICIO_IMAGEN, visualizadorKey != null ? visualizadorKey : "");
+	   configuration.setString(ConfigKeys.INICIO_CARPETA, (ultimaCarpetaVisor != null) ? ultimaCarpetaVisor.toString() : "");
+	   System.out.println("  [Guardar] Estado Visualizador: UltimaKey=" + visualizadorKey + ", UltimaCarpeta=" + ultimaCarpetaVisor);
+	
+	   // --- Guardar estado del MODO PROYECTO (sin cambios) ---
+	   ListContext proyectoContext = model.getProyectoListContext();
+	   String focoActivo = proyectoContext.getNombreListaActiva();
+	   configuration.setString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, focoActivo != null ? focoActivo : "seleccion");
+	   String seleccionKey = proyectoContext.getSeleccionListKey();
+	   configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, seleccionKey != null ? seleccionKey : "");
+	   String descartesKey = proyectoContext.getDescartesListKey();
+	   configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, descartesKey != null ? descartesKey : "");
+	   System.out.println("  [Guardar] Estado Proyecto: Foco=" + focoActivo + ", SelKey=" + seleccionKey + ", DescKey=" + descartesKey);
+	   
+	   // --- Guardar otros estados globales (sin cambios) ---
+	   configuration.setString(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, String.valueOf(model.isModoPantallaCompletaActivado()));
+	
+	   // --- Guardar el archivo físico ---
+	   try {
+	       configuration.guardarConfiguracion(configuration.getConfig());
+	       System.out.println("  [Guardar] Configuración guardada exitosamente.");
+	   } catch (IOException e) {
+	       System.err.println("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
+	   }
+	} // --- FIN del metodo guardarConfiguracionActual ---
      
      
-     /**
-      * Calcula dinámicamente el número de miniaturas a mostrar antes y después de la
-      * miniatura central, basándose en el ancho disponible del viewport del JScrollPane
-      * de miniaturas y el ancho de cada celda de miniatura.
-      * Respeta los máximos configurados por el usuario.
-      *
-      * @return Un objeto RangoMiniaturasCalculado con los valores 'antes' y 'despues'.
-      */
-     public RangoMiniaturasCalculado calcularNumMiniaturasDinamicas() {
-    	    // --- 1. OBTENER LÍMITES SUPERIORES DE CONFIGURACIÓN/MODELO (sin cambios) ---
-    	    int cfgMiniaturasAntes, cfgMiniaturasDespues;
-    	    if (model != null) {
-    	        cfgMiniaturasAntes = model.getMiniaturasAntes();
-    	        cfgMiniaturasDespues = model.getMiniaturasDespues();
-    	    } else if (configuration != null) {
-    	        cfgMiniaturasAntes = configuration.getInt("miniaturas.cantidad.antes", DEFAULT_MINIATURAS_ANTES_FALLBACK);
-    	        cfgMiniaturasDespues = configuration.getInt("miniaturas.cantidad.despues", DEFAULT_MINIATURAS_DESPUES_FALLBACK);
-    	        System.out.println("  [CalcularMiniaturas] WARN: Modelo nulo, usando valores de config/fallback.");
-    	    } else {
-    	        cfgMiniaturasAntes = DEFAULT_MINIATURAS_ANTES_FALLBACK;
-    	        cfgMiniaturasDespues = DEFAULT_MINIATURAS_DESPUES_FALLBACK;
-    	        System.err.println("  [CalcularMiniaturas] ERROR: Modelo y Config nulos, usando fallbacks.");
-    	    }
+	/**
+	 * Calcula dinámicamente el número de miniaturas a mostrar antes y después de la
+	 * miniatura central, basándose en el ancho disponible del viewport del
+	 * JScrollPane de miniaturas y el ancho de cada celda de miniatura. Respeta los
+	 * máximos configurados por el usuario.
+	 *
+	 * @return Un objeto RangoMiniaturasCalculado con los valores 'antes' y
+	 *         'despues'.
+	 */
+	public RangoMiniaturasCalculado calcularNumMiniaturasDinamicas(){
+		// --- 1. OBTENER LÍMITES SUPERIORES DE CONFIGURACIÓN/MODELO (sin cambios) ---
+		int cfgMiniaturasAntes, cfgMiniaturasDespues;
 
-    	    // --- 2. OBTENER COMPONENTES DE LA VISTA DESDE EL REGISTRO ---
-    	    JScrollPane scrollPane = registry.get("scroll.miniaturas");
-    	    JList<String> listaMin = registry.get("list.miniaturas");
+		if (model != null){
+			cfgMiniaturasAntes = model.getMiniaturasAntes();
+			cfgMiniaturasDespues = model.getMiniaturasDespues();
+		} else if (configuration != null){
+			
+			cfgMiniaturasAntes = configuration.getInt("miniaturas.cantidad.antes", DEFAULT_MINIATURAS_ANTES_FALLBACK);
+			cfgMiniaturasDespues = configuration.getInt("miniaturas.cantidad.despues",
+					DEFAULT_MINIATURAS_DESPUES_FALLBACK);
+			System.out.println("  [CalcularMiniaturas] WARN: Modelo nulo, usando valores de config/fallback.");
+		} else{
+			
+			cfgMiniaturasAntes = DEFAULT_MINIATURAS_ANTES_FALLBACK;
+			cfgMiniaturasDespues = DEFAULT_MINIATURAS_DESPUES_FALLBACK;
+			System.err.println("  [CalcularMiniaturas] ERROR: Modelo y Config nulos, usando fallbacks.");
+		}
 
-    	    // --- 3. VALIDAR DISPONIBILIDAD DE COMPONENTES ---
-    	    if (scrollPane == null || listaMin == null) {
-    	        System.out.println("  [CalcularMiniaturas] WARN: ScrollPane o JList de miniaturas nulos en registro. Devolviendo máximos configurados.");
-    	        return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
-    	    }
+		// --- 2. OBTENER COMPONENTES DE LA VISTA DESDE EL REGISTRO ---
+		JScrollPane scrollPane = registry.get("scroll.miniaturas");
+		JList<String> listaMin = registry.get("list.miniaturas");
 
-    	    // --- 4. OBTENER DIMENSIONES ACTUALES DE LA UI ---
-    	    int viewportWidth = scrollPane.getViewport().getWidth();
-    	    int cellWidth = listaMin.getFixedCellWidth();
+		// --- 3. VALIDAR DISPONIBILIDAD DE COMPONENTES ---
+		if (scrollPane == null || listaMin == null){
+			
+			System.out.println(
+					"  [CalcularMiniaturas] WARN: ScrollPane o JList de miniaturas nulos en registro. Devolviendo máximos configurados.");
+			return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+		}
 
-    	    // Log de depuración
-    	    // System.out.println("  [CalcularMiniaturas DEBUG] ViewportWidth: " + ...);
+		// --- 4. OBTENER DIMENSIONES ACTUALES DE LA UI ---
+		int viewportWidth = scrollPane.getViewport().getWidth();
+		int cellWidth = listaMin.getFixedCellWidth();
 
-    	    // --- 5. LÓGICA DE FALLBACK MEJORADA ---
-    	    if (viewportWidth <= 0 || cellWidth <= 0 || !scrollPane.isShowing()) {
-    	        System.out.println("  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.");
-    	        return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
-    	    }
+		// Log de depuración
+		// System.out.println(" [CalcularMiniaturas DEBUG] ViewportWidth: " + ...);
 
-    	    // --- 6. CÁLCULO Y DISTRIBUCIÓN (sin cambios) ---
-    	    int totalMiniaturasQueCaben = viewportWidth / cellWidth;
-    	    int numAntesCalculado;
-    	    int numDespuesCalculado;
-    	    int maxTotalConfigurado = cfgMiniaturasAntes + 1 + cfgMiniaturasDespues;
+		// --- 5. LÓGICA DE FALLBACK MEJORADA ---
+		if (viewportWidth <= 0 || cellWidth <= 0 || !scrollPane.isShowing())
+		{
+			System.out.println(
+					"  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.");
+			return new RangoMiniaturasCalculado(cfgMiniaturasAntes, cfgMiniaturasDespues);
+		}
 
-    	    if (totalMiniaturasQueCaben >= maxTotalConfigurado) {
-    	        numAntesCalculado = cfgMiniaturasAntes;
-    	        numDespuesCalculado = cfgMiniaturasDespues;
-    	    } else if (totalMiniaturasQueCaben <= 1) {
-    	        numAntesCalculado = 0;
-    	        numDespuesCalculado = 0;
-    	    } else {
-    	        int miniaturasLateralesDisponibles = totalMiniaturasQueCaben - 1;
-    	        double ratioAntesOriginal = (cfgMiniaturasAntes + cfgMiniaturasDespues > 0) ? (double) cfgMiniaturasAntes / (cfgMiniaturasAntes + cfgMiniaturasDespues) : 0.5;
-    	        numAntesCalculado = (int) Math.round(miniaturasLateralesDisponibles * ratioAntesOriginal);
-    	        numDespuesCalculado = miniaturasLateralesDisponibles - numAntesCalculado;
-    	        numAntesCalculado = Math.min(numAntesCalculado, cfgMiniaturasAntes);
-    	        numDespuesCalculado = Math.min(numDespuesCalculado, cfgMiniaturasDespues);
-    	    }
+		// --- 6. CÁLCULO Y DISTRIBUCIÓN (sin cambios) ---
+		int totalMiniaturasQueCaben = viewportWidth / cellWidth;
+		int numAntesCalculado;
+		int numDespuesCalculado;
+		int maxTotalConfigurado = cfgMiniaturasAntes + 1 + cfgMiniaturasDespues;
 
-    	    // --- 7. DEVOLVER EL RESULTADO CALCULADO ---
-    	    System.out.println("  [CalcularMiniaturas] Rango dinámico calculado -> Antes: " + numAntesCalculado + ", Despues: " + numDespuesCalculado);
-    	    return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
-    	}// --- FIN del metodo calcularNumMiniaturasDinamicas ---
-     
+		if (totalMiniaturasQueCaben >= maxTotalConfigurado){
+			numAntesCalculado = cfgMiniaturasAntes;
+			numDespuesCalculado = cfgMiniaturasDespues;
+			
+		} else if (totalMiniaturasQueCaben <= 1){
+			numAntesCalculado = 0;
+			numDespuesCalculado = 0;
+		} else{
+			int miniaturasLateralesDisponibles = totalMiniaturasQueCaben - 1;
+			double ratioAntesOriginal = (cfgMiniaturasAntes + cfgMiniaturasDespues > 0)
+					? (double) cfgMiniaturasAntes / (cfgMiniaturasAntes + cfgMiniaturasDespues)
+					: 0.5;
+			numAntesCalculado = (int) Math.round(miniaturasLateralesDisponibles * ratioAntesOriginal);
+			numDespuesCalculado = miniaturasLateralesDisponibles - numAntesCalculado;
+			numAntesCalculado = Math.min(numAntesCalculado, cfgMiniaturasAntes);
+			numDespuesCalculado = Math.min(numDespuesCalculado, cfgMiniaturasDespues);
+		}
+
+		// --- 7. DEVOLVER EL RESULTADO CALCULADO ---
+		System.out.println("  [CalcularMiniaturas] Rango dinámico calculado -> Antes: " + numAntesCalculado
+				+ ", Despues: " + numDespuesCalculado);
+		return new RangoMiniaturasCalculado(numAntesCalculado, numDespuesCalculado);
+	}// --- FIN del metodo calcularNumMiniaturasDinamicas ---
      
      
      

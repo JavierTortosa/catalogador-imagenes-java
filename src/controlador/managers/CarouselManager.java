@@ -10,6 +10,7 @@ import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import modelo.VisorModel.WorkMode;
 
 public class CarouselManager {
 
@@ -19,7 +20,7 @@ public class CarouselManager {
     private final ComponentRegistry registry;
     private final VisorModel model;
 
-    // --- Componentes de UI ---
+    // --- Componentes de UI (Lazy loaded) ---
     private JLabel timerLabel;
     private JScrollPane carouselThumbnails;
 
@@ -27,7 +28,6 @@ public class CarouselManager {
     private Timer imageChangeTimer;
     private Timer countdownTimer;
     private boolean isRunning = false;
-    private int delay;
     private int countdown;
 
     public CarouselManager(
@@ -41,48 +41,58 @@ public class CarouselManager {
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en CarouselManager");
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en CarouselManager");
         
-    } // --- Fin del método CarouselManager (constructor) --- // --- Fin del método CarouselManager (constructor) ---
+    } // --- Fin del constructor CarouselManager ---
 
+    /**
+     * Inicializa las referencias a los componentes de la UI.
+     * Se llama una vez cuando se entra en el modo carrusel.
+     */
     private void initComponents() {
         if (this.timerLabel == null) {
             this.timerLabel = registry.get("label.estado.carouselTimer");
         }
         if (this.carouselThumbnails == null) {
+            // Usamos la clave correcta que definimos en el ViewBuilder
             this.carouselThumbnails = registry.get("scroll.miniaturas.carousel");
         }
     } // --- Fin del método initComponents ---
-
     
     public void play() {
-        if (isRunning) return;
+        if (isRunning || model.getCurrentWorkMode() != WorkMode.CARROUSEL) return;
         
         System.out.println("[CarouselManager] Iniciando carrusel...");
-        initComponents();
         
-        this.delay = model.getCarouselDelay();
-        
-        // --- INICIO DE LA ÚNICA MODIFICACIÓN ---
-        // Si el delay es 3000ms (3s), la cuenta atrás debe empezar en 2.
-        this.countdown = (delay / 1000) - 1; 
-        // --- FIN DE LA ÚNICA MODIFICACIÓN ---
+        int delay = model.getCarouselDelay();
+        this.countdown = (delay / 1000) - 1;
 
         // Timer principal para cambiar la imagen
-        imageChangeTimer = new Timer(delay, e -> listCoordinator.seleccionarSiguiente());
-        imageChangeTimer.setInitialDelay(0);
+        imageChangeTimer = new Timer(delay, e -> {
+            if (model.getCurrentWorkMode() == WorkMode.CARROUSEL) { // Doble chequeo de seguridad
+                listCoordinator.seleccionarSiguiente();
+            }
+        });
+        imageChangeTimer.setInitialDelay(delay); // Inicia después del primer delay completo
 
         // Timer secundario para actualizar el contador CADA segundo
         countdownTimer = new Timer(1000, e -> {
             if (timerLabel != null) {
-                // Se muestra el valor actual de countdown (ej. 2, 1, 0)
-                timerLabel.setText(String.format("%02d", countdown));
+                timerLabel.setText(String.format("%02d", Math.max(0, countdown)));
             }
             countdown--;
             if (countdown < 0) {
-                // Cuando llega a -1, se resetea al valor inicial (ej. 2)
                 countdown = (delay / 1000) - 1;
             }
         });
 
+        // Iniciar el contador inmediatamente
+        if (timerLabel != null) {
+            timerLabel.setText(String.format("%02d", Math.max(0, countdown)));
+            countdown--;
+            if (countdown < 0) {
+                countdown = (delay / 1000) - 1;
+            }
+        }
+        
         imageChangeTimer.start();
         countdownTimer.start();
         isRunning = true;
@@ -108,22 +118,31 @@ public class CarouselManager {
 
     public void stop() {
         System.out.println("[CarouselManager] Deteniendo carrusel.");
-        if (imageChangeTimer != null) imageChangeTimer.stop();
-        if (countdownTimer != null) countdownTimer.stop();
+        
+        if (imageChangeTimer != null) {
+            imageChangeTimer.stop();
+            imageChangeTimer = null;
+        }
+        if (countdownTimer != null) {
+            countdownTimer.stop();
+            countdownTimer = null;
+        }
         isRunning = false;
 
         if (timerLabel != null) {
             timerLabel.setText("--:--");
             timerLabel.setVisible(false);
         }
-        if (carouselThumbnails != null) carouselThumbnails.setVisible(true);
+        if (carouselThumbnails != null) {
+            carouselThumbnails.setVisible(true);
+        }
 
         actualizarEstadoDeAcciones();
     } // --- Fin del método stop ---
 
     private void actualizarEstadoDeAcciones() {
         if (controller.getActionMap() != null) {
-            boolean hayImagenes = model.getModeloLista() != null && !model.getModeloLista().isEmpty();
+            boolean hayImagenes = model.getCurrentListContext() != null && !model.getCurrentListContext().getModeloLista().isEmpty();
             
             controller.getActionMap().get(AppActionCommands.CMD_CAROUSEL_PLAY).setEnabled(!isRunning && hayImagenes);
             controller.getActionMap().get(AppActionCommands.CMD_CAROUSEL_PAUSE).setEnabled(isRunning && hayImagenes);
@@ -131,11 +150,19 @@ public class CarouselManager {
         }
     } // --- Fin del método actualizarEstadoDeAcciones ---
 
+    /**
+     * Punto de entrada/salida que se llama desde GeneralController cuando
+     * el modo de trabajo cambia hacia o desde el Carrusel.
+     * @param isEntering true si estamos entrando en el modo, false si estamos saliendo.
+     */
     public void onCarouselModeChanged(boolean isEntering) {
         if (isEntering) {
-            stop();
+            System.out.println("[CarouselManager] Entrando en modo Carrusel...");
+            initComponents(); // Se asegura de que tenemos las referencias a la UI
+            stop(); // Garantiza un estado limpio al entrar
         } else {
-            stop();
+            System.out.println("[CarouselManager] Saliendo del modo Carrusel...");
+            stop(); // Detiene cualquier reproducción activa al salir
         }
     } // --- Fin del método onCarouselModeChanged ---
 

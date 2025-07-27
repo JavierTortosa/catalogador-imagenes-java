@@ -148,7 +148,9 @@ public class ViewBuilder{
 	    // c) Registramos los componentes para que el sistema pueda encontrarlos con claves ÚNICAS.
 	    workModesContainer.add(carouselWorkModePanel, "VISTA_CAROUSEL_WORKMODE");
 	    registry.register("panel.workmode.carousel", carouselWorkModePanel);
-	    registry.register("panel.display.carousel", carouselDisplayPanel);
+	    registry.register("panel.display.carousel", carouselDisplayPanel);//, "WHEEL_NAVIGABLE");
+	    registry.register("label.carousel.imagen", carouselDisplayPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+	    
         // Registramos el scroll de miniaturas para poder ocultarlo/mostrarlo después
         registry.register("scroll.miniaturas.carousel", carouselThumbnailScrollPane); 
 	    // --- FIN DE LA MODIFICACIÓN ---

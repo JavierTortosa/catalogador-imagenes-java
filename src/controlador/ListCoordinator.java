@@ -4,10 +4,11 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
+
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;

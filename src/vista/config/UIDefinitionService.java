@@ -743,7 +743,7 @@ public class UIDefinitionService {
             new ToolbarDefinition("control",	"Utilidades", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils, ToolbarAlignment.RIGHT),
             new ToolbarDefinition("toggle",	    "Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle, ToolbarAlignment.RIGHT),
             
-            new ToolbarDefinition("proyecto_vista","Proyecto (en Vista)", 70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS), botonesProyectoEnVista, ToolbarAlignment.RIGHT),
+            new ToolbarDefinition("proyecto_vista","Proyecto (en Vista)", 70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL), botonesProyectoEnVista, ToolbarAlignment.RIGHT),
             new ToolbarDefinition("proyecto",	"Acciones de Proyecto", 90, EnumSet.of(WorkMode.PROYECTO), botonesProyectoEnProyecto, ToolbarAlignment.RIGHT),
             new ToolbarDefinition("modo",		"Modo",			80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION), botonesModo, ToolbarAlignment.RIGHT),
             new ToolbarDefinition("especiales",   "Apoyo", 		100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.EDICION, WorkMode.CARROUSEL), botonesApoyo, ToolbarAlignment.RIGHT),

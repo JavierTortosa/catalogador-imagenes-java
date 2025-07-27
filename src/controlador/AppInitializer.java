@@ -201,6 +201,9 @@ public class AppInitializer {
             this.editionManager = new EditionManager();
             this.viewManager = new ViewManager();
             this.listCoordinator = new ListCoordinator();
+            
+            ProjectListCoordinator projectListCoordinator = new ProjectListCoordinator(this.model, this.controller, registry);
+            
             this.carouselManager = new CarouselManager(listCoordinator, this.controller, registry, this.model);
             
             this.fileOperationsManager = new FileOperationsManager();
@@ -315,6 +318,7 @@ public class AppInitializer {
             this.projectController.setModel(this.model); 
             this.projectController.setController(this.controller);
             this.projectController.setListCoordinator(this.listCoordinator);
+            this.projectController.setProjectListCoordinator(projectListCoordinator);
             
             this.controller.setProjectController(this.projectController);
             
@@ -415,6 +419,8 @@ public class AppInitializer {
             this.listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
             this.generalController.setStatusBarManager(this.statusBarManager);
 
+            projectListCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
+            
             this.view.setJMenuBar(menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap));
             this.controller.setMenuItemsPorNombre(menuBuilder.getMenuItemsMap());
             menuBuilder.getMenuItemsMap().forEach(registry::register);
@@ -459,9 +465,6 @@ public class AppInitializer {
             this.view.addWindowListener(new java.awt.event.WindowAdapter() {
                 public void windowClosing(java.awt.event.WindowEvent e) { controller.shutdownApplication(); }
             });
-            
-//            this.controller.establecerCarpetaRaizDesdeConfigInternal();
-            
             
             // --- Establecer carpeta raíz inicial EXPLÍCITAMENTE en el contexto del Visualizador ---
             System.out.println("  [AppInitializer] Estableciendo carpeta raíz inicial desde config en el Modelo...");

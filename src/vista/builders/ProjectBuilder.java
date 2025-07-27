@@ -129,6 +129,7 @@ public class ProjectBuilder {
         
         // --- Crear y añadir la lista de "Selección Actual" ---
         JList<String> projectFileList = new JList<>();
+        projectFileList.setName("list.proyecto.nombres");
         
         projectFileList.setBackground(themeManager.getTemaActual().colorFondoSecundario());
         
@@ -164,7 +165,6 @@ public class ProjectBuilder {
         JPanel panelHerramientas = new JPanel(new BorderLayout());
         TitledBorder border = BorderFactory.createTitledBorder("Herramientas de Proyecto");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-//        panelHerramientas.setBorder(border);
         registry.register("panel.proyecto.herramientas.container", panelHerramientas);
         
         javax.swing.JTabbedPane herramientasTabbedPane = new javax.swing.JTabbedPane();
@@ -172,6 +172,8 @@ public class ProjectBuilder {
         
         // --- Pestaña 1: Lista de Descartes ---
         JList<String> descartesList = new JList<>();
+        descartesList.setName("list.proyecto.descartes");
+        
         descartesList.setBackground(themeManager.getTemaActual().colorFondoPrincipal());
         descartesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         descartesList.setCellRenderer(new NombreArchivoRenderer(themeManager, model, true));
@@ -208,9 +210,10 @@ public class ProjectBuilder {
         registry.register("panel.proyecto.herramientas.exportar", panelExportar);
         
         JTable tablaExportacion = panelExportar.getTablaExportacion();
-        if (tablaExportacion != null && tablaExportacion.getParent() instanceof javax.swing.JViewport && tablaExportacion.getParent().getParent() instanceof JScrollPane) {
-            JScrollPane scrollPaneTabla = (JScrollPane) tablaExportacion.getParent().getParent();
-            registry.register("scroll.tabla.exportacion", scrollPaneTabla, "WHEEL_NAVIGABLE");
+        if (tablaExportacion != null) {
+            // Registramos la TABLA, no su scroll, con la clave que GeneralController espera.
+            // Y le añadimos la etiqueta para que el listener se le aplique.
+            registry.register("tabla.exportacion", tablaExportacion, "WHEEL_NAVIGABLE");
         }
         
         Action assignAction = generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO);
