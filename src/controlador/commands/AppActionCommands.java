@@ -31,15 +31,17 @@ public interface AppActionCommands {
     
     
  // Comandos para navegación por fotogramas (si son Actions separadas)
-    public static final String CMD_CAROUSEL_NAV_PRIMERA 		= "cmd.carousel.nav.primera";
-    public static final String CMD_CAROUSEL_NAV_ANTERIOR 		= "cmd.carousel.nav.anterior";
-    public static final String CMD_CAROUSEL_NAV_SIGUIENTE 		= "cmd.carousel.nav.siguiente";
-    public static final String CMD_CAROUSEL_NAV_ULTIMA 			= "cmd.carousel.nav.ultima";
+//    public static final String CMD_CAROUSEL_NAV_PRIMERA 		= "cmd.carousel.nav.primera";
+//    public static final String CMD_CAROUSEL_NAV_ANTERIOR 		= "cmd.carousel.nav.anterior";
+//    public static final String CMD_CAROUSEL_NAV_SIGUIENTE 		= "cmd.carousel.nav.siguiente";
+//    public static final String CMD_CAROUSEL_NAV_ULTIMA 			= "cmd.carousel.nav.ultima";
+//    public static final String CMD_CAROUSEL_FASTER				= "cmd.carousel.faster";
+//    public static final String CMD_CAROUSEL_SLOWER 				= "cmd.carousel.slower";
     public static final String CMD_CAROUSEL_PLAY 				= "cmd.carousel.play";
     public static final String CMD_CAROUSEL_PAUSE 				= "cmd.carousel.pause";
     public static final String CMD_CAROUSEL_STOP 				= "cmd.carousel.stop";
-    public static final String CMD_CAROUSEL_FASTER				= "cmd.carousel.faster";
-    public static final String CMD_CAROUSEL_SLOWER 				= "cmd.carousel.slower";
+    public static final String CMD_CAROUSEL_REWIND 				= "cmd.carousel.rewind"; // Retroceso rápido
+    public static final String CMD_CAROUSEL_FAST_FORWARD 		= "cmd.carousel.fast_forward"; // Avance rápido
 
 
  // --- Zoom ---

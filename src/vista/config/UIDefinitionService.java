@@ -657,22 +657,23 @@ public class UIDefinitionService {
 		
 		// --- BARRA DE BOTONES carrousel ---
 		List<ToolbarButtonDefinition> botonesCarrousel = List.of(
-//			 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_PRIMERA,		"9001-primer_fotograma_48x48.png", "Primera Imagen", "carrousel")
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ANTERIOR, 		"9003-fotograma_anterior_48x48.png", "Fotograma Anterior", "carrousel")
 				
-			 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_PLAY,				"9004-play_48x48.png", "Play", "carrousel")
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_REWIND,				"9002-retroceso_rapido_48x48.png", "Retroceso Rapido", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_PLAY,				"9004-play_48x48.png", "Play", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_PAUSE,				"9005-pausa_48x48.png", "Pausa", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_STOP,				"9007-stop_48x48.png", "Stop", "carrousel")
-			
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_SIGUIENTE, 		"9008-fotograma_siguiente_48x48.png", "Fotograma Siguiente", "carrousel")
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ULTIMA,			"9010-ultimo_fotograma_48x48.png", "Ultimo Fotograma", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_FAST_FORWARD,		"9009-avance_rapido_48x48.png", "Avance Rapido", "carrousel")
 
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9006-play-pausa_48x48.png", "Play-Pausa", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9002-retroceso_rapido_48x48.png", "Retroceso Rapido", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9009-avance_rapido_48x48.png", "Avance Rapido", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9011-maxima_velocidad_48x48.png", "Maxima Velocidad", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9012-velocidad_normal_48x48.png", "Velocidad Normal", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9013-minima_velocidad_48x48.png", "Minima Velocidad", "carrousel")
+			
+//			 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_PRIMERA,		"9001-primer_fotograma_48x48.png", "Primera Imagen", "carrousel")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ANTERIOR, 		"9003-fotograma_anterior_48x48.png", "Fotograma Anterior", "carrousel")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_SIGUIENTE, 		"9008-fotograma_siguiente_48x48.png", "Fotograma Siguiente", "carrousel")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ULTIMA,			"9010-ultimo_fotograma_48x48.png", "Ultimo Fotograma", "carrousel")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9006-play-pausa_48x48.png", "Play-Pausa", "carrousel")
+			
 		);
 
 		

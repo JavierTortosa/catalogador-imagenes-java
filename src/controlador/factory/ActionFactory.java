@@ -420,6 +420,22 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_CAROUSEL_PAUSE, new PauseCarouselAction("Pausar Carrusel", this.carouselManager));
         registerAction(AppActionCommands.CMD_CAROUSEL_STOP, new StopCarouselAction("Detener Carrusel", this.carouselManager));
         
+        registerAction(AppActionCommands.CMD_CAROUSEL_REWIND, new AbstractAction("Retroceso Rápido") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // No hace nada a propósito. El MouseListener se encarga de la acción.
+            }
+        });
+        
+        registerAction(AppActionCommands.CMD_CAROUSEL_FAST_FORWARD, new AbstractAction("Avance Rápido") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // No hace nada a propósito. El MouseListener se encarga de la acción.
+            }
+        });
+        
         // Actions que dependen del 'actionMap' completo para construir menús emergentes.
     } // --- FIN del metodo createViewDependentActions ---
     

@@ -18,6 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
@@ -25,6 +26,7 @@ import javax.swing.SwingUtilities;
 import controlador.actions.displaymode.SwitchDisplayModeAction;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.IModoController;
+import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager; // <-- Importación necesaria
@@ -173,134 +175,85 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         // Por ahora, solo se loguea.
     } // --- Fin del método salirModo ---
 
-    /**
-     * Realiza las tareas de "configuración" y "restauración" de la UI para un modo
-     * en el que estamos entrando. Llama al método centralizador para ajustar la UI.
-     * @param modoAlQueSeEntra El nuevo modo activo.
-     */
+	
+	/**
+	 * Realiza las tareas de "configuración" y "restauración" de la UI para un modo
+	 * en el que estamos entrando. Usa un enfoque de doble invokeLater y revalidate
+	 * para garantizar la correcta temporización de la UI y evitar bucles.
+	 * @param modoAlQueSeEntra El nuevo modo activo.
+	 */
 	private void entrarModo(WorkMode modoAlQueSeEntra) {
 	    System.out.println("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
 	    
-	    switch (modoAlQueSeEntra) {
-	        case VISUALIZADOR: this.viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR"); break;
-	        case PROYECTO: this.viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS"); break;
-	        case DATOS: this.viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS"); break;
-	        case EDICION: this.viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION"); break;
-	        case CARROUSEL: this.viewManager.cambiarAVista("container.workmodes", "VISTA_CAROUSEL_WORKMODE"); break;
-	    }
-	    
 	    SwingUtilities.invokeLater(() -> {
-	        System.out.println("  [GeneralController - invokeLater] Ejecutando restauración de UI para: " + modoAlQueSeEntra);
+	        // --- PRIMER INVOKELATER: Cambia la vista y fuerza la validación del layout ---
+	        System.out.println("    -> [EDT-1] Cambiando tarjeta del CardLayout a: " + modoAlQueSeEntra);
 	        
 	        switch (modoAlQueSeEntra) {
-	            case VISUALIZADOR:
-	                this.visorController.restaurarUiVisualizador();
-	                this.cambiarDisplayMode(model.getCurrentDisplayMode()); 
-	                break;
-	            case PROYECTO:
-	                this.projectController.activarVistaProyecto();
-	                break;
-	            case CARROUSEL:
-                    // --- INICIO LÓGICA DE CARGA INTELIGENTE PARA CARRUSEL ---
-                    ListContext contextoCarrusel = model.getCarouselListContext();
-                    
-                    // Comprobamos si el carrusel ya tiene una lista.
-                    // La condición es que su modelo de lista sea nulo o esté vacío.
-                    if (contextoCarrusel.getModeloLista() == null || contextoCarrusel.getModeloLista().isEmpty()) {
-                        System.out.println("      -> El contexto del Carrusel está vacío. Se clonará desde el Visualizador (primera vez).");
-                        
-                        ListContext contextoVisualizador = model.getVisualizadorListContext();
-                        contextoCarrusel.clonarDesde(contextoVisualizador);
-                        
-                        System.out.println("      -> Contexto de lista del Carrusel clonado.");
-                        System.out.println("      -> Imagen a seleccionar: " + contextoCarrusel.getSelectedImageKey());
-                    } else {
-                        System.out.println("      -> El contexto del Carrusel ya tiene una lista. Se restaurará su propio estado.");
-                    }
+	            case VISUALIZADOR: viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR"); break;
+	            case PROYECTO: viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS"); break;
+	            case DATOS: viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS"); break;
+	            case EDICION: viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION"); break;
+	            case CARROUSEL: viewManager.cambiarAVista("container.workmodes", "VISTA_CARROUSEL_WORKMODE"); break;
+	        }
 
-	                this.visorController.restaurarUiCarrusel();
-	                
-	                if (visorController.getActionFactory().getCarouselManager() != null) {
-	                    visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
+	        JPanel workModesContainer = registry.get("container.workmodes");
+	        if (workModesContainer != null) {
+	            System.out.println("    -> [EDT-1] Forzando validación para asegurar que los componentes tienen tamaño...");
+	            workModesContainer.revalidate();
+	            workModesContainer.repaint();
+	        }
+
+	        // --- SEGUNDO INVOKELATER: Ejecuta el resto de la lógica ---
+	        SwingUtilities.invokeLater(() -> {
+	            System.out.println("    -> [EDT-2] Restaurando UI para: " + modoAlQueSeEntra);
+
+	            switch (modoAlQueSeEntra) {
+	                case VISUALIZADOR:
+	                    this.visorController.restaurarUiVisualizador();
+	                    this.cambiarDisplayMode(model.getCurrentDisplayMode()); 
+	                    break;
+	                case PROYECTO:
+	                    this.projectController.activarVistaProyecto();
+	                    break;
+	                case CARROUSEL:
+	                    ListContext contextoCarrusel = model.getCarouselListContext();
+	                    if (contextoCarrusel.getModeloLista() == null || contextoCarrusel.getModeloLista().isEmpty()) {
+	                        System.out.println("      -> El contexto del Carrusel está vacío. Se clonará desde el Visualizador.");
+	                        contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
+	                    } else {
+	                        System.out.println("      -> El contexto del Carrusel ya tiene una lista. Se restaurará su propio estado.");
+	                    }
+	                    this.visorController.restaurarUiCarrusel();
+	                    if (visorController.getActionFactory().getCarouselManager() != null) {
+	                        visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
+	                    }
+	                    break;
+	                case DATOS: case EDICION: break;
+	            } // --- Fin del switch de restauración ---
+
+	            // Sincronización general
+	            actualizarEstadoUiParaModo(modoAlQueSeEntra);
+	            if (this.toolbarManager != null) {
+	                this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
+
+	                // ***** INICIO DE LA MODIFICACIÓN CLAVE *****
+	                // Si estamos en modo carrusel, después de construir las toolbars,
+	                // le decimos al CarouselManager que busque y configure sus botones.
+	                if (modoAlQueSeEntra == WorkMode.CARROUSEL) {
+	                    if (visorController.getActionFactory().getCarouselManager() != null) {
+	                        visorController.getActionFactory().getCarouselManager().findAndWireUpFastMoveButtons();
+	                    }
 	                }
-	                break;
-                    // --- FIN LÓGICA DE CARGA INTELIGENTE PARA CARRUSEL ---
-	            case DATOS: 
-	            case EDICION:
-	                break;
-	        }
-
-	        if (this.visorController != null) {
-	            this.visorController.sincronizarComponentesDeModoVisualizador();
-	        }
-	        
-	        actualizarEstadoUiParaModo(modoAlQueSeEntra);
-	        if (this.toolbarManager != null) {
-	            this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
-	        }
-	        sincronizarEstadoBotonesDeModo();
-	        sincronizarEstadoBotonesDisplayMode();
-	        
-	        System.out.println("  [GeneralController - invokeLater] Restauración de UI para " + modoAlQueSeEntra + " completada.");
-	    });
-	    
+	                // ***** FIN DE LA MODIFICACIÓN CLAVE *****
+	            }
+	            sincronizarEstadoBotonesDeModo();
+	            sincronizarEstadoBotonesDisplayMode();
+	            
+	            System.out.println("    -> [EDT-2] Restauración de UI para " + modoAlQueSeEntra + " completada.");
+	        }); // --- Fin del segundo invokeLater ---
+	    }); // --- Fin del primer invokeLater ---
 	} // --- Fin del método entrarModo ---
-	
-//	private void entrarModo(WorkMode modoAlQueSeEntra) {
-//	    System.out.println("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
-//	    
-//	    // El cambio de tarjeta del CardLayout debe ocurrir PRIMERO y de forma síncrona.
-//	    switch (modoAlQueSeEntra) {
-//	        case VISUALIZADOR: this.viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR"); break;
-//	        case PROYECTO: this.viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS"); break;
-//	        case DATOS: this.viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS"); break;
-//	        case EDICION: this.viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION"); break;
-//	        case CARROUSEL: this.viewManager.cambiarAVista("container.workmodes", "VISTA_CAROUSEL_WORKMODE"); break;
-//	    }
-//	    
-//	    // --- INICIO DE LA MODIFICACIÓN CLAVE ---
-//	    // Ahora, encolamos el resto de la lógica de inicialización del modo en el EDT.
-//	    // Esto garantiza que se ejecutará DESPUÉS de que el CardLayout haya procesado el cambio de vista.
-//	    SwingUtilities.invokeLater(() -> {
-//	        System.out.println("  [GeneralController - invokeLater] Ejecutando restauración de UI para: " + modoAlQueSeEntra);
-//	        
-//	        switch (modoAlQueSeEntra) {
-//	            case VISUALIZADOR:
-//	                this.visorController.restaurarUiVisualizador();
-//	                this.cambiarDisplayMode(model.getCurrentDisplayMode()); 
-//	                break;
-//	            case PROYECTO:
-//	                this.projectController.activarVistaProyecto();
-//	                break;
-//	            // --- INICIO CÓDIGO AÑADIDO ---
-//	            case CARROUSEL:
-//	                // Notificar al CarouselManager que hemos entrado en su modo.
-//	                // Esto es un buen sitio para resetear su estado.
-//	                if (visorController != null && visorController.getActionFactory() != null && visorController.getActionFactory().getCarouselManager() != null) {
-//	                    visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
-//	                }
-//	                break;
-//	            // --- FIN CÓDIGO AÑADIDO ---
-//	            case DATOS: 
-//	            case EDICION:
-//	                break;
-//	        }
-//
-//	        // Estas tareas también deben ocurrir después de la restauración.
-//	        actualizarEstadoUiParaModo(modoAlQueSeEntra);
-//	        
-//	        if (this.toolbarManager != null) {
-//	            this.toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
-//	        }
-//	        
-//	        sincronizarEstadoBotonesDeModo();
-//	        sincronizarEstadoBotonesDisplayMode();
-//	        
-//	        System.out.println("  [GeneralController - invokeLater] Restauración de UI para " + modoAlQueSeEntra + " completada.");
-//	    });
-//	    // --- FIN DE LA MODIFICACIÓN CLAVE ---
-//	    
-//	} // --- Fin del método entrarModo ---
 	
     
     /**
@@ -1185,7 +1138,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarZoomConRueda(e);
         }else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
-            projectController.aplicarZoomConRueda(e);
+        	visorController.aplicarZoomConRueda(e);
         }
         
         //LOG [GeneralController] Delegando aplicarZoomConRueda
@@ -1203,7 +1156,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarPan(deltaX, deltaY);
         }else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
-            projectController.aplicarPan(deltaX, deltaY);
+        	visorController.aplicarPan(deltaX, deltaY);
         }
         
         //LOG [GeneralController] Delegando aplicarPan
@@ -1224,7 +1177,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.iniciarPaneo(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
-            projectController.iniciarPaneo(e);
+        	visorController.iniciarPaneo(e);
         }
         
         //LOG [GeneralController] Delegando iniciarPaneo
@@ -1247,7 +1200,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.aplicarPan(deltaX, deltaY);
         }else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
-            projectController.aplicarPan(deltaX, deltaY);
+        	visorController.aplicarPan(deltaX, deltaY);
         }
         
         

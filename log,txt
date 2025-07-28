@@ -2,13 +2,13 @@ Iniciando Visor de Imágenes V2...
 --- Iniciando VisorController (Constructor Simple) ---
 --- AppInitializer: Iniciando Proceso de Inicialización Global ---
   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
-Mapa de configuración por defecto inicializado con 128 claves.
+Mapa de configuración por defecto inicializado con 130 claves.
 Mapa DEFAULT_GROUP_COMMENTS inicializado con 36 entradas.
 Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
-Configuración leída. Total claves: 136
+Configuración leída. Total claves: 138
 --- DEBUG PRE-SINCRONIZACIÓN ---
-Tamaño de DEFAULT_CONFIG: 128
-Tamaño de loadedConfig (del archivo): 136
+Tamaño de DEFAULT_CONFIG: 130
+Tamaño de loadedConfig (del archivo): 138
 DEFAULT_CONFIG contiene 'salto_bloque'?: true
 loadedConfig contiene 'salto_bloque'?: true
 ---------------------------------
@@ -109,7 +109,6 @@ VisorController instanciado. La inicialización de la UI ha sido programada en e
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'acciones_exportacion'
     -> Barra 'acciones_exportacion' registrada en ComponentRegistry con la clave: 'toolbar.acciones_exportacion'
   [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.
-ComponentRegistry WARN: La clave 'scroll.miniaturas.carousel' ya existe. El componente anterior será sobrescrito.
   [ViewBuilder] Frame principal construido y ensamblado.
     -> Cableando modelos de miniaturas a las JLists...
     -> VisorView (JFrame) creado.
@@ -119,7 +118,9 @@ ComponentRegistry WARN: La clave 'scroll.miniaturas.carousel' ya existe. El comp
   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.play
   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.pause
   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.stop
-  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 104
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.rewind
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.fast_forward
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 106
   [ActionFactory] Inicializando Actions dependientes de la vista...
 [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
 WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carousel.play
@@ -128,15 +129,19 @@ WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carouse
   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.pause
 WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carousel.stop
   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.stop
-  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 104
-  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 31, Descartes: 4
+WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carousel.rewind
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.rewind
+WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carousel.fast_forward
+  [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.fast_forward
+  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 106
+  [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 31, Descartes: 3
 [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-  -> Proyecto inicial cargado. Selección: 31, Descartes: 4
+  -> Proyecto inicial cargado. Selección: 31, Descartes: 3
   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
     -> MouseListener añadido a 'label.control.zoomPorcentaje'.
     -> ActionListener añadido a 'button.control.modoZoom'.
 --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-  [MenuBarBuilder] ActionMap recibido con 104 acciones.
+  [MenuBarBuilder] ActionMap recibido con 106 acciones.
   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 --- MenuBarBuilder: Construcción de JMenuBar completada. ---
@@ -283,8 +288,8 @@ WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carouse
     -> Creando modelo de lista en bloque...
     -> Modelo creado. Actualizando el modelo principal de la aplicación...
 [Model] Actualizando contexto de lista para el modo: VISUALIZADOR
-### DEBUG CONTEXT: ListContext@41ad83ed: SelectedKey set to NULL (old key not found or was null).
-### DEBUG CONTEXT: ListContext@41ad83ed actualizado. Nuevo tamaño: 351
+### DEBUG CONTEXT: ListContext@6850d899: SelectedKey set to NULL (old key not found or was null).
+### DEBUG CONTEXT: ListContext@6850d899 actualizado. Nuevo tamaño: 351
 [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 351
 [ListCoordinator] Nueva selección. Modo: VISUALIZADOR. Índice: 0
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg'
@@ -311,13 +316,13 @@ WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carouse
   [GeneralController] Saliendo del modo: VISUALIZADOR
 [Model] Cambiando modo de trabajo de VISUALIZADOR a: CARROUSEL
   [GeneralController] Entrando en modo: CARROUSEL
-[ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_CAROUSEL_WORKMODE
 --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a CARROUSEL ---
 
-  [GeneralController - invokeLater] Ejecutando restauración de UI para: CARROUSEL
-      -> El contexto del Carrusel está vacío. Se clonará desde el Visualizador (primera vez).
-      -> Contexto de lista del Carrusel clonado.
-      -> Imagen a seleccionar: A-gigante de hierro.jpg
+    -> [EDT-1] Cambiando tarjeta del CardLayout a: CARROUSEL
+[ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_CARROUSEL_WORKMODE
+    -> [EDT-1] Forzando validación para asegurar que los componentes tienen tamaño...
+    -> [EDT-2] Restaurando UI para: CARROUSEL
+      -> El contexto del Carrusel está vacío. Se clonará desde el Visualizador.
     -> Restaurando UI para el modo CARRUSEL...
       -> Clave guardada en contexto CARRUSEL: 'A-gigante de hierro.jpg'
 [ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 0
@@ -328,11 +333,6 @@ WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carouse
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
 [CarouselManager] Entrando en modo Carrusel...
 [CarouselManager] Deteniendo carrusel.
-  [VisorController] Sincronizando componentes específicos del modo Visualizador...
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-  [Controller] Sincronizando estado visual de Radios Subcarpetas a: Mostrar Subcarpetas
-  [Controller] Estado visual de Radios Subcarpetas sincronizado.
   [GeneralController] Actualizando estado de la UI para el modo: CARROUSEL
   [GeneralController] Estado de la UI actualizado.
 
@@ -342,74 +342,23 @@ WARN [ActionFactory]: Reemplazando Action existente para el comando: cmd.carouse
 --- [ToolbarBuilder] Construyendo barra: 'Carrousel' ---
 ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
 ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
-ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pendiente' ya existe. El componente anterior será sobrescrito.
   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'carrousel'
     -> Barra 'carrousel' registrada en ComponentRegistry con la clave: 'toolbar.carrousel'
 --- [ToolbarManager] Reconstrucción de toolbars completada. ---
+[CarouselManager] Buscando y configurando botones de avance/retroceso rápido...
+  -> Botón Rewind encontrado y configurado.
+  -> Botón Fast Forward encontrado y configurado.
 [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.carousel
   [SwitchDisplayModeAction] Sincronizada acción 'Vista Imagen Única'. Seleccionado: true
 [GeneralController] Sincronizados botones de DisplayMode. Activo: SINGLE_IMAGE
-  [GeneralController - invokeLater] Restauración de UI para CARROUSEL completada.
+    -> [EDT-2] Restauración de UI para CARROUSEL completada.
   -> Solicitando repintado inicial de listaMiniaturas.
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[ToggleZoomManualAction] Solicitando al controlador que alterne el modo de paneo...
-[VisorController] Solicitud para alternar paneo. Nuevo estado: false
-[VisorController] Sincronizando UI de Zoom: Paneo=false, Modo=Ajustar a Pantalla, ZoomAlCursor=true
-[VisorController] Sincronización completa de la UI de Zoom finalizada.
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[GeneralController] Delegando navegarSiguiente para modo: CARROUSEL
+[CarouselManager] Iniciando carrusel...
+[CarouselManager] Iniciando Avance Rápido.
+[CarouselManager] Pausando carrusel.
 [ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 1
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg'
   [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
@@ -417,7 +366,9 @@ ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pe
 [Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
   -> Solicitando repintado inicial de listaMiniaturas.
-[GeneralController] Delegando navegarSiguiente para modo: CARROUSEL
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
 [ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 2
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg'
   [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
@@ -428,7 +379,6 @@ ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pe
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[GeneralController] Delegando navegarSiguiente para modo: CARROUSEL
 [ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 3
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg'
   [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
@@ -439,7 +389,6 @@ ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pe
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[GeneralController] Delegando navegarSiguiente para modo: CARROUSEL
 [ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 4
 --> [actualizarImagenPrincipal] Iniciando carga para clave: 'bam september.jpg'
   [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
@@ -450,49 +399,218 @@ ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pe
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 3
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Land of The Frost.jpg'
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 5
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png'
   [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
-[Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
-[Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-  -> Solicitando repintado inicial de listaMiniaturas.
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 2
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Hero_Pack_____Miniature_jpg.jpg'
-  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
-[Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
-[Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
   -> Solicitando repintado inicial de listaMiniaturas.
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 1
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg'
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 6
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg'
   [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
-[Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
-[Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
+[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
   -> Solicitando repintado inicial de listaMiniaturas.
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 0
---> [actualizarImagenPrincipal] Iniciando carga para clave: 'A-gigante de hierro.jpg'
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 7
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-primera_48x48.png'
   [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
-[Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
-[Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
+[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
   -> Solicitando repintado inicial de listaMiniaturas.
   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
-[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
-[ToggleZoomManualAction] Solicitando al controlador que alterne el modo de paneo...
-[VisorController] Solicitud para alternar paneo. Nuevo estado: true
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 8
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-anterior_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 9
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-siguiente_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 10
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1004-ultima_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 11
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/20001-zoom_al_cursor_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 12
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2001-rotar_izquierda_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 13
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2002-rotar_derecha_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[CarouselManager] Deteniendo Avance/Retroceso Rápido.
+[CarouselManager] Iniciando carrusel...
+[CarouselManager] Iniciando Retroceso Rápido.
+[CarouselManager] Pausando carrusel.
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 12
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/2001-rotar_izquierda_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 11
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/20001-zoom_al_cursor_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 10
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1004-ultima_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 9
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1003-siguiente_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 8
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1002-anterior_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 7
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'iconos/black/1001-primera_48x48.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 23 miniaturas...
+[Controller] 23 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 6
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
+[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 5
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[CarouselManager] Deteniendo Avance/Retroceso Rápido.
+[CarouselManager] Iniciando carrusel...
 [VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
 [VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[VisorController] Sincronizando UI de Zoom: Paneo=true, Modo=Ajustar a Pantalla, ZoomAlCursor=true
+[VisorController] Sincronización completa de la UI de Zoom finalizada.
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 6
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e.jpg'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 22 miniaturas...
+[Controller] 22 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[CarouselManager] Pausando carrusel.
+[GeneralController] Delegando navegarAnterior para modo: CARROUSEL
+[ListCoordinator] Nueva selección. Modo: CARROUSEL. Índice: 5
+--> [actualizarImagenPrincipal] Iniciando carga para clave: 'cyberpunk-city-anime-girl-5k-0e-1.png'
+  [CalcularMiniaturas] WARN: Viewport/Cell inválido o ScrollPane no visible. Usando MÁXIMOS configurados como fallback.
+[Controller] Iniciando pre-calentamiento de caché para 21 miniaturas...
+[Controller] 21 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+  -> Solicitando repintado inicial de listaMiniaturas.
+  [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+  [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+  [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
 --- [Controller] Iniciando apagado de la aplicación ---
   [Guardar] Guardando estado final de todos los contextos...
   [Guardar] Estado Visualizador: UltimaKey=A-gigante de hierro.jpg, UltimaCarpeta=D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\resources
@@ -506,7 +624,7 @@ ComponentRegistry WARN: La clave 'interfaz.boton.carrousel.todo_funcionalidad_pe
   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 ------------------------------------------
 Guardando configuración (preservando estructura) en config.cfg
-Claves a guardar/actualizar: 136
+Claves a guardar/actualizar: 138
 Archivo de configuración actualizado exitosamente.
   [Guardar] Configuración guardada exitosamente.
   -> Apagando ExecutorService...

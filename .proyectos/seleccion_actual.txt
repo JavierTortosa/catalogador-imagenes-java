@@ -35,6 +35,5 @@ F:/ARCHIVOS 3D/Chibi/personajes varios/Silver+Johnny.jpg
 
 [DESCARTES]
 D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/cyberpunk-city-anime-girl-5k-0e-1.png
-D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/A-gigante de hierro.jpg
 F:/ARCHIVOS 3D/Chibi/angry-hamster.jpg
 D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/Hero_Pack_____Miniature_jpg.jpg

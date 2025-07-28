@@ -1,98 +1,79 @@
-======================================================================
- INFORME DE DISEÑO Y PLAN DE ACCIÓN: MODO CARRUSEL Y REFACTORIZACIÓN
-======================================================================
+======================================================
+  HOJA DE RUTA DEL PROYECTO (VISOR/CATALOGADOR)
+======================================================
 
-Autor: Sistema AI
-Fecha: 24/05/2024
-Proyecto: Visor/Catalogador de Imágenes
-Objetivo: Implementar de forma robusta el "Modo Carrusel" y refactorizar la lógica de navegación para hacerla reutilizable y modular, basándose en el principio de "componentes tontos" y un controlador centralizado.
+---
+### PARTE 1: ARQUITECTURA GENERAL ###
+---
+- ESTADO: COMPLETADO
+- ANÁLISIS: El patrón "Router/Dispatcher" con GeneralController como cerebro, y los componentes/acciones "tontos", está implementado. ActionFactory crea las acciones correctamente para notificar al GeneralController.
 
--------------------------------------------------
- PARTE 1: ARQUITECTURA GENERAL ("COMPONENTES TONTOS")
--------------------------------------------------
+---
+### PARTE 2: MODO CARRUSEL - FUNCIONALIDADES ###
+---
+2.1. Lógica de Listas y Contextos Independientes
+    - ESTADO: COMPLETADO
+    - ANÁLISIS: VisorModel tiene contextos separados (carouselListContext, visualizadorListContext). GeneralController implementa la lógica de "clonar solo la primera vez".
 
-1.1. INTENCIÓN PRINCIPAL:
-El objetivo es desacoplar los componentes de la UI (Vistas) y sus acciones directas (Actions) de la lógica de negocio específica de cada modo. Un botón "Siguiente" debe ser genérico; un controlador de nivel superior decidirá qué significa "siguiente" según el contexto (modo de trabajo) actual.
+2.2. Barra de Herramientas y Controles Básicos (Play/Pause/Stop/FastMove)
+    - ESTADO: COMPLETADO
+    - ANÁLISIS: UIDefinitionService define la toolbar "carrousel". CarouselManager implementa la lógica de Play/Pause/Stop, ocultar/mostrar miniaturas y el avance/retroceso rápido con MouseListeners.
 
-1.2. PATRÓN DE DISEÑO A IMPLEMENTAR (Patrón "Router" o "Dispatcher"):
-   - VISTA (Botón): Componente "tonto". Su única misión es disparar un comando genérico (ej. CMD_NAV_SIGUIENTE).
-   - ACTION (Mensajero): Componente "tonto". Recibe el disparo del botón y su única misión es notificar al controlador principal (GeneralController) diciendo "alguien quiere navegar al siguiente".
-   - CONTROLADOR (GeneralController): Componente "inteligente". Recibe la notificación de la Action, consulta el estado actual de la aplicación (VisorModel.getCurrentWorkMode()), y redirige la orden al manager o controlador específico que debe ejecutarla sobre el contexto de datos correcto (visualizadorListContext, carouselListContext, etc.).
+2.3. Contador Visual y Velocidad Básica
+    - ESTADO: COMPLETADO
+    - ANÁLISIS: CarouselManager gestiona el countdownTimer y actualiza el JLabel. La velocidad se lee desde el modelo, que la carga desde config.cfg.
 
-1.3. CLASES A MODIFICAR PARA LA ARQUITECTURA DE NAVEGACIÓN:
-   - `controlador.actions.navegacion.FirstImageAction`: Modificar constructor y actionPerformed.
-   - `controlador.actions.navegacion.PreviousImageAction`: Modificar constructor y actionPerformed.
-   - `controlador.actions.navegacion.NextImageAction`: Modificar constructor y actionPerformed.
-   - `controlador.actions.navegacion.LastImageAction`: Modificar constructor y actionPerformed.
-        - INTENCIÓN: Eliminar su dependencia directa con `IListCoordinator`. En su lugar, recibirán `GeneralController` y lo notificarán.
+======================================================
+              TAREAS PENDIENTES
+======================================================
 
-   - `controlador.factory.ActionFactory`:
-        - INTENCIÓN: Modificar la creación de las 4 acciones de navegación para inyectarles la dependencia `GeneralController` en lugar de `IListCoordinator`.
+---
+### PARTE 3: MODO CARRUSEL - FUNCIONALIDADES AVANZADAS ###
+---
 
-   - `controlador.GeneralController`:
-        - INTENCIÓN: Implementar la lógica del "router". Sus métodos (`navegarSiguiente`, `navegarAnterior`, etc.) contendrán un `switch` basado en `model.getCurrentWorkMode()` para delegar la llamada al `ListCoordinator` correcto, que operará sobre el contexto de datos apropiado.
+3.1. Control de Velocidad Interactivo
+    - FUNCIONALIDAD: Permitir al usuario cambiar la velocidad del carrusel durante la ejecución.
+    - PLAN DE ACCIÓN:
+        1. [ ] Crear `SetCarouselSpeedAction`: Nueva clase Action para manejar cambios de velocidad (ej. "2s", "3s", "Inverso -3s").
+        2. [ ] Menú Emergente (Popup Menu): Modificar InfobarStatusManager para que el JLabel de velocidad reaccione a un clic, mostrando un JPopupMenu con las opciones.
+        3. [ ] Actualización del Modelo: La Action seleccionada debe actualizar model.setCarouselDelay() y, opcionalmente, guardar el nuevo valor por defecto en config.cfg.
+        4. [ ] Soporte Velocidad Negativa: Modificar el Timer en CarouselManager para que si el delay es negativo, llame a listCoordinator.seleccionarAnterior().
 
----------------------------------
- PARTE 2: MODO CARRUSEL - FUNCIONALIDADES
----------------------------------
+3.2. Lógica de Sincronización (Carrusel <-> Visualizador)
+    - FUNCIONALIDAD: Implementar un modo "sincronizado" opcional entre el Carrusel y el Visualizador.
+    - PLAN DE ACCIÓN:
+        1. [ ] Añadir Opción de Configuración: Añadir clave en ConfigKeys (ej. CARRUSEL_MODO_SINCRONIZADO) y un JCheckBoxMenuItem en el menú para activarlo/desactivarlo.
+        2. [ ] Refactorizar `GeneralController.salirModo()`: Implementar la lógica de sincronización al salir del Carrusel. Si el modo sincronizado está activo, clonar carouselListContext sobre visualizadorListContext.
+        3. [ ] Refactorizar `GeneralController.entrarModo()`: Si el modo sincronizado está activo, forzar siempre la clonación desde el visualizador, ignorando el estado anterior del carrusel.
 
-2.1. LÓGICA DE LISTAS INDEPENDIENTES:
-   - FUNCIONALIDAD: El modo Carrusel debe tener su propia lista de imágenes y puntero de selección, independiente del modo Visualizador.
-   - COMPORTAMIENTO:
-     1. La PRIMERA VEZ que se entra al modo Carrusel, este hereda (clona) la lista y el puntero del modo Visualizador.
-     2. En entradas posteriores, el Carrusel recuerda y restaura su propio estado (su última lista y posición).
-     3. Si desde el Carrusel se abre una nueva carpeta, SOLO la lista del Carrusel se actualiza. La del Visualizador permanece intacta.
-   - CLASES A MODIFICAR:
-     - `modelo.VisorModel`: Añadir `carouselListContext` y `carouselZoomContext`. Añadir getters para los contextos específicos (`getVisualizadorListContext`, `getCarouselListContext`).
-     - `modelo.ListContext`: Añadir un método `clonarDesde(ListContext otro)` para copiar el estado de forma segura.
-     - `controlador.GeneralController`: Modificar el método `entrarModo()` para implementar la lógica de "clonar solo la primera vez".
-     - `controlador.VisorController`: Añadir el método `restaurarUiCarrusel()` para actualizar la UI con los datos del `carouselListContext`.
+3.3. Funcionalidades Adicionales (Ideas)
+    - FUNCIONALIDAD: Mejorar la usabilidad del modo carrusel.
+    - PLAN DE ACCIÓN:
+        1. [ ] Menú Contextual (Clic Derecho): Añadir MouseListener al ImageDisplayPanel del carrusel para mostrar un JPopupMenu con acciones ("Marcar para Proyecto", "Saltar a siguiente carpeta").
+        2. [ ] Overlay de Texto (Nombre de Archivo): Añadir opción en menú "Vista". En ImageDisplayPanel, si la opción está activa, dibujar el nombre del archivo con fondo semitransparente en paintComponent.
 
-2.2. BARRA DE HERRAMIENTAS DEL CARRUSEL:
-   - FUNCIONALIDAD: Una barra de herramientas específica para el modo Carrusel con controles de navegación, reproducción y velocidad.
-   - BOTONES Y SUS USOS:
-     - [Primera, Anterior, Siguiente, Última]: Navegación manual de IMÁGENES en la lista del Carrusel. Usarán los comandos `CMD_NAV_*` estándar, pero serán redirigidos por el GeneralController.
-     - [Play]: Inicia el avance automático. Oculta la barra de miniaturas. Muestra y activa el contador de tiempo.
-     - [Pause]: Detiene el avance automático. Muestra la barra de miniaturas. Congela el contador.
-     - [Stop]: Detiene el avance automático. Muestra la barra de miniaturas. Resetea y oculta el contador.
-     - [Avance Rápido / Retroceso Rápido] (FUNCIONALIDAD PENDIENTE): Botones que, al mantenerse pulsados durante el 'play', aceleran temporalmente la velocidad del Timer.
-     - [Control de Velocidad] (FUNCIONALIDAD PENDIENTE): Un botón que abrirá un JPopupMenu con opciones para cambiar la velocidad (2s, 3s, 5s, Custom...).
-   - CLASES A MODIFICAR:
-     - `vista.config.UIDefinitionService`: Definir los botones, sus iconos y sus comandos en la `ToolbarDefinition` con clave "carrousel".
-     - `controlador.managers.CarouselManager`: Implementar la lógica de ocultar/mostrar miniaturas y el contador.
+---
+### PARTE 4: ERRORES Y REFACTORIZACIÓN ###
+---
 
-2.3. CONTROL DE VELOCIDAD Y CONTADOR:
-   - FUNCIONALIDAD: Permitir al usuario controlar la velocidad del carrusel y ver una cuenta atrás.
-   - COMPORTAMIENTO:
-     1. La velocidad se leerá de un nuevo campo `carouselDelay` en `VisorModel`.
-     2. `AppInitializer` cargará este valor desde `config.cfg` al `VisorModel` al arrancar.
-     3. Un `JLabel` en la barra de estado (`label.estado.carouselTimer`) mostrará una cuenta atrás en segundos.
-     4. Tres botones en la toolbar (Acelerar, Reset, Ralentizar) modificarán el valor de `carouselDelay` en el `VisorModel` SOLO para la sesión actual.
-     5. Un `JLabel` en la barra de estado (`label.control.zoomPorcentaje`) cambiará su función en modo Carrusel para mostrar la velocidad actual (ej. "3s") y permitir abrir un menú para cambiarla de forma persistente.
-     6. La velocidad puede ser negativa, indicando reproducción en reversa.
-   - CLASES A MODIFICAR / CREAR:
-     - `modelo.VisorModel`: Añadir campo `carouselDelay` y sus getters/setters.
-     - `controlador.AppInitializer`: Añadir lógica para leer `carousel.delay.ms` y ponerlo en el modelo.
-     - `servicios.ConfigKeys`: Añadir la constante `CAROUSEL_DELAY_MS`.
-     - `controlador.managers.CarouselManager`: Modificar para usar dos Timers (uno para el cambio de imagen, otro para el contador). Leer el delay desde el `VisorModel`. Implementar lógica de dirección.
-     - `controlador.managers.InfobarStatusManager`: Modificar su método `actualizar()` para que, si el modo es Carrusel, cambie la función del `JLabel` de zoom.
-     - (Futuro) `SetCarouselSpeedAction`: Nueva clase Action para manejar el cambio de velocidad.
+4.1. BUG: Desincronización de Miniaturas (Visualizador)
+    - SÍNTOMA: El selector de la JList de miniaturas a veces no se sincroniza con la lista de nombres.
+    - CAUSA PROBABLE: Condiciones de carrera o cálculos de índice incorrectos en ListCoordinator.actualizarTiraDeMiniaturas().
+    - PLAN DE SOLUCIÓN:
+        1. [ ] Revisar y depurar el método `ListCoordinator.actualizarTiraDeMiniaturas()`, prestando atención al cálculo de `indiceRelativo` y la llamada a `sincronizarSeleccionJList()`.
 
-2.4. FUNCIONALIDADES ADICIONALES PENDIENTES (IDEAS):
-   - POPUP MENU: Clic derecho sobre la imagen en modo carrusel debería mostrar un menú contextual.
-     - OPCIONES: "Marcar para Proyecto" (Barra espaciadora como atajo), "Saltar a siguiente carpeta".
-   - OVERLAY DE TEXTO: Una opción en el menú "Vista" para mostrar/ocultar el nombre del archivo actual como un overlay semi-transparente sobre la imagen.
+4.2. BUG: Estado de Botones de Navegación del Carrusel
+    - SÍNTOMA: Botones de navegación (Primera, Anterior, etc.) no se habilitan/deshabilitan correctamente en la barra del Carrusel.
+    - CAUSA PROBABLE: Las Actions de navegación no se actualizan cuando el contexto activo es el del carrusel.
+    - PLAN DE SOLUCIÓN:
+        1. [ ] Modificar `ListCoordinator.forzarActualizacionEstadoAcciones()` para que opere sobre el ListContext ACTUAL (`model.getCurrentListContext()`).
+        2. [ ] Asegurarse de que `GeneralController` llama a `getActiveCoordinator().forzarActualizacionEstadoAcciones()` después de cada navegación.
 
--------------------------------------------------
- PARTE 3: ERRORES A SOLUCIONAR (BUGS ACTUALES)
--------------------------------------------------
-
-3.1. DESINCRONIZACIÓN DE MINIATURAS EN MODO VISUALIZADOR:
-   - SÍNTOMA: El selector de la `JList` de miniaturas desaparece o no se sincroniza con la `JList` de nombres. El control con el ratón falla.
-   - CAUSA PROBABLE: Modificaciones en `ListCoordinator` para acomodar múltiples modos han roto su lógica de sincronización con la vista de miniaturas.
-   - PLAN DE SOLUCIÓN: Una vez que la lógica del carrusel esté completamente aislada (Fases 1 y 2 del plan de acción), se refactorizará `ListCoordinator` para que se enfoque exclusivamente en su tarea original en el modo Visualizador, revisando y corrigiendo los métodos `seleccionarImagenPorIndice` y `actualizarModeloYVistaMiniaturas`.
-
-3.2. BOTONES DE NAVEGACIÓN DEL CARRUSEL NO SE ACTIVAN/DESACTIVAN:
-   - SÍNTOMA: Los botones de "siguiente/última" no se habilitan o deshabilitan correctamente al llegar a los extremos de la lista.
-   - CAUSA PROBABLE: Las nuevas `Action`s del carrusel no están siendo añadidas a la lista de `contextSensitiveActions`, por lo que el `ListCoordinator` no actualiza su estado.
-   - PLAN DE SOLUCIÓN: En `ActionFactory`, al crear las nuevas `Action`s de navegación para el carrusel, asegurarse de que se registren en la lista `contextSensitiveActions`.
+4.3. REFACTORIZACIÓN: Simplificar Delegación de Navegación en `GeneralController`
+    - ESTADO: PENDIENTE
+    - ANÁLISIS: Los métodos de navegación en GeneralController repiten la lógica if/else para delegar al VisorController o ProjectController.
+    - PLAN DE SOLUCIÓN:
+        1. [ ] Aplicar el patrón Strategy directamente en GeneralController.
+        2. [ ] Inyectar las instancias de ListCoordinator y ProjectListCoordinator en GeneralController.
+        3. [ ] Crear un método privado `getActiveCoordinator()` que devuelva el coordinador correcto según el WorkMode.
+        4. [ ] Refactorizar los 6 métodos de navegación (`navegarSiguiente`, etc.) para que deleguen la llamada a `getActiveCoordinator()`.
