@@ -65,6 +65,7 @@ import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
+import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
@@ -3161,6 +3162,19 @@ public class VisorController implements ActionListener, ClipboardOwner {
 	   // --- Guardar otros estados globales (sin cambios) ---
 	   configuration.setString(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, String.valueOf(model.isModoPantallaCompletaActivado()));
 	
+	   // --- Guardar estado de Sincronización y del Carrusel ---
+       configuration.setString(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, String.valueOf(model.isSyncVisualizadorCarrusel()));
+    
+       Path ultimaCarpetaCarrusel = model.getUltimaCarpetaCarrusel();
+       configuration.setString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_CARPETA, (ultimaCarpetaCarrusel != null) ? ultimaCarpetaCarrusel.toString() : "");
+
+       String ultimaImagenCarrusel = model.getUltimaImagenKeyCarrusel();
+       configuration.setString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, (ultimaImagenCarrusel != null) ? ultimaImagenCarrusel : "");
+    
+       System.out.println("  [Guardar] Estado Carrusel/Sync: Sync=" + model.isSyncVisualizadorCarrusel() + ", UltimaCarpeta=" + ultimaCarpetaCarrusel);
+       // --- Fin del bloque de guardado de Sincronización ---
+	   
+       
 	   // --- Guardar el archivo físico ---
 	   try {
 	       configuration.guardarConfiguracion(configuration.getConfig());
@@ -3412,6 +3426,85 @@ public class VisorController implements ActionListener, ClipboardOwner {
         }
         
     } // --- Fin del método restaurarUiCarrusel ---
+    
+    
+    /**
+     * Crea y muestra un menú emergente para seleccionar la velocidad del carrusel.
+     * Este método es llamado por el MouseListener del JLabel de velocidad.
+     *
+     * @param invoker El componente (el JLabel) sobre el cual se mostrará el menú.
+     */
+    public void showCarouselSpeedMenu(java.awt.Component invoker) {
+        JPopupMenu speedMenu = new JPopupMenu();
+
+        java.util.Map<String, Integer> speedOptions = new java.util.LinkedHashMap<>();
+        speedOptions.put("Muy Rápido (1.0s)", 1000);
+        speedOptions.put("Rápido (2.0s)", 2000);
+        speedOptions.put("Normal (5.0s)", 5000);
+        speedOptions.put("Lento (10.0s)", 10000);
+        speedOptions.put("Muy Lento (20.0s)", 20000);
+
+        CarouselManager carouselManager = getActionFactory().getCarouselManager();
+
+        for (java.util.Map.Entry<String, Integer> entry : speedOptions.entrySet()) {
+            String text = entry.getKey();
+            int delayMs = entry.getValue();
+            Action setSpeedAction = new controlador.actions.carousel.SetCarouselSpeedAction(
+                getModel(), carouselManager, text, delayMs);
+            speedMenu.add(new javax.swing.JMenuItem(setSpeedAction));
+        }
+
+        // ----- INICIO DE LA MODIFICACIÓN -----
+        speedMenu.addSeparator(); // Un separador para distinguir la opción especial
+
+        Action setReverseSpeedAction = new controlador.actions.carousel.SetCarouselSpeedAction(
+            getModel(),
+            carouselManager,
+            "Velocidad Inversa (-5.0s)",
+            -5000 // <-- Le pasamos un valor negativo
+        );
+        speedMenu.add(new javax.swing.JMenuItem(setReverseSpeedAction));
+        // ----- FIN DE LA MODIFICACIÓN -----
+
+        speedMenu.show(invoker, 0, -speedMenu.getPreferredSize().height);
+    } // --- Fin del método showCarouselSpeedMenu ---
+    
+    
+    
+//    public void showCarouselSpeedMenu(java.awt.Component invoker) {
+//        JPopupMenu speedMenu = new JPopupMenu();
+//
+//        // Usamos un mapa para definir las opciones del menú de forma limpia
+//        java.util.Map<String, Integer> speedOptions = new java.util.LinkedHashMap<>();
+//        speedOptions.put("Muy Rápido (1.0s)", 1000);
+//        speedOptions.put("Rápido (2.0s)", 2000);
+//        speedOptions.put("Normal (5.0s)", 5000);
+//        speedOptions.put("Lento (10.0s)", 10000);
+//        speedOptions.put("Muy Lento (20.0s)", 20000);
+//
+//        // Obtenemos el CarouselManager una sola vez
+//        CarouselManager carouselManager = getActionFactory().getCarouselManager();
+//
+//        // Creamos un JMenuItem para cada opción del mapa
+//        for (java.util.Map.Entry<String, Integer> entry : speedOptions.entrySet()) {
+//            String text = entry.getKey();
+//            int delayMs = entry.getValue();
+//
+//            // Creamos una nueva instancia de nuestra Action para esta velocidad específica
+//            Action setSpeedAction = new controlador.actions.carousel.SetCarouselSpeedAction(
+//                getModel(), 
+//                carouselManager, 
+//                text, 
+//                delayMs
+//            );
+//            
+//            speedMenu.add(new javax.swing.JMenuItem(setSpeedAction));
+//        }
+//
+//        // Mostramos el menú justo encima del componente que lo invocó
+//        speedMenu.show(invoker, 0, -speedMenu.getPreferredSize().height);
+//    } // --- Fin del método showCarouselSpeedMenu ---
+    
 	
 	public void toggleMarcaImagenActual (boolean marcarDeseado)
 	{
@@ -3751,15 +3844,14 @@ public class VisorController implements ActionListener, ClipboardOwner {
     
  	 
     public void setMostrarSubcarpetasLogicaYUi(boolean nuevoEstadoIncluirSubcarpetas) {
-        System.out.println("[VisorController setMostrarSubcarpetasLogicaYUi] Nuevo estado deseado (incluir subcarpetas): " + nuevoEstadoIncluirSubcarpetas);
+        System.out.println("[VisorController] Solicitud para cambiar 'incluir subcarpetas' a: " + nuevoEstadoIncluirSubcarpetas);
         
-        if (model == null || configuration == null || actionMap == null || view == null) {
-            System.err.println("  ERROR [VisorController setMostrarSubcarpetasLogicaYUi]: Dependencias nulas. Abortando.");
+        if (model == null || configuration == null) {
+            System.err.println("  ERROR [setMostrarSubcarpetasLogicaYUi]: Modelo o Configuración nulos. Abortando.");
             return;
         }
 
         // --- PASO 1: GUARDAR EL ESTADO ACTUAL ANTES DE MODIFICAR NADA ---
-        // Guardamos la clave de la imagen actual para intentar restaurar la selección después de recargar.
         final String claveAntesDelCambio = model.getSelectedImageKey(); 
         System.out.println("  -> Clave de imagen a intentar mantener después de la recarga: " + claveAntesDelCambio);
 
@@ -3767,31 +3859,12 @@ public class VisorController implements ActionListener, ClipboardOwner {
         // El modelo es la fuente de verdad. 'isMostrarSoloCarpetaActual' es el inverso de 'incluirSubcarpetas'.
         model.setMostrarSoloCarpetaActual(!nuevoEstadoIncluirSubcarpetas); 
         
-        // Actualizamos la configuración en memoria para que se guarde al cerrar.
-        configuration.setString("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(nuevoEstadoIncluirSubcarpetas));
+        configuration.setString(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, String.valueOf(nuevoEstadoIncluirSubcarpetas));
 
-        // --- PASO 3: SINCRONIZAR LA UI INMEDIATA (BOTONES/RADIOS) ---
-        // Sincronizamos la Action del toggle general para que el botón refleje el nuevo estado.
-        Action toggleAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        if (toggleAction != null) {
-            toggleAction.putValue(Action.SELECTED_KEY, nuevoEstadoIncluirSubcarpetas);
-
-            if (configAppManager != null) {
-                configAppManager.actualizarAspectoBotonToggle(toggleAction, nuevoEstadoIncluirSubcarpetas);
-            }
-        }
-        
-        // Sincronizamos los radio buttons del menú para que también reflejen el cambio.
-        sincronizarControlesSubcarpetas();
-        
-        // --- PASO 4: DISPARAR LA RECARGA DE LA LISTA DE IMÁGENES ---
-        // Llamamos al método que carga las imágenes desde disco, pasándole la clave que
-        // guardamos al principio. Este método se encargará de la carga en segundo plano.
+        // --- PASO 3: DISPARAR LA RECARGA DE LA LISTA DE IMÁGENES ---
         System.out.println("  -> Solicitando recarga de la lista de imágenes...");
         this.cargarListaImagenes(claveAntesDelCambio, null);
-
-        System.out.println("[VisorController setMostrarSubcarpetasLogicaYUi] Proceso de cambio y recarga iniciado.");
-    } // --- FIN del metodo setMostrarSubcarpetasLogicaYUi ---
+    } // --- Fin del método setMostrarSubcarpetasLogicaYUi ---
  	
  	
  	public void setCalculatedMiniaturePanelHeight(int calculatedMiniaturePanelHeight) { this.calculatedMiniaturePanelHeight = calculatedMiniaturePanelHeight; }

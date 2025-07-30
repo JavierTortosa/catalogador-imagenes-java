@@ -165,10 +165,18 @@ public class ViewBuilder{
         carouselTimerOverlayLabel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         carouselTimerOverlayLabel.setVisible(false);
         registry.register("label.carousel.timer.overlay", carouselTimerOverlayLabel);
+        
+        // 5b. Creamos un JLabel para el indicador de estado (play/pause).
+        JLabel statusIndicatorLabel = new JLabel();
+        statusIndicatorLabel.setSize(32, 32); // Le damos un tamaño fijo
+        statusIndicatorLabel.setOpaque(false);
+        statusIndicatorLabel.setVisible(false); // Inicialmente oculto
+        registry.register("label.carousel.status.indicator", statusIndicatorLabel);
 
         // 6. Añadimos la imagen y el timer al JLayeredPane (sin cambios).
         layeredPane.add(carouselDisplayPanel, javax.swing.JLayeredPane.DEFAULT_LAYER);
         layeredPane.add(carouselTimerOverlayLabel, javax.swing.JLayeredPane.PALETTE_LAYER);
+        layeredPane.add(statusIndicatorLabel, javax.swing.JLayeredPane.POPUP_LAYER);
 
         // 7. Añadimos el listener al JLayeredPane para posicionar a sus hijos (sin cambios).
         layeredPane.addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -182,6 +190,11 @@ public class ViewBuilder{
                     layeredPane.getHeight() - labelSize.height - padding, 
                     labelSize.width, 
                     labelSize.height
+                );
+                
+                statusIndicatorLabel.setLocation(
+                    layeredPane.getWidth() - statusIndicatorLabel.getWidth() - padding,
+                    padding
                 );
             }
         });
@@ -199,30 +212,6 @@ public class ViewBuilder{
 
         // 11. Finalmente, añadimos el panel del carrusel completo a la "tarjeta" del CardLayout.
         workModesContainer.add(carouselWorkModePanel, "VISTA_CARROUSEL_WORKMODE");
-        
-        
-        
-//        // Panel para el WorkMode CARROUSEL
-//        JPanel carouselWorkModePanel = new JPanel(new BorderLayout());
-//
-//	    // a) Creamos una NUEVA INSTANCIA de ImageDisplayPanel para este modo.
-//	    ImageDisplayPanel carouselDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
-//	    carouselWorkModePanel.add(carouselDisplayPanel, BorderLayout.CENTER); // Lo añadimos al centro
-//	    
-//        // b) Creamos un JScrollPane de miniaturas específico para el modo carrusel.
-//	    JScrollPane carouselThumbnailScrollPane = createThumbnailScrollPane("list.miniaturas.carousel", "scroll.miniaturas.carousel");
-//	    
-//        carouselWorkModePanel.add(carouselThumbnailScrollPane, BorderLayout.SOUTH); // Lo añadimos abajo
-//	    
-//	    // c) Registramos los componentes para que el sistema pueda encontrarlos con claves ÚNICAS.
-//	    workModesContainer.add(carouselWorkModePanel, "VISTA_CAROUSEL_WORKMODE");
-//	    registry.register("panel.workmode.carousel", carouselWorkModePanel);
-//	    registry.register("panel.display.carousel", carouselDisplayPanel);
-//	    registry.register("label.carousel.imagen", carouselDisplayPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
-//	    
-//        // Registramos el scroll de miniaturas para poder ocultarlo/mostrarlo después
-//        registry.register("scroll.miniaturas.carousel", carouselThumbnailScrollPane); 
-
         
         // Paneles para otros WorkModes futuros
         JPanel dataWorkModePanel = new JPanel();

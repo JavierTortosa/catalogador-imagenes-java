@@ -92,6 +92,10 @@ public class ListContext {
         // 3. Copiar los valores primitivos/inmutables
         this.selectedImageKey = otroContexto.getSelectedImageKey();
         this.mostrarSoloCarpetaActual = otroContexto.isMostrarSoloCarpetaActual();
+        
+        // LOG [ListContext.clonarDesde] Clonando 'mostrarSoloCarpetaActual'. Valor:
+        System.out.println("    [ListContext.clonarDesde] Clonando 'mostrarSoloCarpetaActual'. Valor: " + this.mostrarSoloCarpetaActual);
+        
         this.nombreListaActiva = otroContexto.getNombreListaActiva();
         this.seleccionListKey = otroContexto.getSeleccionListKey();
         this.descartesListKey = otroContexto.getDescartesListKey();

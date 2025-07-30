@@ -253,6 +253,26 @@ public class ListCoordinator implements IListCoordinator {
         }
     } // --- Fin del método forzarActualizacionEstadoAcciones ---
 
+    
+    /**
+     * Selecciona un índice completamente aleatorio de la lista de imágenes
+     * del contexto de trabajo actual.
+     */
+    public void seleccionarAleatorio() {
+        DefaultListModel<String> modeloLista = model.getCurrentListContext().getModeloLista();
+        if (modeloLista == null || modeloLista.isEmpty()) {
+            return; // No hay nada que seleccionar
+        }
+        
+        int listSize = modeloLista.getSize();
+        // Genera un número aleatorio entre 0 (incluido) y listSize (excluido)
+        int randomIndex = new java.util.Random().nextInt(listSize);
+        
+        // Llama al método existente para seleccionar el índice
+        seleccionarImagenPorIndice(randomIndex); // true para asegurar que la UI se actualice
+    } // --- Fin del método seleccionarAleatorio ---
+    
+    
     // =================================================================================
     // === MÉTODOS VARIOS (DELEGACIÓN) ===
     // =================================================================================

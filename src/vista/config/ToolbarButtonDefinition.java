@@ -7,7 +7,7 @@ import java.util.Objects;
  * Define la estructura y propiedades de un botón o componente en una barra de herramientas.
  * Este record es la base para la construcción declarativa de la UI.
  */
-public record ToolbarButtonDefinition(
+public record ToolbarButtonDefinition (
     /** Comando Canónico (de AppActionCommands) que ejecuta este botón o que sirve como clave base. */
     String comandoCanonico,
     
@@ -35,7 +35,8 @@ public record ToolbarButtonDefinition(
     /** Número de columnas para layouts de tipo DPAD_GRID. 0 para otros. */
     int gridCols
 
-) {
+		) implements ToolbarComponentDefinition {
+	
     // Constructor Canónico (valida los campos no nulos)
     public ToolbarButtonDefinition {
         Objects.requireNonNull(comandoCanonico, "comandoCanonico no puede ser nulo");

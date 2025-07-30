@@ -42,8 +42,18 @@ public interface AppActionCommands {
     public static final String CMD_CAROUSEL_STOP 				= "cmd.carousel.stop";
     public static final String CMD_CAROUSEL_REWIND 				= "cmd.carousel.rewind"; // Retroceso rápido
     public static final String CMD_CAROUSEL_FAST_FORWARD 		= "cmd.carousel.fast_forward"; // Avance rápido
+    
+    public static final String CMD_CAROUSEL_SPEED_INCREASE  	= "cmd.carousel.speed.increase";
+    public static final String CMD_CAROUSEL_SPEED_DECREASE  	= "cmd.carousel.speed.decrease";
+    public static final String CMD_CAROUSEL_SPEED_RESET     	= "cmd.carousel.speed.reset";
+    public static final String CMD_CAROUSEL_SET_SPEED_PREFIX 	= "cmd.carousel.speed.set_";
+    public static final String CMD_CAROUSEL_TOGGLE_SHUFFLE 		= "cmd.carousel.toggle.shuffle";
 
-
+ // --- Syncro ---
+//    public static final String CMD_SYNC_TOGGLE					= "cmd.sync.toggle";
+//    public static final String CMD_SYNC_SAFE					= "cmd.sync.safe";
+    public static final String CMD_TOGGLE_SYNC_VISOR_CARRUSEL	= "cmd.toggle.sync_visor_carrusel";
+    
  // --- Zoom ---
     public static final String CMD_ZOOM_ACERCAR 				= "cmd.zoom.acercar"; 					// (Asumiendo Action futura)
     public static final String CMD_ZOOM_ALEJAR 					= "cmd.zoom.alejar";   					// (Asumiendo Action futura)

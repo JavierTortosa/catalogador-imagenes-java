@@ -182,6 +182,23 @@ public class ProjectListCoordinator implements IListCoordinator {
     } // --- Fin del método navegarAIndice ---
     
     
+    @Override
+    public void seleccionarAleatorio() {
+        // 1. Obtener la JList activa actualmente (Selección o Descartes)
+        JList<String> listaActiva = obtenerListaActivaUI();
+        if (listaActiva == null || listaActiva.getModel().getSize() == 0) {
+            return; // No hay nada que seleccionar
+        }
+        
+        // 2. Calcular un índice aleatorio dentro de esa lista
+        int listSize = listaActiva.getModel().getSize();
+        int randomIndex = new java.util.Random().nextInt(listSize);
+        
+        // 3. Seleccionar la imagen en ese índice en la lista activa
+        seleccionarImagenEnLista(listaActiva, randomIndex);
+    } // --- Fin del método seleccionarAleatorio ---
+    
+    
     // =================================================================================
     // === MÉTODOS AUXILIARES ===
     // =================================================================================

@@ -12,7 +12,7 @@ import servicios.ConfigKeys;
 public class UIDefinitionService {
 
     public List<MenuItemDefinition> generateMenuStructure() {
-        List<MenuItemDefinition> menuBarStructure = new ArrayList<>();
+    	List<MenuItemDefinition> menuBarStructure = new ArrayList<>();
 
         // --- SECCIÓN 1: MENÚ "ARCHIVO" ---
         List<MenuItemDefinition> archivoSubItems = List.of(
@@ -365,34 +365,47 @@ public class UIDefinitionService {
 	
 	    // Iteramos sobre cada barra para crear su sección en el menú
 	    for (ToolbarDefinition barra : todasLasBarras) {
-	
+
 	        // Creamos la lista de checkboxes para los botones de ESTA barra
 	        List<MenuItemDefinition> checkboxesDeBotones = new ArrayList<>();
-	        for (ToolbarButtonDefinition boton : barra.botones()) {
-	            // Generamos la clave BASE del botón.
-	            String claveBaseBoton = ConfigKeys.buildKey(
-	                "interfaz.boton", // O el prefijo correcto
-	                barra.claveBarra(),
-	                extraerNombreClave(boton.comandoCanonico())
-	            );
-	            
-	            checkboxesDeBotones.add(
-	                new MenuItemDefinition(claveBaseBoton, // <-- El ActionCommand ahora es la clave BASE
-	                    MenuItemType.CHECKBOX_ITEM, "  " + boton.textoTooltip(),null)
-	            );
+	        
+	        // Iteramos sobre la lista de COMPONENTES de la barra
+	        for (ToolbarComponentDefinition compDef : barra.componentes()) { // <-- Usamos el nuevo nombre "componentes()"
+	        
+	            // Si el componente es una instancia de ToolbarButtonDefinition, lo procesamos.
+	            // Si es un Label o un Separator, simplemente lo ignoramos.
+	            if (compDef instanceof ToolbarButtonDefinition boton) { // <-- Usamos un "pattern matching for instanceof"
+	                
+	                // Generamos la clave BASE del botón.
+	                String claveBaseBoton = ConfigKeys.buildKey(
+	                    "interfaz.boton", // O el prefijo correcto
+	                    barra.claveBarra(),
+	                    extraerNombreClave(boton.comandoCanonico())
+	                );
+	                
+	                checkboxesDeBotones.add(
+	                    new MenuItemDefinition(claveBaseBoton, // <-- El ActionCommand ahora es la clave BASE
+	                        MenuItemType.CHECKBOX_ITEM, "  " + boton.textoTooltip(),null)
+	                );
+	            }
+	        }
+	        
+	        // Si la barra no tenía ningún botón (quizás solo labels?), no creamos un submenú vacío
+	        if (checkboxesDeBotones.isEmpty()) {
+	            continue; // Pasamos a la siguiente barra
 	        }
 	        
 	        // Creamos la clave de configuración para la visibilidad de la barra completa
 	        String claveConfigBarra = ConfigKeys.buildKey("interfaz.herramientas", barra.claveBarra());
-	
+
 	        // Creamos el submenú para esta barra
 	        configHerramientasSubItems.add(
 	            new MenuItemDefinition(claveConfigBarra, 
-	            		MenuItemType.CHECKBOX_ITEM_WITH_SUBMENU, "Barra de " + barra.titulo(), checkboxesDeBotones)
+	                    MenuItemType.CHECKBOX_ITEM_WITH_SUBMENU, "Barra de " + barra.titulo(), checkboxesDeBotones)
 	        );
 	    }
-	
-	     // Añadimos el submenú "Herramientas" completo al menú de Configuración
+	    
+	    // Añadimos el submenú "Herramientas" completo al menú de Configuración
 	    configSubItems.add(new MenuItemDefinition(null, 
 	    		MenuItemType.SUB_MENU, "Herramientas", configHerramientasSubItems));
 	    configSubItems.add(new MenuItemDefinition(null, 
@@ -662,20 +675,30 @@ public class UIDefinitionService {
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_PLAY,				"9004-play_48x48.png", "Play", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_PAUSE,				"9005-pausa_48x48.png", "Pausa", "carrousel")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_STOP,				"9007-stop_48x48.png", "Stop", "carrousel")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_TOGGLE_SHUFFLE, 	"9014-shuffle_48x48.png", "Modo Aleatorio", "carrousel", ButtonType.TOGGLE)
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_FAST_FORWARD,		"9009-avance_rapido_48x48.png", "Avance Rapido", "carrousel")
+    	);
 
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9011-maxima_velocidad_48x48.png", "Maxima Velocidad", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9012-velocidad_normal_48x48.png", "Velocidad Normal", "carrousel")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9013-minima_velocidad_48x48.png", "Minima Velocidad", "carrousel")
-			
-//			 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_PRIMERA,		"9001-primer_fotograma_48x48.png", "Primera Imagen", "carrousel")
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ANTERIOR, 		"9003-fotograma_anterior_48x48.png", "Fotograma Anterior", "carrousel")
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_SIGUIENTE, 		"9008-fotograma_siguiente_48x48.png", "Fotograma Siguiente", "carrousel")
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ULTIMA,			"9010-ultimo_fotograma_48x48.png", "Ultimo Fotograma", "carrousel")
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,		"9006-play-pausa_48x48.png", "Play-Pausa", "carrousel")
+		List<ToolbarComponentDefinition> botonesVelocidadCarrousel = List.of(
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_SPEED_INCREASE,		"9013-minima_velocidad_48x48.png", "Minima Velocidad", "velocidad_carrousel")
+			,new LabelDefinition("label.velocidad.carrusel", "3.0s")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_SPEED_DECREASE,		"9011-maxima_velocidad_48x48.png", "Maxima Velocidad", "velocidad_carrousel")
+			,new SeparatorDefinition()
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_CAROUSEL_SPEED_RESET,		"9012-velocidad_normal_48x48.png", "Velocidad Normal", "velocidad_carrousel")
 			
 		);
 
+		
+		// --- BARRA DE BOTONES Sync ---
+//		List<ToolbarComponentDefinition> botonesSync = List.of(
+//			 new ToolbarButtonDefinition(AppActionCommands.CMD_SYNC_TOGGLE,					"10001-sync_on_48x48.png", "Sync Datos", "botones_syncro", ButtonType.TOGGLE)
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_SYNC_SAFE,					"10002-shield_48x48.png", "Deshacer Sync", "botones_syncro")
+//		);
+		
+		List<ToolbarButtonDefinition> botonesSincronizacion = List.of(
+	            new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SYNC_VISOR_CARRUSEL, "10001-sync_on_48x48.png", "Sincronizar Visor y Carrusel", "sincronizacion", ButtonType.TOGGLE)
+	        );
+		
 		
 		// --- BARRA DE BOTONES orden ---
 		// boton de on/off, acendente/descendente, nombre, tamaño, fecha, tags...
@@ -707,18 +730,18 @@ public class UIDefinitionService {
                 dpadPaneoHotspots // La lista de hotspots definida arriba
             ),
         		
-            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, 	"20001-zoom_al_cursor_48x48.png", /*IconScope.COMMON,*/ "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior", ButtonType.TOGGLE),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, 		"20001-zoom_al_cursor_48x48.png", /*IconScope.COMMON,*/ "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior", ButtonType.TOGGLE),
             
             // 2. Botones de color de fondo
             
          // 2. Botones de color de fondo (¡con ActionCommands mejorados!)
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_THEME_COLOR,   "stopw.png", IconScope.COMMON, "Fondo del Tema Actual",   "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1,  "stopw.png", IconScope.COMMON, "Ranura de color 1",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2,  "stopw.png", IconScope.COMMON, "Ranura de color 2",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3,  "stopw.png", IconScope.COMMON, "Ranura de color 3",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4,  "stopw.png", IconScope.COMMON, "Ranura de color 4",      	"controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED,     "stopw.png", IconScope.COMMON, "Fondo a Cuadros",			"controles_imagen_inferior", /*ButtpmType.NORMAL), //*/ButtonType.TRANSPARENT),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR,  "paint-palette--streamline-core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", 	"controles_imagen_inferior", ButtonType.TRANSPARENT)
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_THEME_COLOR,   	"stopw.png", IconScope.COMMON, "Fondo del Tema Actual",   "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_1,  	"stopw.png", IconScope.COMMON, "Ranura de color 1",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_2,  	"stopw.png", IconScope.COMMON, "Ranura de color 2",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_3,  	"stopw.png", IconScope.COMMON, "Ranura de color 3",       "controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_COLOR_SLOT_4,  	"stopw.png", IconScope.COMMON, "Ranura de color 4",      	"controles_imagen_inferior", /*ButtonType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CHECKERED,     	"stopw.png", IconScope.COMMON, "Fondo a Cuadros",			"controles_imagen_inferior", /*ButtpmType.NORMAL), //*/ButtonType.TRANSPARENT),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR,  	"paint-palette--streamline-core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", 	"controles_imagen_inferior", ButtonType.TRANSPARENT)
         );
 
         
@@ -731,29 +754,38 @@ public class UIDefinitionService {
             new ToolbarButtonDefinition(AppActionCommands.CMD_INICIAR_EXPORTACION, 			"21005-iniciar_exportación.png","Iniciar Exportación", "acciones_exportacion")
         );
 
+        
         return List.of(
-            // Grupo Izquierda
-            new ToolbarDefinition("navegacion", "Navegación", 	10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL), botonesNavegacion, ToolbarAlignment.LEFT),
+        	    // Grupo Izquierda
+        	    new ToolbarDefinition("navegacion", "Navegación", 			 10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL), List.copyOf(botonesNavegacion), ToolbarAlignment.LEFT),
 
-            // Grupo Centro
-            new ToolbarDefinition("edicion", 	"Edición", 		20, EnumSet.of(WorkMode.VISUALIZADOR), botonesEdicion, ToolbarAlignment.CENTER),
-            new ToolbarDefinition("zoom", 		"Zoom", 		30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesZoom, ToolbarAlignment.CENTER),
-            new ToolbarDefinition("vista", 		"Vista", 		40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), botonesVista, ToolbarAlignment.CENTER),
-            
-            // Grupo Derecha
-            new ToolbarDefinition("control",	"Utilidades", 	50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botonesUtils, ToolbarAlignment.RIGHT),
-            new ToolbarDefinition("toggle",	    "Toggles", 		60, EnumSet.of(WorkMode.VISUALIZADOR), botonesToggle, ToolbarAlignment.RIGHT),
-            
-            new ToolbarDefinition("proyecto_vista","Proyecto (en Vista)", 70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL), botonesProyectoEnVista, ToolbarAlignment.RIGHT),
-            new ToolbarDefinition("proyecto",	"Acciones de Proyecto", 90, EnumSet.of(WorkMode.PROYECTO), botonesProyectoEnProyecto, ToolbarAlignment.RIGHT),
-            new ToolbarDefinition("modo",		"Modo",			80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION), botonesModo, ToolbarAlignment.RIGHT),
-            new ToolbarDefinition("especiales",   "Apoyo", 		100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.EDICION, WorkMode.CARROUSEL), botonesApoyo, ToolbarAlignment.RIGHT),
-            new ToolbarDefinition("carrousel",	"Carrousel", 	110, EnumSet.of(WorkMode.CARROUSEL), botonesCarrousel, ToolbarAlignment.CENTER),
-            
-            // Barra especial que no se añade al contenedor principal. Su alineamiento no importa.
-            new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 98, EnumSet.of(WorkMode.PROYECTO), botonesExportacion, ToolbarAlignment.LEFT),
-            new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 95, EnumSet.of(WorkMode.VISUALIZADOR), botonesControlesImagenInferior, ToolbarAlignment.RIGHT)
-    	);
+        	    // Grupo Centro
+        	    new ToolbarDefinition("edicion", "Edición", 				 20, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesEdicion), ToolbarAlignment.CENTER),
+        	    new ToolbarDefinition("zoom", "Zoom", 						 30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), List.copyOf(botonesZoom), ToolbarAlignment.CENTER),
+        	    new ToolbarDefinition("vista", "Vista", 					 40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), List.copyOf(botonesVista), ToolbarAlignment.CENTER),
+        	    
+        	    // Grupo Derecha
+        	    new ToolbarDefinition("control", "Utilidades", 				 50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), List.copyOf(botonesUtils), ToolbarAlignment.RIGHT),
+        	    new ToolbarDefinition("proyecto", "Acciones de Proyecto", 	 90, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesProyectoEnProyecto), ToolbarAlignment.RIGHT),
+        	    new ToolbarDefinition("proyecto_vista", "Proyecto (Vista)",  60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL), List.copyOf(botonesProyectoEnVista), ToolbarAlignment.RIGHT),
+        	    
+        	    new ToolbarDefinition("toggle", "Toggles", 					 70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesToggle), ToolbarAlignment.RIGHT),
+        	    
+        	    new ToolbarDefinition("sincronizacion", "Sincronización",    75, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSincronizacion), ToolbarAlignment.RIGHT),
+//        	    new ToolbarDefinition("botones_syncro", "Sincronizacion", 	 75, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSync), ToolbarAlignment.RIGHT),
+        	    
+        	    new ToolbarDefinition("modo", "Modo", 						 80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION), List.copyOf(botonesModo), ToolbarAlignment.RIGHT),
+        	    new ToolbarDefinition("especiales", "Apoyo", 				100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.EDICION, WorkMode.CARROUSEL), List.copyOf(botonesApoyo), ToolbarAlignment.RIGHT),
+        	    
+        	    // Toolbars específicas del modo Carrusel
+        	    new ToolbarDefinition("carrousel", "Carrousel", 			110, EnumSet.of(WorkMode.CARROUSEL), List.copyOf(botonesCarrousel), ToolbarAlignment.CENTER),
+        	    new ToolbarDefinition("velocidad_carrousel", "Velocidad", 	120, EnumSet.of(WorkMode.CARROUSEL), botonesVelocidadCarrousel, ToolbarAlignment.CENTER),
+        	    
+        	    // Barras especiales
+        	    new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 	500, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesExportacion), ToolbarAlignment.LEFT),
+        	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	510, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.RIGHT)
+        	);
+        
         
     }// --- FIN DEL METODO generateModularToolbarStructure --- 
     

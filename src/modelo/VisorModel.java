@@ -59,7 +59,12 @@ public class VisorModel {
     
     private boolean modoPantallaCompletaActivado = false;
     
-
+    private boolean carouselShuffleEnabled = false;
+    
+    private boolean syncVisualizadorCarrusel = false;
+    private Path ultimaCarpetaCarrusel;
+    private String ultimaImagenKeyCarrusel; 
+    
     public VisorModel() {
         this.currentWorkMode = WorkMode.VISUALIZADOR;
         this.currentDisplayMode = DisplayMode.SINGLE_IMAGE; 
@@ -202,14 +207,28 @@ public class VisorModel {
     public void resetPan() { getCurrentZoomContext().resetPan(); }
     public void resetZoomState() {this.setZoomFactor(1.0); this.resetPan();}
     public ListContext getProyectoListContext() { return this.proyectoListContext; }
-    public int getCarouselDelay() {return this.carouselDelay;} 
-    public void setCarouselDelay(int delayMs) {this.carouselDelay = delayMs;}
     
     public double getZoomFactor() { return getCurrentZoomContext().getZoomFactor(); }
     public void setZoomFactor(double zoomFactor) {
         double validFactor = Math.max(0.01, Math.min(zoomFactor, 50.0));
         getCurrentZoomContext().setZoomFactor(validFactor);
     } // --- Fin del método setZoomFactor ---
+    
+    public int getCarouselDelay() {return this.carouselDelay;} 
+    public void setCarouselDelay(int delayMs) {
+        int sign = (int) Math.signum(delayMs); // Guardamos el signo: 1, -1, o 0
+        if (sign == 0) sign = 1; // Si es 0, lo tratamos como positivo
+
+        int absoluteDelay = Math.abs(delayMs); // Trabajamos con el valor absoluto
+
+        // Validamos el valor absoluto para que esté en el rango permitido
+        int clampedAbsoluteDelay = Math.max(500, Math.min(absoluteDelay, 30000)); // Límite entre 0.5s y 30s
+
+        // Reaplicamos el signo original al valor validado
+        this.carouselDelay = clampedAbsoluteDelay * sign;
+        
+        System.out.println("[VisorModel] Retardo del carrusel actualizado a: " + this.carouselDelay + "ms");
+    } // --- Fin del método setCarouselDelay ---
 
     public boolean isMostrarSoloCarpetaActual() { return getCurrentListContext().isMostrarSoloCarpetaActual(); }
     public void setMostrarSoloCarpetaActual(boolean mostrarSoloCarpetaActual) {
@@ -272,5 +291,24 @@ public class VisorModel {
     } // --- Fin del método setCarpetaRaizInicialParaVisualizador ---
     
     
+    public boolean isCarouselShuffleEnabled() {return this.carouselShuffleEnabled;}
+    public void setCarouselShuffleEnabled(boolean enabled) {
+        this.carouselShuffleEnabled = enabled;
+        System.out.println("[VisorModel] Modo aleatorio del carrusel: " + (enabled ? "ACTIVADO" : "DESACTIVADO"));
+    } // --- Fin del método setCarouselShuffleEnabled ---
+
+    
+    public boolean isSyncVisualizadorCarrusel() {return this.syncVisualizadorCarrusel;}
+    public void setSyncVisualizadorCarrusel(boolean syncActivado) {
+        if (this.syncVisualizadorCarrusel != syncActivado) {
+            this.syncVisualizadorCarrusel = syncActivado;
+            System.out.println("[VisorModel] Sincronización Visor<->Carrusel cambiada a: " + (syncActivado ? "ACTIVADO" : "DESACTIVADO"));
+        }
+    } // --- Fin del método setSyncVisualizadorCarrusel ---
+
+    public Path getUltimaCarpetaCarrusel() {return this.ultimaCarpetaCarrusel;}
+    public void setUltimaCarpetaCarrusel(Path path) {this.ultimaCarpetaCarrusel = path;}
+    public String getUltimaImagenKeyCarrusel() {return this.ultimaImagenKeyCarrusel;}
+    public void setUltimaImagenKeyCarrusel(String key) {this.ultimaImagenKeyCarrusel = key;}
     
 } // --- FIN DE LA CLASE VisorModel ---

@@ -27,7 +27,10 @@ import vista.components.ThemedToggleButton;
 import vista.config.ButtonType;
 import vista.config.HotspotDefinition;
 import vista.config.IconScope;
+import vista.config.LabelDefinition;
+import vista.config.SeparatorDefinition;
 import vista.config.ToolbarButtonDefinition;
+import vista.config.ToolbarComponentDefinition;
 import vista.config.ToolbarDefinition;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
@@ -71,7 +74,7 @@ public class ToolbarBuilder {
         System.out.println("[ToolbarBuilder Constructor] Finalizado.");
     } // --- Fin del método ToolbarBuilder (constructor) ---
 
-
+    
     public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) { 
         System.out.println("\n--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
         
@@ -81,32 +84,86 @@ public class ToolbarBuilder {
         toolbar.setRollover(true);
         toolbar.putClientProperty("toolbarDefinition", toolbarDef);
 
-        // Lógica para agrupar JToggleButtons
         ButtonGroup group = null;
-        // Comprueba si la clave de la barra actual está en nuestra lista de barras a agrupar.
         if (groupToolbarKeys.contains(toolbarDef.claveBarra())) {
             group = new ButtonGroup();
             this.radioGroups.put(toolbarDef.claveBarra(), group);
             System.out.println("    -> Creado ButtonGroup para la barra: '" + toolbarDef.claveBarra() + "'");
         }
 
-        if (toolbarDef.botones() != null) {
-            for (ToolbarButtonDefinition botonDef : toolbarDef.botones()) {
-                JComponent componente = crearComponenteIndividual(botonDef); 
-                if (componente != null) {
-                    toolbar.add(componente);
-                    // Si hemos creado un grupo y el componente es un JToggleButton, lo añadimos.
-                    if (group != null && componente instanceof JToggleButton) {
-                        group.add((JToggleButton) componente);
-                        System.out.println("      -> Botón '" + componente.getName() + "' añadido al ButtonGroup.");
+        // ***** INICIO DE LA CORRECCIÓN DEL BUCLE *****
+        if (toolbarDef.componentes() != null) {
+            // Ahora iteramos sobre la lista genérica "componentes"
+            for (ToolbarComponentDefinition compDef : toolbarDef.componentes()) {
+                
+                // Usamos 'instanceof' para saber qué tipo de componente es
+                if (compDef instanceof ToolbarButtonDefinition botonDef) {
+                    // Si es un botón, llamamos al método que ya teníamos
+                    JComponent componenteBoton = crearComponenteIndividual(botonDef); 
+                    if (componenteBoton != null) {
+                        toolbar.add(componenteBoton);
+                        if (group != null && componenteBoton instanceof JToggleButton) {
+                            group.add((JToggleButton) componenteBoton);
+                        }
                     }
+                } else if (compDef instanceof LabelDefinition labelDef) {
+                    // Si es un label, lo creamos aquí mismo
+                    javax.swing.JLabel speedLabel = new javax.swing.JLabel(labelDef.textoDefecto(), javax.swing.SwingConstants.CENTER);
+                    speedLabel.setPreferredSize(new Dimension(60, 25));
+                    speedLabel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+                    registry.register(labelDef.id(), speedLabel);
+                    toolbar.add(speedLabel);
+                    System.out.println("    -> JLabel '" + labelDef.id() + "' añadido a la barra.");
+
+                } else if (compDef instanceof SeparatorDefinition) {
+                    // Si es un separador, añadimos uno
+                    toolbar.addSeparator();
+                    System.out.println("    -> Separador añadido a la barra.");
                 }
             }
         }
+        // ***** FIN DE LA CORRECCIÓN DEL BUCLE *****
+        
         return toolbar;
         
     } // --- Fin del método buildSingleToolbar ---
     
+
+//    public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) { 
+//        System.out.println("\n--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
+//        
+//        final JToolBar toolbar = new JToolBar(toolbarDef.titulo());
+//        toolbar.setName(toolbarDef.claveBarra());
+//        toolbar.setFloatable(true);
+//        toolbar.setRollover(true);
+//        toolbar.putClientProperty("toolbarDefinition", toolbarDef);
+//
+//        // Lógica para agrupar JToggleButtons
+//        ButtonGroup group = null;
+//        // Comprueba si la clave de la barra actual está en nuestra lista de barras a agrupar.
+//        if (groupToolbarKeys.contains(toolbarDef.claveBarra())) {
+//            group = new ButtonGroup();
+//            this.radioGroups.put(toolbarDef.claveBarra(), group);
+//            System.out.println("    -> Creado ButtonGroup para la barra: '" + toolbarDef.claveBarra() + "'");
+//        }
+//
+//        if (toolbarDef.botones() != null) {
+//            for (ToolbarButtonDefinition botonDef : toolbarDef.botones()) {
+//                JComponent componente = crearComponenteIndividual(botonDef); 
+//                if (componente != null) {
+//                    toolbar.add(componente);
+//                    // Si hemos creado un grupo y el componente es un JToggleButton, lo añadimos.
+//                    if (group != null && componente instanceof JToggleButton) {
+//                        group.add((JToggleButton) componente);
+//                        System.out.println("      -> Botón '" + componente.getName() + "' añadido al ButtonGroup.");
+//                    }
+//                }
+//            }
+//        }
+//        return toolbar;
+//        
+//    } // --- Fin del método buildSingleToolbar ---
+//    
     
     private JComponent crearComponenteIndividual(ToolbarButtonDefinition definition) {
         // --- 1. VALIDACIONES INICIALES ---

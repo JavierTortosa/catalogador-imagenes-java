@@ -56,4 +56,6 @@ public class VisorV2 {
 	//TOOLBAR
 		//TODO hacer que ToolbarManager reciba un parametro "libre" para las toolbars que no tiene que añadir a la barra de botones general
 	
-	
+	// ZOOM
+		//FIXME cuando aplicamos el reset, se aplica al modo ajustar a pantalla y no cambia el boton seleccionado y luego si intentamos pasar con el teclado
+			//dice que esta en modo 1 y no se hace nada

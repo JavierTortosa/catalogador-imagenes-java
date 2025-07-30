@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import vista.config.ToolbarButtonDefinition;
+import vista.config.ToolbarComponentDefinition;
 import vista.config.UIDefinitionService;
 
 public class ConfigurationManager
@@ -520,6 +522,11 @@ public class ConfigurationManager
 	    defaults.put("iconos.alto", "24");
 	    
 	    defaults.put("ui.splitpane.main.dividerLocation", "0.25");
+	    
+	    defaults.put(ConfigKeys.CAROUSEL_DELAY_MS, "3000"); // 3 segundos por defecto
+        defaults.put(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, "false"); // Sync desactivado por defecto
+        defaults.put(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_CARPETA, ""); // Sin carpeta guardada por defecto
+        defaults.put(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, ""); // Sin imagen guardada por defecto
 
 	    // --- 2. CONFIGURACIÓN DE MINIATURAS ---
 	    defaults.put(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, "8");
@@ -572,14 +579,17 @@ public class ConfigurationManager
 	    
 	    // Visibilidad de botones individuales
 	    uiDefs.generateModularToolbarStructure().forEach(toolbarDef -> {
-	        toolbarDef.botones().forEach(buttonDef -> {
-	            // AHORA ESTA LLAMADA GENERARÁ LA CLAVE CORRECTA
-	            String buttonVisibilityKey = ConfigKeys.toolbarButtonVisible(
-	            		toolbarDef.claveBarra(), 
-	            	    buttonDef.comandoCanonico()
-	            );
-	            defaults.put(buttonVisibilityKey, "true");
-	        });
+	        // Usamos el mismo patrón de bucle for seguro
+	        for (ToolbarComponentDefinition compDef : toolbarDef.componentes()) {
+	            // Filtramos para procesar solo los botones
+	            if (compDef instanceof ToolbarButtonDefinition buttonDef) {
+	                String buttonVisibilityKey = ConfigKeys.toolbarButtonVisible(
+	                    toolbarDef.claveBarra(), 
+	                    buttonDef.comandoCanonico()
+	                );
+	                defaults.put(buttonVisibilityKey, "true");
+	            }
+	        }
 	    });
 	    
 	    return defaults;
@@ -960,6 +970,7 @@ public class ConfigurationManager
         // --- Ventana de la aplicacion
         comments.put("window", 			"# ===== Estado de la Ventana de la aplicacion=====");
         comments.put("comportamiento", 	"# ===== Comportamiento =====");
+        comments.put("carrusel", 	    "# === Comportamiento del Carrusel ===");
        // --------------------------------------------
         
         // --- Personalizacion

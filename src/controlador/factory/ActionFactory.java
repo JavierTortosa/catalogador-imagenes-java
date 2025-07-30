@@ -20,9 +20,11 @@ import controlador.actions.archivo.DeleteAction;
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
 import controlador.actions.archivo.OpenFileAction;
 import controlador.actions.archivo.RefreshAction;
+import controlador.actions.carousel.ChangeCarouselSpeedAction;
 import controlador.actions.carousel.PauseCarouselAction;
 import controlador.actions.carousel.PlayCarouselAction;
 import controlador.actions.carousel.StopCarouselAction;
+import controlador.actions.carousel.ToggleCarouselShuffleAction;
 import controlador.actions.config.SetInfoBarTextFormatAction;
 import controlador.actions.config.SetSubfolderReadModeAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
@@ -49,6 +51,7 @@ import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.toggle.ToggleNavegacionCircularAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
+import controlador.actions.toggle.ToggleSyncAction;
 import controlador.actions.vista.MostrarDialogoListaAction;
 import controlador.actions.vista.SwitchToVisualizadorAction;
 import controlador.actions.vista.ToggleAlwaysOnTopAction;
@@ -325,6 +328,8 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, createToggleProporcionesAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, createToggleAlwaysOnTopAction());
         
+        actionMap.put(AppActionCommands.CMD_TOGGLE_SYNC_VISOR_CARRUSEL, createToggleSyncAction());
+        
         // 3.9. Crear y registrar Actions de Proyecto
         actionMap.put(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, createToggleMarkImageAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_GESTIONAR, createGestionarProyectoAction());
@@ -419,6 +424,7 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_CAROUSEL_PLAY, new PlayCarouselAction("Iniciar Carrusel", this.carouselManager));
         registerAction(AppActionCommands.CMD_CAROUSEL_PAUSE, new PauseCarouselAction("Pausar Carrusel", this.carouselManager));
         registerAction(AppActionCommands.CMD_CAROUSEL_STOP, new StopCarouselAction("Detener Carrusel", this.carouselManager));
+        actionMap.put(AppActionCommands.CMD_CAROUSEL_TOGGLE_SHUFFLE,new ToggleCarouselShuffleAction(model));
         
         registerAction(AppActionCommands.CMD_CAROUSEL_REWIND, new AbstractAction("Retroceso Rápido") {
             private static final long serialVersionUID = 1L;
@@ -427,7 +433,6 @@ public class ActionFactory {
                 // No hace nada a propósito. El MouseListener se encarga de la acción.
             }
         });
-        
         registerAction(AppActionCommands.CMD_CAROUSEL_FAST_FORWARD, new AbstractAction("Avance Rápido") {
             private static final long serialVersionUID = 1L;
             @Override
@@ -435,6 +440,21 @@ public class ActionFactory {
                 // No hace nada a propósito. El MouseListener se encarga de la acción.
             }
         });
+        
+     // --- Acciones de Control de Velocidad del Carrusel ---
+        actionMap.put(
+            AppActionCommands.CMD_CAROUSEL_SPEED_INCREASE,
+            new ChangeCarouselSpeedAction(model, carouselManager, configuration, ChangeCarouselSpeedAction.SpeedChangeType.INCREASE)
+        );
+        actionMap.put(
+            AppActionCommands.CMD_CAROUSEL_SPEED_DECREASE,
+            new ChangeCarouselSpeedAction(model, carouselManager, configuration, ChangeCarouselSpeedAction.SpeedChangeType.DECREASE)
+        );
+        actionMap.put(
+            AppActionCommands.CMD_CAROUSEL_SPEED_RESET,
+            new ChangeCarouselSpeedAction(model, carouselManager, configuration, ChangeCarouselSpeedAction.SpeedChangeType.RESET)
+        );
+        
         
         // Actions que dependen del 'actionMap' completo para construir menús emergentes.
     } // --- FIN del metodo createViewDependentActions ---
@@ -643,7 +663,7 @@ public class ActionFactory {
     // --- 4.6. Métodos Create para Actions de Archivo (usarán FileOperationsManager o lógica interna) ---
     private Action createOpenFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_ABRIR);
-        return new OpenFileAction("Abrir Carpeta...", icon, this.fileOperationsManager);
+        return new OpenFileAction("Abrir Carpeta...", icon, this.fileOperationsManager, this.model, this.generalController);
     } // --- Fin del método createOpenFileAction ---
     
     
@@ -747,10 +767,45 @@ public class ActionFactory {
     
     // --- 4.9. Métodos Create para Actions de Toggle Generales ---
     private Action createToggleSubfoldersAction() {
+    	
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        return new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.configuration, this.model, this.generalController.getVisorController());
-    } // --- Fin del método createToggleSubfoldersAction ---
-    
+//        
+//        
+//        
+//    	ToggleSubfoldersAction spyAction = new ToggleSubfoldersAction(
+//                "Alternar Subcarpetas", 
+//                icon, 
+//                this.model, 
+//                this.generalController.getVisorController(), 
+//                this.generalController) {
+//
+//            private static final long serialVersionUID = 1L; // Añadimos esto por buena práctica
+//
+//            @Override
+//            public void setEnabled(boolean b) {
+//                // Solo nos interesa cuando la acción se está DESHABILITANDO
+//                if (!b && this.isEnabled()) {
+//                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//                    System.out.println("!!!                 ALERTA DE DEBUG - CULPABLE ENCONTRADO                 !!!");
+//                    System.out.println("!!! La acción 'ToggleSubfoldersAction' está siendo deshabilitada AHORA MISMO. !!!");
+//                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+//                    
+//                    // Imprimimos una traza de la pila para ver quién ha llamado a este método.
+//                    // La línea superior (después de esta) es el culpable directo.
+//                    new Exception("TRAZA PARA ENCONTRAR QUIÉN LLAMA A setEnabled(false)").printStackTrace();
+//                }
+//                
+//                // MUY IMPORTANTE: Llamamos al método original para que la acción siga funcionando.
+//                super.setEnabled(b);
+//            }
+//        };
+//
+//        return spyAction;
+//    	
+        // Llama al nuevo constructor simplificado
+        return new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.model, this.generalController.getVisorController(), this.generalController);
+    	
+    }
     
     private Action createSetSubfolderReadModeAction(String commandKey, String displayName, boolean representaModoIncluirSubcarpetas) {
     	ImageIcon icon = null; 
@@ -762,6 +817,12 @@ public class ActionFactory {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
         return new ToggleProporcionesAction("Mantener Proporciones", icon, this.model, this.generalController.getVisorController());
     } // --- Fin del método createToggleProporcionesAction ---
+    
+    
+    private Action createToggleSyncAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SYNC_VISOR_CARRUSEL);
+        return new ToggleSyncAction("Sincronizar Visor/Carrusel", icon, this.model, this.configuration, this.generalController);
+    } // --- Fin del método createToggleSyncAction ---
    
     
     // --- 4.10. Métodos Create para Actions de Proyecto ---

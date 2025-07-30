@@ -176,14 +176,26 @@ public class InfobarStatusManager {
     }// --- Fin del método actualizarRutaArchivoInferior ---
 
     private void actualizarIndicadoresDeEstado() {
-        boolean enModoVisualizador = (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR);
+    	
+    	//FIXME corregir para que no se mire el metodo en particular desde aqui
+        boolean funcionalidadesVisorActivas = (
+        		model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR ||
+                model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL);
 
         Action zoomManualAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
         Action proporcionesAction = actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
         Action subcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
 
         if (subcarpetasAction != null) {
-            subcarpetasAction.setEnabled(enModoVisualizador);
+            subcarpetasAction.setEnabled(funcionalidadesVisorActivas);
+        }
+        
+        if (proporcionesAction != null) {
+            proporcionesAction.setEnabled(funcionalidadesVisorActivas);
+        }
+
+        if (zoomManualAction != null) {
+        	zoomManualAction.setEnabled(funcionalidadesVisorActivas);
         }
     } // --- Fin del método actualizarIndicadoresDeEstado ---
     
@@ -444,21 +456,30 @@ public class InfobarStatusManager {
      } // --- Fin del método actualizarUnIndicador ---
     
     
-    private String getIconKeyForZoomMode(ZoomModeEnum modo) {
-        String command = modo.getAssociatedActionCommand();
-        for (ToolbarDefinition def : uiDefService.generateModularToolbarStructure()) {
-            if ("zoom".equals(def.claveBarra())) {
-                for (ToolbarButtonDefinition buttonDef : def.botones()) {
-                    if (buttonDef.comandoCanonico().equals(command)) {
-                        return buttonDef.claveIcono();
-                    }
-                }
-            }
-        }
-        return null;
-    }// --- Fin del métodogetIconKeyForZoomMode ---
-    
-    
+     private String getIconKeyForZoomMode(ZoomModeEnum modo) {
+    	    String command = modo.getAssociatedActionCommand();
+    	    
+    	    // Usamos un Stream para hacer la búsqueda más concisa
+    	    return uiDefService.generateModularToolbarStructure().stream()
+    	        // 1. Nos quedamos solo con la barra de herramientas de "zoom"
+    	        .filter(toolbarDef -> "zoom".equals(toolbarDef.claveBarra()))
+    	        // 2. Aplanamos la lista de componentes de esa barra en un único Stream de componentes
+    	        .flatMap(toolbarDef -> toolbarDef.componentes().stream())
+    	        // 3. Filtramos para quedarnos solo con los que son botones
+    	        .filter(comp -> comp instanceof ToolbarButtonDefinition)
+    	        // 4. Hacemos el cast a ToolbarButtonDefinition
+    	        .map(comp -> (ToolbarButtonDefinition) comp)
+    	        // 5. Buscamos el primer botón cuyo comando coincida con el que buscamos
+    	        .filter(buttonDef -> buttonDef.comandoCanonico().equals(command))
+    	        // 6. Obtenemos su clave de icono
+    	        .map(ToolbarButtonDefinition::claveIcono)
+    	        // 7. Si lo encontramos, lo devolvemos. Si no, devolvemos null.
+    	        .findFirst()
+    	        .orElse(null);
+    	        
+    	}// --- Fin del métodogetIconKeyForZoomMode ---
+     
+     
     /**
      * Lee el texto del JLabel del zoom en la barra de estado, lo parsea y
      * devuelve el valor numérico del porcentaje que está mostrando.

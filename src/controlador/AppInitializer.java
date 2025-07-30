@@ -39,6 +39,8 @@ import vista.builders.MenuBarBuilder;
 import vista.builders.ProjectBuilder;
 import vista.builders.ToolbarBuilder;
 import vista.builders.ViewBuilder;
+import vista.config.ToolbarButtonDefinition;
+import vista.config.ToolbarComponentDefinition;
 import vista.config.UIDefinitionService;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
@@ -148,6 +150,23 @@ public class AppInitializer {
         int carouselDelay = configuration.getInt(ConfigKeys.CAROUSEL_DELAY_MS, 3000);
         this.model.setCarouselDelay(carouselDelay);
         
+        // --- INICIO DE LÓGICA DE SINCRONIZACIÓN ---
+        boolean syncActivado = configuration.getBoolean(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, false);
+        this.model.setSyncVisualizadorCarrusel(syncActivado);
+
+        String ultimaCarpetaStr = configuration.getString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_CARPETA, "");
+        if (!ultimaCarpetaStr.isEmpty()) {
+            try {
+                this.model.setUltimaCarpetaCarrusel(Paths.get(ultimaCarpetaStr));
+            } catch (java.nio.file.InvalidPathException e) {
+                System.err.println("WARN: Ruta de la última carpeta del carrusel inválida en config: " + ultimaCarpetaStr);
+            }
+        }
+        String ultimaImagenKey = configuration.getString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, "");
+        this.model.setUltimaImagenKeyCarrusel(ultimaImagenKey);
+        System.out.println("  [Initializer] Estado de Sincronización cargado: " + syncActivado);
+        // --- FIN DE LÓGICA DE SINCRONIZACIÓN ---
+        
     } // --- fin del método aplicarConfiguracionAlModelo ---
 
     private boolean inicializarServiciosEsenciales() {
@@ -204,7 +223,7 @@ public class AppInitializer {
             
             ProjectListCoordinator projectListCoordinator = new ProjectListCoordinator(this.model, this.controller, registry);
             
-            this.carouselManager = new CarouselManager(listCoordinator, this.controller, registry, this.model);
+            this.carouselManager = new CarouselManager(listCoordinator, this.controller, registry, this.model, this.iconUtils);
             
             this.fileOperationsManager = new FileOperationsManager();
             this.projectController = new ProjectController();
@@ -226,14 +245,33 @@ public class AppInitializer {
             Map<String, ActionFactory.IconInfo> iconMap = new java.util.HashMap<>();
             
             // 2. LLENAMOS el mapa con la información de los iconos.
-            uiDefSvc.generateModularToolbarStructure().forEach(toolbarDef -> 
-                toolbarDef.botones().forEach(buttonDef -> 
-                    iconMap.put(
-                        buttonDef.comandoCanonico(), 
-                        new ActionFactory.IconInfo(buttonDef.claveIcono(), buttonDef.scopeIconoBase())
-                    )
-                )
-            );
+            
+            
+            
+            
+            uiDefSvc.generateModularToolbarStructure().forEach(toolbarDef -> {
+                for (ToolbarComponentDefinition compDef : toolbarDef.componentes()) {
+                    if (compDef instanceof ToolbarButtonDefinition buttonDef) {
+                        // Si el componente es un botón, lo procesamos
+                        iconMap.put(
+                            buttonDef.comandoCanonico(), 
+                            new ActionFactory.IconInfo(buttonDef.claveIcono(), buttonDef.scopeIconoBase())
+                        );
+                    }
+                }
+            });
+            
+            
+            
+            
+//            uiDefSvc.generateModularToolbarStructure().forEach(toolbarDef -> 
+//                toolbarDef.botones().forEach(buttonDef -> 
+//                    iconMap.put(
+//                        buttonDef.comandoCanonico(), 
+//                        new ActionFactory.IconInfo(buttonDef.claveIcono(), buttonDef.scopeIconoBase())
+//                    )
+//                )
+//            );
 
             // 3. Creamos ActionFactory y le PASAMOS la variable 'iconMap' que acabamos de crear.
             this.actionFactory = new ActionFactory(

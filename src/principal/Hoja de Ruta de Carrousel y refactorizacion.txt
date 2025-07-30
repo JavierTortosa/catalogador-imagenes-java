@@ -2,26 +2,105 @@
   HOJA DE RUTA DEL PROYECTO (VISOR/CATALOGADOR)
 ======================================================
 
----
-### PARTE 1: ARQUITECTURA GENERAL ###
----
-- ESTADO: COMPLETADO
-- ANÁLISIS: El patrón "Router/Dispatcher" con GeneralController como cerebro, y los componentes/acciones "tontos", está implementado. ActionFactory crea las acciones correctamente para notificar al GeneralController.
+el modo carrousel es un modo de trabajo en si mismo y por lo tanto una ayuda mas a buscar imagenes para el proyecto.
+por un lado es el carrousel de toda la vida, que, cuando llegan las novedades de archivos 3d, me ayuda a ver que nuevas fumadas se han pegado los diseñadores....
+en este punto tenemos que el selector de archivo, abre la carpeta en cuestion, y nos permite ver los archivos de esa carpeta... lo normal hasta aqui....
+muchas veces esas novedades vienen sin catalogar, en una carpeta de "novedades" y buscate la vida..... con el carrousel podemos marcar ciertas imagenes para llevarlas al proyecto y desde proyecto podremos llevarlas (moverlas que aun no esta implementado) a la carpeta de mi coleccion donde por ej. puedo marcar las imagenes de cine y llevarlas a la carpeta de cine.... no se si me explico....
+en el segundo modo es una forma automatica de ver la lista de imagenes que tengo en el visualizador, de ahi que sea tan importante poder moverme por el carrousel, hacer paneo, etc....
+en este caso, usamos la lista del visualizador, incluyendo sus filtros (que aun no estan implementados) sus tags positivos y negativos (que tambien faltan) etc....
+en este modo estamos avanzando por la lista del visualizador, con lo que los datos del modo carrousel cambian ligeramente...
+en el modo 1
+datos_carrousel = carpeta
+puntero_carrousel = 0
+en el modo 2
+datos_carrousel = datos_visualizador
+puntero_carrousel = puntero_visualizador
+pero no acaba ahi la cosa cuando salimos del carrousel y volvemos al visor,
+datos_visualizador = datos_carrousel
+puntero_visualizador = puntero_carrousel
+y la guinda del pastel
+si estamos en carrousel y abrimos una carpeta
+datos_carrousel = carpeta
+pero si podemos activar un boton con sincronizacion (hay que pedir consentimiento al usuario) y nos vamos al visor, tenemos que avisar al usuario que el modo sincronizacion esta activo y que se va a sincronizar con el visor y lo mismo si el boton de sincronizacion esta pulsado en el visor y vamos al carrousel tambien hay que avisar, y si se desactiva tambien.....
+este boton de sincronizacion puede ser muy util a la hora de ver mogollon de imagnes pero si lo tenemos activado cuando no debe y nos vamos al visor sin querer o lo que sea, podemos perder el puntero de la imagen, y despues de ver 15000 imagenes que por ver las novedades (para desconectar un poco) nos borre el trabajo porque ya no sabemos donde estamos .... puede ser una putada gorda....
+se me ocurre una toolbar comun entre visor y carrousel que sea el boton de sync y el de seguridad (que aunque borremos una de las listas de datos o el puntero, este boton lo restaure).....
+para esto tenemos que tener las variables en el config que guarde todos estos datos, idas, venidas, etc, y ademas tiene que tener suficientemente consistencia como para que si no se encuentra la carpeta que estabamos nos permita quedarnos cerca (en la carpeta superior o algo asi)....
+
+
+
+======================================================
+  HOJA DE RUTA: CARRUSEL "MEGAPOWER" (V2)
+======================================================
 
 ---
-### PARTE 2: MODO CARRUSEL - FUNCIONALIDADES ###
+### 1. Visión General y Objetivo Estratégico ###
 ---
-2.1. Lógica de Listas y Contextos Independientes
-    - ESTADO: COMPLETADO
-    - ANÁLISIS: VisorModel tiene contextos separados (carouselListContext, visualizadorListContext). GeneralController implementa la lógica de "clonar solo la primera vez".
+El modo Carrusel no es un simple visor de diapositivas, sino una herramienta de trabajo dual diseñada para el descubrimiento y la gestión de grandes colecciones de imágenes. Debe operar en dos modos principales:
 
-2.2. Barra de Herramientas y Controles Básicos (Play/Pause/Stop/FastMove)
-    - ESTADO: COMPLETADO
-    - ANÁLISIS: UIDefinitionService define la toolbar "carrousel". CarouselManager implementa la lógica de Play/Pause/Stop, ocultar/mostrar miniaturas y el avance/retroceso rápido con MouseListeners.
+- **Modo Explorador Independiente:** Funciona como una entidad separada para revisar colecciones específicas (ej. "novedades") sin afectar el trabajo principal. Permite marcar imágenes para transferirlas al gestor de proyectos.
 
-2.3. Contador Visual y Velocidad Básica
-    - ESTADO: COMPLETADO
-    - ANÁLISIS: CarouselManager gestiona el countdownTimer y actualiza el JLabel. La velocidad se lee desde el modelo, que la carga desde config.cfg.
+- **Modo Espejo Sincronizado:** Actúa como una vista automatizada y "manos libres" del contexto de trabajo actual del Modo Visualizador. Permite la revisión pasiva de listas ya filtradas u ordenadas, con la capacidad de que la navegación en el carrusel se refleje de vuelta en el visualizador.
+
+El objetivo es crear un flujo de trabajo flexible donde el usuario pueda alternar entre estos modos de forma segura, con avisos claros para prevenir la pérdida accidental de contexto o progreso.
+
+---
+### 2. Requisitos Funcionales Clave ###
+---
+
+**R1. Estado de Sincronización Persistente:**
+- La aplicación debe tener un estado global (sync_on/sync_off) que determine el comportamiento del Carrusel.
+- Este estado debe ser controlable por el usuario a través de un botón JToggleButton visible tanto en el modo Visualizador como en el Carrusel.
+- El estado de sincronización debe guardarse en el archivo config.cfg y restaurarse al iniciar la aplicación.
+
+**R2. Persistencia del Estado Independiente del Carrusel:**
+- Cuando la sincronización está desactivada, el Carrusel debe recordar su propio estado entre sesiones.
+- Esto incluye la última carpeta abierta y la última imagen seleccionada (puntero). Estos datos se guardarán en config.cfg.
+
+**R3. Lógica de Transición Condicional (El Núcleo "MEGAPOWER"):**
+- Al entrar al Carrusel:
+    - Si Sync ON: Siempre se clona el contexto completo del Visualizador (lista, puntero, etc.) sobre el del Carrusel.
+    - Si Sync OFF: El Carrusel carga su propio estado persistente. Si no tiene estado previo, clona desde el Visualizador como acción de "primera vez".
+- Al salir del Carrusel y volver al Visualizador:
+    - Si Sync ON: El contexto actual del Carrusel (principalmente el puntero) se clona de vuelta sobre el del Visualizador.
+    - Si Sync OFF: No ocurre ninguna sincronización. El estado actual del Carrusel se guarda en el modelo para su persistencia al cerrar la app.
+
+**R4. Mecanismos de Seguridad y Avisos al Usuario:**
+- Cambio de Modo con Sync ON: Antes de ejecutar una transición sincronizada (Visor <-> Carrusel), se debe mostrar un diálogo de confirmación (JOptionPane) al usuario.
+- Activación/Desactivación de Sync: Al pulsar el botón de Sync, se debe mostrar un diálogo que explique las consecuencias de activar o desactivar la sincronización, pidiendo confirmación.
+- Acciones que Modifican la Lista: Acciones como "Abrir Carpeta" o "Mostrar/Ocultar Subcarpetas" deben detectar si el modo Sync está activo. Si lo está, deben advertir al usuario que continuar con la acción desactivará la sincronización y pedir confirmación.
+
+**R5. Integración de Funcionalidades Existentes con el Modo Sync:**
+- Modo Aleatorio (Shuffle): El botón de Shuffle debe deshabilitarse automáticamente cuando el modo Sync está activo. El carrusel no puede ser un "espejo" y ser aleatorio al mismo tiempo.
+- Marcado para Proyecto: La funcionalidad de marcar imágenes debe operar sobre el contexto activo en ese momento, asegurando que las marcas se apliquen a la lista correcta.
+
+---
+### 3. Plan de Implementación por Fases ###
+---
+
+**Fase 0: Establecer las Bases del Estado**
+- OBJETIVO: Crear las variables y claves de configuración necesarias.
+- TAREAS:
+    1. [ ] `VisorModel`: Añadir `syncVisualizadorCarrusel` (boolean), `ultimaCarpetaCarrusel` (Path), `ultimoIndiceCarrusel` (String) con sus getters/setters.
+    2. [ ] `ConfigKeys`: Añadir las constantes `COMPORTAMIENTO_SYNC_VISOR_CARRUSEL`, `CARRUSEL_ESTADO_ULTIMA_CARPETA`, `CARRUSEL_ESTADO_ULTIMA_IMAGEN`.
+    3. [ ] `ConfigurationManager`: Añadir las nuevas claves a los valores por defecto.
+    4. [ ] `AppInitializer`: Leer estos nuevos valores de la configuración y aplicarlos al `VisorModel` al arrancar.
+
+**Fase 1: Implementar el Control de la UI**
+- OBJETIVO: Dar al usuario el botón para controlar la sincronización.
+- TAREAS:
+    1. [ ] `AppActionCommands`: Añadir `CMD_TOGGLE_SYNC_VISOR_CARRUSEL`.
+    2. [ ] `UIDefinitionService`: Crear una nueva `ToolbarDefinition` ("sincronizacion") con un `JToggleButton` para el nuevo comando. Hacerla visible en los modos `VISUALIZADOR` y `CARROUSEL`.
+    3. [ ] `ToggleSyncAction.java`: Crear esta nueva clase `Action`. Su `actionPerformed` implementará la lógica de los diálogos de aviso para activar/desactivar el sync. Si el usuario confirma, modificará el estado en el `VisorModel` y lo guardará en `ConfigurationManager`.
+    4. [ ] `ActionFactory`: Crear la instancia de `ToggleSyncAction`.
+
+**Fase 2: Implementar la Lógica de Transición y Seguridad**
+- OBJETIVO: Hacer que el cambio de modo y las acciones clave respeten el estado de sincronización.
+- TAREAS:
+    1. [ ] `GeneralController`:
+        - Modificar `cambiarModoDeTrabajo`: Añadir la lógica de diálogos de confirmación *antes* de iniciar una transición entre Visor y Carrusel si el `sync` está activo.
+        - Modificar `entrarModo` y `salirModo`: Implementar la lógica de clonación condicional de los `ListContext` basada en el estado de `sync`.
+    2. [ ] `ToggleCarouselShuffleAction`: Modificar la acción para que se auto-deshabilite si `sync` está `ON`.
+    3. [ ] Modificar `ToggleSubfoldersAction` y la acción `CMD_ARCHIVO_ABRIR`: Añadir la comprobación del estado de `sync` y el diálogo de aviso correspondiente.
 
 ======================================================
               TAREAS PENDIENTES

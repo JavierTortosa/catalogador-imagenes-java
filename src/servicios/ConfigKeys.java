@@ -153,14 +153,20 @@ public final class ConfigKeys {
 
     // --- SECCIÓN: COMPORTAMIENTO ---
     public static final String COMPORTAMIENTO_ZOOM_MODO_INICIAL 				= "comportamiento.display.zoom.initial_mode";
+    public static final String COMPORTAMIENTO_PANTALLA_COMPLETA 				= "comportamiento.ventana.pantalla_completa";
     public static final String COMPORTAMIENTO_ZOOM_MANUAL_INICIAL 				= "comportamiento.zoom.manual_inicial_activo";
     public static final String COMPORTAMIENTO_ZOOM_ULTIMO_MODO 					= "comportamiento.zoom.ultimo_modo_seleccionado";
     public static final String COMPORTAMIENTO_ZOOM_PORCENTAJE_PERSONALIZADO 	= "comportamiento.zoom.personalizado.porcentaje";
     public static final String COMPORTAMIENTO_NAVEGACION_CIRCULAR 				= "comportamiento.navegacion.circular";
     public static final String COMPORTAMIENTO_CARGAR_SUBCARPETAS 				= "comportamiento.carpeta.cargarSubcarpetas";
     public static final String COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO 			= "comportamiento.zoom.al_cursor.activado";
+    public static final String COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE 			="comportamiento.navegacion.tamano_salto_bloque"; //nuevo
     
     public static final String CAROUSEL_DELAY_MS 								= "carousel.delay.ms";
+    
+    public static final String COMPORTAMIENTO_SYNC_VISOR_CARRUSEL               = "comportamiento.sync.visor_carrusel.activado";
+    public static final String CARRUSEL_ESTADO_ULTIMA_CARPETA                   = "carrusel.estado.ultima_carpeta";
+    public static final String CARRUSEL_ESTADO_ULTIMA_IMAGEN                    = "carrusel.estado.ultima_imagen_key";
     
  // --- SECCIÓN: BARRAS DE INFORMACIÓN (SUPERIOR) ---
     public static final String INFOBAR_SUP_VISIBLE 								= "interfaz.infobar.superior.visible";
@@ -238,11 +244,6 @@ public final class ConfigKeys {
     public static final String BACKGROUND_CUSTOM_COLOR_4 						= "ui.background.custom.color.4";
     
     // ... (Añade aquí las claves para el resto de barras: vista, proyecto, etc.) ...
-    
-    
-    //FIXME pendientes de implementar
-    public static final String COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE 			="comportamiento.navegacion.tamano_salto_bloque"; //nuevo
-    public static final String COMPORTAMIENTO_PANTALLA_COMPLETA 				= "comportamiento.ventana.pantalla_completa";
     
     
 

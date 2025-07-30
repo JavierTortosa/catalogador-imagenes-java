@@ -18,7 +18,8 @@ public interface IListCoordinator {
     void seleccionarSiguienteOAnterior(int wheelRotation);
     void navegarAIndice(int index);
     
-
+    void seleccionarAleatorio();
+    
     /**
      * Punto de entrada principal para establecer una selección por su índice.
      * @param indiceDeseado El índice a seleccionar.

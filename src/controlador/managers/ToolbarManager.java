@@ -164,6 +164,8 @@ public class ToolbarManager {
                 if (toolbar != null) {
                     // SOLO añade la barra a los paneles superiores si NO es una de las especiales.
                     // El ViewBuilder se encargará de colocar las especiales.
+                	
+                	// FIXME ELIMINAR ESTE IF PARA QUE SEA AUTOMATICO Y NO SE TENGA QUE DEFINIR A MANO
                     if (!"controles_imagen_inferior".equals(def.claveBarra()) && !"acciones_exportacion".equals(def.claveBarra())) {
                         String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra(), "visible");
                         boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
