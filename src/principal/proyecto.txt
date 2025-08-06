@@ -1247,3 +1247,103 @@ Cuando estés listo, puedes ir abordando cada fase. ¡No dudes en preguntar si a
 
   
 */    
+
+
+
+HOJA DE RUTA: IMPLEMENTACIÓN DEL MODO DE VISUALIZACIÓN GRID
+
+Versión: 1.0
+Fecha: 23/05/2024
+Proyecto: Visor/Catalogador de Imágenes
+
+======================================================================
+== OBJETIVO GENERAL
+======================================================================
+Implementar un modo de visualización "Grid" (cuadrícula) completamente funcional y reutilizable, que permita al usuario ver múltiples imágenes a la vez, realizar selecciones múltiples y sirva como base para futuras operaciones por lotes. La implementación debe integrarse de forma nativa en la arquitectura existente (MVC, Managers, ComponentRegistry, Model-driven UI).
+
+======================================================================
+== FASE 1: CONSTRUCCIÓN DE LOS COMPONENTES DE LA VISTA (UI)
+======================================================================
+
+1.1. Creación del Panel de Visualización del Grid:
+    - Nombre del archivo: `vista/panels/GridDisplayPanel.java`
+    - Heredará de: `JPanel` con `BorderLayout`.
+    - Componente principal interno: `JList<String>` configurado para actuar como un grid (`setLayoutOrientation(JList.HORIZONTAL_WRAP)` y `setVisibleRowCount(-1)`).
+    - El `JList` estará contenido en un `JScrollPane`.
+    - Responsabilidades:
+        - Mostrar una cuadrícula de celdas.
+        - Ser "tonto" en cuanto a datos: recibe una lista de claves de imagen y la muestra.
+        - Exponer su `JList` interna a través de un método `getGridList()` para que los controladores puedan interactuar con ella.
+
+1.2. Creación del Renderer de Celdas del Grid:
+    - Nombre del archivo: `vista/renderers/GridCellRenderer.java`
+    - Heredará de: `JPanel` e implementará `ListCellRenderer<String>`.
+    - Se basará en el diseño y la lógica de `MiniaturaListCellRenderer.java`.
+    - Responsabilidades:
+        - Dibujar una única celda del grid.
+        - Mostrar una miniatura de un tamaño predefinido (ej. 128x128).
+        - Obtener la miniatura a través del `ThumbnailService` existente. Se decidirá si estas miniaturas más grandes se cachean o no (propuesta inicial: no cachear para proteger el LruCache, confiando en la velocidad del escalado).
+        - Mostrar el nombre del archivo debajo de la miniatura, con gestión de saltos de línea para nombres largos (usando HTML).
+        - Gestionar la apariencia visual de la selección (color de fondo, borde).
+
+1.3. Integración en `ViewBuilder.java`:
+    - Localizar el método `createRightSplitComponent()`.
+    - Reemplazar el `JPanel` placeholder de "VISTA_GRID" por una instancia real de `new GridDisplayPanel(...)`.
+    - Registrar el nuevo panel en `ComponentRegistry` con la clave `"panel.display.grid"`.
+    - Registrar la `JList` interna del panel en `ComponentRegistry` con la clave `"list.grid"`.
+
+======================================================================
+== FASE 2: LÓGICA DE CONTROL Y SINCRONIZACIÓN
+======================================================================
+
+2.1. Orquestación del Cambio de Modo (en `GeneralController` o similar):
+    - Se creará un método (ej. `switchToDisplayMode(DisplayMode newMode)`) que centralice la lógica.
+    - Responsabilidades de este método al cambiar a MODO_GRID:
+        a. Poblar el Grid: Obtener la lista de claves de imagen del `VisorModel` (`model.getCurrentListContext().getModeloLista()`) y pasarla al `GridDisplayPanel` (`gridDisplayPanel.setImageKeys(...)`).
+        b. Cambiar la Vista: Llamar a `viewManager.cambiarAVista("container.displaymodes", "VISTA_GRID")`.
+        c. Sincronizar Selección: Obtener el índice actual del `VisorModel` (`model.getIndiceActual()`) y usarlo para seleccionar y hacer visible el elemento correspondiente en el `GridDisplayPanel`.
+        d. Gestionar Visibilidad de Paneles (Lógica Inteligente):
+            - Ocultar automáticamente la barra de miniaturas inferior (`scroll.miniaturas`) llamando al `ViewManager`.
+            - Actualizar el estado del `JCheckBoxMenuItem` de "Mostrar Miniaturas" en el menú para que aparezca desmarcado.
+            - Guardar el nuevo estado de visibilidad de las miniaturas en el archivo `config.cfg`.
+        e. Persistir el Modo: Guardar el nuevo modo de visualización en `config.cfg` (ej. `ui.displaymode.lastUsed = "GRID"`).
+
+2.2. Interacción del Usuario con el Grid:
+    - Se añadirá un `ListSelectionListener` a la `JList` del `GridDisplayPanel`.
+    - Evento de Clic Simple/Selección:
+        - El listener notificará al `ListCoordinator` del nuevo índice seleccionado (`listCoordinator.seleccionarImagenPorIndice(newIndex)`).
+        - El `ListCoordinator` se encargará de actualizar el modelo y sincronizar las otras vistas (si estuvieran visibles), como la lista de nombres.
+    - Evento de Doble Clic:
+        - Se añadirá un `MouseListener` a la `JList`.
+        - Al detectar un doble clic, se cambiará de vuelta al modo de imagen única (`switchToDisplayMode(DisplayMode.SINGLE_IMAGE)`), mostrando la imagen en la que se hizo clic.
+
+2.3. Sincronización Inversa (del `ListCoordinator` al `Grid`):
+    - Se modificará el `ListCoordinator` (o un método que lo use) para que, además de sincronizar las listas existentes, también sincronice la selección en el grid si este está visible.
+    - `listCoordinator.seleccionarImagenPorIndice()` llamará, indirectamente, a `sincronizarSeleccionJList(registry.get("list.grid"), index)`.
+
+======================================================================
+== FASE 3: FUNCIONALIDADES AVANZADAS Y REQUISITOS ESPECÍFICOS
+======================================================================
+
+3.1. Selección Múltiple (Estilo Explorador de Windows):
+    - Se configurará la `JList` del `GridDisplayPanel` con `setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)`.
+    - Se aplicará la misma configuración a la `JList` de la lista de nombres (`list.nombresArchivo`) para añadir esta funcionalidad también en la vista principal.
+
+3.2. Adaptación de Acciones para Procesamiento por Lotes:
+    - Las acciones existentes (ej. "Marcar", "Descartar", "Exportar") deberán ser modificadas.
+    - Su lógica deberá comprobar el modo de visualización actual.
+    - Si el modo es `GRID`, la acción deberá operar sobre la lista de elementos seleccionados (`gridList.getSelectedValuesList()`) en lugar de sobre el único índice del modelo.
+
+3.3. Barra de Herramientas Específica para el Grid (Post-implementación inicial):
+    - Se diseñará y añadirá un `JToolBar` en la zona sur del `GridDisplayPanel`.
+    - Contendrá controles para:
+        - Aumentar/reducir el tamaño de las celdas (zoom del grid).
+        - Navegación por páginas (siguiente/anterior), utilizando el valor de `salto de bloque` ya existente en la configuración.
+
+3.4. Previsualización con Doble Clic (Post-implementación inicial):
+    - En lugar de cambiar de modo, se podría implementar que el doble clic abra un `JDialog` modal.
+    - Este diálogo contendría una instancia de `ImageDisplayPanel` para mostrar la imagen en un tamaño mayor, permitiendo zoom y paneo sin salir del modo Grid. Esta es una alternativa al punto 2.2.
+
+======================================================================
+== FIN DEL INFORME
+======================================================================

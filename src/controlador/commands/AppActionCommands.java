@@ -234,7 +234,4 @@ public interface AppActionCommands {
     public static final String CMD_BACKGROUND_CHECKERED     = "cmd.background.checkered";
     public static final String CMD_BACKGROUND_CUSTOM_COLOR  = "cmd.background.custom_color";
     
-    
-    
-
-}
+} // --- FIN DE LA CLASE AppActionCommand ---

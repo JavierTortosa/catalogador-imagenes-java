@@ -90,4 +90,12 @@ public interface IZoomManager {
      */
     void setViewManager(IViewManager viewManager);
 
+    /**
+     * NUEVO MÉTODO ADITIVO: Orquesta el cambio de modo de zoom.
+     * Contiene la lógica de decisión que antes estaba en la Action.
+     * @param nuevoModo El modo a establecer.
+     * @param onComplete El mismo callback que ya usas, para pasarlo al siguiente método.
+     */
+    void setZoomMode(ZoomModeEnum nuevoModo, Runnable onComplete);
+    
 } // --- FIN de la interfaz IZoomManager ---

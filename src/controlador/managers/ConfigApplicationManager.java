@@ -19,6 +19,7 @@ import javax.swing.Timer;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import modelo.VisorModel.DisplayMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.VisorView; // Mantener solo si es necesario para el JOptionPane o setAlwaysOnTop
@@ -35,6 +36,7 @@ public class ConfigApplicationManager {
     private Map<String, Action> actionMap;
     private VisorView view;
     private BackgroundControlManager backgroundControlManager;
+    private DisplayModeManager displayModeManager;
     
     // --- ESTADO ---
     private final Map<String, String> configAlInicio;
@@ -77,11 +79,16 @@ public class ConfigApplicationManager {
         // 2. AHORA sembramos los colores custom si es necesario.
         seedInitialCustomColors(); // <-- AÑADE ESTA LÍNEA AQUÍ
         
-        // 3. Finalmente, aplicamos toda la configuración (incluida la recién sembrada) a la vista.
-        SwingUtilities.invokeLater(() -> {
-            aplicarConfiguracionAlaVista();
-            sincronizarUIFinal();
-        });
+//        // 3. Finalmente, aplicamos toda la configuración (incluida la recién sembrada) a la vista.
+//        SwingUtilities.invokeLater(() -> {
+//        	displayModeManager.sincronizarEstadoBotonesDisplayMode();
+////            aplicarConfiguracionAlaVista();
+////            sincronizarUIFinal();
+//        });
+        
+        // Ahora, este método solo se encarga de aplicar la configuración,
+        // no de la sincronización visual, que ocurrirá más tarde.
+        SwingUtilities.invokeLater(this::aplicarConfiguracionAlaVista);
     }// --- Fin del método aplicarConfiguracionGlobalmente ---
     
     
@@ -226,6 +233,20 @@ public class ConfigApplicationManager {
         
         boolean pantallaCompleta = config.getBoolean(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, false);
         this.model.setModoPantallaCompletaActivado(pantallaCompleta);
+        
+        // Cargar el último DisplayMode utilizado
+        DisplayMode ultimoDisplayMode;
+        String ultimoDisplayModeStr = config.getString(ConfigKeys.COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO, "SINGLE_IMAGE").toUpperCase();
+        try {
+            // Intenta convertir el String del fichero a un valor del enum
+            ultimoDisplayMode = VisorModel.DisplayMode.valueOf(ultimoDisplayModeStr);
+        } catch (IllegalArgumentException e) {
+            // Si el valor en el fichero es inválido o no existe, usa un valor seguro por defecto
+            System.err.println("WARN: DisplayMode guardado '" + ultimoDisplayModeStr + "' no es válido. Usando SINGLE_IMAGE por defecto.");
+            ultimoDisplayMode = VisorModel.DisplayMode.SINGLE_IMAGE;
+        }
+        // Llama al nuevo método del modelo para establecer el estado inicial
+        model.setInitialDisplayMode(ultimoDisplayMode);
         
         System.out.println("  -> Configuración del Modelo aplicada.");
     
@@ -437,10 +458,10 @@ public class ConfigApplicationManager {
     
     
     /**
-     * Sincroniza el estado visual y lógico de un botón toggle.
-     * Esta versión aplica manualmente los colores de fondo y texto si el botón
-     * es un JToggleButton, para asegurar que el tema se aplique correctamente
-     * incluso si FlatLaf no lo hace por defecto para estos componentes.
+     * Sincroniza el estado de selección LÓGICO de un botón toggle.
+     * NO aplica colores manualmente, confía en que el Look & Feel (FlatLaf)
+     * lo hará basándose en el estado 'selected' del botón y las propiedades
+     * del UIManager.
      *
      * @param action La Action cuyo botón asociado se va a actualizar.
      * @param isSelected El estado de selección (true si está activado, false si no).
@@ -450,6 +471,7 @@ public class ConfigApplicationManager {
             return;
         }
 
+        // 1. Encontrar el botón asociado a la acción.
         AbstractButton button = null;
         for (java.awt.Component comp : registry.getAllComponents()) {
             if (comp instanceof AbstractButton) {
@@ -462,16 +484,31 @@ public class ConfigApplicationManager {
         }
         
         if (button == null) {
-            return; 
+            return; // No se encontró botón para esta acción.
         }
 
-        // --- INICIO CORRECCIÓN CLAVE: Lógica de selección y HABILITACIÓN/DESHABILITACIÓN ---
-        // 1. Sincronizar el estado .isSelected() del botón con el de la Action.
+        // --- Lógica de Depuración ---
+        String actionCommand = (String) action.getValue(Action.ACTION_COMMAND_KEY);
+        System.out.println("\n--- [ConfigAppManager] Sincronizando estado lógico para Action: " + actionCommand + " ---");
+        
+        // 2. Sincronizar el estado de selección lógico del botón.
+        //    Este es el único paso realmente necesario. Al cambiar el estado de
+        //    selección, se dispara un repintado y FlatLaf aplicará los colores correctos.
         if (button.isSelected() != isSelected) {
             button.setSelected(isSelected);
+            System.out.println("    -> Estado .isSelected() del botón cambiado a " + isSelected);
         }
+        
+//        button.setBackground(Color.RED);
+        
+        // Ya no es necesario llamar a button.repaint() aquí, porque setSelected()
+        // ya notifica al sistema de repintado.
+        
+        System.out.println("--- Fin sincronización lógica para " + actionCommand + " ---\n");
 
     } // --- Fin del método actualizarAspectoBotonToggle ---
+    
+    
     
     
     /**
@@ -487,7 +524,7 @@ public class ConfigApplicationManager {
      * Inyecta el mapa de acciones de la aplicación.
      * @param actionMap El mapa de acciones (comando -> Action).
      */
-    public void setActionMap(Map<String, Action> actionMap) {
+    public void setActionMap(Map<String, Action> actionMap										) {
         this.actionMap = Objects.requireNonNull(actionMap);
     } // --- Fin del método setActionMap ---
     
@@ -496,5 +533,6 @@ public class ConfigApplicationManager {
         this.backgroundControlManager = Objects.requireNonNull(backgroundControlManager);
     }
     
+    public void setDisplayModeManager(DisplayModeManager dmm) { this.displayModeManager = dmm; }
     
 } // --- FIN de la clase ConfigApplicationManager ---

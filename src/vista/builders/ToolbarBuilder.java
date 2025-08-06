@@ -84,6 +84,11 @@ public class ToolbarBuilder {
         toolbar.setRollover(true);
         toolbar.putClientProperty("toolbarDefinition", toolbarDef);
 
+        
+        
+        // La lista ahora es 'vista', 'zoom' y 'modo'
+        List<String> groupToolbarKeys = List.of("vista", "zoom", "modo");
+        
         ButtonGroup group = null;
         if (groupToolbarKeys.contains(toolbarDef.claveBarra())) {
             group = new ButtonGroup();
@@ -91,7 +96,6 @@ public class ToolbarBuilder {
             System.out.println("    -> Creado ButtonGroup para la barra: '" + toolbarDef.claveBarra() + "'");
         }
 
-        // ***** INICIO DE LA CORRECCIÓN DEL BUCLE *****
         if (toolbarDef.componentes() != null) {
             // Ahora iteramos sobre la lista genérica "componentes"
             for (ToolbarComponentDefinition compDef : toolbarDef.componentes()) {
@@ -101,9 +105,10 @@ public class ToolbarBuilder {
                     // Si es un botón, llamamos al método que ya teníamos
                     JComponent componenteBoton = crearComponenteIndividual(botonDef); 
                     if (componenteBoton != null) {
-                        toolbar.add(componenteBoton);
-                        if (group != null && componenteBoton instanceof JToggleButton) {
-                            group.add((JToggleButton) componenteBoton);
+                    	toolbar.add(componenteBoton);
+                    	if (group != null && componenteBoton instanceof JToggleButton) {
+                    		group.add((JToggleButton) componenteBoton);
+                    		System.out.println("      -> Botón Toggle '" + botonDef.comandoCanonico() + "' añadido al ButtonGroup.");
                         }
                     }
                 } else if (compDef instanceof LabelDefinition labelDef) {
@@ -111,7 +116,10 @@ public class ToolbarBuilder {
                     javax.swing.JLabel speedLabel = new javax.swing.JLabel(labelDef.textoDefecto(), javax.swing.SwingConstants.CENTER);
                     speedLabel.setPreferredSize(new Dimension(60, 25));
                     speedLabel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+                    
+                    registry.unregister(labelDef.id());
                     registry.register(labelDef.id(), speedLabel);
+                    
                     toolbar.add(speedLabel);
                     System.out.println("    -> JLabel '" + labelDef.id() + "' añadido a la barra.");
 
@@ -128,44 +136,9 @@ public class ToolbarBuilder {
         
     } // --- Fin del método buildSingleToolbar ---
     
-
-//    public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) { 
-//        System.out.println("\n--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
-//        
-//        final JToolBar toolbar = new JToolBar(toolbarDef.titulo());
-//        toolbar.setName(toolbarDef.claveBarra());
-//        toolbar.setFloatable(true);
-//        toolbar.setRollover(true);
-//        toolbar.putClientProperty("toolbarDefinition", toolbarDef);
-//
-//        // Lógica para agrupar JToggleButtons
-//        ButtonGroup group = null;
-//        // Comprueba si la clave de la barra actual está en nuestra lista de barras a agrupar.
-//        if (groupToolbarKeys.contains(toolbarDef.claveBarra())) {
-//            group = new ButtonGroup();
-//            this.radioGroups.put(toolbarDef.claveBarra(), group);
-//            System.out.println("    -> Creado ButtonGroup para la barra: '" + toolbarDef.claveBarra() + "'");
-//        }
-//
-//        if (toolbarDef.botones() != null) {
-//            for (ToolbarButtonDefinition botonDef : toolbarDef.botones()) {
-//                JComponent componente = crearComponenteIndividual(botonDef); 
-//                if (componente != null) {
-//                    toolbar.add(componente);
-//                    // Si hemos creado un grupo y el componente es un JToggleButton, lo añadimos.
-//                    if (group != null && componente instanceof JToggleButton) {
-//                        group.add((JToggleButton) componente);
-//                        System.out.println("      -> Botón '" + componente.getName() + "' añadido al ButtonGroup.");
-//                    }
-//                }
-//            }
-//        }
-//        return toolbar;
-//        
-//    } // --- Fin del método buildSingleToolbar ---
-//    
     
     private JComponent crearComponenteIndividual(ToolbarButtonDefinition definition) {
+    	
         // --- 1. VALIDACIONES INICIALES ---
         if (definition == null || definition.comandoCanonico() == null) {
             System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: Definición de botón o comando canónico es nulo.");
@@ -214,6 +187,15 @@ public class ToolbarBuilder {
                 abstractButtonComponent = transparentButton;
                 break;
 
+            case STATUS_BAR_BUTTON:
+                JButton statusBarButton = new JButton();
+                statusBarButton.setOpaque(false);
+                statusBarButton.setContentAreaFilled(false);
+                statusBarButton.setBorderPainted(false); // Muy importante para que se integre
+                statusBarButton.setFocusPainted(false);
+                abstractButtonComponent = statusBarButton;
+                break;
+                
             case DPAD_CRUZ:
             case DPAD_GRID:
                 break; // Se manejan después
@@ -237,15 +219,40 @@ public class ToolbarBuilder {
             }
             abstractButtonComponent.setText(null);
 
+            
+            
+            // --- INICIO DE LA LÓGICA DE ICONOS CORREGIDA ---
+            
+            // 1. Obtener SIEMPRE el icono FRESCO desde IconUtils, ignorando el que pueda tener la Action.
+            //    Esto asegura que usamos el icono del tema actual, ya que IconUtils depende de ThemeManager.
             Icon finalIcon = null;
-            if (associatedAction != null && associatedAction.getValue(Action.SMALL_ICON) != null) {
-                finalIcon = (Icon) associatedAction.getValue(Action.SMALL_ICON);
-            } else if (definition.claveIcono() != null && !definition.claveIcono().isBlank()) {
+            if (definition.claveIcono() != null && !definition.claveIcono().isBlank()) {
                 finalIcon = (definition.scopeIconoBase() == IconScope.COMMON)
                     ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
                     : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
             }
-            abstractButtonComponent.setIcon(finalIcon);
+            
+            // 2. Asignar explícitamente el icono al botón DESPUÉS de haber asignado la Action.
+            //    Esto sobreescribe el icono que la Action pudiera haber puesto.
+            if (finalIcon != null) {
+                abstractButtonComponent.setIcon(finalIcon);
+            }
+            
+            // --- FIN DE LA LÓGICA DE ICONOS CORREGIDA ---
+            
+            
+//            Icon finalIcon = null;
+//            if (associatedAction != null && associatedAction.getValue(Action.SMALL_ICON) != null) {
+//                finalIcon = (Icon) associatedAction.getValue(Action.SMALL_ICON);
+//            } else if (definition.claveIcono() != null && !definition.claveIcono().isBlank()) {
+//                finalIcon = (definition.scopeIconoBase() == IconScope.COMMON)
+//                    ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
+//                    : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
+//            }
+//            abstractButtonComponent.setIcon(finalIcon);
+            
+            
+            
             
             // Asignar iconos especiales a los botones de color/cuadros
             if (definition.tipoBoton() == ButtonType.COLOR_OVERLAY_ICON_BUTTON) {

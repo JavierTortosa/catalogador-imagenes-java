@@ -11,6 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JColorChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 
 import controlador.commands.AppActionCommands;
@@ -19,6 +20,7 @@ import controlador.utils.ComponentRegistry;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
@@ -27,7 +29,7 @@ import vista.util.IconUtils;
  * Gestiona la lógica y la apariencia de la barra de herramientas
  * para el control del fondo de la imagen principal.
  */
-public class BackgroundControlManager {
+public class BackgroundControlManager implements ThemeChangeListener{
 
     // --- Dependencias ---
     private final ComponentRegistry registry;
@@ -199,21 +201,15 @@ public class BackgroundControlManager {
         String command = (String) button.getClientProperty("canonicalCommand");
         if (command == null) return;
         
-        
-        // CASO ESPECIAL 1: Botón de la Paleta.
-        // Este botón tiene un icono estático y NUNCA debe ser modificado por este método.
-        // Salimos inmediatamente.
         if (command.equals(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR)) {
-            // No hacemos NADA. Dejamos el icono que puso el ToolbarBuilder.
+            // Lógica para el botón de la paleta (recargar su icono específico)
+            Icon paletteIcon = iconUtils.getScaledCommonIcon("paint-palette--streamline-core.png", 16, 16);
+            button.setIcon(paletteIcon);
             return; 
         }
 
-        // --- AHORA, para el resto de botones, que SÍ son "swatches", continuamos ---
-
-        // Obtenemos el icono base (el círculo "stopw.png").
         Icon baseIcon = (Icon) button.getClientProperty("baseIcon");
         if (baseIcon == null) {
-            // Esta lógica de rescate es buena, la mantenemos por robustez.
             Object baseIconNameObj = button.getClientProperty("baseIconName");
             if (baseIconNameObj instanceof String) {
                 String baseIconName = (String) baseIconNameObj;
@@ -225,51 +221,110 @@ public class BackgroundControlManager {
             }
         }
         
-        // Si después del rescate sigue sin haber icono base, no podemos continuar.
         if (baseIcon == null) {
             System.err.println("ERROR GRAVE [updateSwatchAppearance]: El botón para el comando '" + command + "' no tiene un icono base para pintar.");
             return;
         }
 
-        // CASO ESPECIAL 2: Botón de Cuadros.
-        // Este sí lo modificamos, pero con su propia lógica de patrón.
         if (command.equals(AppActionCommands.CMD_BACKGROUND_CHECKERED)) {
             button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIcon, 16, 16));
-            return; // Salimos después de aplicar el patrón.
+            return;
         }
-
-        // --- FIN DE LA MODIFICACIÓN ---
         
-        // Lógica para el resto de botones (los de colores tintados).
         Color colorOriginal;
         if (command.equals(AppActionCommands.CMD_BACKGROUND_THEME_COLOR)) {
             colorOriginal = themeManager.getTemaActual().colorFondoSecundario();
         } else {
             String configKey = getConfigKeyForCommand(command);
-            String colorGuardadoStr = config.getString(configKey, "");
-            if (!colorGuardadoStr.isEmpty()) {
-                colorOriginal = config.getColor(configKey, Color.MAGENTA);
-            } else {
-                colorOriginal = getDefaultColorForSlot(command);
-            }
+            colorOriginal = config.getColor(configKey, getDefaultColorForSlot(command));
         }
 
         Color colorFinalParaPintar;
-
-        // Usamos el método para comprobar si es un color "de fábrica"
-	    if (esUnColorDeTemaPorDefecto(colorOriginal)) {
-	        // Si lo es, aplicamos la corrección de contraste para mejorar la visibilidad del ICONO.
-	        System.out.println("    -> El color para '" + command + "' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.");
-	        colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
-	    } else {
-	        // Si NO lo es, es un color personalizado por el usuario. Lo respetamos y lo mostramos tal cual.
-	        System.out.println("    -> El color para '" + command + "' es personalizado. Se usará el color original sin ajustes.");
-	        colorFinalParaPintar = colorOriginal;
-	    }
+        if (esUnColorDeTemaPorDefecto(colorOriginal)) {
+            colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
+        } else {
+            colorFinalParaPintar = colorOriginal;
+        }
         
         button.setIcon(iconUtils.getTintedIcon(baseIcon, colorFinalParaPintar, 16, 16));
+    } // --- FIN del metodo updateSwatchAppearance (TU VERSIÓN CORRECTA) ---
     
-    } // --- FIN del metodo updateSwatchAppearance ---
+    
+//    private void updateSwatchAppearance(JButton button) {
+//        String command = (String) button.getClientProperty("canonicalCommand");
+//        if (command == null) return;
+//        
+//        
+//        // CASO ESPECIAL 1: Botón de la Paleta.
+//        // Este botón tiene un icono estático y NUNCA debe ser modificado por este método.
+//        // Salimos inmediatamente.
+//        if (command.equals(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR)) {
+//            // No hacemos NADA. Dejamos el icono que puso el ToolbarBuilder.
+//            return; 
+//        }
+//
+//        // --- AHORA, para el resto de botones, que SÍ son "swatches", continuamos ---
+//
+//        // Obtenemos el icono base (el círculo "stopw.png").
+//        Icon baseIcon = (Icon) button.getClientProperty("baseIcon");
+//        if (baseIcon == null) {
+//            // Esta lógica de rescate es buena, la mantenemos por robustez.
+//            Object baseIconNameObj = button.getClientProperty("baseIconName");
+//            if (baseIconNameObj instanceof String) {
+//                String baseIconName = (String) baseIconNameObj;
+//                ImageIcon reloadedIcon = iconUtils.getScaledCommonIcon(baseIconName, 16, 16);
+//                if (reloadedIcon != null) {
+//                    baseIcon = reloadedIcon;
+//                    button.putClientProperty("baseIcon", baseIcon);
+//                }
+//            }
+//        }
+//        
+//        // Si después del rescate sigue sin haber icono base, no podemos continuar.
+//        if (baseIcon == null) {
+//            System.err.println("ERROR GRAVE [updateSwatchAppearance]: El botón para el comando '" + command + "' no tiene un icono base para pintar.");
+//            return;
+//        }
+//
+//        // CASO ESPECIAL 2: Botón de Cuadros.
+//        // Este sí lo modificamos, pero con su propia lógica de patrón.
+//        if (command.equals(AppActionCommands.CMD_BACKGROUND_CHECKERED)) {
+//            button.setIcon(iconUtils.getCheckeredOverlayIcon(baseIcon, 16, 16));
+//            return; // Salimos después de aplicar el patrón.
+//        }
+//
+//        // --- FIN DE LA MODIFICACIÓN ---
+//        
+//        // Lógica para el resto de botones (los de colores tintados).
+//        Color colorOriginal;
+//        if (command.equals(AppActionCommands.CMD_BACKGROUND_THEME_COLOR)) {
+//            colorOriginal = themeManager.getTemaActual().colorFondoSecundario();
+//        } else {
+//            String configKey = getConfigKeyForCommand(command);
+//            String colorGuardadoStr = config.getString(configKey, "");
+//            if (!colorGuardadoStr.isEmpty()) {
+//                colorOriginal = config.getColor(configKey, Color.MAGENTA);
+//            } else {
+//                colorOriginal = getDefaultColorForSlot(command);
+//            }
+//        }
+//
+//        Color colorFinalParaPintar;
+//
+//        // Usamos el método para comprobar si es un color "de fábrica"
+//	    if (esUnColorDeTemaPorDefecto(colorOriginal)) {
+//	        // Si lo es, aplicamos la corrección de contraste para mejorar la visibilidad del ICONO.
+//	        System.out.println("    -> El color para '" + command + "' es un color de tema por defecto. Aplicando ajuste de contraste si es necesario.");
+//	        colorFinalParaPintar = ajustarContrasteSiEsNecesario(colorOriginal);
+//	    } else {
+//	        // Si NO lo es, es un color personalizado por el usuario. Lo respetamos y lo mostramos tal cual.
+//	        System.out.println("    -> El color para '" + command + "' es personalizado. Se usará el color original sin ajustes.");
+//	        colorFinalParaPintar = colorOriginal;
+//	    }
+//        
+//        button.setIcon(iconUtils.getTintedIcon(baseIcon, colorFinalParaPintar, 16, 16));
+//    
+//    } // --- FIN del metodo updateSwatchAppearance ---
     
     
 	/**
@@ -401,11 +456,26 @@ public class BackgroundControlManager {
      * del tema actual debe actualizar su color.
      */
     public void repaintAllButtons() {
-        System.out.println("[BackgroundControlManager] Solicitud de repintado para todos los botones de fondo.");
-        for (JButton button : this.swatchButtons) {
-            updateSwatchAppearance(button);
-        }
-    } // --- FIN DEL Metodo repaintAllButtons ---
+        System.out.println("[BackgroundControlManager - repaintAllButtons] RECONECTANDO con nuevos botones tras cambio de tema...");
+        
+        // Esta llamada limpia la lista de botones viejos, busca los nuevos en la toolbar
+        // recién creada y les aplica la apariencia y listeners correctos.
+        initializeAndLinkControls();
+        
+        // Después de reconectar, nos aseguramos de que el borde de selección
+        // se aplique al botón correcto.
+        sincronizarSeleccionConEstadoActual();
+        
+        System.out.println("[BackgroundControlManager - repaintAllButtons] Reconexión y repintado completados.");
+    } // --- FIN del Metodo repaintAllButtons ---
+    
+    
+//    public void repaintAllButtons() {
+//        System.out.println("[BackgroundControlManager] Solicitud de repintado para todos los botones de fondo.");
+//        for (JButton button : this.swatchButtons) {
+//            updateSwatchAppearance(button);
+//        }
+//    } // --- FIN DEL Metodo repaintAllButtons ---
     
     /**
      * Devuelve la clave de configuración de `ConfigKeys` correspondiente a un `ActionCommand` de ranura.
@@ -558,5 +628,40 @@ public class BackgroundControlManager {
         selectButton(null); // Deseleccionamos todos los botones.
         
     }// FIN del metodo sincronizarSeleccionConEstadoActual ---
+    
+    
+    @Override
+    public void onThemeChanged(Tema nuevoTema) {
+        System.out.println("--- [BackgroundControlManager] Notificación de tema recibida. Refrescando iconos especiales...");
+        // La lógica es simple: volvemos a llamar a los métodos que ya tienes,
+        // que se encargan de reconstruir los iconos y re-enlazar los listeners.
+        SwingUtilities.invokeLater(() -> {
+            initializeAndLinkControls();
+            sincronizarSeleccionConEstadoActual();
+        });
+        
+    }// --- FIN del metodo onThemeChanged ---
+    
+    
+//    @Override
+//    public void onThemeChanged(Tema nuevoTema) {
+//        System.out.println("[BackgroundControlManager] Notificación de cambio de tema recibida. Refrescando botones de fondo...");
+//
+//        SwingUtilities.invokeLater(() -> {
+//            // Itera sobre todos los botones de muestra de color que gestiona
+//            for (JButton button : this.swatchButtons) {
+//                // Llama al método que ya tienes para actualizar la apariencia de un botón.
+//                // Este método se encargará de pedir el icono correcto a IconUtils.
+//                updateSwatchAppearance(button);
+//            }
+//            
+//            // También es importante sincronizar cuál está seleccionado, ya que el color
+//            // del botón de "tema actual" cambia.
+//            sincronizarSeleccionConEstadoActual();
+//
+//            System.out.println("[BackgroundControlManager] Refresco de botones de fondo completado.");
+//        });
+//    } // --- FIN del método onThemeChanged ---
+
     
 } // --- FIN DE LA CLASE BackgroundControlManager ---

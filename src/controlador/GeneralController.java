@@ -23,20 +23,21 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
-import controlador.actions.displaymode.SwitchDisplayModeAction;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.interfaces.IModoController;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
+import controlador.managers.DisplayModeManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager; // <-- Importación necesaria
 import controlador.managers.ViewManager;
 import controlador.utils.ComponentRegistry; // <-- NUEVO: Importación para ComponentRegistry
 import modelo.ListContext;
 import modelo.VisorModel;
-import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode; // <-- Importación necesaria
+import servicios.ConfigKeys;
+import servicios.ConfigurationManager;
 import vista.components.Direction; // <-- NUEVO: Importación para Direction
 import vista.panels.ImageDisplayPanel; // <-- NUEVO: Importación para ImageDisplayPanel
 
@@ -60,7 +61,13 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     private ComponentRegistry registry; // <-- NUEVO: Referencia al ComponentRegistry
     
     private int lastMouseX, lastMouseY;
+    
+    private DisplayModeManager displayModeManager; 
+    private ConfigurationManager configuration;
 
+    
+    private volatile boolean isChangingSubfolderMode = false;
+    
     
     /**
      * Constructor de GeneralController.
@@ -177,6 +184,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         System.out.println("--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a " + modoDestino + " ---\n");
     } // --- Fin del método cambiarModoDeTrabajo ---
 
+    
     /**
      * Realiza las tareas de "limpieza" o guardado de estado de un modo antes de abandonarlo.
      * Contiene lógica clave para el modo Carrusel independiente.
@@ -248,7 +256,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                         switch (modoAlQueSeEntra) {
                             case VISUALIZADOR:
                                 visorController.restaurarUiVisualizador();
-                                cambiarDisplayMode(model.getCurrentDisplayMode()); 
+//                                cambiarDisplayMode(model.getCurrentDisplayMode()); 
                                 break;
                             case PROYECTO:
                                 projectController.activarVistaProyecto();
@@ -288,7 +296,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                         }
                         
                         sincronizarEstadoBotonesDeModo();
-                        sincronizarEstadoBotonesDisplayMode();
+//                        sincronizarEstadoBotonesDisplayMode();
                         
                         System.out.println("    -> [EDT-2] Restauración de UI para " + modoAlQueSeEntra + " completada.");
                     }
@@ -297,30 +305,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         });
 	    
 	} // --- Fin del método entrarModo ---
-	
-	
-//	/**
-//     * Notifica a todas las acciones sensibles al contexto para que actualicen su estado 'enabled'.
-//     * Este es el método central para llamar después de un cambio de estado global, como activar/desactivar la sincronización.
-//     */
-//    public void notificarAccionesSensiblesAlContexto() {
-//        System.out.println("[GeneralController] Notificando a todas las acciones sensibles al contexto...");
-//        if (actionMap == null || model == null) return;
-//
-//        for (Action action : actionMap.values()) {
-//            if (action instanceof controlador.interfaces.ContextSensitiveAction) {
-//                ((controlador.interfaces.ContextSensitiveAction) action).updateEnabledState(model);
-//            }
-//        }
-//        
-//        // Adicionalmente, forzamos la sincronización del botón de sync para asegurar su estado visual.
-//        Action syncAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SYNC_VISOR_CARRUSEL);
-//        if (syncAction != null && configAppManager != null) {
-//            configAppManager.actualizarAspectoBotonToggle(syncAction, model.isSyncVisualizadorCarrusel());
-//        }
-//        
-//        System.out.println("[GeneralController] Notificación completada.");
-//    } // --- Fin del método notificarAccionesSensiblesAlContexto ---
 	
 	
 	/**
@@ -352,18 +336,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	         conSubcarpetasAction.setEnabled(subcarpetasHabilitado);
 	     }
 	     
-//        boolean subcarpetasActivo = (modoActual == WorkMode.VISUALIZADOR || modoActual == WorkMode.CARROUSEL);
-//        
-//        Action subfolderAction = this.actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-////        if (subfolderAction != null) subfolderAction.setEnabled(subcarpetasActivo);
-//        subfolderAction.setEnabled(true);
-//
-//        Action soloCarpetaAction = this.actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA);
-//        if (soloCarpetaAction != null) soloCarpetaAction.setEnabled(subcarpetasActivo);
-//
-//        Action conSubcarpetasAction = this.actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS);
-//        if (conSubcarpetasAction != null) conSubcarpetasAction.setEnabled(subcarpetasActivo);
-//        
         // --- 2. LÓGICA DE SELECCIÓN (Selected/Deselected) para Toggles ---
         
         if (configAppManager != null) {
@@ -403,96 +375,96 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     } // --- Fin del método actualizarEstadoUiParaModo ---
     
     
-    /**
-     * **CORRECCIÓN CLAVE:** Método para cambiar el modo de visualización de contenido.
-     * Orquesta la transición entre los diferentes DisplayModes.
-     * @param newDisplayMode El DisplayMode al que se desea cambiar.
-     */
-    public void cambiarDisplayMode(DisplayMode newDisplayMode) { // <-- MÉTODO AÑADIDO
-        DisplayMode currentDisplayMode = this.model.getCurrentDisplayMode();
-        if (currentDisplayMode == newDisplayMode) {
-            System.out.println("[GeneralController] Intento de cambiar al DisplayMode que ya está activo: " + newDisplayMode + ". No se hace nada.");
-            return;
-        }
-        
-        System.out.println("\n--- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: " + currentDisplayMode + " -> " + newDisplayMode + " ---");
-        
-        // 1. Actualizar el modelo con el nuevo DisplayMode.
-        this.model.setCurrentDisplayMode(newDisplayMode);
-        
-        // 2. Determinar la clave del panel en el CardLayout de la vista.
-        String viewNameInCardLayout = mapDisplayModeToCardLayoutViewName(newDisplayMode);
-        
-        // 3. Solicitar a ViewManager que cambie el panel visible.
-        this.viewManager.cambiarAVista("container.displaymodes", viewNameInCardLayout);
-        
-        // 4. Sincronizar los botones/radios que indican el DisplayMode activo.
-        sincronizarEstadoBotonesDisplayMode();
-        
-        System.out.println("--- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a " + newDisplayMode + " ---\n");
-    }
+//    /**
+//     * **CORRECCIÓN CLAVE:** Método para cambiar el modo de visualización de contenido.
+//     * Orquesta la transición entre los diferentes DisplayModes.
+//     * @param newDisplayMode El DisplayMode al que se desea cambiar.
+//     */
+//    public void cambiarDisplayMode(DisplayMode newDisplayMode) { // <-- MÉTODO AÑADIDO
+//        DisplayMode currentDisplayMode = this.model.getCurrentDisplayMode();
+//        if (currentDisplayMode == newDisplayMode) {
+//            System.out.println("[GeneralController] Intento de cambiar al DisplayMode que ya está activo: " + newDisplayMode + ". No se hace nada.");
+//            return;
+//        }
+//        
+//        System.out.println("\n--- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: " + currentDisplayMode + " -> " + newDisplayMode + " ---");
+//        
+//        // 1. Actualizar el modelo con el nuevo DisplayMode.
+//        this.model.setCurrentDisplayMode(newDisplayMode);
+//        
+//        // 2. Determinar la clave del panel en el CardLayout de la vista.
+//        String viewNameInCardLayout = mapDisplayModeToCardLayoutViewName(newDisplayMode);
+//        
+//        // 3. Solicitar a ViewManager que cambie el panel visible.
+//        this.viewManager.cambiarAVista("container.displaymodes", viewNameInCardLayout);
+//        
+//        // 4. Sincronizar los botones/radios que indican el DisplayMode activo.
+//        sincronizarEstadoBotonesDisplayMode();
+//        
+//        System.out.println("--- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a " + newDisplayMode + " ---\n");
+//    }
     
-    /**
-     * Sincroniza el estado LÓGICO Y VISUAL de los botones de modo de visualización de contenido (DisplayMode).
-     * Asegura que solo el botón del DisplayMode activo esté seleccionado y que se aplique
-     * el estilo visual personalizado.
-     */
-    public void sincronizarEstadoBotonesDisplayMode() {
-        if (this.actionMap == null || this.model == null || this.configAppManager == null) {
-            System.err.println("WARN [GeneralController.sincronizarEstadoBotonesDisplayMode]: Dependencias nulas (ActionMap, Model o ConfigAppManager).");
-            return;
-        }
-
-        // Obtiene el DisplayMode actual del modelo.
-        DisplayMode currentDisplayMode = this.model.getCurrentDisplayMode();
-
-        // Define una lista con los comandos de las acciones que corresponden a los DisplayModes.
-        List<String> comandosDeDisplayMode = List.of(
-            AppActionCommands.CMD_VISTA_SINGLE,
-            AppActionCommands.CMD_VISTA_GRID,
-            AppActionCommands.CMD_VISTA_POLAROID
-        );
-
-        // Itera sobre cada comando para encontrar la acción y sincronizar su estado.
-        for (String comando : comandosDeDisplayMode) {
-            Action action = this.actionMap.get(comando);
-            if (action != null) {
-                // Si la acción es una instancia de SwitchDisplayModeAction,
-                // le pedimos que sincronice su estado de selección con el DisplayMode actual del modelo.
-                if (action instanceof SwitchDisplayModeAction) {
-                    ((SwitchDisplayModeAction) action).sincronizarEstadoSeleccionConModelo(currentDisplayMode);
-                }
-                
-                // Después de que la acción haya actualizado su SELECTED_KEY,
-                // pedimos al ConfigApplicationManager que actualice el aspecto visual del botón
-                // asociado a esa acción (esto es el "pintado manual" que discutimos).
-                // Pasamos el estado SELECTED_KEY actual de la acción.
-                this.configAppManager.actualizarAspectoBotonToggle(action, Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY)));
-            }
-        }
-        System.out.println("[GeneralController] Sincronizados botones de DisplayMode. Activo: " + currentDisplayMode);
-    }
+//    /**
+//     * Sincroniza el estado LÓGICO Y VISUAL de los botones de modo de visualización de contenido (DisplayMode).
+//     * Asegura que solo el botón del DisplayMode activo esté seleccionado y que se aplique
+//     * el estilo visual personalizado.
+//     */
+//    public void sincronizarEstadoBotonesDisplayMode() {
+//        if (this.actionMap == null || this.model == null || this.configAppManager == null) {
+//            System.err.println("WARN [GeneralController.sincronizarEstadoBotonesDisplayMode]: Dependencias nulas (ActionMap, Model o ConfigAppManager).");
+//            return;
+//        }
+//
+//        // Obtiene el DisplayMode actual del modelo.
+//        DisplayMode currentDisplayMode = this.model.getCurrentDisplayMode();
+//
+//        // Define una lista con los comandos de las acciones que corresponden a los DisplayModes.
+//        List<String> comandosDeDisplayMode = List.of(
+//            AppActionCommands.CMD_VISTA_SINGLE,
+//            AppActionCommands.CMD_VISTA_GRID,
+//            AppActionCommands.CMD_VISTA_POLAROID
+//        );
+//
+//        // Itera sobre cada comando para encontrar la acción y sincronizar su estado.
+//        for (String comando : comandosDeDisplayMode) {
+//            Action action = this.actionMap.get(comando);
+//            if (action != null) {
+//                // Si la acción es una instancia de SwitchDisplayModeAction,
+//                // le pedimos que sincronice su estado de selección con el DisplayMode actual del modelo.
+//                if (action instanceof SwitchDisplayModeAction) {
+//                    ((SwitchDisplayModeAction) action).sincronizarEstadoSeleccionConModelo(currentDisplayMode);
+//                }
+//                
+//                // Después de que la acción haya actualizado su SELECTED_KEY,
+//                // pedimos al ConfigApplicationManager que actualice el aspecto visual del botón
+//                // asociado a esa acción (esto es el "pintado manual" que discutimos).
+//                // Pasamos el estado SELECTED_KEY actual de la acción.
+//                this.configAppManager.actualizarAspectoBotonToggle(action, Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY)));
+//            }
+//        }
+//        System.out.println("[GeneralController] Sincronizados botones de DisplayMode. Activo: " + currentDisplayMode);
+//    }
     
-    /**
-     * Método auxiliar para mapear un DisplayMode a la clave de vista utilizada en el CardLayout de VisorView.
-     * Esta clave es el nombre del panel que ViewBuilder debe haber añadido al CardLayout.
-     *
-     * @param displayMode El DisplayMode a mapear.
-     * @return La clave de String para el CardLayout (ej. "VISTA_SINGLE_IMAGE").
-     */
-    private String mapDisplayModeToCardLayoutViewName(DisplayMode displayMode) {
-        // Estas claves de CardLayout DEBEN coincidir con los nombres
-        // que uses en ViewBuilder.createMainFrame() al añadir los paneles
-        // a 'vistasContainer' o a cualquier CardLayout que uses para los DisplayModes.
-        switch (displayMode) {
-            case SINGLE_IMAGE: return "VISTA_SINGLE_IMAGE"; // Clave para el panel de imagen única
-            case GRID:         return "VISTA_GRID";         // Clave para el panel de cuadrícula
-            case POLAROID:     return "VISTA_POLAROID";     // Clave para el panel Polaroid
-            //case CAROUSEL:   // Si CAROUSEL fuera un DisplayMode, iría aquí.
-            //                  // Pero ya confirmamos que es un WorkMode, no un DisplayMode.
-            default:           return "VISTA_SINGLE_IMAGE"; // Fallback defensivo por si DisplayMode es nulo o no manejado.
-        }
-    }
+//    /**
+//     * Método auxiliar para mapear un DisplayMode a la clave de vista utilizada en el CardLayout de VisorView.
+//     * Esta clave es el nombre del panel que ViewBuilder debe haber añadido al CardLayout.
+//     *
+//     * @param displayMode El DisplayMode a mapear.
+//     * @return La clave de String para el CardLayout (ej. "VISTA_SINGLE_IMAGE").
+//     */
+//    private String mapDisplayModeToCardLayoutViewName(DisplayMode displayMode) {
+//        // Estas claves de CardLayout DEBEN coincidir con los nombres
+//        // que uses en ViewBuilder.createMainFrame() al añadir los paneles
+//        // a 'vistasContainer' o a cualquier CardLayout que uses para los DisplayModes.
+//        switch (displayMode) {
+//            case SINGLE_IMAGE: return "VISTA_SINGLE_IMAGE"; // Clave para el panel de imagen única
+//            case GRID:         return "VISTA_GRID";         // Clave para el panel de cuadrícula
+//            case POLAROID:     return "VISTA_POLAROID";     // Clave para el panel Polaroid
+//            //case CAROUSEL:   // Si CAROUSEL fuera un DisplayMode, iría aquí.
+//            //                  // Pero ya confirmamos que es un WorkMode, no un DisplayMode.
+//            default:           return "VISTA_SINGLE_IMAGE"; // Fallback defensivo por si DisplayMode es nulo o no manejado.
+//        }
+//    }
     
     
     /**
@@ -612,16 +584,28 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         // 1. Sincronizar los botones de MODO DE TRABAJO.
         //    Esto asegura que el botón del modo actual (Visualizador/Proyecto) esté seleccionado.
         sincronizarEstadoBotonesDeModo();
-
-        // 2. Delegar la sincronización específica del modo VISUALIZADOR a su controlador.
-        //    VisorController se encargará de los botones de zoom, proporciones, subcarpetas, etc.
-        visorController.sincronizarComponentesDeModoVisualizador();
         
-        // 3. Delegar la sincronización específica del modo PROYECTO a su controlador (cuando sea necesario).
+        // 2. Sincronizar los botones de MODO DE VISUALIZACIÓN (DisplayMode).
+//        if (displayModeManager != null) {
+            displayModeManager.sincronizarEstadoBotonesDisplayMode();
+//        } else {
+//            System.err.println("WARN [GeneralController]: DisplayModeManager es nulo, no se pueden sincronizar sus botones.");
+//        }
+
+        // 3. Delegar el resto de la sincronización específica del modo al VisorController.
+        //    IMPORTANTE: Debemos quitar la sincronización de subcarpetas de allí para evitar redundancia.
+        visorController.sincronizarComponentesDeModoVisualizador();
+
+        // 2. Sincronizar los controles de subcarpetas de forma centralizada.
+        sincronizarControlesDeSubcarpetas();
+        
+        
+        // 4. Delegar la sincronización específica del modo PROYECTO a su controlador (cuando sea necesario).
         // projectController.sincronizarComponentesDeModoProyecto(); // <- Futura implementación
 
         System.out.println("--- [GeneralController] SINCRONIZACIÓN MAESTRA DE UI COMPLETADA ---");
-    }
+        
+    } // --- FIN del metodo sincronizarTodaLaUIConElModelo ---
 	
 	
 // ************************************************************************************************************************** FIN SINCRONIZACION 
@@ -639,7 +623,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             return;
         }
 
-//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen"); // Obtener el panel activo.
         ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
 
         if (displayPanel == null || displayPanel.getWidth() <= 0 || displayPanel.getHeight() <= 0) {
@@ -739,7 +722,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             return;
         }
 
-//        ImageDisplayPanel displayPanel = registry.get("panel.display.imagen"); // Obtener el panel activo
         ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
         
         // TODO: Igual que arriba, si hay múltiples paneles de display, obtener el correcto.
@@ -1256,15 +1238,168 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     } // --- Fin del método notificarAccionesSensiblesAlContexto ---
     
     
+    /**
+     * Orquesta el cambio de modo de carga de subcarpetas para el modo Visualizador.
+     * Este método se encarga de la lógica de alto nivel, incluyendo la sincronización final.
+     * 
+     * @param nuevoEstadoIncluirSubcarpetas El estado deseado: true para cargar subcarpetas, false para no hacerlo.
+     */
+    public void solicitarCambioModoCargaSubcarpetas(boolean nuevoEstadoIncluirSubcarpetas) {
+        System.out.println("[GeneralController] Solicitud para cambiar modo de carga de subcarpetas a: " + nuevoEstadoIncluirSubcarpetas);
+
+        // --- INICIO DE LA MODIFICACIÓN (LA GUARDA DE SEGURIDAD) ---
+        // Comprobamos si el modelo YA está en el estado que se nos pide.
+        // Si es así, no hay nada que hacer más que asegurar que la UI esté sincronizada.
+        boolean estadoActualIncluyeSubcarpetas = !model.isMostrarSoloCarpetaActual();
+        if (estadoActualIncluyeSubcarpetas == nuevoEstadoIncluirSubcarpetas) {
+            System.out.println("  -> El modelo ya está en el estado deseado. Sincronizando UI por si acaso y deteniendo proceso.");
+            sincronizarControlesDeSubcarpetas(); // Aseguramos que los botones reflejen el estado correcto.
+            return; // Detenemos la ejecución para romper el bucle.
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+
+        // 1. Validar que estemos en un modo compatible para esta operación.
+        if (model.getCurrentWorkMode() != VisorModel.WorkMode.VISUALIZADOR && model.getCurrentWorkMode() != VisorModel.WorkMode.CARROUSEL) {
+            System.err.println("  -> Operación cancelada: El modo actual (" + model.getCurrentWorkMode() + ") no soporta esta acción.");
+            sincronizarControlesDeSubcarpetas(); // Revertimos visualmente por si acaso.
+            return;
+        }
+
+        // 2. Validar dependencias.
+        if (visorController == null || model == null || configuration == null || displayModeManager == null) {
+            System.err.println("  ERROR [GeneralController]: Dependencias críticas (visorController, model, config, displayModeManager) nulas. Abortando.");
+            return;
+        }
+
+        // 3. Guardar la clave de la imagen actual ANTES de cualquier cambio.
+        final String claveAntesDelCambio = model.getSelectedImageKey();
+        System.out.println("  -> Clave de imagen a intentar mantener: " + claveAntesDelCambio);
+
+        // 4. Actualizar el estado en el Modelo y la Configuración.
+        model.setMostrarSoloCarpetaActual(!nuevoEstadoIncluirSubcarpetas);
+        configuration.setString(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, String.valueOf(nuevoEstadoIncluirSubcarpetas));
+
+        // 5. Definir la acción de sincronización que se ejecutará DESPUÉS de la carga.
+        Runnable accionPostCarga = () -> {
+            System.out.println("  [Callback Post-Carga] Tarea de carga finalizada. Ejecutando sincronización maestra...");
+            
+            // a) Sincronizar toda la UI (botones, menús, estados, etc.).
+            this.sincronizarTodaLaUIConElModelo();
+            
+            // b) Repoblar el Grid con la nueva lista.
+            displayModeManager.poblarYSincronizarGrid();
+            
+            System.out.println("  [Callback Post-Carga] Sincronización finalizada.");
+        };
+
+        // 6. Delegar la tarea de carga de bajo nivel al VisorController.
+        System.out.println("  -> Delegando a VisorController la tarea de recargar la lista de imágenes...");
+        visorController.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
+        
+    } // --- FIN del metodo solicitarCambioModoCargaSubcarpetas ---
+    
+    
+    /**
+     * MÉTODO DE SINCRONIZACIÓN CENTRALIZADO.
+     * Lee el estado actual del modelo y actualiza el estado 'selected' y la apariencia
+     * de TODOS los controles relacionados con la carga de subcarpetas (el botón toggle y los dos radio-botones del menú).
+     * Esta es la ÚNICA fuente de verdad para la sincronización de estos componentes.
+     */
+    private void sincronizarControlesDeSubcarpetas() {
+        if (model == null || actionMap == null || configAppManager == null) {
+            System.err.println("WARN [sincronizarControlesDeSubcarpetas]: Dependencias nulas. No se puede sincronizar.");
+            return;
+        }
+
+        // 1. Leer el estado "de verdad" desde el modelo UNA SOLA VEZ.
+        boolean estadoActualIncluyeSubcarpetas = !model.isMostrarSoloCarpetaActual();
+
+        // 2. Obtener las tres Actions relacionadas.
+        Action toggleAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
+        Action radioIncluirAction = actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS);
+        Action radioSoloAction = actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA);
+
+        // 3. Sincronizar el botón Toggle principal.
+        if (toggleAction != null) {
+            toggleAction.putValue(Action.SELECTED_KEY, estadoActualIncluyeSubcarpetas);
+            configAppManager.actualizarAspectoBotonToggle(toggleAction, estadoActualIncluyeSubcarpetas);
+        }
+        
+        // 4. Sincronizar el radio-botón "Incluir Subcarpetas".
+        if (radioIncluirAction != null) {
+            radioIncluirAction.putValue(Action.SELECTED_KEY, estadoActualIncluyeSubcarpetas);
+        }
+
+        // 5. Sincronizar el radio-botón "Solo Carpeta Actual". Su estado es el inverso.
+        if (radioSoloAction != null) {
+            radioSoloAction.putValue(Action.SELECTED_KEY, !estadoActualIncluyeSubcarpetas);
+        }
+        
+        System.out.println("  -> Sincronizados controles de subcarpetas. Estado actual (incluir): " + estadoActualIncluyeSubcarpetas);
+    } // --- Fin del método sincronizarControlesDeSubcarpetas ---
+    
+    
 //  ********************************************************************************** FIN IMPLEMENTACION INTERFAZ IModoController
     
 //  *************************************************************************************************************** INICIO GETTERS    
     
     public ToolbarManager getToolbarManager() {return this.toolbarManager;}
     public VisorModel getModel() { return this.model;}
+    public void setDisplayModeManager(DisplayModeManager displayModeManager) {this.displayModeManager = Objects.requireNonNull(displayModeManager, "DisplayModeManager no puede ser nulo");}
+    public void setConfiguration(ConfigurationManager configuration) {this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser nulo");}
     
 
 //  ****************************************************************************************************************** FIN GETTERS
+    
+    
+    /**
+     * MÉTODO ORQUESTADOR CENTRAL PARA ALTERNAR EL MODO DE CARGA DE SUBCARPETAS.
+     * Invierte el estado actual del modelo y luego inicia el proceso de recarga.
+     * Utiliza un flag de bloqueo para evitar ejecuciones concurrentes.
+     */
+    public void solicitarToggleModoCargaSubcarpetas() {
+        // Si ya hay una operación en curso, la ignoramos.
+        if (isChangingSubfolderMode) {
+            System.out.println("  [GeneralController] ADVERTENCIA: Se ha ignorado una solicitud de toggle de subcarpetas porque ya hay una en progreso.");
+            return;
+        }
+
+        try {
+            isChangingSubfolderMode = true; // --- BLOQUEAMOS ---
+            System.out.println("[GeneralController] Solicitud para ALTERNAR modo de carga de subcarpetas.");
+            
+            // 1. Invertir el estado actual del modelo. Esta es la lógica central.
+            boolean nuevoEstadoSoloCarpeta = !model.isMostrarSoloCarpetaActual();
+            model.setMostrarSoloCarpetaActual(nuevoEstadoSoloCarpeta);
+            
+            // 2. Actualizar la configuración para que se guarde.
+            configuration.setString(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, String.valueOf(!nuevoEstadoSoloCarpeta));
+            System.out.println("  -> Estado del modelo cambiado a: isMostrarSoloCarpetaActual=" + nuevoEstadoSoloCarpeta);
+
+            // 3. El resto de la lógica es la que ya teníamos...
+            final String claveAntesDelCambio = model.getSelectedImageKey();
+            System.out.println("  -> Clave de imagen a intentar mantener: " + claveAntesDelCambio);
+
+            Runnable accionPostCarga = () -> {
+                try {
+                    System.out.println("  [Callback Post-Carga] Tarea de carga finalizada. Ejecutando sincronización maestra...");
+                    this.sincronizarTodaLaUIConElModelo();
+                    displayModeManager.poblarYSincronizarGrid();
+                    System.out.println("  [Callback Post-Carga] Sincronización finalizada.");
+                } finally {
+                    isChangingSubfolderMode = false; // --- DESBLOQUEAMOS ---
+                }
+            };
+
+            visorController.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
+
+        } catch (Exception e) {
+            System.err.println("ERROR INESPERADO en solicitarToggleModoCargaSubcarpetas: " + e.getMessage());
+            e.printStackTrace();
+            isChangingSubfolderMode = false; // --- DESBLOQUEAMOS EN CASO DE ERROR ---
+        }
+    } // --- FIN del metodo solicitarToggleModoCargaSubcarpetas ---
+    
     
 } // --- Fin de la clase GeneralController ---
 

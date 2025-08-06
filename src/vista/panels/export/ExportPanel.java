@@ -2,15 +2,16 @@ package vista.panels.export;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 
-import javax.swing.Action; // <-- NUEVO IMPORT
+import javax.swing.Action; 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JToolBar; // <-- NUEVO IMPORT
+import javax.swing.JToolBar; 
 import javax.swing.table.TableColumn;
 
 import controlador.ProjectController;
@@ -34,7 +35,7 @@ public class ExportPanel extends JPanel {
         super(new BorderLayout(5, 5));
         this.projectController = controller;
         
-        // --- CAMBIO: Inicializar el TableModel aquí ---
+        // --- Inicializar el TableModel aquí ---
         this.tableModel = new ExportTableModel(tableChangedCallback);
         
         initComponents(tableChangedCallback);
@@ -58,7 +59,7 @@ public class ExportPanel extends JPanel {
         this.add(panelDestino, BorderLayout.NORTH);
         
         // --- Tabla de Exportación ---
-        // --- CAMBIO: La tabla ahora se crea con el tableModel que ya hemos inicializado ---
+        // --- La tabla ahora se crea con el tableModel que ya hemos inicializado ---
         tablaExportacion = new JTable(this.tableModel); 
         tablaExportacion.setFillsViewportHeight(true);
         tablaExportacion.setRowHeight(24); // Altura de fila para que los iconos se vean bien
@@ -71,7 +72,7 @@ public class ExportPanel extends JPanel {
         checkColumn.setMaxWidth(30);
         checkColumn.setMinWidth(30);
         
-        // --- CAMBIO: Añadimos el HeaderRenderer para la columna 0 ---
+        // --- Añadimos el HeaderRenderer para la columna 0 ---
         tablaExportacion.getTableHeader().getColumnModel().getColumn(0).setHeaderRenderer(new CheckHeaderRenderer());
 
         // Columna 1: Nombre de la Imagen
@@ -82,7 +83,7 @@ public class ExportPanel extends JPanel {
         TableColumn statusColumn = tablaExportacion.getColumnModel().getColumn(2);
         statusColumn.setPreferredWidth(150); // Suficiente para el estado y texto
         
-        // --- CAMBIO: Usamos tu StatusCellRenderer.java para esta columna ---
+        // --- Usamos tu StatusCellRenderer.java para esta columna ---
         // Asumo que StatusCellRenderer es la clase que quieres usar como ExportStatusCellRenderer
         // y está importada como vista.renderers.ExportStatusCellRenderer.
         statusColumn.setCellRenderer(new vista.panels.export.StatusCellRenderer(projectController.getController().getIconUtils()));
@@ -112,7 +113,6 @@ public class ExportPanel extends JPanel {
                 }
             }
         });
-        // --- FIN NUEVO LISTENER ---
 
         JScrollPane scrollTabla = new JScrollPane(tablaExportacion);
         this.add(scrollTabla, BorderLayout.CENTER);
@@ -136,15 +136,43 @@ public class ExportPanel extends JPanel {
                 
                 // 4. Añadimos la toolbar completa al sur del panel
                 this.add(exportActionsToolbar, BorderLayout.SOUTH);
-            } else {
-                 System.err.println("ERROR: No se pudo obtener la toolbar 'acciones_exportacion' del ToolbarManager.");
-            }
+            } 
         } else {
             System.err.println("ERROR CRÍTICO: ToolbarManager es nulo, no se puede construir la barra de acciones de exportación.");
         }
 
     } // --- Fin del método initComponents ---
      
+    
+    /**
+     * Establece o reemplaza de forma segura la barra de herramientas de acciones.
+     * Este método se encarga de quitar la barra antigua y añadir la nueva en la
+     * región sur (SOUTH) del BorderLayout del panel.
+     * @param newToolbar La nueva JToolBar a mostrar.
+     */
+    public void setActionsToolbar(JToolBar newToolbar) {
+        // 1. Obtener el layout del panel (sabemos que es BorderLayout)
+        BorderLayout layout = (BorderLayout) getLayout();
+
+        // 2. Buscar si ya existe un componente en la región SUR
+        Component oldToolbar = layout.getLayoutComponent(BorderLayout.SOUTH);
+        if (oldToolbar != null) {
+            // Si existe, lo eliminamos primero
+            remove(oldToolbar);
+            System.out.println("  [ExportPanel] Barra de herramientas antigua eliminada.");
+        }
+
+        // 3. Añadir la nueva barra de herramientas si no es nula
+        if (newToolbar != null) {
+            add(newToolbar, BorderLayout.SOUTH);
+            System.out.println("  [ExportPanel] Nueva barra de herramientas añadida.");
+        }
+
+        // 4. Revalidar y repintar el panel para que los cambios se muestren
+        revalidate();
+        repaint();
+        
+    } // --- FIN del metodo setActionsToolbar ---
     
     
     // El método actualizarEstadoControles ahora solo necesita actualizar el resumen
@@ -166,12 +194,12 @@ public class ExportPanel extends JPanel {
     } // --- Fin del método getBotonSeleccionarCarpeta ---
     
     
-    
     public void setRutaDestino(String ruta) {
         if (this.txtCarpetaDestino != null) {
             this.txtCarpetaDestino.setText(ruta);
         }
     } // --- Fin del método setRutaDestino ---
+    
     
     public void resaltarRutaDestino(boolean resaltar) {
         if (txtCarpetaDestino != null) {
@@ -187,7 +215,6 @@ public class ExportPanel extends JPanel {
         return (this.txtCarpetaDestino != null) ? this.txtCarpetaDestino.getText() : "";
     } // --- Fin del método getRutaDestino ---
     
-    
 
     /**
      * Proporciona acceso directo a la JTable de exportación encapsulada en este panel.
@@ -196,10 +223,6 @@ public class ExportPanel extends JPanel {
     public JTable getTablaExportacion() {
         return this.tablaExportacion;
     } // --- Fin del método getTablaExportacion ---
-    
-    
-
-    
     
     
 } // --- FIN de la clase ExportPanel ---

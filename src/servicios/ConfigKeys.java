@@ -160,7 +160,11 @@ public final class ConfigKeys {
     public static final String COMPORTAMIENTO_NAVEGACION_CIRCULAR 				= "comportamiento.navegacion.circular";
     public static final String COMPORTAMIENTO_CARGAR_SUBCARPETAS 				= "comportamiento.carpeta.cargarSubcarpetas";
     public static final String COMPORTAMIENTO_ZOOM_AL_CURSOR_ACTIVADO 			= "comportamiento.zoom.al_cursor.activado";
-    public static final String COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE 			="comportamiento.navegacion.tamano_salto_bloque"; //nuevo
+    public static final String COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE 			="comportamiento.navegacion.tamano_salto_bloque";
+    
+    public static final String COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO   		= "comportamiento.display.ultimo_modo_usado";
+    
+    
     
     public static final String CAROUSEL_DELAY_MS 								= "carousel.delay.ms";
     

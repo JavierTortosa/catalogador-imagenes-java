@@ -54,13 +54,12 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
-import controlador.actions.config.SetSubfolderReadModeAction;
 import controlador.actions.tema.ToggleThemeAction;
-import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
@@ -90,6 +89,8 @@ import vista.config.ViewUIConfig;
 import vista.dialogos.ProgresoCargaDialog;
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
+import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
@@ -98,7 +99,7 @@ import vista.util.IconUtils;
  * Controlador principal para el Visor de Imágenes (Versión con 2 JList sincronizadas).
  * Orquesta la interacción entre Modelo y Vista, maneja acciones y lógica de negocio.
  */
-public class VisorController implements ActionListener, ClipboardOwner {
+public class VisorController implements ActionListener, ClipboardOwner, ThemeChangeListener  {
 
     // --- 1. Referencias a Componentes del Sistema ---
 
@@ -119,6 +120,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
     private ToolbarManager toolbarManager;
     private ActionFactory actionFactory;
     private BackgroundControlManager backgroundControlManager;
+    private controlador.managers.DisplayModeManager displayModeManager;
 
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
@@ -740,6 +742,9 @@ public class VisorController implements ActionListener, ClipboardOwner {
 
         // --- 4. DETERMINAR PARÁMETROS DE BÚSQUEDA ---
         final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
+        
+        System.out.println("[VisorController.cargarListaImagenes] mostrarSoloCarpeta= "+ mostrarSoloCarpeta);
+        
         int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
         Path pathDeInicioWalk = null;
         if (mostrarSoloCarpeta) {
@@ -830,6 +835,43 @@ public class VisorController implements ActionListener, ClipboardOwner {
                             } else {
                                 limpiarUI();
                             }
+                            
+                            
+//                         // =================================================================
+//                            // === INICIO DE LA SOLUCIÓN: FORZAR REPINTADO DE LAS LISTAS ===
+//                            // =================================================================
+//                            
+//                            System.out.println("    -> Forzando repintado explícito de las listas para refrescar la selección visual.");
+//                            if (registry != null) {
+//                                JList<String> listaNombres = registry.get("list.nombresArchivo");
+//                                if (listaNombres != null) {
+//                                    listaNombres.repaint();
+//                                }
+//                                
+//                                JList<String> gridList = registry.get("list.grid");
+//                                
+//                                if (this.displayModeManager != null) {
+//                                    // Le pedimos directamente al DisplayModeManager que actualice el grid
+//                                    this.displayModeManager.poblarYSincronizarGrid();
+//                                } else {
+//                                    System.err.println("WARN [cargarListaImagenes]: DisplayModeManager es nulo en el controlador. No se puede poblar el grid.");
+//                                }
+//                                
+//                                if (gridList != null) {
+//                                    // El GridDisplayPanel también debe actualizarse con las nuevas claves
+//                                    if (viewManager.getDisplayModeManager() != null) {
+//                                         // Esto podría estar en un método de sincronización más general
+//                                         // pero por ahora lo hacemos explícito aquí.
+//                                         viewManager.getDisplayModeManager().poblarYSincronizarGrid();
+//                                    }
+//                                    gridList.repaint();
+//                                }
+//                            }
+//                            
+//                            // =================================================================
+//                            // === FIN DE LA SOLUCIÓN ===
+//                            // =================================================================
+                            
                             
                             if (alFinalizarConExito != null) {
                                 alFinalizarConExito.run();
@@ -1957,85 +1999,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
 // ***************************************************************************************************************************
 // ******************************************************************************************************************* ARCHIVO     
      
-     
-    /**
-     * Actualiza el estado lógico y visual para mostrar u ocultar las imágenes de subcarpetas.
-     * Guarda el nuevo estado en la configuración ('comportamiento.carpeta.cargarSubcarpetas')
-     * y luego recarga la lista de imágenes desde la carpeta raíz actual, intentando
-     * mantener la imagen que estaba seleccionada antes del cambio de modo.
-     *
-     * @param mostrarSubcarpetasDeseado true si se deben buscar y mostrar imágenes en subcarpetas,
-     *                                  false si solo se deben mostrar las de la carpeta actual/seleccionada.
-     */
-    public void setMostrarSubcarpetasAndUpdateConfig(boolean mostrarSubcarpetasDeseado) 
-    {
-        // 1. Log inicio y validación de dependencias
-        System.out.println("\n[Controller setMostrarSubcarpetas] INICIO. Estado deseado (mostrar subcarpetas): " + mostrarSubcarpetasDeseado);
-        Action toggleSubfoldersAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS) : null;
-        if (model == null || configuration == null || toggleSubfoldersAction == null || view == null) {
-            System.err.println("  -> ERROR: Dependencias nulas (Modelo, Config, Action Subfolders o Vista). Abortando.");
-            return;
-        }
-
-        // 2. Comprobar si el cambio es realmente necesario
-        //    El estado lógico lo determina la Action 'toggleSubfoldersAction'
-        boolean estadoLogicoActual = Boolean.TRUE.equals(toggleSubfoldersAction.getValue(Action.SELECTED_KEY));
-        System.out.println("  -> Estado lógico actual (Action): " + estadoLogicoActual);
-        if (mostrarSubcarpetasDeseado == estadoLogicoActual) {
-            System.out.println("  -> Estado deseado ya es el actual. No se realizan cambios (solo se asegura UI).");
-            // Asegurar que la UI (radios) esté sincronizada por si acaso
-            restaurarSeleccionRadiosSubcarpetas(estadoLogicoActual);
-            System.out.println("[Controller setMostrarSubcarpetas] FIN (Sin cambios necesarios).");
-            return;
-        }
-
-        System.out.println("  -> Aplicando cambio a estado (mostrar subcarpetas): " + mostrarSubcarpetasDeseado);
-
-        // 3. Guardar la clave de la imagen actual ANTES de cualquier cambio
-        //    para intentar restaurar la selección después de recargar la lista.
-        final String claveAntesDelCambio = model.getSelectedImageKey();
-        System.out.println("    -> Clave a intentar mantener: " + claveAntesDelCambio);
-
-        // 4. Actualizar el estado lógico de la Action
-        //    Esto centraliza el estado lógico del modo de carga.
-        System.out.println("    1. Actualizando Action.SELECTED_KEY...");
-        toggleSubfoldersAction.putValue(Action.SELECTED_KEY, mostrarSubcarpetasDeseado);
-
-        // 5. Actualizar el estado en el Modelo
-        System.out.println("    2. Actualizando Modelo...");
-        model.setMostrarSoloCarpetaActual(!mostrarSubcarpetasDeseado);
-
-        // 6. Actualizar la Configuración en Memoria
-        System.out.println("    3. Actualizando Configuración en Memoria...");
-        configuration.setString("comportamiento.carpeta.cargarSubcarpetas", String.valueOf(mostrarSubcarpetasDeseado));
-
-        // 7. Sincronizar la Interfaz de Usuario (Botón y Radios del Menú)
-        System.out.println("    4. Sincronizando UI...");
-        // Actualizar aspecto visual del botón toggle asociado a la acción
-        
-        if (this.configAppManager != null) {
-            this.configAppManager.actualizarAspectoBotonToggle(toggleSubfoldersAction, mostrarSubcarpetasDeseado);
-        } else {
-            System.err.println("WARN [setMostrarSubcarpetasAndUpdateConfig]: configAppManager es nulo, no se puede actualizar el botón toggle.");
-        }
-        
-        // Actualizar estado 'selected' de los radio buttons del menú
-        restaurarSeleccionRadiosSubcarpetas(mostrarSubcarpetasDeseado);
-        sincronizarControlesSubcarpetas();
-
-        // 8. Recargar la Lista de Imágenes
-        //    Se llama a la versión detallada de cargarListaImagenes, pasando la clave
-        //    guardada para intentar mantener la selección. La carga ocurrirá en segundo plano.
-        System.out.println("    5. Programando recarga de lista en EDT (manteniendo clave)...");
-        SwingUtilities.invokeLater(() -> {
-            System.out.println("      -> [EDT] Llamando a cargarListaImagenes(\"" + claveAntesDelCambio + "\") para recargar...");
-            // Esta llamada iniciará el SwingWorker con la nueva configuración de profundidad
-            cargarListaImagenes(claveAntesDelCambio, null);
-        });
-
-        System.out.println("[Controller setMostrarSubcarpetas] FIN (Cambio aplicado y recarga programada).");
-    } // --- FIN setMostrarSubcarpetasAndUpdateConfig ---
-    
 
     /**
      * Asegura que los JRadioButtonMenuItem del menú correspondientes a la
@@ -3469,42 +3432,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
         speedMenu.show(invoker, 0, -speedMenu.getPreferredSize().height);
     } // --- Fin del método showCarouselSpeedMenu ---
     
-    
-    
-//    public void showCarouselSpeedMenu(java.awt.Component invoker) {
-//        JPopupMenu speedMenu = new JPopupMenu();
-//
-//        // Usamos un mapa para definir las opciones del menú de forma limpia
-//        java.util.Map<String, Integer> speedOptions = new java.util.LinkedHashMap<>();
-//        speedOptions.put("Muy Rápido (1.0s)", 1000);
-//        speedOptions.put("Rápido (2.0s)", 2000);
-//        speedOptions.put("Normal (5.0s)", 5000);
-//        speedOptions.put("Lento (10.0s)", 10000);
-//        speedOptions.put("Muy Lento (20.0s)", 20000);
-//
-//        // Obtenemos el CarouselManager una sola vez
-//        CarouselManager carouselManager = getActionFactory().getCarouselManager();
-//
-//        // Creamos un JMenuItem para cada opción del mapa
-//        for (java.util.Map.Entry<String, Integer> entry : speedOptions.entrySet()) {
-//            String text = entry.getKey();
-//            int delayMs = entry.getValue();
-//
-//            // Creamos una nueva instancia de nuestra Action para esta velocidad específica
-//            Action setSpeedAction = new controlador.actions.carousel.SetCarouselSpeedAction(
-//                getModel(), 
-//                carouselManager, 
-//                text, 
-//                delayMs
-//            );
-//            
-//            speedMenu.add(new javax.swing.JMenuItem(setSpeedAction));
-//        }
-//
-//        // Mostramos el menú justo encima del componente que lo invocó
-//        speedMenu.show(invoker, 0, -speedMenu.getPreferredSize().height);
-//    } // --- Fin del método showCarouselSpeedMenu ---
-    
 	
 	public void toggleMarcaImagenActual (boolean marcarDeseado)
 	{
@@ -3556,70 +3483,152 @@ public class VisorController implements ActionListener, ClipboardOwner {
 // ***************************************************************************************************************************
 	 
 	
-	public void onThemeChanged() {
-        System.out.println("--- [VisorController] Notificación de cambio de tema recibida. Orquestando reconstrucción de UI en dos fases... ---");
-        
-        // FASE 1: Preparación
-        if (actionFactory != null) {
-            actionFactory.actualizarIconosDeAcciones();
-        }
-        if (registry != null) registry.unregisterToolbarComponents();
-        if (toolbarManager != null) toolbarManager.clearToolbarCache();
-        
-        // FASE 2: Reconstrucción de la UI
-        SwingUtilities.invokeLater(() -> {
-            System.out.println("  [onThemeChanged FASE 2] Ejecutando reconstrucción de barras y fondos...");
+	@Override
+	public void onThemeChanged(Tema nuevoTema) {
+	    System.out.println("\n--- [VisorController] ORQUESTANDO REFRESCO COMPLETO DE UI POR CAMBIO DE TEMA ---");
 
-            if (toolbarManager != null && model != null) {
-                toolbarManager.reconstruirContenedorDeToolbars(model.getCurrentWorkMode());
-            }
-            
-            if (viewManager != null) {
-                viewManager.refrescarFondoAlPorDefecto();
-                viewManager.refrescarColoresDeFondoUI();
-                viewManager.reconstruirPanelesEspecialesTrasTema();
-            }
+	    // FASE 1: Preparación (sin cambios)
+	    if (this.actionFactory != null) {
+	        this.actionFactory.actualizarIconosDeAcciones();
+	    }
+	    if (this.registry != null) {
+	        this.registry.unregisterToolbarComponents();
+	    }
 
-            // --- INICIO DE LA NUEVA SOLUCIÓN (PÚBLICA Y SEGURA) ---
-            if (registry != null) {
-                String paletteButtonKey = "interfaz.boton.controles_imagen_inferior.background_custom_color";
-                JButton paletteButton = registry.get(paletteButtonKey);
-                
-                if (paletteButton != null) {
-                    System.out.println("    -> Refrescando icono del botón de la paleta manualmente desde su Action...");
-                    Action associatedAction = paletteButton.getAction();
-                    if (associatedAction != null) {
-                        // 1. Obtenemos el icono ACTUALIZADO que está dentro de la Action.
-                        Icon updatedIcon = (Icon) associatedAction.getValue(Action.SMALL_ICON);
-                        // 2. Se lo ponemos directamente al botón.
-                        paletteButton.setIcon(updatedIcon);
-                        paletteButton.repaint();
-                    }
-                } else {
-                    System.err.println("WARN [onThemeChanged]: No se encontró el botón de la paleta con la clave: " + paletteButtonKey);
-                }
-            }
-            // --- FIN DE LA NUEVA SOLUCIÓN ---
+	    // FASE 2: Reconstrucción y Sincronización en el Hilo de UI (EDT)
+	    SwingUtilities.invokeLater(() -> {
+	        System.out.println("  [EDT] Iniciando reconstrucción y sincronización...");
 
-            // FASE 3: Enlace Final
-            SwingUtilities.invokeLater(() -> {
-                System.out.println("  [onThemeChanged FASE 3] Ejecutando enlace final y sincronización...");
+	        // PASO 1: Reconstruir la estructura de toolbars.
+	        if (this.toolbarManager != null && this.model != null) {
+	            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
+	        }
+	        
+	        // --- INICIO DE LA SOLUCIÓN ---
+	        // PASO 1.5: Reconstrucción EXPLÍCITA de la barra de estado.
+	        System.out.println("  [EDT] Reconstruyendo explícitamente la barra de estado...");
+	        JPanel panelContenedorStatusBar = registry.get("panel.estado.controles");
+	        if (panelContenedorStatusBar != null) {
+	            // 1. DESTRUIR la vieja
+	            panelContenedorStatusBar.removeAll();
+	            
+	            // 2. CREAR la nueva (getToolbar la creará porque la caché está vacía)
+	            JToolBar nuevaStatusBarToolbar = this.toolbarManager.getToolbar("barra_estado_controles");
+	            
+	            // 3. AÑADIR la nueva al panel
+	            panelContenedorStatusBar.add(nuevaStatusBarToolbar);
+	            
+	            // 4. Repintar su contenedor
+	            panelContenedorStatusBar.revalidate();
+	            panelContenedorStatusBar.repaint();
+	            System.out.println("  [EDT] Barra de estado reconstruida y reemplazada.");
+	        }
+	        // --- FIN DE LA SOLUCIÓN ---
+	        
+	        if (this.viewManager != null) {
+	            this.viewManager.reconstruirPanelesEspecialesTrasTema();
+	        }
 
-                if (backgroundControlManager != null) {
-                    backgroundControlManager.initializeAndLinkControls();
-                    backgroundControlManager.sincronizarSeleccionConEstadoActual();
-                    // Como el botón de la paleta ya está arreglado, el repaintAllButtons
-                    // solo se preocupará de los botones de colores, como debe ser.
-                    backgroundControlManager.repaintAllButtons();
-                }
+	        // PASO 2: Forzar actualización de LA VENTANA ENTERA.
+	        // Esto es más agresivo y debería actualizar todos los paneles estándar,
+	        // bordes, fondos, etc., que no hayamos tocado manualmente.
+	        if (this.view != null) {
+	            System.out.println("  [EDT] Aplicando updateComponentTreeUI a la ventana principal...");
+	            SwingUtilities.updateComponentTreeUI(this.view);
+	        }
 
-                sincronizarEstadoDeTodasLasToggleThemeActions();
-                
-                System.out.println("--- [VisorController] Reconstrucción de UI por cambio de tema completada. ---");
-            });
-        });
-        
-    } // --- Fin del método onThemeChanged ---
+	        // PASO 3: Sincronizar el estado lógico y visual de los componentes.
+	        System.out.println("  [EDT] Sincronizando componentes del VisorController...");
+	        sincronizarEstadoVisualBotonesYRadiosZoom();
+	        sincronizarComponentesDeModoVisualizador();
+	        sincronizarEstadoDeTodasLasToggleThemeActions();
+	        
+	        // Después de que todo se ha reconstruido y las demás cosas se han
+	        // sincronizado, le damos la orden final a la barra de estado.
+	        if (this.statusBarManager != null) {
+	            System.out.println("  [EDT] Ordenando a InfobarStatusManager que actualice su estado...");
+	         
+	            // PASO 1: Volvemos a conectar los listeners a los nuevos componentes.
+	            this.statusBarManager.configurarListenersControles();
+	            
+	            // PASO 2: Actualizamos el estado (iconos, texto, etc.).
+	            this.statusBarManager.actualizar();
+	        }
+	        
+	        // PASO 4: Revalidar y repintar la ventana principal para asegurar que todos los cambios se muestren.
+	        if (this.view != null) {
+	            this.view.revalidate();
+	            this.view.repaint();
+	        }
+	        
+	        System.out.println("--- [VisorController] REFRESCO DE UI COMPLETADO ---\n");
+	    });
+	    
+	} // --- Fin del método onThemeChanged ---
+	
+	
+	/**
+	 * Fuerza la actualización del color de fondo de los paneles estructurales clave
+	 * que a menudo no se actualizan correctamente con un cambio de tema.
+	 */
+	private void refrescarColoresManualmentePorTema() {
+	    System.out.println("    -> Refrescando colores de paneles manualmente...");
+	    if (registry == null || themeManager == null) {
+	        System.err.println("      WARN: No se puede refrescar colores (registry o themeManager nulo).");
+	        return;
+	    }
+
+	    // Obtenemos los colores del nuevo tema.
+	    final Color colorFondoPrincipal = themeManager.getTemaActual().colorFondoPrincipal();
+	    
+	    // Lista de las claves de registro de los paneles problemáticos.
+	    final String[] clavesDePaneles = {
+	        "panel.info.superior",
+	        "panel.estado.inferior",
+	        "container.toolbars.left", // A veces los contenedores de toolbars también necesitan un empujón
+	        "container.toolbars.center",
+	        "container.toolbars.right"
+	    };
+
+	    for (String clave : clavesDePaneles) {
+	        Component comp = registry.get(clave);
+	        if (comp instanceof JPanel) {
+	            JPanel panel = (JPanel) comp;
+	            panel.setBackground(colorFondoPrincipal);
+	        }
+	    }
+	} // --- FIN del método refrescarColoresManualmentePorTema ---
+	
+	
+	/**
+	 * Recorre todas las toolbars gestionadas y fuerza la re-asignación del icono
+	 * en cada botón. Esto actúa como un "refuerzo" para asegurar que los cambios
+	 * de icono se reflejen visualmente tras un cambio de tema.
+	 */
+	private void forzarRefrescoIconosToolbars() {
+	    System.out.println("    -> [Refuerzo] Forzando refresco de iconos en todas las toolbars...");
+	    if (toolbarManager == null || actionMap == null) {
+	        return;
+	    }
+
+	    for (JToolBar toolbar : toolbarManager.getManagedToolbars().values()) {
+	        for (Component comp : toolbar.getComponents()) {
+	            if (comp instanceof AbstractButton) {
+	                AbstractButton button = (AbstractButton) comp;
+	                Action action = button.getAction();
+
+	                if (action != null) {
+	                    // Cogemos el icono que la Action TIENE AHORA (ya actualizado)
+	                    // y se lo volvemos a poner explícitamente al botón.
+	                    Icon iconActualizado = (Icon) action.getValue(Action.SMALL_ICON);
+	                    if (iconActualizado != null) {
+	                        button.setIcon(iconActualizado);
+	                    }
+	                }
+	            }
+	        }
+	    }
+	} // --- FIN del método forzarRefrescoIconosToolbars ---
 	
 	
     /**
@@ -3842,30 +3851,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
  	     System.out.println("[VisorController setMantenerProporcionesLogicaYUi] Proceso completado.");
  	} //--- FIN del metodo setMantenerProporcionesLogicaYUi ---
     
- 	 
-    public void setMostrarSubcarpetasLogicaYUi(boolean nuevoEstadoIncluirSubcarpetas) {
-        System.out.println("[VisorController] Solicitud para cambiar 'incluir subcarpetas' a: " + nuevoEstadoIncluirSubcarpetas);
-        
-        if (model == null || configuration == null) {
-            System.err.println("  ERROR [setMostrarSubcarpetasLogicaYUi]: Modelo o Configuración nulos. Abortando.");
-            return;
-        }
-
-        // --- PASO 1: GUARDAR EL ESTADO ACTUAL ANTES DE MODIFICAR NADA ---
-        final String claveAntesDelCambio = model.getSelectedImageKey(); 
-        System.out.println("  -> Clave de imagen a intentar mantener después de la recarga: " + claveAntesDelCambio);
-
-        // --- PASO 2: ACTUALIZAR EL MODELO Y LA CONFIGURACIÓN ---
-        // El modelo es la fuente de verdad. 'isMostrarSoloCarpetaActual' es el inverso de 'incluirSubcarpetas'.
-        model.setMostrarSoloCarpetaActual(!nuevoEstadoIncluirSubcarpetas); 
-        
-        configuration.setString(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, String.valueOf(nuevoEstadoIncluirSubcarpetas));
-
-        // --- PASO 3: DISPARAR LA RECARGA DE LA LISTA DE IMÁGENES ---
-        System.out.println("  -> Solicitando recarga de la lista de imágenes...");
-        this.cargarListaImagenes(claveAntesDelCambio, null);
-    } // --- Fin del método setMostrarSubcarpetasLogicaYUi ---
- 	
  	
  	public void setCalculatedMiniaturePanelHeight(int calculatedMiniaturePanelHeight) { this.calculatedMiniaturePanelHeight = calculatedMiniaturePanelHeight; }
  	public void setModel					(VisorModel model) { this.model = model; }
@@ -3891,6 +3876,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
     public void setProjectController		(ProjectController projectController) {this.projectController = Objects.requireNonNull(projectController);}
     public void setConfigApplicationManager	(ConfigApplicationManager manager) { this.configAppManager = manager; }
     public void setBackgroundControlManager	(BackgroundControlManager manager) {this.backgroundControlManager = manager;}
+    public void setDisplayModeManager		(controlador.managers.DisplayModeManager displayModeManager) {this.displayModeManager = displayModeManager;}
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    
@@ -3915,13 +3901,6 @@ public class VisorController implements ActionListener, ClipboardOwner {
             proporcionesAction.putValue(Action.SELECTED_KEY, model.isMantenerProporcion());
         }
 
-        // 3. Sincronizar el toggle de Subcarpetas
-        Action subcarpetasAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        if (subcarpetasAction != null) {
-            subcarpetasAction.putValue(Action.SELECTED_KEY, !model.isMostrarSoloCarpetaActual());
-        }
-        sincronizarControlesSubcarpetas(); // Sincroniza también los radios del menú
-        
         // 4. Sincronizar el botón de Marcar para Proyecto
         Action marcarAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
         if (marcarAction != null) {
@@ -3947,53 +3926,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
                 ((ToggleThemeAction) action).sincronizarEstadoSeleccionConManager();
             }
         }
-    }
-    
-    
-    public void sincronizarControlesSubcarpetas() {
-        if (model == null || actionMap == null) return;
-
-        boolean estadoActualIncluirSubcarpetas = !model.isMostrarSoloCarpetaActual(); // ¡Ojo con la negación!
-
-        // Sincronizar la Action del toggle general
-        Action toggleAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        if (toggleAction instanceof ToggleSubfoldersAction) { // O un método genérico si tienes una interfaz
-            // ((ToggleSubfoldersAction) toggleAction).sincronizarSelectedKey(estadoActualIncluirSubcarpetas);
-            // Es mejor que la propia ToggleSubfoldersAction lea del modelo en su setSelectedKey.
-            // Por ahora, podemos forzarlo:
-            if (!Objects.equals(toggleAction.getValue(Action.SELECTED_KEY), estadoActualIncluirSubcarpetas)) {
-                toggleAction.putValue(Action.SELECTED_KEY, estadoActualIncluirSubcarpetas);
-            }
-        }
-
-        // Sincronizar la Action del radio "Solo Carpeta"
-        Action soloCarpetaAction = actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA);
-        if (soloCarpetaAction instanceof SetSubfolderReadModeAction) {
-            ((SetSubfolderReadModeAction) soloCarpetaAction).sincronizarSelectedKey(estadoActualIncluirSubcarpetas);
-        }
-
-        // Sincronizar la Action del radio "Con Subcarpetas"
-        Action conSubcarpetasAction = actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS);
-        if (conSubcarpetasAction instanceof SetSubfolderReadModeAction) {
-            ((SetSubfolderReadModeAction) conSubcarpetasAction).sincronizarSelectedKey(estadoActualIncluirSubcarpetas);
-        }
-        
-        // Adicionalmente, el método que ya tenías para los radios directamente:
-        restaurarSeleccionRadiosSubcarpetas(estadoActualIncluirSubcarpetas);
-        // Y para el botón de la toolbar:
-        toggleAction = actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-        if (toggleAction != null) {
-            
-            // En lugar de llamar a view.actualizarAspectoBotonToggle(...)
-            // llamamos al método en ConfigApplicationManager.
-            if (this.configAppManager != null) {
-                this.configAppManager.actualizarAspectoBotonToggle(toggleAction, estadoActualIncluirSubcarpetas);
-            } else {
-                System.err.println("WARN [sincronizarControlesSubcarpetas]: configAppManager es nulo, no se puede actualizar el botón toggle.");
-            }
-            
-        }
-    } // --- FIN del metodo sincronizarControlesSubcarpetas ---
+    } // FIN del metodo sincronizarEstadoDeTodasLasToggleThemeActions
     
     
     /**
@@ -4096,7 +4029,7 @@ public class VisorController implements ActionListener, ClipboardOwner {
         }
     }// --- FIN del metodo sincronizarEstadoBotonReset ---
     
-    
+
     /**
      * Gestiona la lógica cuando el usuario establece un nuevo zoom desde la UI
      * (barra de estado o menú). Activa el modo correcto y aplica el zoom.
@@ -4104,54 +4037,42 @@ public class VisorController implements ActionListener, ClipboardOwner {
      */
     public void solicitarZoomPersonalizado(double nuevoPorcentaje) {
         System.out.println("\n--- [VisorController] INICIO solicitarZoomPersonalizado (Lógica Centralizada): " + nuevoPorcentaje + "% ---");
-        if (model == null || zoomManager == null || configuration == null) {
+        if (model == null || zoomManager == null || configuration == null || actionMap == null) {
             System.err.println("  -> ERROR: Dependencias nulas. Abortando.");
             return;
         }
 
-        // --- 1. LÓGICA DE NEGOCIO: ACTUALIZAR EL MODELO ---
-        
-        // a) Comprobar si hay que cambiar el modo.
-        ZoomModeEnum modoActual = model.getCurrentZoomMode();
-        if (modoActual != ZoomModeEnum.MAINTAIN_CURRENT_ZOOM && modoActual != ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
-            model.setCurrentZoomMode(ZoomModeEnum.USER_SPECIFIED_PERCENTAGE);
-            System.out.println("  -> Modelo: Modo cambiado de " + modoActual + " a " + model.getCurrentZoomMode());
-        }
+        // --- INICIO DE LA MODIFICACIÓN ---
 
-        // b) Actualizar el zoomFactor en el modelo.
-        double nuevoFactor = nuevoPorcentaje / 100.0;
+        // 1. LÓGICA DE NEGOCIO: ACTUALIZAR EL MODELO Y LA CONFIGURACIÓN
+        //    Guardamos el "deseo" del usuario en nuestro nuevo campo del modelo.
+        model.setZoomCustomPercentage(nuevoPorcentaje);
         
-        System.out.println("[VisorController] DEBUG solicitarZoomPersonalizado nuevo factor de Zoom: " + nuevoFactor);
-        
-        model.setZoomFactor(nuevoFactor);
-        System.out.println("  -> Modelo: zoomFactor establecido a " + model.getZoomFactor());
-        
-        // c) Actualizar la configuración para que el cambio se guarde al cerrar.
+        //    También actualizamos la configuración para que el cambio se guarde al cerrar.
         configuration.setZoomPersonalizadoPorcentaje(nuevoPorcentaje);
+        System.out.println("  -> Modelo y Configuración actualizados con el nuevo porcentaje: " + nuevoPorcentaje + "%");
 
-        // --- 2. NOTIFICACIÓN A LAS VISTAS ---
-        
-        System.out.println("  -> Notificando a todos los componentes visuales para que se refresquen...");
+        // 2. ACTIVAR EL MODO DE ZOOM FIJADO
+        //    Buscamos la Action correspondiente al modo "Bloqueador" y la ejecutamos.
+        //    Esto asegura que se aplique toda la lógica definida en AplicarModoZoomAction,
+        //    incluida la sincronización de la UI.
+        Action zoomFijadoAction = actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
+        if (zoomFijadoAction != null) {
+            System.out.println("  -> Disparando Action para aplicar el modo USER_SPECIFIED_PERCENTAGE...");
+            // Creamos un ActionEvent simple para disparar la acción.
+            zoomFijadoAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
+        } else {
+            System.err.println("  -> ERROR: No se encontró la Action para CMD_ZOOM_TIPO_ESPECIFICADO.");
+        }
 
-        // a) Imagen Principal
-        zoomManager.refrescarVistaSincrono();
+        // --- FIN DE LA MODIFICACIÓN ---
         
-        // b) Botones y Radios de la UI
-        sincronizarEstadoVisualBotonesYRadiosZoom();
-        
-        // c) Barra de Información Superior
-        if (infobarImageManager != null) {
-            infobarImageManager.actualizar();
-        }
-        
-        // d) Barra de Estado Inferior
-        if (statusBarManager != null) {
-            statusBarManager.actualizar();
-        }
+        // (El código antiguo que tenías aquí ya no es necesario porque la Action se encarga de todo)
         
         System.out.println("--- [VisorController] FIN solicitarZoomPersonalizado ---\n");
+        
     } // --- FIN del metodo solicitarZoomPersonalizado ---
-
+    
     
     public void notificarCambioEstadoZoomManual() {
         System.out.println("[VisorController] Notificado cambio de estado de zoom manual. Actualizando barras...");
@@ -4213,6 +4134,8 @@ public class VisorController implements ActionListener, ClipboardOwner {
         }
     }
 
+    
+    
     
 // ********************************************************************************************* FIN METODOS DE SINCRONIZACION
 // ***************************************************************************************************************************    

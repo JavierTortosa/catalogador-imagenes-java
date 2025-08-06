@@ -52,6 +52,12 @@ public enum ButtonType {
      * Ese icono debe ser blanco y transparente
      * Posteriormente se aplicara un color que solo afectara a las partes blancas
      */
-    TRANSPARENT
+    TRANSPARENT,
+    
+    
+    STATUS_BAR_BUTTON 
+    
+    
+    
     
 } // --- FIN del enum ButtonType ---

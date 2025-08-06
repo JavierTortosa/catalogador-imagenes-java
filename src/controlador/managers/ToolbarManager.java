@@ -11,6 +11,7 @@ import javax.swing.SwingUtilities;
 
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
@@ -18,23 +19,27 @@ import vista.builders.ToolbarBuilder;
 import vista.config.ToolbarAlignment;
 import vista.config.ToolbarDefinition;
 import vista.config.UIDefinitionService;
+import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
 
 /**
  * Gestiona el ciclo de vida, la visibilidad y el posicionamiento de las
  * barras de herramientas (JToolBar) de la aplicación.
  */
-public class ToolbarManager {
+public class ToolbarManager implements ThemeChangeListener{
 
     // --- Dependencias ---
     private final ComponentRegistry registry;
     private final ConfigurationManager configuration;
     private final ToolbarBuilder toolbarBuilder;
     private final UIDefinitionService uiDefService;
-    private final VisorModel model; // <-- NUEVO CAMPO
+    private final VisorModel model; 
 
     // --- Estado Interno ---
     private final Map<String, JToolBar> managedToolbars;
-
+    
+    private BackgroundControlManager backgroundControlManager;
+    
     /**
      * Constructor de ToolbarManager.
      *
@@ -49,69 +54,61 @@ public class ToolbarManager {
             ConfigurationManager configuration,
             ToolbarBuilder toolbarBuilder,
             UIDefinitionService uiDefService,
-            VisorModel model // <-- NUEVO PARÁMETRO
+            VisorModel model 
     ) {
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en ToolbarManager.");
         this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null.");
         this.toolbarBuilder = Objects.requireNonNull(toolbarBuilder, "ToolbarBuilder no puede ser null.");
         this.uiDefService = Objects.requireNonNull(uiDefService, "UIDefinitionService no puede ser null.");
-        this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en ToolbarManager."); // <-- ASIGNACIÓN
+        this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en ToolbarManager."); 
         
         this.managedToolbars = new ConcurrentHashMap<>();
         System.out.println("[ToolbarManager] Instancia creada con éxito.");
     } // --- Fin del método ToolbarManager (constructor) ---
 
+    
+    /**
+     * Se invoca cuando el ThemeManager notifica un cambio de tema.
+     * La única responsabilidad de este método es invalidar todas las toolbars
+     * existentes limpiando la caché. Esto fuerza a que se reconstruyan con
+     * el nuevo tema la próxima vez que se soliciten.
+     *
+     * @param nuevoTema El tema que acaba de ser aplicado.
+     */
+    @Override
+    public void onThemeChanged(Tema nuevoTema) {
+        System.out.println("--- [ToolbarManager] Notificación de cambio de tema recibida. Limpiando caché de toolbars... ---");
+        this.clearToolbarCache();
+        // Nota: La reconstrucción REAL será disparada por otro listener (como ViewManager o VisorController).
+        // Este manager solo prepara el terreno para la reconstrucción.
+    } // --- Fin del método onThemeChanged ---
+    
+    
     /**
      * Método helper que construye una JToolBar y le añade el listener de reconstrucción.
      *
      * @param def La definición de la barra de herramientas a construir.
      * @return La JToolBar construida y con el listener ya configurado.
      */
-
     private JToolBar buildAndConfigureToolbar(ToolbarDefinition def) {
-        // 1. Construir la barra usando el builder.
         final JToolBar toolbar = toolbarBuilder.buildSingleToolbar(def);
         
-        // --- INICIO DE LA LÓGICA BASADA EN ANCESTORLISTENER (VERSIÓN FINAL) ---
         System.out.println("  [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: '" + toolbar.getName() + "'");
-
-        // Inicializamos nuestro flag personalizado en la propia barra de herramientas.
         toolbar.putClientProperty("isCurrentlyFloating", false);
-
         toolbar.addAncestorListener(new javax.swing.event.AncestorListener() {
             @Override
             public void ancestorAdded(javax.swing.event.AncestorEvent event) {
-                // Este evento se dispara cuando la barra es añadida a un contenedor.
-                
-                // Obtenemos la ventana a la que pertenece la barra.
                 java.awt.Window windowAncestor = SwingUtilities.getWindowAncestor(toolbar);
-
-                // Si la ventana es un JDialog, significa que la barra se ha vuelto flotante.
-                // (La ventana principal es un JFrame, no un JDialog).
                 if (windowAncestor instanceof javax.swing.JDialog) {
-                    System.out.println("  [AncestorListener] La barra '" + toolbar.getName() + "' ha sido añadida a un JDialog. Ahora es flotante.");
-                    // Establecemos nuestro flag para saber que está en estado flotante.
                     toolbar.putClientProperty("isCurrentlyFloating", true);
                 }
             }
-
             @Override
             public void ancestorRemoved(javax.swing.event.AncestorEvent event) {
-                // Este evento se dispara cuando se quita la barra de un contenedor.
-                
-                // Leemos nuestro flag. Si es TRUE, significa que la barra estaba flotando
-                // y ahora está siendo retirada de su JDialog flotante (porque se ha cerrado).
-                // ¡Este es nuestro disparador!
                 Boolean estabaFlotando = (Boolean) toolbar.getClientProperty("isCurrentlyFloating");
-
                 if (Boolean.TRUE.equals(estabaFlotando)) {
-                    System.out.println("  [AncestorListener] La barra flotante '" + toolbar.getName() + "' ha sido cerrada.");
-                    System.out.println("    >>> CONDICIÓN DE RECONSTRUCCIÓN CUMPLIDA para '" + toolbar.getName() + "' <<<");
-
-                    // Inmediatamente ponemos el flag a false para el siguiente ciclo.
+                    System.out.println("  [AncestorListener] La barra flotante '" + toolbar.getName() + "' ha sido cerrada. Disparando reconstrucción...");
                     toolbar.putClientProperty("isCurrentlyFloating", false);
-                    
-                    // Disparamos la reconstrucción completa y ordenada de todas las barras.
                     SwingUtilities.invokeLater(() -> {
                         ToolbarManager.this.reconstruirContenedorDeToolbars(
                             model.getCurrentWorkMode()
@@ -119,15 +116,10 @@ public class ToolbarManager {
                     });
                 }
             }
-
             @Override
-            public void ancestorMoved(javax.swing.event.AncestorEvent event) {
-                // No nos interesa este evento.
-            }
+            public void ancestorMoved(javax.swing.event.AncestorEvent event) {}
         });
-
         return toolbar;
-        
     } // --- Fin del método buildAndConfigureToolbar ---
     
     
@@ -140,50 +132,63 @@ public class ToolbarManager {
 
         if (leftPanel == null || centerPanel == null || rightPanel == null) {
             System.err.println("  ERROR [ToolbarManager]: Uno o más paneles de alineamiento no se encontraron. Abortando.");
-            return; // --- FIN del metodo reconstruirContenedorDeToolbars ---
+            return;
         }
 
-        // --- LÓGICA AHORA SÍNCRONA (SIN invokeLater) ---
         leftPanel.removeAll();
         centerPanel.removeAll();
         rightPanel.removeAll();
 
         List<ToolbarDefinition> todasLasBarras = uiDefService.generateModularToolbarStructure();
 
+        // Obtenemos el DisplayMode actual desde el modelo. Es la fuente de la verdad.
+        DisplayMode displayModeActual = model.getCurrentDisplayMode();
+        
         for (ToolbarDefinition def : todasLasBarras) {
-            // ▼▼▼▼▼ BORRA O COMENTA ESTE BLOQUE 'IF' ▼▼▼▼▼
-            // if ("controles_imagen_inferior".equals(def.claveBarra()) || "acciones_exportacion".equals(def.claveBarra())) {
-            //     continue;
-            // }
-            // ▲▲▲▲▲ BORRA O COMENTA ESTE BLOQUE 'IF' ▲▲▲▲▲
-
             if (def.modosVisibles().contains(modoActual)) {
-                // Pide la barra al manager. Si no está en caché, se creará.
+                // Obtenemos la toolbar. Como la caché está vacía tras un cambio de tema,
+                // esto forzará la llamada a buildAndConfigureToolbar.
                 JToolBar toolbar = getToolbar(def.claveBarra()); 
 
                 if (toolbar != null) {
-                    // SOLO añade la barra a los paneles superiores si NO es una de las especiales.
-                    // El ViewBuilder se encargará de colocar las especiales.
-                	
-                	// FIXME ELIMINAR ESTE IF PARA QUE SEA AUTOMATICO Y NO SE TENGA QUE DEFINIR A MANO
-                    if (!"controles_imagen_inferior".equals(def.claveBarra()) && !"acciones_exportacion".equals(def.claveBarra())) {
+                    	
+                	if (def.alignment() != ToolbarAlignment.FREE) {
+                		
                         String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra(), "visible");
                         boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
                         toolbar.setVisible(isVisibleInConfig);
                         
-                        ToolbarAlignment alignment = def.alignment();
-                        switch (alignment) {
+                        // <<< INICIO DE LA LÓGICA DE VISIBILIDAD ADICIONAL >>>
+                        // Si la barra es la de "zoom", aplicamos una regla extra.
+                        if ("zoom".equals(def.claveBarra())) {
+                            // La barra de zoom solo debe ser visible si estamos en un modo de imagen única
+                            // Y si la configuración general de la barra dice que debe ser visible.
+                            boolean debeSerVisible = (displayModeActual != DisplayMode.GRID) && isVisibleInConfig;
+                            toolbar.setVisible(debeSerVisible);
+                            System.out.println("  -> Visibilidad condicional para 'zoom': " + debeSerVisible);
+                        }
+                        // <<< FIN DE LA LÓGICA DE VISIBILIDAD ADICIONAL >>>
+                        
+                        switch (def.alignment()) {
                             case LEFT: leftPanel.add(toolbar); break;
                             case CENTER: centerPanel.add(toolbar); break;
                             case RIGHT: rightPanel.add(toolbar); break;
                             default: leftPanel.add(toolbar); break;
                         }
-                        
-                        SwingUtilities.updateComponentTreeUI(toolbar);
                     }
                 }
             }
         }
+        
+        // <<< INICIO DE LA LÓGICA PARA LA BARRA DE ESTADO >>>
+        // Gestionamos la barra de estado por separado al final, porque siempre existe.
+        JToolBar barraEstadoControles = getToolbar("barra_estado_controles");
+        if (barraEstadoControles != null) {
+            boolean debeSerVisible = (displayModeActual != DisplayMode.GRID);
+            barraEstadoControles.setVisible(debeSerVisible);
+            System.out.println("  -> Visibilidad condicional para 'barra_estado_controles': " + debeSerVisible);
+        }
+        // <<< FIN DE LA LÓGICA PARA LA BARRA DE ESTADO >>>
 
         leftPanel.revalidate();
         leftPanel.repaint();
@@ -192,6 +197,22 @@ public class ToolbarManager {
         rightPanel.revalidate();
         rightPanel.repaint();
 
+        
+	     // --- INICIO DE LA LÓGICA AÑADIDA ---
+	     // Después de que TODAS las toolbars han sido reconstruidas y puestas en su sitio,
+	     // le decimos explícitamente al BackgroundControlManager que es su turno de actuar.
+	     if (this.backgroundControlManager != null) {
+	         System.out.println("  [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...");
+	         // Lo hacemos en un invokeLater para asegurar que se ejecuta después de que
+	         // el contenedor de toolbars se haya revalidado visualmente.
+	         SwingUtilities.invokeLater(() -> {
+	             backgroundControlManager.initializeAndLinkControls();
+	             backgroundControlManager.sincronizarSeleccionConEstadoActual();
+	         });
+	     }
+	     // --- FIN DE LA LÓGICA AÑADIDA ---
+	     
+        
         System.out.println("--- [ToolbarManager] Reconstrucción de toolbars completada. ---");
     } // --- Fin del método reconstruirContenedorDeToolbars ---
     
@@ -213,20 +234,17 @@ public class ToolbarManager {
                 .ifPresent(def -> {
                     JToolBar newToolbar = buildAndConfigureToolbar(def);
                     this.managedToolbars.put(claveBarra, newToolbar);
-
-                    // --- ¡LÍNEA AÑADIDA! ---
-                    // Registramos la toolbar recién creada en el registro global.
-                    // Usamos la misma clave que BackgroundControlManager está buscando.
+                    
+                    // Registramos la toolbar para que otros la encuentren.
                     String registryKey = "toolbar." + claveBarra;
                     this.registry.register(registryKey, newToolbar);
                     System.out.println("    -> Barra '" + claveBarra + "' registrada en ComponentRegistry con la clave: '" + registryKey + "'");
-                    // -------------------------
                 });
         }
         return this.managedToolbars.get(claveBarra);
     } // --- Fin del método getToolbar ---
     
-
+    
     /**
      * Devuelve un mapa inmutable de las barras de herramientas actualmente gestionadas.
      */
@@ -235,16 +253,21 @@ public class ToolbarManager {
     } // --- Fin del método getManagedToolbars ---
     
     
+    
     /**
      * Limpia el caché interno de barras de herramientas. Esto forzará a que
      * se reconstruyan completamente la próxima vez que se llame a getToolbar()
      * o a reconstruirContenedorDeToolbars(). Esencial para el cambio de tema.
      */
     public void clearToolbarCache() {
-        System.out.println("  [ToolbarManager] Limpiando caché de toolbars...");
+        System.out.println("  [ToolbarManager] Limpiando caché de toolbars (" + managedToolbars.size() + " barras)...");
         managedToolbars.clear();
     } // --- Fin del método clearToolbarCache ---
     
+    
+    public void setBackgroundControlManager(BackgroundControlManager backgroundControlManager) {
+        this.backgroundControlManager = backgroundControlManager;
+    } // --- Fin del método setBackgroundControlManager ---
 
 } // --- FIN de la clase ToolbarManager ---
 

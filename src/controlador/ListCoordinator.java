@@ -88,6 +88,15 @@ public class ListCoordinator implements IListCoordinator {
 
         // 4. Actualizar el estado de los botones (enabled/disabled)
         forzarActualizacionEstadoAcciones();
+        
+     // --- INICIO DE LA NUEVA LÓGICA ---
+        // Después de actualizar las acciones, sincronizamos el grid si está activo.
+        if (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
+            JList<String> gridList = registry.get("list.grid");
+            sincronizarSeleccionJList(gridList, desiredIndex);
+        }
+        // --- FIN DE LA NUEVA LÓGICA ---
+        
     } // --- Fin del método seleccionarImagenPorIndice ---
 
     /**

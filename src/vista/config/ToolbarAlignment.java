@@ -6,5 +6,6 @@ package vista.config;
 public enum ToolbarAlignment {
     LEFT,
     CENTER,
-    RIGHT
+    RIGHT,
+    FREE
 } // --- FIN del enum ToolbarAlignment ---

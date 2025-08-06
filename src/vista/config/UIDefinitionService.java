@@ -657,7 +657,7 @@ public class UIDefinitionService {
 		List<ToolbarButtonDefinition> botonesModo = List.of(
 				//INICIO GRUPO DE BOTONES
 			 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR,"8001-modo_visualizador_48x48.png", 	"Modo Visualizador", "modo", ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 			"8002-mostrar_favoritos_48x48.png", 	"Mostrar/Ocultar Favoritos", "modo", ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 			"8002-mostrar_favoritos_48x48.png", 	"Modo Proyecto", "modo", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_DATOS, 					"8003-datos_48x48.png", 				"Modo Datos", "modo", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_EDICION,			 	"8004-edicion_48x48.png", 				"Modo Edicion", "modo", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, 				"4005-carrousel_48x48.png", 			"Vista Carrusel", "modo", ButtonType.TOGGLE)
@@ -746,13 +746,26 @@ public class UIDefinitionService {
 
         
         List<ToolbarButtonDefinition> botonesExportacion = List.of(	
-       		new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, 	"6001-selector_de_carpetas_48x48.png", "Seleccionar Carpeta de Destino", "acciones_exportacion"),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, 		"21001-quitar_de_cola.png", "Quitar de la cola", "acciones_exportacion"),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO,		"21002-asignar_archivo.png","Asignar archivo manualmente", "acciones_exportacion"),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, 	"21003-ignorar_comprimido.png", "Ignorar archivo comprimido", "acciones_exportacion"),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN, 	"21004-relocalizar_imagen.png", "Relocalizar Imagen", "acciones_exportacion"),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_INICIAR_EXPORTACION, 			"21005-iniciar_exportación.png","Iniciar Exportación", "acciones_exportacion")
+       		new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, 	"6001-selector_de_carpetas_48x48.png", "Seleccionar Carpeta de Destino", "acciones_exportacion"		),	//,ButtonType.STATUS_BAR_BUTTON*/),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, 		"21001-quitar_de_cola.png", "Quitar de la cola", "acciones_exportacion" 							),	//,ButtonType.STATUS_BAR_BUTTON*/),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO,		"21002-asignar_archivo.png","Asignar archivo manualmente", "acciones_exportacion" 					),	//,ButtonType.STATUS_BAR_BUTTON*/),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, 	"21003-ignorar_comprimido.png", "Ignorar archivo comprimido", "acciones_exportacion" 				),	//,ButtonType.STATUS_BAR_BUTTON*/),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN, 	"21004-relocalizar_imagen.png", "Relocalizar Imagen", "acciones_exportacion" 						),	//,ButtonType.STATUS_BAR_BUTTON*/),
+            new ToolbarButtonDefinition(AppActionCommands.CMD_INICIAR_EXPORTACION, 			"21005-iniciar_exportación.png","Iniciar Exportación", "acciones_exportacion" 						)	//,ButtonType.STATUS_BAR_BUTTON*/)
         );
+        
+        
+        List<ToolbarComponentDefinition> componentesBarraEstado = List.of(
+                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-zoom_48x48.png", "Activar/Desactivar Zoom Manual", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, "7001-subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,"7002-mantener_proporciones_48x48.png", "Mantener Proporciones", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, "7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "barra_estado", ButtonType.TOGGLE),
+                new SeparatorDefinition(),
+                new LabelDefinition("label.control.zoomPorcentaje", "Z: 100%"),
+//                new ToolbarButtonDefinition("cmd.control.modoZoom", "imagen.png", "Cambiar Modo de Zoom", "barra_estado") // Usamos un comando simple, no de AppActionCommands
+                new ToolbarButtonDefinition("cmd.control.modoZoom", "3005-escalar_para_ajustar_48x48.png", "Cambiar Modo de Zoom", "barra_estado", /*ButtonType.NORMAL)//*/ButtonType.STATUS_BAR_BUTTON)
+                
+		);
 
         
         return List.of(
@@ -782,8 +795,9 @@ public class UIDefinitionService {
         	    new ToolbarDefinition("velocidad_carrousel", "Velocidad", 	120, EnumSet.of(WorkMode.CARROUSEL), botonesVelocidadCarrousel, ToolbarAlignment.CENTER),
         	    
         	    // Barras especiales
-        	    new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 	500, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesExportacion), ToolbarAlignment.LEFT),
-        	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	510, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.RIGHT)
+        	    new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 	500, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesExportacion), ToolbarAlignment.FREE),
+        	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	510, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.FREE),
+        	    new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 		600, EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE)
         	);
         
         

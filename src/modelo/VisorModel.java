@@ -50,7 +50,6 @@ public class VisorModel {
     private int miniaturaSelAlto;
     private int miniaturaNormAncho;
     private int miniaturaNormAlto;
-//    private Path carpetaRaizActual = null;
     private boolean navegacionCircularActivada = false;
     private int saltoDeBloque;
     private int carouselDelay;
@@ -64,6 +63,9 @@ public class VisorModel {
     private boolean syncVisualizadorCarrusel = false;
     private Path ultimaCarpetaCarrusel;
     private String ultimaImagenKeyCarrusel; 
+    
+    private double zoomCustomPercentage = 100.0;
+    
     
     public VisorModel() {
         this.currentWorkMode = WorkMode.VISUALIZADOR;
@@ -130,7 +132,7 @@ public class VisorModel {
     }
 
     
-    public DisplayMode getCurrentDisplayMode() {return currentDisplayMode;}
+    public DisplayMode getCurrentDisplayMode() {return this.currentDisplayMode;}
     public void setCurrentDisplayMode(DisplayMode newDisplayMode) {
         if (this.currentDisplayMode != newDisplayMode) {
             System.out.println("[Model] Cambiando modo de visualización de contenido de " + this.currentDisplayMode + " a: " + newDisplayMode);
@@ -306,9 +308,22 @@ public class VisorModel {
         }
     } // --- Fin del método setSyncVisualizadorCarrusel ---
 
+    public double getZoomCustomPercentage() {return this.zoomCustomPercentage;}
+    public void setZoomCustomPercentage(double percentage) {
+    	// Podríamos añadir validación aquí si quisiéramos (ej: que no sea negativo)
+    	this.zoomCustomPercentage = percentage;
+    	System.out.println("  [VisorModel] zoomCustomPercentage actualizado a: " + this.zoomCustomPercentage + "%");
+    } // --- Fin del método setZoomCustomPercentage ---
+    	
+    public void setInitialDisplayMode(DisplayMode initialDisplayMode) {
+        System.out.println("[Model] Estableciendo DisplayMode inicial a: " + initialDisplayMode);
+        this.currentDisplayMode = initialDisplayMode;
+    } // --- FIN del metodo setInitialDisplayMode ---
+    
     public Path getUltimaCarpetaCarrusel() {return this.ultimaCarpetaCarrusel;}
     public void setUltimaCarpetaCarrusel(Path path) {this.ultimaCarpetaCarrusel = path;}
     public String getUltimaImagenKeyCarrusel() {return this.ultimaImagenKeyCarrusel;}
     public void setUltimaImagenKeyCarrusel(String key) {this.ultimaImagenKeyCarrusel = key;}
+    
     
 } // --- FIN DE LA CLASE VisorModel ---

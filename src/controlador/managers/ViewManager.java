@@ -28,9 +28,10 @@ import vista.VisorView;
 import vista.builders.ViewBuilder;
 import vista.panels.ImageDisplayPanel;
 import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 
-public class ViewManager implements IViewManager {
+public class ViewManager implements IViewManager, ThemeChangeListener {
 
     private VisorView view;
     private ConfigurationManager configuration;
@@ -41,6 +42,8 @@ public class ViewManager implements IViewManager {
     private ToolbarManager toolbarManager;
     private ViewBuilder viewBuilder;
     private VisorModel model;
+    private DisplayModeManager displayModeManager;
+    
     
     
     /**
@@ -256,8 +259,6 @@ public class ViewManager implements IViewManager {
             return;
         }
         
-        // --- INICIO DE LA LÓGICA CORREGIDA Y MEJORADA ---
-
         // CASO 1: La solicitud es para un BOTÓN INDIVIDUAL
         // Lo detectamos porque configKey no es nulo y empieza con "interfaz.boton."
         if (configKey != null && configKey.startsWith("interfaz.boton.")) {
@@ -296,8 +297,6 @@ public class ViewManager implements IViewManager {
             return; // Trabajo hecho, salimos.
         }
         
-        // --- FIN DE LA LÓGICA CORREGIDA ---
-
         // CASO 3: Lógica de fallback para otros componentes principales (la que ya tenías)
         boolean necesitaRevalidateGeneral = false;
         JFrame mainFrame = registry.get("frame.main");
@@ -323,9 +322,26 @@ public class ViewManager implements IViewManager {
                     necesitaRevalidateGeneral = true;
                 }
                 break;
+                
+            case "mostrar_ocultar_la_lista_de_archivos":
+                JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
+                if (panelIzquierdo != null && panelIzquierdo.isVisible() != nuevoEstado) {
+                    panelIzquierdo.setVisible(nuevoEstado);
+                    ajustarDivisorSplitPane(nuevoEstado);
+                    necesitaRevalidateGeneral = true;
+                }
+                break;
 
-            // ... (el resto de los case: "mostrar_ocultar_la_lista_de_archivos", "imagenes_en_miniatura" se quedan igual) ...
+            case "imagenes_en_miniatura":
+                JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+                if (scrollMiniaturas != null && scrollMiniaturas.isVisible() != nuevoEstado) {
+                    scrollMiniaturas.setVisible(nuevoEstado);
+                    necesitaRevalidateGeneral = true;
+                }
+                break;
 
+                
+                
             default:
                 // Si llegamos aquí, realmente no sabemos qué es.
                 System.err.println("  WARN [ViewManager]: uiElementId no reconocido o no manejado por ninguna lógica: '" + uiElementId + "'");
@@ -340,6 +356,40 @@ public class ViewManager implements IViewManager {
         }
     } // --- Fin del método solicitarActualizacionUI ---
 
+    
+    @Override
+    public void onThemeChanged(Tema nuevoTema) {
+        System.out.println("[ViewManager] Notificación de cambio de tema recibida. Actualizando paneles de visualización y UI...");
+        
+        // Es crucial ejecutar las actualizaciones de UI en el Event Dispatch Thread (EDT)
+        SwingUtilities.invokeLater(() -> {
+            
+            // 1. Actualizar los paneles de visualización de imagen
+            //    Usamos las claves del registro para obtener cada panel y llamar a su método de actualización.
+            
+            ImageDisplayPanel panelVisor = registry.get("panel.display.imagen");
+            if (panelVisor != null) {
+                panelVisor.actualizarColorDeFondoPorTema(this.themeManager);
+            }
+
+            ImageDisplayPanel panelProyecto = registry.get("panel.proyecto.display");
+            if (panelProyecto != null) {
+                panelProyecto.actualizarColorDeFondoPorTema(this.themeManager);
+            }
+
+            ImageDisplayPanel panelCarrusel = registry.get("panel.display.carousel");
+            if (panelCarrusel != null) {
+                panelCarrusel.actualizarColorDeFondoPorTema(this.themeManager);
+            }
+
+            // 1. Actualizar el panel contenedor (esto ya lo hacías y está bien)
+            refrescarColoresDeFondoUI();
+
+            System.out.println("[ViewManager] Actualización de paneles por cambio de tema completada.");
+        });
+    } // --- FIN del método onThemeChanged ---
+    
+    
     /**
      * Helper para revalidar el contenedor de las barras de herramientas.
      */
@@ -463,17 +513,24 @@ public class ViewManager implements IViewManager {
     @Override
     public void refrescarColoresDeFondoUI() {
         System.out.println("  [ViewManager] Refrescando colores de fondo de los paneles principales...");
-        if (registry == null || themeManager == null) return;
+        if (registry == null || themeManager == null) {
+            System.err.println("  ERROR [ViewManager]: Registry o ThemeManager nulos.");
+            return;
+        }
 
+        // 1. Obtener los colores del tema actual
         Color colorFondoPrincipal = themeManager.getTemaActual().colorFondoPrincipal();
+        Color colorFondoSecundario = themeManager.getTemaActual().colorFondoSecundario();
         
+        // 2. Lista de paneles estructurales clave
         List<String> panelesAActualizar = List.of(
-            "panel.izquierdo.listaArchivos",
+            "panel.north.wrapper",
+            "container.toolbars",
             "container.toolbars.left",
             "container.toolbars.center",
             "container.toolbars.right",
-            "panel.sur.statusBar",
-            "panel.sur.infoBar"
+            "panel.info.superior",
+            "panel.estado.inferior"
         );
 
         for (String key : panelesAActualizar) {
@@ -482,23 +539,30 @@ public class ViewManager implements IViewManager {
                 panel.setBackground(colorFondoPrincipal);
             }
         }
-
-        JPanel toolbarContainer = registry.get("container.toolbars");
-        if (toolbarContainer != null) {
-            toolbarContainer.setBackground(colorFondoPrincipal);
-            toolbarContainer.repaint();
+        
+        // 3. Actualizar explícitamente los viewports de los JScrollPane
+        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas.carousel");
+        if (scrollMiniaturas != null) {
+            scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
+        }
+        scrollMiniaturas = registry.get("scroll.miniaturas");
+        if (scrollMiniaturas != null) {
+            scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
         }
         
+        // 4. Actualizar las JToolBars individuales
         if (toolbarManager != null) {
             for (JToolBar tb : toolbarManager.getManagedToolbars().values()) {
                 tb.setBackground(colorFondoPrincipal);
             }
         }
         
+        // 5. Repintar el frame principal
         JFrame mainFrame = registry.get("frame.main");
         if (mainFrame != null) {
             mainFrame.repaint();
         }
+        
     } // --- Fin del método refrescarColoresDeFondoUI ---
     
     
@@ -562,84 +626,110 @@ public class ViewManager implements IViewManager {
         return this.view;
     }
     
-    /**
-     * Orquesta la reconstrucción de paneles o componentes de la UI que no forman
-     * parte del flujo principal de reconstrucción (como las barras de herramientas
-     * principales) pero que necesitan ser actualizados tras un cambio de tema.
-     * Típicamente, esto incluye paneles que contienen barras de herramientas "especiales"
-     * como la barra de control de fondo o la barra de acciones de exportación.
-     */
+    
     @Override
     public void reconstruirPanelesEspecialesTrasTema() {
-        System.out.println("  [ViewManager] Reconstruyendo paneles con barras de herramientas especiales...");
+        System.out.println("  [ViewManager] Re-colocando barras de herramientas especiales tras cambio de tema...");
 
-        // --- 1. VALIDACIONES DE DEPENDENCIAS ---
-        // Ahora incluimos viewBuilder en la validación.
-        if (toolbarManager == null || registry == null || viewBuilder == null) {
-            System.err.println("  ERROR CRÍTICO [reconstruirPanelesEspecialesTrasTema]: ToolbarManager, ComponentRegistry o ViewBuilder son nulos. No se puede proceder.");
-            return; // --- FIN del metodo reconstruirPanelesEspecialesTrasTema ---
+        if (toolbarManager == null || registry == null) {
+            System.err.println("  ERROR CRÍTICO: ToolbarManager o ComponentRegistry nulos.");
+            return;
         }
 
-        // --- 2. RECONSTRUCCIÓN DE LA BARRA DE CONTROL DE FONDO ---
-        final String claveBarraFondo = "controles_imagen_inferior";
-        final String clavePanelContenedorFondo = "panel.derecho.visor";
+        // --- RECONSTRUCCIÓN DE LA BARRA DE CONTROL DE FONDO (VISOR) ---
+        // Esta lógica se queda como está, ya que el panel visor es simple.
+        reconstruirBarraLibre("controles_imagen_inferior", "panel.derecho.visor", BorderLayout.SOUTH);
         
-        JPanel panelContenedorFondo = registry.get(clavePanelContenedorFondo);
-
-        if (panelContenedorFondo != null) {
-            if (panelContenedorFondo.getLayout() instanceof BorderLayout) {
-                Component componenteSurAntiguo = ((BorderLayout) panelContenedorFondo.getLayout()).getLayoutComponent(BorderLayout.SOUTH);
-                if (componenteSurAntiguo != null) {
-                    panelContenedorFondo.remove(componenteSurAntiguo);
-                    System.out.println("    -> Componente sur antiguo eliminado de '" + clavePanelContenedorFondo + "'.");
-                }
-            }
-
-            // AHORA pedimos al ViewBuilder que cree una nueva instancia de la barra
-            // Esto es más correcto que pedírsela al ToolbarManager en este contexto,
-            // ya que el ViewBuilder es el responsable original de su creación y posicionamiento.
-            JToolBar nuevaBarraFondo = viewBuilder.createBackgroundControlPanel(); // <-- ¡CAMBIO IMPORTANTE!
-            
-            if (nuevaBarraFondo != null) {
-                panelContenedorFondo.add(nuevaBarraFondo, BorderLayout.SOUTH);
-                panelContenedorFondo.revalidate();
-                panelContenedorFondo.repaint();
-                System.out.println("    -> Nueva barra '" + claveBarraFondo + "' añadida y panel actualizado.");
-            } else {
-                System.err.println("  WARN [reconstruirPanelesEspecialesTrasTema]: ViewBuilder no pudo proporcionar la barra '" + claveBarraFondo + "'.");
-            }
-        } else {
-            System.err.println("  WARN [reconstruirPanelesEspecialesTrasTema]: No se encontró el panel contenedor '" + clavePanelContenedorFondo + "' en el registro.");
-        }
-
-        // --- 3. RECONSTRUCCIÓN DE LA BARRA DE ACCIONES DE EXPORTACIÓN (Modo Proyecto) ---
-        final String claveBarraExportacion = "acciones_exportacion";
-        final String clavePanelContenedorExportacion = "panel.proyecto.exportacion"; // Asumiendo que esta es la clave
-
-        JPanel panelContenedorExportacion = registry.get(clavePanelContenedorExportacion);
-
-        if (panelContenedorExportacion != null) {
-             if (panelContenedorExportacion.getLayout() instanceof BorderLayout) {
-                Component componenteNorteAntiguo = ((BorderLayout) panelContenedorExportacion.getLayout()).getLayoutComponent(BorderLayout.NORTH);
-                if (componenteNorteAntiguo != null) {
-                    panelContenedorExportacion.remove(componenteNorteAntiguo);
-                }
-            }
-            
-            // La barra de exportación sí es gestionada 100% por el ToolbarManager, así que aquí lo usamos a él.
-            JToolBar nuevaBarraExportacion = toolbarManager.getToolbar(claveBarraExportacion);
+        // --- RECONSTRUCCIÓN DE LA BARRA DE ACCIONES DE EXPORTACIÓN (PROYECTO) ---
+        // >>> INICIO DE LA LÓGICA CORREGIDA Y SEGURA <<<
+        
+        // 1. Obtenemos la instancia específica del ExportPanel desde el registro.
+        vista.panels.export.ExportPanel exportPanel = registry.get("panel.proyecto.exportacion");
+        
+        if (exportPanel != null) {
+            // 2. Pedimos al ToolbarManager la barra reconstruida.
+            //    Como la caché se vació, esto creará una nueva instancia con el tema correcto.
+            JToolBar nuevaBarraExportacion = toolbarManager.getToolbar("acciones_exportacion");
             
             if (nuevaBarraExportacion != null) {
-                panelContenedorExportacion.add(nuevaBarraExportacion, BorderLayout.NORTH);
-                panelContenedorExportacion.revalidate();
-                panelContenedorExportacion.repaint();
-                System.out.println("    -> Nueva barra '" + claveBarraExportacion + "' añadida y panel de exportación actualizado.");
+                // 3. Forzamos la actualización de la UI de la nueva barra y sus botones.
+                SwingUtilities.updateComponentTreeUI(nuevaBarraExportacion);
+                
+                // 4. Le entregamos la nueva barra al ExportPanel para que él la coloque.
+                //    Ahora el ViewManager no sabe ni necesita saber cómo está hecho el ExportPanel por dentro.
+                exportPanel.setActionsToolbar(nuevaBarraExportacion);
+                
+                System.out.println("    -> Nueva barra 'acciones_exportacion' entregada al ExportPanel para su actualización.");
+            } else {
+                System.err.println("  WARN: ToolbarManager no pudo proporcionar la barra 'acciones_exportacion'.");
+            }
+        } else {
+            System.err.println("  WARN: No se encontró el componente 'panel.proyecto.exportacion' en el registro.");
+        }
+        // >>> FIN DE LA LÓGICA CORREGIDA <<<
+        
+        System.out.println("  [ViewManager] Re-colocación de paneles especiales finalizada.");
+    } // --- FIN del metodo reconstruirPanelesEspecialesTrasTema  ---
+    
+    
+    /**
+     * Método helper REFORZADO para reconstruir y recolocar una barra de herramientas "libre".
+     * @param claveBarra La clave de la barra en el UIDefinitionService.
+     * @param clavePanelContenedor La clave del panel contenedor en el ComponentRegistry.
+     * @param layoutConstraint La restricción del BorderLayout (e.g., BorderLayout.NORTH).
+     */
+    private void reconstruirBarraLibre(String claveBarra, String clavePanelContenedor, String layoutConstraint) {
+        JPanel panelContenedor = registry.get(clavePanelContenedor);
+        
+        if (panelContenedor == null) {
+            System.err.println("  WARN [reconstruirBarraLibre]: No se encontró el panel contenedor '" + clavePanelContenedor + "'.");
+            return;
+        }
+
+        // --- 1. Quitar la barra antigua del panel, si existe. ---
+        // Buscamos entre los hijos del panel un componente que sea una JToolBar
+        // y cuyo nombre coincida con la clave de la barra que queremos reemplazar.
+        JToolBar barraAntigua = null;
+        for (Component comp : panelContenedor.getComponents()) {
+            if (comp instanceof JToolBar && claveBarra.equals(comp.getName())) {
+                barraAntigua = (JToolBar) comp;
+                break;
             }
         }
         
-        System.out.println("  [ViewManager] Reconstrucción de paneles especiales finalizada.");
-    } // --- Fin del método reconstruirPanelesEspecialesTrasTema ---
+        if (barraAntigua != null) {
+            panelContenedor.remove(barraAntigua);
+            System.out.println("    -> Barra antigua '" + claveBarra + "' eliminada del panel '" + clavePanelContenedor + "'.");
+        }
 
+        // 2. Pedir al ToolbarManager la barra. Como la caché está vacía, esto la reconstruirá.
+        JToolBar nuevaBarra = toolbarManager.getToolbar(claveBarra);
+        
+        if (nuevaBarra != null) {
+            // Forzar la actualización de la UI de la nueva barra con el tema actual
+            System.out.println("    -> Forzando updateComponentTreeUI en la barra '" + claveBarra + "'...");
+            SwingUtilities.updateComponentTreeUI(nuevaBarra);
+            
+            // Aplicar configuraciones especiales si es necesario
+            if ("controles_imagen_inferior".equals(claveBarra)) {
+                nuevaBarra.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 3, 1));
+                nuevaBarra.setOpaque(false);
+            }
+            
+            // 3. Añadir la barra recién reconstruida y actualizada al panel.
+            panelContenedor.add(nuevaBarra, layoutConstraint);
+            
+            // 4. Revalidar y repintar el contenedor.
+            panelContenedor.revalidate();
+            panelContenedor.repaint();
+            
+            System.out.println("    -> Nueva barra '" + claveBarra + "' re-colocada en '" + clavePanelContenedor + "'.");
+        } else {
+            System.err.println("  WARN [reconstruirBarraLibre]: ToolbarManager no pudo proporcionar la barra '" + claveBarra + "'.");
+        }
+        
+    }	// --- Fin del método reconstruirBarraLibre ---
+    
     
     /**
      * Devuelve la instancia del ImageDisplayPanel que está actualmente activa y visible
@@ -696,6 +786,10 @@ public class ViewManager implements IViewManager {
     public void setModel(VisorModel model) {
         this.model = model;
     }
+    
+    
+    public void setDisplayModeManager(DisplayModeManager displayModeManager) { this.displayModeManager = displayModeManager;}
+    public DisplayModeManager getDisplayModeManager() {return this.displayModeManager;}
     
 } // --- Fin de la clase ViewManager ---
 

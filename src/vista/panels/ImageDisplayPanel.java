@@ -169,6 +169,8 @@ public class ImageDisplayPanel extends JPanel {
         repaint();
     } // --- Fin del método mostrarCargando ---
     
+    
+    
     /**
      * Devuelve si el panel está configurado actualmente para mostrar el fondo a cuadros.
      * @return true si el fondo a cuadros está activo, false en caso contrario.
@@ -176,5 +178,45 @@ public class ImageDisplayPanel extends JPanel {
     public boolean isCheckeredBackground() {
         return this.fondoACuadros;
     }
+    
+    
+    /**
+     * Actualiza el color de fondo sólido del panel basándose en el tema
+     * actualmente activo en el ThemeManager.
+     *
+     * @param themeManagerRef La referencia al ThemeManager para obtener el color.
+     */
+    public void actualizarColorDeFondoPorTema(ThemeManager themeManagerRef) {
+        if (themeManagerRef != null) {
+            // Obtenemos el color correcto del tema.
+            Color nuevoColorFondo = themeManagerRef.getTemaActual().colorFondoSecundario();
+            
+            // Actualizamos tanto la propiedad para el paintComponent...
+            this.colorFondoSolido = nuevoColorFondo;
+            
+            // ...como la propiedad de fondo del propio JPanel.
+            this.setBackground(nuevoColorFondo);
+            
+            // Forzamos un redibujado para que se vea el cambio.
+            repaint();
+            
+            System.out.println("  -> ImageDisplayPanel actualizado al color de fondo del nuevo tema: " + nuevoColorFondo);
+        }
+    } // --- FIN del método actualizarColorDeFondoPorTema ---
+    
+    
+//    /**
+//     * Actualiza el color de fondo sólido del panel basándose en el tema
+//     * actualmente activo en el ThemeManager.
+//     */
+//    public void actualizarColorDeFondoPorTema() {
+//        if (themeManager != null) {
+//            this.colorFondoSolido = themeManager.getTemaActual().colorFondoSecundario();
+//            // Ya no hace falta llamar a setBackground() aquí, paintComponent usará el nuevo color.
+//            repaint(); // Forzamos un redibujado para que se vea el cambio.
+//            System.out.println("  -> ImageDisplayPanel actualizado al color de fondo del nuevo tema.");
+//        }
+//    }
+    
     
 } // --- FIN DE LA CLASE ImageDisplayPanel ---

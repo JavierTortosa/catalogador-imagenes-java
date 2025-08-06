@@ -1,5 +1,7 @@
 package controlador.managers;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +19,8 @@ import modelo.VisorModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import utils.ImageUtils;
+import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
 
 /**
  * Gestiona la actualización de la barra de información superior, que muestra
@@ -24,7 +28,7 @@ import utils.ImageUtils;
  * Esta clase es responsable de leer el estado del modelo y la configuración,
  * y de reflejarlo en los componentes de la UI correspondientes.
  */
-public class InfobarImageManager {
+public class InfobarImageManager implements ThemeChangeListener{
 
     // --- Dependencias Clave ---
     private final VisorModel model;
@@ -85,6 +89,40 @@ public class InfobarImageManager {
         panel.repaint();
     } // --- Fin del método actualizarBarraInfoSuperior ---
 
+
+    @Override
+    public void onThemeChanged(Tema nuevoTema) {
+        System.out.println("[InfobarImageManager] Reaccionando al cambio de tema...");
+        
+        SwingUtilities.invokeLater(() -> {
+            JPanel topInfoPanel = registry.get("panel.info.superior");
+            
+            if (topInfoPanel != null) {
+                // Establecemos el color de fondo del panel
+                topInfoPanel.setBackground(nuevoTema.colorFondoPrincipal());
+                topInfoPanel.setOpaque(true);
+
+                // Actualizamos la UI de todos los componentes hijos (para el color del texto)
+                for (Component component : topInfoPanel.getComponents()) {
+                    if (component instanceof javax.swing.JComponent) {
+                        ((javax.swing.JComponent) component).updateUI();
+                    }
+                }
+                System.out.println("[InfobarImageManager] Barra de información superior actualizada.");
+            }
+        });
+    } // --- fin del método onThemeChanged ---
+    
+    
+////                    try {
+////                        // Pausa de 1 segundo en el hilo de UI (solo para depuración)
+////                        Thread.sleep(1000); 
+////                    } catch (InterruptedException e) {
+////                        // Es buena práctica restaurar el flag de interrupción
+////                        Thread.currentThread().interrupt();
+////                    }
+    
+    
     private void actualizarNombreArchivo() {
         JLabel label = registry.get("label.info.nombreArchivo");
         if (label == null) return;

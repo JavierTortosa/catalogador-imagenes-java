@@ -71,6 +71,7 @@ import controlador.commands.AppActionCommands;
 import controlador.imagen.LocateFileAction;
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.CarouselManager;
+import controlador.managers.DisplayModeManager;
 import controlador.managers.FileOperationsManager;
 import controlador.managers.interfaces.ICarouselListCoordinator;
 import controlador.managers.interfaces.IEditionManager;
@@ -142,6 +143,9 @@ public class ActionFactory {
 
     // Constante para la cantidad de paneo incremental (se puede mover a una clase de constantes globales si existe)
     private static final int INCREMENTAL_PAN_AMOUNT = 50; 
+    
+    // 1.8. Campo para registrar los DisplayModes
+    private DisplayModeManager displayModeManager;
     
     // --- SECCIÓN 2: CONSTRUCTOR ---
     /**
@@ -461,9 +465,31 @@ public class ActionFactory {
     
     
     private Action createSwitchDisplayModeAction(DisplayMode displayMode, String commandKey, String displayName) {
+        // 1. Obtenemos el icono como ya hacías
         ImageIcon icon = getIconForCommand(commandKey);
-        return new SwitchDisplayModeAction(generalController, displayMode, displayName, icon, displayName, null, commandKey);
-    }
+        
+        // 2. Creamos la nueva acción usando el constructor CORREGIDO de SwitchDisplayModeAction.
+        //    Ya no necesita el 'generalController'. Necesita 'displayModeManager' y 'model'.
+        SwitchDisplayModeAction action = new SwitchDisplayModeAction(
+            displayName,            // El nombre de la acción (para tooltips, etc.)
+            this,
+            displayMode,            // El modo al que cambiará (GRID, SINGLE_IMAGE, etc.)
+            this.model              // El modelo, que necesita para sincronizar el estado
+        );
+        
+        // 3. Configuramos las propiedades visuales de la acción, como ya lo harías en otros sitios
+        if (icon != null) {
+            action.putValue(Action.SMALL_ICON, icon);
+        }
+        action.putValue(Action.SHORT_DESCRIPTION, displayName); // Tooltip
+        
+        // 4. Asignamos el comando canónico
+        action.putValue(Action.ACTION_COMMAND_KEY, commandKey);
+        
+        return action;
+    } // --- Fin del método createSwitchDisplayModeAction ---
+    
+    
     
     private Action createSwitchWorkModeAction(WorkMode workMode, String commandKey, String displayName) {
         ImageIcon icon = getIconForCommand(commandKey);
@@ -767,49 +793,13 @@ public class ActionFactory {
     
     // --- 4.9. Métodos Create para Actions de Toggle Generales ---
     private Action createToggleSubfoldersAction() {
-    	
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
-//        
-//        
-//        
-//    	ToggleSubfoldersAction spyAction = new ToggleSubfoldersAction(
-//                "Alternar Subcarpetas", 
-//                icon, 
-//                this.model, 
-//                this.generalController.getVisorController(), 
-//                this.generalController) {
-//
-//            private static final long serialVersionUID = 1L; // Añadimos esto por buena práctica
-//
-//            @Override
-//            public void setEnabled(boolean b) {
-//                // Solo nos interesa cuando la acción se está DESHABILITANDO
-//                if (!b && this.isEnabled()) {
-//                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-//                    System.out.println("!!!                 ALERTA DE DEBUG - CULPABLE ENCONTRADO                 !!!");
-//                    System.out.println("!!! La acción 'ToggleSubfoldersAction' está siendo deshabilitada AHORA MISMO. !!!");
-//                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-//                    
-//                    // Imprimimos una traza de la pila para ver quién ha llamado a este método.
-//                    // La línea superior (después de esta) es el culpable directo.
-//                    new Exception("TRAZA PARA ENCONTRAR QUIÉN LLAMA A setEnabled(false)").printStackTrace();
-//                }
-//                
-//                // MUY IMPORTANTE: Llamamos al método original para que la acción siga funcionando.
-//                super.setEnabled(b);
-//            }
-//        };
-//
-//        return spyAction;
-//    	
-        // Llama al nuevo constructor simplificado
-        return new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.model, this.generalController.getVisorController(), this.generalController);
-    	
-    }
+        return new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.model, this.generalController);
+    }// --- Fin del método createToggleSubfoldersAction ---
     
     private Action createSetSubfolderReadModeAction(String commandKey, String displayName, boolean representaModoIncluirSubcarpetas) {
     	ImageIcon icon = null; 
-    	return new SetSubfolderReadModeAction(displayName, icon, this.generalController.getVisorController(), this.model,representaModoIncluirSubcarpetas, commandKey);
+    	return new SetSubfolderReadModeAction(displayName, icon, this.generalController, this.model,representaModoIncluirSubcarpetas, commandKey);
     } // --- Fin del método createSetSubfolderReadModeAction ---
         
     
@@ -1133,15 +1123,16 @@ public class ActionFactory {
     public void setEditionManager(IEditionManager editionManager) {this.editionManager = Objects.requireNonNull(editionManager);}
     public void setListCoordinator(IListCoordinator listCoordinator) {this.listCoordinator = Objects.requireNonNull(listCoordinator);}
     public void setCarouselManager(CarouselManager carouselManager) {this.carouselManager = carouselManager;}
-    public CarouselManager getCarouselManager() {return this.carouselManager;}
+    
+    public DisplayModeManager getDisplayModeManager(){ return displayModeManager; }    
+    public void setDisplayModeManager(DisplayModeManager displayModeManager){ this.displayModeManager = displayModeManager; }
+
+	public CarouselManager getCarouselManager() {return this.carouselManager;}
     public void setCarouselListCoordinator(ICarouselListCoordinator coordinator) {this.carouselListCoordinator = coordinator;}    
     public List<ContextSensitiveAction> getCarouselContextSensitiveActions() {return Collections.unmodifiableList(this.carouselContextSensitiveActions);}
     public void setFileOperationsManager(FileOperationsManager fileOperationsManager) {
         this.fileOperationsManager = Objects.requireNonNull(fileOperationsManager, "FileOperationsManager no puede ser null en setFileOperationsManager");
     }
-    
-    
-    
     
     
 }	// --- FIN de la clase ActionFactory ---

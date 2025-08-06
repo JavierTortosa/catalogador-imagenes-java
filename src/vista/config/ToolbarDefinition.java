@@ -1,9 +1,8 @@
-// REEMPLAZA ESTA CLASE EN ToolbarDefinition.java
-
 package vista.config;
 
 import java.util.List;
 import java.util.Set;
+
 import modelo.VisorModel.WorkMode;
 
 public record ToolbarDefinition(

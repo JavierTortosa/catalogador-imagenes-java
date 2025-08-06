@@ -11,7 +11,9 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
 import controlador.GeneralController;
@@ -20,9 +22,11 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.NombreArchivoRenderer;
+import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 
-public class ProjectBuilder {
+public class ProjectBuilder implements ThemeChangeListener{
 
     private final ComponentRegistry registry;
     private final VisorModel model;
@@ -207,7 +211,11 @@ public class ProjectBuilder {
         	    this.generalController.getProjectController(),
         	    (e) -> this.generalController.getProjectController().actualizarEstadoExportacionUI()
         	);
+        
         registry.register("panel.proyecto.herramientas.exportar", panelExportar);
+        
+        registry.register("panel.proyecto.exportacion", panelExportar);
+        System.out.println("  -> Panel de exportación registrado con la clave 'panel.proyecto.exportacion' para el refresco del tema.");
         
         JTable tablaExportacion = panelExportar.getTablaExportacion();
         if (tablaExportacion != null) {
@@ -254,6 +262,91 @@ public class ProjectBuilder {
         
         return panelHerramientas;
     } // --- Fin del método createProjectToolsPanel ---
+    
+    
+    @Override
+    public void onThemeChanged(Tema nuevoTema) {
+        System.out.println("--- [ProjectBuilder] Reaccionando al cambio de tema...");
+        if (registry == null) return;
+        
+        SwingUtilities.invokeLater(() -> {
+            // Actualiza los paneles principales y sus bordes
+        	actualizarColorPanel("view.panel.proyectos", nuevoTema.colorFondoPrincipal());
+            actualizarBordeConTema("panel.proyecto.listas.container", "Selección Actual", nuevoTema);
+            actualizarBordeConTema("panel.proyecto.herramientas.container", "Herramientas de Proyecto", nuevoTema);
+
+            // Actualiza el visor de imagen
+            ImageDisplayPanel displayPanel = registry.get("panel.proyecto.display");
+            if (displayPanel != null) {
+                displayPanel.actualizarColorDeFondoPorTema(themeManager);
+            }
+
+            // Actualiza las listas
+            JList<?> listaNombres = registry.get("list.proyecto.nombres");
+            if(listaNombres != null) listaNombres.setBackground(nuevoTema.colorFondoSecundario());
+            JList<?> listaDescartes = registry.get("list.proyecto.descartes");
+            if(listaDescartes != null) listaDescartes.setBackground(nuevoTema.colorFondoPrincipal());
+            
+            // Actualiza el TabbedPane y su contenido
+            javax.swing.JTabbedPane tabbedPane = registry.get("tabbedpane.proyecto.herramientas");
+            if (tabbedPane != null) {
+                SwingUtilities.updateComponentTreeUI(tabbedPane);
+            }
+            
+            // MUY IMPORTANTE: Actualiza la tabla y su viewport
+            JTable tablaExportacion = registry.get("tabla.exportacion");
+            if (tablaExportacion != null) {
+                // La tabla en sí
+                tablaExportacion.setBackground(nuevoTema.colorFondoSecundario());
+                tablaExportacion.setForeground(nuevoTema.colorTextoPrimario());
+                tablaExportacion.getTableHeader().setBackground(nuevoTema.colorFondoPrincipal());
+                tablaExportacion.getTableHeader().setForeground(nuevoTema.colorTextoPrimario());
+                
+                // El panel que la contiene (viewport)
+                java.awt.Component parent = tablaExportacion.getParent();
+                if(parent instanceof javax.swing.JViewport) {
+                    parent.setBackground(nuevoTema.colorFondoSecundario());
+                }
+            }
+            
+         // Actualizamos explícitamente el ExportPanel, que es el contenedor de la JToolBar problemática.
+            vista.panels.export.ExportPanel panelExportar = registry.get("panel.proyecto.exportacion");
+            if(panelExportar != null){
+                // 1. Actualizar el panel en sí mismo y sus hijos estándar.
+                SwingUtilities.updateComponentTreeUI(panelExportar);
+                // 2. Forzar el color de fondo para asegurar que no se herede nada raro.
+                panelExportar.setBackground(nuevoTema.colorFondoPrincipal());
+                panelExportar.repaint();
+            }
+
+            // <<-- OPCIONAL PERO RECOMENDADO: Forzar repintado de la propia toolbar -->>
+            // Aunque reconstruirPanelesEspecialesTrasTema ya lo hace, un repaint extra no hace daño.
+            JToolBar accionesExportacionToolbar = registry.get("toolbar.acciones_exportacion");
+            if(accionesExportacionToolbar != null) {
+                accionesExportacionToolbar.repaint();
+            }
+            
+        });
+        
+    } // --- FIN del metodo onThemeChanged ---
+
+    // AÑADIR ESTOS MÉTODOS HELPER
+    private void actualizarBordeConTema(String panelKey, String titulo, Tema tema) {
+        JPanel panel = registry.get(panelKey);
+        if (panel != null && panel.getBorder() instanceof TitledBorder) {
+            TitledBorder border = (TitledBorder) panel.getBorder();
+            border.setTitleColor(tema.colorBordeTitulo());
+            panel.repaint();
+        }
+    }
+
+    private void actualizarColorPanel(String panelKey, java.awt.Color color) {
+        JPanel panel = registry.get(panelKey);
+        if (panel != null) {
+            panel.setBackground(color);
+        }
+    }
+
     
     
     /**

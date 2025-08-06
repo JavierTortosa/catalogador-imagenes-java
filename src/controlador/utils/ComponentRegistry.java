@@ -170,6 +170,36 @@ public class ComponentRegistry {
     
     
     /**
+     * Elimina un componente del registro por su clave.
+     * Si la clave no existe, el método no hace nada.
+     *
+     * @param key La clave del componente a eliminar. No debe ser nula.
+     * @return El componente que fue eliminado, o null si no se encontró ningún componente con esa clave.
+     */
+    public Component unregister(String key) {
+        if (key == null || key.isBlank()) {
+            System.err.println("ComponentRegistry WARN: Se intentó desregistrar un componente con una clave nula o vacía. Se ignora.");
+            return null;
+        }
+
+        // También debemos eliminar la clave de cualquier etiqueta a la que pertenezca.
+        tags.values().forEach(keySet -> keySet.remove(key));
+        
+        // El método remove() de un Map devuelve el valor asociado a la clave, o null si no existía.
+        Component removedComponent = components.remove(key);
+
+        if (removedComponent != null) {
+            System.out.println("  [ComponentRegistry] Componente con clave '" + key + "' eliminado del registro.");
+        } else {
+            // Esto no es necesariamente un error, puede que se intente eliminar algo que ya no existe.
+            // System.out.println("  [ComponentRegistry] Se intentó eliminar la clave '" + key + "', pero no se encontró en el registro.");
+        }
+        
+        return removedComponent;
+    } // --- FIN del método unregister ---
+    
+    
+    /**
      * Devuelve una lista de todos los componentes registrados que son de un tipo específico
      * o una subclase de ese tipo.
      *
@@ -195,6 +225,5 @@ public class ComponentRegistry {
         
         return componentsOfType;
     } // --- FIN del metodo getAllComponentsOfType ---
-    
     
 }// --- FIN de la clase ComponentRegistry ---

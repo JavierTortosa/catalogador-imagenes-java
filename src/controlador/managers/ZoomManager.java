@@ -8,6 +8,7 @@ import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
 import controlador.ListCoordinator;
+import controlador.VisorController;
 import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
@@ -29,6 +30,7 @@ public class ZoomManager implements IZoomManager {
     private InfobarStatusManager statusBarManager;
     private ListCoordinator listCoordinator;
     private IViewManager viewManager; // <<< Dependencia clave
+    private VisorController visorController;
 
     // --- Estado Interno ---
     private int lastMouseX, lastMouseY;
@@ -59,6 +61,33 @@ public class ZoomManager implements IZoomManager {
     
     @Override
     public void aplicarModoDeZoom(ZoomModeEnum modo, Runnable onComplete) {
+    	
+        if (model == null) {
+            System.err.println("ERROR [ZoomManager]: El modelo es nulo.");
+            if (onComplete != null) onComplete.run();
+            return;
+        }
+        
+        // Obtenemos el DisplayMode actual del modelo.
+        VisorModel.DisplayMode displayModeActual = model.getCurrentDisplayMode();
+
+        // Comprobamos si el modo actual es uno que NO es compatible con el zoom de imagen única.
+        // Por ahora, el único modo incompatible es GRID.
+        if (displayModeActual == VisorModel.DisplayMode.GRID) {
+            System.out.println("[ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.");
+            
+            // Actualizamos la UI para que el usuario entienda que el zoom no aplica aquí.
+            if (statusBarManager != null) {
+            	statusBarManager.actualizarParaModoNoCompatible();
+            }
+            
+            if (onComplete != null) onComplete.run();
+            return; // Salimos y evitamos el bucle.
+        }
+
+        // Si llegamos aquí, significa que estamos en un modo compatible (como SINGLE_IMAGE),
+        // sin importar si el WorkMode es VISUALIZADOR, EDICION o CARROUSEL.
+        
         if (model == null || statusBarManager == null || registry == null || viewManager == null) {
             System.err.println("ERROR [aplicarModoDeZoom]: Dependencias nulas.");
             if (onComplete != null) onComplete.run();
@@ -68,7 +97,10 @@ public class ZoomManager implements IZoomManager {
         if (model.getCurrentImage() == null) {
             ImageDisplayPanel panelActivo = getActiveDisplayPanel();
             if (panelActivo != null) panelActivo.limpiar();
-            if (onComplete != null) onComplete.run();
+            
+//            if (onComplete != null) onComplete.run();
+            if (onComplete != null) SwingUtilities.invokeLater(onComplete);
+            
             return;
         }
         
@@ -100,7 +132,11 @@ public class ZoomManager implements IZoomManager {
         model.resetPan();
         refrescarVistaSincrono();
 
-        if (onComplete != null) onComplete.run();
+//        if (onComplete != null) onComplete.run();
+        if (onComplete != null) {
+            SwingUtilities.invokeLater(onComplete);
+        }
+        
     } // --- Fin del método aplicarModoDeZoom (con callback) ---
     
     @Override
@@ -127,9 +163,16 @@ public class ZoomManager implements IZoomManager {
         }
         model.setZoomFactor(nuevoZoom);
         refrescarVistaSincrono();
+        
+        if (model.getCurrentZoomMode() == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM) {
+            model.setZoomCustomPercentage(nuevoZoom * 100.0);
+        }
+        
         if (model.getCurrentZoomMode() == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM || model.getCurrentZoomMode() == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
             if (statusBarManager != null) statusBarManager.actualizar();
         }
+        
+        
     } // --- Fin del método aplicarZoomConRueda ---
     
     @Override
@@ -196,6 +239,7 @@ public class ZoomManager implements IZoomManager {
         return null;
     } // --- Fin del método getActiveDisplayPanel ---
     
+    
     private double _calcularFactorDeZoom(ZoomModeEnum modo) {
         if (modo == null) return 1.0;
         BufferedImage img = model.getCurrentImage();
@@ -208,16 +252,62 @@ public class ZoomManager implements IZoomManager {
             case SMART_FIT:
                 double imgRatio = (double) imgW / imgH, panelRatio = (double) panelW / panelH;
                 return (imgRatio > panelRatio) ? (double) panelW / imgW : (double) panelH / imgH;
-            case MAINTAIN_CURRENT_ZOOM: return model.getZoomFactor(); 
-            case USER_SPECIFIED_PERCENTAGE: return configuration.getZoomPersonalizadoPorcentaje() / 100.0;
             case FIT_TO_SCREEN: return Math.min((double) panelW / imgW, (double) panelH / imgH);
             case FILL: return Math.max((double) panelW / imgW, (double) panelH / imgH);
             case FIT_TO_WIDTH: return (double) panelW / imgW;
             case FIT_TO_HEIGHT: return (double) panelH / imgH;
             case DISPLAY_ORIGINAL: return 1.0;
+            
+            case MAINTAIN_CURRENT_ZOOM: return model.getZoomFactor();
+            case USER_SPECIFIED_PERCENTAGE: return configuration.getZoomPersonalizadoPorcentaje() / 100.0;
+            
+//            case USER_SPECIFIED_PERCENTAGE: return model.getZoomFactor();
             default: return model.getZoomFactor(); 
         }
     } // --- Fin del método _calcularFactorDeZoom ---
+    
+    
+    @Override
+    public void setZoomMode(ZoomModeEnum nuevoModo, Runnable onComplete) {
+        System.out.println("[ZoomManager] Solicitud para establecer modo (vía setZoomMode): " + nuevoModo);
+
+        // Guarda de seguridad idéntica a la que tenías en la Action
+        if (model.getCurrentZoomMode() == nuevoModo && nuevoModo != ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
+            System.out.println("  -> El modo ya está activo. No se hace nada.");
+            if (onComplete != null) {
+                onComplete.run(); // Ejecutamos el callback por si acaso la UI necesita sincronizarse
+            }
+            return;
+        }
+
+        // --- LÓGICA DEL SWITCH MOVIDA DESDE LA ACTION ---
+        switch (nuevoModo) {
+            case MAINTAIN_CURRENT_ZOOM:
+                double currentZoomFactor = model.getZoomFactor();
+                model.setZoomCustomPercentage(currentZoomFactor * 100.0);
+                
+                // LLAMAMOS A TU MÉTODO EXISTENTE, SIN CAMBIOS
+                aplicarModoDeZoom(nuevoModo, onComplete);
+                break;
+
+            case USER_SPECIFIED_PERCENTAGE:
+                model.setCurrentZoomMode(nuevoModo);
+                double customPercentage = model.getZoomCustomPercentage();
+                model.setZoomFactor(customPercentage / 100.0);
+                
+                refrescarVistaSincrono();
+                if (onComplete != null) {
+                    onComplete.run();
+                }
+                break;
+
+            default: // Para todos los modos automáticos
+                // LLAMAMOS A TU MÉTODO EXISTENTE, SIN CAMBIOS
+                aplicarModoDeZoom(nuevoModo, onComplete);
+                break;
+        }
+    } //--- FIN del metodo setZoomMode ---
+    
     
     // --- SETTERS PARA INYECCIÓN DE DEPENDENCIAS ---
 
@@ -228,11 +318,14 @@ public class ZoomManager implements IZoomManager {
     public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model, "VisorModel no puede ser null"); }
     public void setRegistry(ComponentRegistry registry) { this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null"); }
     public void setConfiguration(ConfigurationManager configuration) { this.configuration = Objects.requireNonNull(configuration, "ConfigurationManager no puede ser null"); }
+    public void setVisorController(VisorController visorController) {this.visorController = visorController;}
     
     @Override
     public void setViewManager(IViewManager viewManager) { 
         this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null en ZoomManager"); 
     } // --- Fin del método setViewManager ---
+    
+    
     
 } // --- FIN de la clase ZoomManager ---
 
