@@ -1,5 +1,3 @@
-// REEMPLAZA LA CLASE ENTERA CarouselManager.java CON ESTO
-
 package controlador.managers;
 
 import java.awt.event.MouseAdapter;
@@ -12,6 +10,10 @@ import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.Timer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IListCoordinator;
@@ -22,6 +24,8 @@ import servicios.ConfigKeys;
 import vista.util.IconUtils;
 
 public class CarouselManager {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     // --- Dependencias ---
     private final IListCoordinator listCoordinator;
@@ -35,7 +39,7 @@ public class CarouselManager {
     private JLabel statusIndicatorLabel;
     private JScrollPane carouselThumbnails;
     
-    // NUEVO: Referencias a los botones de avance/retroceso
+    // Referencias a los botones de avance/retroceso
     private AbstractButton rewindButton;
     private AbstractButton fastForwardButton;
     private final IconUtils iconUtils;
@@ -45,7 +49,7 @@ public class CarouselManager {
     private Timer countdownTimer;
     private boolean isRunning = false;
     private int countdown;
-    // NUEVO: Timer y estado para el avance/retroceso rápido
+    // Timer y estado para el avance/retroceso rápido
     private Timer fastMoveTimer;
     private boolean wasRunningBeforeFastMove = false;
     private static final int FAST_MOVE_INTERVAL_MS = 200; // Avanza 5 imágenes por segundo
@@ -83,12 +87,12 @@ public class CarouselManager {
     } // --- Fin del método initComponents ---
     
     /**
-     * NUEVO: Busca y configura los botones de avance/retroceso rápido.
+     * Busca y configura los botones de avance/retroceso rápido.
      * Este método debe ser llamado desde GeneralController DESPUÉS de que la UI
      * del carrusel y sus barras de herramientas hayan sido construidas.
      */
     public void findAndWireUpFastMoveButtons() {
-        System.out.println("[CarouselManager] Buscando y configurando botones de avance/retroceso rápido...");
+        logger.debug("[CarouselManager] Buscando y configurando botones de avance/retroceso rápido...");
         
         // La clave se construye a partir del nombre de la toolbar y el comando
         String rewindButtonKey = ConfigKeys.buildKey("interfaz.boton", "carrousel", ConfigKeys.keyPartFromCommand(AppActionCommands.CMD_CAROUSEL_REWIND));
@@ -107,9 +111,9 @@ public class CarouselManager {
                 @Override public void mousePressed(MouseEvent e) { if (rewindButton.isEnabled()) startRewind(); }
                 @Override public void mouseReleased(MouseEvent e) { stopFastMove(); }
             });
-            System.out.println("  -> Botón Rewind encontrado y configurado.");
+            logger.debug("  -> Botón Rewind encontrado y configurado.");
         } else {
-            System.err.println("  -> WARN: Botón Rewind no encontrado con clave: " + rewindButtonKey);
+            logger.warn("  -> WARN: Botón Rewind no encontrado con clave: " + rewindButtonKey);
         }
 
         if (fastForwardButton != null) {
@@ -120,9 +124,9 @@ public class CarouselManager {
                 @Override public void mousePressed(MouseEvent e) { if (fastForwardButton.isEnabled()) startFastForward(); }
                 @Override public void mouseReleased(MouseEvent e) { stopFastMove(); }
             });
-            System.out.println("  -> Botón Fast Forward encontrado y configurado.");
+            logger.debug("  -> Botón Fast Forward encontrado y configurado.");
         } else {
-            System.err.println("  -> WARN: Botón Fast Forward no encontrado con clave: " + fastForwardButtonKey);
+            logger.warn("  -> WARN: Botón Fast Forward no encontrado con clave: " + fastForwardButtonKey);
         }
     } // --- Fin del método findAndWireUpFastMoveButtons ---
 
@@ -131,7 +135,7 @@ public class CarouselManager {
     
     public void play() {
         if (isRunning || model.getCurrentWorkMode() != WorkMode.CARROUSEL) return;
-        System.out.println("[CarouselManager] Iniciando carrusel...");
+        logger.debug("[CarouselManager] Iniciando carrusel...");
         
         int delay = model.getCarouselDelay();
         int absoluteDelay = Math.abs(delay); // <-- Usaremos el valor absoluto para el timer
@@ -188,7 +192,7 @@ public class CarouselManager {
     
     public void pause() {
         if (!isRunning) return;
-        System.out.println("[CarouselManager] Pausando carrusel.");
+        logger.debug("[CarouselManager] Pausando carrusel.");
         if (imageChangeTimer != null) imageChangeTimer.stop();
         if (countdownTimer != null) countdownTimer.stop();
         isRunning = false;
@@ -203,7 +207,7 @@ public class CarouselManager {
     } // --- Fin del método pause ---
 
     public void stop() {
-        System.out.println("[CarouselManager] Deteniendo carrusel.");
+        logger.debug("[CarouselManager] Deteniendo carrusel.");
         if (imageChangeTimer != null) { imageChangeTimer.stop(); imageChangeTimer = null; }
         if (countdownTimer != null) { countdownTimer.stop(); countdownTimer = null; }
         isRunning = false;
@@ -220,7 +224,7 @@ public class CarouselManager {
     // --- NUEVOS MÉTODOS PARA AVANCE/RETROCESO RÁPIDO ---
 
     public void startFastForward() {
-        System.out.println("[CarouselManager] Iniciando Avance Rápido.");
+        logger.debug("[CarouselManager] Iniciando Avance Rápido.");
         this.wasRunningBeforeFastMove = isRunning;
         if (isRunning) pause();
         listCoordinator.seleccionarSiguiente(); // Primer avance instantáneo
@@ -229,7 +233,7 @@ public class CarouselManager {
     } // --- Fin del método startFastForward ---
     
     public void startRewind() {
-        System.out.println("[CarouselManager] Iniciando Retroceso Rápido.");
+        logger.debug("[CarouselManager] Iniciando Retroceso Rápido.");
         this.wasRunningBeforeFastMove = isRunning;
         if (isRunning) pause();
         listCoordinator.seleccionarAnterior(); // Primer retroceso instantáneo
@@ -238,7 +242,7 @@ public class CarouselManager {
     } // --- Fin del método startRewind ---
     
     public void stopFastMove() {
-        System.out.println("[CarouselManager] Deteniendo Avance/Retroceso Rápido.");
+        logger.debug("[CarouselManager] Deteniendo Avance/Retroceso Rápido.");
         if (fastMoveTimer != null) {
             fastMoveTimer.stop();
             fastMoveTimer = null;
@@ -263,12 +267,12 @@ public class CarouselManager {
 
     public void onCarouselModeChanged(boolean isEntering) {
         if (isEntering) {
-            System.out.println("[CarouselManager] Entrando en modo Carrusel...");
+            logger.debug("[CarouselManager] Entrando en modo Carrusel...");
             initComponents();
             stop();
             updateSpeedLabel(); // <-- AÑADE ESTA LÍNEA para mostrar el valor inicial
         } else {
-            System.out.println("[CarouselManager] Saliendo del modo Carrusel...");
+            logger.debug("[CarouselManager] Saliendo del modo Carrusel...");
             stop();
             if (fastMoveTimer != null) {
                 fastMoveTimer.stop();
@@ -284,7 +288,7 @@ public class CarouselManager {
      * Se debe llamar después de que la UI del carrusel esté construida.
      */
     public void wireUpEventListeners() {
-        System.out.println("[CarouselManager] Configurando listeners de eventos especiales...");
+        logger.debug("[CarouselManager] Configurando listeners de eventos especiales...");
         
         // 1. Buscar el JLabel de velocidad
         javax.swing.JLabel speedLabel = registry.get("label.velocidad.carrusel");
@@ -312,9 +316,9 @@ public class CarouselManager {
                     speedLabel.setCursor(java.awt.Cursor.getDefaultCursor());
                 }
             });
-            System.out.println("  -> MouseListener para menú de velocidad añadido a 'label.velocidad.carrusel'.");
+            logger.debug("  -> MouseListener para menú de velocidad añadido a 'label.velocidad.carrusel'.");
         } else {
-            System.err.println("  -> WARN: No se encontró 'label.velocidad.carrusel' para añadir listener de menú.");
+            logger.warn("  -> WARN: No se encontró 'label.velocidad.carrusel' para añadir listener de menú.");
         }
     } // --- Fin del método wireUpEventListeners ---
     

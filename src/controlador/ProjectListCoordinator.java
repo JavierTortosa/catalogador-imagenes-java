@@ -7,6 +7,9 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
@@ -19,6 +22,8 @@ import servicios.ConfigKeys;
  * así como el cambio de foco entre ellas.
  */
 public class ProjectListCoordinator implements IListCoordinator {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     // --- Dependencias ---
     private final VisorModel model;
@@ -247,7 +252,7 @@ public class ProjectListCoordinator implements IListCoordinator {
         }
         
         // Si no la encontramos en ninguna lista visible, no hacemos nada.
-        System.err.println("WARN [ProjectListCoordinator]: La clave '" + clave + "' no se encontró en ninguna lista visible del proyecto.");
+        logger.warn("WARN [ProjectListCoordinator]: La clave '" + clave + "' no se encontró en ninguna lista visible del proyecto.");
         
     } // --- Fin del método seleccionarImagenPorClave ---
     
@@ -283,7 +288,7 @@ public class ProjectListCoordinator implements IListCoordinator {
             return;
         }
         
-        System.out.println("[ProjectListCoordinator] Nueva selección en Proyecto. Clave: " + claveSeleccionada);
+        logger.debug("[ProjectListCoordinator] Nueva selección en Proyecto. Clave: " + claveSeleccionada);
         
         isSyncingUI = true;
         try {

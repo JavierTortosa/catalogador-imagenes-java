@@ -14,6 +14,10 @@ import javax.swing.JTextField;
 import javax.swing.JToolBar; 
 import javax.swing.table.TableColumn;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.ProjectController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.ToolbarManager;
@@ -21,6 +25,8 @@ import modelo.proyecto.ExportItem;
 
 public class ExportPanel extends JPanel {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 1L;
 
     private JTable tablaExportacion;
@@ -159,13 +165,13 @@ public class ExportPanel extends JPanel {
         if (oldToolbar != null) {
             // Si existe, lo eliminamos primero
             remove(oldToolbar);
-            System.out.println("  [ExportPanel] Barra de herramientas antigua eliminada.");
+            logger.debug("  [ExportPanel] Barra de herramientas antigua eliminada.");
         }
 
         // 3. Añadir la nueva barra de herramientas si no es nula
         if (newToolbar != null) {
             add(newToolbar, BorderLayout.SOUTH);
-            System.out.println("  [ExportPanel] Nueva barra de herramientas añadida.");
+            logger.debug("  [ExportPanel] Nueva barra de herramientas añadida.");
         }
 
         // 4. Revalidar y repintar el panel para que los cambios se muestren

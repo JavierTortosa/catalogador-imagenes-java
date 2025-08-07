@@ -8,10 +8,16 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import servicios.ConfigurationManager;
 import vista.VisorView; // Dependencia directa
 
 public class ToggleMiniatureTextAction extends AbstractAction {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class); 
 
     private static final long serialVersionUID = 1L;
 
@@ -40,8 +46,7 @@ public class ToggleMiniatureTextAction extends AbstractAction {
         this.viewRef = Objects.requireNonNull(view, "VisorView no puede ser null en ToggleMiniatureTextAction");
         this.configKeyForState = Objects.requireNonNull(configKeyForSelectedState, "configKeyForState no puede ser null en ToggleMiniatureTextAction");
 
-        // <<-- LOG [ToggleMiniatureTextAction Constructor] Configurada con clave de estado -->>
-        System.out.println("[ToggleMiniatureTextAction Constructor] Configurada con clave de estado: " + this.configKeyForState);
+        logger.debug("[ToggleMiniatureTextAction Constructor] Configurada con clave de estado: " + this.configKeyForState);
 
         
         putValue(Action.SHORT_DESCRIPTION, "Mostrar u ocultar los nombres de archivo en las miniaturas");

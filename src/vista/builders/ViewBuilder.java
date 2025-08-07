@@ -14,7 +14,6 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -29,7 +28,10 @@ import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
-import controlador.commands.AppActionCommands;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.managers.ToolbarManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -46,6 +48,8 @@ import vista.util.IconUtils;
 
 
 public class ViewBuilder{
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 	
 	// --- Dependencias Clave (Lista Simplificada) ---
     private final ComponentRegistry registry;
@@ -91,7 +95,7 @@ public class ViewBuilder{
      * @return La instancia de VisorView (JFrame) completamente ensamblada.
      */
     public VisorView createMainFrame() {
-        System.out.println("  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...");
+        logger.debug("  [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...");
 
         VisorView mainFrame = new VisorView(
             100, // Altura inicial del panel de miniaturas, considera hacerla configurable
@@ -125,8 +129,6 @@ public class ViewBuilder{
         northWrapper.add(toolbarContainer, BorderLayout.CENTER);
         northWrapper.add(topInfoPanel, BorderLayout.SOUTH);
         
-//        northWrapper.add(toolbarContainer, BorderLayout.NORTH);
-//        northWrapper.add(topInfoPanel, BorderLayout.CENTER);
         mainFrame.add(northWrapper, BorderLayout.NORTH);
         
         
@@ -268,7 +270,7 @@ public class ViewBuilder{
             }
         });
 
-        System.out.println("  [ViewBuilder] Frame principal construido y ensamblado.");
+        logger.debug("  [ViewBuilder] Frame principal construido y ensamblado.");
         return mainFrame;
     }  // --- Fin del método createMainFrame ---
     
@@ -342,7 +344,7 @@ public class ViewBuilder{
         mainToolbarContainer.add(rightPanel, BorderLayout.EAST);
 
         
-        System.out.println("  [ViewBuilder] Toolbar container creado con estructura BorderLayout (WEST, CENTER, EAST).");
+        logger.debug("  [ViewBuilder] Toolbar container creado con estructura BorderLayout (WEST, CENTER, EAST).");
         
         // Devolvemos el contenedor principal.
         return mainToolbarContainer;
@@ -454,17 +456,14 @@ public class ViewBuilder{
 	
 	     // 3c. REGISTRAMOS la JList que hemos obtenido con la clave que el listener espera.
 	     registry.register("list.grid", gridList, "WHEEL_NAVIGABLE");
-	     System.out.println("<<<<< DEBUG: 'GridDisplayPanel' y su 'list.grid' interna han sido registrados. >>>>>");
+	     logger.debug("<<<<< DEBUG: 'GridDisplayPanel' y su 'list.grid' interna han sido registrados. >>>>>");
 	         
 	     // =========================================================================
 	     // === FIN DE LA CORRECCIÓN FINAL ===
 	     // =========================================================================
         
-//         3. Crear paneles "placeholder" para las otras vistas.
-//        //    Más adelante, los reemplazarás con tus clases reales (GridPanel, PolaroidPanel).
-//        JPanel gridViewPanel = new JPanel();
-//        gridViewPanel.add(new JLabel("Vista GRID en construcción..."));
-//        registry.register("panel.display.grid", gridViewPanel); // Buena práctica registrarlos también
+         //3. Crear paneles "placeholder" para las otras vistas.
+	     //    Más adelante, los reemplazarás con tus clases reales (GridPanel, PolaroidPanel).
 
         JPanel polaroidViewPanel = new JPanel();
         polaroidViewPanel.add(new JLabel("Vista POLAROID en construcción..."));
@@ -491,14 +490,14 @@ public class ViewBuilder{
     
     public JToolBar createBackgroundControlPanel() {
         if (this.toolbarManager == null) {
-            System.err.println("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
+            logger.error("ERROR [ViewBuilder.createBackgroundControlPanel]: ToolbarManager es nulo.");
             return new JToolBar(); 
         }
         
         JToolBar imageControlsToolbar = toolbarManager.getToolbar("controles_imagen_inferior");
 
         if (imageControlsToolbar == null) {
-            System.err.println("WARN [ViewBuilder...]: La toolbar 'controles_imagen_inferior' no se encontró. Se devolverá una barra vacía.");
+            logger.warn("WARN [ViewBuilder...]: La toolbar 'controles_imagen_inferior' no se encontró. Se devolverá una barra vacía.");
             return new JToolBar();
         }
 
@@ -557,7 +556,7 @@ public class ViewBuilder{
             // Añadimos nuestro panel con la toolbar al contenedor derecho.
             panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER);
         } else {
-            System.err.println("CRITICAL ERROR [ViewBuilder]: La toolbar 'barra_estado_controles' no se pudo crear o encontrar.");
+            logger.error("CRITICAL ERROR [ViewBuilder]: La toolbar 'barra_estado_controles' no se pudo crear o encontrar.");
         }
 
         // 3b. Sub-componente Derecho (dentro del derecho): El área de mensajes y temporizador.
@@ -593,203 +592,6 @@ public class ViewBuilder{
         return bottomStatusBar;
         
     } // --- Fin del método createBottomStatusBar ---
-    
-    
-//	private JPanel createBottomStatusBar()
-//	{
-//		JPanel bottomStatusBar = new JPanel(new BorderLayout(5, 0));
-//		registry.register("panel.estado.inferior", bottomStatusBar);
-//
-//		bottomStatusBar.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
-//
-//		JLabel rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
-//		registry.register("label.estado.ruta", rutaCompletaArchivoLabel);
-//
-//		JPanel panelRuta = new JPanel(new BorderLayout());
-//		panelRuta.setOpaque(false);
-//		panelRuta.add(rutaCompletaArchivoLabel, BorderLayout.CENTER);
-//		bottomStatusBar.add(panelRuta, BorderLayout.CENTER);
-//
-//		JPanel panelDerechoContenedor = new JPanel(new BorderLayout(5, 0));
-//		panelDerechoContenedor.setOpaque(false);
-//
-//		JPanel panelControlesInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
-//		panelControlesInferior.setOpaque(false);
-//		registry.register("panel.estado.controles", panelControlesInferior);
-//
-//		final int iconSize = 18;
-//
-//		if (this.actionMap == null)
-//		{
-//			System.err.println(
-//					"CRITICAL ERROR [ViewBuilder]: El campo 'actionMap' de la clase es nulo. Se usará un mapa vacío.");
-//			this.actionMap = new java.util.HashMap<>();
-//		}
-//
-//		JToggleButton zoomManualButton = createStatusBarToggleButton(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE,
-//				"3001-zoom_48x48.png", iconSize, this.actionMap);
-//		JToggleButton subcarpetasButton = createStatusBarToggleButton(AppActionCommands.CMD_TOGGLE_SUBCARPETAS,
-//				"7001-subcarpetas_48x48.png", iconSize, this.actionMap);
-//		JToggleButton proporcionesButton = createStatusBarToggleButton(
-//				AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, "7002-mantener_proporciones_48x48.png", iconSize,
-//				this.actionMap);
-//		JToggleButton mantenerEncimaButton = createStatusBarToggleButton(
-//				AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, "7004-siempre_encima_48x48.png", iconSize,
-//				this.actionMap);
-//
-//		registry.register("button.indicador.zoomManual", zoomManualButton);
-//		registry.register("button.indicador.proporciones", proporcionesButton);
-//		registry.register("button.indicador.subcarpetas", subcarpetasButton);
-//		registry.register("button.indicador.mantenerEncima", mantenerEncimaButton);
-//
-//		JLabel porcentajeZoomLabel = new JLabel("%Z: 100%");
-//		registry.register("label.control.zoomPorcentaje", porcentajeZoomLabel);
-//
-//		JButton modoZoomBoton = new JButton();
-//		registry.register("button.control.modoZoom", modoZoomBoton);
-//
-//		panelControlesInferior.add(zoomManualButton);
-//		panelControlesInferior.add(subcarpetasButton);
-//		panelControlesInferior.add(proporcionesButton);
-//		panelControlesInferior.add(mantenerEncimaButton);
-//		panelControlesInferior.add(new JSeparator(SwingConstants.VERTICAL));
-//		panelControlesInferior.add(porcentajeZoomLabel);
-//		panelControlesInferior.add(modoZoomBoton);
-//
-//		panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER);
-//
-//		// Creamos un subpanel para la parte derecha, para que el contador y los
-//		// mensajes convivan.
-//		JPanel eastStatusBarPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-//		eastStatusBarPanel.setOpaque(false);
-//
-//		// Creamos el nuevo JLabel para el temporizador del carrusel.
-//		JLabel carouselTimerLabel = new JLabel("--:--");
-//		carouselTimerLabel.setVisible(false); // Inicialmente oculto
-//		carouselTimerLabel.setToolTipText("Tiempo para la siguiente imagen");
-//
-//		// Centramos el texto DENTRO del JLabel
-//		carouselTimerLabel.setHorizontalAlignment(SwingConstants.CENTER);
-//		// Le damos un tamaño mínimo para que tenga presencia
-//		carouselTimerLabel.setPreferredSize(new java.awt.Dimension(60, carouselTimerLabel.getPreferredSize().height));
-//
-//		registry.register("label.estado.carouselTimer", carouselTimerLabel); // Lo registramos
-//
-//		JLabel mensajesAppLabel = new JLabel(" ");
-//		registry.register("label.estado.mensajes", mensajesAppLabel);
-//
-//		// Establecemos la alineación del texto al CENTRO del JLabel
-//		mensajesAppLabel.setHorizontalAlignment(SwingConstants.CENTER);
-//
-//		// Creamos un tamaño preferido. 150 píxeles de ancho es un buen punto de
-//		// partida.
-//		// La altura se calcula automáticamente.
-//		mensajesAppLabel.setPreferredSize(new java.awt.Dimension(150, mensajesAppLabel.getPreferredSize().height));
-//
-//		// Añadimos AMBOS labels al nuevo subpanel.
-//		eastStatusBarPanel.add(carouselTimerLabel);
-//		eastStatusBarPanel.add(mensajesAppLabel);
-//
-//		// Añadimos el subpanel al contenedor derecho.
-//		panelDerechoContenedor.add(eastStatusBarPanel, BorderLayout.EAST);
-//
-//		bottomStatusBar.add(panelDerechoContenedor, BorderLayout.EAST);
-//
-//		return bottomStatusBar;
-//	} // --- Fin del método createBottomStatusBar ---
-    
-    
-//    private JPanel createBottomStatusBar() {
-//        JPanel bottomStatusBar = new JPanel(new BorderLayout(5, 0));
-//        registry.register("panel.estado.inferior", bottomStatusBar);
-//
-//        bottomStatusBar.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
-//
-//        JLabel rutaCompletaArchivoLabel = new JLabel("Ruta: (ninguna imagen seleccionada)");
-//        registry.register("label.estado.ruta", rutaCompletaArchivoLabel);
-//        
-//        JPanel panelRuta = new JPanel(new BorderLayout());
-//        panelRuta.setOpaque(false);
-//        panelRuta.add(rutaCompletaArchivoLabel, BorderLayout.CENTER);
-//        bottomStatusBar.add(panelRuta, BorderLayout.CENTER);
-//
-//        JPanel panelDerechoContenedor = new JPanel(new BorderLayout(5, 0));
-//        panelDerechoContenedor.setOpaque(false);
-//
-//        JPanel panelControlesInferior = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
-//        panelControlesInferior.setOpaque(false);
-//        registry.register("panel.estado.controles", panelControlesInferior);
-//
-//        final int iconSize = 18;
-//
-//        if (this.actionMap == null) {
-//            System.err.println("CRITICAL ERROR [ViewBuilder]: El campo 'actionMap' de la clase es nulo. Se usará un mapa vacío.");
-//            this.actionMap = new java.util.HashMap<>();
-//        }
-//
-//        JToggleButton zoomManualButton = createStatusBarToggleButton(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-zoom_48x48.png", iconSize, this.actionMap);
-//        JToggleButton subcarpetasButton = createStatusBarToggleButton(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, "7001-subcarpetas_48x48.png", iconSize, this.actionMap);
-//        JToggleButton proporcionesButton = createStatusBarToggleButton(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES, "7002-mantener_proporciones_48x48.png", iconSize, this.actionMap);
-//        JToggleButton mantenerEncimaButton = createStatusBarToggleButton(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, "7004-siempre_encima_48x48.png", iconSize, this.actionMap);
-//        
-//        registry.register("button.indicador.zoomManual", zoomManualButton);
-//        registry.register("button.indicador.proporciones", proporcionesButton);
-//        registry.register("button.indicador.subcarpetas", subcarpetasButton);
-//        registry.register("button.indicador.mantenerEncima", mantenerEncimaButton);
-//
-//        JLabel porcentajeZoomLabel = new JLabel("%Z: 100%");
-//        registry.register("label.control.zoomPorcentaje", porcentajeZoomLabel);
-//        
-//        JButton modoZoomBoton = new JButton();
-//        registry.register("button.control.modoZoom", modoZoomBoton);
-//        
-//        panelControlesInferior.add(zoomManualButton);
-//        panelControlesInferior.add(subcarpetasButton);
-//        panelControlesInferior.add(proporcionesButton);
-//        panelControlesInferior.add(mantenerEncimaButton);
-//        panelControlesInferior.add(new JSeparator(SwingConstants.VERTICAL));
-//        panelControlesInferior.add(porcentajeZoomLabel);
-//        panelControlesInferior.add(modoZoomBoton);
-//        
-//        panelDerechoContenedor.add(panelControlesInferior, BorderLayout.CENTER);
-//
-//        // Creamos un subpanel para la parte derecha, para que el contador y los mensajes convivan.
-//        JPanel eastStatusBarPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
-//        eastStatusBarPanel.setOpaque(false);
-//
-//        // Creamos el nuevo JLabel para el temporizador del carrusel.
-//        JLabel carouselTimerLabel = new JLabel("--:--");
-//        carouselTimerLabel.setVisible(false); // Inicialmente oculto
-//        carouselTimerLabel.setToolTipText("Tiempo para la siguiente imagen");
-//        
-//        // Centramos el texto DENTRO del JLabel
-//        carouselTimerLabel.setHorizontalAlignment(SwingConstants.CENTER);
-//        // Le damos un tamaño mínimo para que tenga presencia
-//        carouselTimerLabel.setPreferredSize(new java.awt.Dimension(60, carouselTimerLabel.getPreferredSize().height));
-//        
-//        registry.register("label.estado.carouselTimer", carouselTimerLabel); // Lo registramos
-//        
-//        JLabel mensajesAppLabel = new JLabel(" ");
-//        registry.register("label.estado.mensajes", mensajesAppLabel);
-//        
-//        // Establecemos la alineación del texto al CENTRO del JLabel
-//        mensajesAppLabel.setHorizontalAlignment(SwingConstants.CENTER);
-//        
-//        // Creamos un tamaño preferido. 150 píxeles de ancho es un buen punto de partida.
-//        // La altura se calcula automáticamente.
-//        mensajesAppLabel.setPreferredSize(new java.awt.Dimension(150, mensajesAppLabel.getPreferredSize().height));
-//        
-//        // Añadimos AMBOS labels al nuevo subpanel.
-//        eastStatusBarPanel.add(carouselTimerLabel);
-//        eastStatusBarPanel.add(mensajesAppLabel);
-//
-//        // Añadimos el subpanel al contenedor derecho.
-//        panelDerechoContenedor.add(eastStatusBarPanel, BorderLayout.EAST);
-//
-//        bottomStatusBar.add(panelDerechoContenedor, BorderLayout.EAST);
-//
-//        return bottomStatusBar;
-//    } // --- Fin del método createBottomStatusBar ---
     
 
     private JToggleButton createStatusBarToggleButton(String command, String iconName, int iconSize, Map<String, Action> actionMap) {
@@ -895,8 +697,6 @@ public class ViewBuilder{
         gbc.gridx = 13; panel.add(modoZoomNombreInfoLabel, gbc);
         gbc.gridx = 14; panel.add(new JSeparator(SwingConstants.VERTICAL), gbc);
         gbc.gridx = 15; panel.add(formatoImagenInfoLabel, gbc);
-        
-        
         
         return panel;
     } // --- Fin del método createTopInfoPanel ---

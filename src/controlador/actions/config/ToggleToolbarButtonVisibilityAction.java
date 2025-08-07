@@ -6,7 +6,10 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
 
-import controlador.managers.ViewManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
@@ -18,6 +21,8 @@ import servicios.ConfigurationManager;
 @SuppressWarnings ("serial")
 public class ToggleToolbarButtonVisibilityAction extends AbstractAction {
     
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private final ConfigurationManager config;
     private final IViewManager viewManager;
     // --- CAMBIO 1: Renombrar campos para reflejar que son claves BASE ---

@@ -3,8 +3,15 @@ package controlador.utils;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+
 public class DesktopUtils {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     /**
      * Abre el explorador de archivos del sistema y selecciona un archivo específico.
      * Actualmente, la selección solo está implementada para Windows.

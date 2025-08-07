@@ -6,15 +6,15 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry excluding="Bestiarum_-_The_N_39_Gorroth_Unsupported.jpg|Hero_Pack_____Miniature_jpg.jpg|Land of The Frost.jpg|bam september.jpg|cyberpunk-city-anime-girl-5k-0e-1.png|cyberpunk-city-anime-girl-5k-0e.jpg|no vale.jpg|pandoras pedestals sagas.png" including="**|A-gigante de hierro.jpg" kind="src" output="target/classes" path="resources">
+	<classpathentry excluding="**" kind="src" output="target/classes" path="resources">
 		<attributes>
 			<attribute name="maven.pomderived" value="true"/>
 			<attribute name="optional" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" path="src/main/resources"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-21">
 		<attributes>
-			<attribute name="module" value="true"/>
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>

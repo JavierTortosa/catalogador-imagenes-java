@@ -14,6 +14,10 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.GeneralController;
 import controlador.ProjectController;
 import controlador.actions.archivo.DeleteAction;
@@ -96,7 +100,8 @@ import vista.util.IconUtils;
 public class ActionFactory {
 	
 	public record IconInfo(String iconKey, vista.config.IconScope scope) {}
-
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // --- SECCIÓN 1: CAMPOS DE INSTANCIA (DEPENDENCIAS INYECTADAS) ---
     // 1.1. Referencias a componentes principales
     private final VisorModel model;
@@ -225,7 +230,7 @@ public class ActionFactory {
      * componentes como las barras de herramientas.
      */
     public void initializeCoreActions() {
-		System.out.println("  [ActionFactory] Inicializando Actions principales (no dependientes de la vista)...");
+		logger.info("  [ActionFactory] Inicializando Actions principales (no dependientes de la vista)...");
 
 		if (zoomManager == null || fileOperationsManager == null || editionManager == null
 				|| listCoordinator == null || viewManager == null)
@@ -236,7 +241,7 @@ public class ActionFactory {
 		
 		createCoreActions();
 		
-		System.out.println(
+		logger.debug(
 				"  [ActionFactory] Actions principales inicializadas y mapeadas. Total: " + this.actionMap.size());
 	} // --- Fin del método initializeCoreActions ---
 
@@ -245,14 +250,14 @@ public class ActionFactory {
      * Este método DEBE ser llamado DESPUÉS de crear la 'view' y de inyectarla en esta fábrica.
      */
     public void initializeViewDependentActions() {
-        System.out.println("  [ActionFactory] Inicializando Actions dependientes de la vista...");
+        logger.info("  [ActionFactory] Inicializando Actions dependientes de la vista...");
         if (view == null) {
             throw new IllegalStateException("No se pueden inicializar las acciones dependientes de la vista porque la 'view' es null.");
         }
 
         createViewDependentActions();
 
-        System.out.println(
+        logger.debug(
 				"  [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: " + this.actionMap.size());
     } // --- Fin del método initializeViewDependentActions ---
     
@@ -544,13 +549,13 @@ public class ActionFactory {
             // Si el scope es COMMON, llamamos al método para iconos comunes.
             if (info.scope() == vista.config.IconScope.COMMON) {
             	
-            	System.out.println("[ActionFactory] cargando icono comun: " + info.iconKey );
+            	logger.debug("[ActionFactory] cargando icono comun: " + info.iconKey );
                 
             	return this.iconUtils.getScaledCommonIcon(info.iconKey(), this.iconoAncho, this.iconoAlto);
             } else {
             // Si no, llamamos al método para iconos tematizados (comportamiento por defecto).
             	
-            	System.out.println("[ActionFactory] cargando icono Tematizado: " + info.iconKey );
+            	logger.debug("[ActionFactory] cargando icono Tematizado: " + info.iconKey );
             	
                 return this.iconUtils.getScaledIcon(info.iconKey(), this.iconoAncho, this.iconoAlto);
             }
@@ -1059,10 +1064,10 @@ public class ActionFactory {
     
     public void registerAction(String commandKey, Action action) {
         if (this.actionMap.containsKey(commandKey)) {
-            System.out.println("WARN [ActionFactory]: Reemplazando Action existente para el comando: " + commandKey);
+            logger.warn("WARN [ActionFactory]: Reemplazando Action existente para el comando: " + commandKey);
         }
         this.actionMap.put(commandKey, action);
-        System.out.println("  [ActionFactory] Action registrada/actualizada para comando: " + commandKey);
+        logger.debug("  [ActionFactory] Action registrada/actualizada para comando: " + commandKey);
     } // --- Fin del método registerAction ---
     
     
@@ -1073,9 +1078,9 @@ public class ActionFactory {
      * almacenan como una propiedad dentro de cada objeto Action.
      */
     public void actualizarIconosDeAcciones() {
-        System.out.println("[ActionFactory] Iniciando actualización de iconos para todas las acciones...");
+        logger.debug("[ActionFactory] Iniciando actualización de iconos para todas las acciones...");
         if (actionMap == null || actionMap.isEmpty()) {
-            System.out.println("  -> No hay acciones en el mapa para actualizar. Proceso omitido.");
+            logger.debug("  -> No hay acciones en el mapa para actualizar. Proceso omitido.");
             return;
         }
 
@@ -1096,10 +1101,10 @@ public class ActionFactory {
             
             // LOG DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR
             if (comando.equals(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR)) {
-                System.out.println("DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: " + (nuevoIcono != null ? nuevoIcono.toString() : "NULL"));
+                logger.debug("DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: " + (nuevoIcono != null ? nuevoIcono.toString() : "NULL"));
                 IconInfo info = this.comandoToIconKeyMap.get(comando);
                 if (info != null) {
-                     System.out.println("DEBUG TEMA: ... a partir de la clave de icono: " + info.iconKey());
+                     logger.debug("DEBUG TEMA: ... a partir de la clave de icono: " + info.iconKey());
                 }
             }
             // --- FIN DE AÑADIDO ---
@@ -1113,7 +1118,7 @@ public class ActionFactory {
                 iconosActualizados++;
             }
         }
-        System.out.println("[ActionFactory] Actualización de iconos completada. Se actualizaron " + iconosActualizados + " acciones con un nuevo icono.");
+        logger.debug("[ActionFactory] Actualización de iconos completada. Se actualizaron " + iconosActualizados + " acciones con un nuevo icono.");
     } // --- Fin del método actualizarIconosDeAcciones ---
     
     

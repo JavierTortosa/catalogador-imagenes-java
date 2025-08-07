@@ -9,6 +9,10 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.ListCoordinator;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
@@ -28,6 +32,8 @@ import vista.theme.ThemeManager;
  */
 public class DisplayModeManager implements ThemeChangeListener{
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // --- Dependencias (Inyectadas) ---
 	private Map<String, Action> actionMap;
     private VisorModel model;
@@ -60,7 +66,7 @@ public class DisplayModeManager implements ThemeChangeListener{
     private void conectarGridListener() {
         JList<String> gridList = registry.get("list.grid");
         if (gridList == null) {
-            System.err.println("ERROR [DisplayModeManager]: No se pudo conectar el listener, 'list.grid' no encontrada.");
+            logger.error("ERROR [DisplayModeManager]: No se pudo conectar el listener, 'list.grid' no encontrada.");
             return;
         }
 
@@ -80,7 +86,7 @@ public class DisplayModeManager implements ThemeChangeListener{
                 }
             }
         });
-        System.out.println("[DisplayModeManager] Listener de selección conectado al Grid.");
+        logger.debug("[DisplayModeManager] Listener de selección conectado al Grid.");
     } // --- Fin del método conectarGridListener ---
     
     
@@ -92,12 +98,12 @@ public class DisplayModeManager implements ThemeChangeListener{
         if (model.getCurrentDisplayMode() == newDisplayMode) {
             return;
         }
-        System.out.println("\n--- [DisplayModeManager] INICIANDO TRANSICIÓN -> " + newDisplayMode + " ---");
+        logger.debug("--- [DisplayModeManager] INICIANDO TRANSICIÓN -> " + newDisplayMode + " ---");
         
         this.model.setCurrentDisplayMode(newDisplayMode);
         
         if (configuration != null) {
-            System.out.println("  -> Guardando nuevo DisplayMode en configuración: " + newDisplayMode.name());
+            logger.debug("  -> Guardando nuevo DisplayMode en configuración: " + newDisplayMode.name());
             configuration.setString(ConfigKeys.COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO, newDisplayMode.name());
         }
         
@@ -115,7 +121,7 @@ public class DisplayModeManager implements ThemeChangeListener{
         if (configuration != null) {
             configuration.setString(ConfigKeys.COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO, newDisplayMode.name());
         }
-        System.out.println("--- [DisplayModeManager] TRANSICIÓN COMPLETADA a " + newDisplayMode + " ---\n");
+        logger.debug("--- [DisplayModeManager] TRANSICIÓN COMPLETADA a " + newDisplayMode + " ---\n");
     } // --- Fin del método switchToDisplayMode ---
 
     
@@ -125,7 +131,7 @@ public class DisplayModeManager implements ThemeChangeListener{
 
         switch (modo) {
             case GRID:
-                System.out.println("  -> Configurando para MODO GRID...");
+                logger.debug("  -> Configurando para MODO GRID...");
                 if (thumbnailScrollPane != null && thumbnailScrollPane.isVisible()) {
                     String configKey = ConfigKeys.menuState("vista", "imagenes_en_miniatura");
                     viewManager.setComponentePrincipalVisible(thumbnailComponentId, false, configKey);
@@ -136,7 +142,7 @@ public class DisplayModeManager implements ThemeChangeListener{
                 break;
 
             case SINGLE_IMAGE:
-                 System.out.println("  -> Configurando para MODO SINGLE_IMAGE...");
+                 logger.debug("  -> Configurando para MODO SINGLE_IMAGE...");
                  if (thumbnailScrollPane != null && configuration != null) {
                      String configKey = ConfigKeys.menuState("vista", "imagenes_en_miniatura");
                      boolean shouldBeVisible = configuration.getBoolean(configKey, true);
@@ -149,7 +155,7 @@ public class DisplayModeManager implements ThemeChangeListener{
                 break;
 
             case POLAROID:
-                System.out.println("  -> Configurando para MODO POLAROID (en desarrollo)...");
+                logger.debug("  -> Configurando para MODO POLAROID (en desarrollo)...");
                 
                 break;
         }
@@ -160,7 +166,7 @@ public class DisplayModeManager implements ThemeChangeListener{
         GridDisplayPanel gridPanel = registry.get("panel.display.grid");
         JList<String> gridList = registry.get("list.grid");
         if (gridPanel == null || gridList == null) {
-            System.err.println("ERROR [DisplayModeManager]: No se encontraron los componentes del grid.");
+            logger.error("ERROR [DisplayModeManager]: No se encontraron los componentes del grid.");
             return;
         }
         
@@ -192,7 +198,7 @@ public class DisplayModeManager implements ThemeChangeListener{
     
     public void sincronizarEstadoBotonesDisplayMode() {
         if (actionMap == null || model == null || configAppManager == null) {
-            System.err.println("WARN [DisplayModeManager]: No se puede sincronizar botones de modo, faltan dependencias.");
+            logger.warn("WARN [DisplayModeManager]: No se puede sincronizar botones de modo, faltan dependencias.");
             return;
         }
 
@@ -204,7 +210,7 @@ public class DisplayModeManager implements ThemeChangeListener{
             AppActionCommands.CMD_VISTA_POLAROID
         );
 
-        System.out.println("[DisplayModeManager] Sincronizando botones de DisplayMode. Activo: " + currentMode);
+        logger.debug("[DisplayModeManager] Sincronizando botones de DisplayMode. Activo: " + currentMode);
 
         for (String command : displayModeCommands) {
             Action action = actionMap.get(command);
@@ -221,15 +227,6 @@ public class DisplayModeManager implements ThemeChangeListener{
         }
         
     } // --- FIN del metodo sincronizarEstadoBotonesDisplayMode ---
-    
-    
-//    public void sincronizarEstadoBotonesDisplayMode() {
-//        if (actionMap == null || model == null) return;
-//        DisplayMode currentMode = model.getCurrentDisplayMode();
-//        actualizarEstadoAccionToggle(AppActionCommands.CMD_VISTA_SINGLE, currentMode == DisplayMode.SINGLE_IMAGE);
-//        actualizarEstadoAccionToggle(AppActionCommands.CMD_VISTA_GRID, currentMode == DisplayMode.GRID);
-//        actualizarEstadoAccionToggle(AppActionCommands.CMD_VISTA_POLAROID, currentMode == DisplayMode.POLAROID);
-//    } // --- Fin del método sincronizarEstadoBotonesDisplayMode ---
     
     
     private String mapDisplayModeToActionCommand(DisplayMode displayMode) {
@@ -253,7 +250,7 @@ public class DisplayModeManager implements ThemeChangeListener{
     
     @Override
     public void onThemeChanged(Tema nuevoTema) {
-        System.out.println("[DisplayModeManager] Notificación de cambio de tema recibida. Actualizando paneles de modo de visualización...");
+        logger.debug("[DisplayModeManager] Notificación de cambio de tema recibida. Actualizando paneles de modo de visualización...");
         
         SwingUtilities.invokeLater(() -> {
             
@@ -264,7 +261,7 @@ public class DisplayModeManager implements ThemeChangeListener{
                 // Llamamos al método que ya existe en GridDisplayPanel
                 gridPanel.actualizarColorDeFondoPorTema(this.themeManager);
             } else {
-                System.err.println("  WARN [onThemeChanged]: No se encontró 'panel.display.grid' para actualizar.");
+                logger.warn("  WARN [onThemeChanged]: No se encontró 'panel.display.grid' para actualizar.");
             }
             
             // Si en el futuro tienes más paneles de modo de visualización (como Polaroid),

@@ -23,6 +23,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.interfaces.IModoController;
@@ -49,6 +52,8 @@ import vista.panels.ImageDisplayPanel; // <-- NUEVO: Importación para ImageDisp
  */
 public class GeneralController implements IModoController, KeyEventDispatcher{
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // --- Dependencias Clave ---
     private VisorModel model;
     private VisorController visorController;
@@ -82,7 +87,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * Este método se usa para configurar el estado inicial de la UI.
      */
     public void initialize() {
-        System.out.println("[GeneralController] Inicializado.");
+        logger.debug("[GeneralController] Inicializado.");
         // Se asegura de que al arrancar, el botón del modo inicial (Visualizador) aparezca correctamente seleccionado.
         sincronizarEstadoBotonesDeModo();
     } // --- Fin del método initialize ---
@@ -144,11 +149,11 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
         WorkMode modoActual = this.model.getCurrentWorkMode();
         if (modoActual == modoDestino) {
-            System.out.println("[GeneralController] Intento de cambiar al modo que ya está activo: " + modoDestino + ". No se hace nada.");
+            logger.debug("[GeneralController] Intento de cambiar al modo que ya está activo: " + modoDestino + ". No se hace nada.");
             return;
         }
 
-        System.out.println("\n--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: " + modoActual + " -> " + modoDestino + " ---");
+        logger.debug("--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: " + modoActual + " -> " + modoDestino + " ---");
 
         // --- LÓGICA DE SEGURIDAD Y CONFIRMACIÓN PARA SINCRONIZACIÓN ---
         boolean esTransicionSincronizable = (modoActual == WorkMode.VISUALIZADOR && modoDestino == WorkMode.CARROUSEL) ||
@@ -162,7 +167,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             
             int respuesta = javax.swing.JOptionPane.showConfirmDialog(null, mensaje, titulo, javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.INFORMATION_MESSAGE);
             if (respuesta != javax.swing.JOptionPane.YES_OPTION) {
-                System.out.println("--- [GeneralController] TRANSICIÓN CANCELADA por el usuario. ---");
+                logger.debug("--- [GeneralController] TRANSICIÓN CANCELADA por el usuario. ---");
                 sincronizarEstadoBotonesDeModo(); // Revertir visualmente el botón
                 return;
             }
@@ -172,7 +177,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         if (modoDestino == VisorModel.WorkMode.PROYECTO) {
             if (!this.projectController.prepararDatosProyecto()) {
                 sincronizarEstadoBotonesDeModo();
-                System.out.println("--- [GeneralController] TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
+                logger.debug("--- [GeneralController] TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
                 return;
             }
         }
@@ -181,7 +186,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         this.model.setCurrentWorkMode(modoDestino);
         entrarModo(modoDestino);
 
-        System.out.println("--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a " + modoDestino + " ---\n");
+        logger.debug("--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a " + modoDestino + " ---\n");
     } // --- Fin del método cambiarModoDeTrabajo ---
 
     
@@ -191,7 +196,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * @param modoQueSeAbandona El modo que estamos dejando.
      */
 	private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
-        System.out.println("  [GeneralController] Saliendo del modo: " + modoQueSeAbandona);
+        logger.debug("  [GeneralController] Saliendo del modo: " + modoQueSeAbandona);
         
         // Si salimos del modo Carrusel y la sincronización está DESACTIVADA,
         // guardamos su estado actual en el modelo para que pueda ser persistido al cerrar la app.
@@ -199,7 +204,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             ListContext carruselCtx = model.getCarouselListContext();
             model.setUltimaCarpetaCarrusel(carruselCtx.getCarpetaRaizContexto());
             model.setUltimaImagenKeyCarrusel(carruselCtx.getSelectedImageKey());
-            System.out.println("    -> Modo Carrusel Independiente: Guardando estado en el modelo.");
+            logger.debug("    -> Modo Carrusel Independiente: Guardando estado en el modelo.");
         }
         
         // Si salimos del modo carrusel, notificamos a su manager
@@ -218,19 +223,19 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	 * @param modoAlQueSeEntra El nuevo modo activo.
 	 */
 	private void entrarModo(WorkMode modoAlQueSeEntra) {
-	    System.out.println("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
+	    logger.debug("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
 	    
         // ----> INICIO DE LA CORRECCIÓN DE SINTAXIS <----
 	    SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 // --- PRIMER BLOQUE DENTRO DEL EDT ---
-                System.out.println("    -> [EDT-1] Cambiando tarjeta del CardLayout a: " + modoAlQueSeEntra);
+                logger.debug("    -> [EDT-1] Cambiando tarjeta del CardLayout a: " + modoAlQueSeEntra);
 	        
                 switch (modoAlQueSeEntra) {
                     case VISUALIZADOR:
                         if (model.isSyncVisualizadorCarrusel()) {
-                            System.out.println("      -> Sincronización ON: Clonando contexto Carrusel -> Visualizador.");
+                            logger.debug("      -> Sincronización ON: Clonando contexto Carrusel -> Visualizador.");
                             model.getVisualizadorListContext().clonarDesde(model.getCarouselListContext());
                         }
                         viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR");
@@ -251,12 +256,11 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                 SwingUtilities.invokeLater(new Runnable() {
                     @Override
                     public void run() {
-                        System.out.println("    -> [EDT-2] Restaurando y sincronizando UI para: " + modoAlQueSeEntra);
+                        logger.debug("    -> [EDT-2] Restaurando y sincronizando UI para: " + modoAlQueSeEntra);
 
                         switch (modoAlQueSeEntra) {
                             case VISUALIZADOR:
                                 visorController.restaurarUiVisualizador();
-//                                cambiarDisplayMode(model.getCurrentDisplayMode()); 
                                 break;
                             case PROYECTO:
                                 projectController.activarVistaProyecto();
@@ -264,10 +268,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                             case CARROUSEL:
                                 ListContext contextoCarrusel = model.getCarouselListContext();
                                 if (model.isSyncVisualizadorCarrusel()) {
-                                    System.out.println("      -> Sincronización ON: Clonando contexto Visualizador -> Carrusel.");
+                                    logger.debug("      -> Sincronización ON: Clonando contexto Visualizador -> Carrusel.");
                                     contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
                                 } else if (contextoCarrusel.getModeloLista() == null || contextoCarrusel.getModeloLista().isEmpty()) {
-                                    System.out.println("      -> Sincronización OFF y Carrusel vacío: Clonando desde Visualizador (primera vez).");
+                                    logger.debug("      -> Sincronización OFF y Carrusel vacío: Clonando desde Visualizador (primera vez).");
                                     contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
                                 }
                                 visorController.restaurarUiCarrusel();
@@ -289,16 +293,15 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                         if (modoAlQueSeEntra == WorkMode.CARROUSEL) {
                             CarouselManager carouselManager = visorController.getActionFactory().getCarouselManager();
                             if (carouselManager != null) {
-                                System.out.println("    -> [EDT-2] Conectando listeners de la UI del Carrusel...");
+                                logger.debug("    -> [EDT-2] Conectando listeners de la UI del Carrusel...");
                                 carouselManager.findAndWireUpFastMoveButtons();
                                 carouselManager.wireUpEventListeners();
                             }
                         }
                         
                         sincronizarEstadoBotonesDeModo();
-//                        sincronizarEstadoBotonesDisplayMode();
                         
-                        System.out.println("    -> [EDT-2] Restauración de UI para " + modoAlQueSeEntra + " completada.");
+                        logger.debug("    -> [EDT-2] Restauración de UI para " + modoAlQueSeEntra + " completada.");
                     }
                 }); // --- Fin del segundo Runnable ---
             }
@@ -315,7 +318,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * @param modoActual El modo que se acaba de activar.
      */
     private void actualizarEstadoUiParaModo(WorkMode modoActual) {
-        System.out.println("  [GeneralController] Actualizando estado de la UI para el modo: " + modoActual);
+        logger.debug("  [GeneralController] Actualizando estado de la UI para el modo: " + modoActual);
 
         // --- 1. LÓGICA DE HABILITACIÓN/DESHABILITACIÓN (Enabled/Disabled) ---
         boolean subcarpetasHabilitado = (modoActual == WorkMode.VISUALIZADOR || modoActual == WorkMode.CARROUSEL);
@@ -346,7 +349,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                 // model.isMostrarSoloCarpetaActual() ya es inteligente y devuelve el del contexto correcto.
             	
             	//LOG [DEBUG-SYNC] Modo:
-            	System.out.println("  [DEBUG-SYNC] Modo: " + modoActual + ", Valor de isMostrarSoloCarpetaActual() en modelo: " + model.isMostrarSoloCarpetaActual());
+            	logger.debug("  [DEBUG-SYNC] Modo: " + modoActual + ", Valor de isMostrarSoloCarpetaActual() en modelo: " + model.isMostrarSoloCarpetaActual());
             	
                 boolean estadoModeloSubcarpetas = !model.isMostrarSoloCarpetaActual(); 
                 // ---> FIN DE LA CORRECCIÓN CLAVE <---
@@ -371,100 +374,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             this.statusBarManager.actualizar();
         }
         
-        System.out.println("  [GeneralController] Estado de la UI actualizado.");
+        logger.debug("  [GeneralController] Estado de la UI actualizado.");
     } // --- Fin del método actualizarEstadoUiParaModo ---
-    
-    
-//    /**
-//     * **CORRECCIÓN CLAVE:** Método para cambiar el modo de visualización de contenido.
-//     * Orquesta la transición entre los diferentes DisplayModes.
-//     * @param newDisplayMode El DisplayMode al que se desea cambiar.
-//     */
-//    public void cambiarDisplayMode(DisplayMode newDisplayMode) { // <-- MÉTODO AÑADIDO
-//        DisplayMode currentDisplayMode = this.model.getCurrentDisplayMode();
-//        if (currentDisplayMode == newDisplayMode) {
-//            System.out.println("[GeneralController] Intento de cambiar al DisplayMode que ya está activo: " + newDisplayMode + ". No se hace nada.");
-//            return;
-//        }
-//        
-//        System.out.println("\n--- [GeneralController] INICIANDO TRANSICIÓN DE DISPLAYMODE: " + currentDisplayMode + " -> " + newDisplayMode + " ---");
-//        
-//        // 1. Actualizar el modelo con el nuevo DisplayMode.
-//        this.model.setCurrentDisplayMode(newDisplayMode);
-//        
-//        // 2. Determinar la clave del panel en el CardLayout de la vista.
-//        String viewNameInCardLayout = mapDisplayModeToCardLayoutViewName(newDisplayMode);
-//        
-//        // 3. Solicitar a ViewManager que cambie el panel visible.
-//        this.viewManager.cambiarAVista("container.displaymodes", viewNameInCardLayout);
-//        
-//        // 4. Sincronizar los botones/radios que indican el DisplayMode activo.
-//        sincronizarEstadoBotonesDisplayMode();
-//        
-//        System.out.println("--- [GeneralController] TRANSICIÓN DE DISPLAYMODE COMPLETADA a " + newDisplayMode + " ---\n");
-//    }
-    
-//    /**
-//     * Sincroniza el estado LÓGICO Y VISUAL de los botones de modo de visualización de contenido (DisplayMode).
-//     * Asegura que solo el botón del DisplayMode activo esté seleccionado y que se aplique
-//     * el estilo visual personalizado.
-//     */
-//    public void sincronizarEstadoBotonesDisplayMode() {
-//        if (this.actionMap == null || this.model == null || this.configAppManager == null) {
-//            System.err.println("WARN [GeneralController.sincronizarEstadoBotonesDisplayMode]: Dependencias nulas (ActionMap, Model o ConfigAppManager).");
-//            return;
-//        }
-//
-//        // Obtiene el DisplayMode actual del modelo.
-//        DisplayMode currentDisplayMode = this.model.getCurrentDisplayMode();
-//
-//        // Define una lista con los comandos de las acciones que corresponden a los DisplayModes.
-//        List<String> comandosDeDisplayMode = List.of(
-//            AppActionCommands.CMD_VISTA_SINGLE,
-//            AppActionCommands.CMD_VISTA_GRID,
-//            AppActionCommands.CMD_VISTA_POLAROID
-//        );
-//
-//        // Itera sobre cada comando para encontrar la acción y sincronizar su estado.
-//        for (String comando : comandosDeDisplayMode) {
-//            Action action = this.actionMap.get(comando);
-//            if (action != null) {
-//                // Si la acción es una instancia de SwitchDisplayModeAction,
-//                // le pedimos que sincronice su estado de selección con el DisplayMode actual del modelo.
-//                if (action instanceof SwitchDisplayModeAction) {
-//                    ((SwitchDisplayModeAction) action).sincronizarEstadoSeleccionConModelo(currentDisplayMode);
-//                }
-//                
-//                // Después de que la acción haya actualizado su SELECTED_KEY,
-//                // pedimos al ConfigApplicationManager que actualice el aspecto visual del botón
-//                // asociado a esa acción (esto es el "pintado manual" que discutimos).
-//                // Pasamos el estado SELECTED_KEY actual de la acción.
-//                this.configAppManager.actualizarAspectoBotonToggle(action, Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY)));
-//            }
-//        }
-//        System.out.println("[GeneralController] Sincronizados botones de DisplayMode. Activo: " + currentDisplayMode);
-//    }
-    
-//    /**
-//     * Método auxiliar para mapear un DisplayMode a la clave de vista utilizada en el CardLayout de VisorView.
-//     * Esta clave es el nombre del panel que ViewBuilder debe haber añadido al CardLayout.
-//     *
-//     * @param displayMode El DisplayMode a mapear.
-//     * @return La clave de String para el CardLayout (ej. "VISTA_SINGLE_IMAGE").
-//     */
-//    private String mapDisplayModeToCardLayoutViewName(DisplayMode displayMode) {
-//        // Estas claves de CardLayout DEBEN coincidir con los nombres
-//        // que uses en ViewBuilder.createMainFrame() al añadir los paneles
-//        // a 'vistasContainer' o a cualquier CardLayout que uses para los DisplayModes.
-//        switch (displayMode) {
-//            case SINGLE_IMAGE: return "VISTA_SINGLE_IMAGE"; // Clave para el panel de imagen única
-//            case GRID:         return "VISTA_GRID";         // Clave para el panel de cuadrícula
-//            case POLAROID:     return "VISTA_POLAROID";     // Clave para el panel Polaroid
-//            //case CAROUSEL:   // Si CAROUSEL fuera un DisplayMode, iría aquí.
-//            //                  // Pero ya confirmamos que es un WorkMode, no un DisplayMode.
-//            default:           return "VISTA_SINGLE_IMAGE"; // Fallback defensivo por si DisplayMode es nulo o no manejado.
-//        }
-//    }
     
     
     /**
@@ -473,10 +384,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * directa del JFrame al ViewManager, manteniendo la lógica de decisión centralizada.
      */
     public void solicitarToggleFullScreen() {
-        System.out.println("[GeneralController] Solicitud para alternar pantalla completa.");
+        logger.debug("[GeneralController] Solicitud para alternar pantalla completa.");
 
         if (viewManager == null || model == null) {
-            System.err.println("ERROR [solicitarToggleFullScreen]: ViewManager o Model son nulos.");
+            logger.error("ERROR [solicitarToggleFullScreen]: ViewManager o Model son nulos.");
             return;
         }
 
@@ -507,7 +418,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	 */
 	public void sincronizarEstadoBotonesDeModo() {
 	    if (this.actionMap == null || this.model == null || this.configAppManager == null) {
-	        System.err.println("WARN [GeneralController.sincronizarEstadoBotonesDeModo]: Dependencias nulas.");
+	        logger.warn("WARN [GeneralController.sincronizarEstadoBotonesDeModo]: Dependencias nulas.");
 	        return;
 	    }
 
@@ -563,7 +474,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                 this.configAppManager.actualizarAspectoBotonToggle(action, isSelected);
 	        }
 	    }
-	    System.out.println("[GeneralController] Sincronizados botones de modo. Activo: " + comandoModoActivo);
+	    logger.debug("[GeneralController] Sincronizados botones de modo. Activo: " + comandoModoActivo);
 	} // --- Fin del método sincronizarEstadoBotonesDeModo ---
 	
 	
@@ -574,10 +485,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * que la vista inicial sea coherente.
      */
     public void sincronizarTodaLaUIConElModelo() {
-        System.out.println("--- [GeneralController] INICIANDO SINCRONIZACIÓN MAESTRA DE UI ---");
+        logger.info("--- [GeneralController] Iniciando sincronización maestra de ui ---");
 
         if (model == null || actionMap == null || visorController == null) {
-            System.err.println("  -> ERROR: Modelo, ActionMap o VisorController nulos. Abortando sincronización.");
+            logger.error("  -> ERROR: Modelo, ActionMap o VisorController nulos. Abortando sincronización.");
             return;
         }
 
@@ -586,11 +497,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         sincronizarEstadoBotonesDeModo();
         
         // 2. Sincronizar los botones de MODO DE VISUALIZACIÓN (DisplayMode).
-//        if (displayModeManager != null) {
             displayModeManager.sincronizarEstadoBotonesDisplayMode();
-//        } else {
-//            System.err.println("WARN [GeneralController]: DisplayModeManager es nulo, no se pueden sincronizar sus botones.");
-//        }
 
         // 3. Delegar el resto de la sincronización específica del modo al VisorController.
         //    IMPORTANTE: Debemos quitar la sincronización de subcarpetas de allí para evitar redundancia.
@@ -603,7 +510,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         // 4. Delegar la sincronización específica del modo PROYECTO a su controlador (cuando sea necesario).
         // projectController.sincronizarComponentesDeModoProyecto(); // <- Futura implementación
 
-        System.out.println("--- [GeneralController] SINCRONIZACIÓN MAESTRA DE UI COMPLETADA ---");
+        logger.debug("--- [GeneralController] SINCRONIZACIÓN MAESTRA DE UI COMPLETADA ---");
         
     } // --- FIN del metodo sincronizarTodaLaUIConElModelo ---
 	
@@ -617,16 +524,16 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * @param direction La dirección (UP, DOWN, LEFT, RIGHT) a la que panear la imagen.
      */
     public void panImageToEdge(Direction direction) {
-        System.out.println("[GeneralController] Solicitud de paneo ABSOLUTO a: " + direction);
+        logger.debug("[GeneralController] Solicitud de paneo ABSOLUTO a: " + direction);
         if (model == null || model.getCurrentImage() == null || registry == null) {
-            System.err.println("ERROR [GeneralController.panImageToEdge]: Dependencias nulas o sin imagen actual.");
+            logger.error("ERROR [GeneralController.panImageToEdge]: Dependencias nulas o sin imagen actual.");
             return;
         }
 
         ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
 
         if (displayPanel == null || displayPanel.getWidth() <= 0 || displayPanel.getHeight() <= 0) {
-            System.err.println("ERROR [GeneralController.panImageToEdge]: ImageDisplayPanel no encontrado o sin dimensiones válidas.");
+            logger.error("ERROR [GeneralController.panImageToEdge]: ImageDisplayPanel no encontrado o sin dimensiones válidas.");
             return;
         }
 
@@ -705,7 +612,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
         // Solicitar el repintado del panel para que muestre la imagen en la nueva posición
         displayPanel.repaint();
-        System.out.println("[GeneralController] Paneo absoluto a " + direction + " aplicado. Offset: (" + newOffsetX + ", " + newOffsetY + ")");
+        logger.debug("[GeneralController] Paneo absoluto a " + direction + " aplicado. Offset: (" + newOffsetX + ", " + newOffsetY + ")");
     } // --- Fin del método panImageToEdge ---
 
 
@@ -716,9 +623,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * @param amount La cantidad de píxeles a mover en cada paso.
      */
     public void panImageIncrementally(Direction direction, int amount) {
-        System.out.println("[GeneralController] Solicitud de paneo INCREMENTAL (" + amount + "px) a: " + direction);
+        logger.debug("[GeneralController] Solicitud de paneo INCREMENTAL (" + amount + "px) a: " + direction);
         if (model == null || model.getCurrentImage() == null || registry == null) {
-            System.err.println("ERROR [GeneralController.panImageIncrementally]: Dependencias nulas o sin imagen actual.");
+            logger.error("ERROR [GeneralController.panImageIncrementally]: Dependencias nulas o sin imagen actual.");
             return;
         }
 
@@ -726,7 +633,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         
         // TODO: Igual que arriba, si hay múltiples paneles de display, obtener el correcto.
         if (displayPanel == null || displayPanel.getWidth() <= 0 || displayPanel.getHeight() <= 0) {
-            System.err.println("ERROR [GeneralController.panImageIncrementally]: ImageDisplayPanel no encontrado o sin dimensiones válidas.");
+            logger.error("ERROR [GeneralController.panImageIncrementally]: ImageDisplayPanel no encontrado o sin dimensiones válidas.");
             return;
         }
 
@@ -797,7 +704,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
         // Solicitar el repintado del panel
         displayPanel.repaint();
-        System.out.println("[GeneralController] Paneo incremental aplicado. Offset: (" + newOffsetX + ", " + newOffsetY + ")");
+        logger.debug("[GeneralController] Paneo incremental aplicado. Offset: (" + newOffsetX + ", " + newOffsetY + ")");
     } // --- Fin del método panImageIncrementally ---
     
     /**
@@ -805,7 +712,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * Delega la solicitud al controlador del modo de trabajo activo.
      */
     public void solicitudAlternarMarcaImagenActual() {
-        System.out.println("[GeneralController] Recibida solicitud para alternar marca. Modo actual: " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Recibida solicitud para alternar marca. Modo actual: " + model.getCurrentWorkMode());
         if (model.isEnModoProyecto()) {
             projectController.solicitudAlternarMarcaImagen();
         } else {
@@ -826,7 +733,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * como "WHEEL_NAVIGABLE" en el ComponentRegistry.
      */
     public void configurarListenersDeEntradaGlobal() {
-        System.out.println("[GeneralController] Configurando listeners de entrada globales para todos los modos...");
+        logger.debug("[GeneralController] Configurando listeners de entrada globales para todos los modos...");
 
         // --- Definición del Master Mouse Wheel Listener (Lógica Centralizada) ---
         java.awt.event.MouseWheelListener masterWheelListener = e -> {
@@ -887,7 +794,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
         // --- Añadir el Master Wheel Listener a todos los componentes etiquetados ---
         List<Component> componentesConRueda = registry.getComponentsByTag("WHEEL_NAVIGABLE");
-        System.out.println("[GeneralController] Encontrados " + componentesConRueda.size() + " componentes etiquetados como 'WHEEL_NAVIGABLE'.");
+        logger.debug("[GeneralController] Encontrados " + componentesConRueda.size() + " componentes etiquetados como 'WHEEL_NAVIGABLE'.");
         for (Component c : componentesConRueda) {
             // Limpiamos listeners antiguos para evitar duplicados
             for (java.awt.event.MouseWheelListener mwl : c.getMouseWheelListeners()) {
@@ -928,7 +835,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             etiquetaCarrusel.addMouseMotionListener(paneoMouseMotionAdapter);
         }
 
-        System.out.println("[GeneralController] Listeners de entrada globales configurados.");
+        logger.debug("[GeneralController] Listeners de entrada globales configurados.");
         
     } // --- Fin del método configurarListenersDeEntradaGlobal ---
     
@@ -952,14 +859,14 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                 JMenuBar menuBar = visorController.getView().getJMenuBar();
                 if (menuBar.isSelected()) { // Comprueba si algún menú ya está abierto (seleccionado)
                     menuBar.getSelectionModel().clearSelection(); // Cierra la selección actual
-                    System.out.println("--- [GeneralController Dispatcher] ALT: Menú ya activo. Cerrando selección.");
+                    logger.debug("--- [GeneralController Dispatcher] ALT: Menú ya activo. Cerrando selección.");
                 } else {
                     if (menuBar.getMenuCount() > 0) { // Si no hay ningún menú activo, activamos el primero.
                         JMenu primerMenu = menuBar.getMenu(0);
                         if (primerMenu != null) {
                         	
                         	//LOG [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'
-                            //System.out.println("--- [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
+                            //logger.debug("--- [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
                         	
                             primerMenu.doClick(); // Simula un clic del ratón, abriendo el menú.
                         }
@@ -1033,7 +940,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
     @Override
     public void navegarSiguiente() {
-        System.out.println("[GeneralController] Delegando navegarSiguiente para modo: " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando navegarSiguiente para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarSiguiente();
         } else {
@@ -1045,7 +952,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     
     @Override
     public void navegarAnterior() {
-        System.out.println("[GeneralController] Delegando navegarAnterior para modo: " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando navegarAnterior para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarAnterior();
         } else {
@@ -1056,7 +963,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     
     @Override
     public void navegarPrimero() {
-        System.out.println("[GeneralController] Delegando navegarPrimero para modo: " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando navegarPrimero para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarPrimero();
         } else {
@@ -1067,7 +974,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
     @Override
     public void navegarUltimo() {
-        System.out.println("[GeneralController] Delegando navegarUltimo para modo: " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando navegarUltimo para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarUltimo();
         } else {
@@ -1078,7 +985,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
     @Override
     public void navegarBloqueAnterior() {
-        System.out.println("[GeneralController] Delegando navegarBloqueAnterior para modo: " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando navegarBloqueAnterior para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarBloqueAnterior();
         } else {
@@ -1089,7 +996,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
     @Override
     public void navegarBloqueSiguiente() {
-        System.out.println("[GeneralController] Delegando navegarBloqueSiguiente para modo: " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando navegarBloqueSiguiente para modo: " + model.getCurrentWorkMode());
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.navegarBloqueSiguiente();
         } else {
@@ -1124,7 +1031,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         }
         
         //LOG [GeneralController] Delegando aplicarZoomConRueda
-        //System.out.println("[GeneralController] Delegando aplicarZoomConRueda a " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando aplicarZoomConRueda a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo aplicarZoomConRueda ---
     
@@ -1142,7 +1049,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         }
         
         //LOG [GeneralController] Delegando aplicarPan
-        //System.out.println("[GeneralController] Delegando aplicarPan a " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando aplicarPan a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo aplicarPan ---
     
@@ -1163,7 +1070,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         }
         
         //LOG [GeneralController] Delegando iniciarPaneo
-        //System.out.println("[GeneralController] Delegando iniciarPaneo a " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando iniciarPaneo a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo iniciarPaneo ---
 
@@ -1187,7 +1094,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         
         
         //LOG [GeneralController] Delegando continuarPaneo
-        //System.out.println("[GeneralController] Delegando continuarPaneo a " + model.getCurrentWorkMode());
+        logger.debug("[GeneralController] Delegando continuarPaneo a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo continuarPaneo ---
     
@@ -1215,7 +1122,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * Este es el método central para llamar después de un cambio de estado global, como activar/desactivar la sincronización.
      */
     public void notificarAccionesSensiblesAlContexto() { //weno
-        System.out.println("[GeneralController] Notificando a todas las acciones sensibles al contexto...");
+        logger.debug("[GeneralController] Notificando a todas las acciones sensibles al contexto...");
         if (actionMap == null || model == null) return;
 
         // Itera por todas las acciones del mapa
@@ -1234,7 +1141,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             configAppManager.actualizarAspectoBotonToggle(syncAction, model.isSyncVisualizadorCarrusel());
         }
         
-        System.out.println("[GeneralController] Notificación completada.");
+        logger.debug("[GeneralController] Notificación completada.");
     } // --- Fin del método notificarAccionesSensiblesAlContexto ---
     
     
@@ -1245,14 +1152,14 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      * @param nuevoEstadoIncluirSubcarpetas El estado deseado: true para cargar subcarpetas, false para no hacerlo.
      */
     public void solicitarCambioModoCargaSubcarpetas(boolean nuevoEstadoIncluirSubcarpetas) {
-        System.out.println("[GeneralController] Solicitud para cambiar modo de carga de subcarpetas a: " + nuevoEstadoIncluirSubcarpetas);
+        logger.debug("[GeneralController] Solicitud para cambiar modo de carga de subcarpetas a: " + nuevoEstadoIncluirSubcarpetas);
 
         // --- INICIO DE LA MODIFICACIÓN (LA GUARDA DE SEGURIDAD) ---
         // Comprobamos si el modelo YA está en el estado que se nos pide.
         // Si es así, no hay nada que hacer más que asegurar que la UI esté sincronizada.
         boolean estadoActualIncluyeSubcarpetas = !model.isMostrarSoloCarpetaActual();
         if (estadoActualIncluyeSubcarpetas == nuevoEstadoIncluirSubcarpetas) {
-            System.out.println("  -> El modelo ya está en el estado deseado. Sincronizando UI por si acaso y deteniendo proceso.");
+            logger.debug("  -> El modelo ya está en el estado deseado. Sincronizando UI por si acaso y deteniendo proceso.");
             sincronizarControlesDeSubcarpetas(); // Aseguramos que los botones reflejen el estado correcto.
             return; // Detenemos la ejecución para romper el bucle.
         }
@@ -1260,20 +1167,20 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
         // 1. Validar que estemos en un modo compatible para esta operación.
         if (model.getCurrentWorkMode() != VisorModel.WorkMode.VISUALIZADOR && model.getCurrentWorkMode() != VisorModel.WorkMode.CARROUSEL) {
-            System.err.println("  -> Operación cancelada: El modo actual (" + model.getCurrentWorkMode() + ") no soporta esta acción.");
+            logger.warn("  -> Operación cancelada: El modo actual (" + model.getCurrentWorkMode() + ") no soporta esta acción.");
             sincronizarControlesDeSubcarpetas(); // Revertimos visualmente por si acaso.
             return;
         }
 
         // 2. Validar dependencias.
         if (visorController == null || model == null || configuration == null || displayModeManager == null) {
-            System.err.println("  ERROR [GeneralController]: Dependencias críticas (visorController, model, config, displayModeManager) nulas. Abortando.");
+            logger.error("  ERROR [GeneralController]: Dependencias críticas (visorController, model, config, displayModeManager) nulas. Abortando.");
             return;
         }
 
         // 3. Guardar la clave de la imagen actual ANTES de cualquier cambio.
         final String claveAntesDelCambio = model.getSelectedImageKey();
-        System.out.println("  -> Clave de imagen a intentar mantener: " + claveAntesDelCambio);
+        logger.debug("  -> Clave de imagen a intentar mantener: " + claveAntesDelCambio);
 
         // 4. Actualizar el estado en el Modelo y la Configuración.
         model.setMostrarSoloCarpetaActual(!nuevoEstadoIncluirSubcarpetas);
@@ -1281,7 +1188,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 
         // 5. Definir la acción de sincronización que se ejecutará DESPUÉS de la carga.
         Runnable accionPostCarga = () -> {
-            System.out.println("  [Callback Post-Carga] Tarea de carga finalizada. Ejecutando sincronización maestra...");
+            logger.debug("  [Callback Post-Carga] Tarea de carga finalizada. Ejecutando sincronización maestra...");
             
             // a) Sincronizar toda la UI (botones, menús, estados, etc.).
             this.sincronizarTodaLaUIConElModelo();
@@ -1289,11 +1196,11 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             // b) Repoblar el Grid con la nueva lista.
             displayModeManager.poblarYSincronizarGrid();
             
-            System.out.println("  [Callback Post-Carga] Sincronización finalizada.");
+            logger.debug("  [Callback Post-Carga] Sincronización finalizada.");
         };
 
         // 6. Delegar la tarea de carga de bajo nivel al VisorController.
-        System.out.println("  -> Delegando a VisorController la tarea de recargar la lista de imágenes...");
+        logger.debug("  -> Delegando a VisorController la tarea de recargar la lista de imágenes...");
         visorController.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
         
     } // --- FIN del metodo solicitarCambioModoCargaSubcarpetas ---
@@ -1307,7 +1214,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
      */
     private void sincronizarControlesDeSubcarpetas() {
         if (model == null || actionMap == null || configAppManager == null) {
-            System.err.println("WARN [sincronizarControlesDeSubcarpetas]: Dependencias nulas. No se puede sincronizar.");
+            logger.warn("WARN [sincronizarControlesDeSubcarpetas]: Dependencias nulas. No se puede sincronizar.");
             return;
         }
 
@@ -1335,7 +1242,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             radioSoloAction.putValue(Action.SELECTED_KEY, !estadoActualIncluyeSubcarpetas);
         }
         
-        System.out.println("  -> Sincronizados controles de subcarpetas. Estado actual (incluir): " + estadoActualIncluyeSubcarpetas);
+        logger.debug("  -> Sincronizados controles de subcarpetas. Estado actual (incluir): " + estadoActualIncluyeSubcarpetas);
     } // --- Fin del método sincronizarControlesDeSubcarpetas ---
     
     
@@ -1360,13 +1267,13 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
     public void solicitarToggleModoCargaSubcarpetas() {
         // Si ya hay una operación en curso, la ignoramos.
         if (isChangingSubfolderMode) {
-            System.out.println("  [GeneralController] ADVERTENCIA: Se ha ignorado una solicitud de toggle de subcarpetas porque ya hay una en progreso.");
+            logger.warn("  [GeneralController] ADVERTENCIA: Se ha ignorado una solicitud de toggle de subcarpetas porque ya hay una en progreso.");
             return;
         }
 
         try {
             isChangingSubfolderMode = true; // --- BLOQUEAMOS ---
-            System.out.println("[GeneralController] Solicitud para ALTERNAR modo de carga de subcarpetas.");
+            logger.debug("[GeneralController] Solicitud para ALTERNAR modo de carga de subcarpetas.");
             
             // 1. Invertir el estado actual del modelo. Esta es la lógica central.
             boolean nuevoEstadoSoloCarpeta = !model.isMostrarSoloCarpetaActual();
@@ -1374,18 +1281,18 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             
             // 2. Actualizar la configuración para que se guarde.
             configuration.setString(ConfigKeys.COMPORTAMIENTO_CARGAR_SUBCARPETAS, String.valueOf(!nuevoEstadoSoloCarpeta));
-            System.out.println("  -> Estado del modelo cambiado a: isMostrarSoloCarpetaActual=" + nuevoEstadoSoloCarpeta);
+            logger.debug("  -> Estado del modelo cambiado a: isMostrarSoloCarpetaActual=" + nuevoEstadoSoloCarpeta);
 
             // 3. El resto de la lógica es la que ya teníamos...
             final String claveAntesDelCambio = model.getSelectedImageKey();
-            System.out.println("  -> Clave de imagen a intentar mantener: " + claveAntesDelCambio);
+            logger.debug("  -> Clave de imagen a intentar mantener: " + claveAntesDelCambio);
 
             Runnable accionPostCarga = () -> {
                 try {
-                    System.out.println("  [Callback Post-Carga] Tarea de carga finalizada. Ejecutando sincronización maestra...");
+                    logger.debug("  [Callback Post-Carga] Tarea de carga finalizada. Ejecutando sincronización maestra...");
                     this.sincronizarTodaLaUIConElModelo();
                     displayModeManager.poblarYSincronizarGrid();
-                    System.out.println("  [Callback Post-Carga] Sincronización finalizada.");
+                    logger.debug("  [Callback Post-Carga] Sincronización finalizada.");
                 } finally {
                     isChangingSubfolderMode = false; // --- DESBLOQUEAMOS ---
                 }
@@ -1394,7 +1301,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             visorController.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
 
         } catch (Exception e) {
-            System.err.println("ERROR INESPERADO en solicitarToggleModoCargaSubcarpetas: " + e.getMessage());
+            logger.error("ERROR INESPERADO en solicitarToggleModoCargaSubcarpetas: " + e.getMessage());
             e.printStackTrace();
             isChangingSubfolderMode = false; // --- DESBLOQUEAMOS EN CASO DE ERROR ---
         }

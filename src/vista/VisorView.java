@@ -7,12 +7,10 @@ import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -20,14 +18,16 @@ import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border; // Para crearSeparadorVerticalBarraInfo y otros bordes
 import javax.swing.border.TitledBorder; // Para panelIzquierdo
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -41,24 +41,20 @@ import vista.util.IconUtils;
 
 public class VisorView extends JFrame {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 4L; // Incrementado por refactorización mayor
-
     
-    private JScrollPane scrollListaMiniaturas;
-
     // Componentes Comunes (Barras, etc.)
     private JPanel panelDeBotones;        
     private Map<String, JToolBar> barrasDeHerramientas;
 
-    
     // --- REFERENCIAS EXTERNAS Y CONFIGURACIÓN ---
-//    private final ViewUIConfig uiConfig;
     private final VisorModel model;
     private final ThumbnailService servicioThumbs;
     private final ThemeManager themeManagerRef;
     
     private Map<String, JMenuItem> menuItemsPorNombre; 
-//    private Map<String, JButton> botonesPorNombre;   
     private int miniaturaScrollPaneHeight;
     
     // --- Estado Interno de la Vista (para pintura, etc.) ---
@@ -67,20 +63,8 @@ public class VisorView extends JFrame {
     private int imageOffsetXView = 0;
     private int imageOffsetYView = 0;
     private boolean fondoACuadrosActivado = false;
-    private final Color colorCuadroClaro = new Color(204, 204, 204); // Podrían venir de uiConfig/Tema
-    private final Color colorCuadroOscuro = new Color(255, 255, 255);
-    private final int TAMANO_CUADRO = 16;
-
-    // --- CAMPOS para los controles de fondo de previsualización ---
-    private JPanel panelControlesFondoIcono;    // El panel que contendrá los 7 puntos
-    private List<JPanel> listaPuntosDeColor;      // Lista de los JPanel que actúan como selectores
-    private Border bordePuntoNormal;
-    private Border bordePuntoSeleccionado;
-    private Color colorFondoNeutroParaSwatches;
     
     // --- Icono de Error de Imagen
-    private ImageIcon iconoErrorGeneral;
-    //private ImageIcon iconoErrorOriginal;
     
     private Rectangle lastNormalBounds;
     private final ConfigurationManager configurationManagerRef; 
@@ -116,7 +100,7 @@ public class VisorView extends JFrame {
             IconUtils iconUtils
     ) {
         super("Visor/Catalogador de Imágenes");
-        System.out.println("[VisorView Constructor SIMPLIFICADO] Iniciando...");
+        logger.debug("[VisorView Constructor SIMPLIFICADO] Iniciando...");
 
         // --- 1. ASIGNACIÓN DE DEPENDENCIAS ESENCIALES ---
         this.model = Objects.requireNonNull(modelo, "VisorModel no puede ser null");
@@ -202,147 +186,21 @@ public class VisorView extends JFrame {
          return this.lastNormalBounds; 
      }
      
-    
-	/**
-	 * Muestra una indicación de error en el área principal de visualización de imágenes (etiquetaImagen).
-	 * Si se ha cargado un icono de error general (this.iconoErrorGeneral), lo muestra.
-	 * De lo contrario, muestra un mensaje de texto formateado con HTML.
-	 * También limpia cualquier imagen previamente mostrada por el sistema de pintura personalizado.
-	 *
-	 * @param nombreArchivo    El nombre del archivo que no se pudo cargar (para mostrar en el mensaje de error).
-	 * @param mensajeDetallado Una descripción más detallada del error (para mostrar en el mensaje de error).
-	 */
-	public void mostrarErrorEnVisorPrincipal(String nombreArchivo, String mensajeDetallado) {
-	    if (this.etiquetaImagen == null) {
-	        System.err.println("ERROR CRÍTICO [VisorView.mostrarErrorEnVisorPrincipal]: etiquetaImagen es null.");
-	        return;
-	    }
-	
-	    System.out.println("  [VisorView] Mostrando error en visor principal para archivo: " + (nombreArchivo != null ? nombreArchivo : "desconocido"));
-	
-	    this.imagenReescaladaView = null; // Asegurar que no se intente pintar una imagen válida anterior
-	                                       // por el método paintComponent personalizado.
-	    // Si usas un flag adicional en paintComponent para el estado de error, actualízalo aquí:
-	    // this.errorAlCargarImagenActual = true;
-	
-	    if (this.iconoErrorGeneral != null) {
-	        // Mostrar el icono de error general.
-	        // Puedes decidir escalarlo aquí si es necesario para el visor principal,
-	        // o si ya lo escalaste a un tamaño adecuado al cargarlo en el constructor.
-	        // Ejemplo si quieres escalarlo ahora a un tamaño específico:
-	        // ImageIcon iconoParaDisplay = this.uiConfig.iconUtils.scaleImageIcon(this.iconoErrorGeneral, 256, 256); // Ajusta tamaño
-	        // this.etiquetaImagen.setIcon(iconoParaDisplay != null ? iconoParaDisplay : this.iconoErrorGeneral);
-	
-	        // Mostrando el icono tal cual se cargó (o como se escaló en el constructor)
-	        this.etiquetaImagen.setIcon(this.iconoErrorGeneral);
-	        this.etiquetaImagen.setText(null); // Limpiar cualquier texto ("Cargando...", etc.)
-	         
-	         
-	        this.etiquetaImagen.revalidate(); // Puede ayudar si el contenido cambió de texto a icono o viceversa
-	        this.etiquetaImagen.repaint();
-	         
-	    } else {
-	        // Fallback a mensaje de texto si iconoErrorGeneral no se pudo cargar.
-	        this.etiquetaImagen.setIcon(null);
-	        String mensajeHtml = "<html><body style='text-align:center;'>" +
-	                             "<b>Error al Cargar Imagen</b><br><br>" +
-	                             (nombreArchivo != null ? "Archivo: " + escapeHtml(nombreArchivo) + "<br>" : "") +
-	                             "<font color='gray' size='-1'><i>" +
-	                             (mensajeDetallado != null ? escapeHtml(mensajeDetallado) : "Detalles no disponibles.") +
-	                             "</i></font>" +
-	                             "</body></html>";
-	        this.etiquetaImagen.setText(mensajeHtml);
-	         
-	        // Establecer color de texto para el error
-	        Tema temaActual = this.themeManagerRef.getTemaActual();
-	        if (temaActual != null) {
-	            this.etiquetaImagen.setForeground(Color.RED); // O un color de error del tema
-	        } else {
-	            this.etiquetaImagen.setForeground(Color.RED);
-	        }
-	    }
-	
-	    this.etiquetaImagen.setHorizontalAlignment(SwingConstants.CENTER);
-	    this.etiquetaImagen.setVerticalAlignment(SwingConstants.CENTER);
-	
-	    // Importante si tu etiquetaImagen tiene un paintComponent personalizado para el fondo
-	    this.etiquetaImagen.setOpaque(false); 
-	    this.etiquetaImagen.repaint();
-	    System.out.println("  [VisorView] etiquetaImagen repintada para mostrar error/icono de error.");
-	}
 
-    
-    /**
-     * Escapa caracteres HTML básicos para evitar problemas al mostrar texto en un JLabel con HTML.
-     * @param text El texto a escapar.
-     * @return El texto con caracteres HTML escapados, o una cadena vacía si text es null.
-     */
-    private String escapeHtml(String text) {
-        if (text == null) {
-            return "";
-        }
-        return text.replace("&", "&")
-                   .replace("<", "<")
-                   .replace(">", ">")
-                   .replace("\n", "<br>"); // Convertir saltos de línea a <br> para HTML
-    }
-    
-    
-    public void setListaImagenesModel(DefaultListModel<String> nuevoModelo) {
+     public void setListaImagenesModel(DefaultListModel<String> nuevoModelo) {
         // 1. Obtener la JList de nombres desde el registro.
         JList<String> listaNombres = registry.get("list.nombresArchivo");
 
         // 2. Comprobar si la lista existe antes de asignarle el modelo.
         if (listaNombres != null) {
             listaNombres.setModel(nuevoModelo);
-            System.out.println("[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: " + nuevoModelo.getSize());
+            logger.debug("[VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: " + nuevoModelo.getSize());
         } else {
-            System.err.println("WARN [setListaImagenesModel]: El componente 'list.nombresArchivo' no se encontró en el registro.");
+            logger.warn("WARN [setListaImagenesModel]: El componente 'list.nombresArchivo' no se encontró en el registro.");
         }
     } // --- FIN del metodo setListaImagenesModel ---
     
 
-    public void setModeloListaMiniaturas(DefaultListModel<String> nuevoModeloMiniaturas) {
-        // Obtener la lista desde el registro
-        JList<String> listaMiniaturas = registry.get("list.miniaturas");
-        
-        if (listaMiniaturas != null && nuevoModeloMiniaturas != null) {
-             System.out.println("[VisorView] Estableciendo nuevo modelo para listaMiniaturas (Tamaño: " + nuevoModeloMiniaturas.getSize() + ")");
-             listaMiniaturas.setModel(nuevoModeloMiniaturas);
-             listaMiniaturas.repaint();
-        } else {
-             if (listaMiniaturas == null) System.err.println("WARN [setModeloListaMiniaturas]: 'list.miniaturas' no encontrada en registro.");
-             if (nuevoModeloMiniaturas == null) System.err.println("WARN [setModeloListaMiniaturas]: el nuevo modelo es null.");
-        }
-    }
-    
-    
-    /**
-     * Establece la imagen principal que se va a mostrar, limpiando cualquier
-     * indicador de error o carga previo.
-     *
-     * @param imagenReescalada La imagen ya reescalada y lista para ser referenciada por paintComponent.
-     * @param zoom El factor de zoom actual para esta imagen.
-     * @param offsetX El desplazamiento X actual para esta imagen.
-     * @param offsetY El desplazamiento Y actual para esta imagen.
-     */
-    public void setImagenMostrada(Image imagenReescalada, double zoom, int offsetX, int offsetY) {
-        if (this.etiquetaImagen == null) return;
-
-        // this.errorAlCargarImagenActual = false; // Si usas un flag para paintComponent
-        this.imagenReescaladaView = imagenReescalada; // Para tu paintComponent personalizado
-        this.zoomFactorView = zoom;
-        this.imageOffsetXView = offsetX;
-        this.imageOffsetYView = offsetY;
-
-        // Limpiar cualquier texto o icono de error/carga del JLabel
-        this.etiquetaImagen.setText(null);
-        this.etiquetaImagen.setIcon(null);
-
-        this.etiquetaImagen.repaint(); // paintComponent usará imagenReescaladaView
-    }
-    
-    
     /**
      * Limpia el área de visualización de la imagen principal, eliminando la imagen
      * actual, cualquier icono de error, o texto de carga.
@@ -370,7 +228,7 @@ public class VisorView extends JFrame {
     	JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
     	
         if (panelIzquierdo == null || !(panelIzquierdo.getBorder() instanceof TitledBorder)) {
-            System.err.println("WARN [setTituloPanelIzquierdo]: panelIzquierdo o su TitledBorder nulos.");
+            logger.warn("WARN [setTituloPanelIzquierdo]: panelIzquierdo o su TitledBorder nulos.");
             return;
         }
         TitledBorder borde = (TitledBorder) panelIzquierdo.getBorder();
@@ -405,13 +263,13 @@ public class VisorView extends JFrame {
 
         // 2. Validar que los componentes existan en el registro.
         if (panelIzquierdo == null) {
-            System.err.println("ERROR [VisorView setFileListVisible]: 'panel.izquierdo.listaArchivos' no encontrado en el registro.");
+            logger.error("ERROR [VisorView setFileListVisible]: 'panel.izquierdo.listaArchivos' no encontrado en el registro.");
             return;
         }
 
         // 3. Aplicar la lógica de visibilidad.
         if (panelIzquierdo.isVisible() != visible) {
-            System.out.println("  [VisorView setFileListVisible] Cambiando visibilidad del panel izquierdo a: " + visible);
+            logger.debug("  [VisorView setFileListVisible] Cambiando visibilidad del panel izquierdo a: " + visible);
             panelIzquierdo.setVisible(visible);
 
             if (splitPane != null) {
@@ -430,13 +288,13 @@ public class VisorView extends JFrame {
                     splitPane.resetToPreferredSizes();
                 }
             } else {
-                System.err.println("WARN [VisorView setFileListVisible]: 'splitpane.main' no encontrado en el registro. No se puede ajustar el divisor.");
+                logger.warn("WARN [VisorView setFileListVisible]: 'splitpane.main' no encontrado en el registro. No se puede ajustar el divisor.");
             }
 
             revalidateFrame();
-            System.out.println("  [VisorView setFileListVisible] Frame revalidado y repintado.");
+            logger.debug("  [VisorView setFileListVisible] Frame revalidado y repintado.");
         } else {
-            System.out.println("  [VisorView setFileListVisible] El panel izquierdo ya está en el estado de visibilidad deseado: " + visible);
+            logger.debug("  [VisorView setFileListVisible] El panel izquierdo ya está en el estado de visibilidad deseado: " + visible);
         }
     }
 
@@ -482,7 +340,7 @@ public class VisorView extends JFrame {
         // 1. Obtener la etiqueta de imagen desde el registro.
         JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
         if (etiquetaImagen == null) {
-            System.err.println("ERROR [mostrarIndicadorCargaImagenPrincipal]: 'label.imagenPrincipal' no encontrado en el registro.");
+            logger.error("ERROR [mostrarIndicadorCargaImagenPrincipal]: 'label.imagenPrincipal' no encontrado en el registro.");
             return;
         }
 
@@ -537,18 +395,18 @@ public class VisorView extends JFrame {
      */
 
     public void solicitarRefrescoRenderersMiniaturas() {
-        System.out.println("[VisorView] Iniciando solicitud de refresco para renderers de miniaturas...");
+        logger.debug("[VisorView] Iniciando solicitud de refresco para renderers de miniaturas...");
 
         // --- 1. OBTENER EL COMPONENTE DESDE EL REGISTRO ---
         JList<String> listaMiniaturas = registry.get("list.miniaturas");
         if (listaMiniaturas == null) {
-            System.err.println("ERROR [solicitarRefrescoRenderersMiniaturas]: 'list.miniaturas' no encontrado en el registro.");
+            logger.error("ERROR [solicitarRefrescoRenderersMiniaturas]: 'list.miniaturas' no encontrado en el registro.");
             return;
         }
 
         // --- 2. VALIDAR OTRAS DEPENDENCIAS (sin cambios) ---
         if (this.model == null || this.configurationManagerRef == null || this.servicioThumbs == null || this.themeManagerRef == null || this.iconUtilsRef == null) {
-             System.err.println("ERROR [solicitarRefrescoRenderersMiniaturas]: Faltan dependencias esenciales.");
+             logger.error("ERROR [solicitarRefrescoRenderersMiniaturas]: Faltan dependencias esenciales.");
              return;
         }
 
@@ -575,7 +433,7 @@ public class VisorView extends JFrame {
         listaMiniaturas.revalidate();
         listaMiniaturas.repaint();
 
-        System.out.println("[VisorView] Refresco de renderers de miniaturas completado.");
+        logger.debug("[VisorView] Refresco de renderers de miniaturas completado.");
     } // --- FIN del metodo solicitarRefrescoRenderersMiniaturas ---
     
     

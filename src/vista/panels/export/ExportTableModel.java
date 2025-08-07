@@ -1,14 +1,11 @@
 package vista.panels.export;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.swing.ImageIcon; // <-- ¡Importante añadir esta línea!
 import javax.swing.table.AbstractTableModel;
 
 import modelo.proyecto.ExportItem;
-import modelo.proyecto.ExportStatus;
 
 public class ExportTableModel extends AbstractTableModel {
 

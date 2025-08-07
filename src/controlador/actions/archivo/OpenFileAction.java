@@ -8,6 +8,10 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.FileOperationsManager; // Nueva dependencia
@@ -15,6 +19,8 @@ import modelo.VisorModel;
 
 public class OpenFileAction extends AbstractAction { // Ya no hereda de BaseVisorAction
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 1L;
     private FileOperationsManager fileOperationManager;
     private VisorModel model;
@@ -47,7 +53,7 @@ public class OpenFileAction extends AbstractAction { // Ya no hereda de BaseViso
         if (this.fileOperationManager != null) {
             this.fileOperationManager.solicitarSeleccionNuevaCarpeta();
         } else {
-            System.err.println("ERROR CRÍTICO [OpenFileAction]: FileManager es nulo.");
+            logger.error("ERROR CRÍTICO [OpenFileAction]: FileManager es nulo.");
         }
     } // --- Fin del método actionPerformed ---
     

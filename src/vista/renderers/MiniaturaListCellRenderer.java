@@ -18,15 +18,25 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
 import javax.swing.border.Border;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import modelo.VisorModel;
 import servicios.image.ThumbnailService;
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
-@SuppressWarnings("serial")
 public class MiniaturaListCellRenderer extends JPanel implements ListCellRenderer<String> {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // --- Dependencias y estado interno (inmutables) ---
     private final JLabel etiquetaIcono;
     private final JLabel etiquetaNombre;
@@ -154,5 +164,6 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
 
         return this;
     } // --- Fin del método getListCellRendererComponent ---
+    
 } // --- Fin de la clase MiniaturaListCellRenderer ---
 

@@ -1,3 +1,20 @@
+------------------------------------------------------------------------------------------------------------------------------------
+private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class); 
+logger.info
+logger.debug
+logger.warn
+logger.error
+------------------------------------------------------------------------------------------------------------------------------------
+La Solución: Cambiar el Nivel del Log
+-------------------------------------
+El nivel de log (level) funciona como un filtro. Si pones un nivel, solo se mostrarán los logs de ese nivel y los de niveles superiores. La jerarquía es:
+TRACE < DEBUG < INFO < WARN < ERROR
+Si pones level="DEBUG", se muestra todo (DEBUG, INFO, WARN, ERROR).
+Si pones level="INFO", solo se muestra INFO, WARN, y ERROR.
+Si pones level="WARN", solo se muestra WARN y ERROR.
+Si pones level="ERROR", solo se muestra ERROR.
+Si pones level="OFF", no se muestra absolutamente nada.
+------------------------------------------------------------------------------------------------------------------------------------
 
 	el github es: https://github.com/JavierTortosa/catalogador-imagenes-java.git
 	

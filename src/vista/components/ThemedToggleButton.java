@@ -1,15 +1,22 @@
 package vista.components;
 
-import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+
 import javax.swing.Action;
 import javax.swing.JToggleButton;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import vista.theme.ThemeManager;
 
 public class ThemedToggleButton extends JToggleButton {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     /**
 	 * 
 	 */

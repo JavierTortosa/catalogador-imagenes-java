@@ -14,6 +14,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -30,6 +34,8 @@ import vista.theme.ThemeChangeListener;
  */
 public class InfobarImageManager implements ThemeChangeListener{
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // --- Dependencias Clave ---
     private final VisorModel model;
     private final ComponentRegistry registry;
@@ -92,7 +98,7 @@ public class InfobarImageManager implements ThemeChangeListener{
 
     @Override
     public void onThemeChanged(Tema nuevoTema) {
-        System.out.println("[InfobarImageManager] Reaccionando al cambio de tema...");
+        logger.debug("[InfobarImageManager] Reaccionando al cambio de tema...");
         
         SwingUtilities.invokeLater(() -> {
             JPanel topInfoPanel = registry.get("panel.info.superior");
@@ -108,19 +114,10 @@ public class InfobarImageManager implements ThemeChangeListener{
                         ((javax.swing.JComponent) component).updateUI();
                     }
                 }
-                System.out.println("[InfobarImageManager] Barra de información superior actualizada.");
+                logger.debug("[InfobarImageManager] Barra de información superior actualizada.");
             }
         });
     } // --- fin del método onThemeChanged ---
-    
-    
-////                    try {
-////                        // Pausa de 1 segundo en el hilo de UI (solo para depuración)
-////                        Thread.sleep(1000); 
-////                    } catch (InterruptedException e) {
-////                        // Es buena práctica restaurar el flag de interrupción
-////                        Thread.currentThread().interrupt();
-////                    }
     
     
     private void actualizarNombreArchivo() {
@@ -243,8 +240,7 @@ public class InfobarImageManager implements ThemeChangeListener{
     
     private void actualizarPorcentajeZoom() {
     	
-//    	// LOG ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO"
-//    	System.out.println("### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO");
+    	logger.debug("### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO");
     	
         JLabel label = registry.get("label.info.porcentajeZoom");
         if (label == null) return;

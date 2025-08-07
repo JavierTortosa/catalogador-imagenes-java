@@ -15,12 +15,18 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import javax.swing.JOptionPane;	
+import javax.swing.JOptionPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.managers.interfaces.IProjectManager;
 
 public class ProjectManager implements IProjectManager {
-
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private Path archivoSeleccionActualPath;
     private Set<Path> seleccionActual;
     private Set<Path> seleccionDescartada;
@@ -44,8 +50,8 @@ public class ProjectManager implements IProjectManager {
             throw new IllegalStateException("ProjectManager no puede inicializarse sin ConfigurationManager.");
         }
         inicializarRutaArchivoSeleccion();
-        System.out.println("[ProjectManager] Instancia inicializada. Selección actual desde: " + (this.archivoSeleccionActualPath != null ? this.archivoSeleccionActualPath.toAbsolutePath() : "N/A"));
-        System.out.println("  -> Proyecto inicial cargado. Selección: " + this.seleccionActual.size() + ", Descartes: " + this.seleccionDescartada.size());
+        logger.debug("[ProjectManager] Instancia inicializada. Selección actual desde: " + (this.archivoSeleccionActualPath != null ? this.archivoSeleccionActualPath.toAbsolutePath() : "N/A"));
+        logger.debug("  -> Proyecto inicial cargado. Selección: " + this.seleccionActual.size() + ", Descartes: " + this.seleccionDescartada.size());
     } // --- Fin del método initialize ---
 
     private void inicializarRutaArchivoSeleccion() {
@@ -63,10 +69,10 @@ public class ProjectManager implements IProjectManager {
         try {
             if (!Files.exists(carpetaBaseProyectos)) {
                 Files.createDirectories(carpetaBaseProyectos);
-                System.out.println("  [ProjectManager] Directorio base de proyectos creado: " + carpetaBaseProyectos);
+                logger.debug("  [ProjectManager] Directorio base de proyectos creado: " + carpetaBaseProyectos);
             }
         } catch (IOException e) {
-            System.err.println("WARN [ProjectManager]: No se pudo crear el directorio base de proyectos: " + carpetaBaseProyectos +
+            logger.warn("WARN [ProjectManager]: No se pudo crear el directorio base de proyectos: " + carpetaBaseProyectos +
                                ". Usando directorio actual de la aplicación como fallback.");
             carpetaBaseProyectos = Paths.get("").toAbsolutePath();
         }
@@ -111,25 +117,25 @@ public class ProjectManager implements IProjectManager {
                             this.seleccionDescartada.add(rutaParseada);
                         }
                     } catch (Exception e) {
-                        System.err.println("WARN [PM cargar]: Ruta inválida en archivo de proyecto: '" + linea + "' - " + e.getMessage());
+                        logger.warn("WARN [PM cargar]: Ruta inválida en archivo de proyecto: '" + linea + "' - " + e.getMessage());
                     }
                 }
-                System.out.println("  [ProjectManager] Proyecto cargado desde " + rutaArchivo +
+                logger.debug("  [ProjectManager] Proyecto cargado desde " + rutaArchivo +
                                    ". Selección: " + this.seleccionActual.size() +
                                    ", Descartes: " + this.seleccionDescartada.size());
 
             } catch (IOException e) {
-                System.err.println("ERROR [ProjectManager]: No se pudo leer el archivo de proyecto: " + rutaArchivo + " - " + e.getMessage());
+                logger.error("ERROR [ProjectManager]: No se pudo leer el archivo de proyecto: " + rutaArchivo + " - " + e.getMessage());
             }
         } else {
-            System.out.println("  [ProjectManager] Archivo de proyecto no encontrado: " + rutaArchivo + ". Se iniciará con proyecto vacío.");
+            logger.debug("  [ProjectManager] Archivo de proyecto no encontrado: " + rutaArchivo + ". Se iniciará con proyecto vacío.");
         }
     } // --- Fin del método cargarDesdeArchivo ---
     
     
     private void guardarAArchivo() {
         if (this.archivoSeleccionActualPath == null) {
-            System.err.println("ERROR [PM guardar]: archivoSeleccionActualPath es null. No se puede guardar.");
+            logger.error("ERROR [PM guardar]: archivoSeleccionActualPath es null. No se puede guardar.");
             return;
         }
 
@@ -156,12 +162,12 @@ public class ProjectManager implements IProjectManager {
                 writer.newLine();
             }
 
-            System.out.println("  [ProjectManager] Proyecto guardado en " + this.archivoSeleccionActualPath +
+            logger.debug("  [ProjectManager] Proyecto guardado en " + this.archivoSeleccionActualPath +
                                " (Selección: " + this.seleccionActual.size() +
                                ", Descartes: " + this.seleccionDescartada.size() + ").");
 
         } catch (IOException e) {
-            System.err.println("ERROR [ProjectManager]: No se pudo guardar el archivo de proyecto: " +
+            logger.error("ERROR [ProjectManager]: No se pudo guardar el archivo de proyecto: " +
                                this.archivoSeleccionActualPath + " - " + e.getMessage());
         }
     } // --- Fin del método guardarAArchivo ---
@@ -183,7 +189,7 @@ public class ProjectManager implements IProjectManager {
                                       message,
                                       "Gestión de Selección de Proyecto (Pendiente)",
                                       JOptionPane.INFORMATION_MESSAGE);
-        System.out.println("[ProjectManager] Diálogo placeholder 'gestionarSeleccionProyecto' mostrado.");
+        logger.debug("[ProjectManager] Diálogo placeholder 'gestionarSeleccionProyecto' mostrado.");
     } // --- Fin del método gestionarSeleccionProyecto ---
     
     @Override
@@ -191,7 +197,7 @@ public class ProjectManager implements IProjectManager {
         if (rutaAbsoluta == null) return;
         if (this.seleccionActual.add(rutaAbsoluta)) {
             guardarAArchivo();
-            System.out.println("  [ProjectManager] Imagen marcada (ruta abs): " + rutaAbsoluta);
+            logger.debug("  [ProjectManager] Imagen marcada (ruta abs): " + rutaAbsoluta);
         }
     } // --- Fin del método marcarImagenInterno ---
 
@@ -200,7 +206,7 @@ public class ProjectManager implements IProjectManager {
         if (rutaAbsoluta == null) return;
         if (this.seleccionActual.remove(rutaAbsoluta)) {
             guardarAArchivo();
-            System.out.println("  [ProjectManager] Imagen desmarcada (ruta abs): " + rutaAbsoluta);
+            logger.debug("  [ProjectManager] Imagen desmarcada (ruta abs): " + rutaAbsoluta);
         }
     } // --- Fin del método desmarcarImagenInterno ---
     
@@ -244,7 +250,7 @@ public class ProjectManager implements IProjectManager {
         if (this.seleccionActual.remove(rutaAbsolutaImagen)) {
             this.seleccionDescartada.add(rutaAbsolutaImagen);
             guardarAArchivo();
-            System.out.println("  [ProjectManager] Imagen movida a descartes: " + rutaAbsolutaImagen);
+            logger.debug("  [ProjectManager] Imagen movida a descartes: " + rutaAbsolutaImagen);
         }
     } // --- Fin del método moverAdescartes ---
 
@@ -258,7 +264,7 @@ public class ProjectManager implements IProjectManager {
         if (this.seleccionDescartada.remove(rutaAbsolutaImagen)) {
             this.seleccionActual.add(rutaAbsolutaImagen);
             guardarAArchivo();
-            System.out.println("  [ProjectManager] Imagen restaurada desde descartes: " + rutaAbsolutaImagen);
+            logger.debug("  [ProjectManager] Imagen restaurada desde descartes: " + rutaAbsolutaImagen);
         }
     } // --- Fin del método restaurarDeDescartes ---
 
@@ -290,7 +296,7 @@ public class ProjectManager implements IProjectManager {
         // Solo guardar el archivo si realmente se hizo un cambio.
         if (removidoDeSeleccion || removidoDeDescartes) {
             guardarAArchivo();
-            System.out.println("  [ProjectManager] Imagen eliminada permanentemente del proyecto: " + rutaAbsolutaImagen);
+            logger.debug("  [ProjectManager] Imagen eliminada permanentemente del proyecto: " + rutaAbsolutaImagen);
         }
     } // --- Fin del método eliminarDeProyecto ---
     

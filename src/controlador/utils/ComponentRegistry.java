@@ -12,12 +12,19 @@ import java.util.Set;
 
 import javax.swing.JComponent;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+
 /**
  * Un registro centralizado para almacenar y acceder a todos los componentes
  * de la UI de la aplicación.
  */
 public class ComponentRegistry {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     /**
      * El mapa que almacena los componentes.
      * La clave es un nombre único y descriptivo (String), preferiblemente canónico.
@@ -43,16 +50,16 @@ public class ComponentRegistry {
      */
     public void register(String name, Component component) {
         if (name == null || name.isBlank()) {
-            System.err.println("ComponentRegistry WARN: Se intentó registrar un componente con un nombre nulo o vacío. Se ignora.");
+            logger.warn("ComponentRegistry WARN: Se intentó registrar un componente con un nombre nulo o vacío. Se ignora.");
             return;
         }
         if (component == null) {
-            System.err.println("ComponentRegistry WARN: Se intentó registrar un componente nulo para la clave '" + name + "'. Se ignora.");
+            logger.warn("ComponentRegistry WARN: Se intentó registrar un componente nulo para la clave '" + name + "'. Se ignora.");
             return;
         }
 
         if (components.containsKey(name)) {
-            System.err.println("ComponentRegistry WARN: La clave '" + name + "' ya existe. El componente anterior será sobrescrito.");
+            logger.warn("ComponentRegistry WARN: La clave '" + name + "' ya existe. El componente anterior será sobrescrito.");
         }
 
         components.put(name, component);
@@ -140,17 +147,17 @@ public class ComponentRegistry {
      * útil para depuración.
      */
     public void printRegistryContents() {
-        System.out.println("--- Contenido del ComponentRegistry ---");
+        logger.debug("--- Contenido del ComponentRegistry ---");
         if (components.isEmpty()) {
-            System.out.println("El registro está vacío.");
+            logger.debug("El registro está vacío.");
         } else {
             components.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey()) // Ordenar por clave para una salida consistente
                 .forEach(entry -> {
-                    System.out.println("Clave: " + entry.getKey() + " -> Componente: " + entry.getValue().getClass().getName());
+                    logger.debug("Clave: " + entry.getKey() + " -> Componente: " + entry.getValue().getClass().getName());
                 });
         }
-        System.out.println("--- Fin del Contenido (" + components.size() + " componentes) ---");
+        logger.debug("--- Fin del Contenido (" + components.size() + " componentes) ---");
     }// --- FIN del metodo printRegistryContents
     
     
@@ -159,7 +166,7 @@ public class ComponentRegistry {
      * "interfaz.boton." o "toolbar.". Esencial para limpiar antes de una reconstrucción de UI.
      */
     public void unregisterToolbarComponents() {
-        System.out.println("  [ComponentRegistry] Eliminando componentes de toolbars del registro...");
+        logger.debug("  [ComponentRegistry] Eliminando componentes de toolbars del registro...");
         // Usamos removeIf para eliminar de forma segura mientras iteramos
         components.keySet().removeIf(key -> 
 	        key.startsWith("toolbar.")  
@@ -178,7 +185,7 @@ public class ComponentRegistry {
      */
     public Component unregister(String key) {
         if (key == null || key.isBlank()) {
-            System.err.println("ComponentRegistry WARN: Se intentó desregistrar un componente con una clave nula o vacía. Se ignora.");
+            logger.warn("ComponentRegistry WARN: Se intentó desregistrar un componente con una clave nula o vacía. Se ignora.");
             return null;
         }
 
@@ -189,10 +196,10 @@ public class ComponentRegistry {
         Component removedComponent = components.remove(key);
 
         if (removedComponent != null) {
-            System.out.println("  [ComponentRegistry] Componente con clave '" + key + "' eliminado del registro.");
+            logger.debug("  [ComponentRegistry] Componente con clave '" + key + "' eliminado del registro.");
         } else {
             // Esto no es necesariamente un error, puede que se intente eliminar algo que ya no existe.
-            // System.out.println("  [ComponentRegistry] Se intentó eliminar la clave '" + key + "', pero no se encontró en el registro.");
+            // logger.debug("  [ComponentRegistry] Se intentó eliminar la clave '" + key + "', pero no se encontró en el registro.");
         }
         
         return removedComponent;

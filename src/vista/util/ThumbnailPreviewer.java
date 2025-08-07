@@ -14,12 +14,15 @@ import java.awt.image.BufferedImage;
 import javax.imageio.ImageIO;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.Timer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.managers.ZoomManager;
 import modelo.VisorModel;
 import servicios.zoom.ZoomModeEnum;
@@ -28,6 +31,8 @@ import vista.theme.ThemeManager;
 
 public class ThumbnailPreviewer {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private final JList<String> thumbnailList;
     private final VisorModel mainModel;
     private final ThemeManager themeManager;

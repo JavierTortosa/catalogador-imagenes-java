@@ -7,6 +7,10 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.interfaces.ContextSensitiveAction; // <-- 1. Importar la interfaz
 import modelo.VisorModel;
@@ -16,6 +20,8 @@ import servicios.ConfigurationManager;
 // 2. Añadir 'implements ContextSensitiveAction'
 public class ToggleZoomToCursorAction extends AbstractAction implements ContextSensitiveAction {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 1L;
     private final VisorModel model;
     private final ConfigurationManager config;

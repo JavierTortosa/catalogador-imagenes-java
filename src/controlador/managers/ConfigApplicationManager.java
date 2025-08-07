@@ -16,6 +16,10 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -27,6 +31,8 @@ import vista.theme.Tema;
 import vista.theme.ThemeManager;
 
 public class ConfigApplicationManager {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     // --- DEPENDENCIAS REFACTORIZADAS ---
     private final VisorModel model;
@@ -42,8 +48,6 @@ public class ConfigApplicationManager {
     private final Map<String, String> configAlInicio;
     
 
-    // --- CONSTRUCTOR REFACTORIZADO ---
-    
     public ConfigApplicationManager(
             VisorModel model, 
             ConfigurationManager config, 
@@ -51,7 +55,7 @@ public class ConfigApplicationManager {
             ComponentRegistry registry
             ) {
         
-        System.out.println("[ConfigApplicationManager] Creando instancia refactorizada...");
+        logger.debug("[ConfigApplicationManager] Creando instancia refactorizada...");
         
         this.model = Objects.requireNonNull(model);
         this.config = Objects.requireNonNull(config);
@@ -62,7 +66,7 @@ public class ConfigApplicationManager {
         this.actionMap = new HashMap<>(); // Inicializar a un mapa vacío para evitar NullPointerException
 
         this.configAlInicio = new HashMap<>(config.getConfigMap());
-        System.out.println("[ConfigApplicationManager] Instancia creada.");
+        logger.debug("[ConfigApplicationManager] Instancia creada.");
     } // --- Fin del Constructor ---
     
 
@@ -70,7 +74,7 @@ public class ConfigApplicationManager {
      
     
     public void aplicarConfiguracionGlobalmente() {
-    	System.out.println("--- [ConfigApplicationManager] Aplicando configuración globalmente... ---");
+    	logger.debug("--- [ConfigApplicationManager] Aplicando configuración globalmente... ---");
         
         // El orden es importante:
         // 1. Aplicamos la config leída del archivo al modelo.
@@ -78,13 +82,6 @@ public class ConfigApplicationManager {
         
         // 2. AHORA sembramos los colores custom si es necesario.
         seedInitialCustomColors(); // <-- AÑADE ESTA LÍNEA AQUÍ
-        
-//        // 3. Finalmente, aplicamos toda la configuración (incluida la recién sembrada) a la vista.
-//        SwingUtilities.invokeLater(() -> {
-//        	displayModeManager.sincronizarEstadoBotonesDisplayMode();
-////            aplicarConfiguracionAlaVista();
-////            sincronizarUIFinal();
-//        });
         
         // Ahora, este método solo se encarga de aplicar la configuración,
         // no de la sincronización visual, que ocurrirá más tarde.
@@ -110,7 +107,7 @@ public class ConfigApplicationManager {
             return; 
         }
         
-        System.out.println("[ConfigApplicationManager] Rotando colores de slot por cambio de tema de '" + temaAnterior.nombreInterno() + "' a '" + temaNuevo.nombreInterno() + "'.");
+        logger.debug("[ConfigApplicationManager] Rotando colores de slot por cambio de tema de '" + temaAnterior.nombreInterno() + "' a '" + temaNuevo.nombreInterno() + "'.");
 
         // Los dos colores clave en esta operación de "intercambio".
         Color colorTemaViejo = temaAnterior.colorFondoSecundario();
@@ -135,7 +132,7 @@ public class ConfigApplicationManager {
                 // La "liberamos" asignándole el color del tema que acabamos de dejar.
                 config.setColor(key, colorTemaViejo);
                 
-                System.out.println("    -> ROTADO: La clave '" + key + "' (que coincidía con el nuevo tema '" + temaNuevo.nombreInterno() + "') " +
+                logger.debug("    -> ROTADO: La clave '" + key + "' (que coincidía con el nuevo tema '" + temaNuevo.nombreInterno() + "') " +
                                    "ahora tiene el color del tema anterior '" + temaAnterior.nombreInterno() + "'.");
                 
                 // Ya hemos hecho el intercambio, no necesitamos seguir buscando.
@@ -145,14 +142,14 @@ public class ConfigApplicationManager {
 
         // Si el bucle termina sin encontrar ninguna coincidencia, significa que todas las
         // ranuras tienen colores personalizados o de otros temas. No hacemos nada.
-        System.out.println("    -> No se encontró ninguna ranura con el color del nuevo tema. No se realizó ninguna rotación.");
+        logger.debug("    -> No se encontró ninguna ranura con el color del nuevo tema. No se realizó ninguna rotación.");
         
     } // --- FIN del metodo rotarColoresDeSlotPorCambioDeTema ---
     
 
     public void restaurarConfiguracionPredeterminada() {
     	
-        System.out.println("--- [ConfigApplicationManager] Restaurando configuración predeterminada... ---");
+        logger.debug("--- [ConfigApplicationManager] Restaurando configuración predeterminada... ---");
         this.config.resetToDefaults();
         aplicarConfiguracionGlobalmente();
         
@@ -163,13 +160,13 @@ public class ConfigApplicationManager {
 
     public void guardarConfiguracionActual() {
     	
-        System.out.println("--- [ConfigApplicationManager] Guardando configuración actual... ---");
+        logger.debug("--- [ConfigApplicationManager] Guardando configuración actual... ---");
         try {
             this.config.guardarConfiguracion(this.config.getConfigMap());
             JFrame mainFrame = registry.get("frame.main");
             JOptionPane.showMessageDialog(mainFrame, "La configuración actual ha sido guardada en config.cfg.", "Configuración Guardada", JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
-        	System.err.println("ERROR CRÍTICO [ConfigApplicationManager]: Fallo al guardar la configuración en el archivo.");
+        	logger.error("ERROR CRÍTICO [ConfigApplicationManager]: Fallo al guardar la configuración en el archivo.");
             e.printStackTrace();
 
             // 2. Para el usuario: Muestra un diálogo de error claro y útil.
@@ -195,9 +192,9 @@ public class ConfigApplicationManager {
     
     private void aplicarConfiguracionAlModelo() {
     	
-        System.out.println("  [ConfigAppManager] Aplicando configuración al Modelo...");
+        logger.debug("  [ConfigAppManager] Aplicando configuración al Modelo...");
         if (this.config == null || this.model == null) {
-            System.err.println("WARN [ConfigAppManager]: No se puede aplicar config al modelo por dependencias nulas.");
+            logger.warn("WARN [ConfigAppManager]: No se puede aplicar config al modelo por dependencias nulas.");
             return;
         }
 
@@ -216,7 +213,7 @@ public class ConfigApplicationManager {
         try {
             modoZoomInicial = servicios.zoom.ZoomModeEnum.valueOf(ultimoModoStr);
         } catch (IllegalArgumentException e) {
-            System.err.println("WARN: Modo de zoom guardado '" + ultimoModoStr + "' no es válido. Usando FIT_TO_SCREEN.");
+            logger.warn("WARN: Modo de zoom guardado '" + ultimoModoStr + "' no es válido. Usando FIT_TO_SCREEN.");
             modoZoomInicial = servicios.zoom.ZoomModeEnum.FIT_TO_SCREEN;
         }
         
@@ -242,19 +239,19 @@ public class ConfigApplicationManager {
             ultimoDisplayMode = VisorModel.DisplayMode.valueOf(ultimoDisplayModeStr);
         } catch (IllegalArgumentException e) {
             // Si el valor en el fichero es inválido o no existe, usa un valor seguro por defecto
-            System.err.println("WARN: DisplayMode guardado '" + ultimoDisplayModeStr + "' no es válido. Usando SINGLE_IMAGE por defecto.");
+            logger.warn("WARN: DisplayMode guardado '" + ultimoDisplayModeStr + "' no es válido. Usando SINGLE_IMAGE por defecto.");
             ultimoDisplayMode = VisorModel.DisplayMode.SINGLE_IMAGE;
         }
         // Llama al nuevo método del modelo para establecer el estado inicial
         model.setInitialDisplayMode(ultimoDisplayMode);
         
-        System.out.println("  -> Configuración del Modelo aplicada.");
+        logger.debug("  -> Configuración del Modelo aplicada.");
     
     } // --- Fin del método aplicarConfiguracionAlModelo ---
 
     
     private void aplicarConfiguracionAlaVista() {
-        System.out.println("  [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...");
+        logger.debug("  [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...");
         
         // La lógica anterior que iteraba sobre view.getBotonesPorNombre() y
         // view.getMenuItemsPorNombre() ahora puede iterar sobre los componentes del registro.
@@ -288,14 +285,14 @@ public class ConfigApplicationManager {
         vista.panels.ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
 
         if (displayPanel != null) {
-            System.out.println("    -> Aplicando estado inicial de fondo a cuadros desde config: " + fondoACuadrosInicial);
+            logger.debug("    -> Aplicando estado inicial de fondo a cuadros desde config: " + fondoACuadrosInicial);
             // 4. Le decimos al panel que establezca su estado inicial.
             //    Si 'fondoACuadrosInicial' es true, se pondrá a cuadros.
             //    Si es false, se pondrá de un color sólido (el del tema actual),
             //    porque la lógica interna del panel se encargará de eso.
             displayPanel.setCheckeredBackground(fondoACuadrosInicial);
         } else {
-            System.err.println("WARN [ConfigAppManager]: No se encontró 'panel.display.imagen' para aplicar el fondo inicial.");
+            logger.warn("WARN [ConfigAppManager]: No se encontró 'panel.display.imagen' para aplicar el fondo inicial.");
         }
         
         if (this.backgroundControlManager != null) {
@@ -303,22 +300,22 @@ public class ConfigApplicationManager {
             this.backgroundControlManager.sincronizarSeleccionConEstadoActual(); 
         }
         
-        System.out.println("    -> Configuración básica de Vista aplicada.");
+        logger.debug("    -> Configuración básica de Vista aplicada.");
         
     } // --- Fin del método aplicarConfiguracionAlaVista ---
 
     
     private void sincronizarUIFinal() {
-        System.out.println("  [ConfigAppManager] Sincronizando UI final...");
+        logger.debug("  [ConfigAppManager] Sincronizando UI final...");
         
         if (actionMap == null || actionMap.isEmpty()) {
-            System.err.println("WARN [ConfigAppManager]: ActionMap vacío, no se puede sincronizar la UI final.");
+            logger.warn("WARN [ConfigAppManager]: ActionMap vacío, no se puede sincronizar la UI final.");
             return;
         }
 
         // --- 1. Sincronizar el estado lógico de TODOS los botones toggle ---
         //    Esto asegura que los botones reflejen el estado cargado desde la config.
-        System.out.println("    -> Sincronizando estado lógico de todos los botones toggle...");
+        logger.debug("    -> Sincronizando estado lógico de todos los botones toggle...");
         for (Action action : actionMap.values()) {
             Object selectedValue = action.getValue(Action.SELECTED_KEY);
             // Comprobamos si la Action tiene un estado de selección booleano.
@@ -327,7 +324,7 @@ public class ConfigApplicationManager {
                 actualizarAspectoBotonToggle(action, (Boolean) selectedValue);
             }
         }
-        System.out.println("    -> Sincronización de estado lógico de toggles completada.");
+        logger.debug("    -> Sincronización de estado lógico de toggles completada.");
 
         // --- 2. Sincronizar estados específicos de la ventana ---
         JFrame mainFrame = registry.get("frame.main");
@@ -349,7 +346,7 @@ public class ConfigApplicationManager {
             mainFrame.repaint();
         }
         
-        System.out.println("  [ConfigAppManager] Sincronización de UI final completada.");
+        logger.debug("  [ConfigAppManager] Sincronización de UI final completada.");
     } // --- Fin del método sincronizarUIFinal ---
     
     
@@ -360,7 +357,7 @@ public class ConfigApplicationManager {
      * por defecto de los otros temas disponibles.
      */
     private void seedInitialCustomColors() {
-        System.out.println("  [ConfigAppManager] Verificando y sembrando colores de fondo por defecto...");
+        logger.debug("  [ConfigAppManager] Verificando y sembrando colores de fondo por defecto...");
 
         // Lista de las claves que vamos a revisar.
         List<String> colorKeys = List.of(
@@ -387,7 +384,7 @@ public class ConfigApplicationManager {
                     // Este es el ÚNICO lugar (fuera de la acción del usuario) donde se escribe en config.
                     config.setColor(key, colorPorDefecto);
                     
-                    System.out.println("    -> SEMBRADO: La clave '" + key + "' se ha inicializado en memoria con el color del tema '" + otrosTemas.get(i).nombreInterno() + "'.");
+                    logger.debug("    -> SEMBRADO: La clave '" + key + "' se ha inicializado en memoria con el color del tema '" + otrosTemas.get(i).nombreInterno() + "'.");
                 }
             }
         }
@@ -489,27 +486,23 @@ public class ConfigApplicationManager {
 
         // --- Lógica de Depuración ---
         String actionCommand = (String) action.getValue(Action.ACTION_COMMAND_KEY);
-        System.out.println("\n--- [ConfigAppManager] Sincronizando estado lógico para Action: " + actionCommand + " ---");
+        logger.debug("\n--- [ConfigAppManager] Sincronizando estado lógico para Action: " + actionCommand + " ---");
         
         // 2. Sincronizar el estado de selección lógico del botón.
         //    Este es el único paso realmente necesario. Al cambiar el estado de
         //    selección, se dispara un repintado y FlatLaf aplicará los colores correctos.
         if (button.isSelected() != isSelected) {
             button.setSelected(isSelected);
-            System.out.println("    -> Estado .isSelected() del botón cambiado a " + isSelected);
+            logger.debug("    -> Estado .isSelected() del botón cambiado a " + isSelected);
         }
-        
-//        button.setBackground(Color.RED);
         
         // Ya no es necesario llamar a button.repaint() aquí, porque setSelected()
         // ya notifica al sistema de repintado.
         
-        System.out.println("--- Fin sincronización lógica para " + actionCommand + " ---\n");
+        logger.debug("--- Fin sincronización lógica para " + actionCommand + " ---");
 
     } // --- Fin del método actualizarAspectoBotonToggle ---
-    
-    
-    
+
     
     /**
      * Inyecta la instancia principal de la vista.
@@ -524,7 +517,7 @@ public class ConfigApplicationManager {
      * Inyecta el mapa de acciones de la aplicación.
      * @param actionMap El mapa de acciones (comando -> Action).
      */
-    public void setActionMap(Map<String, Action> actionMap										) {
+    public void setActionMap(Map<String, Action> actionMap) {
         this.actionMap = Objects.requireNonNull(actionMap);
     } // --- Fin del método setActionMap ---
     
@@ -532,6 +525,7 @@ public class ConfigApplicationManager {
     public void setBackgroundControlManager(BackgroundControlManager backgroundControlManager) {
         this.backgroundControlManager = Objects.requireNonNull(backgroundControlManager);
     }
+    
     
     public void setDisplayModeManager(DisplayModeManager dmm) { this.displayModeManager = dmm; }
     

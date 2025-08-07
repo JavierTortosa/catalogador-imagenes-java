@@ -7,6 +7,10 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
@@ -18,6 +22,8 @@ import modelo.VisorModel.WorkMode;
 
 public class SwitchToVisualizadorAction extends AbstractAction implements ContextSensitiveAction {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 1L;
     
     private final GeneralController generalController;
@@ -33,11 +39,11 @@ public class SwitchToVisualizadorAction extends AbstractAction implements Contex
     @Override
     public void actionPerformed(ActionEvent e) {
         if (generalController == null) {
-            System.err.println("ERROR CRÍTICO [SwitchToVisualizadorAction]: GeneralController es nulo. Esto no debería ocurrir si las dependencias se inyectan correctamente.");
+            logger.error("ERROR CRÍTICO [SwitchToVisualizadorAction]: GeneralController es nulo. Esto no debería ocurrir si las dependencias se inyectan correctamente.");
             return;
         }
         
-        System.out.println("[SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR.");
+        logger.debug("[SwitchToVisualizadorAction] Solicitando cambio al modo VISUALIZADOR.");
         generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
     }
     
@@ -51,7 +57,7 @@ public class SwitchToVisualizadorAction extends AbstractAction implements Contex
     @Override 
     public void updateEnabledState(VisorModel model) { 
         if (model == null) {
-            System.err.println("WARN [SwitchToVisualizadorAction.updateEnabledState]: VisorModel es nulo. No se puede sincronizar el estado.");
+            logger.warn("WARN [SwitchToVisualizadorAction.updateEnabledState]: VisorModel es nulo. No se puede sincronizar el estado.");
             putValue(Action.SELECTED_KEY, false);
             setEnabled(false);
             return;
@@ -66,7 +72,7 @@ public class SwitchToVisualizadorAction extends AbstractAction implements Contex
         putValue(Action.SELECTED_KEY, isSelected);
         // --- FIN MODIFICACIÓN ---
 
-        System.out.println("  [SwitchToVisualizadorAction] Sincronizada acción '" + getValue(Action.NAME) + "'. Seleccionado: " + isSelected);
+        logger.debug("  [SwitchToVisualizadorAction] Sincronizada acción '" + getValue(Action.NAME) + "'. Seleccionado: " + isSelected);
         
         // El botón debe estar habilitado para que los colores de FlatLaf (y nuestro pintado manual) funcionen.
         // Un ButtonGroup gestiona que solo uno esté seleccionado.

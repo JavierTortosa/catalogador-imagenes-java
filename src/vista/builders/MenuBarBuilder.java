@@ -18,6 +18,10 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.actions.config.ToggleToolbarButtonVisibilityAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
@@ -31,6 +35,8 @@ import vista.config.MenuItemType;
 
 
 public class MenuBarBuilder {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     // --- Resultados del Builder ---
     private JMenuBar menuBar;
@@ -74,9 +80,9 @@ public class MenuBarBuilder {
     public void setControllerGlobalActionListener(ActionListener listener) {
         this.controllerGlobalActionListener = listener;
         if (listener != null) {
-            System.out.println("[MenuBarBuilder] ControllerGlobalActionListener establecido: " + listener.getClass().getName());
+            logger.debug("[MenuBarBuilder] ControllerGlobalActionListener establecido: " + listener.getClass().getName());
         } else {
-            System.out.println("[MenuBarBuilder] ADVERTENCIA: ControllerGlobalActionListener establecido a null.");
+            logger.debug("[MenuBarBuilder] ADVERTENCIA: ControllerGlobalActionListener establecido a null.");
         }
     }
 
@@ -105,22 +111,22 @@ public class MenuBarBuilder {
         this.actionMap = Objects.requireNonNull(actionMap, "ActionMap no puede ser null en MenuBarBuilder.buildMenuBar");
 
         // 1.3. Log de inicio del proceso de construcción.
-        System.out.println("--- MenuBarBuilder: Iniciando construcción de JMenuBar ---");
-        System.out.println("  [MenuBarBuilder] ActionMap recibido con " + (this.actionMap != null ? this.actionMap.size() : "null") + " acciones.");
-        System.out.println("  [MenuBarBuilder] controllerGlobalActionListener: " +
+        logger.debug("--- MenuBarBuilder: Iniciando construcción de JMenuBar ---");
+        logger.debug("  [MenuBarBuilder] ActionMap recibido con " + (this.actionMap != null ? this.actionMap.size() : "null") + " acciones.");
+        logger.debug("  [MenuBarBuilder] controllerGlobalActionListener: " +
                            (this.controllerGlobalActionListener != null ? "PRESENTE (" + this.controllerGlobalActionListener.getClass().getSimpleName() + ")" : "AUSENTE"));
 
         // 1.4. Validar la estructura de menú de entrada.
         //      Si no hay definiciones, no se puede construir nada.
         if (menuStructure == null || menuStructure.isEmpty()) {
-            System.err.println("WARN [MenuBarBuilder]: La estructura del menú (menuStructure) está vacía o es nula. Se devolverá una JMenuBar vacía.");
+            logger.warn("WARN [MenuBarBuilder]: La estructura del menú (menuStructure) está vacía o es nula. Se devolverá una JMenuBar vacía.");
             return this.menuBar; // Devolver una barra de menú vacía.
         }
 
         // --- SECCIÓN 2: PROCESAMIENTO DE LOS ELEMENTOS RAÍZ DEL MENÚ ---
         // Los elementos raíz de la `menuStructure` deben ser de tipo `MenuItemType.MAIN_MENU`.
         // Estos corresponden a los menús principales que se añaden directamente a la `JMenuBar`.
-        System.out.println("  [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...");
+        logger.debug("  [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...");
         for (MenuItemDefinition itemDef : menuStructure) {
             // 2.1. Verificar que el tipo del elemento raíz sea MAIN_MENU.
             if (itemDef.tipo() == MenuItemType.MAIN_MENU) {
@@ -133,7 +139,7 @@ public class MenuBarBuilder {
                 processMenuItemDefinition(itemDef, this.menuBar, null, null);
             } else {
                 // 2.3. Log de error si se encuentra un tipo inesperado en el nivel raíz.
-                System.err.println("WARN [MenuBarBuilder]: Se encontró un tipo de ítem inesperado (" + itemDef.tipo() +
+                logger.warn("WARN [MenuBarBuilder]: Se encontró un tipo de ítem inesperado (" + itemDef.tipo() +
                                    ") en el nivel superior de la estructura del menú. Se esperaba MAIN_MENU. " +
                                    "Texto del ítem: '" + itemDef.textoMostrado() + "'. Este ítem será ignorado en el nivel raíz.");
             }
@@ -141,16 +147,16 @@ public class MenuBarBuilder {
 
         // --- SECCIÓN 3: FINALIZACIÓN Y RETORNO ---
         // 3.1. Log de finalización del proceso.
-        System.out.println("--- MenuBarBuilder: Construcción de JMenuBar completada. ---");
-        System.out.println("  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: " + this.menuItemsPorNombre.size());
+        logger.debug("--- MenuBarBuilder: Construcción de JMenuBar completada. ---");
+        logger.debug("  [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: " + this.menuItemsPorNombre.size());
 
         // 3.2. Devolver la JMenuBar completamente construida.
         
         // Usamos una clave estándar para la barra de menú principal.
         this.registry.register("menubar.main", this.menuBar);
-        System.out.println("  [MenuBarBuilder] JMenuBar registrada en ComponentRegistry con la clave 'menubar.main'.");
+        logger.debug("  [MenuBarBuilder] JMenuBar registrada en ComponentRegistry con la clave 'menubar.main'.");
 
-        System.out.println("--- MenuBarBuilder: Construcción de JMenuBar completada. ---");
+        logger.debug("--- MenuBarBuilder: Construcción de JMenuBar completada. ---");
         return this.menuBar;
         
     } // --- FIN del método buildMenuBar ---
@@ -178,7 +184,7 @@ public class MenuBarBuilder {
         // 1.1. Generar la clave larga de configuración para este ítem.
         //      Esta clave se usa para el mapa `menuItemsPorNombre` y potencialmente para logs.
         String fullConfigKey = generateFullConfigKey(itemDef, parentContainer); 
-        // System.out.println("  [ProcessDef] Procesando: " + itemDef.textoMostrado() + " (Tipo: " + itemDef.tipo() + ", Clave: " + fullConfigKey + ")"); // Log detallado opcional
+        // logger.debug("  [ProcessDef] Procesando: " + itemDef.textoMostrado() + " (Tipo: " + itemDef.tipo() + ", Clave: " + fullConfigKey + ")"); // Log detallado opcional
 
         // --- 2. CREACIÓN DEL COMPONENTE SWING SEGÚN MenuItemType ---
         switch (itemDef.tipo()) {
@@ -324,7 +330,7 @@ public class MenuBarBuilder {
                 if (currentButtonGroup != null) {
                     currentButtonGroup.add(radioItem);
                 } else {
-                    System.err.println("WARN [MenuBarBuilder]: JRadioButtonMenuItem '" + itemDef.textoMostrado() +
+                    logger.warn("WARN [MenuBarBuilder]: JRadioButtonMenuItem '" + itemDef.textoMostrado() +
                                        "' creado sin un ButtonGroup activo. ¿Falta un RADIO_GROUP_START en la definición?");
                 }
                 // 2.5.3. Añadir al contenedor padre.
@@ -339,7 +345,7 @@ public class MenuBarBuilder {
                 if (parentContainer instanceof JMenu) {
                     ((JMenu) parentContainer).addSeparator();
                 } else {
-                    System.err.println("WARN [MenuBarBuilder]: SEPARATOR definido fuera de un JMenu. Contenedor padre: " +
+                    logger.warn("WARN [MenuBarBuilder]: SEPARATOR definido fuera de un JMenu. Contenedor padre: " +
                                        (parentContainer != null ? parentContainer.getClass().getName() : "null"));
                 }
                 // 2.6.2. No se crea un `menuItemComponent` ni se registra. Salir.
@@ -349,27 +355,27 @@ public class MenuBarBuilder {
                 // 2.7.1. Iniciar un nuevo ButtonGroup.
                 //        Si ya existía uno, se reemplaza (podría indicar un error en la definición del menú).
                 if (currentButtonGroup != null) {
-                    System.err.println("WARN [MenuBarBuilder]: Se encontró RADIO_GROUP_START pero ya había un ButtonGroup activo. Se reemplazará el grupo anterior.");
+                    logger.warn("WARN [MenuBarBuilder]: Se encontró RADIO_GROUP_START pero ya había un ButtonGroup activo. Se reemplazará el grupo anterior.");
                 }
                 currentButtonGroup = new ButtonGroup();
-                // System.out.println("  [ProcessDef] ButtonGroup INICIADO."); // Log opcional
+                // logger.debug("  [ProcessDef] ButtonGroup INICIADO."); // Log opcional
                 // 2.7.2. No es un componente visible. Salir.
                 return; // Salir del método para RADIO_GROUP_START
 
             case RADIO_GROUP_END:
                 // 2.8.1. Finalizar (anular) el ButtonGroup actual.
                 if (currentButtonGroup == null) {
-                    System.err.println("WARN [MenuBarBuilder]: Se encontró RADIO_GROUP_END sin un ButtonGroup activo. ¿Definición de menú incorrecta?");
+                    logger.warn("WARN [MenuBarBuilder]: Se encontró RADIO_GROUP_END sin un ButtonGroup activo. ¿Definición de menú incorrecta?");
                 }
                 currentButtonGroup = null;
-                // System.out.println("  [ProcessDef] ButtonGroup FINALIZADO."); // Log opcional
+                // logger.debug("  [ProcessDef] ButtonGroup FINALIZADO."); // Log opcional
                 // 2.8.2. No es un componente visible. Salir.
                 return; // Salir del método para RADIO_GROUP_END
 
             
             default:
                 // 2.9. Manejar tipos de ítem desconocidos o no soportados.
-                System.err.println("ERROR [MenuBarBuilder]: Tipo de MenuItemDefinition no reconocido o no manejado: " +
+                logger.error("ERROR [MenuBarBuilder]: Tipo de MenuItemDefinition no reconocido o no manejado: " +
                                    itemDef.tipo() + " para el ítem con texto: '" + itemDef.textoMostrado() + "'. Ítem ignorado.");
                 return; // Salir si el tipo no se reconoce
         } // Fin del switch sobre itemDef.tipo()
@@ -382,7 +388,7 @@ public class MenuBarBuilder {
         if (menuItemComponent != null && fullConfigKey != null && !fullConfigKey.isEmpty()) {
             // Antes de añadir, verificar si la clave ya existe (no debería si las claves son únicas)
             if (this.menuItemsPorNombre.containsKey(fullConfigKey)) {
-                System.err.println("WARN [MenuBarBuilder]: Clave de configuración duplicada encontrada: '" + fullConfigKey +
+                logger.warn("WARN [MenuBarBuilder]: Clave de configuración duplicada encontrada: '" + fullConfigKey +
                                    "'. El ítem anterior será sobrescrito en el mapa. Item nuevo: " + menuItemComponent.getText());
             }
             this.menuItemsPorNombre.put(fullConfigKey, menuItemComponent);
@@ -393,7 +399,7 @@ public class MenuBarBuilder {
             // No imprimir para tipos que intencionalmente no tienen clave (como JMenu que usa su ActionCommand)
             // Los tipos SEPARATOR, RADIO_GROUP_START, RADIO_GROUP_END ya retornan antes.
             if (!(menuItemComponent instanceof JMenu)) { // JMenu usa su ActionCommand como clave
-                 System.err.println("WARN [MenuBarBuilder]: JMenuItem creado '" + menuItemComponent.getText() +
+                 logger.warn("WARN [MenuBarBuilder]: JMenuItem creado '" + menuItemComponent.getText() +
                                    "' (" + itemDef.tipo() + ") no tiene una clave de configuración generada y no será mapeado.");
             }
         }
@@ -411,11 +417,11 @@ public class MenuBarBuilder {
     private void assignActionOrCommand(JMenuItem item, MenuItemDefinition itemDef) {
         // --- 1. VALIDACIONES BÁSICAS ---
         if (item == null) {
-            System.err.println("ERROR [assignActionOrCommand]: El JMenuItem es null.");
+            logger.error("ERROR [assignActionOrCommand]: El JMenuItem es null.");
             return;
         }
         if (itemDef == null) {
-            System.err.println("ERROR [assignActionOrCommand]: La MenuItemDefinition es null para el item: " + item.getText());
+            logger.error("ERROR [assignActionOrCommand]: La MenuItemDefinition es null para el item: " + item.getText());
             // Intentar poner el texto si el itemDef es null pero el item no lo es (caso raro)
             if (item.getText() == null || item.getText().isEmpty()) item.setText("(Definición Nula)");
             return;
@@ -466,7 +472,7 @@ public class MenuBarBuilder {
                 if (this.controllerGlobalActionListener != null && !(item instanceof JMenu)) {
                     item.addActionListener(this.controllerGlobalActionListener);
                 } else if (this.controllerGlobalActionListener == null && !(item instanceof JMenu)) {
-                    System.err.println("WARN [AssignActCmd]: controllerGlobalActionListener ES NULL. No se pudo añadir listener a JMenuItem: " +
+                    logger.warn("WARN [AssignActCmd]: controllerGlobalActionListener ES NULL. No se pudo añadir listener a JMenuItem: " +
                                        item.getText() + " (Comando: " + comandoOClave + "). Este ítem no funcionará.");
                 }
             }
@@ -496,12 +502,12 @@ public class MenuBarBuilder {
         // --- 1. VALIDACIÓN DE ENTRADAS ---
         // 1.1. Verificar que el ítem a añadir no sea null.
         if (item == null) {
-            System.err.println("ERROR [addMenuItemToParent]: Se intentó añadir un JMenuItem nulo. Operación cancelada.");
+            logger.error("ERROR [addMenuItemToParent]: Se intentó añadir un JMenuItem nulo. Operación cancelada.");
             return;
         }
         // 1.2. Verificar que el contenedor padre no sea null.
         if (parentContainer == null) {
-            System.err.println("ERROR [addMenuItemToParent]: Se intentó añadir JMenuItem '" + item.getText() +
+            logger.error("ERROR [addMenuItemToParent]: Se intentó añadir JMenuItem '" + item.getText() +
                                "' a un contenedor padre nulo. Operación cancelada.");
             return;
         }
@@ -519,7 +525,7 @@ public class MenuBarBuilder {
             if (item instanceof JMenu) { // Solo añadir JMenu directamente a JMenuBar
                 ((JMenuBar) parentContainer).add((JMenu)item);
             } else {
-                System.err.println("WARN [addMenuItemToParent]: Se intentó añadir un JMenuItem que no es JMenu ('" +
+                logger.warn("WARN [addMenuItemToParent]: Se intentó añadir un JMenuItem que no es JMenu ('" +
                                    item.getText() + "') directamente a una JMenuBar. Esto es inusual.");
                 // Podríamos decidir añadirlo de todas formas, o no. Por ahora, lo permitimos.
                 // ((JMenuBar) parentContainer).add(item); // Si quieres permitirlo
@@ -528,7 +534,7 @@ public class MenuBarBuilder {
         // 2.3. Si el contenedor padre no es ni JMenu ni JMenuBar, es un error de lógica
         //      en cómo se está llamando a este método.
         else {
-            System.err.println("ERROR [addMenuItemToParent]: Contenedor padre de tipo inesperado para JMenuItem '" +
+            logger.error("ERROR [addMenuItemToParent]: Contenedor padre de tipo inesperado para JMenuItem '" +
                                item.getText() + "'. Tipo de padre: " + parentContainer.getClass().getName() +
                                ". Se esperaba JMenu o JMenuBar.");
         }

@@ -16,6 +16,10 @@ import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
@@ -28,6 +32,8 @@ import vista.theme.ThemeManager;
 
 public class ProjectBuilder implements ThemeChangeListener{
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private final ComponentRegistry registry;
     private final VisorModel model;
     private final ThemeManager themeManager;
@@ -49,7 +55,7 @@ public class ProjectBuilder implements ThemeChangeListener{
      * @return Un JPanel configurado con la nueva estructura de Dashboard.
      */
     public JPanel buildProjectViewPanel() {
-        System.out.println("  [ProjectBuilder] Construyendo el panel del modo proyecto (Dashboard)...");
+        logger.info("  [ProjectBuilder] Construyendo el panel del modo proyecto (Dashboard)...");
 
         // --- 1. Panel Raíz de la Vista Proyecto ---
         // Este es el panel que se añadirá al CardLayout principal. Usa BorderLayout.
@@ -110,7 +116,7 @@ public class ProjectBuilder implements ThemeChangeListener{
         // --- 6. Añadir la estructura completa al panel raíz ---
         panelProyectoRaiz.add(mainSplit, BorderLayout.CENTER);
         
-        System.out.println("  [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.");
+        logger.info("  [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.");
         
         return panelProyectoRaiz;
     } // --- Fin del método buildProjectViewPanel ---
@@ -147,7 +153,7 @@ public class ProjectBuilder implements ThemeChangeListener{
             // Se le asigna el listener a la lista.
             projectFileList.addMouseListener(createContextMenuListener(projectFileList, moveToDiscardsAction));
         } else {
-             System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_MOVER_A_DESCARTES en el ActionFactory.");
+             logger.error("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_MOVER_A_DESCARTES en el ActionFactory.");
         }
 
         JScrollPane scrollPane = new JScrollPane(projectFileList);
@@ -194,10 +200,10 @@ public class ProjectBuilder implements ThemeChangeListener{
             ));
         } else {
             if (restoreFromDiscardsAction == null) {
-                System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_RESTAURAR_DE_DESCARTES.");
+                logger.warn("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_RESTAURAR_DE_DESCARTES.");
             }
             if (deleteFromProjectAction == null) {
-                System.err.println("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE.");
+                logger.warn("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE.");
             }
         }        
         
@@ -215,7 +221,7 @@ public class ProjectBuilder implements ThemeChangeListener{
         registry.register("panel.proyecto.herramientas.exportar", panelExportar);
         
         registry.register("panel.proyecto.exportacion", panelExportar);
-        System.out.println("  -> Panel de exportación registrado con la clave 'panel.proyecto.exportacion' para el refresco del tema.");
+        logger.debug("  -> Panel de exportación registrado con la clave 'panel.proyecto.exportacion' para el refresco del tema.");
         
         JTable tablaExportacion = panelExportar.getTablaExportacion();
         if (tablaExportacion != null) {
@@ -253,7 +259,7 @@ public class ProjectBuilder implements ThemeChangeListener{
         herramientasTabbedPane.addChangeListener(e -> {
             // Comprobamos si la pestaña recién seleccionada es la de "Exportar"
             if (herramientasTabbedPane.getSelectedIndex() == 1) { // El índice 1 corresponde a "Exportar"
-                System.out.println("[ChangeListener] Pestaña 'Exportar' seleccionada. Solicitando preparación de cola...");
+                logger.debug("[ChangeListener] Pestaña 'Exportar' seleccionada. Solicitando preparación de cola...");
                 // Llamamos directamente al método del controlador
                 generalController.getProjectController().solicitarPreparacionColaExportacion();
             }
@@ -266,7 +272,7 @@ public class ProjectBuilder implements ThemeChangeListener{
     
     @Override
     public void onThemeChanged(Tema nuevoTema) {
-        System.out.println("--- [ProjectBuilder] Reaccionando al cambio de tema...");
+        logger.info("--- [ProjectBuilder] Reaccionando al cambio de tema...");
         if (registry == null) return;
         
         SwingUtilities.invokeLater(() -> {

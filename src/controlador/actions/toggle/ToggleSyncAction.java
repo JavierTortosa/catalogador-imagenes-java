@@ -8,12 +8,18 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.GeneralController;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 
 public class ToggleSyncAction extends AbstractAction {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     /**
 	 * 
@@ -54,7 +60,7 @@ public class ToggleSyncAction extends AbstractAction {
 
         if (respuesta == JOptionPane.YES_OPTION) {
             // El usuario confirmó: cambiamos el estado y notificamos a todos.
-            System.out.println("[ToggleSyncAction] El usuario ha confirmado el cambio. Nuevo estado: " + (estadoDeseado ? "ACTIVADO" : "DESACTIVADO"));
+            logger.debug("[ToggleSyncAction] El usuario ha confirmado el cambio. Nuevo estado: " + (estadoDeseado ? "ACTIVADO" : "DESACTIVADO"));
             model.setSyncVisualizadorCarrusel(estadoDeseado);
             configuration.setString(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, String.valueOf(estadoDeseado));
             generalController.notificarAccionesSensiblesAlContexto();

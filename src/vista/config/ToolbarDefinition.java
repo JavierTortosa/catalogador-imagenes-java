@@ -6,6 +6,7 @@ import java.util.Set;
 import modelo.VisorModel.WorkMode;
 
 public record ToolbarDefinition(
+		
     String claveBarra,
     String titulo,
     int orden,

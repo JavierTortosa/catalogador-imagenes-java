@@ -1,0 +1,31 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        
+        <!-- Le decimos a Logback que use la librería Jansi para asegurar que los colores funcionen siempre -->
+        <target>System.out</target>
+        
+        <encoder>
+            <!-- 
+                Este es el patrón completo para colorear toda la línea.
+                Define el color para cada nivel de log: ERROR en rojo, WARN en amarillo, etc.
+            -->
+            <pattern>%highlight(%-5level %logger{36} - %msg%n){ERROR=red, WARN=yellow, INFO=blue, DEBUG=cyan, TRACE=white}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- 
+        El logger raíz, que captura todos los logs desde el nivel DEBUG hacia arriba
+        y los envía al único appender que hemos definido.
+        
+        Si pones level="DEBUG", se muestra todo (DEBUG, INFO, WARN, ERROR).
+		Si pones level="INFO", solo se muestra INFO, WARN, y ERROR.
+		Si pones level="WARN", solo se muestra WARN y ERROR.
+		Si pones level="ERROR", solo se muestra ERROR.
+		Si pones level="OFF", no se muestra absolutamente nada.
+    -->
+    <root level="DEBUG">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+</configuration>

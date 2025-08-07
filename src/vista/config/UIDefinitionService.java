@@ -5,11 +5,18 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.commands.AppActionCommands;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 
 public class UIDefinitionService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
 
     public List<MenuItemDefinition> generateMenuStructure() {
     	List<MenuItemDefinition> menuBarStructure = new ArrayList<>();
@@ -66,19 +73,8 @@ public class UIDefinitionService {
             		MenuItemType.ITEM, "Ir a...", null),
             new MenuItemDefinition(AppActionCommands.CMD_NAV_BUSCAR, 
             		MenuItemType.ITEM, "Buscar...", null)
-            
-//            new MenuItemDefinition(null, 
-//            		MenuItemType.SEPARATOR, null, null),
-//            new MenuItemDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ANTERIOR, 
-//            		MenuItemType.ITEM, "Anterior Fotograma (GIF)", null),
-//            new MenuItemDefinition(AppActionCommands.CMD_CAROUSEL_NAV_SIGUIENTE, 
-//            		MenuItemType.ITEM, "Siguiente Fotograma (GIF)", null),
-//            new MenuItemDefinition(AppActionCommands.CMD_CAROUSEL_NAV_PRIMERA, 
-//            		MenuItemType.ITEM, "Primer Fotograma (GIF)", null),
-//            new MenuItemDefinition(AppActionCommands.CMD_CAROUSEL_NAV_ULTIMA, 
-//            		MenuItemType.ITEM, "Último Fotograma (GIF)", null)
-            
         );
+        
         menuBarStructure.add(new MenuItemDefinition(null, 
         		MenuItemType.MAIN_MENU, "Navegación", navSubItems));
 

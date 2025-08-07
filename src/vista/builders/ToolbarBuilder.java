@@ -19,6 +19,10 @@ import javax.swing.JComponent;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.utils.ComponentRegistry;
 import servicios.ConfigKeys;
@@ -37,6 +41,8 @@ import vista.util.IconUtils;
 
 
 public class ToolbarBuilder {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     private Map<String, Action> actionMap;
     private final ThemeManager themeManager;
@@ -59,7 +65,9 @@ public class ToolbarBuilder {
             int iconoAlto,
             ComponentRegistry registry 
     ) {
-        System.out.println("[ToolbarBuilder Constructor] Iniciando...");
+    	
+        logger.debug("[ToolbarBuilder Constructor] Iniciando...");
+        
         this.themeManager = Objects.requireNonNull(themeManager);
         this.iconUtils = Objects.requireNonNull(iconUtils);
         this.controllerRef = Objects.requireNonNull(controller);
@@ -71,12 +79,13 @@ public class ToolbarBuilder {
         this.actionMap = new HashMap<>();
         this.botonesPorNombre = new HashMap<>();
         
-        System.out.println("[ToolbarBuilder Constructor] Finalizado.");
+        logger.debug("[ToolbarBuilder Constructor] Finalizado.");
+        
     } // --- Fin del método ToolbarBuilder (constructor) ---
 
     
     public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) { 
-        System.out.println("\n--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
+        logger.info("--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
         
         final JToolBar toolbar = new JToolBar(toolbarDef.titulo());
         toolbar.setName(toolbarDef.claveBarra());
@@ -93,7 +102,7 @@ public class ToolbarBuilder {
         if (groupToolbarKeys.contains(toolbarDef.claveBarra())) {
             group = new ButtonGroup();
             this.radioGroups.put(toolbarDef.claveBarra(), group);
-            System.out.println("    -> Creado ButtonGroup para la barra: '" + toolbarDef.claveBarra() + "'");
+            logger.debug("    -> Creado ButtonGroup para la barra: '" + toolbarDef.claveBarra() + "'");
         }
 
         if (toolbarDef.componentes() != null) {
@@ -108,7 +117,7 @@ public class ToolbarBuilder {
                     	toolbar.add(componenteBoton);
                     	if (group != null && componenteBoton instanceof JToggleButton) {
                     		group.add((JToggleButton) componenteBoton);
-                    		System.out.println("      -> Botón Toggle '" + botonDef.comandoCanonico() + "' añadido al ButtonGroup.");
+                    		logger.debug("      -> Botón Toggle '" + botonDef.comandoCanonico() + "' añadido al ButtonGroup.");
                         }
                     }
                 } else if (compDef instanceof LabelDefinition labelDef) {
@@ -121,12 +130,12 @@ public class ToolbarBuilder {
                     registry.register(labelDef.id(), speedLabel);
                     
                     toolbar.add(speedLabel);
-                    System.out.println("    -> JLabel '" + labelDef.id() + "' añadido a la barra.");
+                    logger.debug("    -> JLabel '" + labelDef.id() + "' añadido a la barra.");
 
                 } else if (compDef instanceof SeparatorDefinition) {
                     // Si es un separador, añadimos uno
                     toolbar.addSeparator();
-                    System.out.println("    -> Separador añadido a la barra.");
+                    logger.debug("    -> Separador añadido a la barra.");
                 }
             }
         }
@@ -141,7 +150,7 @@ public class ToolbarBuilder {
     	
         // --- 1. VALIDACIONES INICIALES ---
         if (definition == null || definition.comandoCanonico() == null) {
-            System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: Definición de botón o comando canónico es nulo.");
+            logger.error("ERROR [ToolbarBuilder.crearComponenteIndividual]: Definición de botón o comando canónico es nulo.");
             return null;
         }
 
@@ -201,7 +210,7 @@ public class ToolbarBuilder {
                 break; // Se manejan después
 
             default:
-                System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: Tipo de botón no reconocido: " + definition.tipoBoton());
+                logger.error("ERROR [ToolbarBuilder.crearComponenteIndividual]: Tipo de botón no reconocido: " + definition.tipoBoton());
                 abstractButtonComponent = new JButton();
                 break;
         }
@@ -220,9 +229,6 @@ public class ToolbarBuilder {
             abstractButtonComponent.setText(null);
 
             
-            
-            // --- INICIO DE LA LÓGICA DE ICONOS CORREGIDA ---
-            
             // 1. Obtener SIEMPRE el icono FRESCO desde IconUtils, ignorando el que pueda tener la Action.
             //    Esto asegura que usamos el icono del tema actual, ya que IconUtils depende de ThemeManager.
             Icon finalIcon = null;
@@ -237,22 +243,6 @@ public class ToolbarBuilder {
             if (finalIcon != null) {
                 abstractButtonComponent.setIcon(finalIcon);
             }
-            
-            // --- FIN DE LA LÓGICA DE ICONOS CORREGIDA ---
-            
-            
-//            Icon finalIcon = null;
-//            if (associatedAction != null && associatedAction.getValue(Action.SMALL_ICON) != null) {
-//                finalIcon = (Icon) associatedAction.getValue(Action.SMALL_ICON);
-//            } else if (definition.claveIcono() != null && !definition.claveIcono().isBlank()) {
-//                finalIcon = (definition.scopeIconoBase() == IconScope.COMMON)
-//                    ? this.iconUtils.getScaledCommonIcon(definition.claveIcono(), targetIconWidth, targetIconHeight)
-//                    : this.iconUtils.getScaledIcon(definition.claveIcono(), targetIconWidth, targetIconHeight);
-//            }
-//            abstractButtonComponent.setIcon(finalIcon);
-            
-            
-            
             
             // Asignar iconos especiales a los botones de color/cuadros
             if (definition.tipoBoton() == ButtonType.COLOR_OVERLAY_ICON_BUTTON) {
@@ -279,18 +269,18 @@ public class ToolbarBuilder {
             finalComponent = abstractButtonComponent;
 
         } else if (definition.tipoBoton() == ButtonType.DPAD_CRUZ || definition.tipoBoton() == ButtonType.DPAD_GRID) {
-            System.out.println("[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: " + definition.tipoBoton());
+            logger.debug("[ToolbarBuilder.crearComponenteIndividual] Construyendo DPadComponent para tipo: " + definition.tipoBoton());
             final int DPAD_DISPLAY_SIZE = 32;
 
             if (definition.listaDeHotspots() == null || definition.listaDeHotspots().isEmpty()) {
-                System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: La definición de DPAD_CRUZ/GRID no contiene una lista de hotspots.");
+                logger.error("ERROR [ToolbarBuilder.crearComponenteIndividual]: La definición de DPAD_CRUZ/GRID no contiene una lista de hotspots.");
                 return new JButton("Error D-Pad");
             }
             
             Image dpadBaseImage = (definition.scopeIconoBase() == IconScope.COMMON)
                                 ? iconUtils.getRawCommonImage(definition.claveIcono())
                                 : iconUtils.getRawIcon(definition.claveIcono());
-            Image pressedImage = iconUtils.getRawCommonImage("d-Pad_all_48x48.png"); //FIXME cambiar este icono por el de UIDefinitionService 
+            Image pressedImage = iconUtils.getRawCommonImage("d-pad_all_48x48.png"); //FIXME cambiar este icono por el de UIDefinitionService 
             
             List<String> hotspotKeys = new ArrayList<>();
             List<Image> hoverImages = new ArrayList<>();
@@ -324,7 +314,7 @@ public class ToolbarBuilder {
             		);
             this.registry.register(dpadClave, finalComponent);
         } else {
-            System.err.println("ERROR [ToolbarBuilder.crearComponenteIndividual]: No se pudo crear componente. Tipo no manejado: " + definition.tipoBoton());
+            logger.error("ERROR [ToolbarBuilder.crearComponenteIndividual]: No se pudo crear componente. Tipo no manejado: " + definition.tipoBoton());
             return null;
         }
 

@@ -12,15 +12,21 @@ import java.util.Objects;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-import servicios.ConfigKeys; // <--- NUEVO: Import para las claves de configuración
-import servicios.ConfigurationManager; // <--- NUEVO: Import para leer la configuración
-import servicios.cache.LruCache; // <--- NUEVO: Importamos nuestra clase de caché
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+import servicios.ConfigKeys; 
+import servicios.ConfigurationManager; 
+import servicios.cache.LruCache; 
 
 /**
  * Servicio encargado de gestionar la creación, escalado y caché 
  * de las miniaturas (thumbnails) de las imágenes.
  */
 public class ThumbnailService {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     private final Map<String, ImageIcon> mapaMiniaturasCacheadas; 
 
@@ -42,7 +48,7 @@ public class ThumbnailService {
         // Inicializamos el mapa caché como una instancia de LruCache.
         this.mapaMiniaturasCacheadas = new LruCache<>(tamanoMaximoCache);
         
-        System.out.println("[ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de " + tamanoMaximoCache + " entradas.");
+        logger.debug("[ThumbnailService] Servicio inicializado. LruCache de miniaturas creado con un tamaño máximo de " + tamanoMaximoCache + " entradas.");
     } // --- Fin del método ThumbnailService (constructor) ---
     
     /**
@@ -69,7 +75,7 @@ public class ThumbnailService {
         Objects.requireNonNull(claveUnica, "La clave única no puede ser nula para obtenerOCrearMiniatura.");
 
         if (anchoObjetivo <= 0) {
-            System.err.println("[ThumbnailService] ERROR: anchoObjetivo debe ser > 0. Recibido: " + anchoObjetivo + " para clave: " + claveUnica);
+            logger.error("[ThumbnailService] ERROR: anchoObjetivo debe ser > 0. Recibido: " + anchoObjetivo + " para clave: " + claveUnica);
             return null;
         }
 
@@ -79,7 +85,7 @@ public class ThumbnailService {
                 (altoObjetivo <= 0 || miniaturaCacheada.getIconHeight() == altoObjetivo)) {
                 return miniaturaCacheada;
             } else {
-                System.out.println("[ThumbnailService] INFO: Miniatura NORMAL en caché para '" + claveUnica +
+                logger.debug("[ThumbnailService] INFO: Miniatura NORMAL en caché para '" + claveUnica +
                                    "' tenía un tamaño diferente al solicitado. Se regenerará.");
             }
         }
@@ -87,14 +93,14 @@ public class ThumbnailService {
         BufferedImage imagenOriginal = null;
         try {
             if (!Files.exists(rutaArchivo)) {
-                System.err.println("[ThumbnailService] ERROR: El archivo de imagen original no existe en la ruta: " + rutaArchivo);
+                logger.error("[ThumbnailService] ERROR: El archivo de imagen original no existe en la ruta: " + rutaArchivo);
                 return null;
             }
 
             imagenOriginal = ImageIO.read(rutaArchivo.toFile());
 
             if (imagenOriginal == null) {
-                System.err.println("[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: " + rutaArchivo);
+                logger.error("[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: " + rutaArchivo);
                 return null;
             }
 
@@ -103,7 +109,7 @@ public class ThumbnailService {
 
             if (altoObjetivo <= 0) {
                 if (imagenOriginal.getWidth() == 0) {
-                    System.err.println("[ThumbnailService] WARN: La imagen original tiene ancho 0. Usando alto original o 1. Para: " + rutaArchivo);
+                    logger.warn("[ThumbnailService] WARN: La imagen original tiene ancho 0. Usando alto original o 1. Para: " + rutaArchivo);
                     altoFinalMiniatura = Math.max(1, imagenOriginal.getHeight() > 0 ? imagenOriginal.getHeight() : 1);
                 } else {
                     double ratio = (double) anchoFinalMiniatura / imagenOriginal.getWidth();
@@ -142,19 +148,19 @@ public class ThumbnailService {
             return miniaturaResultante;
 
         } catch (IOException e) {
-            System.err.println("[ThumbnailService] ERROR DE E/S al procesar la imagen: " + rutaArchivo + ". Mensaje: " + e.getMessage());
+            logger.error("[ThumbnailService] ERROR DE E/S al procesar la imagen: " + rutaArchivo + ". Mensaje: " + e.getMessage());
             return null;
         } catch (OutOfMemoryError oom) {
-            System.err.println("[ThumbnailService] ERROR CRÍTICO: Falta de memoria (OutOfMemoryError) al procesar la imagen: " + rutaArchivo);
+            logger.error("[ThumbnailService] ERROR CRÍTICO: Falta de memoria (OutOfMemoryError) al procesar la imagen: " + rutaArchivo);
             limpiarCache();
             return null;
         } catch (IllegalArgumentException iae) {
-            System.err.println("[ThumbnailService] ERROR DE ARGUMENTO ILEGAL al procesar: " + rutaArchivo + ". Mensaje: " + iae.getMessage());
+            logger.error("[ThumbnailService] ERROR DE ARGUMENTO ILEGAL al procesar: " + rutaArchivo + ". Mensaje: " + iae.getMessage());
             iae.printStackTrace();
             return null;
         }
         catch (Exception e) {
-            System.err.println("[ThumbnailService] ERROR INESPERADO al crear miniatura para: " + rutaArchivo + ". Mensaje: " + e.getMessage());
+            logger.error("[ThumbnailService] ERROR INESPERADO al crear miniatura para: " + rutaArchivo + ". Mensaje: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
@@ -162,12 +168,12 @@ public class ThumbnailService {
 
     public void limpiarCache() {
         mapaMiniaturasCacheadas.clear();
-        System.out.println("[ThumbnailService] Caché de miniaturas limpiado.");
+        logger.debug("[ThumbnailService] Caché de miniaturas limpiado.");
     } // --- Fin del método limpiarCache ---
 
     public void eliminarDelCache(String claveUnica) {
         if (mapaMiniaturasCacheadas.remove(claveUnica) != null) {
-            // System.out.println("[ThumbnailService] Miniatura eliminada del caché: " + claveUnica);
+            // logger.debug("[ThumbnailService] Miniatura eliminada del caché: " + claveUnica);
         }
     } // --- Fin del método eliminarDelCache ---
     

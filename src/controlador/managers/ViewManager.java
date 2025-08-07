@@ -18,6 +18,10 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.actions.config.SetInfoBarTextFormatAction;
 import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IViewManager;
@@ -33,6 +37,8 @@ import vista.theme.ThemeManager;
 
 public class ViewManager implements IViewManager, ThemeChangeListener {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private VisorView view;
     private ConfigurationManager configuration;
     private ComponentRegistry registry;
@@ -65,19 +71,19 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
      */
     public void setFullScreen(boolean fullScreenState) {
         if (view == null) {
-            System.err.println("ERROR [ViewManager.setFullScreen]: La vista (JFrame) es nula.");
+            logger.error("ERROR [ViewManager.setFullScreen]: La vista (JFrame) es nula.");
             return;
         }
 
         GraphicsDevice device = view.getGraphicsConfiguration().getDevice();
         
-        System.out.println("  [ViewManager] Ejecutando cambio a pantalla completa. Estado solicitado: " + (fullScreenState ? "ACTIVADO" : "DESACTIVADO"));
+        logger.debug("  [ViewManager] Ejecutando cambio a pantalla completa. Estado solicitado: " + (fullScreenState ? "ACTIVADO" : "DESACTIVADO"));
 
         // Comprobar si el cambio es realmente necesario para evitar trabajo extra.
         // device.getFullScreenWindow() devuelve la ventana actual en pantalla completa, o null si no hay ninguna.
         boolean isCurrentlyFullScreen = (device.getFullScreenWindow() == view);
         if (isCurrentlyFullScreen == fullScreenState) {
-            System.out.println("  -> La ventana ya está en el estado solicitado. No se realiza ninguna acción.");
+            logger.debug("  -> La ventana ya está en el estado solicitado. No se realiza ninguna acción.");
             return;
         }
 
@@ -106,10 +112,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
      */
     @Override
     public void setComponentePrincipalVisible(String identificadorComponente, boolean nuevoEstadoVisible, String configKeyParaEstado) {
-        System.out.println("[ViewManager] setComponentePrincipalVisible: " + identificadorComponente + " -> " + nuevoEstadoVisible);
+        logger.debug("[ViewManager] setComponentePrincipalVisible: " + identificadorComponente + " -> " + nuevoEstadoVisible);
 
         if (view == null || configuration == null) {
-            System.err.println("ERROR [ViewManager]: Vista o Configuración nulas.");
+            logger.error("ERROR [ViewManager]: Vista o Configuración nulas.");
             return;
         }
 
@@ -151,17 +157,17 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
                         cambioRealizadoEnVista = true;
                     }
                 } else {
-                    System.err.println("WARN [ViewManager]: 'scroll.miniaturas' no encontrado en el registro.");
+                    logger.warn("WARN [ViewManager]: 'scroll.miniaturas' no encontrado en el registro.");
                 }
                 break;
             default:
-                System.err.println("WARN [ViewManager]: Identificador de componente no manejado: '" + identificadorComponente + "'");
+                logger.warn("WARN [ViewManager]: Identificador de componente no manejado: '" + identificadorComponente + "'");
                 return;
         }
 
         if (configKeyParaEstado != null && !configKeyParaEstado.isBlank()) {
             configuration.setString(configKeyParaEstado, String.valueOf(nuevoEstadoVisible));
-            System.out.println("  -> [ViewManager] Configuración '" + configKeyParaEstado + "' actualizada a: " + nuevoEstadoVisible);
+            logger.debug("  -> [ViewManager] Configuración '" + configKeyParaEstado + "' actualizada a: " + nuevoEstadoVisible);
         }
     } // --- Fin del método setComponentePrincipalVisible ---
     
@@ -174,7 +180,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     @Override
     public void setCheckeredBackgroundEnabled(boolean activar) {
         if (registry == null || configuration == null) {
-            System.err.println("ERROR [ViewManager]: Registry o ConfigurationManager nulos.");
+            logger.error("ERROR [ViewManager]: Registry o ConfigurationManager nulos.");
             return;
         }
 
@@ -185,7 +191,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         if (displayPanel != null) {
             displayPanel.setCheckeredBackground(activar);
         } else {
-            System.err.println("ERROR [ViewManager]: No se pudo encontrar 'panel.display.imagen' en el registro.");
+            logger.error("ERROR [ViewManager]: No se pudo encontrar 'panel.display.imagen' en el registro.");
         }
     } // --- Fin del método setCheckeredBackgroundEnabled ---
 
@@ -227,7 +233,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
 
         if (displayPanel == null || mainFrame == null) {
-            System.err.println("ERROR [ViewManager]: No se puede abrir JColorChooser, falta 'frame.main' o 'panel.display.imagen' en el registro.");
+            logger.error("ERROR [ViewManager]: No se puede abrir JColorChooser, falta 'frame.main' o 'panel.display.imagen' en el registro.");
             return;
         }
         
@@ -252,10 +258,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
      */
     @Override
     public void solicitarActualizacionUI(String uiElementId, String configKey, boolean nuevoEstado) {
-        System.out.println("[ViewManager] Solicitud de actualización para UI: '" + uiElementId + "' -> " + nuevoEstado + " (Clave: " + configKey + ")");
+        logger.debug("[ViewManager] Solicitud de actualización para UI: '" + uiElementId + "' -> " + nuevoEstado + " (Clave: " + configKey + ")");
         
         if (registry == null) {
-            System.err.println("  ERROR: ComponentRegistry es nulo en ViewManager.");
+            logger.error("  ERROR: ComponentRegistry es nulo en ViewManager.");
             return;
         }
         
@@ -269,14 +275,14 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             if (button != null) {
                 if (button.isVisible() != nuevoEstado) {
                     button.setVisible(nuevoEstado);
-                    System.out.println("  -> Visibilidad del botón '" + buttonBaseKey + "' cambiada a " + nuevoEstado);
+                    logger.debug("  -> Visibilidad del botón '" + buttonBaseKey + "' cambiada a " + nuevoEstado);
                     
                     // Forzar un redibujado de la barra de herramientas que lo contiene.
                     if (button.getParent() instanceof JToolBar) {
                         JToolBar parentToolbar = (JToolBar) button.getParent();
                         parentToolbar.revalidate();
                         parentToolbar.repaint();
-                        System.out.println("  -> Contenedor de toolbar '" + parentToolbar.getName() + "' actualizado.");
+                        logger.debug("  -> Contenedor de toolbar '" + parentToolbar.getName() + "' actualizado.");
                     }
                 }
                 return; // Trabajo hecho, salimos.
@@ -291,7 +297,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         if (toolbar != null) {
             if (toolbar.isVisible() != nuevoEstado) {
                 toolbar.setVisible(nuevoEstado);
-                System.out.println("  -> Visibilidad de la toolbar '" + uiElementId + "' cambiada a " + nuevoEstado);
+                logger.debug("  -> Visibilidad de la toolbar '" + uiElementId + "' cambiada a " + nuevoEstado);
                 revalidateToolbarContainer();
             }
             return; // Trabajo hecho, salimos.
@@ -301,7 +307,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         boolean necesitaRevalidateGeneral = false;
         JFrame mainFrame = registry.get("frame.main");
         if (mainFrame == null) {
-            System.err.println("  ERROR: El frame principal no está en el registro.");
+            logger.error("  ERROR: El frame principal no está en el registro.");
             return;
         }
 
@@ -344,7 +350,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
                 
             default:
                 // Si llegamos aquí, realmente no sabemos qué es.
-                System.err.println("  WARN [ViewManager]: uiElementId no reconocido o no manejado por ninguna lógica: '" + uiElementId + "'");
+                logger.warn("  WARN [ViewManager]: uiElementId no reconocido o no manejado por ninguna lógica: '" + uiElementId + "'");
                 break;
         }
 
@@ -359,7 +365,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     
     @Override
     public void onThemeChanged(Tema nuevoTema) {
-        System.out.println("[ViewManager] Notificación de cambio de tema recibida. Actualizando paneles de visualización y UI...");
+        logger.debug("[ViewManager] Notificación de cambio de tema recibida. Actualizando paneles de visualización y UI...");
         
         // Es crucial ejecutar las actualizaciones de UI en el Event Dispatch Thread (EDT)
         SwingUtilities.invokeLater(() -> {
@@ -385,7 +391,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             // 1. Actualizar el panel contenedor (esto ya lo hacías y está bien)
             refrescarColoresDeFondoUI();
 
-            System.out.println("[ViewManager] Actualización de paneles por cambio de tema completada.");
+            logger.debug("[ViewManager] Actualización de paneles por cambio de tema completada.");
         });
     } // --- FIN del método onThemeChanged ---
     
@@ -400,7 +406,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             toolbarContainer.revalidate();
             toolbarContainer.repaint();
         } else {
-            System.err.println("WARN [ViewManager]: 'container.toolbars' no encontrado.");
+            logger.warn("WARN [ViewManager]: 'container.toolbars' no encontrado.");
         }
     } // --- Fin del método revalidateToolbarContainer ---
 
@@ -409,8 +415,8 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
      */
     @Override
     public void ejecutarRefrescoCompletoUI() {
-        System.out.println("\n--- [ViewManager] Ejecutando Refresco Completo de la UI ---");
-        System.out.println("  -> Lógica de refresco de tema a implementar aquí.");
+        logger.debug("\n--- [ViewManager] Ejecutando Refresco Completo de la UI ---");
+        logger.debug("  -> Lógica de refresco de tema a implementar aquí.");
     } // --- Fin del método ejecutarRefrescoCompletoUI ---
 
     /**
@@ -418,16 +424,16 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
      */
     @Override
     public void refrescarFondoAlPorDefecto() {
-        System.out.println("[ViewManager] Refrescando fondo al estado por defecto...");
+        logger.debug("[ViewManager] Refrescando fondo al estado por defecto...");
 
         if (registry == null || configuration == null || themeManager == null) {
-            System.err.println("  ERROR: Dependencias nulas (registry, config o themeManager).");
+            logger.error("  ERROR: Dependencias nulas (registry, config o themeManager).");
             return;
         }
 
         ImageDisplayPanel displayPanel = registry.get("panel.display.imagen");
         if (displayPanel == null) {
-            System.err.println("  ERROR: 'panel.display.imagen' no encontrado en el registro.");
+            logger.error("  ERROR: 'panel.display.imagen' no encontrado en el registro.");
             return;
         }
 
@@ -435,11 +441,11 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         boolean esCuadrosPorDefecto = configuration.getBoolean(configKey, false);
 
         if (esCuadrosPorDefecto) {
-            System.out.println("  -> El defecto es fondo a cuadros. Aplicando.");
+            logger.debug("  -> El defecto es fondo a cuadros. Aplicando.");
             displayPanel.setCheckeredBackground(true);
         } else {
             Tema temaActual = themeManager.getTemaActual();
-            System.out.println("  -> El defecto es color de tema. Aplicando color: " + temaActual.colorFondoSecundario());
+            logger.debug("  -> El defecto es color de tema. Aplicando color: " + temaActual.colorFondoSecundario());
             displayPanel.setSolidBackgroundColor(temaActual.colorFondoSecundario());
         }
     } // --- Fin del método refrescarFondoAlPorDefecto ---
@@ -490,7 +496,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
      */
     @Override
     public void sincronizarEstadoVisualInicialDeRadiosDeFormato() {
-        System.out.println("[ViewManager] Sincronizando Actions de formato...");
+        logger.debug("[ViewManager] Sincronizando Actions de formato...");
         sincronizarAccionesFormatoBarraSuperior();
         sincronizarAccionesFormatoBarraInferior();
     } // --- Fin del método sincronizarEstadoVisualInicialDeRadiosDeFormato ---
@@ -512,9 +518,9 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     
     @Override
     public void refrescarColoresDeFondoUI() {
-        System.out.println("  [ViewManager] Refrescando colores de fondo de los paneles principales...");
+        logger.debug("  [ViewManager] Refrescando colores de fondo de los paneles principales...");
         if (registry == null || themeManager == null) {
-            System.err.println("  ERROR [ViewManager]: Registry o ThemeManager nulos.");
+            logger.error("  ERROR [ViewManager]: Registry o ThemeManager nulos.");
             return;
         }
 
@@ -574,7 +580,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     @Override 
     public void cambiarAVista(String containerRegistryKey, String viewName) { 
         if (registry == null) {
-            System.err.println("ERROR [ViewManager]: Registry es nulo, no se puede cambiar de vista.");
+            logger.error("ERROR [ViewManager]: Registry es nulo, no se puede cambiar de vista.");
             return;
         }
         
@@ -583,10 +589,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         if (container != null && container.getLayout() instanceof CardLayout) {
             CardLayout cl = (CardLayout) container.getLayout();
             cl.show(container, viewName);
-            System.out.println("[ViewManager] Vista cambiada en '" + containerRegistryKey + "' a: " + viewName);
+            logger.debug("[ViewManager] Vista cambiada en '" + containerRegistryKey + "' a: " + viewName);
         } else {
             // Este es el error que estás viendo: "No se encontró 'container.vistas' o no usa CardLayout."
-            System.err.println("ERROR [ViewManager]: No se encontró el contenedor '" + containerRegistryKey + "' o no usa CardLayout.");
+            logger.error("ERROR [ViewManager]: No se encontró el contenedor '" + containerRegistryKey + "' o no usa CardLayout.");
         }
     } // --- Fin del método cambiarAVista ---
 
@@ -629,10 +635,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     
     @Override
     public void reconstruirPanelesEspecialesTrasTema() {
-        System.out.println("  [ViewManager] Re-colocando barras de herramientas especiales tras cambio de tema...");
+        logger.debug("  [ViewManager] Re-colocando barras de herramientas especiales tras cambio de tema...");
 
         if (toolbarManager == null || registry == null) {
-            System.err.println("  ERROR CRÍTICO: ToolbarManager o ComponentRegistry nulos.");
+            logger.error("  ERROR CRÍTICO: ToolbarManager o ComponentRegistry nulos.");
             return;
         }
 
@@ -659,16 +665,16 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
                 //    Ahora el ViewManager no sabe ni necesita saber cómo está hecho el ExportPanel por dentro.
                 exportPanel.setActionsToolbar(nuevaBarraExportacion);
                 
-                System.out.println("    -> Nueva barra 'acciones_exportacion' entregada al ExportPanel para su actualización.");
+                logger.debug("    -> Nueva barra 'acciones_exportacion' entregada al ExportPanel para su actualización.");
             } else {
-                System.err.println("  WARN: ToolbarManager no pudo proporcionar la barra 'acciones_exportacion'.");
+                logger.warn("  WARN: ToolbarManager no pudo proporcionar la barra 'acciones_exportacion'.");
             }
         } else {
-            System.err.println("  WARN: No se encontró el componente 'panel.proyecto.exportacion' en el registro.");
+            logger.warn("  WARN: No se encontró el componente 'panel.proyecto.exportacion' en el registro.");
         }
         // >>> FIN DE LA LÓGICA CORREGIDA <<<
         
-        System.out.println("  [ViewManager] Re-colocación de paneles especiales finalizada.");
+        logger.debug("  [ViewManager] Re-colocación de paneles especiales finalizada.");
     } // --- FIN del metodo reconstruirPanelesEspecialesTrasTema  ---
     
     
@@ -682,7 +688,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         JPanel panelContenedor = registry.get(clavePanelContenedor);
         
         if (panelContenedor == null) {
-            System.err.println("  WARN [reconstruirBarraLibre]: No se encontró el panel contenedor '" + clavePanelContenedor + "'.");
+            logger.warn("  WARN [reconstruirBarraLibre]: No se encontró el panel contenedor '" + clavePanelContenedor + "'.");
             return;
         }
 
@@ -699,7 +705,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         
         if (barraAntigua != null) {
             panelContenedor.remove(barraAntigua);
-            System.out.println("    -> Barra antigua '" + claveBarra + "' eliminada del panel '" + clavePanelContenedor + "'.");
+            logger.debug("    -> Barra antigua '" + claveBarra + "' eliminada del panel '" + clavePanelContenedor + "'.");
         }
 
         // 2. Pedir al ToolbarManager la barra. Como la caché está vacía, esto la reconstruirá.
@@ -707,7 +713,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         
         if (nuevaBarra != null) {
             // Forzar la actualización de la UI de la nueva barra con el tema actual
-            System.out.println("    -> Forzando updateComponentTreeUI en la barra '" + claveBarra + "'...");
+            logger.debug("    -> Forzando updateComponentTreeUI en la barra '" + claveBarra + "'...");
             SwingUtilities.updateComponentTreeUI(nuevaBarra);
             
             // Aplicar configuraciones especiales si es necesario
@@ -723,9 +729,9 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             panelContenedor.revalidate();
             panelContenedor.repaint();
             
-            System.out.println("    -> Nueva barra '" + claveBarra + "' re-colocada en '" + clavePanelContenedor + "'.");
+            logger.debug("    -> Nueva barra '" + claveBarra + "' re-colocada en '" + clavePanelContenedor + "'.");
         } else {
-            System.err.println("  WARN [reconstruirBarraLibre]: ToolbarManager no pudo proporcionar la barra '" + claveBarra + "'.");
+            logger.warn("  WARN [reconstruirBarraLibre]: ToolbarManager no pudo proporcionar la barra '" + claveBarra + "'.");
         }
         
     }	// --- Fin del método reconstruirBarraLibre ---
@@ -743,7 +749,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     public ImageDisplayPanel getActiveDisplayPanel() {
         // 1. Validar dependencias (necesitamos el modelo y el registro)
         if (model == null || registry == null) {
-            System.err.println("ERROR [ViewManager.getActiveDisplayPanel]: Modelo o Registry son nulos.");
+            logger.error("ERROR [ViewManager.getActiveDisplayPanel]: Modelo o Registry son nulos.");
             return null;
         }
 
@@ -761,10 +767,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
                 break;
             case DATOS:
             case EDICION:
-                System.out.println("WARN [ViewManager.getActiveDisplayPanel]: El modo " + model.getCurrentWorkMode() + " no tiene un ImageDisplayPanel asociado.");
+                logger.warn("WARN [ViewManager.getActiveDisplayPanel]: El modo " + model.getCurrentWorkMode() + " no tiene un ImageDisplayPanel asociado.");
                 return null;
             default:
-                System.err.println("ERROR [ViewManager.getActiveDisplayPanel]: WorkMode no reconocido: " + model.getCurrentWorkMode());
+                logger.error("ERROR [ViewManager.getActiveDisplayPanel]: WorkMode no reconocido: " + model.getCurrentWorkMode());
                 return null;
         }
 

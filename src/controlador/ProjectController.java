@@ -1,44 +1,49 @@
 	package controlador;
 	
 	import java.awt.event.MouseAdapter;
-	import java.awt.event.MouseEvent;
-	import java.nio.file.Files;
-	import java.nio.file.Path;
-	import java.util.HashMap;
-	import java.util.List;
-	import java.util.Map;
-	import java.util.Objects;
-	import java.util.stream.Collectors;
-	
-	import javax.swing.Action;
-	import javax.swing.DefaultListModel;
-	import javax.swing.JButton;
-	import javax.swing.JFileChooser;
-	import javax.swing.JList;
-	import javax.swing.JOptionPane;
-	import javax.swing.JPanel;
-	import javax.swing.JSplitPane;
-	import javax.swing.JTable;
-	import javax.swing.SwingUtilities;
-	
-	import controlador.interfaces.IModoController;
-	import controlador.managers.ExportQueueManager;
-	import controlador.managers.interfaces.IListCoordinator;
-	import controlador.managers.interfaces.IProjectManager;
-	import controlador.managers.interfaces.IViewManager;
-	import controlador.managers.interfaces.IZoomManager;
-	import controlador.utils.ComponentRegistry;
-	import controlador.utils.DesktopUtils;
-	import controlador.worker.ExportWorker;
-	import modelo.ListContext;
-	import modelo.VisorModel;
-	import modelo.proyecto.ExportItem;
-	import vista.VisorView;
-	import vista.dialogos.ExportProgressDialog;
-	import vista.panels.export.ExportTableModel;
+import java.awt.event.MouseEvent;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import javax.swing.Action;
+import javax.swing.DefaultListModel;
+import javax.swing.JButton;
+import javax.swing.JFileChooser;
+import javax.swing.JList;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
+import javax.swing.SwingUtilities;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.interfaces.IModoController;
+import controlador.managers.ExportQueueManager;
+import controlador.managers.interfaces.IListCoordinator;
+import controlador.managers.interfaces.IProjectManager;
+import controlador.managers.interfaces.IViewManager;
+import controlador.managers.interfaces.IZoomManager;
+import controlador.utils.ComponentRegistry;
+import controlador.utils.DesktopUtils;
+import controlador.worker.ExportWorker;
+import modelo.ListContext;
+import modelo.VisorModel;
+import modelo.proyecto.ExportItem;
+import vista.VisorView;
+import vista.dialogos.ExportProgressDialog;
+import vista.panels.export.ExportTableModel;
 	
 	public class ProjectController implements IModoController {
 	
+		private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+		
 	    private IProjectManager projectManager;
 	    private ComponentRegistry registry;
 	    private IZoomManager zoomManager;
@@ -54,14 +59,14 @@
 	    
 	
 	    public ProjectController() {
-	        System.out.println("[ProjectController] Instancia creada.");
+	        logger.debug("[ProjectController] Instancia creada.");
 	        this.exportQueueManager = new ExportQueueManager();
 	    } // --- Fin del método ProjectController (constructor) ---
 	
 	    
 	    void configurarListeners() {
 	        if (registry == null || model == null || projectListCoordinator == null) {
-	            System.err.println("ERROR [ProjectController]: Dependencias nulas (registry, model o projectListCoordinator).");
+	            logger.error("ERROR [ProjectController]: Dependencias nulas (registry, model o projectListCoordinator).");
 	            return;
 	        }
 	
@@ -129,7 +134,7 @@
 	    
 	    
 	    private void cambiarFocoListaActiva(String nuevoFoco) {
-	        System.out.println("  [ProjectController] Cambiando foco a lista: " + nuevoFoco);
+	        logger.debug("  [ProjectController] Cambiando foco a lista: " + nuevoFoco);
 	        model.getProyectoListContext().setNombreListaActiva(nuevoFoco);
 	        
 	        String claveARestaurar;
@@ -157,9 +162,9 @@
 	    
 	    
 	    public boolean prepararDatosProyecto() {
-	        System.out.println("  [ProjectController] Preparando datos para el modo proyecto...");
+	        logger.debug("  [ProjectController] Preparando datos para el modo proyecto...");
 	        if (projectManager == null || model == null) {
-	            System.err.println("ERROR CRÍTICO [prepararDatosProyecto]: ProjectManager o Model nulos.");
+	            logger.error("ERROR CRÍTICO [prepararDatosProyecto]: ProjectManager o Model nulos.");
 	            return false;
 	        }
 	
@@ -190,15 +195,15 @@
 	        ListContext proyectoContext = model.getProyectoListContext();
 	        proyectoContext.actualizarContextoCompleto(modeloUnificado, mapaRutasProyecto);
 	        
-	        System.out.println("    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): " + modeloUnificado.getSize());
+	        logger.debug("    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): " + modeloUnificado.getSize());
 	        return true;
 	    } // --- Fin del método prepararDatosProyecto ---
 	
 	    
 	    public void activarVistaProyecto() {
-	        System.out.println("  [ProjectController] Activando la UI de la vista de proyecto...");
+	        logger.debug("  [ProjectController] Activando la UI de la vista de proyecto...");
 	        if (registry == null || model == null || projectManager == null || projectListCoordinator == null) {
-	            System.err.println("ERROR [ProjectController.activarVistaProyecto]: Dependencias nulas.");
+	            logger.error("ERROR [ProjectController.activarVistaProyecto]: Dependencias nulas.");
 	            return;
 	        }
 	
@@ -252,7 +257,7 @@
 	            final JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
 	            if (mainSplit != null) mainSplit.setDividerLocation(0.25);
 	
-	            System.out.println("  [ProjectController] UI de la vista de proyecto activada y restaurada.");
+	            logger.debug("  [ProjectController] UI de la vista de proyecto activada y restaurada.");
 	        });
 	
 	    } // --- Fin del método activarVistaProyecto ---
@@ -323,12 +328,12 @@
 	    
 	    public void poblarListaDescartes() {
 	        if (registry == null || projectManager == null) {
-	            System.err.println("WARN [poblarListaDescartes]: Registry o ProjectManager nulos.");
+	            logger.warn("WARN [poblarListaDescartes]: Registry o ProjectManager nulos.");
 	            return;
 	        }
 	        JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
 	        if (listaDescartesUI == null) {
-	            System.err.println("WARN [poblarListaDescartes]: JList 'list.proyecto.descartes' no encontrada en el registro.");
+	            logger.warn("WARN [poblarListaDescartes]: JList 'list.proyecto.descartes' no encontrada en el registro.");
 	            return;
 	        }
 	        List<Path> imagenesDescartadas = projectManager.getImagenesDescartadas();
@@ -338,7 +343,7 @@
 	            modeloDescartes.addElement(clave);
 	        }
 	        listaDescartesUI.setModel(modeloDescartes);
-	        System.out.println("  [ProjectController] Lista de descartes actualizada en la UI. Total: " + modeloDescartes.getSize());
+	        logger.debug("  [ProjectController] Lista de descartes actualizada en la UI. Total: " + modeloDescartes.getSize());
 	        javax.swing.JTabbedPane herramientasTabbedPane = registry.get("tabbedpane.proyecto.herramientas");
 	        if (herramientasTabbedPane != null) {
 	            int tabCount = herramientasTabbedPane.getTabCount();
@@ -356,7 +361,7 @@
 	        if (model == null || projectManager == null) return;
 	        String claveSeleccionada = model.getSelectedImageKey();
 	        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
-	            System.out.println("  [ProjectController] No hay imagen seleccionada para mover a descartes.");
+	            logger.debug("  [ProjectController] No hay imagen seleccionada para mover a descartes.");
 	            return;
 	        }
 	        Path rutaAbsoluta = model.getProyectoListContext().getRutaCompleta(claveSeleccionada);
@@ -372,7 +377,7 @@
 	        if (listaDescartesUI == null) return;
 	        String claveSeleccionada = listaDescartesUI.getSelectedValue();
 	        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
-	            System.out.println("  [ProjectController] No hay imagen seleccionada en descartes para restaurar.");
+	            logger.debug("  [ProjectController] No hay imagen seleccionada en descartes para restaurar.");
 	            return;
 	        }
 	        Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
@@ -381,14 +386,14 @@
 	    } // --- Fin del método restaurarDesdeDescartes ---
 	
 	    private void refrescarListasDeProyecto() {
-	        System.out.println("  [ProjectController] Refrescando ambas listas del proyecto...");
+	        logger.debug("  [ProjectController] Refrescando ambas listas del proyecto...");
 	        prepararDatosProyecto(); 
 	        activarVistaProyecto(); 
 	    } // --- Fin del método refrescarListasDeProyecto ---
 	    
 	    public void solicitarPreparacionColaExportacion() {
 	        if (projectManager == null || exportQueueManager == null || registry == null) {
-	            System.err.println("ERROR [solicitarPreparacionColaExportacion]: Dependencias nulas.");
+	            logger.error("ERROR [solicitarPreparacionColaExportacion]: Dependencias nulas.");
 	            return;
 	        }
 	        List<Path> seleccionActual = projectManager.getImagenesMarcadas();
@@ -398,9 +403,9 @@
 	        JTable tablaUI = getTablaExportacionDesdeRegistro(); // Usamos el método refactorizado
 	        if (tablaUI != null && tablaUI.getModel() instanceof ExportTableModel) {
 	            ((ExportTableModel) tablaUI.getModel()).setCola(exportQueueManager.getColaDeExportacion());
-	            System.out.println("[ProjectController] Modelo de tabla de exportación actualizado.");
+	            logger.debug("[ProjectController] Modelo de tabla de exportación actualizado.");
 	        } else {
-	            System.err.println("WARN [ProjectController]: No se pudo obtener la tabla de exportación o su modelo no es ExportTableModel.");
+	            logger.warn("WARN [ProjectController]: No se pudo obtener la tabla de exportación o su modelo no es ExportTableModel.");
 	        }
 	        // --- FIN DE CAMBIO ---
 	        
@@ -409,7 +414,7 @@
 	    
 	    public void solicitarSeleccionCarpetaDestino() {
 	        if (registry == null || view == null) {
-	            System.err.println("ERROR [solicitarSeleccionCarpetaDestino]: Registry o View nulos.");
+	            logger.error("ERROR [solicitarSeleccionCarpetaDestino]: Registry o View nulos.");
 	            return;
 	        }
 	        JFileChooser fileChooser = new JFileChooser();
@@ -419,20 +424,20 @@
 	        int resultado = fileChooser.showOpenDialog(view);
 	        if (resultado == JFileChooser.APPROVE_OPTION) {
 	            Path carpetaSeleccionada = fileChooser.getSelectedFile().toPath();
-	            System.out.println("  [ProjectController] Carpeta de destino seleccionada: " + carpetaSeleccionada);
+	            logger.debug("  [ProjectController] Carpeta de destino seleccionada: " + carpetaSeleccionada);
 	            JPanel exportPanelPlaceholder = registry.get("panel.proyecto.herramientas.exportar");
 	            if (exportPanelPlaceholder instanceof vista.panels.export.ExportPanel) {
 	                vista.panels.export.ExportPanel exportPanel = (vista.panels.export.ExportPanel) exportPanelPlaceholder;
 	                exportPanel.setRutaDestino(carpetaSeleccionada.toString());
 	            }
 	        } else {
-	            System.out.println("  [ProjectController] Selección de carpeta de destino cancelada por el usuario.");
+	            logger.debug("  [ProjectController] Selección de carpeta de destino cancelada por el usuario.");
 	        }
 	        actualizarEstadoExportacionUI();
 	    } // --- Fin del método solicitarSeleccionCarpetaDestino ---
 	    
 	    public void onExportItemManuallyAssigned(modelo.proyecto.ExportItem itemModificado) {
-	        System.out.println("  [ProjectController] Archivo asignado manualmente para: " + itemModificado.getRutaImagen().getFileName());
+	        logger.debug("  [ProjectController] Archivo asignado manualmente para: " + itemModificado.getRutaImagen().getFileName());
 	        actualizarEstadoExportacionUI();
 	    } // --- Fin del método onExportItemManuallyAssigned ---
 	    
@@ -454,12 +459,12 @@
 	        exportPanel.actualizarEstadoControles(puedeExportar, mensaje);
 	        boolean resaltarDestino = !colaCompleta.isEmpty() && !carpetaOk;
 	        exportPanel.resaltarRutaDestino(resaltarDestino);
-	        System.out.println("  [ProjectController] Estado de exportación UI actualizado. Puede exportar: " + puedeExportar);
+	        logger.debug("  [ProjectController] Estado de exportación UI actualizado. Puede exportar: " + puedeExportar);
 	    } // --- Fin del método actualizarEstadoExportacionUI ---
 	    
 	    public void solicitarInicioExportacion() {
 	        if (exportQueueManager == null || registry == null || view == null) {
-	            System.err.println("ERROR [solicitarInicioExportacion]: Dependencias nulas.");
+	            logger.error("ERROR [solicitarInicioExportacion]: Dependencias nulas.");
 	            return;
 	        }
 	        vista.panels.export.ExportPanel exportPanel = (vista.panels.export.ExportPanel) registry.get("panel.proyecto.herramientas.exportar");
@@ -496,7 +501,7 @@
 	            try {
 	                DesktopUtils.openAndSelectFile(itemSeleccionado.getRutaImagen());
 	            } catch (Exception e) {
-	                System.err.println("Error al intentar abrir y seleccionar el archivo: " + e.getMessage());
+	                logger.error("Error al intentar abrir y seleccionar el archivo: " + e.getMessage());
 	                JOptionPane.showMessageDialog(view, "No se pudo abrir la ubicación del archivo.", "Error", JOptionPane.ERROR_MESSAGE);
 	            }
 	        }
@@ -558,23 +563,23 @@
 	    } // --- Fin del método solicitarQuitarDeLaCola ---
 	
 	    public void solicitudAlternarMarcaImagen() {
-	        System.out.println("  [ProjectController] Solicitud para mover selección a descartes (desde botón 'Marcar')...");
+	        logger.debug("  [ProjectController] Solicitud para mover selección a descartes (desde botón 'Marcar')...");
 	        this.moverSeleccionActualADescartes();
 	    } // --- Fin del método solicitudAlternarMarcaImagen ---
 	    
 	    public void solicitarEliminacionPermanente() {
 	        if (registry == null || projectManager == null || view == null) {
-	            System.err.println("WARN [solicitarEliminacionPermanente]: Dependencias nulas.");
+	            logger.warn("WARN [solicitarEliminacionPermanente]: Dependencias nulas.");
 	            return;
 	        }
 	        JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
 	        if (listaDescartesUI == null) {
-	            System.err.println("WARN [solicitarEliminacionPermanente]: JList 'list.proyecto.descartes' no encontrada.");
+	            logger.warn("WARN [solicitarEliminacionPermanente]: JList 'list.proyecto.descartes' no encontrada.");
 	            return;
 	        }
 	        String claveSeleccionada = listaDescartesUI.getSelectedValue();
 	        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
-	            System.out.println("  [ProjectController] No hay imagen seleccionada en descartes para eliminar.");
+	            logger.debug("  [ProjectController] No hay imagen seleccionada en descartes para eliminar.");
 	            return;
 	        }
 	        int confirm = JOptionPane.showConfirmDialog(view, "¿Seguro que quieres eliminar esta imagen del proyecto?\n(No se borrará el archivo del disco)", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
@@ -647,13 +652,13 @@
 	     */
 	    public void navegarTablaExportacionConRueda(java.awt.event.MouseWheelEvent e) {
 	        if (registry == null || model == null) {
-	            System.err.println("WARN [navegarTablaExportacionConRueda]: Registry o Modelo nulos.");
+	            logger.warn("WARN [navegarTablaExportacionConRueda]: Registry o Modelo nulos.");
 	            return;
 	        }
 	
 	        JTable tablaExportacion = getTablaExportacionDesdeRegistro(); // Reutilizamos tu método para obtener la tabla
 	        if (tablaExportacion == null || tablaExportacion.getModel().getRowCount() == 0) {
-	            System.out.println("  [navegarTablaExportacionConRueda] Tabla de exportación vacía o no encontrada. No se puede navegar.");
+	            logger.debug("  [navegarTablaExportacionConRueda] Tabla de exportación vacía o no encontrada. No se puede navegar.");
 	            return;
 	        }
 	
@@ -678,9 +683,9 @@
 	            tablaExportacion.setRowSelectionInterval(newRow, newRow);
 	            // Hacer que la fila seleccionada sea visible.
 	            tablaExportacion.scrollRectToVisible(tablaExportacion.getCellRect(newRow, 0, true));
-	            System.out.println("  [navegarTablaExportacionConRueda] Selector movido a la fila: " + newRow);
+	            logger.debug("  [navegarTablaExportacionConRueda] Selector movido a la fila: " + newRow);
 	        } else {
-	            System.out.println("  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: " + currentRow);
+	            logger.debug("  [navegarTablaExportacionConRueda] Selector no cambió. Fila actual: " + currentRow);
 	        }
 	    }// --- Fin del nuevo método navegarTablaExportacionConRueda ---
 	    
@@ -693,14 +698,14 @@
 	     * @param rutaImagen El Path absoluto de la imagen a mostrar.
 	     */
 	    public void mostrarImagenDeExportacion(Path rutaImagen) {
-	        System.out.println("[ProjectController] Solicitud para mostrar imagen de exportación: " + rutaImagen);
+	        logger.debug("[ProjectController] Solicitud para mostrar imagen de exportación: " + rutaImagen);
 	        
 	        if (model == null || controllerRef == null) {
-	            System.err.println("ERROR [mostrarImagenDeExportacion]: Modelo o VisorController de referencia nulos.");
+	            logger.error("ERROR [mostrarImagenDeExportacion]: Modelo o VisorController de referencia nulos.");
 	            return;
 	        }
 	        if (rutaImagen == null) {
-	            System.out.println("WARN [mostrarImagenDeExportacion]: Ruta de imagen nula. Limpiando visor principal.");
+	            logger.warn("WARN [mostrarImagenDeExportacion]: Ruta de imagen nula. Limpiando visor principal.");
 	            controllerRef.actualizarImagenPrincipal(-1); 
 	            return;
 	        }
@@ -717,7 +722,7 @@
 	            // La actualización del model.selectedImageKey es a nivel interno del modelo
 	            // y es importante para que el VisorController sepa qué imagen cargar.
 	            model.getProyectoListContext().setSelectedImageKey(claveImagen);
-	            System.out.println("  -> Imagen encontrada en el contexto del proyecto (índice " + indiceEnProyectoContext + "). Cargando...");
+	            logger.debug("  -> Imagen encontrada en el contexto del proyecto (índice " + indiceEnProyectoContext + "). Cargando...");
 	            controllerRef.actualizarImagenPrincipal(indiceEnProyectoContext);
 	
 	            // --- INICIO DE LA MODIFICACIÓN ---
@@ -729,7 +734,7 @@
 	        } else {
 	            // La imagen no está en ninguna de las listas actuales del proyecto (ej., asignada manualmente).
 	            // La cargamos directamente usando la referencia que ProjectController tiene a VisorController.
-	            System.out.println("  -> Imagen NO encontrada en el contexto del proyecto. Cargando directamente por Path...");
+	            logger.debug("  -> Imagen NO encontrada en el contexto del proyecto. Cargando directamente por Path...");
 	            controllerRef.actualizarImagenPrincipalPorPath(rutaImagen, claveImagen);
 	            
 	            // Limpiar selección de listas si la imagen no proviene de ellas y no queremos que aparezca seleccionada.
@@ -772,7 +777,7 @@
 	            // --- CAMBIO: Accedemos directamente al getter de la tabla ---
 	            return exportPanel.getTablaExportacion(); 
 	        }
-	        System.err.println("WARN [ProjectController]: No se pudo encontrar 'tablaExportacion' a través del registro.");
+	        logger.warn("WARN [ProjectController]: No se pudo encontrar 'tablaExportacion' a través del registro.");
 	        return null;
 	    } // --- Fin del método getTablaExportacionDesdeRegistro ---
 	    

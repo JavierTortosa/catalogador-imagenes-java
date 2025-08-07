@@ -1,21 +1,27 @@
 package vista.util; 
 
 import java.awt.AlphaComposite;
-import java.awt.Color; // Importar Color
+import java.awt.Color; 
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.Objects;
 
-import javax.swing.Icon; // Importar Icon
+import javax.swing.Icon; 
 import javax.swing.ImageIcon;
 
-import vista.components.icons.ColorOverlayIcon; // <-- NUEVO: Importar ColorOverlayIcon
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+import vista.components.icons.ColorOverlayIcon; 
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
 
 public class IconUtils {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     private final ThemeManager themeManager;
 
@@ -34,19 +40,19 @@ public class IconUtils {
      */
     private ImageIcon cargarIconoDesdePath(String classpathResourcePath, String iconIdentifier) {
         if (classpathResourcePath == null || classpathResourcePath.trim().isEmpty()) {
-            System.err.println("ERROR [IconUtils loadImageIcon]: classpathResourcePath es nulo o vacío para el identificador: " + iconIdentifier);
+            logger.error("ERROR [IconUtils loadImageIcon]: classpathResourcePath es nulo o vacío para el identificador: " + iconIdentifier);
             return null;
         }
 
-        // System.out.println("  [IconUtils loadImageIcon] Intentando cargar: " + classpathResourcePath + " (para " + iconIdentifier + ")");
+        // logger.debug("  [IconUtils loadImageIcon] Intentando cargar: " + classpathResourcePath + " (para " + iconIdentifier + ")");
         
         URL imgURL = IconUtils.class.getResource(classpathResourcePath);
 
         if (imgURL != null) {
-            // System.out.println("    -> Icono encontrado en classpath: " + classpathResourcePath);
+            // logger.debug("    -> Icono encontrado en classpath: " + classpathResourcePath);
             return new ImageIcon(imgURL);
         } else {
-            System.err.println("WARN [IconUtils loadImageIcon]: Recurso NO encontrado en classpath: " + classpathResourcePath + " (para " + iconIdentifier + ")");
+            logger.warn("WARN [IconUtils loadImageIcon]: Recurso NO encontrado en classpath: " + classpathResourcePath + " (para " + iconIdentifier + ")");
             return null;
         }
     } // --- Fin del método cargarIconoDesdePath ---
@@ -62,26 +68,26 @@ public class IconUtils {
      */
     public ImageIcon getIcon(String nombreIconoTematizado) {
         if (nombreIconoTematizado == null || nombreIconoTematizado.trim().isEmpty()) {
-            System.err.println("ERROR [IconUtils.getIcon]: nombreIconoTematizado no puede ser nulo o vacío.");
+            logger.error("ERROR [IconUtils.getIcon]: nombreIconoTematizado no puede ser nulo o vacío.");
             return null;
         }
 
         Tema temaActual = themeManager.getTemaActual();
         if (temaActual == null) {
-            System.err.println("ERROR [IconUtils.getIcon]: No se pudo obtener el tema actual desde ThemeManager para el icono: " + nombreIconoTematizado);
+            logger.error("ERROR [IconUtils.getIcon]: No se pudo obtener el tema actual desde ThemeManager para el icono: " + nombreIconoTematizado);
             return null; // No se puede proceder sin un tema
         }
 
         String nombreCarpetaIconosTema = temaActual.carpetaIconos();
         if (nombreCarpetaIconosTema == null || nombreCarpetaIconosTema.isBlank()) {
-            System.err.println("ERROR [IconUtils.getIcon]: La carpeta de iconos definida en el tema '" +
+            logger.error("ERROR [IconUtils.getIcon]: La carpeta de iconos definida en el tema '" +
                                temaActual.nombreInterno() + "' es inválida. Usando 'black' como fallback para determinar la carpeta del tema.");
             nombreCarpetaIconosTema = "black"; // Fallback para la carpeta del tema
         }
 
         // 1. Intento en la carpeta del tema actual
         String pathTema = "/iconos/" + nombreCarpetaIconosTema + "/" + nombreIconoTematizado;
-        // System.out.println("  [IconUtils.getIcon] Intento 1 (Tema '" + nombreCarpetaIconosTema + "'): " + pathTema);
+        // logger.debug("  [IconUtils.getIcon] Intento 1 (Tema '" + nombreCarpetaIconosTema + "'): " + pathTema);
         ImageIcon icon = cargarIconoDesdePath(pathTema, nombreIconoTematizado + " (tema: " + nombreCarpetaIconosTema + ")");
         if (icon != null) {
             return icon;
@@ -91,7 +97,7 @@ public class IconUtils {
         // 2. Fallback a la carpeta "comunes" (si la carpeta del tema actual no era ya "comunes")
         if (!"comunes".equalsIgnoreCase(nombreCarpetaIconosTema)) {
             String pathComunes = "/iconos/comunes/" + nombreIconoTematizado;
-            System.out.println("  [IconUtils.getIcon] Icono '" + nombreIconoTematizado + "' no encontrado en tema '" + nombreCarpetaIconosTema + "'. Intentando fallback a comunes: " + pathComunes);
+            logger.debug("  [IconUtils.getIcon] Icono '" + nombreIconoTematizado + "' no encontrado en tema '" + nombreCarpetaIconosTema + "'. Intentando fallback a comunes: " + pathComunes);
             icon = cargarIconoDesdePath(pathComunes, nombreIconoTematizado + " (fallback comunes)");
             if (icon != null) {
                 return icon;
@@ -102,7 +108,7 @@ public class IconUtils {
         // 3. Fallback final a la carpeta "black" (si la carpeta del tema actual no era "black" Y no era "comunes" donde ya falló)
         if (!"black".equalsIgnoreCase(nombreCarpetaIconosTema) && !"comunes".equalsIgnoreCase(nombreCarpetaIconosTema)) {
             String pathBlack = "/iconos/black/" + nombreIconoTematizado;
-            System.out.println("  [IconUtils.getIcon] Icono '" + nombreIconoTematizado + "' no encontrado en comunes. Intentando fallback final a black: " + pathBlack);
+            logger.debug("  [IconUtils.getIcon] Icono '" + nombreIconoTematizado + "' no encontrado en comunes. Intentando fallback final a black: " + pathBlack);
             icon = cargarIconoDesdePath(pathBlack, nombreIconoTematizado + " (fallback black)");
             if (icon != null) {
                 return icon;
@@ -110,7 +116,7 @@ public class IconUtils {
             // Log de error ya salió de cargarIconoDesdePath si falló.
         }
         
-        System.err.println("ERROR MUY GRAVE [IconUtils.getIcon]: Icono '" + nombreIconoTematizado + "' NO encontrado después de todos los intentos y fallbacks.");
+        logger.error("ERROR MUY GRAVE [IconUtils.getIcon]: Icono '" + nombreIconoTematizado + "' NO encontrado después de todos los intentos y fallbacks.");
         return null;
     } // --- Fin del método getIcon ---
 
@@ -125,7 +131,7 @@ public class IconUtils {
      */
     public ImageIcon getCommonIcon(String nombreIconoComun) {
         if (nombreIconoComun == null || nombreIconoComun.trim().isEmpty()) {
-            System.err.println("ERROR [IconUtils.getCommonIcon]: nombreIconoComun no puede ser nulo o vacío.");
+            logger.error("ERROR [IconUtils.getCommonIcon]: nombreIconoComun no puede ser nulo o vacío.");
             return null;
         }
         // Construir la ruta directamente a la carpeta "comunes"
@@ -177,7 +183,7 @@ public class IconUtils {
     public Icon getColoredOverlayIcon(String baseIconName, String themeColorKey, int width, int height) {
         Image base = getRawCommonImage(baseIconName); // Usar getRawCommonImage para iconos de base comunes
         if (base == null) {
-            System.err.println("ERROR [IconUtils.getColoredOverlayIcon]: Imagen base '" + baseIconName + "' no encontrada.");
+            logger.error("ERROR [IconUtils.getColoredOverlayIcon]: Imagen base '" + baseIconName + "' no encontrada.");
             return null;
         }
         
@@ -185,7 +191,7 @@ public class IconUtils {
         // Asumo que ThemeManager tiene un método para obtener colores por clave/nombre de tema.
         Color color = themeManager.getFondoSecundarioParaTema(themeColorKey); // o el método adecuado
         if (color == null) {
-            System.err.println("WARN [IconUtils.getColoredOverlayIcon]: Color para clave '" + themeColorKey + "' no encontrado en el tema actual. Usando gris.");
+            logger.warn("WARN [IconUtils.getColoredOverlayIcon]: Color para clave '" + themeColorKey + "' no encontrado en el tema actual. Usando gris.");
             color = Color.GRAY; // Fallback
         }
         
@@ -207,11 +213,11 @@ public class IconUtils {
     public Icon getColoredOverlayIcon(String baseIconName, Color specificColor, int width, int height) {
         Image base = getRawCommonImage(baseIconName);
         if (base == null) {
-            System.err.println("ERROR [IconUtils.getColoredOverlayIcon(Color)]: Imagen base '" + baseIconName + "' no encontrada.");
+            logger.error("ERROR [IconUtils.getColoredOverlayIcon(Color)]: Imagen base '" + baseIconName + "' no encontrada.");
             return null;
         }
         if (specificColor == null) {
-            System.err.println("WARN [IconUtils.getColoredOverlayIcon(Color)]: El color específico es nulo. Usando gris.");
+            logger.warn("WARN [IconUtils.getColoredOverlayIcon(Color)]: El color específico es nulo. Usando gris.");
             specificColor = Color.GRAY;
         }
         return new ColorOverlayIcon(base, specificColor, width, height);
@@ -267,12 +273,12 @@ public class IconUtils {
             // Usar SCALE_SMOOTH para mejor calidad, aunque puede ser más lento
             java.awt.Image scaledImg = img.getScaledInstance(targetWidth, targetHeight, java.awt.Image.SCALE_SMOOTH);
             if (scaledImg == null) {
-                System.err.println("ERROR [IconUtils.scaleImageIcon]: getScaledInstance devolvió null.");
+                logger.error("ERROR [IconUtils.scaleImageIcon]: getScaledInstance devolvió null.");
                 return null; // Retornar null si el escalado falla
             }
             return new ImageIcon(scaledImg);
         } catch (Exception e) {
-            System.err.println("ERROR [IconUtils.scaleImageIcon]: Excepción al escalar icono a " +
+            logger.error("ERROR [IconUtils.scaleImageIcon]: Excepción al escalar icono a " +
                                targetWidth + "x" + targetHeight + ". Icono original: " + (originalIcon.getDescription() != null ? originalIcon.getDescription() : "descripción nula") + ". Mensaje: " + e.getMessage());
             // e.printStackTrace(); // Descomentar para depuración profunda
             return null; // Retornar null si hay una excepción
@@ -290,7 +296,7 @@ public class IconUtils {
     public ImageIcon getScaledIcon(String nombreIconoTematizado, int width, int height) {
         ImageIcon originalIcon = getIcon(nombreIconoTematizado); // Obtiene el icono tematizado (con fallbacks)
         if (originalIcon == null) {
-             System.err.println("WARN [IconUtils.getScaledIcon]: No se pudo obtener el icono original tematizado para: " + nombreIconoTematizado);
+             logger.warn("WARN [IconUtils.getScaledIcon]: No se pudo obtener el icono original tematizado para: " + nombreIconoTematizado);
         }
         return scaleImageIcon(originalIcon, width, height);    // Llama al helper de escalado
     } // --- Fin del método getScaledIcon ---
@@ -306,7 +312,7 @@ public class IconUtils {
     public ImageIcon getScaledCommonIcon(String nombreIconoComun, int width, int height) {
         ImageIcon originalIcon = getCommonIcon(nombreIconoComun);
          if (originalIcon == null) {
-             System.err.println("WARN [IconUtils.getScaledCommonIcon]: No se pudo obtener el icono original común para: " + nombreIconoComun);
+             logger.warn("WARN [IconUtils.getScaledCommonIcon]: No se pudo obtener el icono original común para: " + nombreIconoComun);
         }
         return scaleImageIcon(originalIcon, width, height);
     } // --- Fin del método getScaledCommonIcon ---
@@ -382,7 +388,7 @@ public class IconUtils {
     public Icon getCheckeredOverlayIcon(String baseIconName, int width, int height) {
         Image base = getRawCommonImage(baseIconName); // Usar getRawCommonImage para iconos de base comunes
         if (base == null) {
-            System.err.println("ERROR [IconUtils.getCheckeredOverlayIcon]: Imagen base '" + baseIconName + "' no encontrada.");
+            logger.error("ERROR [IconUtils.getCheckeredOverlayIcon]: Imagen base '" + baseIconName + "' no encontrada.");
             return null;
         }
         return new ColorOverlayIcon(base, width, height);

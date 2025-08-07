@@ -9,6 +9,9 @@ import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
@@ -25,6 +28,8 @@ import servicios.ConfigKeys;
  */
 public class ListCoordinator implements IListCoordinator {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // --- Dependencias ---
     private VisorModel model;
     private VisorController controller;
@@ -65,7 +70,7 @@ public class ListCoordinator implements IListCoordinator {
             return;
         }
 
-        System.out.println("[ListCoordinator] Nueva selección. Modo: " + model.getCurrentWorkMode() + ". Índice: " + desiredIndex);
+        logger.debug("[ListCoordinator] Nueva selección. Modo: " + model.getCurrentWorkMode() + ". Índice: " + desiredIndex);
 
         // 1. Actualizar el estado interno y el del Modelo (la fuente de verdad)
         this.officialSelectedIndex = desiredIndex;

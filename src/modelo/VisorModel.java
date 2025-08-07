@@ -7,10 +7,16 @@ import java.util.Objects;
 
 import javax.swing.DefaultListModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import servicios.zoom.ZoomModeEnum;
 
 public class VisorModel {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // --- Enum para definir los modos de trabajo ---
     public enum WorkMode {
         VISUALIZADOR,
@@ -92,7 +98,7 @@ public class VisorModel {
     		boolean navCircularInicial, 
     		boolean zoomAlCursor
     ) {
-        System.out.println("[VisorModel] Inicializando estado por defecto de todos los contextos...");
+        logger.info("[VisorModel] Inicializando estado por defecto de todos los contextos...");
 
         this.visualizadorZoomContext.setMantenerProporcion(mantenerPropInicial);
         this.visualizadorZoomContext.setZoomMode(modoZoomInicial);
@@ -124,7 +130,7 @@ public class VisorModel {
     public WorkMode getCurrentWorkMode() {return this.currentWorkMode;}    
     public void setCurrentWorkMode(WorkMode newMode) {
         if (this.currentWorkMode != newMode) {
-            System.out.println("[Model] Cambiando modo de trabajo de " + this.currentWorkMode + " a: " + newMode);
+            logger.debug("[Model] Cambiando modo de trabajo de " + this.currentWorkMode + " a: " + newMode);
             this.currentWorkMode = newMode;
             this.setCurrentImage(null);
             this.enModoProyecto = (newMode == WorkMode.PROYECTO);
@@ -135,7 +141,7 @@ public class VisorModel {
     public DisplayMode getCurrentDisplayMode() {return this.currentDisplayMode;}
     public void setCurrentDisplayMode(DisplayMode newDisplayMode) {
         if (this.currentDisplayMode != newDisplayMode) {
-            System.out.println("[Model] Cambiando modo de visualización de contenido de " + this.currentDisplayMode + " a: " + newDisplayMode);
+            logger.debug("[Model] Cambiando modo de visualización de contenido de " + this.currentDisplayMode + " a: " + newDisplayMode);
             this.currentDisplayMode = newDisplayMode;
             // Aquí no es necesario resetear currentImage, ya que la imagen principal
             // puede seguir siendo la misma, solo cambia cómo se presenta (ej. de Single a Grid).
@@ -167,7 +173,7 @@ public class VisorModel {
 
     
     public void actualizarListaCompleta(DefaultListModel<String> nuevoModelo, Map<String, java.nio.file.Path> nuevoMapaRutas) {
-        System.out.println("[Model] Actualizando contexto de lista para el modo: " + this.currentWorkMode);
+        logger.debug("[Model] Actualizando contexto de lista para el modo: " + this.currentWorkMode);
         getCurrentListContext().actualizarContextoCompleto(nuevoModelo, nuevoMapaRutas);
     }
 
@@ -229,14 +235,14 @@ public class VisorModel {
         // Reaplicamos el signo original al valor validado
         this.carouselDelay = clampedAbsoluteDelay * sign;
         
-        System.out.println("[VisorModel] Retardo del carrusel actualizado a: " + this.carouselDelay + "ms");
+        logger.debug("[VisorModel] Retardo del carrusel actualizado a: " + this.carouselDelay + "ms");
     } // --- Fin del método setCarouselDelay ---
 
     public boolean isMostrarSoloCarpetaActual() { return getCurrentListContext().isMostrarSoloCarpetaActual(); }
     public void setMostrarSoloCarpetaActual(boolean mostrarSoloCarpetaActual) {
         if (isMostrarSoloCarpetaActual() != mostrarSoloCarpetaActual) {
             getCurrentListContext().setMostrarSoloCarpetaActual(mostrarSoloCarpetaActual);
-            System.out.println("  [Model " + currentWorkMode + "] Estado mostrarSoloCarpetaActual cambiado a: " + mostrarSoloCarpetaActual);
+            logger.debug("  [Model " + currentWorkMode + "] Estado mostrarSoloCarpetaActual cambiado a: " + mostrarSoloCarpetaActual);
         }
     } // --- Fin del método setMostrarSoloCarpetaActual ---
 
@@ -244,7 +250,7 @@ public class VisorModel {
     public void setMantenerProporcion(boolean mantenerProporcion) {
         if (isMantenerProporcion() != mantenerProporcion) {
             getCurrentZoomContext().setMantenerProporcion(mantenerProporcion);
-            System.out.println("  [Model " + currentWorkMode + "] Estado mantenerProporcion cambiado a: " + mantenerProporcion);
+            logger.debug("  [Model " + currentWorkMode + "] Estado mantenerProporcion cambiado a: " + mantenerProporcion);
         }
     } // --- Fin del método setMantenerProporcion ---
 
@@ -253,7 +259,7 @@ public class VisorModel {
         ListContext currentContext = getCurrentListContext();
         if (currentContext != null) {
             if (!Objects.equals(currentContext.getCarpetaRaizContexto(), carpetaRaiz)) {
-                System.out.println("  [VisorModel] Carpeta raíz para contexto " + currentWorkMode + " cambiada a '" + carpetaRaiz + "'");
+                logger.debug("  [VisorModel] Carpeta raíz para contexto " + currentWorkMode + " cambiada a '" + carpetaRaiz + "'");
                 currentContext.setCarpetaRaizContexto(carpetaRaiz);
             }
         }
@@ -263,7 +269,7 @@ public class VisorModel {
     public void setNavegacionCircularActivada(boolean activada) {
         if (this.navegacionCircularActivada != activada) {
             this.navegacionCircularActivada = activada;
-            System.out.println("  [VisorModel] Navegación Circular cambiada a: " + activada);
+            logger.debug("  [VisorModel] Navegación Circular cambiada a: " + activada);
         }
     } // --- Fin del método setNavegacionCircularActivada ---
     
@@ -271,7 +277,7 @@ public class VisorModel {
     public void setZoomToCursorEnabled(boolean enabled) {
         if (isZoomToCursorEnabled() != enabled) {
             getCurrentZoomContext().setZoomToCursorEnabled(enabled);
-            System.out.println("  [Model " + currentWorkMode + "] Estado zoomToCursorEnabled cambiado a: " + enabled);
+            logger.debug("  [Model " + currentWorkMode + "] Estado zoomToCursorEnabled cambiado a: " + enabled);
         }
     } // --- Fin del método setZoomToCursorEnabled ---
     
@@ -280,7 +286,7 @@ public class VisorModel {
     public void setModoPantallaCompletaActivado(boolean activado) {
         if (this.modoPantallaCompletaActivado != activado) {
             this.modoPantallaCompletaActivado = activado;
-            System.out.println("  [VisorModel] Estado de pantalla completa cambiado a: " + activado);
+            logger.debug("  [VisorModel] Estado de pantalla completa cambiado a: " + activado);
         }
     } // --- Fin del método setModoPantallaCompletaActivado ---
     
@@ -288,7 +294,7 @@ public class VisorModel {
     public void setCarpetaRaizInicialParaVisualizador(Path carpetaRaiz) {
         if (this.visualizadorListContext != null) {
             this.visualizadorListContext.setCarpetaRaizContexto(carpetaRaiz);
-            System.out.println("  [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: " + carpetaRaiz);
+            logger.debug("  [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: " + carpetaRaiz);
         }
     } // --- Fin del método setCarpetaRaizInicialParaVisualizador ---
     
@@ -296,7 +302,7 @@ public class VisorModel {
     public boolean isCarouselShuffleEnabled() {return this.carouselShuffleEnabled;}
     public void setCarouselShuffleEnabled(boolean enabled) {
         this.carouselShuffleEnabled = enabled;
-        System.out.println("[VisorModel] Modo aleatorio del carrusel: " + (enabled ? "ACTIVADO" : "DESACTIVADO"));
+        logger.debug("[VisorModel] Modo aleatorio del carrusel: " + (enabled ? "ACTIVADO" : "DESACTIVADO"));
     } // --- Fin del método setCarouselShuffleEnabled ---
 
     
@@ -304,7 +310,7 @@ public class VisorModel {
     public void setSyncVisualizadorCarrusel(boolean syncActivado) {
         if (this.syncVisualizadorCarrusel != syncActivado) {
             this.syncVisualizadorCarrusel = syncActivado;
-            System.out.println("[VisorModel] Sincronización Visor<->Carrusel cambiada a: " + (syncActivado ? "ACTIVADO" : "DESACTIVADO"));
+            logger.debug("[VisorModel] Sincronización Visor<->Carrusel cambiada a: " + (syncActivado ? "ACTIVADO" : "DESACTIVADO"));
         }
     } // --- Fin del método setSyncVisualizadorCarrusel ---
 
@@ -312,11 +318,11 @@ public class VisorModel {
     public void setZoomCustomPercentage(double percentage) {
     	// Podríamos añadir validación aquí si quisiéramos (ej: que no sea negativo)
     	this.zoomCustomPercentage = percentage;
-    	System.out.println("  [VisorModel] zoomCustomPercentage actualizado a: " + this.zoomCustomPercentage + "%");
+    	logger.debug("  [VisorModel] zoomCustomPercentage actualizado a: " + this.zoomCustomPercentage + "%");
     } // --- Fin del método setZoomCustomPercentage ---
     	
     public void setInitialDisplayMode(DisplayMode initialDisplayMode) {
-        System.out.println("[Model] Estableciendo DisplayMode inicial a: " + initialDisplayMode);
+        logger.debug("[Model] Estableciendo DisplayMode inicial a: " + initialDisplayMode);
         this.currentDisplayMode = initialDisplayMode;
     } // --- FIN del metodo setInitialDisplayMode ---
     

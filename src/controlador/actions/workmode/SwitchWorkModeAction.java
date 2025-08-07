@@ -3,8 +3,13 @@ package controlador.actions.workmode;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Objects;
 
+import controlador.AppInitializer;
 import controlador.GeneralController; // Necesitamos acceso al GeneralController
 import modelo.VisorModel.WorkMode;     // Necesitamos el enum WorkMode
 
@@ -15,7 +20,13 @@ import modelo.VisorModel.WorkMode;     // Necesitamos el enum WorkMode
  */
 public class SwitchWorkModeAction extends AbstractAction {
 
-    private final GeneralController generalController;
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final GeneralController generalController;
     private final WorkMode targetWorkMode;
 
     /**
@@ -56,7 +67,7 @@ public class SwitchWorkModeAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println("[SwitchWorkModeAction] Acción disparada para cambiar a WorkMode: " + targetWorkMode);
+        logger.debug("[SwitchWorkModeAction] Acción disparada para cambiar a WorkMode: " + targetWorkMode);
         // Delegar la lógica real del cambio de WorkMode al GeneralController.
         generalController.cambiarModoDeTrabajo(targetWorkMode);
     }
@@ -69,7 +80,7 @@ public class SwitchWorkModeAction extends AbstractAction {
         boolean isSelected = (this.targetWorkMode == currentModelWorkMode);
         if (Boolean.TRUE.equals(getValue(Action.SELECTED_KEY)) != isSelected) {
             putValue(Action.SELECTED_KEY, isSelected);
-            System.out.println("  [SwitchWorkModeAction] Sincronizada acción '" + getValue(Action.NAME) + "'. Seleccionado: " + isSelected);
+            logger.debug("  [SwitchWorkModeAction] Sincronizada acción '" + getValue(Action.NAME) + "'. Seleccionado: " + isSelected);
         }
     }
 }

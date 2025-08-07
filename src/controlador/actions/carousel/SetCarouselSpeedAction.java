@@ -1,18 +1,30 @@
 package controlador.actions.carousel;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.managers.CarouselManager;
 import modelo.VisorModel;
-import servicios.ConfigurationManager;
 
 /**
  * Establece una velocidad (retardo) específica para el carrusel.
  * Se utiliza para los ítems del menú emergente de velocidad.
  */
 public class SetCarouselSpeedAction extends AbstractAction {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
-    // --- Dependencias ---
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
+	// --- Dependencias ---
     private final VisorModel model;
     private final CarouselManager carouselManager;
     private final int targetDelayMs; // El retardo específico que esta acción establecerá

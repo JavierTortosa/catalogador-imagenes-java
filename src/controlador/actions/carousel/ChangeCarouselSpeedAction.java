@@ -1,9 +1,12 @@
-// REEMPLAZA LA CLASE ENTERA ChangeCarouselSpeedAction.java
-
 package controlador.actions.carousel;
 
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.managers.CarouselManager;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -11,6 +14,13 @@ import servicios.ConfigurationManager;
 
 public class ChangeCarouselSpeedAction extends AbstractAction {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
     public enum SpeedChangeType { INCREASE, DECREASE, RESET }
 
     private final VisorModel model;

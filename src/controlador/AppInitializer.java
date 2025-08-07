@@ -16,6 +16,9 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
@@ -48,6 +51,8 @@ import vista.util.IconUtils;
 import vista.util.ThumbnailPreviewer;
 
 public class AppInitializer {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     private ProjectController projectController;
     private VisorModel model;
@@ -81,7 +86,7 @@ public class AppInitializer {
     } // --- fin del método AppInitializer (constructor) ---
 
     public boolean initialize() {
-        System.out.println("--- AppInitializer: Iniciando Proceso de Inicialización Global ---");
+    	logger.info("--- Iniciando Proceso de Inicialización Global ---");
 
         try {
             if (!inicializarComponentesBase()) return false;
@@ -89,20 +94,22 @@ public class AppInitializer {
             if (!inicializarServiciosEsenciales()) return false;
             if (!inicializarServicioDeProyectos()) return false;
 
-            System.out.println("  [AppInitializer] Programando creación de UI y componentes dependientes en EDT...");
+            logger.debug("  [AppInitializer] Programando creación de UI y componentes dependientes en EDT...");
             SwingUtilities.invokeLater(this::crearUIyComponentesDependientesEnEDT);
 
-            System.out.println("--- AppInitializer: Inicialización base (fuera de EDT) completada. ---");
-            
+            logger.debug("--- Inicialización base (fuera de EDT) completada. ---");
+            		
             return true;
         } catch (Exception e) {
             manejarErrorFatalInicializacion("Error fatal durante la inicialización base (fuera del EDT)", e);
+            logger.error("Error fatal durante la inicialización base (fuera del EDT)", e);
             return false;
         }
     } // --- Fin del método initialize ---
 
     private boolean inicializarComponentesBase() {
-        System.out.println("  [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...");
+        logger.info("  [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...");
+        
         try {
             this.model = new VisorModel();
             this.controller.setModel(this.model);
@@ -111,12 +118,15 @@ public class AppInitializer {
             return true;
         } catch (Exception e) {
              manejarErrorFatalInicializacion("Error inesperado inicializando componentes base", e);
+             logger.error("Error inesperado inicializando componentes base", e);
+             
              return false;
         }
     } // --- fin del método inicializarComponentesBase ---
 
     private void aplicarConfiguracionAlModelo() {
-        System.out.println("  [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...");
+        logger.info("  [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...");
+        
         if (this.configuration == null || this.model == null) return;
         
         boolean mantenerProp = configuration.getBoolean("interfaz.menu.zoom.mantener_proporciones.seleccionado", true);
@@ -162,18 +172,22 @@ public class AppInitializer {
             try {
                 this.model.setUltimaCarpetaCarrusel(Paths.get(ultimaCarpetaStr));
             } catch (java.nio.file.InvalidPathException e) {
-                System.err.println("WARN: Ruta de la última carpeta del carrusel inválida en config: " + ultimaCarpetaStr);
-            }
+                logger.error("WARN: Ruta de la última carpeta del carrusel inválida en config: " + ultimaCarpetaStr);            }
         }
         String ultimaImagenKey = configuration.getString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, "");
         this.model.setUltimaImagenKeyCarrusel(ultimaImagenKey);
-        System.out.println("  [Initializer] Estado de Sincronización cargado: " + syncActivado);
+        
+        
+        logger.debug("  [Initializer] Estado de Sincronización cargado: " + syncActivado);
+        
         // --- FIN DE LÓGICA DE SINCRONIZACIÓN ---
         
     } // --- fin del método aplicarConfiguracionAlModelo ---
 
     private boolean inicializarServiciosEsenciales() {
-         System.out.println("  [AppInitializer Fase A.3] Inicializando Servicios Esenciales...");
+         
+        logger.info ("  [AppInitializer Fase A.3] Inicializando Servicios Esenciales...");
+         
          try {
         	 this.themeManager = new ThemeManager(this.configuration);
              this.themeManager.install();
@@ -189,18 +203,26 @@ public class AppInitializer {
              this.controller.setExecutorService(Executors.newFixedThreadPool(numThreads));
              return true;
          } catch (Exception e) {
-             manejarErrorFatalInicializacion("Error inicializando servicios esenciales", e);
+        	 
+//             manejarErrorFatalInicializacion("Error inicializando servicios esenciales", e);
+             logger.error("Error inicializando servicios esenciales", e);
+             
              return false;
          }
     } // --- Fin del método inicializarServiciosEsenciales ---
     
     private boolean inicializarServicioDeProyectos() {
-        System.out.println("  [AppInitializer Fase A.4] Creando instancia de ProjectManager...");
+    	
+        logger.info("  [AppInitializer Fase A.4] Creando instancia de ProjectManager...");
+        
         try {
             this.projectManagerService = new ProjectManager();
             return true;
         } catch (Exception e) {
+        	
             manejarErrorFatalInicializacion("Error creando la instancia de ProjectManager (servicio)", e);
+            logger.error("Error creando la instancia de ProjectManager (servicio)", e);
+            
             return false;
         }
     } // --- Fin del método inicializarServicioDeProyectos ---
@@ -208,13 +230,14 @@ public class AppInitializer {
     
     private void crearUIyComponentesDependientesEnEDT() {
         try {
-            System.out.println("\n--- [AppInitializer Fase B - EDT] Iniciando creación de UI y componentes dependientes ---");
+            logger.info("--- [AppInitializer Fase B - EDT] Iniciando creación de UI y componentes dependientes ---");
 
             //======================================================================
             // FASE B.1: CREACIÓN DE TODAS LAS INSTANCIAS (SIN DEPENDENCIAS)
             // En esta fase, simplemente creamos los objetos. No los conectamos entre sí.
             //======================================================================
-            System.out.println("  -> Fase B.1: Creando todas las instancias...");
+            
+            logger.debug("  -> Fase B.1: Creando todas las instancias...");
             
             ComponentRegistry registry = new ComponentRegistry();
             this.generalController = new GeneralController();
@@ -270,8 +293,9 @@ public class AppInitializer {
             // FASE B.2: CABLEADO DE DEPENDENCIAS (SETS)
             // Aquí, conectamos los objetos entre sí usando sus métodos `set...`.
             //======================================================================
-            System.out.println("  -> Fase B.2: Cableando dependencias (sets)...");
-
+            
+            logger.debug("  -> Fase B.2: Cableando dependencias (sets)...");
+            
             // Suscripción a eventos de cambio de tema
             this.themeManager.addThemeChangeListener(this.toolbarManager); 
             this.themeManager.addThemeChangeListener(this.controller);
@@ -349,8 +373,10 @@ public class AppInitializer {
             // Este es el paso más delicado. Creamos la UI a mitad de camino para
             // resolver el "problema del huevo y la gallina" con las dependencias.
             //======================================================================
-            System.out.println("  -> Fase B.3: Inicialización secuenciada y construcción de UI...");
-
+            
+            logger.debug("  -> Fase B.3: Inicialización secuenciada y construcción de UI...");
+            
+            
             // Paso 3.1: Inicializar las Actions que NO dependen de la 'view'.
             this.actionFactory.initializeCoreActions();
             this.actionMap = this.actionFactory.getActionMap();
@@ -361,10 +387,12 @@ public class AppInitializer {
 
             // Paso 3.3: Crear el frame principal (VisorView). ¡ESTE ES EL PASO CLAVE!
             this.view = viewBuilder.createMainFrame();
-            System.out.println("    -> VisorView (JFrame) creado.");
+            
+            logger.debug("    -> VisorView (JFrame) creado.");
 
             // Paso 3.4: Inyectar la 'view' en todos los componentes que la necesitaban.
-            System.out.println("    -> Inyectando la instancia de 'view' en los componentes...");
+            logger.debug("    -> Inyectando la instancia de 'view' en los componentes...");
+            
             this.actionFactory.setView(this.view);
             this.configAppManager.setView(this.view);
             this.viewManager.setView(this.view);
@@ -389,7 +417,9 @@ public class AppInitializer {
             this.actionFactory.setDisplayModeManager(this.displayModeManager);
             this.controller.setDisplayModeManager(this.displayModeManager);
             this.displayModeManager.initializeListeners();
-            System.out.println("    -> DisplayModeManager configurado y conectado.");
+            
+            logger.debug("    -> DisplayModeManager configurado y conectado.");
+            logger.debug("    -> DisplayModeManager configurado y conectado.");
 
             // Paso 3.7: Resto del cableado y configuración final.
             if (this.projectManagerService != null) { this.projectManagerService.initialize(); }
@@ -415,7 +445,7 @@ public class AppInitializer {
             //======================================================================
             // FASE B.4: ENSAMBLAJE FINAL, VISIBILIDAD Y CARGA DE DATOS
             //======================================================================
-            System.out.println("  -> Fase B.4: Ensamblaje final, visibilidad y carga de datos...");
+            logger.debug("  -> Fase B.4: Ensamblaje final, visibilidad y carga de datos...");
 
             // Construir y registrar Menú y Toolbars
             this.view.setJMenuBar(menuBuilder.buildMenuBar(uiDefSvc.generateMenuStructure(), this.actionMap));
@@ -445,7 +475,8 @@ public class AppInitializer {
             if (miniaturasList != null) {
                 new ThumbnailPreviewer(miniaturasList, this.model, this.themeManager);
             } else {
-                System.err.println("WARN: No se pudo instalar ThumbnailPreviewer, 'list.miniaturas' no encontrada.");
+            	
+                logger.warn("WARN: No se pudo instalar ThumbnailPreviewer, 'list.miniaturas' no encontrada.");
             }
             
             // Configurar el listener de cierre de la ventana
@@ -462,7 +493,7 @@ public class AppInitializer {
                         this.model.setCarpetaRaizInicialParaVisualizador(candidatePath);
                     }
                 } catch (Exception e) {
-                    System.err.println("WARN: Ruta de carpeta inicial inválida en config: '" + folderInitPath + "'");
+                    logger.warn("WARN: Ruta de carpeta inicial inválida en config: '" + folderInitPath + "'");
                 }
             }
             
@@ -471,31 +502,39 @@ public class AppInitializer {
 
             // Aplicar configuraciones y sincronizar estados que dependen de una UI visible
             this.configAppManager.aplicarConfiguracionGlobalmente();
-            System.out.println("  [AppInitializer] Ejecutando sincronización maestra INICIAL...");
+            
+            logger.debug("  [AppInitializer] Ejecutando sincronización maestra INICIAL...");
+            
             this.generalController.sincronizarTodaLaUIConElModelo();
             this.backgroundControlManager.initializeAndLinkControls();
             this.backgroundControlManager.sincronizarSeleccionConEstadoActual();
-            System.out.println("    -> BackgroundControlManager inicializado y enlazado a la UI.");
-
+            
+            logger.debug("    -> BackgroundControlManager inicializado y enlazado a la UI.");
+            
             // Cargar datos iniciales en un hilo separado para no bloquear la UI
             SwingUtilities.invokeLater(() -> {
                 String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
                 
                 // Creamos un callback que se ejecutará DESPUÉS de que la carga de imágenes termine.
                 Runnable accionPostCarga = () -> {
-                    System.out.println("  [Callback Post-Carga] Carga inicial completada. Aplicando estado final de UI...");
-
+                	
+                    logger.debug("  [Callback Post-Carga] Carga inicial completada. Aplicando estado final de UI...");
+                    
                     // >>> LA SOLUCIÓN <<<
                     // Este es el último paso. Después de que las imágenes se han cargado y la selección inicial
                     // se ha procesado (lo que podría haber cambiado la vista incorrectamente), forzamos
                     // a la UI a mostrar el modo de visualización correcto que leímos de la configuración.
                     if (this.displayModeManager != null) {
-                        System.out.println("    -> [Callback] Sincronizando DisplayMode final a: " + this.model.getCurrentDisplayMode());
+                    	
+                        logger.debug("    -> [Callback] Sincronizando DisplayMode final a: " + this.model.getCurrentDisplayMode());
+                        
                         this.displayModeManager.switchToDisplayMode(VisorModel.DisplayMode.SINGLE_IMAGE);
                     }
                     
                     // Refrescar las listas visuales
-                    System.out.println("    -> [Callback] Forzando refresco de las listas visuales...");
+                    
+                    logger.debug("    -> [Callback] Forzando refresco de las listas visuales...");
+                    
                     if (registry != null) {
                         JList<String> listaNombres = registry.get("list.nombresArchivo");
                         if (listaNombres != null) { listaNombres.repaint(); }
@@ -508,14 +547,16 @@ public class AppInitializer {
                     this.controller.cargarListaImagenes(imagenInicialKey, accionPostCarga);
                 } else {
                     this.controller.limpiarUI();
-                    System.out.println("  [AppInitializer] No hay carpeta inicial. Sincronizando UI maestra...");
+                    
+                    logger.debug("  [AppInitializer] No hay carpeta inicial. Sincronizando UI maestra...");
+                    
                     this.generalController.sincronizarTodaLaUIConElModelo();
                     // Incluso si no hay imágenes, establece el modo de visualización correcto.
                     this.displayModeManager.switchToDisplayMode(this.model.getCurrentDisplayMode());
                 }
             });
             
-            System.out.println("--- [AppInitializer Fase B - EDT] Inicialización de UI completada. La aplicación está lista. ---");
+            logger.info("--- [AppInitializer Fase B - EDT] Inicialización de UI completada. La aplicación está lista. ---");
 
         } catch (Exception e) {
             manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
@@ -524,13 +565,15 @@ public class AppInitializer {
     
     
     private void manejarErrorFatalInicializacion(String message, Throwable cause) {
-        System.err.println("### ERROR FATAL DE INICIALIZACIÓN ###");
-        System.err.println("Mensaje: " + message);
+        logger.error("### ERROR FATAL DE INICIALIZACIÓN ###");
+        logger.error("Mensaje: " + message);
+        
         if (cause != null) {
-            System.err.println("Causa: " + cause.toString());
+            logger.error("Causa: " + cause.toString());
+            
             cause.printStackTrace(System.err);
         }
-        System.err.println("#####################################");
+        logger.error("#####################################");
 
         final String finalMessage = message;
         final Throwable finalCause = cause;
@@ -543,11 +586,15 @@ public class AppInitializer {
                      JOptionPane.showMessageDialog(null, finalMessage + (finalCause != null ? "\n\nError Detallado: " + finalCause.getMessage() : ""), "Error Fatal de Inicialización", JOptionPane.ERROR_MESSAGE);
                 });
             } catch (Exception swingEx) {
-                 System.err.println("Error adicional al intentar mostrar el diálogo de error en EDT: " + swingEx.getMessage());
-                 swingEx.printStackTrace(System.err);
+                 
+                logger.error ("Error adicional al intentar mostrar el diálogo de error en EDT: " + swingEx.getMessage());
+                
+                swingEx.printStackTrace(System.err);
             }
         }
-        System.err.println("Terminando la aplicación debido a un error fatal de inicialización.");
+        
+        logger.error("Terminando la aplicación debido a un error fatal de inicialización.");
+        
         System.exit(1); 
     } // --- FIN del método manejarErrorFatalInicializacion ---
 

@@ -2,6 +2,7 @@ package vista.dialogos;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -9,8 +10,15 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.border.EmptyBorder;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+
 public class ExportProgressDialog extends JDialog {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 1L;
     private JProgressBar overallProgressBar;
     private JLabel lblCurrentFile;

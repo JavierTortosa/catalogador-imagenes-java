@@ -7,11 +7,18 @@ import java.util.Map;
 
 import javax.swing.DefaultListModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+
 /**
  * Encapsula el estado completo de una lista de imágenes para un modo de trabajo específico.
  * Contiene el modelo de la lista, el mapa de rutas y la selección actual.
  */
 public class ListContext {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     // --- Campos de Estado del Contexto ---
     private DefaultListModel<String> modeloLista;
@@ -55,13 +62,13 @@ public class ListContext {
         
         if (oldSelectedKey != null && this.modeloLista.contains(oldSelectedKey)) {
             this.selectedImageKey = oldSelectedKey;
-            System.out.println("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + ": Restored old selectedKey: '" + oldSelectedKey + "'");
+            logger.debug("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + ": Restored old selectedKey: '" + oldSelectedKey + "'");
         } else {
             this.selectedImageKey = null;
-            System.out.println("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + ": SelectedKey set to NULL (old key not found or was null).");
+            logger.debug("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + ": SelectedKey set to NULL (old key not found or was null).");
         }
         
-        System.out.println("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + 
+        logger.debug("### DEBUG CONTEXT: ListContext@" + Integer.toHexString(hashCode()) + 
                            " actualizado. Nuevo tamaño: " + this.modeloLista.getSize());
     } // --- Fin del método actualizarContextoCompleto ---
     
@@ -73,7 +80,7 @@ public class ListContext {
      */
     public void clonarDesde(ListContext otroContexto) {
         if (otroContexto == null) {
-            System.err.println("WARN [ListContext.clonarDesde]: Se intentó clonar desde un contexto nulo.");
+            logger.warn("WARN [ListContext.clonarDesde]: Se intentó clonar desde un contexto nulo.");
             return;
         }
         
@@ -94,7 +101,7 @@ public class ListContext {
         this.mostrarSoloCarpetaActual = otroContexto.isMostrarSoloCarpetaActual();
         
         // LOG [ListContext.clonarDesde] Clonando 'mostrarSoloCarpetaActual'. Valor:
-        System.out.println("    [ListContext.clonarDesde] Clonando 'mostrarSoloCarpetaActual'. Valor: " + this.mostrarSoloCarpetaActual);
+        logger.debug("    [ListContext.clonarDesde] Clonando 'mostrarSoloCarpetaActual'. Valor: " + this.mostrarSoloCarpetaActual);
         
         this.nombreListaActiva = otroContexto.getNombreListaActiva();
         this.seleccionListKey = otroContexto.getSeleccionListKey();

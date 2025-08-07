@@ -11,16 +11,22 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.formdev.flatlaf.FlatDarkLaf;
 import com.formdev.flatlaf.FlatLaf;
 import com.formdev.flatlaf.FlatLightLaf;
 
+import controlador.AppInitializer;
 import controlador.managers.ConfigApplicationManager;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 
 public class ThemeManager {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private final ConfigurationManager configManager;
     private final Map<String, Tema> temasDisponibles;
     private final List<Tema> temasOrdenados;
@@ -29,7 +35,6 @@ public class ThemeManager {
     
     private final List<ThemeChangeListener> listeners = new ArrayList<>();
     
-//    private VisorController controllerRefParaNotificacion;
 
     public ThemeManager(ConfigurationManager configManager) {
         this.configManager = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
@@ -38,14 +43,6 @@ public class ThemeManager {
         cargarTemasPredeterminados();
     } // --- FIN DEL CONSTRUCTOR ThemeManager ---
     
-    
-//    public ThemeManager(ConfigurationManager configManager) {
-//        this.configManager = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
-//        this.temasDisponibles = new ConcurrentHashMap<>();
-//        this.temasOrdenados = new java.util.ArrayList<>();
-//        cargarTemasPredeterminados();
-//    }
-
     
     public void addThemeChangeListener(ThemeChangeListener listener) {
         if (listener != null && !listeners.contains(listener)) {
@@ -75,34 +72,13 @@ public class ThemeManager {
             }
 
             applyCustomizations();
-            System.out.println("[ThemeManager] Tema inicial '" + temaActual.nombreInterno() + "' con personalizaciones instalado.");
+            logger.debug("[ThemeManager] Tema inicial '" + temaActual.nombreInterno() + "' con personalizaciones instalado.");
         } catch (Exception ex) {
-            System.err.println("Falló al inicializar el tema por defecto.");
+            logger.error("Falló al inicializar el tema por defecto.");
             ex.printStackTrace();
         }
     } // --- FIN DEL MÉTODO install ---
     
-    
-
-//    public void install() {
-//        String nombreTemaGuardado = configManager.getString("tema.nombre", "clear");
-//        this.temaActual = temasDisponibles.getOrDefault(nombreTemaGuardado, obtenerTemaPorDefecto());
-//
-//        try {
-//            if (isDarkTheme(temaActual.nombreInterno())) {
-//                UIManager.setLookAndFeel(new FlatDarkLaf());
-//            } else {
-//                UIManager.setLookAndFeel(new FlatLightLaf());
-//            }
-//
-//            applyCustomizations();
-//            System.out.println("[ThemeManager] Tema inicial '" + temaActual.nombreInterno() + "' con personalizaciones instalado.");
-//        } catch (Exception ex) {
-//            System.err.println("Falló al inicializar el tema por defecto.");
-//            ex.printStackTrace();
-//        }
-//    }
-
     
     public boolean setTemaActual(String nombreTemaInterno) {
         Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
@@ -113,7 +89,7 @@ public class ThemeManager {
         final Tema temaAnterior = this.temaActual;
         this.temaActual = nuevoTema;
         configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno());
-        System.out.println("[ThemeManager] Solicitud para cambiar tema a: " + this.temaActual.nombreInterno());
+        logger.debug("[ThemeManager] Solicitud para cambiar tema a: " + this.temaActual.nombreInterno());
 
         SwingUtilities.invokeLater(() -> {
             try {
@@ -133,18 +109,18 @@ public class ThemeManager {
                 }
                 
                 // --- ¡PASO CLAVE 2: NOTIFICAR A LOS LISTENERS PARA QUE REPINTEN! ---
-                System.out.println("[ThemeManager] Notificando a " + listeners.size() + " listeners sobre el cambio de tema...");
+                logger.debug("[ThemeManager] Notificando a " + listeners.size() + " listeners sobre el cambio de tema...");
                 for (ThemeChangeListener listener : new ArrayList<>(listeners)) {
                     try {
                         listener.onThemeChanged(nuevoTema);
                     } catch (Exception e) {
-                        System.err.println("ERROR: El listener " + listener.getClass().getName() + " lanzó una excepción.");
+                        logger.error("ERROR: El listener " + listener.getClass().getName() + " lanzó una excepción.");
                         e.printStackTrace();
                     }
                 }
 
             } catch (Exception e) {
-                System.err.println("ERROR [ThemeManager]: Fallo al aplicar el tema en caliente.");
+                logger.error("ERROR [ThemeManager]: Fallo al aplicar el tema en caliente.");
                 e.printStackTrace();
             }
         });
@@ -153,120 +129,16 @@ public class ThemeManager {
     } // --- FIN DEL MÉTODO setTemaActual ---
     
     
-//    /**
-//     * Establece un nuevo tema como el actual, cambiando el LookAndFeel en caliente
-//     * y aplicando los colores personalizados.
-//     *
-//     * @param nombreTemaInterno El nombre interno del tema a activar (ej. "dark").
-//     * @return true si el tema se cambió exitosamente, false si no.
-//     */
-//    public boolean setTemaActual(String nombreTemaInterno) {
-//        Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
-//        final Tema temaAnterior = this.temaActual;
-//        
-//        if (nuevoTema == null || nuevoTema.equals(this.temaActual)) {
-//            return false;
-//        }
-//
-//        this.temaActual = nuevoTema;
-//        configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno());
-//        System.out.println("[ThemeManager] Solicitud para cambiar tema a: " + this.temaActual.nombreInterno());
-//
-//        SwingUtilities.invokeLater(() -> {
-//            try {
-//                if (isDarkTheme(nuevoTema.nombreInterno())) {
-//                    UIManager.setLookAndFeel(new FlatDarkLaf());
-//                } else {
-//                    UIManager.setLookAndFeel(new FlatLightLaf());
-//                }
-//
-//                applyCustomizations();
-//                FlatLaf.updateUI();
-//
-//                if (configAppManager != null) {
-//                    configAppManager.rotarColoresDeSlotPorCambioDeTema(temaAnterior, nuevoTema);
-//                }
-//                
-//                // --- CAMBIO 3: Notificar a TODOS los oyentes ---
-//                System.out.println("[ThemeManager] Notificando a " + listeners.size() + " oyentes sobre el cambio de tema...");
-//                for (ThemeChangeListener listener : listeners) {
-//                    try {
-//                        listener.onThemeChanged(nuevoTema);
-//                    } catch (Exception e) {
-//                        System.err.println("ERROR: El oyente " + listener.getClass().getName() + " lanzó una excepción durante la notificación del cambio de tema.");
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//            } catch (Exception e) {
-//                System.err.println("ERROR [ThemeManager]: Fallo al aplicar el tema en caliente.");
-//                e.printStackTrace();
-//            }
-//        });
-//        return true;
-//    } // --- FIN DEL MÉTODO setTemaActual ---
-    
-    
-    
-//    public boolean setTemaActual(String nombreTemaInterno) {
-//        Tema nuevoTema = temasDisponibles.get(nombreTemaInterno);
-//        final Tema temaAnterior = this.temaActual;
-//        
-//        if (nuevoTema == null || nuevoTema.equals(this.temaActual)) {
-//            return false;
-//        }
-//
-//        this.temaActual = nuevoTema;
-//        configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno());
-//        System.out.println("[ThemeManager] Solicitud para cambiar tema a: " + this.temaActual.nombreInterno());
-//
-//        SwingUtilities.invokeLater(() -> {
-//            try {
-//                if (isDarkTheme(nuevoTema.nombreInterno())) {
-//                    UIManager.setLookAndFeel(new FlatDarkLaf());
-//                } else {
-//                    UIManager.setLookAndFeel(new FlatLightLaf());
-//                }
-//
-//                applyCustomizations();
-//                FlatLaf.updateUI();
-//
-//                if (configAppManager != null) {
-//                    configAppManager.rotarColoresDeSlotPorCambioDeTema(temaAnterior, nuevoTema);
-//                }
-//                
-//                if (controllerRefParaNotificacion != null) {
-//                	
-//                	controllerRefParaNotificacion.onThemeChanged();
-//                	
-////                    controllerRefParaNotificacion.getViewManager().refrescarFondoAlPorDefecto();
-////                    controllerRefParaNotificacion.getActionFactory().actualizarIconosDeAcciones();
-////                    controllerRefParaNotificacion.sincronizarEstadoDeTodasLasToggleThemeActions();
-//                }
-//
-////                JOptionPane.showMessageDialog(null, 
-////                    "El tema se ha cambiado a '" + nuevoTema.nombreDisplay() + "'.", 
-////                    "Cambio de Tema", 
-////                    JOptionPane.INFORMATION_MESSAGE);
-//
-//            } catch (Exception e) {
-//                System.err.println("ERROR [ThemeManager]: Fallo al aplicar el tema en caliente.");
-//                e.printStackTrace();
-//            }
-//        });
-//        return true;
-//    }
-
-    
     /**
      * Sobrescribe las propiedades de color en el UIManager.
      * Este es el núcleo de la solución de personalización. Se llama después de establecer un L&F.
      */
     private void applyCustomizations() {
-        System.out.println("[ThemeManager] Aplicando personalizaciones de color globales...");
+        logger.debug("[ThemeManager] Aplicando personalizaciones de color globales...");
+        
         Tema currentTema = getTemaActual();
         if (currentTema == null) {
-            System.err.println("ERROR [ThemeManager]: currentTema es null al aplicar personalizaciones.");
+            logger.error("ERROR [ThemeManager]: currentTema es null al aplicar personalizaciones.");
             return;
         }
         UIManager.put("ToolBar.floatable", true);
@@ -323,104 +195,9 @@ public class ThemeManager {
         
         
         applyTabbedPaneTheme();
-        System.out.println("[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.");
+        logger.debug("[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.");
     } // --- FIN DEL MÉTODO applyCustomizations ---
     
-    
-//    private void applyCustomizations() {
-//        System.out.println("[ThemeManager] Aplicando personalizaciones de color globales...");
-//
-//        Tema currentTema = getTemaActual();
-//        if (currentTema == null) {
-//            System.err.println("ERROR [ThemeManager]: currentTema es null al aplicar personalizaciones. No se aplicarán colores personalizados.");
-//            return;
-//        }
-//
-//        // --- Configuración general de ToolBar ---
-//        UIManager.put("ToolBar.floatable", true);
-//
-//        // --- Colores base para TODOS los botones (JButton, JToggleButton) ---
-//        // Esto establece el estilo por defecto.
-//        UIManager.put("Button.background", currentTema.colorBotonFondo());
-//        UIManager.put("Button.foreground", currentTema.colorBotonTexto());
-//        UIManager.put("Button.borderColor", currentTema.colorBorde());
-//        UIManager.put("Button.hoverBackground", currentTema.colorBotonFondoAnimacion());
-//        UIManager.put("Button.pressedBackground", currentTema.colorBotonFondoActivado()); 
-//
-//        // --- Colores específicos para JToggleButton (en general) ---
-//        
-//        UIManager.put("Component.accentColor", currentTema.colorBotonFondoActivado());
-//        
-//        UIManager.put("ToggleButton.background", currentTema.colorBotonFondo()); // No seleccionado
-//        UIManager.put("ToggleButton.foreground", currentTema.colorBotonTexto()); // No seleccionado
-//        UIManager.put("ToggleButton.hoverBackground", currentTema.colorBotonFondoAnimacion());
-//        UIManager.put("ToggleButton.pressedBackground", currentTema.colorBotonFondoActivado());
-//        // Clave general para el estado seleccionado
-//        UIManager.put("ToggleButton.selectedBackground", currentTema.colorBotonFondoActivado());
-//        UIManager.put("ToggleButton.selectedForeground", currentTema.colorSeleccionTexto());
-//        UIManager.put("ToggleButton.selectedBorderColor", currentTema.colorBordeSeleccionActiva());
-//
-//
-//        // --- CLAVES CRUCIALES Y ESPECÍFICAS PARA COMPONENTES DENTRO DE JToolBar ---
-//        // Estas propiedades tienen mayor precedencia y son las que probablemente resuelvan el problema.
-//
-//        // 1. Color de fondo genérico para CUALQUIER COSA seleccionada dentro de una ToolBar.
-//        //    Esta es una clave de "refuerzo" muy potente.
-//        UIManager.put("ToolBar.selectedBackground", currentTema.colorBotonFondoActivado());
-//
-//        // 2. Estilo para JButtons normales dentro de una ToolBar.
-//        UIManager.put("ToolBar.Button.background", currentTema.colorBotonFondo());
-//        UIManager.put("ToolBar.Button.hoverBackground", currentTema.colorBotonFondoAnimacion());
-//        UIManager.put("ToolBar.Button.pressedBackground", currentTema.colorBotonFondoActivado());
-//
-//        // 3. Estilo específico para JToggleButtons dentro de una ToolBar (LA SECCIÓN MÁS IMPORTANTE).
-//        UIManager.put("ToolBar.ToggleButton.background", currentTema.colorBotonFondo()); // Fondo cuando NO está seleccionado.
-//        UIManager.put("ToolBar.ToggleButton.foreground", currentTema.colorBotonTexto()); // Texto cuando NO está seleccionado.
-//        
-//        // --> ¡¡LA CLAVE MÁS IMPORTANTE, AHORA DESCOMENTADA!! <--
-//        // Este es el color que queremos ver cuando el botón está activado/presionado.
-//        UIManager.put("ToolBar.ToggleButton.selectedBackground", currentTema.colorBotonFondoActivado());
-//        
-//        UIManager.put("ToolBar.ToggleButton.selectedForeground", currentTema.colorSeleccionTexto());
-//        UIManager.put("ToolBar.ToggleButton.hoverBackground", currentTema.colorBotonFondoAnimacion());
-//        UIManager.put("ToolBar.ToggleButton.selectedHoverBackground", currentTema.colorBotonFondoActivado().darker()); // Opcional: un tono más oscuro al pasar el ratón
-//        UIManager.put("ToolBar.ToggleButton.pressedBackground", currentTema.colorBotonFondoActivado());
-//        UIManager.put("ToolBar.ToggleButton.selectedBorderColor", currentTema.colorBordeSeleccionActiva()); // Borde cuando está seleccionado
-//
-//
-//        // --- Estilo de la propia JToolBar ---
-//        UIManager.put("ToolBar.background", currentTema.colorFondoPrincipal());
-//        UIManager.put("ToolBar.foreground", currentTema.colorTextoPrimario());
-//
-//
-//        // --- Colores para componentes de selección (List, Table, Tree) ---
-//        UIManager.put("List.selectionBackground", currentTema.colorSeleccionFondo());
-//        UIManager.put("List.selectionForeground", currentTema.colorSeleccionTexto());
-//        UIManager.put("List.selectionInactiveBackground", currentTema.colorSeleccionFondo().brighter()); 
-//        UIManager.put("List.selectionInactiveForeground", currentTema.colorSeleccionTexto());
-//        
-//        UIManager.put("Table.selectionBackground", currentTema.colorSeleccionFondo());
-//        UIManager.put("Table.selectionForeground", currentTema.colorSeleccionTexto());
-//        UIManager.put("Table.selectionInactiveBackground", currentTema.colorSeleccionFondo().brighter());
-//        
-//        UIManager.put("Tree.selectionBackground", currentTema.colorSeleccionFondo());
-//        UIManager.put("Tree.selectionForeground", currentTema.colorSeleccionTexto());
-//        UIManager.put("Tree.selectionInactiveBackground", currentTema.colorSeleccionFondo().brighter());
-//
-//
-//        // --- Colores para los items de menú seleccionables ---
-//        UIManager.put("RadioButtonMenuItem.selectionBackground", currentTema.colorSeleccionFondo());
-//        UIManager.put("RadioButtonMenuItem.selectionForeground", currentTema.colorSeleccionTexto());
-//
-//        UIManager.put("CheckBoxMenuItem.selectionBackground", currentTema.colorSeleccionFondo());
-//        UIManager.put("CheckBoxMenuItem.selectionForeground", currentTema.colorSeleccionTexto());
-//
-//        // --- Aplicar estilos de TabbedPane ---
-//        applyTabbedPaneTheme();
-//        
-//        System.out.println("[ThemeManager] Todas las personalizaciones de color globales han sido aplicadas.");
-//    }
-
     
     private boolean isDarkTheme(String themeName) {
         return "dark".equalsIgnoreCase(themeName) || "green".equalsIgnoreCase(themeName) || "orange".equalsIgnoreCase(themeName);
@@ -547,7 +324,7 @@ public class ThemeManager {
     }  // --- FIN DEL MÉTODO obtenerTemaPorDefecto ---
     
     
- // El método setControllerParaNotificacion ya no es necesario, pero lo dejamos por si se usa en otro sitio.
+    // El método setControllerParaNotificacion ya no es necesario, pero lo dejamos por si se usa en otro sitio.
     // Lo ideal sería eliminarlo y cambiar las llamadas por addThemeChangeListener.
     @Deprecated
     public void setControllerParaNotificacion(Object controller) {
@@ -559,7 +336,7 @@ public class ThemeManager {
     
     public Color getFondoSecundarioParaTema(String nombreTemaInterno) {
         if (nombreTemaInterno == null || nombreTemaInterno.isBlank()) {
-            System.err.println("WARN [ThemeManager.getFondoSecundarioParaTema]: nombreTemaInterno es nulo o vacío. Devolviendo fallback.");
+            logger.warn("WARN [ThemeManager.getFondoSecundarioParaTema]: nombreTemaInterno es nulo o vacío. Devolviendo fallback.");
             return Color.DARK_GRAY;
         }
         Tema tema = temasDisponibles.get(nombreTemaInterno.toLowerCase());
@@ -568,19 +345,19 @@ public class ThemeManager {
             if (color != null) {
                 return color;
             } else {
-                System.err.println("WARN [ThemeManager.getFondoSecundarioParaTema]: Tema '" + nombreTemaInterno + "' no tiene definido colorFondoSecundario. Devolviendo fallback.");
+                logger.warn("WARN [ThemeManager.getFondoSecundarioParaTema]: Tema '" + nombreTemaInterno + "' no tiene definido colorFondoSecundario. Devolviendo fallback.");
                 return Color.DARK_GRAY;
             }
         }
-        System.err.println("WARN [ThemeManager.getFondoSecundarioParaTema]: No se encontró tema '" + nombreTemaInterno + "'. Devolviendo fallback.");
+        logger.warn("WARN [ThemeManager.getFondoSecundarioParaTema]: No se encontró tema '" + nombreTemaInterno + "'. Devolviendo fallback.");
         return Color.DARK_GRAY;
     }
 
     private void applyTabbedPaneTheme() {
-        System.out.println("[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...");
+        logger.debug("[ThemeManager] Aplicando estilos de tarjeta con mayor profundidad para JTabbedPane...");
         Tema currentTema = getTemaActual();
         if (currentTema == null) {
-            System.err.println("ERROR [ThemeManager]: currentTema es null al aplicar estilos de TabbedPane. No se aplicarán.");
+            logger.error("ERROR [ThemeManager]: currentTema es null al aplicar estilos de TabbedPane. No se aplicarán.");
             return;
         }
 
@@ -605,7 +382,7 @@ public class ThemeManager {
         UIManager.put("TabbedPane.hoverColor", currentTema.colorBotonFondoAnimacion());
         UIManager.put("TabbedPane.focusColor", currentTema.colorBordeSeleccionActiva());
         UIManager.put("TabbedPane.selectedTabFocusColor", currentTema.colorLabelActivo());
-        System.out.println("[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.");
+        logger.debug("[ThemeManager] Estilos de tarjeta con mayor profundidad para JTabbedPane aplicados.");
     }
     
     

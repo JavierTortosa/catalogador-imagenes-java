@@ -10,6 +10,11 @@ import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingConstants;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import modelo.VisorModel;
 import servicios.image.ThumbnailService;
 import vista.theme.Tema;
@@ -20,10 +25,15 @@ import vista.util.IconUtils;
  * Renderer para las celdas del GridDisplayPanel. Se encarga de dibujar una
  * miniatura de mayor tamaño con su nombre de archivo debajo.
  */
-@SuppressWarnings("serial")
 public class GridCellRenderer extends JPanel implements ListCellRenderer<String> {
 
-    // --- Componentes Internos ---
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	// --- Componentes Internos ---
     private final JLabel imageLabel;
     private final JLabel nameLabel;
     

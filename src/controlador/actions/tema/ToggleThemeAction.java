@@ -6,6 +6,10 @@ import java.util.Objects;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.VisorController; // Importar VisorController
 import vista.theme.Tema;
 
@@ -13,6 +17,8 @@ import vista.theme.ThemeManager;
 
 public class ToggleThemeAction extends AbstractAction {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 1L;
 
     private final ThemeManager themeManagerRef;
@@ -53,21 +59,6 @@ public class ToggleThemeAction extends AbstractAction {
             System.out.println("  -> Tema cambiado en ThemeManager a: " + this.nombreInternoTemaQueRepresenta);
             
             // Notificar al usuario
-//            SwingUtilities.invokeLater(() -> {
-//                // Obtenemos el frame principal desde el controlador.
-//                JFrame mainFrame = controllerRef.getView();
-//                
-//                JOptionPane.showMessageDialog(
-//                    mainFrame, // Usamos el frame obtenido
-//                    "El tema se ha cambiado a '" + this.nombreDisplayTema + "'.\n" +
-//                    "Los cambios visuales completos se aplicarán la próxima vez\n" +
-//                    "que inicie la aplicación.",
-//                    "Cambio de Tema",
-//                    JOptionPane.INFORMATION_MESSAGE
-//                );
-//            });
-//        } else {
-            
             System.out.println("  -> El tema '" + this.nombreInternoTemaQueRepresenta + "' ya era el actual. No se realizaron cambios.");
             sincronizarEstadoSeleccionConManager();
         }

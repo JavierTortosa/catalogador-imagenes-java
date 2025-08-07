@@ -1,6 +1,6 @@
 package vista.builders;
 
-import java.awt.event.ActionListener; 
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -14,15 +14,20 @@ import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 
-import servicios.ConfigurationManager; 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
 import vista.config.MenuItemType;
-import vista.config.ViewUIConfig;
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
 
 public class PopupMenuBuilder {
-//    private ViewUIConfig uiConfig;
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
 	private ThemeManager themeManager;
     private ButtonGroup currentRadioGroup;
     private ConfigurationManager configManagerRef;         
@@ -31,7 +36,6 @@ public class PopupMenuBuilder {
     // --- CONSTRUCTOR MODIFICADO ---
     public PopupMenuBuilder(
     		ThemeManager themeManager,
-//            ViewUIConfig uiConfig,
             ConfigurationManager configManager,         
             ActionListener specialConfigActionListener  
     ) {
@@ -113,7 +117,7 @@ public class PopupMenuBuilder {
                         menuItem.setActionCommand(comandoOClave);
                         menuItem.addActionListener(this.specialConfigActionListenerRef);
                         menuItem.setEnabled(true); // Asegurar que esté habilitado
-                        System.out.println("  [PopupMenuBuilder] ITEM '" + text + "' (sin Action directa) configurado para specialListener. Comando: " + comandoOClave);
+                        logger.debug("  [PopupMenuBuilder] ITEM '" + text + "' (sin Action directa) configurado para specialListener. Comando: " + comandoOClave);
                     }
                     // Si action es null Y comandoOClave es null, el JMenuItem será solo texto, sin acción.
                     break;
@@ -137,7 +141,7 @@ public class PopupMenuBuilder {
                         if (this.configManagerRef != null) {
                             botonEsVisible = this.configManagerRef.getBoolean(configKeyVisibilidadBotonToolbar, true);
                         } else {
-                            System.err.println("WARN [PopupMenuBuilder]: configManagerRef es null. No se puede leer estado inicial para checkbox: " + text);
+                            logger.warn("WARN [PopupMenuBuilder]: configManagerRef es null. No se puede leer estado inicial para checkbox: " + text);
                         }
                         cbMenuItem.setSelected(botonEsVisible);
                         
@@ -145,14 +149,14 @@ public class PopupMenuBuilder {
                         if (this.specialConfigActionListenerRef != null) {
                             cbMenuItem.addActionListener(this.specialConfigActionListenerRef);
                         } else {
-                             System.err.println("WARN [PopupMenuBuilder]: specialConfigActionListenerRef es null. Checkbox '" + text + "' podría no ser funcional.");
+                             logger.warn("WARN [PopupMenuBuilder]: specialConfigActionListenerRef es null. Checkbox '" + text + "' podría no ser funcional.");
                         }
                         cbMenuItem.setEnabled(true); // Asegurar que esté habilitado
-                        System.out.println("  [PopupMenuBuilder] Checkbox (Visibilidad Botón) '" + text + "' configurado. Comando: " + comandoOClave + ", Estado Inicial: " + botonEsVisible);
+                        logger.debug("  [PopupMenuBuilder] Checkbox (Visibilidad Botón) '" + text + "' configurado. Comando: " + comandoOClave + ", Estado Inicial: " + botonEsVisible);
 
                     } else if (comandoOClave != null) {
                         // Caso 3: Es otro tipo de checkbox sin Action directa y no es de "Visualizar Botón"
-                        System.err.println("WARN [PopupMenuBuilder]: No se encontró Action (ni es config especial de botón) para CHECKBOX: " + comandoOClave + " | (Texto: " + text + ")");
+                        logger.warn("WARN [PopupMenuBuilder]: No se encontró Action (ni es config especial de botón) para CHECKBOX: " + comandoOClave + " | (Texto: " + text + ")");
                         cbMenuItem.setEnabled(false);
                     }
                     // Si action es null Y comandoOClave es null, es un checkbox solo visual (raro).
@@ -171,7 +175,7 @@ public class PopupMenuBuilder {
                         if (this.specialConfigActionListenerRef != null) {
                             rbMenuItem.addActionListener(this.specialConfigActionListenerRef);
                         } else {
-                            System.err.println("WARN [PopupMenuBuilder]: specialConfigActionListenerRef es null. Radio '" + text + "' podría no ser funcional.");
+                            logger.warn("WARN [PopupMenuBuilder]: specialConfigActionListenerRef es null. Radio '" + text + "' podría no ser funcional.");
                         }
                         rbMenuItem.setEnabled(true); // Asegurar que esté habilitado
 
@@ -180,7 +184,7 @@ public class PopupMenuBuilder {
                         // el estado inicial podría no ser el correcto hasta la primera interacción,
                         // o necesitar una sincronización explícita después de construir el popup.
                         // Por ahora, dejamos que el ButtonGroup gestione la selección si otros radios SÍ tienen Action.
-                        System.out.println("  [PopupMenuBuilder] RADIO '" + text + "' (sin Action directa) configurado para specialListener. Comando: " + comandoOClave);
+                        logger.debug("  [PopupMenuBuilder] RADIO '" + text + "' (sin Action directa) configurado para specialListener. Comando: " + comandoOClave);
                     }
                     // Si action es null Y comandoOClave es null, es un radio solo visual (raro).
 
@@ -202,7 +206,7 @@ public class PopupMenuBuilder {
                     }
                     break;
                 default:
-                    System.err.println("WARN [PopupMenuBuilder]: Tipo de MenuItemType no manejado: " + type + " para texto: " + text);
+                    logger.warn("WARN [PopupMenuBuilder]: Tipo de MenuItemType no manejado: " + type + " para texto: " + text);
                     // No se crea 'menuItem'
                     break; // Importante salir aquí
             }
@@ -226,5 +230,6 @@ public class PopupMenuBuilder {
             menuItem.setForeground(tema.colorTextoPrimario());
         }
     } // --- Fin del método applyMenuItemStyle ---
+    
 } // --- FIN de la clase PopupMenuBuilder
 

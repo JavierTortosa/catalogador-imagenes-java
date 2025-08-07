@@ -7,15 +7,19 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import controlador.VisorController; // Para llamar al método centralizado de lógica y UI
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+import controlador.VisorController; 
 import controlador.commands.AppActionCommands;
-import modelo.VisorModel; // Para leer el estado inicial desde el modelo
-// ConfigurationManager y ZoomManager no son necesarios aquí directamente si VisorController lo maneja
+import modelo.VisorModel; 
 
 public class ToggleProporcionesAction extends AbstractAction {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     private static final long serialVersionUID = 1L;
-    // La clave de configuración será manejada por VisorController al aplicar el cambio.
 
     private VisorController controllerRef;
     private VisorModel modelRef; // Para leer el estado inicial
@@ -39,10 +43,10 @@ public class ToggleProporcionesAction extends AbstractAction {
             // Asumimos que VisorModel.isMantenerProporcion() ya refleja el estado cargado de ConfigurationManager
             boolean initialStateSelected = this.modelRef.isMantenerProporcion();
             putValue(Action.SELECTED_KEY, initialStateSelected);
-            System.out.println("[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: " + initialStateSelected + " (desde modelo)");
+            logger.debug("[ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: " + initialStateSelected + " (desde modelo)");
         } else {
             putValue(Action.SELECTED_KEY, true); // Fallback, debería coincidir con el default de config
-            System.out.println("[ToggleProporcionesAction Constructor] WARN: modelRef era null, SELECTED_KEY fallback a true");
+            logger.warn("[ToggleProporcionesAction Constructor] WARN: modelRef era null, SELECTED_KEY fallback a true");
         }
     }
 
@@ -50,7 +54,7 @@ public class ToggleProporcionesAction extends AbstractAction {
     public void actionPerformed(ActionEvent e) {
         // 1. Validar dependencias (controllerRef y modelRef)
         if (controllerRef == null || modelRef == null) {
-            System.err.println("ERROR CRÍTICO [ToggleProporcionesAction]: controllerRef o modelRef es nulo.");
+            logger.error("ERROR CRÍTICO [ToggleProporcionesAction]: controllerRef o modelRef es nulo.");
             return;
         }
 
@@ -60,7 +64,7 @@ public class ToggleProporcionesAction extends AbstractAction {
         // 3. Determinar el NUEVO estado deseado invirtiendo el estado actual del modelo.
         boolean nuevoEstadoDeseadoMantenerProporciones = !actualmenteMantieneProporciones;
 
-        System.out.println("[ToggleProporcionesAction actionPerformed] Estado actual (mantener prop): " + actualmenteMantieneProporciones +
+        logger.debug("[ToggleProporcionesAction actionPerformed] Estado actual (mantener prop): " + actualmenteMantieneProporciones +
                            ". Solicitando cambiar a (mantener prop): " + nuevoEstadoDeseadoMantenerProporciones);
         
         // 4. Llamar al método en VisorController para que aplique la lógica
@@ -84,7 +88,6 @@ public class ToggleProporcionesAction extends AbstractAction {
     public void sincronizarSelectedKeyConModelo(boolean estadoActualModeloMantenerProporciones) {
         if (!Objects.equals(getValue(Action.SELECTED_KEY), estadoActualModeloMantenerProporciones)) {
             putValue(Action.SELECTED_KEY, estadoActualModeloMantenerProporciones);
-            // System.out.println("  [ToggleProporcionesAction sincronizar] SELECTED_KEY actualizado a: " + estadoActualModeloMantenerProporciones);
         }
     }
 }

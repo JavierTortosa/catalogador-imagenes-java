@@ -8,11 +8,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
 
 public class ExportQueueManager {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private List<ExportItem> colaDeExportacion;
 
     public ExportQueueManager() {
@@ -34,7 +40,7 @@ public class ExportQueueManager {
      * @param rutasSeleccionadas La lista de rutas absolutas de las imágenes seleccionadas.
      */
     public void prepararColaDesdeSeleccion(List<Path> rutasSeleccionadas) {
-        System.out.println("[ExportQueueManager] Preparando cola para " + rutasSeleccionadas.size() + " imágenes.");
+        logger.debug("[ExportQueueManager] Preparando cola para " + rutasSeleccionadas.size() + " imágenes.");
         limpiarCola();
 
         for (Path rutaImagen : rutasSeleccionadas) {
@@ -46,14 +52,14 @@ public class ExportQueueManager {
                 buscarArchivoComprimidoAsociado(item);
             } else {
                 // Si la imagen NO existe, marcamos el item con el nuevo estado y no buscamos nada más.
-                System.err.println("WARN [ExportQueueManager]: La imagen original no se encontró en la ruta: " + rutaImagen);
+                logger.warn("WARN [ExportQueueManager]: La imagen original no se encontró en la ruta: " + rutaImagen);
                 item.setEstadoArchivoComprimido(ExportStatus.IMAGEN_NO_ENCONTRADA);
             }
             // --- FIN DE LA LÓGICA DE VERIFICACIÓN ---
 
             this.colaDeExportacion.add(item);
         }
-        System.out.println("[ExportQueueManager] Preparación de cola finalizada.");
+        logger.debug("[ExportQueueManager] Preparación de cola finalizada.");
     } // --- Fin del método prepararColaDesdeSeleccion ---
 
     /**
@@ -92,7 +98,7 @@ public class ExportQueueManager {
                 item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
             }
         } catch (IOException e) {
-            System.err.println("Error buscando archivo asociado para " + rutaImagen + ": " + e.getMessage());
+            logger.error("Error buscando archivo asociado para " + rutaImagen + ": " + e.getMessage());
             item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
         }
     } // --- Fin del método buscarArchivoComprimidoAsociado ---

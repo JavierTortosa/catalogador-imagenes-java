@@ -7,6 +7,10 @@ import java.util.Objects;
 import javax.swing.JLabel;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.ListCoordinator;
 import controlador.VisorController;
 import controlador.managers.interfaces.IViewManager;
@@ -23,6 +27,8 @@ import vista.panels.ImageDisplayPanel;
  */
 public class ZoomManager implements IZoomManager {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // --- Dependencias ---
     private VisorModel model;
     private ComponentRegistry registry;
@@ -63,7 +69,7 @@ public class ZoomManager implements IZoomManager {
     public void aplicarModoDeZoom(ZoomModeEnum modo, Runnable onComplete) {
     	
         if (model == null) {
-            System.err.println("ERROR [ZoomManager]: El modelo es nulo.");
+            logger.error("ERROR [ZoomManager]: El modelo es nulo.");
             if (onComplete != null) onComplete.run();
             return;
         }
@@ -74,7 +80,7 @@ public class ZoomManager implements IZoomManager {
         // Comprobamos si el modo actual es uno que NO es compatible con el zoom de imagen única.
         // Por ahora, el único modo incompatible es GRID.
         if (displayModeActual == VisorModel.DisplayMode.GRID) {
-            System.out.println("[ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.");
+            logger.debug("[ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.");
             
             // Actualizamos la UI para que el usuario entienda que el zoom no aplica aquí.
             if (statusBarManager != null) {
@@ -89,7 +95,7 @@ public class ZoomManager implements IZoomManager {
         // sin importar si el WorkMode es VISUALIZADOR, EDICION o CARROUSEL.
         
         if (model == null || statusBarManager == null || registry == null || viewManager == null) {
-            System.err.println("ERROR [aplicarModoDeZoom]: Dependencias nulas.");
+            logger.error("ERROR [aplicarModoDeZoom]: Dependencias nulas.");
             if (onComplete != null) onComplete.run();
             return;
         }
@@ -98,7 +104,6 @@ public class ZoomManager implements IZoomManager {
             ImageDisplayPanel panelActivo = getActiveDisplayPanel();
             if (panelActivo != null) panelActivo.limpiar();
             
-//            if (onComplete != null) onComplete.run();
             if (onComplete != null) SwingUtilities.invokeLater(onComplete);
             
             return;
@@ -106,7 +111,7 @@ public class ZoomManager implements IZoomManager {
         
         ImageDisplayPanel displayPanel = getActiveDisplayPanel();
         if (displayPanel == null || !displayPanel.isShowing() || displayPanel.getWidth() <= 0) {
-            System.out.println("[ZoomManager] Panel no listo/visible. Reintentando en EDT...");
+            logger.debug("[ZoomManager] Panel no listo/visible. Reintentando en EDT...");
             SwingUtilities.invokeLater(() -> aplicarModoDeZoom(modo, onComplete));
             return;
         }
@@ -132,7 +137,6 @@ public class ZoomManager implements IZoomManager {
         model.resetPan();
         refrescarVistaSincrono();
 
-//        if (onComplete != null) onComplete.run();
         if (onComplete != null) {
             SwingUtilities.invokeLater(onComplete);
         }
@@ -235,7 +239,7 @@ public class ZoomManager implements IZoomManager {
     private ImageDisplayPanel getActiveDisplayPanel() {
         if (specificPanel != null) return specificPanel;
         if (viewManager != null) return viewManager.getActiveDisplayPanel();
-        System.err.println("ERROR [ZoomManager.getActiveDisplayPanel]: ViewManager es nulo.");
+        logger.error("ERROR [ZoomManager.getActiveDisplayPanel]: ViewManager es nulo.");
         return null;
     } // --- Fin del método getActiveDisplayPanel ---
     
@@ -257,11 +261,9 @@ public class ZoomManager implements IZoomManager {
             case FIT_TO_WIDTH: return (double) panelW / imgW;
             case FIT_TO_HEIGHT: return (double) panelH / imgH;
             case DISPLAY_ORIGINAL: return 1.0;
-            
             case MAINTAIN_CURRENT_ZOOM: return model.getZoomFactor();
             case USER_SPECIFIED_PERCENTAGE: return configuration.getZoomPersonalizadoPorcentaje() / 100.0;
             
-//            case USER_SPECIFIED_PERCENTAGE: return model.getZoomFactor();
             default: return model.getZoomFactor(); 
         }
     } // --- Fin del método _calcularFactorDeZoom ---
@@ -269,11 +271,11 @@ public class ZoomManager implements IZoomManager {
     
     @Override
     public void setZoomMode(ZoomModeEnum nuevoModo, Runnable onComplete) {
-        System.out.println("[ZoomManager] Solicitud para establecer modo (vía setZoomMode): " + nuevoModo);
+        logger.debug("[ZoomManager] Solicitud para establecer modo (vía setZoomMode): " + nuevoModo);
 
         // Guarda de seguridad idéntica a la que tenías en la Action
         if (model.getCurrentZoomMode() == nuevoModo && nuevoModo != ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
-            System.out.println("  -> El modo ya está activo. No se hace nada.");
+            logger.debug("  -> El modo ya está activo. No se hace nada.");
             if (onComplete != null) {
                 onComplete.run(); // Ejecutamos el callback por si acaso la UI necesita sincronizarse
             }

@@ -1,5 +1,9 @@
 package principal;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.VisorController; 
 
 /**
@@ -7,13 +11,20 @@ import controlador.VisorController;
  */
 public class VisorV2 {
 
-
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     /**
      * The main method. Crea e inicia el controlador de la aplicación.
      * 
      * @param args los argumentos de línea de comandos (actualmente no usados).
      */
     public static void main(String[] args) {
+    	
+    	logger.info		("PRUEBA DE INFO");
+    	logger.debug	("PRUEBA DE DEBUG");
+    	logger.warn		("PRUEBA DE WARN");
+    	logger.error	("PRUEBA DE ERROR");
+    	
         System.out.println("Iniciando Visor de Imágenes V2...");
 
         // La única responsabilidad del método main es programar la creación de la 
@@ -22,7 +33,7 @@ public class VisorV2 {
         // será manejada por AppInitializer y ThemeManager.
         javax.swing.SwingUtilities.invokeLater(() -> {
             new VisorController();
-            System.out.println("VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.");
+            logger.debug("VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.");
         });
     }
 

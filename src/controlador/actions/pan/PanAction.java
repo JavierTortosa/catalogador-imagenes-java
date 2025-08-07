@@ -4,12 +4,16 @@ import java.awt.event.ActionEvent;
 import java.util.Objects;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action; // Para Action.ACTION_COMMAND_KEY, etc.
+import javax.swing.Action; 
 
-import controlador.GeneralController; // Importamos el GeneralController para delegar la acción
-import controlador.interfaces.ContextSensitiveAction; 
-import modelo.VisorModel; 
-import vista.components.Direction; // Importamos el enum Direction de nuestro componente
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+import controlador.GeneralController; 
+import controlador.interfaces.ContextSensitiveAction;
+import modelo.VisorModel;
+import vista.components.Direction;
 
 /**
  * Action que encapsula una operación de paneo de imagen (absoluta o incremental).
@@ -18,6 +22,8 @@ import vista.components.Direction; // Importamos el enum Direction de nuestro co
  * actualizado dinámicamente según el estado del modelo (modo paneo).
  */
 public class PanAction extends AbstractAction implements ContextSensitiveAction { 
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -86,7 +92,7 @@ public class PanAction extends AbstractAction implements ContextSensitiveAction 
     @Override
     public void actionPerformed(ActionEvent e) {
         // Loguea la ejecución de la acción para depuración.
-        System.out.println("[PanAction] Ejecutando comando: " + e.getActionCommand() + 
+        logger.debug("[PanAction] Ejecutando comando: " + e.getActionCommand() + 
                            " (Dir: " + direction + ", Tipo: " + panType + ")");
         
         // Delega la ejecución real de la lógica de paneo al GeneralController.
@@ -100,12 +106,12 @@ public class PanAction extends AbstractAction implements ContextSensitiveAction 
                     break;
                 default:
                     // Esto no debería ocurrir si los constructores están bien definidos.
-                    System.err.println("WARN [PanAction]: Tipo de paneo no reconocido: " + panType);
+                    logger.warn("WARN [PanAction]: Tipo de paneo no reconocido: " + panType);
                     break;
             }
         } else {
             // Log de error si GeneralController no fue inyectado correctamente.
-            System.err.println("ERROR [PanAction]: GeneralController es null. No se puede ejecutar el paneo.");
+            logger.error("ERROR [PanAction]: GeneralController es null. No se puede ejecutar el paneo.");
         }
     } // --- Fin del método actionPerformed ---
 

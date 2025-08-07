@@ -15,10 +15,17 @@ import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import modelo.VisorModel;
 import vista.theme.ThemeManager;
 
 public class ImageDisplayPanel extends JPanel {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 2L; // Versión incrementada
 
     // --- Dependencias ---
@@ -52,7 +59,7 @@ public class ImageDisplayPanel extends JPanel {
         } else {
             // Si es nulo (caso del ThumbnailPreviewer), usamos un color por defecto seguro.
             this.colorFondoSolido = new Color(40, 40, 40); // Gris oscuro
-            System.out.println("WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defecto.");
+            logger.warn("WARN [ImageDisplayPanel]: ThemeManager es nulo. Usando color de fondo por defecto.");
         }
         
         this.setBackground(this.colorFondoSolido);
@@ -200,7 +207,7 @@ public class ImageDisplayPanel extends JPanel {
             // Forzamos un redibujado para que se vea el cambio.
             repaint();
             
-            System.out.println("  -> ImageDisplayPanel actualizado al color de fondo del nuevo tema: " + nuevoColorFondo);
+            logger.debug("  -> ImageDisplayPanel actualizado al color de fondo del nuevo tema: " + nuevoColorFondo);
         }
     } // --- FIN del método actualizarColorDeFondoPorTema ---
     
@@ -214,7 +221,7 @@ public class ImageDisplayPanel extends JPanel {
 //            this.colorFondoSolido = themeManager.getTemaActual().colorFondoSecundario();
 //            // Ya no hace falta llamar a setBackground() aquí, paintComponent usará el nuevo color.
 //            repaint(); // Forzamos un redibujado para que se vea el cambio.
-//            System.out.println("  -> ImageDisplayPanel actualizado al color de fondo del nuevo tema.");
+//            logger.debug("  -> ImageDisplayPanel actualizado al color de fondo del nuevo tema.");
 //        }
 //    }
     

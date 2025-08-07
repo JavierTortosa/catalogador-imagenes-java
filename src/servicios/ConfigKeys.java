@@ -1,5 +1,10 @@
 package servicios;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+
 /**
  * Contiene todas las claves de configuración (strings) usadas en la aplicación.
  * Esta clase no debe ser instanciada. Sirve como un diccionario centralizado
@@ -7,6 +12,8 @@ package servicios;
  */
 public final class ConfigKeys {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     // Constructor privado para evitar que alguien cree una instancia de esta clase de utilidad.
     private ConfigKeys() {}
     
@@ -26,9 +33,6 @@ public final class ConfigKeys {
     public static String menuState(String... parts) {return buildKey(MENU, parts) + ".seleccionado";}
     public static String toolbarVisible(String toolbarKey) {return buildKey(TOOLBAR, normalizePart(toolbarKey)) + ".visible";}
     public static String buttonVisible(String toolbarKey, String buttonKey) { return buildKey("interfaz.boton", toolbarKey, buttonKey, "visible");}
-//    public static String toolbarButtonVisible(String toolbarKey, String buttonKey) {
-//        return buildKey(BUTTON_PREFIX, normalizePart(toolbarKey), normalizePart(buttonKey)) + ".visible";
-//    }
     
     
     /**
@@ -86,7 +90,7 @@ public final class ConfigKeys {
     public static String normalizePart(String text) {
         // 1. Manejar caso de entrada nula o vacía.
         if (text == null || text.isBlank()) {
-            // System.out.println("  [generateKeyPart] Texto nulo/vacío, devolviendo 'unknown_key_part'"); // Log opcional
+             logger.debug("  [generateKeyPart] Texto nulo/vacío, devolviendo 'unknown_key_part'"); // Log opcional
             return "unknown_key_part"; // Devolver un placeholder identificable.
         }
         

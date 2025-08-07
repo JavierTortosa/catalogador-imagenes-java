@@ -5,7 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.ImageIcon;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
+
 public class ExportItem {
+	
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     private final Path rutaImagen; // Ruta absoluta de la imagen original
     private ImageIcon miniatura;   // Miniatura para mostrar en la tabla

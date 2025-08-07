@@ -5,13 +5,21 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+
 import javax.swing.JOptionPane;
 import javax.swing.SwingWorker;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import modelo.proyecto.ExportItem;
 import vista.dialogos.ExportProgressDialog;
 
 public class ExportWorker extends SwingWorker<String, String> {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private final List<ExportItem> cola;
     private final Path carpetaDestino;
     private final ExportProgressDialog dialogo;
@@ -57,7 +65,7 @@ public class ExportWorker extends SwingWorker<String, String> {
                 } else {
                     // Esto es un caso de error, la lógica debería haber prevenido llegar aquí
                     // con un estado ENCONTRADO_OK pero una ruta nula. Lo saltamos.
-                    System.err.println("WARN [ExportWorker]: Se intentó copiar un archivo comprimido nulo para la imagen " + item.getRutaImagen().getFileName());
+                    logger.warn("WARN [ExportWorker]: Se intentó copiar un archivo comprimido nulo para la imagen " + item.getRutaImagen().getFileName());
                 }
             }
             // --- FIN DE LA MODIFICACIÓN ---

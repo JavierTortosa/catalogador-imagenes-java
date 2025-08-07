@@ -3,11 +3,18 @@ package controlador.actions.carousel;
 import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.AppInitializer;
 import controlador.interfaces.ContextSensitiveAction;
 import modelo.VisorModel;
 
 public class ToggleCarouselShuffleAction extends AbstractAction implements ContextSensitiveAction {
 
+	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	
     private static final long serialVersionUID = 1L;
     private final VisorModel model;
 

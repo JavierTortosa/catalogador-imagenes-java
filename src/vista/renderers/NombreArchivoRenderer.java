@@ -5,10 +5,8 @@ import java.nio.file.Paths;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
-import javax.swing.UIManager;
 
-import modelo.VisorModel; // <-- NUEVA IMPORTACIÓN
-import vista.theme.Tema;
+import modelo.VisorModel; 
 import vista.theme.ThemeManager;
 
 /**
@@ -37,7 +35,7 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
             throw new IllegalArgumentException("ThemeManager y VisorModel no pueden ser nulos en NombreArchivoRenderer");
         }
         this.themeManager = themeManager;
-        this.model = model; // <-- ASIGNACIÓN DEL NUEVO CAMPO
+        this.model = model; 
         this.isForDiscardsList = isForDiscardsList;
         setOpaque(true); 
         
