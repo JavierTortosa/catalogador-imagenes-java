@@ -77,7 +77,7 @@ public class BackgroundControlManager implements ThemeChangeListener{
     
     
     public void initializeAndLinkControls() {
-        logger.debug("\n--- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---");
+        logger.info("--- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---");
         JToolBar controlToolbar = registry.get("toolbar.controles_imagen_inferior");
         if (controlToolbar == null) {
             logger.error("  ERROR CRÍTICO: No se encontró la toolbar 'toolbar.controles_imagen_inferior'.");

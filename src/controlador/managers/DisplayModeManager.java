@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.swing.Action;
+import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
@@ -94,36 +95,45 @@ public class DisplayModeManager implements ThemeChangeListener{
     // === Lógica Principal de Transición ===
     // =================================================================================
 
+    
     public void switchToDisplayMode(DisplayMode newDisplayMode) {
         if (model.getCurrentDisplayMode() == newDisplayMode) {
-            return;
+            // Aunque el modo sea el mismo, si cambiamos de WorkMode,
+            // necesitamos asegurarnos de que el panel correcto esté visible.
+            // Haremos la lógica de cambio de vista de todos modos.
         }
         logger.debug("--- [DisplayModeManager] INICIANDO TRANSICIÓN -> " + newDisplayMode + " ---");
         
         this.model.setCurrentDisplayMode(newDisplayMode);
         
         if (configuration != null) {
-            logger.debug("  -> Guardando nuevo DisplayMode en configuración: " + newDisplayMode.name());
             configuration.setString(ConfigKeys.COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO, newDisplayMode.name());
         }
         
+        // =========================================================================
+        // === INICIO DE LA CORRECCIÓN: SELECCIÓN INTELIGENTE DEL CONTENEDOR ===
+        // =========================================================================
+        String containerKey = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) 
+                            ? "container.displaymodes.proyecto" 
+                            : "container.displaymodes";
+        // =========================================================================
+        // === FIN DE LA CORRECCIÓN ===
+        // =========================================================================
+        
         String cardName = mapDisplayModeToCardLayoutKey(newDisplayMode);
-        this.viewManager.cambiarAVista("container.displaymodes", cardName);
+        this.viewManager.cambiarAVista(containerKey, cardName);
         
         enterDisplayMode(newDisplayMode);
         
-        // <<< LLAMADA CRUCIAL PARA APLICAR LA NUEVA LÓGICA DE VISIBILIDAD >>>
         if (toolbarManager != null) {
             toolbarManager.reconstruirContenedorDeToolbars(model.getCurrentWorkMode());
         }
         
         sincronizarEstadoBotonesDisplayMode();
-        if (configuration != null) {
-            configuration.setString(ConfigKeys.COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO, newDisplayMode.name());
-        }
         logger.debug("--- [DisplayModeManager] TRANSICIÓN COMPLETADA a " + newDisplayMode + " ---\n");
+        
     } // --- Fin del método switchToDisplayMode ---
-
+    
     
     private void enterDisplayMode(DisplayMode modo) {
         JScrollPane thumbnailScrollPane = registry.get("scroll.miniaturas");
@@ -163,29 +173,86 @@ public class DisplayModeManager implements ThemeChangeListener{
     
 
     public void poblarYSincronizarGrid() {
-        GridDisplayPanel gridPanel = registry.get("panel.display.grid");
-        JList<String> gridList = registry.get("list.grid");
-        if (gridPanel == null || gridList == null) {
-            logger.error("ERROR [DisplayModeManager]: No se encontraron los componentes del grid.");
+    	
+        boolean isProjectMode = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO);
+        String gridPanelKey = isProjectMode ? "panel.display.grid.proyecto" : "panel.display.grid";
+        String gridListKey = isProjectMode ? "list.grid.proyecto" : "list.grid";
+
+        GridDisplayPanel gridPanel = registry.get(gridPanelKey);
+        JList<String> gridList = registry.get(gridListKey);
+    	
+        
+        if (gridPanel == null || gridList == null || model == null || registry == null) {
+            logger.error("ERROR [DisplayModeManager]: Dependencias nulas para poblar grid.");
             return;
         }
-        
-        ListContext visualizerContext = model.getVisualizadorListContext();
-        List<String> imageKeys = Collections.list(visualizerContext.getModeloLista().elements());
+
+        List<String> imageKeys;
+        String selectedKey = null; // Inicializamos a null
+        int currentIndex = -1; // Inicializamos a -1
+
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            logger.debug("[DisplayModeManager] Poblando grid para el MODO PROYECTO.");
+            // En modo proyecto, la lista a mostrar depende de la lista que tiene el foco.
+            String focoActual = model.getProyectoListContext().getNombreListaActiva();
+            
+            // Obtenemos la JList de la UI que tiene el foco para sacar su modelo de datos.
+            JList<String> listaFuenteUI = "descartes".equals(focoActual) 
+                                        ? registry.get("list.proyecto.descartes") 
+                                        : registry.get("list.proyecto.nombres");
+
+            if (listaFuenteUI != null && listaFuenteUI.getModel() instanceof DefaultListModel) {
+                DefaultListModel<String> sourceModel = (DefaultListModel<String>) listaFuenteUI.getModel();
+                imageKeys = Collections.list(sourceModel.elements());
+                
+                // La selección viene del índice seleccionado en la lista de la izquierda
+                int selectedIndexInSourceList = listaFuenteUI.getSelectedIndex();
+                if (selectedIndexInSourceList != -1) {
+                    // Obtenemos la clave de la imagen de esa selección
+                    selectedKey = sourceModel.getElementAt(selectedIndexInSourceList);
+                    // El índice para el grid será el mismo que el de la lista fuente
+                    currentIndex = selectedIndexInSourceList;
+                }
+            } else {
+                imageKeys = Collections.emptyList();
+            }
+        } else { // Para MODO VISUALIZADOR y cualquier otro futuro modo
+            logger.debug("[DisplayModeManager] Poblando grid para el MODO VISUALIZADOR/otro.");
+            ListContext currentContext = model.getCurrentListContext();
+            if (currentContext != null && currentContext.getModeloLista() != null) {
+                DefaultListModel<String> sourceModel = currentContext.getModeloLista();
+                imageKeys = Collections.list(sourceModel.elements());
+                
+                // La selección viene directamente del 'selectedImageKey' del contexto
+                selectedKey = currentContext.getSelectedImageKey();
+                if (selectedKey != null) {
+                    currentIndex = sourceModel.indexOf(selectedKey);
+                }
+            } else {
+                imageKeys = Collections.emptyList();
+            }
+        }
+
+        // Le pasamos las claves al panel del grid para que las muestre.
         gridPanel.setImageKeys(imageKeys);
         
-        // Obtenemos el índice buscando la clave seleccionada en el modelo
-        String selectedKey = visualizerContext.getSelectedImageKey();
-        int currentIndex = (selectedKey != null) ? visualizerContext.getModeloLista().indexOf(selectedKey) : -1;
-
+        // Usamos invokeLater para asegurar que el modelo de la lista del grid se haya actualizado
+        // antes de intentar seleccionar un ítem.
+        final int finalCurrentIndex = currentIndex;
         SwingUtilities.invokeLater(() -> {
-            if (currentIndex >= 0 && currentIndex < gridList.getModel().getSize()) {
-                gridList.setSelectedIndex(currentIndex);
-                gridList.ensureIndexIsVisible(currentIndex);
+            if (finalCurrentIndex >= 0 && finalCurrentIndex < gridList.getModel().getSize()) {
+                gridList.setSelectedIndex(finalCurrentIndex);
+                gridList.ensureIndexIsVisible(finalCurrentIndex);
+            } else {
+                gridList.clearSelection();
             }
         });
-    } // --- Fin del método poblarYSincronizarGrid ---
-
+        
+        logger.debug("[DisplayModeManager] Grid poblado con " + imageKeys.size() + " claves. Selección en índice: " + currentIndex);
+        
+    }// --- Fin del método poblarYSincronizarGrid ---
+    
+    
     private String mapDisplayModeToCardLayoutKey(DisplayMode displayMode) {
         switch (displayMode) {
             case SINGLE_IMAGE: return "VISTA_SINGLE_IMAGE";
@@ -202,6 +269,9 @@ public class DisplayModeManager implements ThemeChangeListener{
             return;
         }
 
+        // En lugar de leer de la configuración, leemos directamente del MODELO.
+        // model.getCurrentDisplayMode() ya es inteligente y nos dará el DisplayMode
+        // de la "mochila" (ListContext) que esté activa en este momento.
         DisplayMode currentMode = model.getCurrentDisplayMode();
         
         List<String> displayModeCommands = List.of(
@@ -217,11 +287,7 @@ public class DisplayModeManager implements ThemeChangeListener{
             if (action != null) {
                 boolean isSelected = command.equals(mapDisplayModeToActionCommand(currentMode));
                 
-                // 1. Actualiza el estado LÓGICO en la Action
-                // Esta línea hace lo mismo que tu `actualizarEstadoAccionToggle`
                 action.putValue(Action.SELECTED_KEY, isSelected);
-                
-                // 2. Llama al "pintor" para actualizar el estado VISUAL del botón
                 configAppManager.actualizarAspectoBotonToggle(action, isSelected);
             }
         }

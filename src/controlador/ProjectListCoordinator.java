@@ -309,6 +309,9 @@ public class ProjectListCoordinator implements IListCoordinator {
             lista.setSelectedIndex(indice);
             lista.ensureIndexIsVisible(indice);
             
+            // AÑADE ESTA LLAMADA JUSTO AQUÍ, ANTES DE ACTUALIZAR LAS ACCIONES
+            sincronizarSeleccionEnGrid(indice);
+            
             // 4. Actualizar estado de los botones
             forzarActualizacionEstadoAcciones();
             
@@ -319,6 +322,37 @@ public class ProjectListCoordinator implements IListCoordinator {
     } // --- Fin del método seleccionarImagenEnLista ---
     
 
+    /**
+     * Sincroniza la selección en la UI del grid si este está visible.
+     * Es llamado después de que una selección se ha realizado.
+     * @param indiceEnListaActiva El índice que debe ser seleccionado en el grid.
+     */
+    private void sincronizarSeleccionEnGrid(int indiceEnListaActiva) {
+        // Solo actuamos si el modo de visualización actual es GRID
+        if (model.getCurrentDisplayMode() != VisorModel.DisplayMode.GRID) {
+            return;
+        }
+
+        JList<String> gridList = registry.get("list.grid");
+        if (gridList != null) {
+            SwingUtilities.invokeLater(() -> {
+                // Comprobamos si el índice es válido para el modelo actual del grid
+                if (indiceEnListaActiva >= 0 && indiceEnListaActiva < gridList.getModel().getSize()) {
+                    // Si el índice ya está seleccionado, no hacemos nada para evitar bucles.
+                    if (gridList.getSelectedIndex() != indiceEnListaActiva) {
+                        logger.debug("  [ProjectListCoordinator] Sincronizando selección del GRID al índice: " + indiceEnListaActiva);
+                        gridList.setSelectedIndex(indiceEnListaActiva);
+                        gridList.ensureIndexIsVisible(indiceEnListaActiva);
+                    }
+                } else {
+                    gridList.clearSelection();
+                }
+            });
+        }
+        
+    } // --- FIN del metodo sincronizarSeleccionEnGrid ---
+    
+    
     // =================================================================================
     // === Getters y Setters ===
     // =================================================================================

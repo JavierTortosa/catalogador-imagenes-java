@@ -1,10 +1,12 @@
 package vista.builders;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.util.Objects;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
@@ -24,6 +26,7 @@ import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.NombreArchivoRenderer;
 import vista.theme.Tema;
@@ -57,68 +60,217 @@ public class ProjectBuilder implements ThemeChangeListener{
     public JPanel buildProjectViewPanel() {
         logger.info("  [ProjectBuilder] Construyendo el panel del modo proyecto (Dashboard)...");
 
-        // --- 1. Panel Raíz de la Vista Proyecto ---
-        // Este es el panel que se añadirá al CardLayout principal. Usa BorderLayout.
         JPanel panelProyectoRaiz = new JPanel(new BorderLayout());
         registry.register("view.panel.proyectos", panelProyectoRaiz);
 
-        // --- 2. JSplitPane Principal (HORIZONTAL) ---
-        // Divide la vista en una zona izquierda (listas/herramientas) y una derecha (visor).
         JSplitPane mainSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
-        mainSplit.setResizeWeight(0.25); // El 25% del espacio va a la izquierda por defecto.
+        mainSplit.setResizeWeight(0.25);
         mainSplit.setContinuousLayout(true);
-        mainSplit.setBorder(null); // Sin bordes para una apariencia limpia.
+        mainSplit.setBorder(null);
         registry.register("splitpane.proyecto.main", mainSplit);
 
-        // --- 3. JSplitPane Izquierdo (VERTICAL) ---
-        // Divide la zona izquierda en una parte superior (listas) y una inferior (herramientas).
         JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
-        leftSplit.setResizeWeight(0.6); // El 60% del espacio para las listas por defecto.
+        leftSplit.setResizeWeight(0.6);
         leftSplit.setContinuousLayout(true);
         leftSplit.setBorder(null);
         registry.register("splitpane.proyecto.left", leftSplit);
 
         leftSplit.setMinimumSize(new java.awt.Dimension(0, 0));
         
-        // --- 4. Creación de los Paneles Contenedores ---
-        // Se crean los paneles que irán dentro de los JSplitPanes.
-
-        // 4.1. Panel para las listas (arriba-izquierda)
         JPanel panelListas = createProjectListsPanel();
-        
-        // 4.2. Panel para las herramientas (abajo-izquierda)
         JPanel panelHerramientas = createProjectToolsPanel();
 
-        // 4.3. Panel para el visor de imagen (derecha)
-        // Se crea directamente aquí para no depender de un método que vamos a eliminar.
-        JPanel panelVisor = new JPanel(new BorderLayout());
-        panelVisor.setBackground(themeManager.getTemaActual().colorFondoSecundario());
-        registry.register("panel.proyecto.visor", panelVisor);
+        // =========================================================================
+        // === INICIO DE LA CORRECCIÓN ESTRUCTURAL ===
+        // =========================================================================
+        // Replicamos la estructura de CardLayout del modo Visualizador aquí.
+        
+        // 1. Creamos el contenedor que usará CardLayout.
+        JPanel displayModesContainer = new JPanel(new CardLayout());
+        // ¡¡IMPORTANTE!! Usamos una clave DIFERENTE en el registro para evitar conflictos.
+        registry.register("container.displaymodes.proyecto", displayModesContainer); 
 
-        ImageDisplayPanel imageDisplayPanel = new ImageDisplayPanel(this.themeManager, this.model);
-        registry.register("panel.proyecto.display", imageDisplayPanel);
-        registry.register("label.proyecto.imagen", imageDisplayPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
+        // 2. Creamos el panel para la vista SINGLE_IMAGE del proyecto.
+        ImageDisplayPanel singleImageViewPanel = new ImageDisplayPanel(this.themeManager, this.model);
+        registry.register("panel.proyecto.display", singleImageViewPanel);
+        registry.register("label.proyecto.imagen", singleImageViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
         
         TitledBorder border = BorderFactory.createTitledBorder("");
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
-        imageDisplayPanel.setBorder(border);
+        singleImageViewPanel.setBorder(border);
         
-        panelVisor.add(imageDisplayPanel, BorderLayout.CENTER);
+        
+	     // =========================================================================
+	     // === INICIO DE LA NUEVA IMPLEMENTACIÓN: MENÚ CONTEXTUAL PARA SINGLE IMAGE VIEW ===
+	     // =========================================================================
+	
+	     singleImageViewPanel.getInternalLabel().addMouseListener(new java.awt.event.MouseAdapter() {
+	         public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) { showProjectSingleImageMenu(e); } }
+	         public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) { showProjectSingleImageMenu(e); } }
+	
+	         private void showProjectSingleImageMenu(java.awt.event.MouseEvent e) {
+	             // Obtenemos la clave de la imagen que se está mostrando actualmente.
+	             String currentImageKey = model.getSelectedImageKey();
+	             if (currentImageKey == null || currentImageKey.isEmpty()) {
+	                 return; // No hay imagen seleccionada, no mostramos menú.
+	             }
+	
+	             // Determinamos a qué lista pertenece la imagen actual.
+	             // La forma más fiable es preguntar al ProjectManager.
+	             java.nio.file.Path imagePath = model.getRutaCompleta(currentImageKey);
+	             
+	             // Necesitamos acceso al ProjectManager, que está en el ProjectController.
+	             controlador.managers.interfaces.IProjectManager projectManager = generalController.getProjectController().getProjectManager();
+	
+	             if (imagePath == null || projectManager == null) {
+	                 return;
+	             }
+	
+	             boolean isEnDescartes = projectManager.estaEnDescartes(imagePath);
+	             
+	             JPopupMenu menu = new JPopupMenu();
+	
+	             // Obtenemos las Actions que vamos a necesitar.
+	             Action moveToDiscardsAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES);
+	             Action restoreFromDiscardsAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
+	             Action deleteFromProjectAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE);
+	
+	             // Construir el menú dinámicamente.
+	             if (isEnDescartes) {
+	                 // Si la imagen está en descartes, mostramos las opciones de restaurar y eliminar.
+	                 if (restoreFromDiscardsAction != null) menu.add(restoreFromDiscardsAction);
+	                 menu.addSeparator();
+	                 if (deleteFromProjectAction != null) menu.add(deleteFromProjectAction);
+	             } else {
+	                 // Si no está en descartes, asumimos que está en selección y mostramos la opción de mover.
+	                 if (moveToDiscardsAction != null) menu.add(moveToDiscardsAction);
+	             }
+	
+	             // Mostrar el menú solo si tiene items.
+	             if (menu.getComponentCount() > 0) {
+	                 menu.show(e.getComponent(), e.getX(), e.getY());
+	             }
+	         }
+	     });
+	
+	     // =========================================================================
+	     // === FIN DE LA NUEVA IMPLEMENTACIÓN ===
+	     // =========================================================================
+        
 
-        // --- 5. Ensamblaje de la Estructura ---
-        // Se conectan todos los paneles en el orden correcto.
+        // 3. Creamos el panel para la vista GRID del proyecto.
+        // NECESITAREMOS INYECTAR DEPENDENCIAS EN PROJECTBUILDER para esto.
+        // Por ahora, asumimos que las tenemos. Si no, te indicaré cómo hacerlo.
+        GridDisplayPanel gridViewPanel = new GridDisplayPanel(
+            generalController.getModel(), 
+            generalController.getVisorController().getServicioMiniaturas(), 
+            this.themeManager, 
+            generalController.getVisorController().getIconUtils()
+        );
+        registry.register("panel.display.grid.proyecto", gridViewPanel);
+        
+        JList<String> projectGridList = gridViewPanel.getGridList();
+        registry.register("list.grid.proyecto", gridViewPanel.getGridList(), "WHEEL_NAVIGABLE");
+
+        // 4. Creamos un MouseListener inteligente para el grid del proyecto.
+        
+        projectGridList.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent e) { 
+                handlePopupAndSelection(e);
+                if (e.isPopupTrigger()) { showProjectGridMenu(e); } 
+            }
+            public void mouseReleased(java.awt.event.MouseEvent e) { 
+                handlePopupAndSelection(e);
+                if (e.isPopupTrigger()) { showProjectGridMenu(e); } 
+            }
+
+            // --- MÉTODO HELPER PARA SINCRONIZAR LA SELECCIÓN ---
+            private void handlePopupAndSelection(java.awt.event.MouseEvent e) {
+                int index = projectGridList.locationToIndex(e.getPoint());
+                if (index != -1) {
+                    // Aseguramos que la selección visual del grid se actualice
+                    if (projectGridList.getSelectedIndex() != index) {
+                        projectGridList.setSelectedIndex(index);
+                    }
+                    
+                    // Notificamos al coordinador de la selección del proyecto sobre el nuevo índice.
+                    // Esto actualizará el modelo y las listas de la izquierda, sincronizando todo.
+                    // Necesitamos acceso al ProjectListCoordinator, que está dentro de ProjectController.
+                    
+                    // Asumiendo que tenemos acceso a 'generalController' en ProjectBuilder
+                    if (generalController != null && generalController.getProjectController() != null) {
+                        // Obtenemos la referencia al ProjectListCoordinator
+                        controlador.ProjectListCoordinator coordinator = generalController.getProjectController().getProjectListCoordinator();
+                        if (coordinator != null) {
+                            // Le decimos que la selección ha cambiado. ¡Él se encarga del resto!
+                            coordinator.seleccionarImagenPorIndice(index);
+                        }
+                    }
+                }
+            }
+            
+            private void showProjectGridMenu(java.awt.event.MouseEvent e) {
+                // a) Seleccionar la celda bajo el cursor antes de mostrar el menú.
+                int index = projectGridList.locationToIndex(e.getPoint());
+                if (index != -1) {
+                    projectGridList.setSelectedIndex(index);
+                }
+
+                // b) Determinar qué lista tiene el foco para saber qué menú mostrar.
+                String listaActiva = model.getProyectoListContext().getNombreListaActiva();
+                
+                JPopupMenu menu = new JPopupMenu();
+
+                // c) Obtener las Actions que vamos a necesitar.
+                Action moveToDiscardsAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES);
+                Action restoreFromDiscardsAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
+                Action deleteFromProjectAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE);
+
+                // d) Construir el menú dinámicamente.
+                if ("seleccion".equals(listaActiva)) {
+                    if (moveToDiscardsAction != null) {
+                        menu.add(moveToDiscardsAction);
+                    }
+                } else if ("descartes".equals(listaActiva)) {
+                    if (restoreFromDiscardsAction != null) {
+                        menu.add(restoreFromDiscardsAction);
+                    }
+                    menu.addSeparator();
+                    if (deleteFromProjectAction != null) {
+                        menu.add(deleteFromProjectAction);
+                    }
+                }
+
+                // e) Mostrar el menú solo si tiene items.
+                if (menu.getComponentCount() > 0) {
+                    menu.show(e.getComponent(), e.getX(), e.getY());
+                }
+            }
+        });
+        
+        // 5. Creamos un placeholder para POLAROID en proyecto.
+        JPanel polaroidViewPanel = new JPanel();
+        polaroidViewPanel.add(new JLabel("Vista POLAROID (Proyecto) en construcción..."));
+        registry.register("panel.display.polaroid.proyecto", polaroidViewPanel);
+        
+        // 6. Añadimos las "tarjetas" al CardLayout.
+        displayModesContainer.add(singleImageViewPanel, "VISTA_SINGLE_IMAGE");
+        displayModesContainer.add(gridViewPanel, "VISTA_GRID");
+        displayModesContainer.add(polaroidViewPanel, "VISTA_POLAROID");
+
         leftSplit.setTopComponent(panelListas);
         leftSplit.setBottomComponent(panelHerramientas);
 
         mainSplit.setLeftComponent(leftSplit);
-        mainSplit.setRightComponent(panelVisor);
+        // Ahora, el lado derecho del split es el contenedor con el CardLayout.
+        mainSplit.setRightComponent(displayModesContainer);
 
-        // --- 6. Añadir la estructura completa al panel raíz ---
         panelProyectoRaiz.add(mainSplit, BorderLayout.CENTER);
         
         logger.info("  [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.");
         
         return panelProyectoRaiz;
+        
     } // --- Fin del método buildProjectViewPanel ---
     
     

@@ -223,6 +223,31 @@ public class ZoomManager implements IZoomManager {
         else if (e.isControlDown()) aplicarPan(0, -e.getWheelRotation() * 30);
     } // --- Fin del método manejarRuedaInteracciona ---
     
+    
+    @Override // Asegúrate de añadir esta @Override a la interfaz IZoomManager también
+    public void resetZoom() {
+        logger.debug("[ZoomManager] Solicitud para resetear zoom al modo actual.");
+        if (model == null) {
+            logger.error("ERROR [resetZoom]: El modelo es nulo.");
+            return;
+        }
+
+        // 1. NO cambiamos el modo actual. Leemos el que ya está en el modelo.
+        ZoomModeEnum modoActual = model.getCurrentZoomMode();
+        logger.debug("  -> Reseteando para el modo: " + modoActual);
+
+        // 2. Llamamos al método que ya tienes para que recalcule el factor de zoom
+        //    y resetee el paneo, pero para el MODO ACTUAL.
+        //    El tercer parámetro (el callback) es para sincronizar la UI después.
+        aplicarModoDeZoom(modoActual, () -> {
+            if (visorController != null) {
+                logger.debug("  -> [Callback de Reset] Sincronizando UI de botones de zoom...");
+                visorController.sincronizarEstadoVisualBotonesYRadiosZoom();
+            }
+        });
+    } // FIN del metodo resetZoom 
+    
+    
     public void setSpecificPanel(ImageDisplayPanel panel) {
         this.specificPanel = panel;
     } // --- Fin del método setSpecificPanel ---

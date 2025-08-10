@@ -138,16 +138,32 @@ public class VisorModel {
     }
 
     
-    public DisplayMode getCurrentDisplayMode() {return this.currentDisplayMode;}
-    public void setCurrentDisplayMode(DisplayMode newDisplayMode) {
-        if (this.currentDisplayMode != newDisplayMode) {
-            logger.debug("[Model] Cambiando modo de visualización de contenido de " + this.currentDisplayMode + " a: " + newDisplayMode);
-            this.currentDisplayMode = newDisplayMode;
-            // Aquí no es necesario resetear currentImage, ya que la imagen principal
-            // puede seguir siendo la misma, solo cambia cómo se presenta (ej. de Single a Grid).
+    public DisplayMode getCurrentDisplayMode() {
+        ListContext currentContext = getCurrentListContext();
+        // Si hay un contexto activo, su displayMode tiene prioridad.
+        if (currentContext != null) {
+            return currentContext.getDisplayMode();
         }
+        // Si no hay contexto (muy raro, pero posible durante la inicialización),
+        // devolvemos el valor de fallback.
+        logger.warn("[VisorModel] getCurrentDisplayMode() llamado sin un ListContext activo. Devolviendo fallback.");
+        return this.currentDisplayMode; // 'this.currentDisplayMode' es el de fallback
     }
-    
+
+    public void setCurrentDisplayMode(DisplayMode newDisplayMode) {
+        ListContext currentContext = getCurrentListContext();
+        
+        // La acción principal es actualizar el contexto activo.
+        if (currentContext != null && currentContext.getDisplayMode() != newDisplayMode) {
+            logger.debug("[Model] Cambiando DisplayMode para contexto " + currentWorkMode + " a: " + newDisplayMode);
+            currentContext.setDisplayMode(newDisplayMode);
+        }
+        
+        // Además, actualizamos la variable de fallback para mantenerla sincronizada.
+        // Esto es útil para cuando se clonan contextos o se inicializa la app.
+        this.currentDisplayMode = newDisplayMode;
+    }
+
     
     public ListContext getCurrentListContext() {
         switch (this.currentWorkMode) {

@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.AppInitializer;
+import modelo.VisorModel.DisplayMode;
+
 
 /**
  * Encapsula el estado completo de una lista de imágenes para un modo de trabajo específico.
@@ -33,6 +35,7 @@ public class ListContext {
     private String seleccionListKey; // Última clave seleccionada en la lista "Selección Actual"
     private String descartesListKey;  // Última clave seleccionada en la lista "Descartes"
 
+    private DisplayMode displayMode;
     
     /**
      * Constructor. Inicializa el contexto a un estado vacío y válido.
@@ -45,6 +48,8 @@ public class ListContext {
         
         this.seleccionListKey = null;
         this.descartesListKey = null;
+        
+        this.displayMode = DisplayMode.SINGLE_IMAGE;
         
     } // --- Fin del constructor ListContext ---
 
@@ -107,6 +112,8 @@ public class ListContext {
         this.seleccionListKey = otroContexto.getSeleccionListKey();
         this.descartesListKey = otroContexto.getDescartesListKey();
         this.carpetaRaizContexto = otroContexto.getCarpetaRaizContexto();
+        
+        this.displayMode = otroContexto.getDisplayMode();
 
     } // --- Fin del método clonarDesde ---
     
@@ -139,5 +146,8 @@ public class ListContext {
 
     public Path getCarpetaRaizContexto() {return this.carpetaRaizContexto;}
     public void setCarpetaRaizContexto(Path carpetaRaiz) {this.carpetaRaizContexto = carpetaRaiz;}
+    
+    public DisplayMode getDisplayMode() {return this.displayMode;}
+    public void setDisplayMode(DisplayMode displayMode) {this.displayMode = displayMode;}
     
 } // --- FIN DE LA CLASE ListContext ---

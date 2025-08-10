@@ -114,7 +114,7 @@ public class ConfigurationManager
 	        }
 	    }
 
-	 // FIXME --- ¡NUEVO BLOQUE DE DEBUG! ---
+	 // LOG --- ¡NUEVO BLOQUE DE DEBUG! ---
 	    logger.debug("--- DEBUG PRE-SINCRONIZACIÓN ---");
 	    logger.debug("Tamaño de DEFAULT_CONFIG: " + DEFAULT_CONFIG.size());
 	    logger.debug("Tamaño de loadedConfig (del archivo): " + loadedConfig.size());
@@ -159,7 +159,7 @@ public class ConfigurationManager
 	private Map<String, String> leerArchivoConfigExistente (File configFile) throws IOException
     {
         Map<String, String> loadedConfig = new HashMap<>();
-        logger.debug("Leyendo configuración desde: " + configFile.getAbsolutePath());
+        logger.info("Leyendo configuración desde: " + configFile.getAbsolutePath());
 
         try (BufferedReader reader = new BufferedReader(new FileReader(configFile)))
         {

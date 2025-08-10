@@ -486,7 +486,7 @@ public class ConfigApplicationManager {
 
         // --- Lógica de Depuración ---
         String actionCommand = (String) action.getValue(Action.ACTION_COMMAND_KEY);
-        logger.debug("\n--- [ConfigAppManager] Sincronizando estado lógico para Action: " + actionCommand + " ---");
+        logger.info("--- [ConfigAppManager] Sincronizando estado lógico para Action: " + actionCommand + " ---");
         
         // 2. Sincronizar el estado de selección lógico del botón.
         //    Este es el único paso realmente necesario. Al cambiar el estado de

@@ -69,6 +69,7 @@ import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
+import controlador.managers.DisplayModeManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
@@ -592,6 +593,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         // Esto asegura que la aplicación se cierre incluso si otro hilo no-demonio
         // estuviera bloqueando la salida. Ahora que hemos limpiado todo, es seguro.
         logger.debug("  -> Apagado limpio completado. Saliendo de la JVM con System.exit(0).");
+        
+        logger.info		("PRUEBA DE INFO");
+    	logger.debug	("PRUEBA DE DEBUG");
+    	logger.warn		("PRUEBA DE WARN");
+    	logger.error	("PRUEBA DE ERROR");
+        
         System.exit(0);
         
     } // --- FIN del metodo shutdownApplication ---
@@ -751,20 +758,33 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         logger.debug("[VisorController.cargarListaImagenes] mostrarSoloCarpeta= "+ mostrarSoloCarpeta);
         
         int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
-        Path pathDeInicioWalk = null;
-        if (mostrarSoloCarpeta) {
-            String claveReferenciaParaCarpeta = claveImagenAMantener != null ? claveImagenAMantener : model.getSelectedImageKey();
-            Path rutaImagenReferencia = claveReferenciaParaCarpeta != null ? model.getRutaCompleta(claveReferenciaParaCarpeta) : null;
-            if (rutaImagenReferencia != null && Files.isRegularFile(rutaImagenReferencia)) {
-                pathDeInicioWalk = rutaImagenReferencia.getParent();
-            }
-            if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk)) {
-                pathDeInicioWalk = this.model.getCarpetaRaizActual();
-            }
-        } else {
-            pathDeInicioWalk = this.model.getCarpetaRaizActual();
-        }
+        
+        
+        
+        Path pathDeInicioWalk;
 
+        // La lógica de "drill-down" (entrar en la carpeta de la imagen) solo se aplica si
+        // estamos en modo "solo carpeta" Y se nos pide explícitamente mantener una clave.
+        if (mostrarSoloCarpeta && claveImagenAMantener != null) {
+        	
+        	logger.debug("  -> MODO SOLO CARPETA + MANTENER CLAVE. Intentando 'Drill-Down'...");
+        	Path rutaImagenReferencia = model.getRutaCompleta(claveImagenAMantener);
+
+        	if (rutaImagenReferencia != null && Files.isRegularFile(rutaImagenReferencia)) {
+        		pathDeInicioWalk = rutaImagenReferencia.getParent();
+        		logger.debug("    -> Carpeta deducida para Drill-Down: " + pathDeInicioWalk);
+        	} else {
+        		// Si la clave a mantener no es válida, usamos la raíz del modelo como fallback.
+        		pathDeInicioWalk = this.model.getCarpetaRaizActual();
+        		logger.warn("    -> Clave a mantener inválida. Fallback a la carpeta raíz del modelo: " + pathDeInicioWalk);
+        	}
+        } else {
+        	// En TODOS los demás casos (toggle encendido, o carga de nueva raíz con toggle apagado),
+        	// la fuente de la verdad es siempre la carpeta raíz actual del modelo.
+        	pathDeInicioWalk = this.model.getCarpetaRaizActual();
+        	logger.debug("  -> Lógica de carga estándar. Usando carpeta raíz del modelo: " + pathDeInicioWalk);
+        }
+        
         // --- 5. VALIDAR PATH DE INICIO Y PROCEDER ---
         if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk)) {
             if (this.servicioMiniaturas != null) {
@@ -3519,6 +3539,8 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     
     public DefaultListModel<String> getModeloMiniaturasVisualizador() {return this.modeloMiniaturasVisualizador;}
     public DefaultListModel<String> getModeloMiniaturasCarrusel() {return this.modeloMiniaturasCarrusel;}
+    
+    public DisplayModeManager getDisplayModeManager() {return this.displayModeManager;}
     
     /**
      * Devuelve el modelo de lista de miniaturas correcto según el modo de trabajo actual.

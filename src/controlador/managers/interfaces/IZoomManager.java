@@ -98,4 +98,6 @@ public interface IZoomManager {
      */
     void setZoomMode(ZoomModeEnum nuevoModo, Runnable onComplete);
     
+    void resetZoom();
+    
 } // --- FIN de la interfaz IZoomManager ---

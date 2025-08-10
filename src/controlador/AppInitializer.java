@@ -352,7 +352,8 @@ public class AppInitializer {
             this.generalController.setDisplayModeManager(this.displayModeManager);
             this.generalController.setConfiguration(this.configuration);
             
-            java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.controller.cargarListaImagenes(null, null);
+            java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.generalController.solicitarCargaDesdeNuevaRaiz(p);
+            
             this.fileOperationsManager.setModel(this.model);
             this.fileOperationsManager.setController(this.controller);
             this.fileOperationsManager.setConfiguration(this.configuration);

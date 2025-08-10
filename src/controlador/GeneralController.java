@@ -9,6 +9,8 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,6 +40,7 @@ import controlador.managers.ViewManager;
 import controlador.utils.ComponentRegistry; // <-- NUEVO: Importación para ComponentRegistry
 import modelo.ListContext;
 import modelo.VisorModel;
+import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode; // <-- Importación necesaria
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
@@ -224,6 +227,28 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	 */
 	private void entrarModo(WorkMode modoAlQueSeEntra) {
 	    logger.debug("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
+	    
+	 // ANTES de hacer cualquier otra cosa, establecemos un DisplayMode por defecto
+	    // para el contexto al que vamos a entrar. Esto rompe el bucle.
+	    if (displayModeManager != null) {
+	        // Obtenemos el contexto que va a estar activo
+	        ListContext contextoDestino;
+	        switch (modoAlQueSeEntra) {
+	            case PROYECTO: contextoDestino = model.getProyectoListContext(); break;
+	            // Añade más casos si es necesario (ej. Carrusel)
+	            default: contextoDestino = model.getVisualizadorListContext(); break;
+	        }
+
+	        // Leemos el DisplayMode que ese contexto tenía guardado
+	        DisplayMode modoGuardado = contextoDestino.getDisplayMode();
+	        logger.debug("  -> El modo de visualización para " + modoAlQueSeEntra + " es: " + modoGuardado);
+
+	        // Forzamos a la UI a cambiar a ese modo AHORA.
+	        // Esto asegura que el panel correcto (Grid o SingleImage) esté visible
+	        // ANTES de que cualquier lógica de carga de imagen intente usarlo.
+	        displayModeManager.switchToDisplayMode(modoGuardado);
+	    }
+	    
 	    
         // ----> INICIO DE LA CORRECCIÓN DE SINTAXIS <----
 	    SwingUtilities.invokeLater(new Runnable() {
@@ -1245,6 +1270,47 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         logger.debug("  -> Sincronizados controles de subcarpetas. Estado actual (incluir): " + estadoActualIncluyeSubcarpetas);
     } // --- Fin del método sincronizarControlesDeSubcarpetas ---
     
+    
+    /**
+     * Orquesta la carga de una nueva carpeta raíz seleccionada por el usuario.
+     * Este es el punto de entrada para el selector de carpetas, asegurando que la
+     * lógica de carga sea la correcta y no la de un simple toggle.
+     *
+     * @param nuevaCarpeta La nueva carpeta raíz a visualizar.
+     */
+    public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta) {
+        logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
+        if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) {
+            logger.warn("  -> La nueva carpeta es inválida o nula. Abortando.");
+            return;
+        }
+        
+        // 1. Validar dependencias
+        if (model == null || visorController == null || displayModeManager == null) {
+            logger.error("  -> ERROR: Dependencias críticas (model, visorController, displayModeManager) nulas. Abortando.");
+            return;
+        }
+
+        // 2. Actualizar la carpeta raíz del contexto actual en el modelo.
+        //    Esta es la nueva "base" para futuras operaciones.
+        model.setCarpetaRaizActual(nuevaCarpeta);
+
+        // 3. Definir la acción de sincronización que se ejecutará DESPUÉS de la carga.
+        //    Es similar a la del toggle, pero nos aseguramos de que todo quede coherente.
+        Runnable accionPostCarga = () -> {
+            logger.debug("  [Callback Post-Carga de Nueva Raíz] Tarea de carga finalizada. Ejecutando sincronización...");
+            this.sincronizarTodaLaUIConElModelo();
+            displayModeManager.poblarYSincronizarGrid();
+            logger.debug("  [Callback Post-Carga de Nueva Raíz] Sincronización finalizada.");
+        };
+
+        // 4. Llamar al método de carga de bajo nivel en VisorController.
+        //    Pasamos 'null' como clave a mantener para que la lógica de "entrar en subcarpeta"
+        //    no se active y se seleccione la primera imagen de la nueva lista.
+        logger.debug("  -> Delegando a VisorController la tarea de recargar la lista de imágenes desde la nueva raíz...");
+        visorController.cargarListaImagenes(null, accionPostCarga);
+        
+    } // --- FIN del metodo solicitarCargaDesdeNuevaRaiz ---
     
 //  ********************************************************************************** FIN IMPLEMENTACION INTERFAZ IModoController
     

@@ -1,31 +1,35 @@
 <configuration>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        
-        <!-- Le decimos a Logback que use la librería Jansi para asegurar que los colores funcionen siempre -->
-        <target>System.out</target>
-        
+    <!-- Appender #1: SOLO PARA ERRORES. Lo mandamos a System.err para que Eclipse lo pinte de ROJO. -->
+    <appender name="CONSOLE_ERR" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
         <encoder>
-            <!-- 
-                Este es el patrón completo para colorear toda la línea.
-                Define el color para cada nivel de log: ERROR en rojo, WARN en amarillo, etc.
-            -->
-            <pattern>%highlight(%-5level %logger{36} - %msg%n){ERROR=red, WARN=yellow, INFO=blue, DEBUG=cyan, TRACE=white}</pattern>
+            <!-- Patrón SIN colores, porque el color lo pone Eclipse al ser System.err -->
+            <pattern>%-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- 
-        El logger raíz, que captura todos los logs desde el nivel DEBUG hacia arriba
-        y los envía al único appender que hemos definido.
-        
-        Si pones level="DEBUG", se muestra todo (DEBUG, INFO, WARN, ERROR).
-		Si pones level="INFO", solo se muestra INFO, WARN, y ERROR.
-		Si pones level="WARN", solo se muestra WARN y ERROR.
-		Si pones level="ERROR", solo se muestra ERROR.
-		Si pones level="OFF", no se muestra absolutamente nada.
-    -->
+    <!-- Appender #2: PARA TODO LO DEMÁS (WARN, INFO, DEBUG). Lo mandamos a System.out. -->
+    <appender name="CONSOLE_OUT" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <!-- Bloqueamos los ERROR para que no se dupliquen -->
+            <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>ACCEPT</onMismatch>
+        </filter>
+        <encoder>
+            <!-- Aquí usamos highlight, y AHORA SÍ debería funcionar el amarillo para WARN -->
+            <pattern>%highlight(%-5level %logger{36} - %msg%n){ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=white}</pattern>
+        </encoder>
+    </appender>
+
     <root level="DEBUG">
-        <appender-ref ref="STDOUT" />
+        <appender-ref ref="CONSOLE_OUT" /> <!-- Gestiona DEBUG, INFO, WARN -->
+        <appender-ref ref="CONSOLE_ERR" /> <!-- Gestiona ERROR -->
     </root>
 
 </configuration>
