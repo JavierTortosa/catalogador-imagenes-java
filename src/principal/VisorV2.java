@@ -63,15 +63,6 @@ public class VisorV2 {
 		//TODO implementar la barra de multiproyectos
 		//TODO hacer un boton que ponga en amarillo las imagenes que no tienen su correspondiente zip
 		//TODO añadir la opcion de poder agregar al proyecto un archivo sin imagen (se puede crear una imagen que tenga el texto que le introduzca el usuario)
-		//TODO hacer que las listas esten ordenadas alfabeticamente (luego ya pondremos la toolbar de sort)
-		//TODO agregar el displaymode grid independiente para seleccionados, descartes y exportar
-
-//TODO hacer que el boton de marcar imagen en modo proyecto mueva la imagen a descartes o viceversa
-//TODO añadir opcion en el popup de localizar archivo tanto en selecionados, descartes y exportar
-//TODO añadir la opcion de vaciar en descartes y seleccion
-//TODO añadir una opcion al panel de descartes para borrar seleccion o todo
-//TODO permitir ir a la carpeta del proyecto cuando se termina de exportar
-		
 
 	//TOOLBAR
 		

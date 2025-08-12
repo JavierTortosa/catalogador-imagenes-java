@@ -10,6 +10,9 @@ module VisorImagenes {
     
     // El módulo necesita la librería FlatLaf para el Look and Feel.
     requires com.formdev.flatlaf;
+    requires com.formdev.flatlaf.extras;
+    requires com.formdev.flatlaf.swingx;
+    requires com.formdev.flatlaf.intellijthemes;
     
     // El módulo necesita la API de logging SLF4J.
     requires org.slf4j;

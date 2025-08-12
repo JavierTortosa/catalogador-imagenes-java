@@ -9,11 +9,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
 
 import javax.swing.JOptionPane;
 
@@ -27,6 +27,11 @@ public class ProjectManager implements IProjectManager {
 	
 	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 	
+	// === 1. DEFINIMOS LA REGLA DE ORDENACIÓN UNA SOLA VEZ ===
+    private static final Comparator<Path> CASE_INSENSITIVE_PATH_COMPARATOR = 
+   		Comparator.comparing(p -> p.getFileName().toString(), String.CASE_INSENSITIVE_ORDER);
+
+	
     private Path archivoSeleccionActualPath;
     private Set<Path> seleccionActual;
     private Set<Path> seleccionDescartada;
@@ -37,10 +42,13 @@ public class ProjectManager implements IProjectManager {
      * Las dependencias se inyectan a través de setters.
      */
     public ProjectManager() {
-    	this.seleccionActual = new HashSet<>();
-        this.seleccionDescartada = new HashSet<>();
+    	
+    	this.seleccionActual = new TreeSet<>(CASE_INSENSITIVE_PATH_COMPARATOR);
+        this.seleccionDescartada = new TreeSet<>(CASE_INSENSITIVE_PATH_COMPARATOR);
+        
     } // --- Fin del método ProjectManager (constructor) ---
 
+    
     /**
      * Inicializa el manager después de que las dependencias han sido inyectadas.
      * Debe ser llamado desde AppInitializer.
@@ -130,6 +138,7 @@ public class ProjectManager implements IProjectManager {
         } else {
             logger.debug("  [ProjectManager] Archivo de proyecto no encontrado: " + rutaArchivo + ". Se iniciará con proyecto vacío.");
         }
+        
     } // --- Fin del método cargarDesdeArchivo ---
     
     
@@ -175,9 +184,9 @@ public class ProjectManager implements IProjectManager {
 
     @Override
     public List<Path> getImagenesMarcadas() {
-    	List<Path> sortedList = new ArrayList<>(this.seleccionActual);
-        Collections.sort(sortedList);
-        return sortedList;
+    	
+    	return new ArrayList<>(this.seleccionActual);
+    	
     } // --- Fin del método getImagenesMarcadas ---
 
     @Override
@@ -231,13 +240,37 @@ public class ProjectManager implements IProjectManager {
 
     
     /**
+     * Elimina TODAS las imágenes de la lista de descartes del proyecto de forma permanente.
+     * Esta acción es irreversible para el proyecto.
+     */
+    public void vaciarDescartes() {
+        if (this.seleccionDescartada.isEmpty()) {
+            logger.debug("[ProjectManager] La lista de descartes ya está vacía. No se hace nada.");
+            return;
+        }
+        
+        int cantidadEliminada = this.seleccionDescartada.size();
+        
+        // Simplemente vaciamos el conjunto de descartes.
+        this.seleccionDescartada.clear();
+        
+        // Guardamos el archivo de proyecto, que ahora no tendrá la sección [DESCARTES]
+        // o la tendrá vacía.
+        guardarAArchivo();
+        logger.debug("[ProjectManager] Lista de descartes vaciada. Se eliminaron " + cantidadEliminada + " entradas del proyecto.");
+        
+    } // --- Fin del método vaciarDescartes ---
+    
+    
+    
+    /**
      * Devuelve la lista de imágenes actualmente en la sección de descartes.
      * @return Una lista ordenada de Paths de las imágenes descartadas.
      */
     public List<Path> getImagenesDescartadas() {
-        List<Path> sortedList = new ArrayList<>(this.seleccionDescartada);
-        Collections.sort(sortedList);
-        return sortedList;
+    	
+    	return new ArrayList<>(this.seleccionDescartada);
+    	
     } // --- Fin del método getImagenesDescartadas ---
 
     /**

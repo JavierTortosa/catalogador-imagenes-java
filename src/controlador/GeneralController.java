@@ -55,7 +55,7 @@ import vista.panels.ImageDisplayPanel; // <-- NUEVO: Importación para ImageDisp
  */
 public class GeneralController implements IModoController, KeyEventDispatcher{
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(GeneralController.class);
 	
     // --- Dependencias Clave ---
     private VisorModel model;

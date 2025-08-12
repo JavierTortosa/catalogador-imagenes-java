@@ -17,7 +17,6 @@ import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.GeneralController;
 import controlador.ProjectController;
 import controlador.actions.archivo.DeleteAction;
@@ -100,7 +99,7 @@ import vista.util.IconUtils;
 public class ActionFactory {
 	
 	public record IconInfo(String iconKey, vista.config.IconScope scope) {}
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ActionFactory.class);
 	
     // --- SECCIÓN 1: CAMPOS DE INSTANCIA (DEPENDENCIAS INYECTADAS) ---
     // 1.1. Referencias a componentes principales
@@ -324,11 +323,21 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA, createToggleFullScreenAction());
         
         // 3.7. Crear y registrar Actions de Tema
-        actionMap.put(AppActionCommands.CMD_TEMA_CLEAR, createToggleThemeAction("clear", "Tema Clear"));
-        actionMap.put(AppActionCommands.CMD_TEMA_DARK, createToggleThemeAction("dark", "Tema Dark"));
-        actionMap.put(AppActionCommands.CMD_TEMA_BLUE, createToggleThemeAction("blue", "Tema Blue"));
-        actionMap.put(AppActionCommands.CMD_TEMA_GREEN, createToggleThemeAction("green", "Tema Green"));
-        actionMap.put(AppActionCommands.CMD_TEMA_ORANGE, createToggleThemeAction("orange", "Tema Orange"));
+        logger.debug("  -> Creando acciones para temas dinámicamente...");
+
+        // Le preguntamos a UIDefinitionService por la lista de temas
+        List<vista.config.UIDefinitionService.TemaDefinicion> temasDefiniciones = UIDefinitionService.getTemasPrincipales();
+
+        for (vista.config.UIDefinitionService.TemaDefinicion temaDef : temasDefiniciones) {
+            // Generamos la clave de comando canónica para esta acción (ej: "cmd.tema.cyan_light")
+            String commandKey = "cmd.tema." + temaDef.id();
+            
+            // Creamos la acción y la guardamos en el mapa.
+            // Necesitaremos modificar `createToggleThemeAction` para que acepte el commandKey.
+            actionMap.put(commandKey, createToggleThemeAction(temaDef.id(), temaDef.nombreDisplay(), commandKey));
+            logger.debug("    -> Action creada para tema: " + temaDef.nombreDisplay() + " con comando: " + commandKey);
+        }
+        
 
         // 3.8. Crear y registrar Actions de Toggle Generales
         actionMap.put(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, createToggleSubfoldersAction());
@@ -351,6 +360,8 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, createToggleIgnoreCompressedAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE, createEliminarDeProyectoAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN, createRelocateImageAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO, createLocalizarArchivoProyectoAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_VACIAR_DESCARTES, createVaciarDescartesAction());
         actionMap.put(AppActionCommands.CMD_INICIAR_EXPORTACION, createIniciarExportacionAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, createSeleccionarCarpetaAction());
         
@@ -781,17 +792,7 @@ public class ActionFactory {
     
 
     // --- 4.8. Métodos Create para Actions de Tema ---
-    private Action createToggleThemeAction(String themeNameInternal, String displayNameForMenu) {
-        String commandKey;
-        switch (themeNameInternal.toLowerCase()) {
-            case "clear":  commandKey = AppActionCommands.CMD_TEMA_CLEAR;  break;
-            case "dark":   commandKey = AppActionCommands.CMD_TEMA_DARK;   break;
-            case "blue":   commandKey = AppActionCommands.CMD_TEMA_BLUE;   break;
-            case "green":  commandKey = AppActionCommands.CMD_TEMA_GREEN;  break;
-            case "orange": commandKey = AppActionCommands.CMD_TEMA_ORANGE; break;
-            default:
-                commandKey = AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE;
-        }
+    private Action createToggleThemeAction(String themeNameInternal, String displayNameForMenu, String commandKey) {
         return new ToggleThemeAction(this.themeManager, this.generalController.getVisorController(), themeNameInternal, displayNameForMenu, commandKey);
     } // --- Fin del método createToggleThemeAction ---
    
@@ -829,6 +830,33 @@ public class ActionFactory {
         return action;
     } // --- FIN del método createToggleMarkImageAction ---
     
+    private Action createLocalizarArchivoProyectoAction() {
+        // Esta acción no necesita icono, es para menús contextuales.
+        return new AbstractAction("Localizar archivo en el explorador") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (projectControllerRef != null) {
+                    projectControllerRef.solicitarLocalizarArchivoSeleccionado();
+                }
+            }
+        };
+    } // --- FIN del método createLocalizarArchivoProyectoAction ---
+
+    private Action createVaciarDescartesAction() {
+        // Esta acción tampoco necesita icono.
+        return new AbstractAction("Vaciar lista de descartes") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (projectControllerRef != null) {
+                    projectControllerRef.solicitarVaciarDescartes();
+                }
+            }
+        };
+    } // --- FIN del método createVaciarDescartesAction ---
     
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);

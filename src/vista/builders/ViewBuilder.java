@@ -49,7 +49,7 @@ import vista.util.IconUtils;
 
 public class ViewBuilder{
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ViewBuilder.class);
 	
 	// --- Dependencias Clave (Lista Simplificada) ---
     private final ComponentRegistry registry;
@@ -108,6 +108,25 @@ public class ViewBuilder{
         );
         registry.register("frame.main", mainFrame);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        
+     // =========================================================================
+        // === ESTABLECER ICONO Y TÍTULO ===
+        // =========================================================================
+        mainFrame.setTitle("ModelTag - Your visual STL manager");
+        
+        // Asumimos que has llamado a tu archivo de icono "modeltag-icon.png"
+        // y lo has puesto en resources/iconos/comunes/
+        ImageIcon appIcon = iconUtils.getAppIcon("application/modeltag icono.png");
+        if (appIcon != null) {
+            mainFrame.setIconImage(appIcon.getImage());
+        } else {
+            logger.warn("[ViewBuilder] No se pudo cargar el icono de la aplicación.");
+        }
+        // =========================================================================
+        // === FIN DE ESTABLECER ICONO Y TÍTULO ===
+        // =========================================================================
+        
+        
         mainFrame.setLayout(new BorderLayout());
 
         JPanel toolbarContainer = createToolbarContainer();

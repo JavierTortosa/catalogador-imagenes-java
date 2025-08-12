@@ -101,7 +101,7 @@ public class ProjectBuilder implements ThemeChangeListener{
         
         
 	     // =========================================================================
-	     // === INICIO DE LA NUEVA IMPLEMENTACIÓN: MENÚ CONTEXTUAL PARA SINGLE IMAGE VIEW ===
+	     // === INICIO DE LA IMPLEMENTACIÓN: MENÚ CONTEXTUAL PARA SINGLE IMAGE VIEW ===
 	     // =========================================================================
 	
 	     singleImageViewPanel.getInternalLabel().addMouseListener(new java.awt.event.MouseAdapter() {
@@ -128,24 +128,34 @@ public class ProjectBuilder implements ThemeChangeListener{
 	
 	             boolean isEnDescartes = projectManager.estaEnDescartes(imagePath);
 	             
+	             String listaActiva = model.getProyectoListContext().getNombreListaActiva();
+	             
 	             JPopupMenu menu = new JPopupMenu();
 	
 	             // Obtenemos las Actions que vamos a necesitar.
 	             Action moveToDiscardsAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES);
 	             Action restoreFromDiscardsAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
 	             Action deleteFromProjectAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE);
-	
+	             Action localizarAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO);
+	             Action vaciarDescartesAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_VACIAR_DESCARTES);
+	             
 	             // Construir el menú dinámicamente.
-	             if (isEnDescartes) {
-	                 // Si la imagen está en descartes, mostramos las opciones de restaurar y eliminar.
-	                 if (restoreFromDiscardsAction != null) menu.add(restoreFromDiscardsAction);
-	                 menu.addSeparator();
-	                 if (deleteFromProjectAction != null) menu.add(deleteFromProjectAction);
-	             } else {
-	                 // Si no está en descartes, asumimos que está en selección y mostramos la opción de mover.
+	             
+	             if ("seleccion".equals(listaActiva)) {
 	                 if (moveToDiscardsAction != null) menu.add(moveToDiscardsAction);
+	                 menu.addSeparator(); // <-- Separador
+	                 if (localizarAction != null) menu.add(localizarAction); // <-- Añadir localizar
+
+	             } else if ("descartes".equals(listaActiva)) {
+	                 if (restoreFromDiscardsAction != null) menu.add(restoreFromDiscardsAction);
+	                 menu.addSeparator(); // <-- Separador
+	                 if (localizarAction != null) menu.add(localizarAction); // <-- Añadir localizar
+	                 menu.addSeparator(); // <-- Separador
+	                 if (vaciarDescartesAction != null) menu.add(vaciarDescartesAction); // <-- Añadir vaciar
+	                 menu.addSeparator(); // <-- Separador
+	                 if (deleteFromProjectAction != null) menu.add(deleteFromProjectAction);
 	             }
-	
+	             
 	             // Mostrar el menú solo si tiene items.
 	             if (menu.getComponentCount() > 0) {
 	                 menu.show(e.getComponent(), e.getX(), e.getY());
@@ -154,13 +164,11 @@ public class ProjectBuilder implements ThemeChangeListener{
 	     });
 	
 	     // =========================================================================
-	     // === FIN DE LA NUEVA IMPLEMENTACIÓN ===
+	     // === FIN DE LA IMPLEMENTACIÓN ===
 	     // =========================================================================
         
 
         // 3. Creamos el panel para la vista GRID del proyecto.
-        // NECESITAREMOS INYECTAR DEPENDENCIAS EN PROJECTBUILDER para esto.
-        // Por ahora, asumimos que las tenemos. Si no, te indicaré cómo hacerlo.
         GridDisplayPanel gridViewPanel = new GridDisplayPanel(
             generalController.getModel(), 
             generalController.getVisorController().getServicioMiniaturas(), 
@@ -173,7 +181,6 @@ public class ProjectBuilder implements ThemeChangeListener{
         registry.register("list.grid.proyecto", gridViewPanel.getGridList(), "WHEEL_NAVIGABLE");
 
         // 4. Creamos un MouseListener inteligente para el grid del proyecto.
-        
         projectGridList.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent e) { 
                 handlePopupAndSelection(e);
@@ -301,9 +308,15 @@ public class ProjectBuilder implements ThemeChangeListener{
 
         // Se obtiene la acción correspondiente del ActionFactory a través del GeneralController.
         Action moveToDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES);
+        Action localizarAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO);
+        
         if (moveToDiscardsAction != null) {
             // Se le asigna el listener a la lista.
-            projectFileList.addMouseListener(createContextMenuListener(projectFileList, moveToDiscardsAction));
+            projectFileList.addMouseListener(createContextMenuListener(
+            		projectFileList, 
+            		moveToDiscardsAction, 
+            		new javax.swing.JPopupMenu.Separator(), 
+            		localizarAction));
         } else {
              logger.error("WARN [ProjectBuilder]: No se pudo encontrar la acción CMD_PROYECTO_MOVER_A_DESCARTES en el ActionFactory.");
         }
@@ -344,11 +357,19 @@ public class ProjectBuilder implements ThemeChangeListener{
         Action restoreFromDiscardsAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
         Action deleteFromProjectAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE);
 
+        Action localizarAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO);
+        Action vaciarDescartesAction = this.generalController.getVisorController().getActionFactory().getActionMap().get(AppActionCommands.CMD_PROYECTO_VACIAR_DESCARTES);
+        
         if (restoreFromDiscardsAction != null && deleteFromProjectAction != null) {
-            descartesList.addMouseListener(createContextMenuListener(descartesList, 
-                restoreFromDiscardsAction,
-                new javax.swing.JPopupMenu.Separator(),
-                deleteFromProjectAction
+        	
+        	descartesList.addMouseListener(createContextMenuListener(descartesList, 
+        	        restoreFromDiscardsAction,
+        	        new javax.swing.JPopupMenu.Separator(),
+        	        localizarAction,
+        	        new javax.swing.JPopupMenu.Separator(),
+        	        vaciarDescartesAction,
+        	        new javax.swing.JPopupMenu.Separator(),
+        	        deleteFromProjectAction
             ));
         } else {
             if (restoreFromDiscardsAction == null) {
@@ -467,7 +488,7 @@ public class ProjectBuilder implements ThemeChangeListener{
                 }
             }
             
-         // Actualizamos explícitamente el ExportPanel, que es el contenedor de la JToolBar problemática.
+            // Actualizamos explícitamente el ExportPanel, que es el contenedor de la JToolBar problemática.
             vista.panels.export.ExportPanel panelExportar = registry.get("panel.proyecto.exportacion");
             if(panelExportar != null){
                 // 1. Actualizar el panel en sí mismo y sus hijos estándar.
@@ -477,7 +498,7 @@ public class ProjectBuilder implements ThemeChangeListener{
                 panelExportar.repaint();
             }
 
-            // <<-- OPCIONAL PERO RECOMENDADO: Forzar repintado de la propia toolbar -->>
+            // <<-- Forzar repintado de la propia toolbar -->>
             // Aunque reconstruirPanelesEspecialesTrasTema ya lo hace, un repaint extra no hace daño.
             JToolBar accionesExportacionToolbar = registry.get("toolbar.acciones_exportacion");
             if(accionesExportacionToolbar != null) {
@@ -488,7 +509,6 @@ public class ProjectBuilder implements ThemeChangeListener{
         
     } // --- FIN del metodo onThemeChanged ---
 
-    // AÑADIR ESTOS MÉTODOS HELPER
     private void actualizarBordeConTema(String panelKey, String titulo, Tema tema) {
         JPanel panel = registry.get(panelKey);
         if (panel != null && panel.getBorder() instanceof TitledBorder) {
@@ -505,7 +525,6 @@ public class ProjectBuilder implements ThemeChangeListener{
         }
     }
 
-    
     
     /**
      * Crea un MouseListener que muestra un menú contextual.

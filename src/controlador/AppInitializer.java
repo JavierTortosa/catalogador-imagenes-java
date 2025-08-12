@@ -80,7 +80,6 @@ public class AppInitializer {
 	private CarouselManager carouselManager;
 	private DisplayModeManager displayModeManager;
 	
-
     public AppInitializer(VisorController controller) {
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null en AppInitializer");
     } // --- fin del método AppInitializer (constructor) ---
@@ -204,7 +203,6 @@ public class AppInitializer {
              return true;
          } catch (Exception e) {
         	 
-//             manejarErrorFatalInicializacion("Error inicializando servicios esenciales", e);
              logger.error("Error inicializando servicios esenciales", e);
              
              return false;
@@ -504,6 +502,10 @@ public class AppInitializer {
             // Aplicar configuraciones y sincronizar estados que dependen de una UI visible
             this.configAppManager.aplicarConfiguracionGlobalmente();
             
+            // Forzamos la sincronización de colores después de que todo se ha construido y hecho visible.
+            logger.debug("  [AppInitializer] Forzando sincronización de colores de paneles al arranque...");
+            this.controller.sincronizarColoresDePanelesPorTema();
+            
             logger.debug("  [AppInitializer] Ejecutando sincronización maestra INICIAL...");
             
             this.generalController.sincronizarTodaLaUIConElModelo();
@@ -516,23 +518,13 @@ public class AppInitializer {
             SwingUtilities.invokeLater(() -> {
                 String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
                 
-                // Creamos un callback que se ejecutará DESPUÉS de que la carga de imágenes termine.
                 Runnable accionPostCarga = () -> {
-                	
                     logger.debug("  [Callback Post-Carga] Carga inicial completada. Aplicando estado final de UI...");
                     
-                    // >>> LA SOLUCIÓN <<<
-                    // Este es el último paso. Después de que las imágenes se han cargado y la selección inicial
-                    // se ha procesado (lo que podría haber cambiado la vista incorrectamente), forzamos
-                    // a la UI a mostrar el modo de visualización correcto que leímos de la configuración.
                     if (this.displayModeManager != null) {
-                    	
                         logger.debug("    -> [Callback] Sincronizando DisplayMode final a: " + this.model.getCurrentDisplayMode());
-                        
-                        this.displayModeManager.switchToDisplayMode(VisorModel.DisplayMode.SINGLE_IMAGE);
+                        this.displayModeManager.switchToDisplayMode(this.model.getCurrentDisplayMode());
                     }
-                    
-                    // Refrescar las listas visuales
                     
                     logger.debug("    -> [Callback] Forzando refresco de las listas visuales...");
                     
@@ -547,13 +539,21 @@ public class AppInitializer {
                 if (this.model.getCarpetaRaizActual() != null) {
                     this.controller.cargarListaImagenes(imagenInicialKey, accionPostCarga);
                 } else {
+                    // --- INICIO DE LA CORRECCIÓN DEFINITIVA ---
+                    logger.debug("  [AppInitializer] No hay carpeta inicial válida. Se mostrará el estado de bienvenida.");
                     this.controller.limpiarUI();
                     
-                    logger.debug("  [AppInitializer] No hay carpeta inicial. Sincronizando UI maestra...");
-                    
+                    // Sincronizamos la UI para que los botones y menús reflejen el estado "vacío".
                     this.generalController.sincronizarTodaLaUIConElModelo();
-                    // Incluso si no hay imágenes, establece el modo de visualización correcto.
-                    this.displayModeManager.switchToDisplayMode(this.model.getCurrentDisplayMode());
+                    
+                    // La línea problemática ha sido ELIMINADA. Ya no se fuerza el cambio de vista.
+                    // ELIMINADO: this.displayModeManager.switchToDisplayMode(this.model.getCurrentDisplayMode());
+                    
+                    // Añadimos el mensaje informativo que faltaba al arrancar.
+                    if (this.controller != null && this.controller.getStatusBarManager() != null) {
+                         this.controller.getStatusBarManager().mostrarMensaje("Abre una carpeta para empezar (Archivo -> Abrir Carpeta)");
+                    }
+                    // --- FIN DE LA CORRECCIÓN DEFINITIVA ---
                 }
             });
             
@@ -604,4 +604,5 @@ public class AppInitializer {
     } // --- FIN del método setControllerParaNotificacion ---
     
 } // --- FIN de la clase AppInitializer ---
+
 

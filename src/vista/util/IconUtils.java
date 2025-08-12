@@ -29,6 +29,29 @@ public class IconUtils {
         this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en IconUtils");
     } // --- Fin del constructor IconUtils ---
 
+    
+    /**
+     * Carga un icono para la aplicación desde la carpeta de iconos comunes, sin reescalarlo.
+     * @param iconName El nombre del archivo del icono (ej. "app-icon.png").
+     * @return un ImageIcon, o null si no se encuentra.
+     */
+    public ImageIcon getAppIcon(String iconName) {
+        String path = "/iconos/comunes/" + iconName;
+        try {
+            java.net.URL iconURL = getClass().getResource(path);
+            if (iconURL != null) {
+                return new ImageIcon(iconURL);
+            } else {
+                logger.error("No se pudo encontrar el recurso del icono de la app: " + path);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.error("Error al cargar el icono de la app: " + path, e);
+            return null;
+        }
+    } // --- Fin del metodo getAppIcon ---
+    
+    
     /**
      * Método PRIVADO y COMÚN para cargar un ImageIcon desde una ruta de classpath dada.
      * Esta es la lógica de carga base que será reutilizada.
@@ -484,6 +507,31 @@ public class IconUtils {
 
         return new Color(rgb);
     } // FIN del metodo oscurecerColorHSB
+
+    
+    /**
+     * Carga la imagen de bienvenida desde la carpeta de iconos comunes, sin reescalarla.
+     * @param imageName El nombre del archivo de la imagen (ej. "modeltag-welcome.png").
+     * @return un ImageIcon, o null si no se encuentra.
+     */
+    public ImageIcon getWelcomeImage(String imageName) {
+        // Asumimos que la imagen está en "resources/iconos/comunes/application/"
+        String path = "/iconos/comunes/application/" + imageName;
+        
+        try {
+            java.net.URL imageURL = getClass().getResource(path);
+            if (imageURL != null) {
+                return new ImageIcon(imageURL);
+            } else {
+                logger.error("No se pudo encontrar el recurso de la imagen de bienvenida: " + path);
+                return null;
+            }
+        } catch (Exception e) {
+            logger.error("Error al cargar la imagen de bienvenida: " + path, e);
+            return null;
+        }
+    }
+    
     
 } // --- FIN de la clase IconUtils
 

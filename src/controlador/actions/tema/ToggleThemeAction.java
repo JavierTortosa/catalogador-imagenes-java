@@ -9,15 +9,13 @@ import javax.swing.Action;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.VisorController; // Importar VisorController
 import vista.theme.Tema;
-
 import vista.theme.ThemeManager;
 
 public class ToggleThemeAction extends AbstractAction {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ToggleThemeAction.class);
 	
     private static final long serialVersionUID = 1L;
 
@@ -46,20 +44,20 @@ public class ToggleThemeAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        System.out.println("[ToggleThemeAction actionPerformed] Aplicando tema: " + nombreInternoTemaQueRepresenta);
+        logger.info("[ToggleThemeAction actionPerformed] Aplicando tema: " + nombreInternoTemaQueRepresenta);
 
         if (themeManagerRef == null || controllerRef == null) {
-            System.err.println("ERROR CRÍTICO [ToggleThemeAction]: ThemeManager o VisorController nulos.");
+            logger.error("ERROR CRÍTICO [ToggleThemeAction]: ThemeManager o VisorController nulos.");
             return;
         }
 
-        boolean temaRealmenteCambiado = themeManagerRef.setTemaActual(this.nombreInternoTemaQueRepresenta);
+        boolean temaRealmenteCambiado = themeManagerRef.setTemaActual(this.nombreInternoTemaQueRepresenta, true);
 
         if (temaRealmenteCambiado) {
-            System.out.println("  -> Tema cambiado en ThemeManager a: " + this.nombreInternoTemaQueRepresenta);
+            logger.debug("  -> Tema cambiado en ThemeManager a: " + this.nombreInternoTemaQueRepresenta);
             
             // Notificar al usuario
-            System.out.println("  -> El tema '" + this.nombreInternoTemaQueRepresenta + "' ya era el actual. No se realizaron cambios.");
+            logger.debug("  -> El tema '" + this.nombreInternoTemaQueRepresenta + "' ya era el actual. No se realizaron cambios.");
             sincronizarEstadoSeleccionConManager();
         }
     }

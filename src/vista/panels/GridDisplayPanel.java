@@ -2,6 +2,7 @@ package vista.panels;
 
 import java.awt.BorderLayout;
 import java.util.List;
+
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
@@ -9,6 +10,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.SwingUtilities;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import modelo.VisorModel;
 import servicios.image.ThumbnailService;
@@ -24,6 +28,8 @@ import vista.util.ThumbnailPreviewer; // <--- 1. IMPORTAMOS LA CLASE
 @SuppressWarnings("serial")
 public class GridDisplayPanel extends JPanel {
 
+	private static final Logger logger = LoggerFactory.getLogger(GridDisplayPanel.class);
+	
     private final JList<String> gridList;
     private final DefaultListModel<String> listModel;
 
@@ -92,7 +98,7 @@ public class GridDisplayPanel extends JPanel {
     public void actualizarColorDeFondoPorTema(ThemeManager themeManager) {
         if (themeManager != null && gridList != null) {
             gridList.setBackground(themeManager.getTemaActual().colorFondoSecundario());
-            System.out.println("  -> GridDisplayPanel (JList interna) actualizado al color de fondo del nuevo tema.");
+            logger.debug("  -> GridDisplayPanel (JList interna) actualizado al color de fondo del nuevo tema.");
         }
     }
     

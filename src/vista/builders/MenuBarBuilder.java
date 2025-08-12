@@ -21,7 +21,6 @@ import javax.swing.JRadioButtonMenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.actions.config.ToggleToolbarButtonVisibilityAction;
 import controlador.actions.config.ToggleUIElementVisibilityAction;
@@ -36,7 +35,7 @@ import vista.config.MenuItemType;
 
 public class MenuBarBuilder {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(MenuBarBuilder.class);
 
     // --- Resultados del Builder ---
     private JMenuBar menuBar;

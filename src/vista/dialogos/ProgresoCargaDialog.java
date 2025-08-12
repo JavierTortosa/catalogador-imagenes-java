@@ -1,13 +1,31 @@
 package vista.dialogos; // O el paquete que elijas
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.Frame;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Objects; // Import necesario
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JProgressBar;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class ProgresoCargaDialog extends JDialog {
 
+	private static final Logger logger = LoggerFactory.getLogger(ProgresoCargaDialog.class);
+	
     private static final long serialVersionUID = 1L; // Añadir SUID
     private JLabel etiquetaMensaje;
     private JLabel etiquetaContador;
@@ -47,7 +65,7 @@ public class ProgresoCargaDialog extends JDialog {
      * @param worker El worker que se está ejecutando o null si no hay worker.
      */
     public void setWorkerAsociado(SwingWorker<?, ?> worker) {
-        System.out.println("[Dialogo Progreso] Asignando worker: " + (worker != null ? worker.getClass().getSimpleName() : "null"));
+        logger.debug("[Dialogo Progreso] Asignando worker: " + (worker != null ? worker.getClass().getSimpleName() : "null"));
         this.workerAsociado = worker;
         // Habilitar el botón Cancelar solo si hay un worker asociado y activo
         if (this.botonCancelar != null) {
@@ -83,10 +101,10 @@ public class ProgresoCargaDialog extends JDialog {
             public void actionPerformed(ActionEvent e) {
                 // Comprobar si hay un worker asociado y si aún no ha terminado
                 if (workerAsociado != null && !workerAsociado.isDone()) {
-                    System.out.println("[Dialogo Progreso] Botón Cancelar presionado.");
+                    logger.debug("[Dialogo Progreso] Botón Cancelar presionado.");
                     // Intentar cancelar el worker (true = intentar interrumpir el hilo)
                     boolean cancelado = workerAsociado.cancel(true);
-                    System.out.println("  -> worker.cancel(true) llamado. Resultado: " + cancelado);
+                    logger.debug("  -> worker.cancel(true) llamado. Resultado: " + cancelado);
                     // Deshabilitar el botón y cambiar texto para feedback visual
                     botonCancelar.setEnabled(false);
                     botonCancelar.setText("Cancelando...");
@@ -97,7 +115,7 @@ public class ProgresoCargaDialog extends JDialog {
                     barraProgreso.setStringPainted(true);
                     barraProgreso.setString("Cancelado");
                 } else {
-                     System.out.println("[Dialogo Progreso] Botón Cancelar presionado, pero no hay worker activo.");
+                     logger.debug("[Dialogo Progreso] Botón Cancelar presionado, pero no hay worker activo.");
                 }
             }
         });
@@ -185,16 +203,16 @@ public class ProgresoCargaDialog extends JDialog {
       * y dispose().
       */
      public void cerrar() {
-         System.out.println("[Dialogo Progreso] Solicitud de cierre.");
+         logger.debug("[Dialogo Progreso] Solicitud de cierre.");
          // Asegurar ejecución en el EDT
          if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::cerrar); // Llama a sí mismo en el EDT
         } else {
             // Código ejecutado en el EDT
-            System.out.println("  -> [EDT] Cerrando diálogo...");
+            logger.debug("  -> [EDT] Cerrando diálogo...");
             setVisible(false); // Ocultar la ventana
             dispose();         // Liberar recursos de la ventana
-            System.out.println("  -> [EDT] Diálogo cerrado y desechado.");
+            logger.debug("  -> [EDT] Diálogo cerrado y desechado.");
         }
     }
 }

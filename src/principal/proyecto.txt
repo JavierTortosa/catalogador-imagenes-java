@@ -15,6 +15,12 @@ Si pones level="WARN", solo se muestra WARN y ERROR.
 Si pones level="ERROR", solo se muestra ERROR.
 Si pones level="OFF", no se muestra absolutamente nada.
 ------------------------------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------------------
+FLATLAF
+
+web para buscar componentes para cambiar el color: 
+https://www.formdev.com/flatlaf/properties-files/
+------------------------------------------------------------------------------------------------------------------------------------
 
 	el github es: https://github.com/JavierTortosa/catalogador-imagenes-java.git
 	

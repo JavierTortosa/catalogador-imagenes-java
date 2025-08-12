@@ -17,7 +17,6 @@ import javax.swing.border.Border;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IViewManager;
 import controlador.utils.ComponentRegistry;
@@ -35,7 +34,7 @@ import vista.util.IconUtils;
  */
 public class BackgroundControlManager implements ThemeChangeListener{
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(BackgroundControlManager.class);
 	
     // --- Dependencias ---
     private final ComponentRegistry registry;
@@ -467,7 +466,7 @@ public class BackgroundControlManager implements ThemeChangeListener{
         }
         // Obtenemos la lista de todos los temas y comprobamos si el color
         // coincide con el colorFondoSecundario de alguno de ellos.
-        for (Tema tema : themeManager.getTemasOrdenados()) {
+        for (Tema tema : themeManager.getTemasDisponibles()) {
             if (color.equals(tema.colorFondoSecundario())) {
                 return true; // ¡Coincidencia! Es un color de tema.
             }

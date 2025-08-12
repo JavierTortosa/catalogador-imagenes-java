@@ -17,14 +17,13 @@ import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
 import vista.config.UIDefinitionService;
 
 public class ConfigurationManager
 {
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ConfigurationManager.class);
 
 	// variables de la clase
 	public static final String CONFIG_FILE_PATH = "config.cfg";
@@ -473,7 +472,8 @@ public class ConfigurationManager
 		
 		// --- 1. CONFIGURACIÓN BÁSICA Y DE COMPORTAMIENTO ---
 	    String inicioCarpetaDefault = System.getProperty("user.dir"); // Directorio actual del proyecto
-	    defaults.put(ConfigKeys.INICIO_CARPETA, inicioCarpetaDefault + "\\resources");
+	    
+	    defaults.put(ConfigKeys.INICIO_CARPETA, inicioCarpetaDefault + "\\resources" + "quitar esto");
 	    defaults.put(ConfigKeys.INICIO_IMAGEN, "");
 
 	    defaults.put(ConfigKeys.PROYECTOS_CARPETA_BASE, inicioCarpetaDefault + "\\.proyectos");

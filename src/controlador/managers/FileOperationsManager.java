@@ -11,6 +11,9 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import controlador.VisorController;
 import controlador.managers.interfaces.IFileOperationsManager; // <-- AÑADIR IMPORT
 import modelo.VisorModel;
@@ -18,6 +21,8 @@ import servicios.ConfigurationManager;
 
 public class FileOperationsManager implements IFileOperationsManager { // <-- IMPLEMENTAR INTERFAZ
 
+	private static final Logger logger = LoggerFactory.getLogger(FileOperationsManager.class);
+	
     // --- INICIO DE LA MODIFICACIÓN: Campos para dependencias ---
     private VisorModel model;
     private VisorController controller;
@@ -34,10 +39,10 @@ public class FileOperationsManager implements IFileOperationsManager { // <-- IM
     @Override
     public void solicitarSeleccionNuevaCarpeta() {
         if (controller == null || model == null || configuration == null || onNuevaCarpetaSeleccionadaCallback == null) {
-             System.err.println("ERROR [FileManager]: Dependencias no inyectadas. No se puede abrir selector.");
+             logger.error("ERROR [FileManager]: Dependencias no inyectadas. No se puede abrir selector.");
              return;
         }
-        System.out.println("[FileManager] Iniciando selección de nueva carpeta...");
+        logger.info("[FileManager] Iniciando selección de nueva carpeta...");
         JFrame mainFrame = controller.getView();
         
         JFileChooser fileChooser = new JFileChooser();
@@ -69,7 +74,7 @@ public class FileOperationsManager implements IFileOperationsManager { // <-- IM
                         // Idealmente, el controlador orquestaría el guardado. Por ahora se mantiene.
                         configuration.guardarConfiguracion(configuration.getConfigMap());
                     } catch (IOException e) {
-                        System.err.println("ERROR [FileManager] al guardar config: " + e.getMessage());
+                        logger.error("ERROR [FileManager] al guardar config: " + e.getMessage());
                         JOptionPane.showMessageDialog(mainFrame, "No se pudo guardar la nueva carpeta en la configuración.", "Error de Configuración", JOptionPane.WARNING_MESSAGE);
                     }
                     this.onNuevaCarpetaSeleccionadaCallback.accept(nuevaCarpetaPath);
@@ -80,17 +85,17 @@ public class FileOperationsManager implements IFileOperationsManager { // <-- IM
                  JOptionPane.showMessageDialog(mainFrame, "La selección no es una carpeta válida.", "Selección Inválida", JOptionPane.WARNING_MESSAGE);
             }
         } else {
-            System.out.println("  [FileManager] Selección de carpeta cancelada.");
+            logger.debug("  [FileManager] Selección de carpeta cancelada.");
         }
     } // --- Fin del método solicitarSeleccionNuevaCarpeta ---
 
     @Override
     public void borrarArchivoSeleccionado() {
         if (controller == null || model == null) {
-             System.err.println("ERROR [FileManager]: Dependencias no inyectadas. No se puede borrar.");
+             logger.error("ERROR [FileManager]: Dependencias no inyectadas. No se puede borrar.");
              return;
         }
-        System.out.println("[FileOperationsManager] Iniciando borrado...");
+        logger.debug("[FileOperationsManager] Iniciando borrado...");
         JFrame mainFrame = controller.getView();
 
         String claveImagenSeleccionada = model.getSelectedImageKey();
@@ -117,19 +122,19 @@ public class FileOperationsManager implements IFileOperationsManager { // <-- IM
             try {
                 boolean borradoExitoso = Files.deleteIfExists(rutaCompleta);
                 if (borradoExitoso) {
-                    System.out.println("  [FileOperationsManager] Archivo borrado: " + rutaCompleta);
+                    logger.debug("  [FileOperationsManager] Archivo borrado: " + rutaCompleta);
                     JOptionPane.showMessageDialog(mainFrame, "Archivo eliminado correctamente.", "Eliminación Exitosa", JOptionPane.INFORMATION_MESSAGE);
                     this.onNuevaCarpetaSeleccionadaCallback.accept(rutaCompleta);
                 } else {
-                    System.err.println("  [FileOperationsManager] No se pudo borrar el archivo: " + rutaCompleta);
+                    logger.warn("  [FileOperationsManager] No se pudo borrar el archivo: " + rutaCompleta);
                     JOptionPane.showMessageDialog(mainFrame, "No se pudo eliminar el archivo.", "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
-                System.err.println("ERROR [FileOperationsManager] al borrar: " + ex.getMessage());
+                logger.error("ERROR [FileOperationsManager] al borrar: " + ex.getMessage());
                 JOptionPane.showMessageDialog(mainFrame, "Ocurrió un error al eliminar el archivo:\n" + ex.getMessage(), "Error al Eliminar", JOptionPane.ERROR_MESSAGE);
             }
         } else {
-            System.out.println("  [FileOperationsManager] Eliminación cancelada por el usuario.");
+            logger.debug("  [FileOperationsManager] Eliminación cancelada por el usuario.");
         }
     } // --- Fin del método borrarArchivoSeleccionado ---
 

@@ -8,16 +8,19 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.commands.AppActionCommands;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 
 public class UIDefinitionService {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(UIDefinitionService.class);
 	
-
+	
+	public UIDefinitionService() {
+        
+    }	
+	
     public List<MenuItemDefinition> generateMenuStructure() {
     	List<MenuItemDefinition> menuBarStructure = new ArrayList<>();
 
@@ -523,19 +526,21 @@ public class UIDefinitionService {
 
 
         // 7.5. Submenú "Tema" (movido después de visibilidad de barras por orden lógico)
-        List<MenuItemDefinition> configTemaSubItems = List.of(
-            new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null),
-            new MenuItemDefinition(AppActionCommands.CMD_TEMA_CLEAR, MenuItemType.RADIO_BUTTON_ITEM, 	"Tema Clear", null),
-            new MenuItemDefinition(AppActionCommands.CMD_TEMA_DARK, MenuItemType.RADIO_BUTTON_ITEM, 	"Tema Dark", null),
-            new MenuItemDefinition(AppActionCommands.CMD_TEMA_BLUE, MenuItemType.RADIO_BUTTON_ITEM, 	"Tema Blue", null),
-            new MenuItemDefinition(AppActionCommands.CMD_TEMA_ORANGE, MenuItemType.RADIO_BUTTON_ITEM, 	"Tema Orange", null),
-            new MenuItemDefinition(AppActionCommands.CMD_TEMA_GREEN, MenuItemType.RADIO_BUTTON_ITEM, 	"Tema Green", null),
-            new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null)
-        );
+        
+        List<MenuItemDefinition> configTemaSubItems = new ArrayList<>();
+        configTemaSubItems.add(new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null));
+        
+        // Usamos el bucle para generar los items a partir de nuestra lista estática
+        for (TemaDefinicion temaDef : getTemasPrincipales()) {
+            String commandKey = "cmd.tema." + temaDef.id();
+            configTemaSubItems.add(
+                new MenuItemDefinition(commandKey, MenuItemType.RADIO_BUTTON_ITEM, temaDef.nombreDisplay(), null)
+            );
+        }
+        
+        configTemaSubItems.add(new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null));
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Tema", configTemaSubItems));
-        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
-
-
+        
         // 7.7. Ítems finales del menú "Configuración" (Guardar, Cargar, Versión)
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, MenuItemType.ITEM, "Refrescar UI y Lista", null));
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_GUARDAR, MenuItemType.ITEM, "Guardar Configuración Actual", null));
@@ -686,11 +691,6 @@ public class UIDefinitionService {
 
 		
 		// --- BARRA DE BOTONES Sync ---
-//		List<ToolbarComponentDefinition> botonesSync = List.of(
-//			 new ToolbarButtonDefinition(AppActionCommands.CMD_SYNC_TOGGLE,					"10001-sync_on_48x48.png", "Sync Datos", "botones_syncro", ButtonType.TOGGLE)
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_SYNC_SAFE,					"10002-shield_48x48.png", "Deshacer Sync", "botones_syncro")
-//		);
-		
 		List<ToolbarButtonDefinition> botonesSincronizacion = List.of(
 	            new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SYNC_VISOR_CARRUSEL, "10001-sync_on_48x48.png", "Sincronizar Visor y Carrusel", "sincronizacion", ButtonType.TOGGLE)
 	        );
@@ -823,6 +823,43 @@ public class UIDefinitionService {
                                                 .map(ToolbarDefinition::claveBarra)
                                                 .collect(Collectors.toList());
     }
+    
+    
+    /**
+     * Método público y estático para que cualquiera pueda obtener la lista de temas.
+     * @return La lista de definiciones de los temas principales.
+     */
+    public static List<TemaDefinicion> getTemasPrincipales() {
+        return TEMAS_PRINCIPALES;
+    } // --- Fin del método getTemasPrincipales ---
+    
+    
+    
+// ************************************************************************************************************************************************* 
+// ************************************************************************************************************* CLASE RECORD DE DEFINICION DE TEMAS
+// ************************************************************************************************************************************************* 
+    
+    /**
+     * Record simple para almacenar la definición de un tema para la UI.
+     * Contiene el ID interno (para la lógica) y el nombre para mostrar (para el menú).
+     */
+    public record TemaDefinicion(String id, String nombreDisplay) {}
+
+    /**
+     * Define la lista curada de los temas principales de la aplicación.
+     * Esta es la ÚNICA fuente de verdad sobre qué temas debe manejar la UI.
+     */
+    private static final List<TemaDefinicion> TEMAS_PRINCIPALES = List.of(
+    	new TemaDefinicion("purpura_misterioso", "Púrpura Misterioso"),
+        new TemaDefinicion("cyan_light", "Cian Claro"),
+        new TemaDefinicion("solarized_light", "Solarized Claro"),
+        new TemaDefinicion("carbon", "Carbón"),
+        new TemaDefinicion("dracula", "Drácula"),
+        new TemaDefinicion("material_darker", "Material Oscuro"),
+        new TemaDefinicion("monokai_pro", "Monokai Pro")
+    );
+    // --- Fin de la Definición de Temas ---
+    
     
     
 } // ---FIN de la clase UIDefinitionService

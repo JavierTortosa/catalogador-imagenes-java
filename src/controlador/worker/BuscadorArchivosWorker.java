@@ -14,10 +14,15 @@ import java.util.stream.Stream;
 
 import javax.swing.SwingWorker;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import vista.dialogos.ProgresoCargaDialog;
 
 public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integer> {
 
+	private static final Logger logger = LoggerFactory.getLogger(BuscadorArchivosWorker.class);
+	
     private final Path rutaInicio;
     private final int profundidadBusqueda;
     private final Path rutaRaizParaRelativizar;
@@ -42,7 +47,7 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
 
     @Override
     protected Map<String, Path> doInBackground() throws Exception {
-        System.out.println("  [Worker BG] Iniciando búsqueda en " + rutaInicio + " con profundidad " + profundidadBusqueda);
+        logger.debug("  [Worker BG] Iniciando búsqueda en " + rutaInicio + " con profundidad " + profundidadBusqueda);
         dialogoProgreso.setMensaje("Escaneando: " + rutaInicio.getFileName() + "...");
 
         Map<String, Path> mapaRutasResultado = new HashMap<>();
@@ -54,7 +59,7 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
 
 
         if (isCancelled()) {
-            System.out.println("  [Worker BG] Tarea cancelada antes de iniciar Files.walk.");
+            logger.debug("  [Worker BG] Tarea cancelada antes de iniciar Files.walk.");
             return null;
         }
 
@@ -72,11 +77,11 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
                         try {
                             relativePathToRoot = this.rutaRaizParaRelativizar.relativize(path);
                         } catch (IllegalArgumentException e) {
-                             System.err.println("  [Worker BG] WARN: No se pudo relativizar " + path + " a " + this.rutaRaizParaRelativizar + ". Usando nombre archivo.");
+                             logger.warn("  [Worker BG] WARN: No se pudo relativizar " + path + " a " + this.rutaRaizParaRelativizar + ". Usando nombre archivo.");
                              relativePathToRoot = path.getFileName();
                         }
                     } else {
-                         System.err.println("  [Worker BG] WARN: rutaRaizParaRelativizar es null al generar clave. Usando nombre archivo.");
+                         logger.warn("  [Worker BG] WARN: rutaRaizParaRelativizar es null al generar clave. Usando nombre archivo.");
                          relativePathToRoot = path.getFileName();
                     }
                     String uniqueKey = relativePathToRoot.toString().replace("\\", "/");
@@ -93,16 +98,16 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
                 }); // Fin forEach
 
         } catch (IOException | SecurityException ioOrSecEx) {
-             System.err.println("  [Worker BG] Error durante Files.walk: " + ioOrSecEx.getMessage());
+             logger.error("  [Worker BG] Error durante Files.walk: " + ioOrSecEx.getMessage());
              String errorType = (ioOrSecEx instanceof IOException) ? "Error al leer directorio" : "Error de permisos";
              throw new RuntimeException(errorType, ioOrSecEx);
         } catch (CancellationException ce) {
-            System.out.println("  [Worker BG] Files.walk detenido por cancelación.");
+            logger.debug("  [Worker BG] Files.walk detenido por cancelación.");
             
              return null;
         }
 
-        System.out.println("  [Worker BG] Files.walk terminado. Archivos encontrados: " + this.contadorArchivos);
+        logger.debug("  [Worker BG] Files.walk terminado. Archivos encontrados: " + this.contadorArchivos);
         publish(this.contadorArchivos); // Publicar el conteo final
         return mapaRutasResultado;
     }
@@ -117,7 +122,7 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
 
     @Override
     protected void done() {
-        System.out.println("[Worker EDT] Método done() alcanzado.");
+        logger.debug("[Worker EDT] Método done() alcanzado.");
         // La lógica REAL de done() está en el PropertyChangeListener
         // que añadimos en VisorController.
     }

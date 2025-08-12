@@ -27,7 +27,6 @@ import javax.swing.border.TitledBorder; // Para panelIzquierdo
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -41,7 +40,7 @@ import vista.util.IconUtils;
 
 public class VisorView extends JFrame {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(VisorView.class);
 	
     private static final long serialVersionUID = 4L; // Incrementado por refactorización mayor
     

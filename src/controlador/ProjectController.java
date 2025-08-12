@@ -195,7 +195,8 @@ public class ProjectController implements IModoController {
         todasLasImagenes.addAll(imagenesDescartadas);
         
         todasLasImagenes = todasLasImagenes.stream().distinct().collect(Collectors.toList());
-        java.util.Collections.sort(todasLasImagenes);
+        
+        todasLasImagenes.sort((p1, p2) -> p1.toString().compareToIgnoreCase(p2.toString()));
 
         if (todasLasImagenes.isEmpty()) {
             JOptionPane.showMessageDialog(view, "No hay imágenes marcadas ni descartadas en el proyecto actual.", "Proyecto Vacío", JOptionPane.INFORMATION_MESSAGE);
@@ -220,66 +221,69 @@ public class ProjectController implements IModoController {
 
     
     public void activarVistaProyecto() {
-        logger.debug("  [ProjectController] Activando la UI de la vista de proyecto...");
+        logger.debug("  [ProjectController] Activando la UI de la vista de proyecto (Lógica Directa)...");
         if (registry == null || model == null || projectManager == null || projectListCoordinator == null) {
             logger.error("ERROR [ProjectController.activarVistaProyecto]: Dependencias nulas.");
             return;
         }
 
-        // 1. Lógica para poblar las JList (se queda igual)
-        ListContext proyectoContext = model.getProyectoListContext();
-        JList<String> projectList = registry.get("list.proyecto.nombres");
-        JList<String> descartesList = registry.get("list.proyecto.descartes");
-
+        // --- LÓGICA DE VISUALIZACIÓN DIRECTA ---
+        
+        // 1. Obtener la lista de imágenes seleccionadas YA ORDENADA desde el ProjectManager.
         List<Path> imagenesMarcadas = projectManager.getImagenesMarcadas();
+        
+        // 2. Crear un nuevo modelo de lista para la UI.
         DefaultListModel<String> modeloSeleccion = new DefaultListModel<>();
+        
+        // 3. Poblar el modelo de la UI con las claves de la lista ordenada.
         for (Path p : imagenesMarcadas) {
             modeloSeleccion.addElement(p.toString().replace("\\", "/"));
         }
-        if (projectList != null) projectList.setModel(modeloSeleccion);
         
-        poblarListaDescartes(); // Este método ya llena la lista de descartes
+        // 4. Asignar este modelo a la JList de la selección.
+        JList<String> projectList = registry.get("list.proyecto.nombres");
+        if (projectList != null) {
+            projectList.setModel(modeloSeleccion);
+        }
+        
+        // 5. Llamar al método para poblar la lista de descartes, que seguirá la misma lógica.
+        poblarListaDescartes();
 
-        // 2. Lógica para determinar la CLAVE a seleccionar (lógica simplificada)
+        // --- RESTAURACIÓN DE LA SELECCIÓN ANTERIOR (Esta parte no cambia) ---
         String claveParaMostrar = null;
-        String focoActual = proyectoContext.getNombreListaActiva();
+        String focoActual = model.getProyectoListContext().getNombreListaActiva();
+        JList<String> descartesList = registry.get("list.proyecto.descartes");
         
         if ("descartes".equals(focoActual)) {
-            claveParaMostrar = proyectoContext.getDescartesListKey();
+            claveParaMostrar = model.getProyectoListContext().getDescartesListKey();
         } else {
-            claveParaMostrar = proyectoContext.getSeleccionListKey();
+            claveParaMostrar = model.getProyectoListContext().getSeleccionListKey();
         }
 
-        // Si no hay clave guardada para el foco actual, o si la clave ya no es válida,
-        // intentamos seleccionar la primera de la lista con foco.
-        if (claveParaMostrar == null || !proyectoContext.getModeloLista().contains(claveParaMostrar)) {
-            if ("descartes".equals(focoActual) && descartesList.getModel().getSize() > 0) {
+        if (claveParaMostrar == null || !model.getProyectoListContext().getModeloLista().contains(claveParaMostrar)) {
+            if ("descartes".equals(focoActual) && descartesList != null && descartesList.getModel().getSize() > 0) {
                 claveParaMostrar = descartesList.getModel().getElementAt(0);
-            } else if (projectList.getModel().getSize() > 0) {
-                // Si el foco no es descartes, o si descartes está vacía, intentamos con selección.
+            } else if (projectList != null && projectList.getModel().getSize() > 0) {
                 claveParaMostrar = projectList.getModel().getElementAt(0);
-                proyectoContext.setNombreListaActiva("seleccion"); // Corregimos el foco si es necesario
+                model.getProyectoListContext().setNombreListaActiva("seleccion");
             }
         }
         
-        // 3. ¡LA LLAMADA CLAVE!
-        // Le pasamos la clave a nuestro nuevo método del coordinador. Él se encarga del resto.
         projectListCoordinator.seleccionarImagenPorClave(claveParaMostrar);
 
-        // 4. Lógica de UI que se ejecuta después
+        // --- AJUSTES FINALES DE LA UI (Esta parte no cambia) ---
         SwingUtilities.invokeLater(() -> {
             actualizarAparienciaListasPorFoco();
-            
             final JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
             if (leftSplit != null) leftSplit.setDividerLocation(0.55);
-            
             final JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
             if (mainSplit != null) mainSplit.setDividerLocation(0.25);
-
             logger.debug("  [ProjectController] UI de la vista de proyecto activada y restaurada.");
         });
-
+        
     } // --- Fin del método activarVistaProyecto ---
+    
+    
     
     
     @Override
@@ -345,6 +349,7 @@ public class ProjectController implements IModoController {
         }
     } // --- Fin del método continuarPaneo ---
     
+    
     public void poblarListaDescartes() {
         if (registry == null || projectManager == null) {
             logger.warn("WARN [poblarListaDescartes]: Registry o ProjectManager nulos.");
@@ -355,13 +360,25 @@ public class ProjectController implements IModoController {
             logger.warn("WARN [poblarListaDescartes]: JList 'list.proyecto.descartes' no encontrada en el registro.");
             return;
         }
+
+        // --- LÓGICA DE VISUALIZACIÓN DIRECTA ---
+
+        // 1. Obtener la lista de imágenes descartadas YA ORDENADA desde el ProjectManager.
         List<Path> imagenesDescartadas = projectManager.getImagenesDescartadas();
+
+        // 2. Crear un nuevo modelo de lista para la UI.
         DefaultListModel<String> modeloDescartes = new DefaultListModel<>();
+        
+        // 3. Poblar el modelo de la UI con las claves de la lista ordenada.
         for (Path rutaAbsoluta : imagenesDescartadas) {
             String clave = rutaAbsoluta.toString().replace("\\", "/");
             modeloDescartes.addElement(clave);
         }
+        
+        // 4. Asignar este modelo a la JList de descartes.
         listaDescartesUI.setModel(modeloDescartes);
+        
+        // --- ACTUALIZACIÓN DEL TÍTULO DE LA PESTAÑA (Esta parte no cambia) ---
         logger.debug("  [ProjectController] Lista de descartes actualizada en la UI. Total: " + modeloDescartes.getSize());
         javax.swing.JTabbedPane herramientasTabbedPane = registry.get("tabbedpane.proyecto.herramientas");
         if (herramientasTabbedPane != null) {
@@ -374,8 +391,10 @@ public class ProjectController implements IModoController {
                 }
             }
         }
+        
     } // --- Fin del método poblarListaDescartes ---
-
+    
+    
     public void moverSeleccionActualADescartes() {
         if (model == null || projectManager == null) return;
         String claveSeleccionada = model.getSelectedImageKey();
@@ -788,7 +807,47 @@ public class ProjectController implements IModoController {
                 if (listaDescartes != null) listaDescartes.clearSelection();
             });
         }
-    }// --- Fin del nuevo método mostrarImagenDeExportacion ---
+    } // --- Fin del nuevo método mostrarImagenDeExportacion ---
+    
+    
+    public void solicitarLocalizarArchivoSeleccionado() {
+        if (model == null) return;
+        String claveSeleccionada = model.getSelectedImageKey();
+        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
+            logger.debug("[ProjectController] No hay imagen seleccionada para localizar.");
+            return;
+        }
+
+        Path rutaAbsoluta = model.getProyectoListContext().getRutaCompleta(claveSeleccionada);
+        if (rutaAbsoluta != null) {
+            try {
+                DesktopUtils.openAndSelectFile(rutaAbsoluta);
+            } catch (Exception e) {
+                logger.error("Error al intentar abrir y seleccionar el archivo: " + e.getMessage());
+                JOptionPane.showMessageDialog(view, "No se pudo abrir la ubicación del archivo.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+    } // --- Fin del nuevo método solicitarLocalizarArchivoSeleccionado ---
+    
+
+    public void solicitarVaciarDescartes() {
+        if (projectManager == null || view == null) return;
+
+        int confirm = JOptionPane.showConfirmDialog(
+            view,
+            "¿Seguro que quieres vaciar TODAS las imágenes de la lista de descartes?\n" +
+            "(Las imágenes se eliminaran del proyecto pero no del disco)",
+            "Confirmar Vaciar Descartes",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            projectManager.vaciarDescartes();
+            // Refrescamos toda la vista del proyecto para que se reflejen los cambios.
+            refrescarListasDeProyecto();
+        }
+    } // --- Fin del nuevo método solicitarVaciarDescartes ---
     
     
 // *********************************************************************************************************

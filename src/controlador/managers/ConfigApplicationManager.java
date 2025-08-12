@@ -368,7 +368,7 @@ public class ConfigApplicationManager {
         );
 
         // Obtenemos la lista ordenada de temas y quitamos el actual para tener los "otros".
-        List<Tema> otrosTemas = new java.util.ArrayList<>(themeManager.getTemasOrdenados());
+        List<Tema> otrosTemas = new java.util.ArrayList<>(themeManager.getTemasDisponibles());
         otrosTemas.remove(themeManager.getTemaActual());
 
         for (int i = 0; i < colorKeys.size(); i++) {

@@ -36,7 +36,5 @@ M:/Archivos 3D/Miniaturas/Star Wars/Stormparty - Female Sqaud - ND002.jpg
 M:/Archivos 3D/Wargames/Star Wars legion/X+wing+(Star+Wars+Legion+scale).jpg
 
 [DESCARTES]
-M:/Archivos 3D/Miniaturas/Star Wars/Cold Brew Mission Objective - PD53.jpg
-D:/Compartir/Encargos/Cuchi Cuchi 2025/R2D2 montado en X-Wing.jpeg
 D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/A-gigante de hierro.jpg
-D:/Compartir/Encargos/Cuchi Cuchi 2025/piloto platano.png
+D:/Compartir/Encargos/Cuchi Cuchi 2025/R2D2 montado en X-Wing.jpeg

@@ -41,7 +41,7 @@ import vista.util.IconUtils;
 
 public class InfobarStatusManager{//  implements ThemeChangeListener{
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(InfobarStatusManager.class);
 	
     private VisorController visorController;
     private final VisorModel model;

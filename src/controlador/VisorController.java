@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -58,6 +59,7 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.border.TitledBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,7 +107,7 @@ import vista.util.IconUtils;
  */
 public class VisorController implements ActionListener, ClipboardOwner, ThemeChangeListener  {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(VisorController.class);
 
     // --- 1. Referencias a Componentes del Sistema ---
 
@@ -391,6 +393,8 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	        logger.debug("  -> Listener de miniaturas añadido a 'list.miniaturas.carousel' (CARRUSEL)");
 	    }
 
+	    configurarListenersDeRedimension();
+	    
 	    logger.debug("[VisorController Internal] Listeners de listas configurados.");
 
 	} // --- Fin del método configurarListenersVistaInternal ---
@@ -502,7 +506,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     /*package-private*/ void configurarShutdownHookInternal() {
         // --- SECCIÓN 1: Log de Inicio ---
         // 1.1. Indicar que se está configurando el hook.
-        logger.debug("    [Internal] Configurando Shutdown Hook...");
+        logger.info("    [Internal] Configurando Shutdown Hook...");
 
         // --- SECCIÓN 2: Crear el Hilo del Hook ---
         // 2.1. Crear una nueva instancia de Thread.
@@ -730,177 +734,208 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
      *                            hayan finalizado con éxito. Puede ser `null`.
      */
     public void cargarListaImagenes(String claveImagenAMantener, Runnable alFinalizarConExito) {
-        logger.debug("-->>> INICIO cargarListaImagenes(String, Runnable) | Mantener Clave: " + claveImagenAMantener);
+        logger.debug("-->>> INICIO cargarListaImagenes | Mantener Clave: " + claveImagenAMantener);
 
         // --- 1. VALIDACIONES PREVIAS ---
         if (configuration == null || model == null || executorService == null || executorService.isShutdown() || view == null) {
-            logger.error("ERROR [cargarListaImagenes]: Dependencias nulas (Config, Modelo, Executor o Vista) o Executor apagado.");
+            logger.error("ERROR [cargarListaImagenes]: Dependencias nulas o Executor apagado.");
             if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
             return;
         }
 
-        // --- 2. ESTABLECER FLAGS DE ESTADO ---
+        // --- 2. ESTADO Y CANCELACIÓN ---
         this.estaCargandoLista = true;
-        
-        if (estaCargandoLista == true) {estaCargandoLista=true;}
-        
-        this.cargaInicialEnCurso = true; // <-- ¡NUEVO! Bloquea los listeners de usuario
-
-        // --- 3. CANCELAR TAREAS ANTERIORES ---
+        this.cargaInicialEnCurso = true;
         if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
             logger.debug("  -> Cancelando tarea de carga de lista anterior...");
-            cargaImagenesFuture.cancel(true); 
+            cargaImagenesFuture.cancel(true);
         }
 
-        // --- 4. DETERMINAR PARÁMETROS DE BÚSQUEDA ---
+        // --- 3. PREPARACIÓN ---
         final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
-        
-        logger.debug("[VisorController.cargarListaImagenes] mostrarSoloCarpeta= "+ mostrarSoloCarpeta);
-        
         int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
-        
-        
-        
-        Path pathDeInicioWalk;
+        Path pathDeInicioWalk = model.getCarpetaRaizActual();
 
-        // La lógica de "drill-down" (entrar en la carpeta de la imagen) solo se aplica si
-        // estamos en modo "solo carpeta" Y se nos pide explícitamente mantener una clave.
-        if (mostrarSoloCarpeta && claveImagenAMantener != null) {
-        	
-        	logger.debug("  -> MODO SOLO CARPETA + MANTENER CLAVE. Intentando 'Drill-Down'...");
-        	Path rutaImagenReferencia = model.getRutaCompleta(claveImagenAMantener);
-
-        	if (rutaImagenReferencia != null && Files.isRegularFile(rutaImagenReferencia)) {
-        		pathDeInicioWalk = rutaImagenReferencia.getParent();
-        		logger.debug("    -> Carpeta deducida para Drill-Down: " + pathDeInicioWalk);
-        	} else {
-        		// Si la clave a mantener no es válida, usamos la raíz del modelo como fallback.
-        		pathDeInicioWalk = this.model.getCarpetaRaizActual();
-        		logger.warn("    -> Clave a mantener inválida. Fallback a la carpeta raíz del modelo: " + pathDeInicioWalk);
-        	}
-        } else {
-        	// En TODOS los demás casos (toggle encendido, o carga de nueva raíz con toggle apagado),
-        	// la fuente de la verdad es siempre la carpeta raíz actual del modelo.
-        	pathDeInicioWalk = this.model.getCarpetaRaizActual();
-        	logger.debug("  -> Lógica de carga estándar. Usando carpeta raíz del modelo: " + pathDeInicioWalk);
-        }
-        
-        // --- 5. VALIDAR PATH DE INICIO Y PROCEDER ---
-        if (pathDeInicioWalk != null && Files.isDirectory(pathDeInicioWalk)) {
-            if (this.servicioMiniaturas != null) {
-                logger.debug("  -> Limpiando caché de ThumbnailService antes de nueva carga...");
-                this.servicioMiniaturas.limpiarCache();
-            }
-            
-            final Path finalStartPath = pathDeInicioWalk;
-            final Path finalRutaRaizParaRelativizar = this.model.getCarpetaRaizActual();
-
-            // --- 6. LIMPIEZA INICIAL DE LA UI ---
-            limpiarUI(); // Llama a tu método de limpieza, que ahora está protegido por el flag
-
-            // --- 7. CREAR DIÁLOGO Y WORKER ---
-            final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view, null);
-            final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
-                finalStartPath, 
-                depth, 
-                finalRutaRaizParaRelativizar,
-                this::esArchivoImagenSoportado, 
-                dialogo
-            );
-            dialogo.setWorkerAsociado(worker); 
-            this.cargaImagenesFuture = worker;
-
-            // --- 8. CONFIGURAR EL LISTENER PARA CUANDO EL WORKER TERMINE ---
-            worker.addPropertyChangeListener(evt -> {
-                if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
-                    if (dialogo != null) dialogo.cerrar();
-                    if (worker.isCancelled()) {
-                        logger.debug("    -> Tarea CANCELADA por el usuario.");
-                        limpiarUI();
-                        if (view != null) view.setTituloPanelIzquierdo("Carga Cancelada");
-                        this.estaCargandoLista = false; 
-                        this.cargaInicialEnCurso = false; // Asegurarse de desactivar el flag
-                        return; 
-                    }
-
-                    try {
-                        Map<String, Path> mapaResultado = worker.get();
-                        if (mapaResultado != null) {
-                            logger.debug("    WORKER HA TERMINADO. Número de archivos encontrados: " + mapaResultado.size());
-                            
-                            
-                            List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
-                            logger.debug("    -> Ordenando " + clavesOrdenadas.size() + " claves...");
-                            java.util.Collections.sort(clavesOrdenadas); // El ordenamiento sigue siendo necesario
-
-                            logger.debug("    -> Creando modelo de lista en bloque...");
-                            java.util.Vector<String> vectorDeClaves = new java.util.Vector<>(clavesOrdenadas);
-                            DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
-                            nuevoModeloListaPrincipal.addAll(vectorDeClaves); // Usamos addAll, disponible en Java 11+ o creando el vector.
-                            logger.debug("    -> Modelo creado. Actualizando el modelo principal de la aplicación...");
-                            
-                            model.actualizarListaCompleta(nuevoModeloListaPrincipal, mapaResultado);
-                            if (view != null) {
-                                view.setListaImagenesModel(model.getModeloLista());
-                                view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
-                            }
-
-                            // --- LÓGICA DE SELECCIÓN DIRECTA Y ROBUSTA ---
-                            int indiceCalculado = -1;
-                            if (claveImagenAMantener != null && !claveImagenAMantener.isEmpty()) {
-                                indiceCalculado = model.getModeloLista().indexOf(claveImagenAMantener);
-                            }
-                            if (indiceCalculado == -1 && !model.getModeloLista().isEmpty()) {
-                                indiceCalculado = 0;
-                            }
-
-                            if (indiceCalculado != -1 && listCoordinator != null) {
-                                // Llamada directa al coordinador, evitando los listeners de usuario.
-                                listCoordinator.reiniciarYSeleccionarIndice(indiceCalculado);
-                            } else {
-                                limpiarUI();
-                            }
-                            
-                            if (alFinalizarConExito != null) {
-                                alFinalizarConExito.run();
-                            }
-                        } else {
-                            logger.debug("    -> Resultado del worker fue null. Carga fallida.");
-                            limpiarUI();
-                        }
-                    } catch (Exception e) {
-                        logger.error("    -> ERROR durante la ejecución del worker: " + e.getMessage());
-                        e.printStackTrace();
-                        limpiarUI();
-                    } finally {
-                        // --- ¡CAMBIO CLAVE! Desactivar los flags aquí ---
-                        this.estaCargandoLista = false;
-                        this.cargaInicialEnCurso = false;
-                        
-                        if (cargaImagenesFuture == worker) { 
-                            cargaImagenesFuture = null;
-                        }
-                        if (infobarImageManager != null) infobarImageManager.actualizar();
-                        if (statusBarManager != null) statusBarManager.actualizar();
-                    }
-                } 
-            });
-
-            // --- 9. EJECUTAR EL WORKER ---
-            worker.execute(); 
-            SwingUtilities.invokeLater(() -> { 
-                if (dialogo != null) { 
-                    dialogo.setVisible(true); 
-                }
-            });
-
-        } else {
-            logger.debug("[cargarListaImagenes] No se puede cargar la lista: Carpeta de inicio inválida o nula: " + pathDeInicioWalk);
+        // --- 4. VALIDAR CARPETA DE INICIO ---
+        if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk)) {
+            logger.warn("[cargarListaImagenes] No se puede cargar: Carpeta de inicio inválida o nula: " + pathDeInicioWalk);
             limpiarUI();
+            if (statusBarManager != null) {
+                // Usamos tu método existente para mostrar un mensaje persistente.
+                statusBarManager.mostrarMensaje("No hay una carpeta válida seleccionada. Usa 'Archivo -> Abrir Carpeta'.");
+            }
             this.estaCargandoLista = false;
             this.cargaInicialEnCurso = false;
+            return;
         }
+        
+        // --- 5. FEEDBACK INMEDIATO AL USUARIO ---
+        if (this.servicioMiniaturas != null) {
+            this.servicioMiniaturas.limpiarCache();
+        }
+        limpiarUI(); // <-- Feedback inmediato: la UI se pone en modo bienvenida mientras carga.
+
+        // --- 6. CREAR DIÁLOGO Y WORKER ---
+        final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view, null);
+        final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
+            pathDeInicioWalk,
+            depth,
+            pathDeInicioWalk,
+            this::esArchivoImagenSoportado,
+            dialogo
+        );
+        dialogo.setWorkerAsociado(worker);
+        this.cargaImagenesFuture = worker;
+
+        // --- 7. LÓGICA DE FINALIZACIÓN DEL WORKER ---
+        worker.addPropertyChangeListener(evt -> {
+            if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
+                if (dialogo != null) dialogo.cerrar();
+                if (worker.isCancelled()) {
+                    logger.debug("    -> Tarea CANCELADA por el usuario.");
+                    // La UI ya está limpia. Solo mostramos el mensaje.
+                    if (statusBarManager != null) {
+                        statusBarManager.mostrarMensaje("Carga cancelada por el usuario.");
+                    }
+                    this.estaCargandoLista = false;
+                    this.cargaInicialEnCurso = false;
+                    return;
+                }
+
+                try {
+                    Map<String, Path> mapaResultado = worker.get();
+
+                    // ******** TU LÓGICA IMPLEMENTADA ********
+                    if (mapaResultado == null || mapaResultado.isEmpty()) {
+                        logger.info("    -> La búsqueda no encontró imágenes soportadas en la carpeta.");
+                        // La UI ya muestra la bienvenida. Añadimos el mensaje informativo.
+                        if (statusBarManager != null) {
+                            statusBarManager.mostrarMensaje("La carpeta no contiene imágenes soportadas. Selecciona otra para continuar.");
+                        }
+                        if (view != null) {
+                            view.setTituloPanelIzquierdo("Archivos: 0");
+                        }
+                        // IMPORTANTE: Salimos aquí. No hay nada más que procesar.
+                        return;
+                    }
+                    // ******** FIN DE TU LÓGICA ********
+
+                    // Si llegamos aquí, SÍ hay imágenes. Procedemos con la carga normal.
+                    logger.debug("    WORKER HA TERMINADO. Archivos encontrados: " + mapaResultado.size());
+                    
+                    // Limpiamos cualquier mensaje de estado anterior ("carpeta vacía", etc.)
+                    if (statusBarManager != null) {
+                        statusBarManager.limpiarMensaje();
+                    }
+
+                    List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
+                    java.util.Collections.sort(clavesOrdenadas);
+
+                    DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
+                    nuevoModeloListaPrincipal.addAll(new java.util.Vector<>(clavesOrdenadas));
+                    
+                    model.actualizarListaCompleta(nuevoModeloListaPrincipal, mapaResultado);
+                    if (view != null) {
+                        view.setListaImagenesModel(model.getModeloLista());
+                        view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
+                    }
+
+                    int indiceCalculado = -1;
+                    if (claveImagenAMantener != null && !claveImagenAMantener.isEmpty()) {
+                        indiceCalculado = model.getModeloLista().indexOf(claveImagenAMantener);
+                    }
+                    if (indiceCalculado == -1 && !model.getModeloLista().isEmpty()) {
+                        indiceCalculado = 0;
+                    }
+
+                    if (listCoordinator != null && indiceCalculado != -1) {
+                        listCoordinator.reiniciarYSeleccionarIndice(indiceCalculado);
+                    }
+
+                    if (alFinalizarConExito != null) {
+                        alFinalizarConExito.run();
+                    }
+                } catch (Exception e) {
+                    logger.error("    -> ERROR durante la ejecución del worker: " + e.getMessage(), e);
+                    limpiarUI();
+                    if (statusBarManager != null) {
+                        statusBarManager.mostrarMensaje("Error al leer la carpeta. Consulta los logs para más detalles.");
+                    }
+                } finally {
+                    this.estaCargandoLista = false;
+                    this.cargaInicialEnCurso = false;
+                    if (cargaImagenesFuture == worker) {
+                        cargaImagenesFuture = null;
+                    }
+                }
+            }
+        });
+
+        // --- 8. EJECUTAR EL WORKER ---
+        worker.execute();
+        SwingUtilities.invokeLater(() -> {
+            if (dialogo != null) {
+                dialogo.setVisible(true);
+            }
+        });
     } // --- FIN del metodo cargarListaImagenes ---
+    
+    
+    
+    /**
+     * Configura listeners en los paneles de visualización de imágenes para que
+     * se reajuste el zoom automáticamente cuando el tamaño del panel cambia.
+     */
+    private void configurarListenersDeRedimension() {
+        if (registry == null || zoomManager == null || model == null) {
+            logger.error("ERROR [configurarListenersDeRedimension]: Dependencias nulas (registry, zoomManager o model).");
+            return;
+        }
+
+        // Crear una instancia del listener para reutilizarla
+        java.awt.event.ComponentListener resizeListener = new java.awt.event.ComponentAdapter() {
+            // Usamos un Timer para evitar una avalancha de repaints mientras se arrastra la ventana.
+            // Solo se ejecutará el último evento de redimensionado tras un breve lapso de inactividad.
+            private javax.swing.Timer repaintTimer = new javax.swing.Timer(100, e -> {
+                logger.debug(" -> [Resize Timer] Disparando re-aplicación de zoom.");
+                // Aplicamos el modo de zoom del CONTEXTO DE ZOOM ACTUAL.
+                // El modelo ya sabe cuál es el correcto (visualizador, proyecto, etc.).
+                zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
+            });
+
+            {
+                repaintTimer.setRepeats(false); // El timer se ejecuta solo una vez por ráfaga de eventos.
+            }
+
+            @Override
+            public void componentResized(java.awt.event.ComponentEvent e) {
+                // Cada vez que el componente se redimensiona, reiniciamos el timer.
+                // Si el usuario está arrastrando el borde de la ventana, esto reiniciará
+                // el timer constantemente, y solo cuando suelte y pasen 100ms, se ejecutará.
+                repaintTimer.restart();
+            }
+        };
+
+        // Aplicar el listener a todos los paneles de visualización relevantes
+        ImageDisplayPanel panelVisor = registry.get("panel.display.imagen");
+        if (panelVisor != null) {
+            panelVisor.addComponentListener(resizeListener);
+            logger.debug("  -> Listener de redimensionado añadido a 'panel.display.imagen'.");
+        }
+
+        ImageDisplayPanel panelProyecto = registry.get("panel.proyecto.display");
+        if (panelProyecto != null) {
+            panelProyecto.addComponentListener(resizeListener);
+            logger.debug("  -> Listener de redimensionado añadido a 'panel.proyecto.display'.");
+        }
+
+        ImageDisplayPanel panelCarrusel = registry.get("panel.display.carousel");
+        if (panelCarrusel != null) {
+            panelCarrusel.addComponentListener(resizeListener);
+            logger.debug("  -> Listener de redimensionado añadido a 'panel.display.carousel'.");
+        }
+
+    } // --- Fin del método configurarListenersDeRedimension ---
     
     
 // ************************************************************************************************************* FIN DE CARGA
@@ -1302,8 +1337,10 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                     model.setCurrentImage(null);
                     if (iconUtils != null) {
                          ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
-                         // --- CORRECCIÓN ---
+                         
                          // Usamos la variable 'rutaCompleta' que ya es final y está en el scope.
+                         
+                         //FIXME establecer la imagen del logo como imagen rota
                          displayPanel.mostrarError("Error al cargar:\n" + rutaCompleta.getFileName().toString(), errorIcon);
                     }
                     actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
@@ -1427,38 +1464,70 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     
     
     public void limpiarUI() {
-        logger.debug("[Controller] Limpiando UI y Modelo a estado vacío...");
+        logger.debug("[Controller] Limpiando UI y Modelo a estado de bienvenida...");
 
         if (listCoordinator != null) {
-            listCoordinator.setSincronizandoUI(true); // <-- ¡BLOQUEAR LISTENERS!
+            listCoordinator.setSincronizandoUI(true); // Bloquea listeners
         }
 
         try {
             if (model != null) {
-                // INICIO DEL CAMBIO
-                // NO llamar a model.actualizarListaCompleta aquí para evitar borrar
-                // los datos del ListContext actual. Solo limpiar la imagen y la selección.
-                model.setCurrentImage(null); // Limpiar la imagen mostrada
-                model.setSelectedImageKey(null); // Deseleccionar cualquier imagen en el contexto actual
-                model.resetZoomState(); // Resetear el zoom del contexto actual
+                model.setCurrentImage(null);
+                model.setSelectedImageKey(null);
+                model.resetZoomState();
                 logger.debug("  -> Estado de imagen y selección en modelo limpiado.");
-                // FIN DEL CAMBIO
             }
 
-            if (view != null) {
-                // Si la JList está vinculada a un modelo que NO se limpia aquí,
-                // entonces la vista no necesita que le asignemos un modelo vacío.
-                // Simplemente limpiar la imagen mostrada.
+            if (view != null && iconUtils != null && viewManager != null) {
+                // Limpia visualmente la imagen que pudiera haber antes (importante)
                 view.limpiarImagenMostrada();
-
+                
+                // Limpia los modelos de datos de las listas de miniaturas
                 if (this.modeloMiniaturasVisualizador != null) {
                     this.modeloMiniaturasVisualizador.clear();
                 }
                 if (this.modeloMiniaturasCarrusel != null) {
                     this.modeloMiniaturasCarrusel.clear();
                 }
+                logger.debug("  -> Listas de miniaturas limpiadas.");
+
+                // Lógica para mostrar la imagen de bienvenida
                 
-                logger.debug("  -> Vista actualizada a estado vacío (imagen principal y miniaturas).");
+
+                
+             // --- INICIO DEPURACIÓN ---
+                ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
+                logger.debug(" -> [limpiarUI] ¿Panel de display encontrado?: " + (displayPanel != null));
+                
+                if (displayPanel != null) {
+                    // He corregido el nombre del archivo aquí también
+                	
+                    
+                	ImageIcon welcomeIcon = iconUtils.getWelcomeImage("modeltag-bienvenida-apaisado.png");
+                			//getCommonIcon("application/modeltag-bienvenida-apaisado.png");
+                    		//getWelcomeImage("modeltag-bienvenida-apaisado.png");
+                    
+                    
+                    logger.debug(" -> [limpiarUI] ¿ImageIcon de bienvenida cargado?: " + (welcomeIcon != null));
+
+                    if (welcomeIcon != null) {
+                        // Convertimos a BufferedImage
+                        BufferedImage welcomeImage = new BufferedImage(
+                            welcomeIcon.getIconWidth(),
+                            welcomeIcon.getIconHeight(),
+                            BufferedImage.TYPE_INT_ARGB);
+                        Graphics2D g2d = welcomeImage.createGraphics();
+                        welcomeIcon.paintIcon(null, g2d, 0, 0);
+                        g2d.dispose();
+
+                        logger.debug(" -> [limpiarUI] BufferedImage creado. Llamando a setWelcomeImage y showWelcomeMessage...");
+                        displayPanel.setWelcomeImage(welcomeImage);
+                        displayPanel.showWelcomeMessage(); 
+                    } else {
+                        displayPanel.limpiar();
+                    }
+                }
+                // --- FIN DEPURACIÓN ---
             }
 
             if (servicioMiniaturas != null) {
@@ -1466,38 +1535,35 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                 logger.debug("  -> Caché de miniaturas limpiado.");
             }
 
-            Action toggleMarkImageAction = this.actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
+            Action toggleMarkImageAction = (actionMap != null) ? actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA) : null;
             if (toggleMarkImageAction != null) {
                 toggleMarkImageAction.setEnabled(false);
                 toggleMarkImageAction.putValue(Action.SELECTED_KEY, Boolean.FALSE);
                 actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
             }
+
         } finally {
             if (listCoordinator != null) {
-                // Usar invokeLater para asegurar que se libere después de que se procesen los eventos de limpieza
-                SwingUtilities.invokeLater(() -> listCoordinator.setSincronizandoUI(false)); // <-- ¡LIBERAR LISTENERS!
+                SwingUtilities.invokeLater(() -> listCoordinator.setSincronizandoUI(false)); // Libera listeners
             }
+        }
+       
+        // Actualizamos las barras de información para que muestren su estado de bienvenida
+        if (infobarImageManager != null) {
+//            infobarImageManager.actualizarParaBienvenida();
+        }
+        if (statusBarManager != null) {
+//            statusBarManager.actualizarParaBienvenida();
         }
        
         if (listCoordinator != null) {
             listCoordinator.forzarActualizacionEstadoAcciones();
         }
-       
-        if (infobarImageManager != null) {
-            infobarImageManager.actualizar();
-        }
-        if (statusBarManager != null) {
-            statusBarManager.actualizar();
-        }
-       
-        logger.debug("[Controller] Limpieza de UI y Modelo completada.");
+        
+        logger.debug("[Controller] Limpieza de UI y Modelo completada. Mostrando bienvenida.");
+        
     } // --- FIN limpiarUI ---
     
-    
-
-   
-    
-
      
 // *********************************************************************************************************** FIN DE UTILIDAD  
 // ***************************************************************************************************************************    
@@ -2213,7 +2279,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
          // 2. Actualiza ConfigurationManager.
          // 3. Llama a this.sincronizarEstadoDeTodasLasToggleThemeActions() (donde 'this' es VisorController).
          // 4. Muestra el JOptionPane.
-         themeManager.setTemaActual(temaLimpio); 
+         themeManager.setTemaActual(temaLimpio, true); 
 
          logger.debug("[VisorController] Fin cambiarTemaYNotificar.");
      }
@@ -3339,13 +3405,13 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	  
 // ********************************************************************************************************* GETTERS Y SETTERS
 // ***************************************************************************************************************************
-	 
+	
 	
 	@Override
 	public void onThemeChanged(Tema nuevoTema) {
 	    logger.debug("\n--- [VisorController] ORQUESTANDO REFRESCO COMPLETO DE UI POR CAMBIO DE TEMA ---");
 
-	    // FASE 1: Preparación (sin cambios)
+	    // FASE 1: Preparación
 	    if (this.actionFactory != null) {
 	        this.actionFactory.actualizarIconosDeAcciones();
 	    }
@@ -3357,63 +3423,45 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	    SwingUtilities.invokeLater(() -> {
 	        logger.debug("  [EDT] Iniciando reconstrucción y sincronización...");
 
-	        // PASO 1: Reconstruir la estructura de toolbars.
+	        // ¡LLAMADA AL NUEVO MÉTODO!
+	        sincronizarColoresDePanelesPorTema();
+	        
+	        // El resto de la lógica de reconstrucción se mantiene igual
 	        if (this.toolbarManager != null && this.model != null) {
 	            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
 	        }
 	        
-	        // --- INICIO DE LA SOLUCIÓN ---
-	        // PASO 1.5: Reconstrucción EXPLÍCITA de la barra de estado.
 	        logger.debug("  [EDT] Reconstruyendo explícitamente la barra de estado...");
 	        JPanel panelContenedorStatusBar = registry.get("panel.estado.controles");
 	        if (panelContenedorStatusBar != null) {
-	            // 1. DESTRUIR la vieja
 	            panelContenedorStatusBar.removeAll();
-	            
-	            // 2. CREAR la nueva (getToolbar la creará porque la caché está vacía)
 	            JToolBar nuevaStatusBarToolbar = this.toolbarManager.getToolbar("barra_estado_controles");
-	            
-	            // 3. AÑADIR la nueva al panel
 	            panelContenedorStatusBar.add(nuevaStatusBarToolbar);
-	            
-	            // 4. Repintar su contenedor
 	            panelContenedorStatusBar.revalidate();
 	            panelContenedorStatusBar.repaint();
 	            logger.debug("  [EDT] Barra de estado reconstruida y reemplazada.");
 	        }
-	        // --- FIN DE LA SOLUCIÓN ---
 	        
 	        if (this.viewManager != null) {
 	            this.viewManager.reconstruirPanelesEspecialesTrasTema();
 	        }
 
-	        // PASO 2: Forzar actualización de LA VENTANA ENTERA.
-	        // Esto es más agresivo y debería actualizar todos los paneles estándar,
-	        // bordes, fondos, etc., que no hayamos tocado manualmente.
 	        if (this.view != null) {
 	            logger.debug("  [EDT] Aplicando updateComponentTreeUI a la ventana principal...");
 	            SwingUtilities.updateComponentTreeUI(this.view);
 	        }
 
-	        // PASO 3: Sincronizar el estado lógico y visual de los componentes.
 	        logger.debug("  [EDT] Sincronizando componentes del VisorController...");
 	        sincronizarEstadoVisualBotonesYRadiosZoom();
 	        sincronizarComponentesDeModoVisualizador();
 	        sincronizarEstadoDeTodasLasToggleThemeActions();
 	        
-	        // Después de que todo se ha reconstruido y las demás cosas se han
-	        // sincronizado, le damos la orden final a la barra de estado.
 	        if (this.statusBarManager != null) {
 	            logger.debug("  [EDT] Ordenando a InfobarStatusManager que actualice su estado...");
-	         
-	            // PASO 1: Volvemos a conectar los listeners a los nuevos componentes.
 	            this.statusBarManager.configurarListenersControles();
-	            
-	            // PASO 2: Actualizamos el estado (iconos, texto, etc.).
 	            this.statusBarManager.actualizar();
 	        }
 	        
-	        // PASO 4: Revalidar y repintar la ventana principal para asegurar que todos los cambios se muestren.
 	        if (this.view != null) {
 	            this.view.revalidate();
 	            this.view.repaint();
@@ -3423,6 +3471,187 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	    });
 	    
 	} // --- Fin del método onThemeChanged ---
+	
+	
+	/**
+	 * Sincroniza manualmente los colores de fondo de los paneles estructurales (listas,
+	 * contenedores, etc.) para que coincidan con el tema actual. Esencial para
+	 * corregir colores al arrancar la aplicación y al cambiar de tema en caliente.
+	 */
+	public void sincronizarColoresDePanelesPorTema() {
+	    if (registry == null || themeManager == null || view == null) {
+	        logger.warn("WARN [sincronizarColoresDePanelesPorTema]: Dependencias nulas.");
+	        return;
+	    }
+	    
+	    final Tema temaActual = themeManager.getTemaActual();
+	    if (temaActual == null) {
+	        logger.warn("WARN [sincronizarColoresDePanelesPorTema]: No hay un tema actual cargado.");
+	        return;
+	    }
+	    
+	    logger.debug("  [Sync Colors] Sincronizando colores de paneles para el tema: " + temaActual.nombreInterno());
+
+	    final Color colorFondoPrincipal = temaActual.colorFondoPrincipal();
+	    final Color colorFondoSecundario = temaActual.colorFondoSecundario();
+	    final Color colorTextoPrimario = temaActual.colorTextoPrimario();
+
+	    // 1. Fondo principal del content pane
+	    view.getContentPane().setBackground(colorFondoPrincipal);
+
+	    // 2. Barra de Menú
+	    JMenuBar menuBar = view.getJMenuBar();
+	    if (menuBar != null) {
+	        menuBar.setBackground(colorFondoPrincipal);
+	    }
+
+	    // 3. Contenedores de Toolbars
+	    JPanel toolbarContainer = registry.get("container.toolbars");
+	    if (toolbarContainer != null) {
+	        toolbarContainer.setBackground(colorFondoPrincipal);
+	        // También los sub-paneles internos
+	        Component left = registry.get("container.toolbars.left");
+	        Component center = registry.get("container.toolbars.center");
+	        Component right = registry.get("container.toolbars.right");
+	        if (left != null) left.setBackground(colorFondoPrincipal);
+	        if (center != null) center.setBackground(colorFondoPrincipal);
+	        if (right != null) right.setBackground(colorFondoPrincipal);
+	    }
+	    
+	    // 4. Panel de información superior
+	    JPanel topInfoPanel = registry.get("panel.info.superior");
+	    if (topInfoPanel != null) {
+	        topInfoPanel.setBackground(colorFondoPrincipal);
+	    }
+
+	    // 5. Panel izquierdo y su JList interna
+	    JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
+	    JList<String> listaNombres = registry.get("list.nombresArchivo");
+	    if (panelIzquierdo != null) {
+	        panelIzquierdo.setBackground(colorFondoSecundario);
+	        if (panelIzquierdo.getBorder() instanceof TitledBorder) {
+	            ((TitledBorder) panelIzquierdo.getBorder()).setTitleColor(colorTextoPrimario);
+	        }
+	        if (listaNombres != null) {
+	            listaNombres.setBackground(colorFondoSecundario);
+	        }
+	    }
+	    
+	    // 6. Panel de miniaturas (JScrollPane) y su JList interna
+	    JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+	    JList<String> listaMiniaturas = registry.get("list.miniaturas");
+	    if (scrollMiniaturas != null) {
+	        scrollMiniaturas.setBackground(colorFondoSecundario);
+	        scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
+	        if (scrollMiniaturas.getBorder() instanceof TitledBorder) {
+	            ((TitledBorder) scrollMiniaturas.getBorder()).setTitleColor(colorTextoPrimario);
+	        }
+	        if (listaMiniaturas != null) {
+	            listaMiniaturas.setBackground(colorFondoSecundario);
+	        }
+	    }
+
+	    // 7. Barra de herramientas de controles de imagen (debajo de la imagen principal)
+	    JToolBar imageControlsToolbar = registry.get("toolbar.controles_imagen_inferior");
+	    if (imageControlsToolbar != null) {
+	        imageControlsToolbar.setBackground(colorFondoPrincipal);
+	    }
+	    
+	    // 8. Barra de estado inferior
+	    JPanel bottomStatusBar = registry.get("panel.estado.inferior");
+	    if (bottomStatusBar != null) {
+	        bottomStatusBar.setBackground(colorFondoPrincipal);
+	    }
+
+	    // 9. Forzar un repintado general al final
+	    view.repaint();
+	    
+	} // --- Fin del método sincronizarColoresDePanelesPorTema ---
+	
+	
+	
+//	@Override
+//	public void onThemeChanged(Tema nuevoTema) {
+//	    logger.debug("\n--- [VisorController] ORQUESTANDO REFRESCO COMPLETO DE UI POR CAMBIO DE TEMA ---");
+//
+//	    // FASE 1: Preparación (sin cambios)
+//	    if (this.actionFactory != null) {
+//	        this.actionFactory.actualizarIconosDeAcciones();
+//	    }
+//	    if (this.registry != null) {
+//	        this.registry.unregisterToolbarComponents();
+//	    }
+//
+//	    // FASE 2: Reconstrucción y Sincronización en el Hilo de UI (EDT)
+//	    SwingUtilities.invokeLater(() -> {
+//	        logger.debug("  [EDT] Iniciando reconstrucción y sincronización...");
+//
+//	        // PASO 1: Reconstruir la estructura de toolbars.
+//	        if (this.toolbarManager != null && this.model != null) {
+//	            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
+//	        }
+//	        
+//	        // --- INICIO DE LA SOLUCIÓN ---
+//	        // PASO 1.5: Reconstrucción EXPLÍCITA de la barra de estado.
+//	        logger.debug("  [EDT] Reconstruyendo explícitamente la barra de estado...");
+//	        JPanel panelContenedorStatusBar = registry.get("panel.estado.controles");
+//	        if (panelContenedorStatusBar != null) {
+//	            // 1. DESTRUIR la vieja
+//	            panelContenedorStatusBar.removeAll();
+//	            
+//	            // 2. CREAR la nueva (getToolbar la creará porque la caché está vacía)
+//	            JToolBar nuevaStatusBarToolbar = this.toolbarManager.getToolbar("barra_estado_controles");
+//	            
+//	            // 3. AÑADIR la nueva al panel
+//	            panelContenedorStatusBar.add(nuevaStatusBarToolbar);
+//	            
+//	            // 4. Repintar su contenedor
+//	            panelContenedorStatusBar.revalidate();
+//	            panelContenedorStatusBar.repaint();
+//	            logger.debug("  [EDT] Barra de estado reconstruida y reemplazada.");
+//	        }
+//	        // --- FIN DE LA SOLUCIÓN ---
+//	        
+//	        if (this.viewManager != null) {
+//	            this.viewManager.reconstruirPanelesEspecialesTrasTema();
+//	        }
+//
+//	        // PASO 2: Forzar actualización de LA VENTANA ENTERA.
+//	        // Esto es más agresivo y debería actualizar todos los paneles estándar,
+//	        // bordes, fondos, etc., que no hayamos tocado manualmente.
+//	        if (this.view != null) {
+//	            logger.debug("  [EDT] Aplicando updateComponentTreeUI a la ventana principal...");
+//	            SwingUtilities.updateComponentTreeUI(this.view);
+//	        }
+//
+//	        // PASO 3: Sincronizar el estado lógico y visual de los componentes.
+//	        logger.debug("  [EDT] Sincronizando componentes del VisorController...");
+//	        sincronizarEstadoVisualBotonesYRadiosZoom();
+//	        sincronizarComponentesDeModoVisualizador();
+//	        sincronizarEstadoDeTodasLasToggleThemeActions();
+//	        
+//	        // Después de que todo se ha reconstruido y las demás cosas se han
+//	        // sincronizado, le damos la orden final a la barra de estado.
+//	        if (this.statusBarManager != null) {
+//	            logger.debug("  [EDT] Ordenando a InfobarStatusManager que actualice su estado...");
+//	         
+//	            // PASO 1: Volvemos a conectar los listeners a los nuevos componentes.
+//	            this.statusBarManager.configurarListenersControles();
+//	            
+//	            // PASO 2: Actualizamos el estado (iconos, texto, etc.).
+//	            this.statusBarManager.actualizar();
+//	        }
+//	        
+//	        // PASO 4: Revalidar y repintar la ventana principal para asegurar que todos los cambios se muestren.
+//	        if (this.view != null) {
+//	            this.view.revalidate();
+//	            this.view.repaint();
+//	        }
+//	        
+//	        logger.debug("--- [VisorController] REFRESCO DE UI COMPLETADO ---\n");
+//	    });
+//	    
+//	} // --- Fin del método onThemeChanged ---
 	
 	
 	/**
@@ -3536,11 +3765,11 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     public ProjectManager getProjectManager() {return this.projectManager;}
     public ActionFactory getActionFactory() {return this.actionFactory;}
     public ThemeManager getThemeManager() {return this.themeManager;}
-    
     public DefaultListModel<String> getModeloMiniaturasVisualizador() {return this.modeloMiniaturasVisualizador;}
     public DefaultListModel<String> getModeloMiniaturasCarrusel() {return this.modeloMiniaturasCarrusel;}
-    
     public DisplayModeManager getDisplayModeManager() {return this.displayModeManager;}
+    public InfobarStatusManager getStatusBarManager() {return this.statusBarManager;}
+    
     
     /**
      * Devuelve el modelo de lista de miniaturas correcto según el modo de trabajo actual.

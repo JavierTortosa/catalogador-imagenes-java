@@ -18,7 +18,7 @@ import vista.dialogos.ExportProgressDialog;
 
 public class ExportWorker extends SwingWorker<String, String> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ExportWorker.class);
 	
     private final List<ExportItem> cola;
     private final Path carpetaDestino;
@@ -32,7 +32,6 @@ public class ExportWorker extends SwingWorker<String, String> {
 
     @Override
     protected String doInBackground() throws Exception {
-        // --- INICIO DE LA MODIFICACIÓN ---
         // Calcular el número total de archivos a copiar de forma más precisa.
         // Contamos una vez por cada imagen + una vez por cada archivo comprimido que NO se ignore.
         long archivosComprimidosACopiar = cola.stream()
@@ -40,7 +39,6 @@ public class ExportWorker extends SwingWorker<String, String> {
                                            .count();
         int totalFilesToCopy = cola.size() + (int) archivosComprimidosACopiar;
         int filesCopied = 0;
-        // --- FIN DE LA MODIFICACIÓN ---
         
         for (ExportItem item : cola) {
             if (isCancelled()) {
@@ -53,7 +51,6 @@ public class ExportWorker extends SwingWorker<String, String> {
             filesCopied++;
             setProgress((int) ((double) filesCopied / totalFilesToCopy * 100));
 
-            // --- INICIO DE LA MODIFICACIÓN ---
             // --- Copiar archivo comprimido SOLO si no se ha ignorado ---
             if (item.getEstadoArchivoComprimido() != modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO) {
                 // Verificar que la ruta del archivo comprimido no sea nula antes de intentar copiar
@@ -85,18 +82,66 @@ public class ExportWorker extends SwingWorker<String, String> {
         dialogo.setCurrentFileText(ultimoMensaje);
     } // --- Fin del método process ---
 
+    
     @Override
     protected void done() {
         dialogo.setVisible(false);
         dialogo.dispose();
         
         try {
-            String resultado = get();
-            JOptionPane.showMessageDialog(dialogo.getParent(), resultado, "Resultado de la Exportación", JOptionPane.INFORMATION_MESSAGE);
+            String resultado = get(); // Obtenemos el mensaje de éxito o cancelación.
+
+            // Si la operación fue cancelada, mostramos un mensaje simple y terminamos.
+            if (isCancelled()) {
+                JOptionPane.showMessageDialog(dialogo.getParent(), resultado, "Exportación Cancelada", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
+            // 1. Definimos los botones que queremos mostrar.
+            Object[] options = {"Aceptar", "Abrir Carpeta de Destino"};
+
+            // 2. Mostramos el diálogo de opciones.
+            int choice = JOptionPane.showOptionDialog(
+                dialogo.getParent(),                    // Componente padre
+                resultado,                              // Mensaje a mostrar (ej. "Exportación completada...")
+                "Resultado de la Exportación",          // Título del diálogo
+                JOptionPane.DEFAULT_OPTION,             // Tipo de opción (no afecta mucho aquí)
+                JOptionPane.INFORMATION_MESSAGE,        // Icono de información
+                null,                                   // Sin icono personalizado
+                options,                                // Los botones que hemos definido
+                options[0]                              // Botón por defecto ("Aceptar")
+            );
+
+            // 3. Evaluamos la elección del usuario.
+            //    choice será 0 para "Aceptar", 1 para "Abrir Carpeta de Destino".
+            if (choice == 1) {
+                logger.debug("[ExportWorker] El usuario ha elegido abrir la carpeta de destino: " + carpetaDestino);
+                try {
+                    // Usamos java.awt.Desktop para abrir la carpeta. Es la forma más compatible.
+                    java.awt.Desktop.getDesktop().open(carpetaDestino.toFile());
+                } catch (IOException ex) {
+                    logger.error("Error al intentar abrir la carpeta de destino: " + ex.getMessage());
+                    JOptionPane.showMessageDialog(
+                        dialogo.getParent(), 
+                        "No se pudo abrir la carpeta:\n" + carpetaDestino.toString(), 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
+
         } catch (Exception e) {
+            // La gestión de errores se queda igual.
             e.printStackTrace();
-            JOptionPane.showMessageDialog(dialogo.getParent(), "Ocurrió un error durante la exportación:\n" + e.getCause().getMessage(), "Error de Exportación", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                dialogo.getParent(), 
+                "Ocurrió un error durante la exportación:\n" + e.getMessage(), 
+                "Error de Exportación", 
+                JOptionPane.ERROR_MESSAGE
+            );
         }
+        
     } // --- Fin del método done ---
+    
 
 } // --- FIN de la clase ExportWorker ---

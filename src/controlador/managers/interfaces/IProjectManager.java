@@ -81,5 +81,8 @@ public interface IProjectManager {
      * @param rutaAbsolutaImagen La ruta de la imagen a eliminar del proyecto.
      */
     void eliminarDeProyecto(Path rutaAbsolutaImagen);
+    
+    
+    void vaciarDescartes();
 
 } // --- FIN de la interfaz IProjectManager ---

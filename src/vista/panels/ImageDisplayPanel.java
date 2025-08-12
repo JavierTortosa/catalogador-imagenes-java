@@ -18,13 +18,12 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import modelo.VisorModel;
 import vista.theme.ThemeManager;
 
 public class ImageDisplayPanel extends JPanel {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ImageDisplayPanel.class);
 	
     private static final long serialVersionUID = 2L; // Versión incrementada
 
@@ -39,6 +38,9 @@ public class ImageDisplayPanel extends JPanel {
     private final Color colorCuadroOscuro = new Color(255, 255, 255);
     private final int TAMANO_CUADRO = 16;
     private Color colorFondoSolido;
+    
+    private BufferedImage welcomeImage; // Para almacenar la imagen de bienvenida
+    private boolean showingWelcome = false; // Un flag para saber qué dibujar
 
     public ImageDisplayPanel(ThemeManager themeManager, VisorModel model) {
     	
@@ -67,10 +69,27 @@ public class ImageDisplayPanel extends JPanel {
     } // --- Fin del método ImageDisplayPanel (constructor) ---
     
     
+    public void setWelcomeImage(BufferedImage image) {
+        this.welcomeImage = image;
+    }
+
+    public void showWelcomeMessage() {
+        this.showingWelcome = true;
+        limpiar(); // Limpia cualquier texto de error/carga
+        repaint(); // Pide al panel que se redibuje
+    }
+
+    public void hideWelcomeMessage() {
+        this.showingWelcome = false;
+        repaint();
+    }
+    
+    
     public JLabel getInternalLabel() {
         return this.internalLabel;
     } // --- Fin del método getInternalLabel ---
 
+    
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -78,8 +97,9 @@ public class ImageDisplayPanel extends JPanel {
         int panelAncho = getWidth();
         int panelAlto = getHeight();
 
-        // --- PASO 1: Dibujar el fondo (lógica sin cambios) ---
+        // --- DIBUJAR FONDO ---
         if (fondoACuadros) {
+            // ... (tu código de fondo a cuadros se mantiene igual)
             Graphics2D g2dFondo = (Graphics2D) g.create();
             try {
                 for (int row = 0; row < panelAlto; row += TAMANO_CUADRO) {
@@ -96,16 +116,50 @@ public class ImageDisplayPanel extends JPanel {
             g.setColor(this.colorFondoSolido);
             g.fillRect(0, 0, panelAncho, panelAlto);
         }
+        
+        // --- LÓGICA DE DIBUJADO CONDICIONAL ---
+        if (showingWelcome && welcomeImage != null) {
+            
+            // --- INICIO DE LA LÓGICA DE REESCALADO DE BIENVENIDA ---
+            
+            int imgAncho = welcomeImage.getWidth();
+            int imgAlto = welcomeImage.getHeight();
+            
+            // Calcular el factor de escala para ajustar manteniendo proporciones
+            double ratioAncho = (double) panelAncho / imgAncho;
+            double ratioAlto = (double) panelAlto / imgAlto;
+            double factorEscala = Math.min(ratioAncho, ratioAlto);
+            
+            // Calcular las nuevas dimensiones de la imagen
+            int nuevoAncho = (int) (imgAncho * factorEscala);
+            int nuevoAlto = (int) (imgAlto * factorEscala);
+            
+            // Calcular la posición para centrar la imagen reescalada
+            int x = (panelAncho - nuevoAncho) / 2;
+            int y = (panelAlto - nuevoAlto) / 2;
+            
+            // Dibujar la imagen reescalada
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g2d.drawImage(welcomeImage, x, y, nuevoAncho, nuevoAlto, this);
+            g2d.dispose();
+            
+            // --- FIN DE LA LÓGICA DE REESCALADO DE BIENVENIDA ---
 
-        // --- CAMBIO: Obtener la imagen directamente del modelo CADA VEZ que se pinta ---
+            return; // Salimos para no dibujar la imagen principal.
+        }
+        
         BufferedImage imagenADibujar = model.getCurrentImage();
         
         if (imagenADibujar != null) {
+            if (showingWelcome) {
+                this.showingWelcome = false;
+            }
+            
             Graphics2D g2d = (Graphics2D) g.create();
             g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
             
             AffineTransform at = new AffineTransform();
-            
             double scaleX, scaleY;
 
             if (model.getCurrentZoomMode() == servicios.zoom.ZoomModeEnum.FILL) {
@@ -115,7 +169,6 @@ public class ImageDisplayPanel extends JPanel {
             } else {
                 scaleX = model.getZoomFactor();
                 scaleY = model.getZoomFactor();
-                
                 double xBase = (double) (panelAncho - imagenADibujar.getWidth() * scaleX) / 2;
                 double yBase = (double) (panelAlto - imagenADibujar.getHeight() * scaleY) / 2;
                 at.translate(xBase, yBase);
@@ -123,12 +176,12 @@ public class ImageDisplayPanel extends JPanel {
                 at.scale(scaleX, scaleY);
             }
 
-            // Dibuja la imagen que acabamos de obtener del modelo
             g2d.drawImage(imagenADibujar, at, null);
             g2d.dispose();
         }
     } // --- Fin del método paintComponent ---
-
+    
+    
     public void setSolidBackgroundColor(Color color) {
         if (color == null) return;
         this.colorFondoSolido = color;
@@ -147,21 +200,27 @@ public class ImageDisplayPanel extends JPanel {
 
     // --- Este método ahora solo actualiza el label. El controlador limpia el modelo. ---
     public void mostrarError(String mensaje, ImageIcon iconoError) {
+    	
         this.internalLabel.setText(mensaje);
         this.internalLabel.setIcon(iconoError);
         this.internalLabel.setForeground(Color.RED);
+        
+        this.showingWelcome = false; // Desactivar bienvenida si hay un error
+        
         repaint(); // Forzamos repintado para que se vea el error y desaparezca la imagen vieja.
     } // --- Fin del método mostrarError ---
     
     
     // --- limpiar() ahora solo limpia el label. El controlador limpia el modelo. ---
     public void limpiar() {
+    	
+    	
         this.internalLabel.setText(null);
         this.internalLabel.setIcon(null);
         repaint();
     } // --- Fin del método limpiar ---
     
-    // --- mostrarCargando() ya no necesita tocar la imagen, solo el label. ---
+    
     public void mostrarCargando(String mensaje) {
         if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(() -> mostrarCargando(mensaje));
@@ -172,6 +231,8 @@ public class ImageDisplayPanel extends JPanel {
             this.internalLabel.setIcon(null);
             this.internalLabel.setText(mensaje);
         }
+        
+        this.showingWelcome = false;
         
         repaint();
     } // --- Fin del método mostrarCargando ---
@@ -210,20 +271,6 @@ public class ImageDisplayPanel extends JPanel {
             logger.debug("  -> ImageDisplayPanel actualizado al color de fondo del nuevo tema: " + nuevoColorFondo);
         }
     } // --- FIN del método actualizarColorDeFondoPorTema ---
-    
-    
-//    /**
-//     * Actualiza el color de fondo sólido del panel basándose en el tema
-//     * actualmente activo en el ThemeManager.
-//     */
-//    public void actualizarColorDeFondoPorTema() {
-//        if (themeManager != null) {
-//            this.colorFondoSolido = themeManager.getTemaActual().colorFondoSecundario();
-//            // Ya no hace falta llamar a setBackground() aquí, paintComponent usará el nuevo color.
-//            repaint(); // Forzamos un redibujado para que se vea el cambio.
-//            logger.debug("  -> ImageDisplayPanel actualizado al color de fondo del nuevo tema.");
-//        }
-//    }
     
     
 } // --- FIN DE LA CLASE ImageDisplayPanel ---

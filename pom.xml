@@ -5,12 +5,37 @@
   <version>0.0.1-SNAPSHOT</version>
 
   <dependencies>
+  <!-- FlatLaf + Flatlaf-Extras-->
     <dependency>
         <groupId>com.formdev</groupId>
         <artifactId>flatlaf</artifactId>
         <version>3.4.1</version>
     </dependency>
     
+    <dependency>
+    	<groupId>com.formdev</groupId>
+    	<artifactId>flatlaf-extras</artifactId>
+    	<version>3.4.1</version> <!-- Usa la misma versión que tengas de flatlaf -->
+	</dependency>
+	
+	<dependency>
+        <groupId>com.formdev</groupId>
+         <artifactId>flatlaf-swingx</artifactId>
+        <version>3.4.1</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.swinglabs.swingx</groupId>
+        <artifactId>swingx-all</artifactId>
+        <version>1.6.4</version> <!-- Esta es una versión estable y común -->
+    </dependency>
+    
+    <dependency>
+    	<groupId>com.formdev</groupId>
+    	<artifactId>flatlaf-intellij-themes</artifactId>
+    	<version>3.4.1</version>
+	</dependency>
+	
     <!-- SLF4J + Logback -->
     <dependency>
         <groupId>org.slf4j</groupId>
@@ -44,42 +69,42 @@
       </resource>
     </resources>
     <plugins>
-      <plugin>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.13.0</version>
         <configuration>
-          <release>21</release>
+            <release>21</release>
+            <!-- 
+               Esta sección le dice a Maven que trate las dependencias como módulos
+               y las añada al module-path automáticamente. Es la forma moderna y correcta.
+            -->
+            
         </configuration>
-      </plugin>
+    </plugin>
 
-      <plugin>
+    <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-shade-plugin</artifactId>
         <version>3.5.2</version>
         <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-              <!-- =============================================================== -->
-              <!--                   AQUÍ ESTÁ LA MAGIA                          -->
-              <!-- Le decimos a este plugin dónde dejar el JAR y cómo llamarlo   -->
-              <!-- =============================================================== -->
-              <outputDirectory>D:/Descargas/VisorV2</outputDirectory>
-              <finalName>VisorV2</finalName> <!-- El JAR se llamará VisorV2.jar -->
-
-              <transformers>
-                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                  <mainClass>principal.VisorV2</mainClass>
-                </transformer>
-              </transformers>
-            </configuration>
-          </execution>
+            <execution>
+                <phase>package</phase>
+                <goals>
+                    <goal>shade</goal>
+                </goals>
+                <configuration>
+                    <outputDirectory>D:/Descargas/VisorV2</outputDirectory>
+                    <finalName>VisorV2</finalName>
+                    <transformers>
+                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                            <mainClass>principal.VisorV2</mainClass>
+                        </transformer>
+                    </transformers>
+                </configuration>
+            </execution>
         </executions>
-      </plugin>
-      
-    </plugins>
+    </plugin>
+</plugins>
   </build>
 </project>

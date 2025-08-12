@@ -8,11 +8,17 @@ import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.Icon;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 import vista.VisorView;
 
 public class ToggleAlwaysOnTopAction extends AbstractAction {
+	
+	private static final Logger logger = LoggerFactory.getLogger(ToggleAlwaysOnTopAction.class);
+	
     private static final long serialVersionUID = 1L;
 
     // --- LÍNEA MODIFICADA (1/4) ---
@@ -44,7 +50,7 @@ public class ToggleAlwaysOnTopAction extends AbstractAction {
         Object source = e.getSource();
         if (!(source instanceof AbstractButton)) {
             // Si no es un botón (raro), no podemos saber el estado. No hacemos nada.
-            System.err.println("WARN [ToggleAlwaysOnTopAction]: La acción fue disparada por un componente no-botón.");
+            logger.warn("WARN [ToggleAlwaysOnTopAction]: La acción fue disparada por un componente no-botón.");
             return;
         }
 
@@ -56,7 +62,7 @@ public class ToggleAlwaysOnTopAction extends AbstractAction {
         // 3. OBTENER LA VISTA
         VisorView view = viewManager.getView();
         if (view == null) {
-            System.err.println("ERROR [ToggleAlwaysOnTopAction]: La vista es nula. No se puede ejecutar la acción.");
+            logger.error("ERROR [ToggleAlwaysOnTopAction]: La vista es nula. No se puede ejecutar la acción.");
             // Revertimos el estado visual del botón si la acción no se puede completar.
             button.setSelected(!newState); 
             return;
@@ -74,7 +80,7 @@ public class ToggleAlwaysOnTopAction extends AbstractAction {
         // c) Aplicar el cambio real a la ventana.
         view.setAlwaysOnTop(newState);
         
-        System.out.println("[ToggleAlwaysOnTopAction] 'Siempre Encima' cambiado a: " + newState);
+        logger.debug("[ToggleAlwaysOnTopAction] 'Siempre Encima' cambiado a: " + newState);
 
     } // --- FIN del metodo actionPerformed ---
     
