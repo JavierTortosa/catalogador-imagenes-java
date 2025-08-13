@@ -12,7 +12,6 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
@@ -32,7 +31,7 @@ import vista.theme.ThemeChangeListener;
  */
 public class ToolbarManager implements ThemeChangeListener{
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ToolbarManager.class);
 	
     // --- Dependencias ---
     private final ComponentRegistry registry;
@@ -130,7 +129,7 @@ public class ToolbarManager implements ThemeChangeListener{
     
     
     public void reconstruirContenedorDeToolbars(WorkMode modoActual) {
-        logger.debug("\n--- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: " + modoActual + " ---");
+        logger.info("--- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: " + modoActual + " ---");
 
         final JPanel leftPanel = registry.get("container.toolbars.left");
         final JPanel centerPanel = registry.get("container.toolbars.center");

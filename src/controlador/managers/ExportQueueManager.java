@@ -11,13 +11,12 @@ import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
 
 public class ExportQueueManager {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ExportQueueManager.class);
 	
     private List<ExportItem> colaDeExportacion;
 

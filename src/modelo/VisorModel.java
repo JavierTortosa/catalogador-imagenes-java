@@ -10,12 +10,11 @@ import javax.swing.DefaultListModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import servicios.zoom.ZoomModeEnum;
 
 public class VisorModel {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(VisorModel.class);
 	
     // --- Enum para definir los modos de trabajo ---
     public enum WorkMode {

@@ -11,7 +11,6 @@ import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.FileOperationsManager; // Nueva dependencia
@@ -19,7 +18,7 @@ import modelo.VisorModel;
 
 public class OpenFileAction extends AbstractAction { // Ya no hereda de BaseVisorAction
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(OpenFileAction.class);
 	
     private static final long serialVersionUID = 1L;
     private FileOperationsManager fileOperationManager;

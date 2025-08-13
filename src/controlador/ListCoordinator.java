@@ -28,7 +28,7 @@ import servicios.ConfigKeys;
  */
 public class ListCoordinator implements IListCoordinator {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ListCoordinator.class);
 	
     // --- Dependencias ---
     private VisorModel model;

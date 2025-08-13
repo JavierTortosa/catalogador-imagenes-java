@@ -3,12 +3,14 @@ package controlador;
 import java.awt.Component;
 import java.awt.KeyEventDispatcher;
 import java.awt.KeyboardFocusManager;
+import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
+import java.beans.PropertyChangeListener;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -53,7 +55,7 @@ import vista.panels.ImageDisplayPanel; // <-- NUEVO: Importación para ImageDisp
  * y gestiona el estado global de la aplicación, como el modo de trabajo actual y la
  * habilitación/deshabilitación de la UI correspondiente.
  */
-public class GeneralController implements IModoController, KeyEventDispatcher{
+public class GeneralController implements IModoController, KeyEventDispatcher, PropertyChangeListener{
 
 	private static final Logger logger = LoggerFactory.getLogger(GeneralController.class);
 	
@@ -369,7 +371,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         if (configAppManager != null) {
             // Sincronizar el toggle de subcarpetas
             if (subfolderAction != null) {
-                // ---> INICIO DE LA CORRECCIÓN CLAVE <---
+            	
                 // Leemos el estado del contexto de lista ACTUALMENTE ACTIVO en el modelo.
                 // model.isMostrarSoloCarpetaActual() ya es inteligente y devuelve el del contexto correcto.
             	
@@ -377,7 +379,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             	logger.debug("  [DEBUG-SYNC] Modo: " + modoActual + ", Valor de isMostrarSoloCarpetaActual() en modelo: " + model.isMostrarSoloCarpetaActual());
             	
                 boolean estadoModeloSubcarpetas = !model.isMostrarSoloCarpetaActual(); 
-                // ---> FIN DE LA CORRECCIÓN CLAVE <---
                 
                 subfolderAction.putValue(Action.SELECTED_KEY, estadoModeloSubcarpetas);
                 configAppManager.actualizarAspectoBotonToggle(subfolderAction, estadoModeloSubcarpetas);
@@ -401,6 +402,71 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
         
         logger.debug("  [GeneralController] Estado de la UI actualizado.");
     } // --- Fin del método actualizarEstadoUiParaModo ---
+    
+    
+//    public void setFileListPanelVisible(boolean visible) {
+//        // 1. Obtener la acción del mapa
+//        Action toggleAction = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+//        if (toggleAction == null) {
+//            logger.warn("No se pudo encontrar la acción para la lista de archivos. No se puede cambiar la visibilidad.");
+//            return;
+//        }
+//
+//        // 2. Obtener la clave de configuración de la acción.
+//        //    Esto es una suposición. Si no puedes obtenerla, tendrás que "hardcodearla" aquí,
+//        //    que es lo que hace tu acción de todos modos.
+//        String configKey = "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado";
+//        
+//        // ---------------------------------------------------------------
+//        // INICIO DE LA LÓGICA CENTRALIZADA
+//        // ---------------------------------------------------------------
+//        
+//        // a. Actualizar el estado de la Action para que el checkbox del menú se sincronice
+//        toggleAction.putValue(Action.SELECTED_KEY, visible);
+//        
+//        // b. Guardar el nuevo estado en la configuración
+//        configuration.setString(configKey, String.valueOf(visible));
+//
+//        // c. Llamar al ViewManager para que haga el cambio visual
+//        //    Esto asume que el ViewManager tiene el método que hace el cambio en el JSplitPane.
+//        //    El método solicitarActualizacionUI parece más para un patrón general, pero si funciona, úsalo.
+//        //    Lo más probable es que necesites un método más directo en ViewManager.
+//        
+//        // OPCIÓN A: Si tienes un método directo
+//        // viewManager.updateFileListVisibility(visible); 
+//
+//        // OPCIÓN B: Usando el método que has mostrado
+//        viewManager.solicitarActualizacionUI(
+//            "mostrar_ocultar_la_lista_de_archivos", // El ID que espera
+//            configKey,
+//            visible
+//        );
+//
+//        // ---------------------------------------------------------------
+//        // FIN DE LA LÓGICA CENTRALIZADA
+//        // ---------------------------------------------------------------
+//
+//        logger.debug("Visibilidad del panel de lista establecida explícitamente a: " + visible);
+//        
+//    } // --- FIN del metodo setFileListPanelVisible ---
+    
+    
+    @Override
+    public void propertyChange(java.beans.PropertyChangeEvent evt) {
+        if ("focusOwner".equals(evt.getPropertyName())) {
+            // Obtenemos el nuevo componente con foco
+        	
+        	logger.debug("--- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: " + evt.getNewValue());
+        	
+            Component newFocusOwner = (Component) evt.getNewValue();
+
+            // Si tenemos un ViewManager, le delegamos TODA la responsabilidad.
+            // El GeneralController ya no sabe nada de bordes ni colores.
+            if (viewManager != null) {
+                viewManager.actualizarResaltadoDeFoco(newFocusOwner);
+            }
+        }
+    } // FIN del metodo propertyChange ---
     
     
     /**
@@ -447,8 +513,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	        return;
 	    }
 
-        // --- INICIO DE LA CORRECCIÓN ---
-        
         // 1. Obtener el WorkMode actual del modelo.
         WorkMode modoActivo = this.model.getCurrentWorkMode();
         String comandoModoActivo;
@@ -484,8 +548,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
 	        AppActionCommands.CMD_MODO_EDICION,
 	        AppActionCommands.CMD_VISTA_CAROUSEL
 	    );
-
-        // --- FIN DE LA CORRECCIÓN ---
 
         // El resto del método se queda igual, ya que la lógica de iteración es correcta.
 	    for (String comando : comandosDeModo) {
@@ -877,6 +939,33 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
             return false;
         }
 
+        
+        // PRIORIDAD 1: Manejar la BARRA ESPACIADORA de forma global.
+        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
+            
+            // Evitar que el atajo se dispare si estamos escribiendo en un campo de texto.
+            Component focusOwner = e.getComponent();
+            // JTextComponent es la clase base para JTextField, JTextArea, etc.
+            if (focusOwner instanceof javax.swing.text.JTextComponent) {
+                return false; // Dejar que el componente de texto maneje el espacio.
+            }
+
+            logger.debug("[KeyEventDispatcher] Barra espaciadora detectada. Disparando acción de Marcar/Desmarcar.");
+
+            // Obtener la acción del mapa de acciones.
+            Action toggleMarkAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
+
+            if (toggleMarkAction != null && toggleMarkAction.isEnabled()) {
+                // Ejecutar la acción.
+                toggleMarkAction.actionPerformed(
+                    new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA)
+                );
+
+                // Devolver 'true' para consumir el evento y evitar que se propague.
+                return true; 
+            }
+        }
+        
         // --- MANEJO ESPECIAL Y SEGURO DE LA TECLA ALT (movido de VisorController) ---
         if (e.getKeyCode() == KeyEvent.VK_ALT) {
             // Necesita acceso a la vista, se obtiene a través de visorController.getView()
@@ -901,6 +990,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher{
                 return true;
             }
         }
+        
+        
+        
         
         // Continuación de la lógica de navegación por teclado (movido de VisorController)
         if (model == null || registry == null) { // Dependencias mínimas

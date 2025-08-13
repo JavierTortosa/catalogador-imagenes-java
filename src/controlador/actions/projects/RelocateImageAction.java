@@ -8,7 +8,6 @@ import javax.swing.JTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.ProjectController;
 import controlador.interfaces.ContextSensitiveAction;
 import modelo.VisorModel;
@@ -18,7 +17,7 @@ import vista.panels.export.ExportTableModel;
 
 public class RelocateImageAction extends AbstractAction implements ContextSensitiveAction {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(RelocateImageAction.class);
 	
     private static final long serialVersionUID = 1L;
     private final ProjectController projectController;

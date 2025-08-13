@@ -1,15 +1,14 @@
 package controlador.actions.workmode;
 
 import java.awt.event.ActionEvent;
+import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-
-import controlador.AppInitializer;
 import controlador.GeneralController; // Necesitamos acceso al GeneralController
 import modelo.VisorModel.WorkMode;     // Necesitamos el enum WorkMode
 
@@ -20,7 +19,7 @@ import modelo.VisorModel.WorkMode;     // Necesitamos el enum WorkMode
  */
 public class SwitchWorkModeAction extends AbstractAction {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(SwitchWorkModeAction.class);
 	
     /**
 	 * 
@@ -83,4 +82,4 @@ public class SwitchWorkModeAction extends AbstractAction {
             logger.debug("  [SwitchWorkModeAction] Sincronizada acción '" + getValue(Action.NAME) + "'. Seleccionado: " + isSelected);
         }
     }
-}
+} // --- FIN de la clase SwitchWorkModeAction ---

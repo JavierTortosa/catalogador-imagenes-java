@@ -10,14 +10,13 @@ import javax.swing.table.DefaultTableCellRenderer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
 import vista.util.IconUtils;
 
 public class StatusCellRenderer extends DefaultTableCellRenderer {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(StatusCellRenderer.class);
 
     private static final long serialVersionUID = 1L;
     private IconUtils iconUtils;

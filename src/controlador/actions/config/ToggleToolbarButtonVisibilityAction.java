@@ -9,7 +9,6 @@ import javax.swing.JCheckBoxMenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
@@ -21,7 +20,7 @@ import servicios.ConfigurationManager;
 @SuppressWarnings ("serial")
 public class ToggleToolbarButtonVisibilityAction extends AbstractAction {
     
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ToggleToolbarButtonVisibilityAction.class);
 	
     private final ConfigurationManager config;
     private final IViewManager viewManager;
@@ -55,10 +54,6 @@ public class ToggleToolbarButtonVisibilityAction extends AbstractAction {
         boolean isButtonVisible = config.getBoolean(fullButtonVisibilityKey, true);
         putValue(Action.SELECTED_KEY, isButtonVisible);
         
-        // LOG [ToggleToolbarButtonVisibilityAction CSTR] '" + name + "' (botón base: " + buttonKeyBase
-//        System.out.println("[ToggleToolbarButtonVisibilityAction CSTR] '" + name + "' (botón base: " + buttonKeyBase +
-//                           ") inicializada. Leyendo de '" + fullButtonVisibilityKey + "'. SELECTED_KEY: " + isButtonVisible);
-
     } // --- FIN del Constructor ---
 
     @Override

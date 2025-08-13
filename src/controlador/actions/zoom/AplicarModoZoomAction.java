@@ -2,6 +2,7 @@ package controlador.actions.zoom;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -9,14 +10,13 @@ import javax.swing.ImageIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.managers.interfaces.IZoomManager;
 import modelo.VisorModel;
 import servicios.zoom.ZoomModeEnum; 
 
 public class AplicarModoZoomAction extends AbstractAction {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(AplicarModoZoomAction.class);
 	
     private static final long serialVersionUID = 1L;
     
@@ -57,5 +57,5 @@ public class AplicarModoZoomAction extends AbstractAction {
         return modoDeZoomQueRepresentaEstaAction;
     }
     
-}
+} // --- FIN de la clase AplicarModoZoomAction ---
 

@@ -5,11 +5,15 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GraphicsDevice;
+import java.awt.KeyboardFocusManager;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
@@ -17,11 +21,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.actions.config.SetInfoBarTextFormatAction;
 import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IViewManager;
@@ -37,7 +41,7 @@ import vista.theme.ThemeManager;
 
 public class ViewManager implements IViewManager, ThemeChangeListener {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ViewManager.class);
 	
     private VisorView view;
     private ConfigurationManager configuration;
@@ -49,6 +53,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     private ViewBuilder viewBuilder;
     private VisorModel model;
     private DisplayModeManager displayModeManager;
+    
+    private Border focusedBorder;
+    private Border unfocusedBorder;
+    private List<JComponent> focusablePanels;
     
     
     
@@ -390,9 +398,52 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
 
             // 1. Actualizar el panel contenedor (esto ya lo hacías y está bien)
             refrescarColoresDeFondoUI();
+            
+            
+         // **********************************************************
+            // *** INICIO DEL CÓDIGO NUEVO PARA FONDOS DE STATUS BAR ***
+            // **********************************************************
+            
+            logger.debug("[ViewManager] Aplicando fondo especial a las barras de estado...");
+            if (registry != null && nuevoTema != null) {
+                // Cogemos el color de fondo principal del tema y lo oscurecemos un poco.
+                // El método .darker() es perfecto para esto.
+                Color baseColor = nuevoTema.colorFondoPrincipal();
+                if (baseColor != null) {
+                    Color statusBarColor = baseColor.darker();
+
+                    // Buscamos los paneles por su clave correcta, que según tu ViewBuilder son:
+                    JPanel topInfoBar = registry.get("panel.info.superior");
+                    JPanel bottomStatusBar = registry.get("panel.estado.inferior");
+
+                    // Aplicamos el nuevo color de fondo
+                    if (topInfoBar != null) {
+                        topInfoBar.setBackground(statusBarColor);
+                        // No es necesario setOpaque(true) porque tu ViewBuilder ya lo hace.
+                    } else {
+                        logger.warn("  -> Panel 'panel.info.superior' no encontrado en el registro.");
+                    }
+
+                    if (bottomStatusBar != null) {
+                        bottomStatusBar.setBackground(statusBarColor);
+                    } else {
+                        logger.warn("  -> Panel 'panel.estado.inferior' no encontrado en el registro.");
+                    }
+                } else {
+                    logger.warn("  -> El color de fondo principal del tema es nulo. No se puede aplicar el fondo a las status bars.");
+                }
+            }
+            // **********************************************************
+            // *** FIN DEL CÓDIGO NUEVO ***
+            // **********************************************************
+
+            // Lógica del marco de foco que ya hemos añadido (es importante que se quede)
+            updateFocusBorderColor();
+            actualizarResaltadoDeFoco(java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
 
             logger.debug("[ViewManager] Actualización de paneles por cambio de tema completada.");
         });
+            
     } // --- FIN del método onThemeChanged ---
     
     
@@ -524,29 +575,44 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             return;
         }
 
-        // 1. Obtener los colores del tema actual
-        Color colorFondoPrincipal = themeManager.getTemaActual().colorFondoPrincipal();
-        Color colorFondoSecundario = themeManager.getTemaActual().colorFondoSecundario();
+        // 1. Obtener TODOS los colores que vamos a necesitar del tema actual UNA SOLA VEZ.
+        Tema temaActual = themeManager.getTemaActual();
+        Color colorFondoPrincipal = temaActual.colorFondoPrincipal();
+        Color colorFondoSecundario = temaActual.colorFondoSecundario();
         
-        // 2. Lista de paneles estructurales clave
-        List<String> panelesAActualizar = List.of(
+        // <<< LA MAGIA ESTÁ AQUÍ >>>
+        // Creamos el color especial para las barras de estado
+        Color colorFondoStatusBars = (colorFondoPrincipal != null) ? colorFondoPrincipal.darker() : Color.BLACK;
+
+        // 2. Definimos qué paneles reciben qué color.
+        List<String> panelesConFondoPrincipal = List.of(
             "panel.north.wrapper",
             "container.toolbars",
             "container.toolbars.left",
             "container.toolbars.center",
-            "container.toolbars.right",
-            "panel.info.superior",
-            "panel.estado.inferior"
+            "container.toolbars.right"
         );
 
-        for (String key : panelesAActualizar) {
+        // Aplicamos el color de fondo principal
+        for (String key : panelesConFondoPrincipal) {
             JPanel panel = registry.get(key);
             if (panel != null) {
                 panel.setBackground(colorFondoPrincipal);
             }
         }
         
-        // 3. Actualizar explícitamente los viewports de los JScrollPane
+        // 3. Aplicamos el color ESPECIAL a las barras de estado.
+        JPanel panelInfoSuperior = registry.get("panel.info.superior");
+        if (panelInfoSuperior != null) {
+            panelInfoSuperior.setBackground(colorFondoStatusBars);
+        }
+        
+        JPanel panelEstadoInferior = registry.get("panel.estado.inferior");
+        if (panelEstadoInferior != null) {
+            panelEstadoInferior.setBackground(colorFondoStatusBars);
+        }
+        
+        // 4. Lógica existente para Viewports y Toolbars (se mantiene igual).
         JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas.carousel");
         if (scrollMiniaturas != null) {
             scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
@@ -556,20 +622,73 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
         }
         
-        // 4. Actualizar las JToolBars individuales
         if (toolbarManager != null) {
             for (JToolBar tb : toolbarManager.getManagedToolbars().values()) {
                 tb.setBackground(colorFondoPrincipal);
             }
         }
         
-        // 5. Repintar el frame principal
         JFrame mainFrame = registry.get("frame.main");
         if (mainFrame != null) {
             mainFrame.repaint();
         }
-        
     } // --- Fin del método refrescarColoresDeFondoUI ---
+    
+    
+//    @Override
+//    public void refrescarColoresDeFondoUI() {
+//        logger.debug("  [ViewManager] Refrescando colores de fondo de los paneles principales...");
+//        if (registry == null || themeManager == null) {
+//            logger.error("  ERROR [ViewManager]: Registry o ThemeManager nulos.");
+//            return;
+//        }
+//
+//        // 1. Obtener los colores del tema actual
+//        Color colorFondoPrincipal = themeManager.getTemaActual().colorFondoPrincipal();
+//        Color colorFondoSecundario = themeManager.getTemaActual().colorFondoSecundario();
+//        
+//        // 2. Lista de paneles estructurales clave
+//        List<String> panelesAActualizar = List.of(
+//            "panel.north.wrapper",
+//            "container.toolbars",
+//            "container.toolbars.left",
+//            "container.toolbars.center",
+//            "container.toolbars.right",
+//            "panel.info.superior",
+//            "panel.estado.inferior"
+//        );
+//
+//        for (String key : panelesAActualizar) {
+//            JPanel panel = registry.get(key);
+//            if (panel != null) {
+//                panel.setBackground(colorFondoPrincipal);
+//            }
+//        }
+//        
+//        // 3. Actualizar explícitamente los viewports de los JScrollPane
+//        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas.carousel");
+//        if (scrollMiniaturas != null) {
+//            scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
+//        }
+//        scrollMiniaturas = registry.get("scroll.miniaturas");
+//        if (scrollMiniaturas != null) {
+//            scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
+//        }
+//        
+//        // 4. Actualizar las JToolBars individuales
+//        if (toolbarManager != null) {
+//            for (JToolBar tb : toolbarManager.getManagedToolbars().values()) {
+//                tb.setBackground(colorFondoPrincipal);
+//            }
+//        }
+//        
+//        // 5. Repintar el frame principal
+//        JFrame mainFrame = registry.get("frame.main");
+//        if (mainFrame != null) {
+//            mainFrame.repaint();
+//        }
+//        
+//    } // --- Fin del método refrescarColoresDeFondoUI ---
     
     
     /**
@@ -676,6 +795,113 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         
         logger.debug("  [ViewManager] Re-colocación de paneles especiales finalizada.");
     } // --- FIN del metodo reconstruirPanelesEspecialesTrasTema  ---
+    
+    
+    /**
+     * Inicializa el sistema de resaltado de foco. Define los bordes y localiza
+     * los paneles de TODOS los modos de trabajo que participarán.
+     * Este método se llama una sola vez desde AppInitializer al arrancar.
+     */
+    public void initializeFocusBorders() {
+        if (registry == null || themeManager == null) {
+            logger.error("[ViewManager] No se pueden inicializar los bordes de foco. Registry o ThemeManager son null.");
+            return;
+        }
+        
+        this.focusablePanels = new ArrayList<>();
+        
+        // --- Definición de bordes ---
+        int thickness = 2;
+        this.unfocusedBorder = BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
+        this.focusedBorder = BorderFactory.createLineBorder(Color.CYAN, thickness); // Color por defecto antes del primer tema
+
+        // --- Búsqueda de componentes en el ComponentRegistry ---
+        logger.debug("[FOCUS_INIT] Buscando paneles de todos los modos para registrar...");
+
+        // MODO VISUALIZADOR
+        JScrollPane fileListScrollPane = registry.get("scroll.nombresArchivo");
+        JScrollPane thumbnailScrollPane = registry.get("scroll.miniaturas");
+        JPanel displayModesContainer = registry.get("container.displaymodes");
+
+        // MODO CARRUSEL
+        JScrollPane carouselThumbnailScrollPane = registry.get("scroll.miniaturas.carousel");
+        // El panel de imagen del carrusel está en un JLayeredPane, que no es ideal para un borde.
+        // De momento, solo la tira de miniaturas del carrusel tendrá foco.
+
+        // MODO PROYECTO
+        JScrollPane projectSelectionScrollPane = registry.get("scroll.proyecto.nombres"); // <-- CLAVE CORREGIDA
+        JScrollPane projectDiscardsScrollPane = registry.get("scroll.proyecto.descartes"); // <-- CLAVE CORRECTA
+        JPanel projectDisplayModesContainer = registry.get("container.displaymodes.proyecto"); // <-- CLAVE CORREGIDA
+
+        // --- Registro de los paneles en la lista 'focusablePanels' ---
+        
+        if (fileListScrollPane != null) {
+            focusablePanels.add(fileListScrollPane);
+            logger.debug("  -> [VISUALIZADOR] Registrado: 'scroll.nombresArchivo'");
+        }
+        if (thumbnailScrollPane != null) {
+            focusablePanels.add(thumbnailScrollPane);
+            logger.debug("  -> [VISUALIZADOR] Registrado: 'scroll.miniaturas'");
+        }
+        if (displayModesContainer != null) {
+            focusablePanels.add(displayModesContainer);
+            logger.debug("  -> [VISUALIZADOR] Registrado: 'container.displaymodes' (para imagen/grid)");
+        }
+        if (carouselThumbnailScrollPane != null) {
+            focusablePanels.add(carouselThumbnailScrollPane);
+            logger.debug("  -> [CARRUSEL] Registrado: 'scroll.miniaturas.carousel'");
+        }
+        if (projectSelectionScrollPane != null) {
+            focusablePanels.add(projectSelectionScrollPane);
+            logger.debug("  -> [PROYECTO] Registrado: 'scroll.proyecto.nombres' (Selección)");
+        }
+        if (projectDiscardsScrollPane != null) {
+            focusablePanels.add(projectDiscardsScrollPane);
+            logger.debug("  -> [PROYECTO] Registrado: 'scroll.proyecto.descartes'");
+        }
+        if (projectDisplayModesContainer != null) {
+            focusablePanels.add(projectDisplayModesContainer);
+            logger.debug("  -> [PROYECTO] Registrado: 'container.displaymodes.proyecto' (para imagen/grid)");
+        }
+
+        // Aplicamos el borde inicial sin foco a todos los paneles registrados
+        for (JComponent panel : focusablePanels) {
+            panel.setBorder(unfocusedBorder);
+        }
+        
+        logger.info("[ViewManager] Sistema de bordes de foco inicializado para {} paneles en total.", focusablePanels.size());
+        updateFocusBorderColor(); // Sincronizamos con el color del tema actual
+    } // --- FIN del metodo initializeFocusBorders ---
+    
+    
+    /**
+     * Actualiza el borde de los paneles monitorizados según el nuevo componente con foco.
+     * Es llamado por GeneralController cada vez que el foco de la aplicación cambia.
+     * @param newFocusOwner El componente que acaba de recibir el foco.
+     */
+    public void actualizarResaltadoDeFoco(Component newFocusOwner) {
+        if (focusablePanels == null) return; // Si aún no se ha inicializado, no hacemos nada.
+        
+        for (JComponent panel : focusablePanels) {
+            // Comprobamos si el nuevo componente con foco es el panel MISMO
+            // o si es un HIJO de ese panel (ej: la JList dentro del JScrollPane)
+            if (newFocusOwner != null && (newFocusOwner == panel || SwingUtilities.isDescendingFrom(newFocusOwner, panel))) {
+                panel.setBorder(focusedBorder);
+            } else {
+                panel.setBorder(unfocusedBorder);
+            }
+        }
+    } // --- FIN del metodo actualizarResaltadoDeFoco ---
+    
+    
+    private void updateFocusBorderColor() {
+        if (themeManager != null) {
+            Color accentColor = themeManager.getTemaActual().colorBordeActivo();
+            int thickness = 2; // Asegurarse de que el grosor sea consistente
+            this.focusedBorder = BorderFactory.createLineBorder(accentColor, thickness);
+        }
+    } // --- FIN del metodo updateFocusBorderColor ---
+    
     
     
     /**

@@ -19,7 +19,6 @@ import javax.swing.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -32,7 +31,7 @@ import vista.theme.ThemeManager;
 
 public class ConfigApplicationManager {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ConfigApplicationManager.class);
 
     // --- DEPENDENCIAS REFACTORIZADAS ---
     private final VisorModel model;
@@ -486,7 +485,7 @@ public class ConfigApplicationManager {
 
         // --- Lógica de Depuración ---
         String actionCommand = (String) action.getValue(Action.ACTION_COMMAND_KEY);
-        logger.info("--- [ConfigAppManager] Sincronizando estado lógico para Action: " + actionCommand + " ---");
+        logger.debug("--- [ConfigAppManager] Sincronizando estado lógico para Action: " + actionCommand + " ---");
         
         // 2. Sincronizar el estado de selección lógico del botón.
         //    Este es el único paso realmente necesario. Al cambiar el estado de

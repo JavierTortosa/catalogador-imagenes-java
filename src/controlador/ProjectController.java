@@ -38,12 +38,12 @@ import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.proyecto.ExportItem;
 import vista.VisorView;
-import vista.dialogos.ExportProgressDialog;
+import vista.dialogos.TaskProgressDialog;
 import vista.panels.export.ExportTableModel;
 	
 public class ProjectController implements IModoController {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ProjectController.class);
 	
     private IProjectManager projectManager;
     private ComponentRegistry registry;
@@ -518,8 +518,19 @@ public class ProjectController implements IModoController {
             JOptionPane.showMessageDialog(view, "No hay archivos válidos seleccionados en la cola para exportar.", "Exportación Vacía", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        ExportProgressDialog dialogo = new ExportProgressDialog(view);
+//        ExportProgressDialog dialogo = new ExportProgressDialog(view);
+        
+        TaskProgressDialog dialogo = new TaskProgressDialog(
+        	    view, 
+        	    "Progreso de Exportación", 
+        	    "Copiando archivos del proyecto..."
+        	);
+        //El worker ahora se crea con la referencia al TaskProgressDialog
         ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo);
+        
+//        TaskProgressDialog dialogo = new TaskProgressDialog(view);
+//        ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo);
+        
         worker.addPropertyChangeListener(evt -> {
             if ("progress".equals(evt.getPropertyName())) {
                 dialogo.setProgress((Integer) evt.getNewValue());

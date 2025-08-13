@@ -464,6 +464,9 @@ public class AppInitializer {
             this.controller.configurarAtajosTecladoGlobales();
             this.generalController.configurarListenersDeEntradaGlobal();
             KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.generalController);
+            
+            KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this.generalController);
+            
             this.controller.configurarListenersVistaInternal(); 
             this.controller.configurarMenusContextuales();
             this.projectController.configurarListeners();
@@ -511,6 +514,10 @@ public class AppInitializer {
             this.generalController.sincronizarTodaLaUIConElModelo();
             this.backgroundControlManager.initializeAndLinkControls();
             this.backgroundControlManager.sincronizarSeleccionConEstadoActual();
+            
+            if (this.viewManager != null) {
+                this.viewManager.initializeFocusBorders();
+            }
             
             logger.debug("    -> BackgroundControlManager inicializado y enlazado a la UI.");
             

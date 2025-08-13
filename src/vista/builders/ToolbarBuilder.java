@@ -22,7 +22,6 @@ import javax.swing.JToolBar;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.utils.ComponentRegistry;
 import servicios.ConfigKeys;
@@ -42,7 +41,7 @@ import vista.util.IconUtils;
 
 public class ToolbarBuilder {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ToolbarBuilder.class);
 
     private Map<String, Action> actionMap;
     private final ThemeManager themeManager;

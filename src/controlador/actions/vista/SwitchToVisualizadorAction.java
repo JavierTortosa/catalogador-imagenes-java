@@ -10,7 +10,6 @@ import javax.swing.ImageIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
@@ -22,7 +21,7 @@ import modelo.VisorModel.WorkMode;
 
 public class SwitchToVisualizadorAction extends AbstractAction implements ContextSensitiveAction {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(SwitchToVisualizadorAction.class);
 	
     private static final long serialVersionUID = 1L;
     
@@ -78,4 +77,5 @@ public class SwitchToVisualizadorAction extends AbstractAction implements Contex
         // Un ButtonGroup gestiona que solo uno esté seleccionado.
         setEnabled(true); // Siempre habilitamos esta acción.
     }
-}
+    
+} // --- FIN de la calse SwitchToVisualizadorAction ---

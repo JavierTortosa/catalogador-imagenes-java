@@ -22,7 +22,6 @@ import javax.swing.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.managers.ZoomManager;
 import modelo.VisorModel;
 import servicios.zoom.ZoomModeEnum;
@@ -31,7 +30,7 @@ import vista.theme.ThemeManager;
 
 public class ThumbnailPreviewer {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ThumbnailPreviewer.class);
 	
     private final JList<String> thumbnailList;
     private final VisorModel mainModel;

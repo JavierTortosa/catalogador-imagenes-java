@@ -12,9 +12,8 @@ import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import modelo.proyecto.ExportItem;
-import vista.dialogos.ExportProgressDialog;
+import vista.dialogos.TaskProgressDialog;
 
 public class ExportWorker extends SwingWorker<String, String> {
 
@@ -22,9 +21,9 @@ public class ExportWorker extends SwingWorker<String, String> {
 	
     private final List<ExportItem> cola;
     private final Path carpetaDestino;
-    private final ExportProgressDialog dialogo;
+    private final TaskProgressDialog dialogo;
 
-    public ExportWorker(List<ExportItem> cola, Path carpetaDestino, ExportProgressDialog dialogo) {
+    public ExportWorker(List<ExportItem> cola, Path carpetaDestino, TaskProgressDialog dialogo) {
         this.cola = cola;
         this.carpetaDestino = carpetaDestino;
         this.dialogo = dialogo;

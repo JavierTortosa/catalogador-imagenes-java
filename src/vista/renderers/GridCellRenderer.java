@@ -3,6 +3,7 @@ package vista.renderers;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.nio.file.Path;
+
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
@@ -14,7 +15,6 @@ import javax.swing.SwingConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import modelo.VisorModel;
 import servicios.image.ThumbnailService;
 import vista.theme.Tema;
@@ -27,7 +27,7 @@ import vista.util.IconUtils;
  */
 public class GridCellRenderer extends JPanel implements ListCellRenderer<String> {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(GridCellRenderer.class);
 	
     /**
 	 * 

@@ -4,20 +4,19 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 
-import javax.swing.Action; 
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JToolBar; 
+import javax.swing.JToolBar;
 import javax.swing.table.TableColumn;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.ProjectController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.ToolbarManager;
@@ -25,7 +24,7 @@ import modelo.proyecto.ExportItem;
 
 public class ExportPanel extends JPanel {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ExportPanel.class);
 	
     private static final long serialVersionUID = 1L;
 

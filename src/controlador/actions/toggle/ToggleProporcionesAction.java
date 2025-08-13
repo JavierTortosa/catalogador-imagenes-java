@@ -10,14 +10,13 @@ import javax.swing.ImageIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
-import controlador.VisorController; 
+import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import modelo.VisorModel; 
 
 public class ToggleProporcionesAction extends AbstractAction {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ToggleProporcionesAction.class);
 
     private static final long serialVersionUID = 1L;
 
@@ -90,4 +89,5 @@ public class ToggleProporcionesAction extends AbstractAction {
             putValue(Action.SELECTED_KEY, estadoActualModeloMantenerProporciones);
         }
     }
-}
+    
+} // --- FIN de la clase ToggleProporcionesAction ---

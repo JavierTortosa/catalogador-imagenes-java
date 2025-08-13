@@ -4,13 +4,12 @@ import java.awt.event.ActionEvent;
 import java.util.Objects;
 
 import javax.swing.AbstractAction;
-import javax.swing.Action; 
+import javax.swing.Action;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
-import controlador.GeneralController; 
+import controlador.GeneralController;
 import controlador.interfaces.ContextSensitiveAction;
 import modelo.VisorModel;
 import vista.components.Direction;
@@ -23,7 +22,7 @@ import vista.components.Direction;
  */
 public class PanAction extends AbstractAction implements ContextSensitiveAction { 
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(PanAction.class);
 
     private static final long serialVersionUID = 1L;
 

@@ -1,4 +1,4 @@
-package controlador.actions.displaymode; // O el paquete donde la tengas
+package controlador.actions.displaymode; 
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
@@ -8,16 +8,15 @@ import javax.swing.AbstractAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.factory.ActionFactory;
-import controlador.managers.DisplayModeManager; // <-- Importa el nuevo manager
+import controlador.managers.DisplayModeManager; 
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 
 @SuppressWarnings("serial")
 public class SwitchDisplayModeAction extends AbstractAction {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(SwitchDisplayModeAction.class);
 	
 	private final ActionFactory actionFactory;
     private final DisplayMode targetDisplayMode;

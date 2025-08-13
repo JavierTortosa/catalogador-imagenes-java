@@ -13,7 +13,6 @@ import javax.swing.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IListCoordinator;
@@ -25,7 +24,7 @@ import vista.util.IconUtils;
 
 public class CarouselManager {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(CarouselManager.class);
 
     // --- Dependencias ---
     private final IListCoordinator listCoordinator;

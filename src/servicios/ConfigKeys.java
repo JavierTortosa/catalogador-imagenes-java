@@ -3,8 +3,6 @@ package servicios;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
-
 /**
  * Contiene todas las claves de configuración (strings) usadas en la aplicación.
  * Esta clase no debe ser instanciada. Sirve como un diccionario centralizado
@@ -12,7 +10,7 @@ import controlador.AppInitializer;
  */
 public final class ConfigKeys {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ConfigKeys.class);
 	
     // Constructor privado para evitar que alguien cree una instancia de esta clase de utilidad.
     private ConfigKeys() {}

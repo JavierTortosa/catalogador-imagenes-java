@@ -11,7 +11,6 @@ import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.GeneralController;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -19,7 +18,7 @@ import servicios.ConfigurationManager;
 
 public class ToggleSyncAction extends AbstractAction {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ToggleSyncAction.class);
 
     /**
 	 * 

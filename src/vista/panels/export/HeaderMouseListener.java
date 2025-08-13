@@ -9,11 +9,9 @@ import javax.swing.table.TableColumnModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
-
 public class HeaderMouseListener extends MouseAdapter {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(HeaderMouseListener.class);
     private final JTable table;
 
     public HeaderMouseListener(JTable table) {

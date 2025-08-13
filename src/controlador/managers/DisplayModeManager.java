@@ -130,7 +130,7 @@ public class DisplayModeManager implements ThemeChangeListener{
         }
         
         sincronizarEstadoBotonesDisplayMode();
-        logger.debug("--- [DisplayModeManager] TRANSICIÓN COMPLETADA a " + newDisplayMode + " ---\n");
+        logger.debug("--- [DisplayModeManager] TRANSICIÓN COMPLETADA a " + newDisplayMode + " ---");
         
     } // --- Fin del método switchToDisplayMode ---
     

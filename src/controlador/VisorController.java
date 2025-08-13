@@ -13,6 +13,7 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.datatransfer.Transferable;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
@@ -92,7 +93,10 @@ import servicios.image.ThumbnailService;
 import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
-import vista.dialogos.ProgresoCargaDialog;
+
+//import vista.dialogos.ProgresoCargaDialog;
+import vista.dialogos.TaskProgressDialog;
+
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
 import vista.theme.Tema;
@@ -776,7 +780,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         limpiarUI(); // <-- Feedback inmediato: la UI se pone en modo bienvenida mientras carga.
 
         // --- 6. CREAR DIÁLOGO Y WORKER ---
-        final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view, null);
+        
+        
+        // Creamos una instancia del nuevo diálogo unificado
+        final TaskProgressDialog dialogo = new TaskProgressDialog(view, "Cargando Imágenes", "Escaneando carpeta de imágenes...");
+
+        // El worker ahora recibe el nuevo tipo de diálogo
         final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
             pathDeInicioWalk,
             depth,
@@ -784,16 +793,34 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             this::esArchivoImagenSoportado,
             dialogo
         );
+        // Asociamos el worker con el diálogo para que el botón "Cancelar" funcione
         dialogo.setWorkerAsociado(worker);
+        
+        
+//        final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view, null);
+//        final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
+//            pathDeInicioWalk,
+//            depth,
+//            pathDeInicioWalk,
+//            this::esArchivoImagenSoportado,
+//            dialogo
+//        );
+//        dialogo.setWorkerAsociado(worker);
+        
+        
+        
         this.cargaImagenesFuture = worker;
 
         // --- 7. LÓGICA DE FINALIZACIÓN DEL WORKER ---
+        
+
         worker.addPropertyChangeListener(evt -> {
             if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
-                if (dialogo != null) dialogo.cerrar();
+                
+                // <<< CAMBIO: La lógica de cierre y mensajes finales se gestiona aquí.
                 if (worker.isCancelled()) {
                     logger.debug("    -> Tarea CANCELADA por el usuario.");
-                    // La UI ya está limpia. Solo mostramos el mensaje.
+                    dialogo.setFinalMessageAndClose("Carga cancelada.", false, 1500);
                     if (statusBarManager != null) {
                         statusBarManager.mostrarMensaje("Carga cancelada por el usuario.");
                     }
@@ -805,25 +832,24 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                 try {
                     Map<String, Path> mapaResultado = worker.get();
 
-                    // ******** TU LÓGICA IMPLEMENTADA ********
                     if (mapaResultado == null || mapaResultado.isEmpty()) {
                         logger.info("    -> La búsqueda no encontró imágenes soportadas en la carpeta.");
-                        // La UI ya muestra la bienvenida. Añadimos el mensaje informativo.
+                        dialogo.setFinalMessageAndClose("La carpeta no contiene imágenes.", false, 2000);
                         if (statusBarManager != null) {
                             statusBarManager.mostrarMensaje("La carpeta no contiene imágenes soportadas. Selecciona otra para continuar.");
                         }
                         if (view != null) {
                             view.setTituloPanelIzquierdo("Archivos: 0");
                         }
-                        // IMPORTANTE: Salimos aquí. No hay nada más que procesar.
                         return;
                     }
-                    // ******** FIN DE TU LÓGICA ********
 
-                    // Si llegamos aquí, SÍ hay imágenes. Procedemos con la carga normal.
+                    // Si todo fue bien, cerramos el diálogo inmediatamente para que el usuario vea la app.
+                    dialogo.closeDialog();
+
+                    // === El resto del código es el que ya tenías, sin cambios ===
                     logger.debug("    WORKER HA TERMINADO. Archivos encontrados: " + mapaResultado.size());
                     
-                    // Limpiamos cualquier mensaje de estado anterior ("carpeta vacía", etc.)
                     if (statusBarManager != null) {
                         statusBarManager.limpiarMensaje();
                     }
@@ -855,8 +881,11 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                     if (alFinalizarConExito != null) {
                         alFinalizarConExito.run();
                     }
+
                 } catch (Exception e) {
                     logger.error("    -> ERROR durante la ejecución del worker: " + e.getMessage(), e);
+                    // <<< CAMBIO: Usamos el nuevo diálogo para mostrar el error.
+                    dialogo.setFinalMessageAndClose("Error durante la carga.", true, 2500);
                     limpiarUI();
                     if (statusBarManager != null) {
                         statusBarManager.mostrarMensaje("Error al leer la carpeta. Consulta los logs para más detalles.");
@@ -871,6 +900,93 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             }
         });
 
+        
+        
+//        worker.addPropertyChangeListener(evt -> {
+//            if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
+//                if (dialogo != null) dialogo.cerrar();
+//                if (worker.isCancelled()) {
+//                    logger.debug("    -> Tarea CANCELADA por el usuario.");
+//                    // La UI ya está limpia. Solo mostramos el mensaje.
+//                    if (statusBarManager != null) {
+//                        statusBarManager.mostrarMensaje("Carga cancelada por el usuario.");
+//                    }
+//                    this.estaCargandoLista = false;
+//                    this.cargaInicialEnCurso = false;
+//                    return;
+//                }
+//
+//                try {
+//                    Map<String, Path> mapaResultado = worker.get();
+//
+//                    // ******** TU LÓGICA IMPLEMENTADA ********
+//                    if (mapaResultado == null || mapaResultado.isEmpty()) {
+//                        logger.info("    -> La búsqueda no encontró imágenes soportadas en la carpeta.");
+//                        // La UI ya muestra la bienvenida. Añadimos el mensaje informativo.
+//                        if (statusBarManager != null) {
+//                            statusBarManager.mostrarMensaje("La carpeta no contiene imágenes soportadas. Selecciona otra para continuar.");
+//                        }
+//                        if (view != null) {
+//                            view.setTituloPanelIzquierdo("Archivos: 0");
+//                        }
+//                        // IMPORTANTE: Salimos aquí. No hay nada más que procesar.
+//                        return;
+//                    }
+//                    // ******** FIN DE TU LÓGICA ********
+//
+//                    // Si llegamos aquí, SÍ hay imágenes. Procedemos con la carga normal.
+//                    logger.debug("    WORKER HA TERMINADO. Archivos encontrados: " + mapaResultado.size());
+//                    
+//                    // Limpiamos cualquier mensaje de estado anterior ("carpeta vacía", etc.)
+//                    if (statusBarManager != null) {
+//                        statusBarManager.limpiarMensaje();
+//                    }
+//
+//                    List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
+//                    java.util.Collections.sort(clavesOrdenadas);
+//
+//                    DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
+//                    nuevoModeloListaPrincipal.addAll(new java.util.Vector<>(clavesOrdenadas));
+//                    
+//                    model.actualizarListaCompleta(nuevoModeloListaPrincipal, mapaResultado);
+//                    if (view != null) {
+//                        view.setListaImagenesModel(model.getModeloLista());
+//                        view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
+//                    }
+//
+//                    int indiceCalculado = -1;
+//                    if (claveImagenAMantener != null && !claveImagenAMantener.isEmpty()) {
+//                        indiceCalculado = model.getModeloLista().indexOf(claveImagenAMantener);
+//                    }
+//                    if (indiceCalculado == -1 && !model.getModeloLista().isEmpty()) {
+//                        indiceCalculado = 0;
+//                    }
+//
+//                    if (listCoordinator != null && indiceCalculado != -1) {
+//                        listCoordinator.reiniciarYSeleccionarIndice(indiceCalculado);
+//                    }
+//
+//                    if (alFinalizarConExito != null) {
+//                        alFinalizarConExito.run();
+//                    }
+//                } catch (Exception e) {
+//                    logger.error("    -> ERROR durante la ejecución del worker: " + e.getMessage(), e);
+//                    limpiarUI();
+//                    if (statusBarManager != null) {
+//                        statusBarManager.mostrarMensaje("Error al leer la carpeta. Consulta los logs para más detalles.");
+//                    }
+//                } finally {
+//                    this.estaCargandoLista = false;
+//                    this.cargaInicialEnCurso = false;
+//                    if (cargaImagenesFuture == worker) {
+//                        cargaImagenesFuture = null;
+//                    }
+//                }
+//            }
+//        });
+        
+        
+
         // --- 8. EJECUTAR EL WORKER ---
         worker.execute();
         SwingUtilities.invokeLater(() -> {
@@ -878,6 +994,11 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                 dialogo.setVisible(true);
             }
         });
+        
+        Action actionMostrar = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+    	actionMostrar.putValue(Action.SELECTED_KEY, true);
+    	actionMostrar.actionPerformed(null);
+    	
     } // --- FIN del metodo cargarListaImagenes ---
     
     
@@ -1030,6 +1151,8 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 
         // 3. Acciones de Zoom/Vista (como JCheckBoxMenuItem para reflejar estado)
         menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE)));
+        menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_RESET)));
+        menu.addSeparator();
         menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES)));
         menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS)));
 
@@ -1521,9 +1644,19 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                         g2d.dispose();
 
                         logger.debug(" -> [limpiarUI] BufferedImage creado. Llamando a setWelcomeImage y showWelcomeMessage...");
+                        
+                        Action actionOcultar = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+                        actionOcultar.putValue(Action.SELECTED_KEY, false);
+                        actionOcultar.actionPerformed(null);
+                        
                         displayPanel.setWelcomeImage(welcomeImage);
                         displayPanel.showWelcomeMessage(); 
                     } else {
+                    	
+//                    	Action actionMostrar = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+//                    	actionMostrar.putValue(Action.SELECTED_KEY, true);
+//                    	actionMostrar.actionPerformed(null);
+                    	
                         displayPanel.limpiar();
                     }
                 }
@@ -1914,6 +2047,29 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
          inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD9"), AppActionCommands.CMD_ZOOM_RESET); // <-- Teclado numérico
          actionMapGlobal.put(AppActionCommands.CMD_ZOOM_RESET, actionMap.get(AppActionCommands.CMD_ZOOM_RESET));
 
+         // F5 para Refrescar
+         KeyStroke f5Key = KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0);
+         String f5Command = AppActionCommands.CMD_ESPECIAL_REFRESCAR;
+         inputMap.put(f5Key, f5Command);
+         actionMapGlobal.put(f5Command, actionMap.get(f5Command));
+         logger.debug("  -> Atajo registrado: F5 -> " + f5Command);
+
+         // F11 para Pantalla Completa
+         KeyStroke f11Key = KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0);
+         String f11Command = AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA;
+         inputMap.put(f11Key, f11Command);
+         actionMapGlobal.put(f11Command, actionMap.get(f11Command));
+         logger.debug("  -> Atajo registrado: F11 -> " + f11Command);
+
+//         // Barra Espaciadora para Marcar/Desmarcar Imagen
+//         KeyStroke spaceKey = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
+//         String spaceCommand = AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA;
+//         inputMap.put(spaceKey, spaceCommand);
+//         actionMapGlobal.put(spaceCommand, actionMap.get(spaceCommand));
+//         logger.debug("  -> Atajo registrado: Espacio -> " + spaceCommand);
+         
+         
+         
          logger.debug("  -> Atajos de teclado globales configurados para teclado estándar y numérico.");
      } // --- Fin del método configurarAtajosTecladoGlobales ---
 
@@ -2350,7 +2506,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
               copiarListaAlPortapapeles(modeloListaDialogo);
               
               // Opcional: Mostrar un feedback breve
-              // FIXME mostrar un joptionpane o un mensaje en una barra de informacion....
+              // FIXME mostrar un JOptionPane o un mensaje en una barra de informacion....
               //JOptionPane.showMessageDialog(dialogoLista, "Lista copiada al portapapeles.", "Copiado", JOptionPane.INFORMATION_MESSAGE);
           });
 
@@ -2873,7 +3029,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         }
 
         // Imprimir log formateado
-        logger.debug("--- DEBUG: Acción Detectada ---");
+        logger.info("--- DEBUG: Acción Detectada ---");
         logger.debug("  > Fuente        : " + sourceClass + sourceId);
         logger.debug("  > Event Command : " + (commandFromEvent != null ? "'" + commandFromEvent + "'" : "null"));
         logger.debug("  > Config Key    : " + (longConfigKey != null ? "'" + longConfigKey + "'" : "(No encontrada)"));

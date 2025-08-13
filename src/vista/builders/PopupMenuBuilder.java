@@ -17,7 +17,6 @@ import javax.swing.JRadioButtonMenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
 import vista.config.MenuItemType;
@@ -26,7 +25,7 @@ import vista.theme.ThemeManager;
 
 public class PopupMenuBuilder {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(PopupMenuBuilder.class);
 	
 	private ThemeManager themeManager;
     private ButtonGroup currentRadioGroup;

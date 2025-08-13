@@ -15,20 +15,41 @@ import org.slf4j.LoggerFactory;
 
 import com.formdev.flatlaf.FlatLaf;
 
-//C:\Users\ameri\.m2\repository\com\formdev\flatlaf-intellij-themes\3.4.1
-
 import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatArcDarkOrangeIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatArcIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatArcOrangeIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatCarbonIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatCobalt2IJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatCyanLightIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatDarkPurpleIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatDraculaIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatGradiantoDarkFuchsiaIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatGradiantoDeepOceanIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatGradiantoMidnightBlueIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatGradiantoNatureGreenIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkHardIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkMediumIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatGruvboxDarkSoftIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatHighContrastIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatMonocaiIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatMonokaiProIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatNordIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatOneDarkIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatSolarizedDarkIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatSolarizedLightIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatSpacegrayIJTheme;
+import com.formdev.flatlaf.intellijthemes.FlatVuesionIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatGitHubDarkIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatGitHubIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatLightOwlIJTheme;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDarkerIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDeepOceanIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialLighterIJTheme;
+import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialOceanicIJTheme;
+
+// los temas estan en esta ubicacion: 
+// C:\Users\ameri\.m2\repository\com\formdev\flatlaf-intellij-themes\3.4.1
 
 import controlador.managers.ConfigApplicationManager;
 import servicios.ConfigKeys;
@@ -45,22 +66,67 @@ public class ThemeManager {
 
     // Mapa de temas disponibles, igual que antes.
     private static final Map<String, ThemeInfo> TEMAS_DISPONIBLES = Map.ofEntries(
-    		Map.entry("purpura_misterioso", new ThemeInfo("Purpura Misterioso", FlatDarkPurpleIJTheme::new)),
-    		Map.entry("cyan_light", new ThemeInfo("Cian Claro", FlatCyanLightIJTheme::new)),
-            Map.entry("solarized_light", new ThemeInfo("Solarized Claro", FlatSolarizedLightIJTheme::new)),
-            Map.entry("carbon", new ThemeInfo("Carbón", FlatCarbonIJTheme::new)),
-            Map.entry("material_darker", new ThemeInfo("Material Oscuro", FlatMaterialDarkerIJTheme::new)),
-            Map.entry("dark_purple", new ThemeInfo("Púrpura Oscuro", FlatDarkPurpleIJTheme::new)),
-            Map.entry("dracula", new ThemeInfo("Drácula", FlatDraculaIJTheme::new)),
-            Map.entry("cobalt2", new ThemeInfo("Cobalto 2", FlatCobalt2IJTheme::new)),
-            Map.entry("solarized_dark", new ThemeInfo("Solarized Oscuro", FlatSolarizedDarkIJTheme::new)),
-            Map.entry("monokai_pro", new ThemeInfo("Monokai Pro", FlatMonokaiProIJTheme::new)),
-            Map.entry("arc_dark", new ThemeInfo("Arc Oscuro", FlatArcDarkIJTheme::new)),
-            Map.entry("fuchsia_dark", new ThemeInfo("Fucsia Degradado", FlatGradiantoDarkFuchsiaIJTheme::new)),
-            Map.entry("high_contrast", new ThemeInfo("Alto Contraste", FlatHighContrastIJTheme::new))
+            // --- TEMAS CLAROS ---
+            Map.entry("arc_light", new ThemeInfo("Arc", FlatArcIJTheme::new)),
+            Map.entry("arc_orange_light", new ThemeInfo("Arc Orange", FlatArcOrangeIJTheme::new)),
+            Map.entry("cyan_light", new ThemeInfo("Cyan Light", FlatCyanLightIJTheme::new)),
+            Map.entry("github_light", new ThemeInfo("GitHub", FlatGitHubIJTheme::new)),
+            Map.entry("light_owl_light", new ThemeInfo("Light Owl", FlatLightOwlIJTheme::new)),
+            Map.entry("material_lighter", new ThemeInfo("Material Lighter", FlatMaterialLighterIJTheme::new)),
+            Map.entry("solarized_light", new ThemeInfo("Solarized Light", FlatSolarizedLightIJTheme::new)),
+
+            // --- TEMAS OSCUROS ---
+            Map.entry("arc_dark", new ThemeInfo("Arc Dark", FlatArcDarkIJTheme::new)),
+            Map.entry("arc_dark_orange", new ThemeInfo("Arc Dark Orange", FlatArcDarkOrangeIJTheme::new)),
+            Map.entry("carbon_dark", new ThemeInfo("Carbon", FlatCarbonIJTheme::new)),
+            Map.entry("cobalt_2_dark", new ThemeInfo("Cobalt 2", FlatCobalt2IJTheme::new)),
+            Map.entry("dark_purple", new ThemeInfo("Dark Purple", FlatDarkPurpleIJTheme::new)),
+            Map.entry("dracula_dark", new ThemeInfo("Dracula", FlatDraculaIJTheme::new)),
+            Map.entry("github_dark", new ThemeInfo("GitHub Dark", FlatGitHubDarkIJTheme::new)),
+            Map.entry("gruvbox_dark_hard", new ThemeInfo("Gruvbox Dark Hard", FlatGruvboxDarkHardIJTheme::new)),
+            Map.entry("gruvbox_dark_medium", new ThemeInfo("Gruvbox Dark Medium", FlatGruvboxDarkMediumIJTheme::new)),
+            Map.entry("gruvbox_dark_soft", new ThemeInfo("Gruvbox Dark Soft", FlatGruvboxDarkSoftIJTheme::new)),
+            Map.entry("high_contrast", new ThemeInfo("High Contrast", FlatHighContrastIJTheme::new)),
+            Map.entry("material_darker", new ThemeInfo("Material Darker", FlatMaterialDarkerIJTheme::new)),
+            Map.entry("material_deep_ocean", new ThemeInfo("Material Deep Ocean", FlatMaterialDeepOceanIJTheme::new)),
+            Map.entry("material_oceanic", new ThemeInfo("Material Oceanic", FlatMaterialOceanicIJTheme::new)),
+            Map.entry("monocai_dark", new ThemeInfo("Monocai", FlatMonocaiIJTheme::new)),
+            Map.entry("monokai_pro_dark", new ThemeInfo("Monokai Pro", FlatMonokaiProIJTheme::new)),
+            Map.entry("nord_dark", new ThemeInfo("Nord", FlatNordIJTheme::new)),
+            Map.entry("one_dark", new ThemeInfo("One Dark", FlatOneDarkIJTheme::new)),
+            Map.entry("solarized_dark", new ThemeInfo("Solarized Dark", FlatSolarizedDarkIJTheme::new)),
+            Map.entry("spacegray_dark", new ThemeInfo("Spacegray", FlatSpacegrayIJTheme::new)),
+            Map.entry("vuesion_dark", new ThemeInfo("Vuesion", FlatVuesionIJTheme::new)),
             
-        // ... añade los que quieras
-    );
+            // --- TEMAS CON DEGRADADOS (pueden ser más "llamativos") ---
+            Map.entry("gradianto_dark_fuchsia", new ThemeInfo("Gradianto Dark Fuchsia", FlatGradiantoDarkFuchsiaIJTheme::new)),
+            Map.entry("gradianto_deep_ocean", new ThemeInfo("Gradianto Deep Ocean", FlatGradiantoDeepOceanIJTheme::new)),
+            Map.entry("gradianto_midnight_blue", new ThemeInfo("Gradianto Midnight Blue", FlatGradiantoMidnightBlueIJTheme::new)),
+            Map.entry("gradianto_nature_green", new ThemeInfo("Gradianto Nature Green", FlatGradiantoNatureGreenIJTheme::new)),
+            
+            // --- TU TEMA PERSONALIZADO ---
+            Map.entry("purpura_misterioso", new ThemeInfo("Púrpura Misterioso", FlatDarkPurpleIJTheme::new))
+        );
+    
+    
+//    private static final Map<String, ThemeInfo> TEMAS_DISPONIBLES = Map.ofEntries(
+//    		Map.entry("purpura_misterioso", new ThemeInfo("Purpura Misterioso", FlatDarkPurpleIJTheme::new)),
+//    		
+//    		Map.entry("cyan_light", new ThemeInfo("Cian Claro", FlatCyanLightIJTheme::new)),
+//            Map.entry("solarized_light", new ThemeInfo("Solarized Claro", FlatSolarizedLightIJTheme::new)),
+//            Map.entry("carbon", new ThemeInfo("Carbón", FlatCarbonIJTheme::new)),
+//            Map.entry("material_darker", new ThemeInfo("Material Oscuro", FlatMaterialDarkerIJTheme::new)),
+//            Map.entry("dark_purple", new ThemeInfo("Púrpura Oscuro", FlatDarkPurpleIJTheme::new)),
+//            Map.entry("dracula", new ThemeInfo("Drácula", FlatDraculaIJTheme::new)),
+//            Map.entry("cobalt2", new ThemeInfo("Cobalto 2", FlatCobalt2IJTheme::new)),
+//            Map.entry("solarized_dark", new ThemeInfo("Solarized Oscuro", FlatSolarizedDarkIJTheme::new)),
+//            Map.entry("monokai_pro", new ThemeInfo("Monokai Pro", FlatMonokaiProIJTheme::new)),
+//            Map.entry("arc_dark", new ThemeInfo("Arc Oscuro", FlatArcDarkIJTheme::new)),
+//            Map.entry("fuchsia_dark", new ThemeInfo("Fucsia Degradado", FlatGradiantoDarkFuchsiaIJTheme::new)),
+//            Map.entry("high_contrast", new ThemeInfo("Alto Contraste", FlatHighContrastIJTheme::new))
+//            
+//        // ... añade los que quieras
+//    );
     
     private Tema temaActual; // ¡Volvemos a usar tu objeto Tema!
 
@@ -160,8 +226,15 @@ public class ThemeManager {
             UIManager.getColor("Button.selectedBackground"),
             UIManager.getColor("Button.hoverBackground"),
             UIManager.getColor("Component.accentColor"), // O la que uses para borde activo
-            UIManager.getColor("Label.foreground") // Para label activo
+            UIManager.getColor("Label.foreground"), // Para label activo
+            
+            // "Component.accentColor" es una excelente opción.
+            UIManager.getColor("Component.accentColor"),
+            
+            // Usaremos el de la selección de lista como un buen candidato.
+            UIManager.getColor("List.selectionForeground") 
         );
+        
     } // --- FIN del metodo construirTemaDesdeUIManager ---
     
 
@@ -186,7 +259,7 @@ public class ThemeManager {
 
         // Creamos y devolvemos los objetos `Tema` ligeros que tu lógica espera.
         return temasDefs.stream()
-                .map(def -> new Tema(def.id(), def.nombreDisplay(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null))
+                .map(def -> new Tema(def.id(), def.nombreDisplay(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null))
                 .toList();
     } // --- Fin del método getTemasDisponibles ---
     
@@ -213,3 +286,4 @@ public class ThemeManager {
     private record ThemeInfo(String nombreDisplay, Supplier<LookAndFeel> lafSupplier) {}
 
 } // --- Fin de la clase ThemeManager ---
+

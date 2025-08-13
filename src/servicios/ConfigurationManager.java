@@ -55,7 +55,7 @@ public class ConfigurationManager
 	);
 	
 	//--------------------------------------------------------------------------------------------------------------
-	//FIXME comentar este bloque para eliminar el singleton de configurationManager
+	//FIXME comentar este bloque para eliminar el singleton de configurationManager -1
 	private static ConfigurationManager instance = null;
 	public static synchronized ConfigurationManager getInstance() {
 	    if (instance == null) {
@@ -67,7 +67,7 @@ public class ConfigurationManager
 	    }
 	    return instance;
 	}
-	//FIXME recordar volver public el constructor y modificar el bloque de "singleton de configurationmanager"
+	//FIXME recordar volver public el constructor y modificar el bloque de "singleton de configurationmanager" -1
 	//--------------------------------------------------------------------------------------------------------------
 	
 	private ConfigurationManager() throws IOException
@@ -80,7 +80,6 @@ public class ConfigurationManager
 		logger.debug("!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: " + System.identityHashCode(config));
 		
 	}
-
 	
 	// Método para cargar toda la configuración
 	public Map<String, String> cargarConfiguracion() throws IOException {
@@ -114,7 +113,7 @@ public class ConfigurationManager
 	    }
 
 	 // LOG --- ¡NUEVO BLOQUE DE DEBUG! ---
-	    logger.debug("--- DEBUG PRE-SINCRONIZACIÓN ---");
+	    logger.info("--- DEBUG PRE-SINCRONIZACIÓN ---");
 	    logger.debug("Tamaño de DEFAULT_CONFIG: " + DEFAULT_CONFIG.size());
 	    logger.debug("Tamaño de loadedConfig (del archivo): " + loadedConfig.size());
 	    logger.debug("DEFAULT_CONFIG contiene 'salto_bloque'?: " + DEFAULT_CONFIG.containsKey(ConfigKeys.COMPORTAMIENTO_NAVEGACION_SALTO_BLOQUE));
@@ -499,9 +498,11 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.WINDOW_HEIGHT, "500");
 //	    defaults.put(ConfigKeys.WINDOW_WIDTH, "1280");
 //	    defaults.put(ConfigKeys.WINDOW_HEIGHT, "800");
-	    defaults.put(ConfigKeys.WINDOW_MAXIMIZED, "false");
+	    
+//	    defaults.put(ConfigKeys.WINDOW_MAXIMIZED, "false");// INICIO DE LA APLICACION TAMAÑO VENTANA
+	    defaults.put(ConfigKeys.WINDOW_MAXIMIZED, "true"); // INICIO DE LA APLICACION MAXIMIZADA
 
-	    defaults.put(ConfigKeys.TEMA_NOMBRE, "clear");
+	    defaults.put(ConfigKeys.TEMA_NOMBRE, "one_dark");// clear"); TEMA DE INICIO POR DEFECTO
 	    defaults.put("iconos.ancho", "24");
 	    defaults.put("iconos.alto", "24");
 	    

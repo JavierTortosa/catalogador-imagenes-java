@@ -21,7 +21,6 @@ import javax.swing.border.TitledBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
@@ -35,7 +34,7 @@ import vista.theme.ThemeManager;
 
 public class ProjectBuilder implements ThemeChangeListener{
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ProjectBuilder.class);
 	
     private final ComponentRegistry registry;
     private final VisorModel model;

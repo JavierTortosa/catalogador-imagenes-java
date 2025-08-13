@@ -17,7 +17,7 @@ import javax.swing.SwingWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import vista.dialogos.ProgresoCargaDialog;
+import vista.dialogos.TaskProgressDialog;
 
 public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integer> {
 
@@ -27,14 +27,14 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
     private final int profundidadBusqueda;
     private final Path rutaRaizParaRelativizar;
     private final Predicate<Path> filtroImagen;
-    private final ProgresoCargaDialog dialogoProgreso;
+    private final TaskProgressDialog dialogoProgreso;
     
 
     // Convertir contadorArchivos en un campo de instancia
     private int contadorArchivos = 0;
 
 	public BuscadorArchivosWorker(Path rutaInicio, int profundidadBusqueda, Path rutaRaizParaRelativizar,
-			Predicate<Path> filtroImagen, ProgresoCargaDialog dialogoProgreso)
+			Predicate<Path> filtroImagen, TaskProgressDialog dialogoProgreso)
 	{
 
         this.rutaInicio = rutaInicio;
@@ -43,7 +43,7 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
         this.filtroImagen = filtroImagen;
         this.dialogoProgreso = dialogoProgreso;
         // No inicializamos contadorArchivos aquí, ya lo hace la declaración del campo
-    }
+    } // -- FIN del constructor -- 
 
     @Override
     protected Map<String, Path> doInBackground() throws Exception {
@@ -110,20 +110,31 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
         logger.debug("  [Worker BG] Files.walk terminado. Archivos encontrados: " + this.contadorArchivos);
         publish(this.contadorArchivos); // Publicar el conteo final
         return mapaRutasResultado;
-    }
+    } // -- FIN del metodo doInBackground --
 
     @Override
     protected void process(List<Integer> chunks) {
         if (!chunks.isEmpty()) {
             int ultimoProgreso = chunks.get(chunks.size() - 1);
-            dialogoProgreso.actualizarContador(ultimoProgreso);
+            // Usamos el nuevo método para actualizar la etiqueta de estado
+            dialogoProgreso.updateStatusText("Archivos encontrados: " + ultimoProgreso);
         }
-    }
+    } // -- FIN del metodo process --
+    
+//    @Override
+//    protected void process(List<Integer> chunks) {
+//        if (!chunks.isEmpty()) {
+//            int ultimoProgreso = chunks.get(chunks.size() - 1);
+//            dialogoProgreso.actualizarContador(ultimoProgreso);
+//        }
+//    } // -- FIN del metodo process --
 
     @Override
     protected void done() {
         logger.debug("[Worker EDT] Método done() alcanzado.");
         // La lógica REAL de done() está en el PropertyChangeListener
         // que añadimos en VisorController.
-    }
-}
+        
+    } // -- FIN del metodo done -- 
+    
+} // --- FIN de la clase BuscadorArchivosWorker ---

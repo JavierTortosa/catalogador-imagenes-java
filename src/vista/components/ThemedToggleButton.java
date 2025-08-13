@@ -10,12 +10,11 @@ import javax.swing.JToggleButton;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import vista.theme.ThemeManager;
 
 public class ThemedToggleButton extends JToggleButton {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ThemedToggleButton.class);
 	
     /**
 	 * 
@@ -54,4 +53,4 @@ public class ThemedToggleButton extends JToggleButton {
         // Esto dibujará el icono, el borde, el texto, etc., ENCIMA de nuestro fondo.
         super.paintComponent(g);
     }
-}
+} // FIN de la clase ThemedToggleButton ---

@@ -16,7 +16,6 @@ public class UIDefinitionService {
 	
 	private static final Logger logger = LoggerFactory.getLogger(UIDefinitionService.class);
 	
-	
 	public UIDefinitionService() {
         
     }	
@@ -726,8 +725,8 @@ public class UIDefinitionService {
                 dpadPaneoHotspots // La lista de hotspots definida arriba
             ),
         		
+            new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, 					"3008-reset_48x48.png", "Resetear Zoom", "controles_imagen_inferior"),
             new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR, 		"20001-zoom_al_cursor_48x48.png", /*IconScope.COMMON,*/ "Activar/Desactivar Zoom al Cursor", "controles_imagen_inferior", ButtonType.TOGGLE),
-            
             // 2. Botones de color de fondo
             
          // 2. Botones de color de fondo (¡con ActionCommands mejorados!)
@@ -846,21 +845,54 @@ public class UIDefinitionService {
     public record TemaDefinicion(String id, String nombreDisplay) {}
 
     /**
-     * Define la lista curada de los temas principales de la aplicación.
+     * Define la lista curada de los temas principales de la aplicación,
+     * ordenados por claridad y con el tema personalizado al final.
      * Esta es la ÚNICA fuente de verdad sobre qué temas debe manejar la UI.
      */
     private static final List<TemaDefinicion> TEMAS_PRINCIPALES = List.of(
-    	new TemaDefinicion("purpura_misterioso", "Púrpura Misterioso"),
-        new TemaDefinicion("cyan_light", "Cian Claro"),
-        new TemaDefinicion("solarized_light", "Solarized Claro"),
-        new TemaDefinicion("carbon", "Carbón"),
-        new TemaDefinicion("dracula", "Drácula"),
-        new TemaDefinicion("material_darker", "Material Oscuro"),
-        new TemaDefinicion("monokai_pro", "Monokai Pro")
+        // --- TEMAS CLAROS ---
+        new TemaDefinicion("arc_light", "Arc"),
+        new TemaDefinicion("arc_orange_light", "Arc Orange"),
+        new TemaDefinicion("cyan_light", "Cyan Light"),
+        new TemaDefinicion("github_light", "GitHub"),
+        new TemaDefinicion("light_owl_light", "Light Owl"),
+        new TemaDefinicion("material_lighter", "Material Lighter"),
+        new TemaDefinicion("solarized_light", "Solarized Light"),
+        
+        // --- TEMAS OSCUROS ---
+        new TemaDefinicion("arc_dark", "Arc Dark"),
+        new TemaDefinicion("arc_dark_orange", "Arc Dark Orange"),
+        new TemaDefinicion("carbon_dark", "Carbon"),
+        new TemaDefinicion("cobalt_2_dark", "Cobalt 2"),
+        new TemaDefinicion("dark_purple", "Dark Purple"),
+        new TemaDefinicion("dracula_dark", "Dracula"),
+        new TemaDefinicion("github_dark", "GitHub Dark"),
+        new TemaDefinicion("gruvbox_dark_hard", "Gruvbox Dark Hard"),
+        new TemaDefinicion("gruvbox_dark_medium", "Gruvbox Dark Medium"),
+        new TemaDefinicion("gruvbox_dark_soft", "Gruvbox Dark Soft"),
+        new TemaDefinicion("high_contrast", "High Contrast"),
+        new TemaDefinicion("material_darker", "Material Darker"),
+        new TemaDefinicion("material_deep_ocean", "Material Deep Ocean"),
+        new TemaDefinicion("material_oceanic", "Material Oceanic"),
+        new TemaDefinicion("monocai_dark", "Monocai"),
+        new TemaDefinicion("monokai_pro_dark", "Monokai Pro"),
+        new TemaDefinicion("nord_dark", "Nord"),
+        new TemaDefinicion("one_dark", "One Dark"),
+        new TemaDefinicion("solarized_dark", "Solarized Dark"),
+        new TemaDefinicion("spacegray_dark", "Spacegray"),
+        new TemaDefinicion("vuesion_dark", "Vuesion"),
+        
+        // Temas oscuros con degradados
+        new TemaDefinicion("gradianto_dark_fuchsia", "Gradianto Dark Fuchsia"),
+        new TemaDefinicion("gradianto_deep_ocean", "Gradianto Deep Ocean"),
+        new TemaDefinicion("gradianto_midnight_blue", "Gradianto Midnight Blue"),
+        new TemaDefinicion("gradianto_nature_green", "Gradianto Nature Green"),
+        
+        // --- TEMA PERSONALIZADO ---
+        new TemaDefinicion("purpura_misterioso", "Púrpura Misterioso")
     );
+    
     // --- Fin de la Definición de Temas ---
-    
-    
     
 } // ---FIN de la clase UIDefinitionService
 

@@ -21,7 +21,6 @@ import javax.swing.border.Border;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import modelo.VisorModel;
 import servicios.image.ThumbnailService;
 import vista.theme.Tema;
@@ -35,7 +34,7 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
 	 */
 	private static final long serialVersionUID = 1L;
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(MiniaturaListCellRenderer.class);
 	
     // --- Dependencias y estado interno (inmutables) ---
     private final JLabel etiquetaIcono;

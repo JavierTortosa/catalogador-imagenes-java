@@ -7,7 +7,6 @@ import javax.swing.AbstractAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.managers.CarouselManager;
 import modelo.VisorModel;
 
@@ -17,7 +16,7 @@ import modelo.VisorModel;
  */
 public class SetCarouselSpeedAction extends AbstractAction {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(SetCarouselSpeedAction.class);
 
     /**
 	 * 

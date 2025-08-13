@@ -10,7 +10,6 @@ import javax.swing.DefaultListModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import modelo.VisorModel.DisplayMode;
 
 
@@ -20,7 +19,7 @@ import modelo.VisorModel.DisplayMode;
  */
 public class ListContext {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ListContext.class);
 
     // --- Campos de Estado del Contexto ---
     private DefaultListModel<String> modeloLista;

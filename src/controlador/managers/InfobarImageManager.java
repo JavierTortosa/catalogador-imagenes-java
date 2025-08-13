@@ -1,6 +1,5 @@
 package controlador.managers;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -17,7 +16,6 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -34,7 +32,7 @@ import vista.theme.ThemeChangeListener;
  */
 public class InfobarImageManager implements ThemeChangeListener{
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(InfobarImageManager.class);
 	
     // --- Dependencias Clave ---
     private final VisorModel model;

@@ -11,13 +11,12 @@ import javax.swing.JCheckBoxMenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import servicios.ConfigurationManager;
-import vista.VisorView; // Dependencia directa
+import vista.VisorView; 
 
 public class ToggleMiniatureTextAction extends AbstractAction {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class); 
+	private static final Logger logger = LoggerFactory.getLogger(ToggleMiniatureTextAction.class); 
 
     private static final long serialVersionUID = 1L;
 
@@ -72,7 +71,7 @@ public class ToggleMiniatureTextAction extends AbstractAction {
             return;
         }
 
-     // 1. Obtener el estado directamente del componente que disparó el evento.
+        // 1. Obtener el estado directamente del componente que disparó el evento.
         //    Esto es 100% fiable porque leemos el estado DESPUÉS de que el usuario ha hecho clic.
         boolean nuevoEstadoMostrarTexto = false;
         if (e.getSource() instanceof JCheckBoxMenuItem) {
@@ -99,6 +98,6 @@ public class ToggleMiniatureTextAction extends AbstractAction {
         viewRef.solicitarRefrescoRenderersMiniaturas(); 
         System.out.println("  -> Llamada a viewRef.solicitarRefrescoRenderersMiniaturas() realizada.");
         
-        // <<-- FIN DE LA LÓGICA CORREGIDA -->>
     } // --- FIN del metodo actionPerformed ---
+    
 } // FIN de la clase ToggleMiniatureTextAction ---

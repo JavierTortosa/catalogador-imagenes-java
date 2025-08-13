@@ -15,15 +15,13 @@ import javax.swing.JComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
-
 /**
  * Un registro centralizado para almacenar y acceder a todos los componentes
  * de la UI de la aplicación.
  */
 public class ComponentRegistry {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ComponentRegistry.class);
 	
     /**
      * El mapa que almacena los componentes.

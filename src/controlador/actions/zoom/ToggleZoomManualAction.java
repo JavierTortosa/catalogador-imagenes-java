@@ -2,6 +2,7 @@ package controlador.actions.zoom;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
@@ -9,14 +10,13 @@ import javax.swing.Icon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.managers.interfaces.IZoomManager;
 import modelo.VisorModel;
 
 public class ToggleZoomManualAction extends AbstractAction {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ToggleZoomManualAction.class);
 	
     private static final long serialVersionUID = 1L;
 
@@ -44,7 +44,7 @@ public class ToggleZoomManualAction extends AbstractAction {
 
         logger.debug("[ToggleZoomManualAction] Solicitando al controlador que alterne el modo de paneo...");
         
-        // Simplemente llamamos a un método en el VisorController que se encargará de TODO.
+        // Simplemente llamamos a un método en el VisorController que se encargará de todo.
         // Este método es el que ya tienes: solicitarTogglePaneo()
         // (O un nombre similar si lo cambiaste).
         visorController.solicitarTogglePaneo(); 

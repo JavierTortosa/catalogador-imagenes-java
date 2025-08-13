@@ -741,9 +741,9 @@ public class ActionFactory {
     } // --- Fin del método createToggleToolBarAction ---
       
     
-    private Action createToggleFileListAction() {
-        return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.viewManager, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-    } // --- Fin del método createToggleFileListAction ---
+	    private Action createToggleFileListAction() {
+	        return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.viewManager, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+	    } // --- Fin del método createToggleFileListAction ---
     
     
     private Action createToggleThumbnailsAction() {

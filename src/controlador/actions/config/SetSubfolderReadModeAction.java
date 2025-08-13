@@ -2,6 +2,7 @@ package controlador.actions.config;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -9,13 +10,12 @@ import javax.swing.ImageIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.GeneralController;
 import modelo.VisorModel;
 
 public class SetSubfolderReadModeAction extends AbstractAction {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(SetSubfolderReadModeAction.class);
 	
     private static final long serialVersionUID = 1L; 
 

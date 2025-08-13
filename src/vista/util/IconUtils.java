@@ -1,27 +1,26 @@
 package vista.util; 
 
 import java.awt.AlphaComposite;
-import java.awt.Color; 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.net.URL;
 import java.util.Objects;
 
-import javax.swing.Icon; 
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
-import vista.components.icons.ColorOverlayIcon; 
+import vista.components.icons.ColorOverlayIcon;
 import vista.theme.Tema;
 import vista.theme.ThemeManager;
 
 public class IconUtils {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(IconUtils.class);
 
     private final ThemeManager themeManager;
 

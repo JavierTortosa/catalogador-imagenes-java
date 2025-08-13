@@ -20,12 +20,11 @@ import javax.swing.JOptionPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.managers.interfaces.IProjectManager;
 
 public class ProjectManager implements IProjectManager {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ProjectManager.class);
 	
 	// === 1. DEFINIMOS LA REGLA DE ORDENACIÓN UNA SOLA VEZ ===
     private static final Comparator<Path> CASE_INSENSITIVE_PATH_COMPARATOR = 

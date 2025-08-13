@@ -10,7 +10,6 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.ListCoordinator;
 import controlador.VisorController;
 import controlador.managers.interfaces.IViewManager;
@@ -27,7 +26,7 @@ import vista.panels.ImageDisplayPanel;
  */
 public class ZoomManager implements IZoomManager {
 
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ZoomManager.class);
 	
     // --- Dependencias ---
     private VisorModel model;

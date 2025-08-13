@@ -15,9 +15,8 @@ import javax.swing.ImageIcon;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
-import servicios.ConfigKeys; 
-import servicios.ConfigurationManager; 
+import servicios.ConfigKeys;
+import servicios.ConfigurationManager;
 import servicios.cache.LruCache; 
 
 /**
@@ -26,7 +25,7 @@ import servicios.cache.LruCache;
  */
 public class ThumbnailService {
 	
-	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
+	private static final Logger logger = LoggerFactory.getLogger(ThumbnailService.class);
 
     private final Map<String, ImageIcon> mapaMiniaturasCacheadas; 
 
