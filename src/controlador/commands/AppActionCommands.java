@@ -30,6 +30,11 @@ public interface AppActionCommands {
     public static final String CMD_NAV_BUSCAR 						= "cmd.nav.buscar"; 
     
     
+ // --- Árbol de Carpetas ---
+    public static final String CMD_TREE_OPEN_FOLDER                 = "cmd.tree.open_folder";
+    public static final String CMD_TREE_DRILL_DOWN_FOLDER           = "cmd.tree.drill_down_folder";
+    
+    
  // Comandos para navegación por fotogramas (si son Actions separadas)
 //    public static final String CMD_CAROUSEL_NAV_PRIMERA 		= "cmd.carousel.nav.primera";
 //    public static final String CMD_CAROUSEL_NAV_ANTERIOR 		= "cmd.carousel.nav.anterior";
@@ -48,6 +53,14 @@ public interface AppActionCommands {
     public static final String CMD_CAROUSEL_SPEED_RESET     		= "cmd.carousel.speed.reset";
     public static final String CMD_CAROUSEL_SET_SPEED_PREFIX 		= "cmd.carousel.speed.set_";
     public static final String CMD_CAROUSEL_TOGGLE_SHUFFLE 			= "cmd.carousel.toggle.shuffle";
+    
+    
+    //Comandos para la barra de orden
+    public static final String CMD_ORDEN_CARPETA_RAIZ				= "cmd.orden.carpeta_raiz";
+    public static final String CMD_ORDEN_CARPETA_ANTERIOR			= "cmd.orden.carpeta_anterior";
+    public static final String CMD_ORDEN_CARPETA_SIGUIENTE			= "cmd.orden.carpeta_siguiente";
+    public static final String CMD_ORDEN_ORDEN_ASCENDENTE			= "cmd.orden.ascendente";
+    public static final String CMD_ORDEN_ORDEN_DESCENDENTE			= "cmd.orden.descentende";
 
  // --- Syncro ---
 //    public static final String CMD_SYNC_TOGGLE					= "cmd.sync.toggle";

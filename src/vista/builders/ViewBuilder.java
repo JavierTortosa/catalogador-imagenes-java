@@ -31,8 +31,8 @@ import javax.swing.border.TitledBorder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.managers.ToolbarManager;
+import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -63,6 +63,7 @@ public class ViewBuilder{
     private Map<String, Action> actionMap;
     private ToolbarManager toolbarManager;
 
+    private FolderTreeManager folderTreeManager;
     
     public ViewBuilder(
             ComponentRegistry registry,
@@ -413,25 +414,137 @@ public class ViewBuilder{
         return splitPane;
     } // --- Fin del método createMainSplitPane ---
     
-
+    
     private JPanel createLeftSplitComponent() {
-        JPanel panelIzquierdo = new JPanel(new BorderLayout());
-        TitledBorder border = BorderFactory.createTitledBorder("Archivos: 0");
-        panelIzquierdo.setBorder(border);
-        registry.register("panel.izquierdo.listaArchivos", panelIzquierdo);
+        JPanel panelListaArchivos = new JPanel(new BorderLayout());
+        TitledBorder borderLista = BorderFactory.createTitledBorder("Archivos: 0");
+        panelListaArchivos.setBorder(borderLista);
+        registry.register("panel.izquierdo.listaArchivos", panelListaArchivos);
 
         JList<String> fileList = new JList<>(model.getModeloLista());
         fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
         registry.register("list.nombresArchivo", fileList, "WHEEL_NAVIGABLE");
 
-        JScrollPane scrollPane = new JScrollPane(fileList);
-        registry.register("scroll.nombresArchivo", scrollPane);
+        JScrollPane scrollPaneLista = new JScrollPane(fileList);
+        registry.register("scroll.nombresArchivo", scrollPaneLista);
+        panelListaArchivos.add(scrollPaneLista, BorderLayout.CENTER);
+        
+        JToolBar ordenToolbar = toolbarManager.getToolbar("botonesOrdenLista");
+        if (ordenToolbar != null) {
+            ordenToolbar.setFloatable(false);
+            ordenToolbar.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+            panelListaArchivos.add(ordenToolbar, BorderLayout.NORTH);
+        }
 
-        panelIzquierdo.add(scrollPane, BorderLayout.CENTER);
-        return panelIzquierdo;
+        javax.swing.JTabbedPane tabbedPaneIzquierdo = new javax.swing.JTabbedPane();
+        registry.register("tabbedpane.izquierdo", tabbedPaneIzquierdo);
+
+        tabbedPaneIzquierdo.addTab("Lista", panelListaArchivos);
+        
+        if (this.folderTreeManager != null) {
+            JPanel panelArbol = this.folderTreeManager.crearPanelDelArbol();
+            tabbedPaneIzquierdo.addTab("Carpetas", panelArbol);
+        } else {
+            logger.error("[ViewBuilder] FolderTreeManager es nulo. No se puede construir la pestaña de carpetas.");
+            JPanel panelError = new JPanel();
+            panelError.add(new JLabel("Error al crear vista de árbol"));
+            tabbedPaneIzquierdo.addTab("Carpetas", panelError);
+        }
+        
+        JPanel panelIzquierdoContenedor = new JPanel(new BorderLayout());
+        panelIzquierdoContenedor.add(tabbedPaneIzquierdo, BorderLayout.CENTER);
+
+        return panelIzquierdoContenedor;
         
     } // --- Fin del método createLeftSplitComponent ---
+    
+
+//    private JPanel createLeftSplitComponent() {
+//        // --- Panel para la PESTAÑA "LISTA" (Este es tu código original) ---
+//        JPanel panelListaArchivos = new JPanel(new BorderLayout());
+//        TitledBorder borderLista = BorderFactory.createTitledBorder("Archivos: 0");
+//        panelListaArchivos.setBorder(borderLista);
+//        // Registramos el panel interior para que el título se pueda seguir actualizando.
+//        registry.register("panel.izquierdo.listaArchivos", panelListaArchivos);
+//
+//        JList<String> fileList = new JList<>(model.getModeloLista());
+//        fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//        fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
+//        registry.register("list.nombresArchivo", fileList, "WHEEL_NAVIGABLE");
+//
+//        JScrollPane scrollPaneLista = new JScrollPane(fileList);
+//        registry.register("scroll.nombresArchivo", scrollPaneLista);
+//
+//        panelListaArchivos.add(scrollPaneLista, BorderLayout.CENTER);
+//        
+//        // <<< INICIO DE LA MODIFICACIÓN >>>
+//        // AHORA creamos el JToolBar para la ordenación
+//        JToolBar ordenToolbar = toolbarManager.getToolbar("botonesOrdenLista");
+//        if (ordenToolbar != null) {
+//            ordenToolbar.setFloatable(false); // No queremos que esta barra flote
+//            ordenToolbar.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+//            // Añadimos la barra de herramientas en la parte superior del panel de la lista.
+//            panelListaArchivos.add(ordenToolbar, BorderLayout.NORTH);
+//        }
+//        // <<< FIN DE LA MODIFICACIÓN >>>
+//
+//        // --- Contenedor principal del panel izquierdo: EL JTABBEDPANE ---
+//        javax.swing.JTabbedPane tabbedPaneIzquierdo = new javax.swing.JTabbedPane();
+//        registry.register("tabbedpane.izquierdo", tabbedPaneIzquierdo);
+//
+//        // Añadimos nuestro panel de lista como la primera pestaña
+//        tabbedPaneIzquierdo.addTab("Lista", panelListaArchivos);
+//        
+//        
+//        
+//        // --- INICIO DE LA MODIFICACIÓN ---
+//        // Aquí es donde añadiremos el JTree usando el FolderTreeManager
+//        if (this.folderTreeManager != null) {
+//            JPanel panelArbol = this.folderTreeManager.crearPanelDelArbol();
+//            tabbedPaneIzquierdo.addTab("Carpetas", panelArbol);
+//        } else {
+//            // Fallback por si el manager no ha sido inyectado (no debería ocurrir)
+//            logger.error("[ViewBuilder] FolderTreeManager es nulo. No se puede construir la pestaña de carpetas.");
+//            JPanel panelError = new JPanel();
+//            panelError.add(new JLabel("Error al crear vista de árbol"));
+//            tabbedPaneIzquierdo.addTab("Carpetas", panelError);
+//        }
+//        // --- FIN DE LA MODIFICACIÓN ---
+//        
+//        
+//        
+//        
+//        // --- Panel envoltorio final ---
+//        // El JSplitPane contendrá este panel, que a su vez contiene el JTabbedPane.
+//        // Esto nos da flexibilidad para añadir más cosas si es necesario.
+//        JPanel panelIzquierdoContenedor = new JPanel(new BorderLayout());
+//        panelIzquierdoContenedor.add(tabbedPaneIzquierdo, BorderLayout.CENTER);
+//
+//        // Devolvemos el contenedor con el JTabbedPane, no el panel de la lista.
+//        return panelIzquierdoContenedor;
+//        
+//    } // --- Fin del método createLeftSplitComponent ---
+    
+    
+//    private JPanel createLeftSplitComponent() {
+//        JPanel panelIzquierdo = new JPanel(new BorderLayout());
+//        TitledBorder border = BorderFactory.createTitledBorder("Archivos: 0");
+//        panelIzquierdo.setBorder(border);
+//        registry.register("panel.izquierdo.listaArchivos", panelIzquierdo);
+//
+//        JList<String> fileList = new JList<>(model.getModeloLista());
+//        fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//        fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
+//        registry.register("list.nombresArchivo", fileList, "WHEEL_NAVIGABLE");
+//
+//        JScrollPane scrollPane = new JScrollPane(fileList);
+//        registry.register("scroll.nombresArchivo", scrollPane);
+//
+//        panelIzquierdo.add(scrollPane, BorderLayout.CENTER);
+//        return panelIzquierdo;
+//        
+//    } // --- Fin del método createLeftSplitComponent ---
     
     
     private JPanel createRightSplitComponent() {
@@ -725,6 +838,9 @@ public class ViewBuilder{
         this.actionMap = Objects.requireNonNull(actionMap, "ActionMap no puede ser nulo en ViewBuilder");
     }
     
+    public void setFolderTreeManager(FolderTreeManager folderTreeManager) {
+        this.folderTreeManager = Objects.requireNonNull(folderTreeManager, "FolderTreeManager no puede ser null en ViewBuilder.");
+    } // --- Fin del método setFolderTreeManager ---
     
 } // --- FIN de la clase ViewBuilder ---
 

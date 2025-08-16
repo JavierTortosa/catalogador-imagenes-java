@@ -22,7 +22,9 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
@@ -36,9 +38,11 @@ import controlador.interfaces.IModoController;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
+import controlador.managers.FolderNavigationManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager; // <-- Importación necesaria
 import controlador.managers.ViewManager;
+import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry; // <-- NUEVO: Importación para ComponentRegistry
 import modelo.ListContext;
 import modelo.VisorModel;
@@ -69,15 +73,14 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private ConfigApplicationManager configAppManager;
     private ToolbarManager toolbarManager;
     private ComponentRegistry registry; // <-- NUEVO: Referencia al ComponentRegistry
-    
     private int lastMouseX, lastMouseY;
-    
     private DisplayModeManager displayModeManager; 
     private ConfigurationManager configuration;
-
+    private FolderNavigationManager folderNavManager;
+    
+    private FolderTreeManager folderTreeManager;
     
     private volatile boolean isChangingSubfolderMode = false;
-    
     
     /**
      * Constructor de GeneralController.
@@ -402,53 +405,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         
         logger.debug("  [GeneralController] Estado de la UI actualizado.");
     } // --- Fin del método actualizarEstadoUiParaModo ---
-    
-    
-//    public void setFileListPanelVisible(boolean visible) {
-//        // 1. Obtener la acción del mapa
-//        Action toggleAction = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-//        if (toggleAction == null) {
-//            logger.warn("No se pudo encontrar la acción para la lista de archivos. No se puede cambiar la visibilidad.");
-//            return;
-//        }
-//
-//        // 2. Obtener la clave de configuración de la acción.
-//        //    Esto es una suposición. Si no puedes obtenerla, tendrás que "hardcodearla" aquí,
-//        //    que es lo que hace tu acción de todos modos.
-//        String configKey = "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado";
-//        
-//        // ---------------------------------------------------------------
-//        // INICIO DE LA LÓGICA CENTRALIZADA
-//        // ---------------------------------------------------------------
-//        
-//        // a. Actualizar el estado de la Action para que el checkbox del menú se sincronice
-//        toggleAction.putValue(Action.SELECTED_KEY, visible);
-//        
-//        // b. Guardar el nuevo estado en la configuración
-//        configuration.setString(configKey, String.valueOf(visible));
-//
-//        // c. Llamar al ViewManager para que haga el cambio visual
-//        //    Esto asume que el ViewManager tiene el método que hace el cambio en el JSplitPane.
-//        //    El método solicitarActualizacionUI parece más para un patrón general, pero si funciona, úsalo.
-//        //    Lo más probable es que necesites un método más directo en ViewManager.
-//        
-//        // OPCIÓN A: Si tienes un método directo
-//        // viewManager.updateFileListVisibility(visible); 
-//
-//        // OPCIÓN B: Usando el método que has mostrado
-//        viewManager.solicitarActualizacionUI(
-//            "mostrar_ocultar_la_lista_de_archivos", // El ID que espera
-//            configKey,
-//            visible
-//        );
-//
-//        // ---------------------------------------------------------------
-//        // FIN DE LA LÓGICA CENTRALIZADA
-//        // ---------------------------------------------------------------
-//
-//        logger.debug("Visibilidad del panel de lista establecida explícitamente a: " + visible);
-//        
-//    } // --- FIN del metodo setFileListPanelVisible ---
     
     
     @Override
@@ -1364,45 +1320,96 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     
     /**
-     * Orquesta la carga de una nueva carpeta raíz seleccionada por el usuario.
-     * Este es el punto de entrada para el selector de carpetas, asegurando que la
-     * lógica de carga sea la correcta y no la de un simple toggle.
-     *
+     * Punto de entrada principal para cargar una nueva carpeta sin una preselección específica.
+     * Delega a la versión más completa del método pasando null como clave a seleccionar.
      * @param nuevaCarpeta La nueva carpeta raíz a visualizar.
      */
     public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta) {
-        logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
+        solicitarCargaDesdeNuevaRaiz(nuevaCarpeta, null);
+    } // --- Fin del método solicitarCargaDesdeNuevaRaiz (simple) ---
+
+    /**
+     * Orquesta la carga de una nueva carpeta raíz, con la opción de intentar
+     * preseleccionar un archivo o subcarpeta específico dentro de ella.
+     * Este es el método central que maneja la lógica de recarga.
+     *
+     * @param nuevaCarpeta La nueva carpeta raíz a visualizar.
+     * @param claveASeleccionar (Opcional) La clave (nombre de archivo/subcarpeta) que se intentará
+     *                          seleccionar después de la carga. Puede ser null.
+     */
+    public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta, String claveASeleccionar) {
+        logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta + ", preseleccionar: " + claveASeleccionar);
         if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) {
             logger.warn("  -> La nueva carpeta es inválida o nula. Abortando.");
             return;
         }
         
-        // 1. Validar dependencias
         if (model == null || visorController == null || displayModeManager == null) {
             logger.error("  -> ERROR: Dependencias críticas (model, visorController, displayModeManager) nulas. Abortando.");
             return;
         }
 
-        // 2. Actualizar la carpeta raíz del contexto actual en el modelo.
-        //    Esta es la nueva "base" para futuras operaciones.
         model.setCarpetaRaizActual(nuevaCarpeta);
 
-        // 3. Definir la acción de sincronización que se ejecutará DESPUÉS de la carga.
-        //    Es similar a la del toggle, pero nos aseguramos de que todo quede coherente.
+        if (this.folderTreeManager != null) {
+            this.folderTreeManager.sincronizarArbolConCarpeta(nuevaCarpeta);
+        }
+
         Runnable accionPostCarga = () -> {
-            logger.debug("  [Callback Post-Carga de Nueva Raíz] Tarea de carga finalizada. Ejecutando sincronización...");
+            logger.debug("  [Callback Post-Carga de Nueva Raiz] Tarea de carga finalizada. Ejecutando sincronización...");
             this.sincronizarTodaLaUIConElModelo();
             displayModeManager.poblarYSincronizarGrid();
             logger.debug("  [Callback Post-Carga de Nueva Raíz] Sincronización finalizada.");
         };
 
-        // 4. Llamar al método de carga de bajo nivel en VisorController.
-        //    Pasamos 'null' como clave a mantener para que la lógica de "entrar en subcarpeta"
-        //    no se active y se seleccione la primera imagen de la nueva lista.
         logger.debug("  -> Delegando a VisorController la tarea de recargar la lista de imágenes desde la nueva raíz...");
-        visorController.cargarListaImagenes(null, accionPostCarga);
+        visorController.cargarListaImagenes(claveASeleccionar, accionPostCarga);
         
-    } // --- FIN del metodo solicitarCargaDesdeNuevaRaiz ---
+    } // --- Fin del método solicitarCargaDesdeNuevaRaiz (con preselección) ---
+    
+    
+    
+    
+//    /**
+//     * Orquesta la carga de una nueva carpeta raíz seleccionada por el usuario.
+//     * Este es el punto de entrada para el selector de carpetas, asegurando que la
+//     * lógica de carga sea la correcta y no la de un simple toggle.
+//     *
+//     * @param nuevaCarpeta La nueva carpeta raíz a visualizar.
+//     */
+//    public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta) {
+//        logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
+//        if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) {
+//            logger.warn("  -> La nueva carpeta es inválida o nula. Abortando.");
+//            return;
+//        }
+//        
+//        // 1. Validar dependencias
+//        if (model == null || visorController == null || displayModeManager == null) {
+//            logger.error("  -> ERROR: Dependencias críticas (model, visorController, displayModeManager) nulas. Abortando.");
+//            return;
+//        }
+//
+//        // 2. Actualizar la carpeta raíz del contexto actual en el modelo.
+//        //    Esta es la nueva "base" para futuras operaciones.
+//        model.setCarpetaRaizActual(nuevaCarpeta);
+//
+//        // 3. Definir la acción de sincronización que se ejecutará DESPUÉS de la carga.
+//        //    Es similar a la del toggle, pero nos aseguramos de que todo quede coherente.
+//        Runnable accionPostCarga = () -> {
+//            logger.debug("  [Callback Post-Carga de Nueva Raíz] Tarea de carga finalizada. Ejecutando sincronización...");
+//            this.sincronizarTodaLaUIConElModelo();
+//            displayModeManager.poblarYSincronizarGrid();
+//            logger.debug("  [Callback Post-Carga de Nueva Raíz] Sincronización finalizada.");
+//        };
+//
+//        // 4. Llamar al método de carga de bajo nivel en VisorController.
+//        //    Pasamos 'null' como clave a mantener para que la lógica de "entrar en subcarpeta"
+//        //    no se active y se seleccione la primera imagen de la nueva lista.
+//        logger.debug("  -> Delegando a VisorController la tarea de recargar la lista de imágenes desde la nueva raíz...");
+//        visorController.cargarListaImagenes(null, accionPostCarga);
+//        
+//    } // --- FIN del metodo solicitarCargaDesdeNuevaRaiz ---
     
 //  ********************************************************************************** FIN IMPLEMENTACION INTERFAZ IModoController
     
@@ -1465,6 +1472,92 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
     } // --- FIN del metodo solicitarToggleModoCargaSubcarpetas ---
     
+    
+    public JPopupMenu crearMenuContextualParaArbol() {
+        JPopupMenu menu = new JPopupMenu();
+        
+        Action openAction = this.actionMap.get(AppActionCommands.CMD_TREE_OPEN_FOLDER);
+        Action drillDownAction = this.actionMap.get(AppActionCommands.CMD_TREE_DRILL_DOWN_FOLDER);
+        
+        if (openAction != null) {
+            menu.add(new JMenuItem(openAction));
+        }
+        if (drillDownAction != null) {
+            menu.add(new JMenuItem(drillDownAction));
+        }
+        
+        return menu;
+    } // --- Fin del método crearMenuContextualParaArbol ---
+    
+    public void solicitarAbrirCarpetaDesdeArbol() {
+        if (folderTreeManager != null) {
+            folderTreeManager.handleOpenFolderAction();
+        }
+    } // --- Fin del método solicitarAbrirCarpetaDesdeArbol ---
+
+    public void solicitarEntrarEnCarpetaDesdeArbol() {
+        if (folderTreeManager != null) {
+            folderTreeManager.handleDrillDownFolderAction();
+        }
+    } // --- Fin del método solicitarEntrarEnCarpetaDesdeArbol ---
+    
+    
+    public void solicitarNavegarCarpetaAnterior() {
+        if (folderNavManager != null) {
+            // Esta llamada ahora es inteligente: usará el historial si puede,
+            // o subirá al padre si no puede.
+            folderNavManager.navegarACarpetaPadre();
+        } else {
+            logger.error("FolderNavigationManager no está inicializado.");
+        }
+    } // --- FIN del metodo solicitarNavegarCarpetaAnterior ---
+    
+    /**
+     * Delega la solicitud de "entrar" en una subcarpeta al FolderNavigationManager.
+     * Este método es llamado por la Action correspondiente.
+     */
+    public void solicitarNavegarCarpetaSiguiente() {
+        if (folderNavManager != null) {
+            folderNavManager.entrarEnSubcarpeta();
+        } else {
+            logger.error("[GeneralController] FolderNavigationManager no está inicializado. No se puede entrar en subcarpeta.");
+        }
+    } // --- Fin del método solicitarNavegarCarpetaSiguiente ---
+
+    /**
+     * Delega la solicitud de volver a la carpeta raíz al FolderNavigationManager.
+     * Este método es llamado por la Action correspondiente.
+     */
+    public void solicitarNavegarCarpetaRaiz() {
+        if (folderNavManager != null) {
+            folderNavManager.volverACarpetaRaiz();
+        } else {
+            logger.error("[GeneralController] FolderNavigationManager no está inicializado. No se puede volver a la raíz.");
+        }
+    } // --- Fin del método solicitarNavegarCarpetaRaiz ---
+    
+    
+    public void setFolderNavigationManager(FolderNavigationManager folderNavManager) {
+        this.folderNavManager = Objects.requireNonNull(folderNavManager);
+    } // --- FIN del metodo setFolderNavigationManager ---
+    
+    public void solicitarSalirDeSubcarpeta() {
+        if (folderNavManager != null) {
+            folderNavManager.salirDeSubcarpetaConHistorial();
+        } else {
+            logger.error("[GeneralController] FolderNavigationManager no está inicializado.");
+        }
+    }// --- FIN del metodo solicitarSalirDeSubcarpeta ---
+
+    
+    public void setFolderTreeManager(FolderTreeManager folderTreeManager) {
+        this.folderTreeManager = Objects.requireNonNull(folderTreeManager);
+    } // --- FIN del metodo setFolderTreeManager ---
+    
+    
+    public ComponentRegistry getRegistry() {
+        return this.registry;
+    }
     
 } // --- Fin de la clase GeneralController ---
 

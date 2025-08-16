@@ -227,29 +227,19 @@ public class ProjectController implements IModoController {
             return;
         }
 
-        // --- LÓGICA DE VISUALIZACIÓN DIRECTA ---
-        
-        // 1. Obtener la lista de imágenes seleccionadas YA ORDENADA desde el ProjectManager.
+        // --- LÓGICA DE VISUALIZACIÓN DIRECTA (sin cambios) ---
         List<Path> imagenesMarcadas = projectManager.getImagenesMarcadas();
-        
-        // 2. Crear un nuevo modelo de lista para la UI.
         DefaultListModel<String> modeloSeleccion = new DefaultListModel<>();
-        
-        // 3. Poblar el modelo de la UI con las claves de la lista ordenada.
         for (Path p : imagenesMarcadas) {
             modeloSeleccion.addElement(p.toString().replace("\\", "/"));
         }
-        
-        // 4. Asignar este modelo a la JList de la selección.
         JList<String> projectList = registry.get("list.proyecto.nombres");
         if (projectList != null) {
             projectList.setModel(modeloSeleccion);
         }
-        
-        // 5. Llamar al método para poblar la lista de descartes, que seguirá la misma lógica.
         poblarListaDescartes();
 
-        // --- RESTAURACIÓN DE LA SELECCIÓN ANTERIOR (Esta parte no cambia) ---
+        // --- RESTAURACIÓN DE LA SELECCIÓN ANTERIOR (sin cambios) ---
         String claveParaMostrar = null;
         String focoActual = model.getProyectoListContext().getNombreListaActiva();
         JList<String> descartesList = registry.get("list.proyecto.descartes");
@@ -271,19 +261,41 @@ public class ProjectController implements IModoController {
         
         projectListCoordinator.seleccionarImagenPorClave(claveParaMostrar);
 
-        // --- AJUSTES FINALES DE LA UI (Esta parte no cambia) ---
+        // --- AJUSTES FINALES DE LA UI ---
         SwingUtilities.invokeLater(() -> {
             actualizarAparienciaListasPorFoco();
             final JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
             if (leftSplit != null) leftSplit.setDividerLocation(0.55);
             final JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
             if (mainSplit != null) mainSplit.setDividerLocation(0.25);
+            
+            // <<< INICIO DE LA SOLUCIÓN >>>
+            logger.debug("  -> Solicitando foco para la lista activa del proyecto...");
+            
+            // 1. Determinar cuál es la lista activa a partir del modelo.
+            String listaActiva = model.getProyectoListContext().getNombreListaActiva();
+            JList<String> listaParaEnfocar = null;
+
+            if ("seleccion".equals(listaActiva)) {
+                listaParaEnfocar = registry.get("list.proyecto.nombres");
+            } else if ("descartes".equals(listaActiva)) {
+                listaParaEnfocar = registry.get("list.proyecto.descartes");
+            }
+
+            // 2. Si encontramos la lista, le damos el foco.
+            if (listaParaEnfocar != null) {
+                // requestFocusInWindow() es la forma recomendada de pedir el foco.
+                boolean focusRequested = listaParaEnfocar.requestFocusInWindow();
+                logger.debug("    -> Foco solicitado para '" + listaActiva + "'. ¿Éxito?: " + focusRequested);
+            } else {
+                logger.warn("    -> No se pudo encontrar la JList activa ('" + listaActiva + "') para darle el foco.");
+            }
+            // <<< FIN DE LA SOLUCIÓN >>>
+
             logger.debug("  [ProjectController] UI de la vista de proyecto activada y restaurada.");
         });
         
     } // --- Fin del método activarVistaProyecto ---
-    
-    
     
     
     @Override
@@ -518,7 +530,6 @@ public class ProjectController implements IModoController {
             JOptionPane.showMessageDialog(view, "No hay archivos válidos seleccionados en la cola para exportar.", "Exportación Vacía", JOptionPane.WARNING_MESSAGE);
             return;
         }
-//        ExportProgressDialog dialogo = new ExportProgressDialog(view);
         
         TaskProgressDialog dialogo = new TaskProgressDialog(
         	    view, 
@@ -527,9 +538,6 @@ public class ProjectController implements IModoController {
         	);
         //El worker ahora se crea con la referencia al TaskProgressDialog
         ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo);
-        
-//        TaskProgressDialog dialogo = new TaskProgressDialog(view);
-//        ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo);
         
         worker.addPropertyChangeListener(evt -> {
             if ("progress".equals(evt.getPropertyName())) {

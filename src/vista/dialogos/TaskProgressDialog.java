@@ -31,6 +31,7 @@ public class TaskProgressDialog extends JDialog {
         super(parent, windowTitle, true);
         initComponents(initialMessage);
         pack();
+        setSize(530, 150);
         setLocationRelativeTo(parent);
         setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);
         setResizable(false);

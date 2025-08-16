@@ -62,8 +62,6 @@ public class VisorV2 {
 		//TODO importar un txt que contenga ruta/nombre y poder añadir ese txt o crear nuevo proyecto con base a ese txt
 		//TODO hacer que la lista de imagenes cargada pueda copiar las imagenes al portapapeles para enviar por whatsapp por ej....
 		//FIXME la lista de imagenes cargadas no oculta la ruta y solo copia al portapapeles los archivos con la ruta
-		//FIXME cuando entramos en proyecto no esta activo el selector de imagen
-		//FIXME la barra de progreso de carga de imagenes no es la misma que cuando exporta proyecto. la segunda es mejor
 
 
 

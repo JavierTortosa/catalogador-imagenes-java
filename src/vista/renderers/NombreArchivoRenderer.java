@@ -6,7 +6,8 @@ import java.nio.file.Paths;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
 
-import modelo.VisorModel; 
+import modelo.VisorModel;
+import vista.theme.Tema;
 import vista.theme.ThemeManager;
 
 /**
@@ -53,6 +54,33 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
     } // --- Fin del método NombreArchivoRenderer (constructor de conveniencia) ---
 
     
+//    @Override
+//    public Component getListCellRendererComponent(
+//            JList<?> list, 
+//            Object value, 
+//            int index, 
+//            boolean isSelected, 
+//            boolean cellHasFocus) 
+//    {
+//    	
+//    	Tema temaActual = this.themeManager.getTemaActual();
+//    	
+//        // Llamar a super se encarga de los colores de fondo y selección estándar
+////        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+//
+//        // Solo nos preocupamos de establecer el texto del archivo
+//        if (value != null) {
+//            try {
+//                setText(Paths.get(value.toString()).getFileName().toString());
+//            } catch (Exception e) {
+//                setText(value.toString());
+//            }
+//        } else {
+//            setText("");
+//        }
+//        
+//        return this;
+    
     @Override
     public Component getListCellRendererComponent(
             JList<?> list, 
@@ -61,10 +89,7 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
             boolean isSelected, 
             boolean cellHasFocus) 
     {
-        // Llamar a super se encarga de los colores de fondo y selección estándar
-        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
-        // Solo nos preocupamos de establecer el texto del archivo
+        // 1. Establecer el texto de la celda (tu lógica original)
         if (value != null) {
             try {
                 setText(Paths.get(value.toString()).getFileName().toString());
@@ -75,7 +100,33 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
             setText("");
         }
         
+        // 2. Obtener el tema actual desde tu ThemeManager
+        Tema temaActual = this.themeManager.getTemaActual();
+
+        // 3. Aplicar colores basándose en si la celda está seleccionada o no
+        if (isSelected) {
+            // --- CELDA SELECCIONADA ---
+            // Usa los colores de selección de tu tema. ¡Esto arreglará el selector invisible!
+            setBackground(temaActual.colorSeleccionFondo());
+            setForeground(temaActual.colorSeleccionTexto());
+        } else {
+            // --- CELDA NO SELECCIONADA ---
+            // Usa los colores normales de tu tema
+            setBackground(temaActual.colorFondoPrincipal());
+            setForeground(temaActual.colorTextoPrimario());
+        }
+
+        // 4. Gestionar el borde del foco para accesibilidad
+        if (cellHasFocus) {
+            // Usa el borde estándar de Swing para indicar el foco
+            setBorder(javax.swing.UIManager.getBorder("List.focusCellHighlightBorder"));
+        } else {
+            // Usa el borde vacío que ya tenías definido para celdas sin foco
+            setBorder(noFocusBorder); 
+        }
+        
         return this;
+    
     } // --- Fin del método getListCellRendererComponent ---
 
 } // --- Fin de la clase NombreArchivoRenderer ---

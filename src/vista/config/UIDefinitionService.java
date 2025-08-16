@@ -695,6 +695,20 @@ public class UIDefinitionService {
 	        );
 		
 		
+		// --- BARRA DE ORDEN
+		List<ToolbarComponentDefinition> botonesOrdenLista = List.of(
+				
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_RAIZ,			"30001-carpeta_raiz.png", "Carpeta Raiz", "orden_lista")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_ANTERIOR,		"30002-subir_carpeta.png", "Subir Subcarpeta", "orden_lista")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_SIGUIENTE,		"30003-bajar_carpeta.png", "Entrar en Subcarpeta", "orden_lista")
+			,new SeparatorDefinition()
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_ORDEN_ASCENDENTE,		"30004-orden_ascendente.png", "Orden Ascendente", "orden_lista")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_ORDEN_DESCENDENTE,		"30005-orden_descendente.png", "Orden Descendente", "orden_lista")
+			,new SeparatorDefinition()
+			,new TextFieldDefinition("textfield.filtro.orden", "Texto a buscar...")							
+		);
+
+		
 		// --- BARRA DE BOTONES orden ---
 		// boton de on/off, acendente/descendente, nombre, tamaño, fecha, tags...
 		
@@ -792,7 +806,8 @@ public class UIDefinitionService {
         	    // Barras especiales
         	    new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 	500, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesExportacion), ToolbarAlignment.FREE),
         	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	510, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.FREE),
-        	    new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 		600, EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE)
+        	    new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 		600, EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE),
+        	    new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 				700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, ToolbarAlignment.FREE)
         	);
         
         

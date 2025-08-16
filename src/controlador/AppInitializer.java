@@ -19,6 +19,7 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
@@ -26,11 +27,13 @@ import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager;
+import controlador.managers.FolderNavigationManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
+import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -79,6 +82,9 @@ public class AppInitializer {
 	private BackgroundControlManager backgroundControlManager;
 	private CarouselManager carouselManager;
 	private DisplayModeManager displayModeManager;
+	private FolderNavigationManager folderNavManager;
+	private FolderTreeManager folderTreeManager;
+	
 	
     public AppInitializer(VisorController controller) {
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null en AppInitializer");
@@ -239,6 +245,10 @@ public class AppInitializer {
             
             ComponentRegistry registry = new ComponentRegistry();
             this.generalController = new GeneralController();
+            
+            this.folderNavManager = new FolderNavigationManager(this.model, this.generalController);
+            this.folderTreeManager = new FolderTreeManager(this.model, this.generalController);
+            
             this.zoomManager = new ZoomManager();
             this.editionManager = new EditionManager();
             this.viewManager = new ViewManager();
@@ -310,6 +320,7 @@ public class AppInitializer {
             viewManager.setThemeManager(this.themeManager);
             viewManager.setToolbarManager(this.toolbarManager);
             viewManager.setViewBuilder(viewBuilder);
+            viewBuilder.setFolderTreeManager(this.folderTreeManager);
             
             zoomManager.setModel(this.model);
             zoomManager.setRegistry(registry);
@@ -350,6 +361,9 @@ public class AppInitializer {
             this.generalController.setDisplayModeManager(this.displayModeManager);
             this.generalController.setConfiguration(this.configuration);
             
+            this.generalController.setFolderNavigationManager(this.folderNavManager);
+            this.generalController.setFolderTreeManager(this.folderTreeManager);
+            
             java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.generalController.solicitarCargaDesdeNuevaRaiz(p);
             
             this.fileOperationsManager.setModel(this.model);
@@ -379,6 +393,7 @@ public class AppInitializer {
             // Paso 3.1: Inicializar las Actions que NO dependen de la 'view'.
             this.actionFactory.initializeCoreActions();
             this.actionMap = this.actionFactory.getActionMap();
+            
             
             // Paso 3.2: Inyectar el ActionMap en los builders.
             toolbarBuilder.setActionMap(this.actionMap);
@@ -540,6 +555,21 @@ public class AppInitializer {
                         if (listaNombres != null) { listaNombres.repaint(); }
                         if (this.displayModeManager != null) { this.displayModeManager.poblarYSincronizarGrid(); }
                     }
+                    
+                    if (this.listCoordinator != null) {
+                        logger.debug("    -> [Callback] Forzando actualización final del estado de las acciones.");
+                        this.listCoordinator.forzarActualizacionEstadoAcciones();
+                    }
+                    
+	                // ***** INICIO DE LA MODIFICACIÓN 1 *****
+	                // Sincroniza el árbol de carpetas con la carpeta que se acaba de cargar.
+	                // Esto asegura que al cambiar a la pestaña "Carpetas", el árbol ya esté en la ubicación correcta.
+	                if (this.folderTreeManager != null && this.model.getCarpetaRaizActual() != null) {
+	                    logger.debug("    -> [Callback] Sincronizando el JTree con la carpeta inicial: " + this.model.getCarpetaRaizActual());
+	                    this.folderTreeManager.sincronizarArbolConCarpeta(this.model.getCarpetaRaizActual());
+	                }
+	                // ***** FIN DE LA MODIFICACIÓN 1 *****
+                 
                 };
                 
                 // Decidir si cargar imágenes o simplemente limpiar y sincronizar
@@ -570,6 +600,7 @@ public class AppInitializer {
             manejarErrorFatalInicializacion("[EDT] Error fatal durante la creación de la UI", e);
         }
     } // --- FIN del método crearUIyComponentesDependientesEnEDT ---
+
     
     
     private void manejarErrorFatalInicializacion(String message, Throwable cause) {

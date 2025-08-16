@@ -121,13 +121,6 @@ public class BuscadorArchivosWorker extends SwingWorker<Map<String, Path>, Integ
         }
     } // -- FIN del metodo process --
     
-//    @Override
-//    protected void process(List<Integer> chunks) {
-//        if (!chunks.isEmpty()) {
-//            int ultimoProgreso = chunks.get(chunks.size() - 1);
-//            dialogoProgreso.actualizarContador(ultimoProgreso);
-//        }
-//    } // -- FIN del metodo process --
 
     @Override
     protected void done() {

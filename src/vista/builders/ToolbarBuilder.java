@@ -32,6 +32,7 @@ import vista.config.HotspotDefinition;
 import vista.config.IconScope;
 import vista.config.LabelDefinition;
 import vista.config.SeparatorDefinition;
+import vista.config.TextFieldDefinition;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
 import vista.config.ToolbarDefinition;
@@ -135,7 +136,22 @@ public class ToolbarBuilder {
                     // Si es un separador, añadimos uno
                     toolbar.addSeparator();
                     logger.debug("    -> Separador añadido a la barra.");
+                
+                } else if (compDef instanceof TextFieldDefinition textFieldDef) {
+                    // Si es un campo de texto, lo creamos y lo añadimos
+                    javax.swing.JTextField textField = new javax.swing.JTextField(textFieldDef.textoPorDefecto(), 20); // 20 columnas de ancho
+                    textField.setToolTipText("Filtrar lista por nombre");
+                    
+                    // Lo registramos para poder acceder a él más tarde
+                    registry.register(textFieldDef.comandoCanonico(), textField);
+                    
+                    toolbar.add(textField);
+                    logger.debug("    -> JTextField '" + textFieldDef.comandoCanonico() + "' añadido a la barra.");
+                // <<< FIN DEL CÓDIGO A AÑADIR >>>
+                
                 }
+                
+                
             }
         }
         // ***** FIN DE LA CORRECCIÓN DEL BUCLE *****

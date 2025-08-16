@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Stack;
 
 import javax.swing.DefaultListModel;
 
@@ -37,6 +38,22 @@ public class ListContext {
     private DisplayMode displayMode;
     
     /**
+     * Clase interna inmutable para guardar un estado de navegación en el historial.
+     */
+    public static class NavigationState {
+        public final Path carpetaPadre;
+        public final String claveImagenSeleccionada;
+
+        public NavigationState(Path carpetaPadre, String claveImagenSeleccionada) {
+            this.carpetaPadre = carpetaPadre;
+            this.claveImagenSeleccionada = claveImagenSeleccionada;
+        }
+    }
+
+    // Pila para almacenar el historial de carpetas visitadas (para la función "salir").
+    private Stack<NavigationState> historialNavegacion;
+    
+    /**
      * Constructor. Inicializa el contexto a un estado vacío y válido.
      */
     public ListContext() {
@@ -49,6 +66,8 @@ public class ListContext {
         this.descartesListKey = null;
         
         this.displayMode = DisplayMode.SINGLE_IMAGE;
+        
+        this.historialNavegacion = new Stack<>();
         
     } // --- Fin del constructor ListContext ---
 
@@ -82,6 +101,7 @@ public class ListContext {
      * Crea copias de los modelos y mapas para asegurar la independencia.
      * @param otroContexto El contexto desde el cual copiar los datos.
      */
+    @SuppressWarnings("unchecked")
     public void clonarDesde(ListContext otroContexto) {
         if (otroContexto == null) {
             logger.warn("WARN [ListContext.clonarDesde]: Se intentó clonar desde un contexto nulo.");
@@ -113,6 +133,8 @@ public class ListContext {
         this.carpetaRaizContexto = otroContexto.getCarpetaRaizContexto();
         
         this.displayMode = otroContexto.getDisplayMode();
+        
+        this.historialNavegacion = (Stack<NavigationState>) otroContexto.getHistorialNavegacion().clone();
 
     } // --- Fin del método clonarDesde ---
     
@@ -149,4 +171,7 @@ public class ListContext {
     public DisplayMode getDisplayMode() {return this.displayMode;}
     public void setDisplayMode(DisplayMode displayMode) {this.displayMode = displayMode;}
     
+    public Stack<NavigationState> getHistorialNavegacion() {
+        return this.historialNavegacion;
+    }
 } // --- FIN DE LA CLASE ListContext ---

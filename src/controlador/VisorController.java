@@ -796,19 +796,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         // Asociamos el worker con el diálogo para que el botón "Cancelar" funcione
         dialogo.setWorkerAsociado(worker);
         
-        
-//        final ProgresoCargaDialog dialogo = new ProgresoCargaDialog(view, null);
-//        final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
-//            pathDeInicioWalk,
-//            depth,
-//            pathDeInicioWalk,
-//            this::esArchivoImagenSoportado,
-//            dialogo
-//        );
-//        dialogo.setWorkerAsociado(worker);
-        
-        
-        
         this.cargaImagenesFuture = worker;
 
         // --- 7. LÓGICA DE FINALIZACIÓN DEL WORKER ---
@@ -899,93 +886,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                 }
             }
         });
-
-        
-        
-//        worker.addPropertyChangeListener(evt -> {
-//            if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
-//                if (dialogo != null) dialogo.cerrar();
-//                if (worker.isCancelled()) {
-//                    logger.debug("    -> Tarea CANCELADA por el usuario.");
-//                    // La UI ya está limpia. Solo mostramos el mensaje.
-//                    if (statusBarManager != null) {
-//                        statusBarManager.mostrarMensaje("Carga cancelada por el usuario.");
-//                    }
-//                    this.estaCargandoLista = false;
-//                    this.cargaInicialEnCurso = false;
-//                    return;
-//                }
-//
-//                try {
-//                    Map<String, Path> mapaResultado = worker.get();
-//
-//                    // ******** TU LÓGICA IMPLEMENTADA ********
-//                    if (mapaResultado == null || mapaResultado.isEmpty()) {
-//                        logger.info("    -> La búsqueda no encontró imágenes soportadas en la carpeta.");
-//                        // La UI ya muestra la bienvenida. Añadimos el mensaje informativo.
-//                        if (statusBarManager != null) {
-//                            statusBarManager.mostrarMensaje("La carpeta no contiene imágenes soportadas. Selecciona otra para continuar.");
-//                        }
-//                        if (view != null) {
-//                            view.setTituloPanelIzquierdo("Archivos: 0");
-//                        }
-//                        // IMPORTANTE: Salimos aquí. No hay nada más que procesar.
-//                        return;
-//                    }
-//                    // ******** FIN DE TU LÓGICA ********
-//
-//                    // Si llegamos aquí, SÍ hay imágenes. Procedemos con la carga normal.
-//                    logger.debug("    WORKER HA TERMINADO. Archivos encontrados: " + mapaResultado.size());
-//                    
-//                    // Limpiamos cualquier mensaje de estado anterior ("carpeta vacía", etc.)
-//                    if (statusBarManager != null) {
-//                        statusBarManager.limpiarMensaje();
-//                    }
-//
-//                    List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
-//                    java.util.Collections.sort(clavesOrdenadas);
-//
-//                    DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
-//                    nuevoModeloListaPrincipal.addAll(new java.util.Vector<>(clavesOrdenadas));
-//                    
-//                    model.actualizarListaCompleta(nuevoModeloListaPrincipal, mapaResultado);
-//                    if (view != null) {
-//                        view.setListaImagenesModel(model.getModeloLista());
-//                        view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
-//                    }
-//
-//                    int indiceCalculado = -1;
-//                    if (claveImagenAMantener != null && !claveImagenAMantener.isEmpty()) {
-//                        indiceCalculado = model.getModeloLista().indexOf(claveImagenAMantener);
-//                    }
-//                    if (indiceCalculado == -1 && !model.getModeloLista().isEmpty()) {
-//                        indiceCalculado = 0;
-//                    }
-//
-//                    if (listCoordinator != null && indiceCalculado != -1) {
-//                        listCoordinator.reiniciarYSeleccionarIndice(indiceCalculado);
-//                    }
-//
-//                    if (alFinalizarConExito != null) {
-//                        alFinalizarConExito.run();
-//                    }
-//                } catch (Exception e) {
-//                    logger.error("    -> ERROR durante la ejecución del worker: " + e.getMessage(), e);
-//                    limpiarUI();
-//                    if (statusBarManager != null) {
-//                        statusBarManager.mostrarMensaje("Error al leer la carpeta. Consulta los logs para más detalles.");
-//                    }
-//                } finally {
-//                    this.estaCargandoLista = false;
-//                    this.cargaInicialEnCurso = false;
-//                    if (cargaImagenesFuture == worker) {
-//                        cargaImagenesFuture = null;
-//                    }
-//                }
-//            }
-//        });
-        
-        
 
         // --- 8. EJECUTAR EL WORKER ---
         worker.execute();
@@ -1653,10 +1553,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                         displayPanel.showWelcomeMessage(); 
                     } else {
                     	
-//                    	Action actionMostrar = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-//                    	actionMostrar.putValue(Action.SELECTED_KEY, true);
-//                    	actionMostrar.actionPerformed(null);
-                    	
                         displayPanel.limpiar();
                     }
                 }
@@ -2061,15 +1957,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
          actionMapGlobal.put(f11Command, actionMap.get(f11Command));
          logger.debug("  -> Atajo registrado: F11 -> " + f11Command);
 
-//         // Barra Espaciadora para Marcar/Desmarcar Imagen
-//         KeyStroke spaceKey = KeyStroke.getKeyStroke(KeyEvent.VK_SPACE, 0);
-//         String spaceCommand = AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA;
-//         inputMap.put(spaceKey, spaceCommand);
-//         actionMapGlobal.put(spaceCommand, actionMap.get(spaceCommand));
-//         logger.debug("  -> Atajo registrado: Espacio -> " + spaceCommand);
-         
-         
-         
          logger.debug("  -> Atajos de teclado globales configurados para teclado estándar y numérico.");
      } // --- Fin del método configurarAtajosTecladoGlobales ---
 
@@ -3723,91 +3610,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	    view.repaint();
 	    
 	} // --- Fin del método sincronizarColoresDePanelesPorTema ---
-	
-	
-	
-//	@Override
-//	public void onThemeChanged(Tema nuevoTema) {
-//	    logger.debug("\n--- [VisorController] ORQUESTANDO REFRESCO COMPLETO DE UI POR CAMBIO DE TEMA ---");
-//
-//	    // FASE 1: Preparación (sin cambios)
-//	    if (this.actionFactory != null) {
-//	        this.actionFactory.actualizarIconosDeAcciones();
-//	    }
-//	    if (this.registry != null) {
-//	        this.registry.unregisterToolbarComponents();
-//	    }
-//
-//	    // FASE 2: Reconstrucción y Sincronización en el Hilo de UI (EDT)
-//	    SwingUtilities.invokeLater(() -> {
-//	        logger.debug("  [EDT] Iniciando reconstrucción y sincronización...");
-//
-//	        // PASO 1: Reconstruir la estructura de toolbars.
-//	        if (this.toolbarManager != null && this.model != null) {
-//	            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
-//	        }
-//	        
-//	        // --- INICIO DE LA SOLUCIÓN ---
-//	        // PASO 1.5: Reconstrucción EXPLÍCITA de la barra de estado.
-//	        logger.debug("  [EDT] Reconstruyendo explícitamente la barra de estado...");
-//	        JPanel panelContenedorStatusBar = registry.get("panel.estado.controles");
-//	        if (panelContenedorStatusBar != null) {
-//	            // 1. DESTRUIR la vieja
-//	            panelContenedorStatusBar.removeAll();
-//	            
-//	            // 2. CREAR la nueva (getToolbar la creará porque la caché está vacía)
-//	            JToolBar nuevaStatusBarToolbar = this.toolbarManager.getToolbar("barra_estado_controles");
-//	            
-//	            // 3. AÑADIR la nueva al panel
-//	            panelContenedorStatusBar.add(nuevaStatusBarToolbar);
-//	            
-//	            // 4. Repintar su contenedor
-//	            panelContenedorStatusBar.revalidate();
-//	            panelContenedorStatusBar.repaint();
-//	            logger.debug("  [EDT] Barra de estado reconstruida y reemplazada.");
-//	        }
-//	        // --- FIN DE LA SOLUCIÓN ---
-//	        
-//	        if (this.viewManager != null) {
-//	            this.viewManager.reconstruirPanelesEspecialesTrasTema();
-//	        }
-//
-//	        // PASO 2: Forzar actualización de LA VENTANA ENTERA.
-//	        // Esto es más agresivo y debería actualizar todos los paneles estándar,
-//	        // bordes, fondos, etc., que no hayamos tocado manualmente.
-//	        if (this.view != null) {
-//	            logger.debug("  [EDT] Aplicando updateComponentTreeUI a la ventana principal...");
-//	            SwingUtilities.updateComponentTreeUI(this.view);
-//	        }
-//
-//	        // PASO 3: Sincronizar el estado lógico y visual de los componentes.
-//	        logger.debug("  [EDT] Sincronizando componentes del VisorController...");
-//	        sincronizarEstadoVisualBotonesYRadiosZoom();
-//	        sincronizarComponentesDeModoVisualizador();
-//	        sincronizarEstadoDeTodasLasToggleThemeActions();
-//	        
-//	        // Después de que todo se ha reconstruido y las demás cosas se han
-//	        // sincronizado, le damos la orden final a la barra de estado.
-//	        if (this.statusBarManager != null) {
-//	            logger.debug("  [EDT] Ordenando a InfobarStatusManager que actualice su estado...");
-//	         
-//	            // PASO 1: Volvemos a conectar los listeners a los nuevos componentes.
-//	            this.statusBarManager.configurarListenersControles();
-//	            
-//	            // PASO 2: Actualizamos el estado (iconos, texto, etc.).
-//	            this.statusBarManager.actualizar();
-//	        }
-//	        
-//	        // PASO 4: Revalidar y repintar la ventana principal para asegurar que todos los cambios se muestren.
-//	        if (this.view != null) {
-//	            this.view.revalidate();
-//	            this.view.repaint();
-//	        }
-//	        
-//	        logger.debug("--- [VisorController] REFRESCO DE UI COMPLETADO ---\n");
-//	    });
-//	    
-//	} // --- Fin del método onThemeChanged ---
 	
 	
 	/**

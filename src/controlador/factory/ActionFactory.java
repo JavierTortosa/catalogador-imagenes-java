@@ -39,10 +39,13 @@ import controlador.actions.edicion.RotateLeftAction;
 import controlador.actions.edicion.RotateRightAction;
 import controlador.actions.especiales.HiddenButtonsAction;
 import controlador.actions.especiales.MenuAction;
+import controlador.actions.navegacion.EntrarEnSubcarpetaAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
 import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
+import controlador.actions.navegacion.SalirDeSubcarpetaAction;
+import controlador.actions.navegacion.VolverACarpetaRaizAction;
 // Importaciones para PanAction y Direction
 import controlador.actions.pan.PanAction;
 import controlador.actions.projects.GestionarProyectoAction;
@@ -55,6 +58,8 @@ import controlador.actions.toggle.ToggleNavegacionCircularAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
 import controlador.actions.toggle.ToggleSyncAction;
+import controlador.actions.tree.DrillDownFolderAction;
+import controlador.actions.tree.OpenFolderAction;
 import controlador.actions.vista.MostrarDialogoListaAction;
 import controlador.actions.vista.SwitchToVisualizadorAction;
 import controlador.actions.vista.ToggleAlwaysOnTopAction;
@@ -151,6 +156,7 @@ public class ActionFactory {
     // 1.8. Campo para registrar los DisplayModes
     private DisplayModeManager displayModeManager;
     
+
     // --- SECCIÓN 2: CONSTRUCTOR ---
     /**
      * Constructor de ActionFactory.
@@ -312,6 +318,11 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_IMAGEN_ELIMINAR, createDeleteAction());
         actionMap.put(AppActionCommands.CMD_ESPECIAL_REFRESCAR, createRefreshAction());
 
+        // --- Actions de Navegación de Carpetas (para la nueva toolbar) ---
+        actionMap.put(AppActionCommands.CMD_ORDEN_CARPETA_ANTERIOR, createNavegarCarpetaAnteriorAction());
+        actionMap.put(AppActionCommands.CMD_ORDEN_CARPETA_SIGUIENTE, createNavegarCarpetaSiguienteAction());
+        actionMap.put(AppActionCommands.CMD_ORDEN_CARPETA_RAIZ, createNavegarCarpetaRaizAction());
+        
         // 3.6. Crear y registrar Actions de Vista (Toggles de UI)
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR, createToggleMenuBarAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR, createToggleToolBarAction());
@@ -426,6 +437,11 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_MODO_DATOS, createSwitchWorkModeAction(WorkMode.DATOS, AppActionCommands.CMD_MODO_DATOS, "Modo Datos"));
         registerAction(AppActionCommands.CMD_MODO_EDICION, createSwitchWorkModeAction(WorkMode.EDICION, AppActionCommands.CMD_MODO_EDICION, "Modo Edición"));
 
+        // --- Acciones para el Árbol de Carpetas ---
+        registerAction(AppActionCommands.CMD_TREE_OPEN_FOLDER, createOpenFolderAction());
+        registerAction(AppActionCommands.CMD_TREE_DRILL_DOWN_FOLDER, createDrillDownFolderAction());
+        
+        
         // Acciones para otros WorkModes futuros, si los tienes definidos en UIDefinitionService.
 
         
@@ -521,6 +537,8 @@ public class ActionFactory {
 
 
     // --- SECCIÓN 4: MÉTODOS PRIVADOS AUXILIARES PARA CREAR ACTIONS ---
+    
+    
 
     /**
      * 4.1. Crea la Action genérica para funcionalidades pendientes.
@@ -741,9 +759,9 @@ public class ActionFactory {
     } // --- Fin del método createToggleToolBarAction ---
       
     
-	    private Action createToggleFileListAction() {
-	        return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.viewManager, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-	    } // --- Fin del método createToggleFileListAction ---
+    private Action createToggleFileListAction() {
+        return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.viewManager, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+    } // --- Fin del método createToggleFileListAction ---
     
     
     private Action createToggleThumbnailsAction() {
@@ -1074,8 +1092,54 @@ public class ActionFactory {
 	    action.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR);
 	    return action;
 	} // --- Fin del método createRequestCustomColorAction ---
+	
+	
+	private Action createNavegarCarpetaAnteriorAction() {
+	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ORDEN_CARPETA_ANTERIOR);
+	    // Instanciamos la nueva clase
+	    SalirDeSubcarpetaAction action = new SalirDeSubcarpetaAction(this.generalController, "Subir Carpeta", icon);
+	    // La registramos como sensible al contexto
+	    this.contextSensitiveActions.add(action);
+	    return action;
+	} // --- FIN del metodo createNavegarCarpetaAnteriorAction ---
+
+	
+	private Action createNavegarCarpetaSiguienteAction() {
+	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ORDEN_CARPETA_SIGUIENTE);
+	    // Instanciamos la nueva clase
+	    EntrarEnSubcarpetaAction action = new EntrarEnSubcarpetaAction(this.generalController, "Entrar en Carpeta", icon);
+	    // La registramos como sensible al contexto
+	    this.contextSensitiveActions.add(action);
+	    return action;
+	    
+	} // --- FIN del metodo createNavegarCarpetaSiguienteAction ---
+
+	
+	private Action createNavegarCarpetaRaizAction() {
+	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ORDEN_CARPETA_RAIZ);
+	    
+	    // Instanciamos la nueva clase dedicada
+	    VolverACarpetaRaizAction action = new VolverACarpetaRaizAction(this.generalController, "Carpeta Raíz", icon);
+	    
+	    // La registramos como sensible al contexto para que se habilite/deshabilite sola
+	    this.contextSensitiveActions.add(action);
+	    
+	    return action;
+	    
+	} // --- FIN del metodo createNavegarCarpetaRaizAction ---
 
 		
+	private Action createOpenFolderAction() {
+	    // Pasa el GeneralController en lugar del FolderTreeManager
+	    return new OpenFolderAction("Abrir aquí (Limpiar Historial)", this.generalController);
+	} // --- Fin del método createOpenFolderAction ---
+
+	private Action createDrillDownFolderAction() {
+	    // Pasa el GeneralController en lugar del FolderTreeManager
+	    return new DrillDownFolderAction("Entrar en esta carpeta (Guardar Historial)", this.generalController);
+	} // --- Fin del método createDrillDownFolderAction ---
+	
+	
     // --- SECCIÓN 5: GETTERS Y SETTERS ---
     public Map<String, Action> getActionMap() {
          return this.actionMap; 
@@ -1163,10 +1227,10 @@ public class ActionFactory {
 	public CarouselManager getCarouselManager() {return this.carouselManager;}
     public void setCarouselListCoordinator(ICarouselListCoordinator coordinator) {this.carouselListCoordinator = coordinator;}    
     public List<ContextSensitiveAction> getCarouselContextSensitiveActions() {return Collections.unmodifiableList(this.carouselContextSensitiveActions);}
+    
     public void setFileOperationsManager(FileOperationsManager fileOperationsManager) {
         this.fileOperationsManager = Objects.requireNonNull(fileOperationsManager, "FileOperationsManager no puede ser null en setFileOperationsManager");
     }
-    
     
 }	// --- FIN de la clase ActionFactory ---
 
