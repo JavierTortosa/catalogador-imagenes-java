@@ -20,6 +20,8 @@ public interface IListCoordinator {
     
     void seleccionarAleatorio();
     
+    
+    
     /**
      * Punto de entrada principal para establecer una selección por su índice.
      * @param indiceDeseado El índice a seleccionar.
@@ -43,6 +45,8 @@ public interface IListCoordinator {
     void setSincronizandoUI(boolean sincronizando);
     void setContextSensitiveActions(List<ContextSensitiveAction> actions);
 
+    int getOfficialSelectedIndex();
+    
 } // --- Fin de la interfaz IListCoordinator ---
 
 

@@ -5,7 +5,6 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.GraphicsDevice;
-import java.awt.KeyboardFocusManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,6 +20,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 
 import org.slf4j.Logger;
@@ -111,73 +111,132 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     } // --- Fin del método setFullScreen ---
     
     
-    /**
-     * Cambia la visibilidad de un componente principal de la UI y actualiza la configuración.
-     *
-     * @param identificadorComponente String que identifica el componente en la VisorView.
-     * @param nuevoEstadoVisible El nuevo estado de visibilidad.
-     * @param configKeyParaEstado La clave en ConfigurationManager para guardar este estado.
-     */
-    @Override
-    public void setComponentePrincipalVisible(String identificadorComponente, boolean nuevoEstadoVisible, String configKeyParaEstado) {
-        logger.debug("[ViewManager] setComponentePrincipalVisible: " + identificadorComponente + " -> " + nuevoEstadoVisible);
-
-        if (view == null || configuration == null) {
-            logger.error("ERROR [ViewManager]: Vista o Configuración nulas.");
-            return;
-        }
-
-        boolean cambioRealizadoEnVista = false;
-
-        switch (identificadorComponente) {
-            case "Barra_de_Menu":
-                if (view.getJMenuBar() != null && view.getJMenuBar().isVisible() != nuevoEstadoVisible) {
-                    view.setJMenuBarVisible(nuevoEstadoVisible); // Llama al método existente en VisorView
-                    cambioRealizadoEnVista = true;
-                }
-                break;
-            case "Barra_de_Botones":
-                if (view.getPanelDeBotones() != null && view.getPanelDeBotones().isVisible() != nuevoEstadoVisible) {
-                    view.setToolBarVisible(nuevoEstadoVisible); // Llama al método existente en VisorView
-                    cambioRealizadoEnVista = true;
-                }
-                break;
-            case "mostrar_ocultar_la_lista_de_archivos":
-                JPanel panelIzquierdo = this.registry.get("panel.izquierdo.listaArchivos");
-                JSplitPane splitPane = this.registry.get("splitpane.main");
-
-                if (panelIzquierdo != null && splitPane != null) {
-                    if (panelIzquierdo.isVisible() != nuevoEstadoVisible) {
-                        panelIzquierdo.setVisible(nuevoEstadoVisible);
-                        if (nuevoEstadoVisible) {
-                            SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.25));
-                        }
-                        cambioRealizadoEnVista = true;
-                    }
-                }
-                break;
-            case "imagenes_en_miniatura":
-                JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-
-                if (scrollMiniaturas != null) {
-                    if (scrollMiniaturas.isVisible() != nuevoEstadoVisible) {
-                        scrollMiniaturas.setVisible(nuevoEstadoVisible);
-                        cambioRealizadoEnVista = true;
-                    }
-                } else {
-                    logger.warn("WARN [ViewManager]: 'scroll.miniaturas' no encontrado en el registro.");
-                }
-                break;
-            default:
-                logger.warn("WARN [ViewManager]: Identificador de componente no manejado: '" + identificadorComponente + "'");
-                return;
-        }
-
-        if (configKeyParaEstado != null && !configKeyParaEstado.isBlank()) {
-            configuration.setString(configKeyParaEstado, String.valueOf(nuevoEstadoVisible));
-            logger.debug("  -> [ViewManager] Configuración '" + configKeyParaEstado + "' actualizada a: " + nuevoEstadoVisible);
-        }
-    } // --- Fin del método setComponentePrincipalVisible ---
+//    @Override
+//    public void setComponentePrincipalVisible1(String identificadorComponente, boolean nuevoEstado, String configKeyParaEstado) {
+//        logger.debug("[ViewManager] Llamada al método obsoleto 'setComponentePrincipalVisible' para: " + identificadorComponente + ". Delegando a 'solicitarActualizacionUI'.");
+//
+//        // 1. Guardar la configuración, como hacía antes.
+//        if (configKeyParaEstado != null && !configKeyParaEstado.isBlank()) {
+//            configuration.setString(configKeyParaEstado, String.valueOf(nuevoEstado));
+//            logger.debug("  -> Configuración '" + configKeyParaEstado + "' actualizada a: " + nuevoEstado);
+//        }
+//
+//        // 2. Delegar la tarea de actualizar la UI al nuevo método.
+//        //    Le pasamos null como configKey porque la clave de configuración ya se ha guardado.
+//        solicitarActualizacionUI(identificadorComponente, null, nuevoEstado);
+//        
+//    } // --- Fin del método setComponentePrincipalVisible ---
+    
+//    /**
+//     * Cambia la visibilidad de un componente principal de la UI y actualiza la configuración.
+//     *
+//     * @param identificadorComponente String que identifica el componente en la VisorView.
+//     * @param nuevoEstado El nuevo estado de visibilidad.
+//     * @param configKeyParaEstado La clave en ConfigurationManager para guardar este estado.
+//     */
+//    @Override
+//    public void setComponentePrincipalVisible(String identificadorComponente, boolean nuevoEstado, String configKeyParaEstado) {
+//        logger.debug("[ViewManager] setComponentePrincipalVisible: " + identificadorComponente + " -> " + nuevoEstado);
+//
+//        if (view == null || configuration == null) {
+//            logger.error("ERROR [ViewManager]: Vista o Configuración nulas.");
+//            return;
+//        }
+//
+//        boolean necesitaRevalidateGeneral = false;
+//
+//        switch (identificadorComponente) {
+//            case "Barra_de_Menu":
+//                if (view.getJMenuBar() != null && view.getJMenuBar().isVisible() != nuevoEstado) {
+//                    view.setJMenuBarVisible(nuevoEstado); // Llama al método existente en VisorView
+//                    necesitaRevalidateGeneral = true;
+//                }
+//                break;
+//            case "Barra_de_Botones":
+//                if (view.getPanelDeBotones() != null && view.getPanelDeBotones().isVisible() != nuevoEstado) {
+//                    view.setToolBarVisible(nuevoEstado); // Llama al método existente en VisorView
+//                    necesitaRevalidateGeneral = true;
+//                }
+//                break;
+//            case "mostrar_ocultar_la_lista_de_archivos":
+//                JPanel panelIzquierdo = this.registry.get("panel.izquierdo.listaArchivos");
+//                JSplitPane splitPane = this.registry.get("splitpane.main");
+//
+//                if (panelIzquierdo != null && splitPane != null) {
+//                    if (panelIzquierdo.isVisible() != nuevoEstado) {
+//                        panelIzquierdo.setVisible(nuevoEstado);
+//                        if (nuevoEstado) {
+//                            SwingUtilities.invokeLater(() -> splitPane.setDividerLocation(0.25));
+//                        }
+//                        necesitaRevalidateGeneral = true;
+//                    }
+//                }
+//                break;
+//            case "imagenes_en_miniatura":
+//                JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+//
+//                if (scrollMiniaturas != null) {
+//                    if (scrollMiniaturas.isVisible() != nuevoEstado) {
+//                        scrollMiniaturas.setVisible(nuevoEstado);
+//                        necesitaRevalidateGeneral = true;
+//                    }
+//                } else {
+//                    logger.warn("WARN [ViewManager]: 'scroll.miniaturas' no encontrado en el registro.");
+//                }
+//                break;
+//              
+//            case "barra_de_estado":
+//                JPanel bottomStatusBar = registry.get("panel.estado.inferior");
+//                if (bottomStatusBar != null && bottomStatusBar.isVisible() != nuevoEstado) {
+//                    bottomStatusBar.setVisible(nuevoEstado);
+//                    necesitaRevalidateGeneral = true;
+//                    logger.info("  -> Visibilidad de 'Barra de Estado' (panel.estado.inferior) cambiada a " + nuevoEstado);
+//                }
+//                break;
+//                
+////            case "Barra de Estado": // <-- NUEVO
+////                JPanel bottomStatusBar = registry.get("panel.estado.inferior");
+////                if (bottomStatusBar != null && bottomStatusBar.isVisible() != nuevoEstado) {
+////                    bottomStatusBar.setVisible(nuevoEstado);
+////                    necesitaRevalidateGeneral = true;
+////                }
+////                break;
+//              
+//            case "barra_de_info_imagen":
+//                JPanel topInfoPanel = registry.get("panel.info.superior");
+//                if (topInfoPanel != null && topInfoPanel.isVisible() != nuevoEstado) {
+//                    topInfoPanel.setVisible(nuevoEstado);
+//                    necesitaRevalidateGeneral = true;
+//                    logger.info("  -> Visibilidad de 'Barra_de_Info_Superior' (panel.info.superior) cambiada a " + nuevoEstado);
+//                }
+//                break;
+//                
+////            case "Barra_de_Info_Superior": // <-- NUEVO
+////                JPanel topInfoPanel = registry.get("panel.info.superior");
+////                if (topInfoPanel != null && topInfoPanel.isVisible() != nuevoEstado) {
+////                    topInfoPanel.setVisible(nuevoEstado);
+////                    necesitaRevalidateGeneral = true;
+////                }
+////                break;
+//                
+//            default:
+//                logger.warn("WARN [ViewManager]: Identificador de componente no manejado: '" + identificadorComponente + "'");
+//                return;
+//        }
+//
+//        if (necesitaRevalidateGeneral) {
+//            SwingUtilities.invokeLater(() -> {
+//                view.revalidate();
+//                view.repaint();
+//            });
+//        }
+//        
+//        
+//        if (configKeyParaEstado != null && !configKeyParaEstado.isBlank()) {
+//            configuration.setString(configKeyParaEstado, String.valueOf(nuevoEstado));
+//            logger.debug("  -> [ViewManager] Configuración '" + configKeyParaEstado + "' actualizada a: " + nuevoEstado);
+//        }
+//    } // --- Fin del método setComponentePrincipalVisible ---
     
     
     /**
@@ -268,10 +327,22 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     public void solicitarActualizacionUI(String uiElementId, String configKey, boolean nuevoEstado) {
         logger.debug("[ViewManager] Solicitud de actualización para UI: '" + uiElementId + "' -> " + nuevoEstado + " (Clave: " + configKey + ")");
         
+        // Añadimos la lógica para guardar el estado en la configuración, que es lo que faltaba.
+        // Esta lógica se ejecuta para TODOS los casos, ya sean botones, toolbars o paneles.
+        if (configKey != null && !configKey.isBlank()) {
+            if (configuration != null) {
+                configuration.setString(configKey, String.valueOf(nuevoEstado));
+                logger.debug("  -> Configuración '" + configKey + "' actualizada a: " + nuevoEstado);
+            } else {
+                logger.error("  ERROR: ConfigurationManager es nulo. No se puede guardar el estado para la clave: " + configKey);
+            }
+        }
+        
         if (registry == null) {
             logger.error("  ERROR: ComponentRegistry es nulo en ViewManager.");
             return;
         }
+        
         
         // CASO 1: La solicitud es para un BOTÓN INDIVIDUAL
         // Lo detectamos porque configKey no es nulo y empieza con "interfaz.boton."
@@ -306,6 +377,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             if (toolbar.isVisible() != nuevoEstado) {
                 toolbar.setVisible(nuevoEstado);
                 logger.debug("  -> Visibilidad de la toolbar '" + uiElementId + "' cambiada a " + nuevoEstado);
+                
+                toolbar.setOpaque(false);
+                toolbar.setBorder(null);
+                
                 revalidateToolbarContainer();
             }
             return; // Trabajo hecho, salimos.
@@ -326,6 +401,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
                     menuBar.setVisible(nuevoEstado);
                     necesitaRevalidateGeneral = true;
                 }
+                
                 setBotonMenuEspecialVisible(!nuevoEstado);
                 break;
             
@@ -336,16 +412,16 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
                     necesitaRevalidateGeneral = true;
                 }
                 break;
-                
+              
             case "mostrar_ocultar_la_lista_de_archivos":
-                JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
+                JPanel panelIzquierdo = registry.get("panel.izquierdo.contenedorPrincipal");
                 if (panelIzquierdo != null && panelIzquierdo.isVisible() != nuevoEstado) {
                     panelIzquierdo.setVisible(nuevoEstado);
                     ajustarDivisorSplitPane(nuevoEstado);
-                    necesitaRevalidateGeneral = true;
+                    necesitaRevalidateGeneral = true; // Marcamos para que se redibuje el frame.
                 }
                 break;
-
+                
             case "imagenes_en_miniatura":
                 JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
                 if (scrollMiniaturas != null && scrollMiniaturas.isVisible() != nuevoEstado) {
@@ -354,6 +430,24 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
                 }
                 break;
 
+            case "barra_de_estado":
+                JPanel bottomStatusBar = registry.get("panel.estado.inferior");
+                if (bottomStatusBar != null && bottomStatusBar.isVisible() != nuevoEstado) {
+                    bottomStatusBar.setVisible(nuevoEstado);
+                    necesitaRevalidateGeneral = true;
+                    logger.info("  -> Visibilidad de 'Barra de Estado' (panel.estado.inferior) cambiada a " + nuevoEstado);
+                }
+                break;
+                
+            case "barra_de_info_imagen":
+                JPanel topInfoPanel = registry.get("panel.info.superior");
+                if (topInfoPanel != null && topInfoPanel.isVisible() != nuevoEstado) {
+                    topInfoPanel.setVisible(nuevoEstado);
+                    necesitaRevalidateGeneral = true;
+                    logger.info("  -> Visibilidad de 'Barra_de_Info_Superior' (panel.info.superior) cambiada a " + nuevoEstado);
+                }
+                break;
+                
                 
                 
             default:
@@ -399,44 +493,6 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             // 1. Actualizar el panel contenedor (esto ya lo hacías y está bien)
             refrescarColoresDeFondoUI();
             
-            
-         // **********************************************************
-            // *** INICIO DEL CÓDIGO NUEVO PARA FONDOS DE STATUS BAR ***
-            // **********************************************************
-            
-            logger.debug("[ViewManager] Aplicando fondo especial a las barras de estado...");
-            if (registry != null && nuevoTema != null) {
-                // Cogemos el color de fondo principal del tema y lo oscurecemos un poco.
-                // El método .darker() es perfecto para esto.
-                Color baseColor = nuevoTema.colorFondoPrincipal();
-                if (baseColor != null) {
-                    Color statusBarColor = baseColor.darker();
-
-                    // Buscamos los paneles por su clave correcta, que según tu ViewBuilder son:
-                    JPanel topInfoBar = registry.get("panel.info.superior");
-                    JPanel bottomStatusBar = registry.get("panel.estado.inferior");
-
-                    // Aplicamos el nuevo color de fondo
-                    if (topInfoBar != null) {
-                        topInfoBar.setBackground(statusBarColor);
-                        // No es necesario setOpaque(true) porque tu ViewBuilder ya lo hace.
-                    } else {
-                        logger.warn("  -> Panel 'panel.info.superior' no encontrado en el registro.");
-                    }
-
-                    if (bottomStatusBar != null) {
-                        bottomStatusBar.setBackground(statusBarColor);
-                    } else {
-                        logger.warn("  -> Panel 'panel.estado.inferior' no encontrado en el registro.");
-                    }
-                } else {
-                    logger.warn("  -> El color de fondo principal del tema es nulo. No se puede aplicar el fondo a las status bars.");
-                }
-            }
-            // **********************************************************
-            // *** FIN DEL CÓDIGO NUEVO ***
-            // **********************************************************
-
             // Lógica del marco de foco que ya hemos añadido (es importante que se quede)
             updateFocusBorderColor();
             actualizarResaltadoDeFoco(java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
@@ -580,10 +636,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         Color colorFondoPrincipal = temaActual.colorFondoPrincipal();
         Color colorFondoSecundario = temaActual.colorFondoSecundario();
         
-        // <<< LA MAGIA ESTÁ AQUÍ >>>
-        // Creamos el color especial para las barras de estado
-        Color colorFondoStatusBars = (colorFondoPrincipal != null) ? colorFondoPrincipal.darker() : Color.BLACK;
-
+        // En lugar de calcular un color (ej. .darker()), leemos directamente
+        // nuestra propiedad personalizada del UIManager. Esta es la única fuente de verdad.
+        Color colorFondoStatusBars = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
+        
         // 2. Definimos qué paneles reciben qué color.
         List<String> panelesConFondoPrincipal = List.of(
             "panel.north.wrapper",
@@ -633,63 +689,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             mainFrame.repaint();
         }
     } // --- Fin del método refrescarColoresDeFondoUI ---
-    
-    
-//    @Override
-//    public void refrescarColoresDeFondoUI() {
-//        logger.debug("  [ViewManager] Refrescando colores de fondo de los paneles principales...");
-//        if (registry == null || themeManager == null) {
-//            logger.error("  ERROR [ViewManager]: Registry o ThemeManager nulos.");
-//            return;
-//        }
-//
-//        // 1. Obtener los colores del tema actual
-//        Color colorFondoPrincipal = themeManager.getTemaActual().colorFondoPrincipal();
-//        Color colorFondoSecundario = themeManager.getTemaActual().colorFondoSecundario();
-//        
-//        // 2. Lista de paneles estructurales clave
-//        List<String> panelesAActualizar = List.of(
-//            "panel.north.wrapper",
-//            "container.toolbars",
-//            "container.toolbars.left",
-//            "container.toolbars.center",
-//            "container.toolbars.right",
-//            "panel.info.superior",
-//            "panel.estado.inferior"
-//        );
-//
-//        for (String key : panelesAActualizar) {
-//            JPanel panel = registry.get(key);
-//            if (panel != null) {
-//                panel.setBackground(colorFondoPrincipal);
-//            }
-//        }
-//        
-//        // 3. Actualizar explícitamente los viewports de los JScrollPane
-//        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas.carousel");
-//        if (scrollMiniaturas != null) {
-//            scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
-//        }
-//        scrollMiniaturas = registry.get("scroll.miniaturas");
-//        if (scrollMiniaturas != null) {
-//            scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
-//        }
-//        
-//        // 4. Actualizar las JToolBars individuales
-//        if (toolbarManager != null) {
-//            for (JToolBar tb : toolbarManager.getManagedToolbars().values()) {
-//                tb.setBackground(colorFondoPrincipal);
-//            }
-//        }
-//        
-//        // 5. Repintar el frame principal
-//        JFrame mainFrame = registry.get("frame.main");
-//        if (mainFrame != null) {
-//            mainFrame.repaint();
-//        }
-//        
-//    } // --- Fin del método refrescarColoresDeFondoUI ---
-    
+
     
     /**
      * Cambia la vista activa en un contenedor de CardLayout específico.
@@ -896,8 +896,11 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     
     private void updateFocusBorderColor() {
         if (themeManager != null) {
-            Color accentColor = themeManager.getTemaActual().colorBordeActivo();
-            int thickness = 2; // Asegurarse de que el grosor sea consistente
+
+        	//Color accentColor = themeManager.getTemaActual().colorBordeActivo(); //Color fijo
+            Color accentColor = UIManager.getColor("Visor.statusBarBackground"); //Color del fondo de las statusbar
+            
+            int thickness = 5; // Asegurarse de que el grosor sea consistente
             this.focusedBorder = BorderFactory.createLineBorder(accentColor, thickness);
         }
     } // --- FIN del metodo updateFocusBorderColor ---

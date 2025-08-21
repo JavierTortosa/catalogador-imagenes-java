@@ -19,7 +19,6 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
@@ -27,6 +26,7 @@ import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager;
+import controlador.managers.FilterManager;
 import controlador.managers.FolderNavigationManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
@@ -84,6 +84,7 @@ public class AppInitializer {
 	private DisplayModeManager displayModeManager;
 	private FolderNavigationManager folderNavManager;
 	private FolderTreeManager folderTreeManager;
+	private FilterManager filterManager;
 	
 	
     public AppInitializer(VisorController controller) {
@@ -246,6 +247,8 @@ public class AppInitializer {
             ComponentRegistry registry = new ComponentRegistry();
             this.generalController = new GeneralController();
             
+            this.filterManager = new FilterManager(this.model);
+            
             this.folderNavManager = new FolderNavigationManager(this.model, this.generalController);
             this.folderTreeManager = new FolderTreeManager(this.model, this.generalController);
             
@@ -288,13 +291,13 @@ public class AppInitializer {
                     registry
             );
             this.toolbarManager = new ToolbarManager(registry, this.configuration, toolbarBuilder, uiDefSvc, this.model);
-            this.backgroundControlManager = new BackgroundControlManager(
+            	this.backgroundControlManager = new BackgroundControlManager(
                     registry, this.themeManager, this.viewManager, this.configuration, this.iconUtils,
                     BorderFactory.createLineBorder(Color.GRAY),
                     BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(Color.CYAN, 2),
-                        BorderFactory.createLineBorder(Color.BLACK)
-                    )
+                    BorderFactory.createLineBorder(Color.CYAN, 2),
+                    BorderFactory.createLineBorder(Color.BLACK)
+                )
             );
             
             //======================================================================
@@ -309,7 +312,6 @@ public class AppInitializer {
             this.themeManager.addThemeChangeListener(this.controller);
             this.themeManager.addThemeChangeListener(this.viewManager);
             this.themeManager.addThemeChangeListener(this.displayModeManager);
-            this.themeManager.addThemeChangeListener(this.infobarImageManager);
             this.themeManager.addThemeChangeListener(projectBuilder);
             this.themeManager.addThemeChangeListener(this.backgroundControlManager);
             
@@ -360,6 +362,8 @@ public class AppInitializer {
             this.generalController.setToolbarManager(this.toolbarManager);
             this.generalController.setDisplayModeManager(this.displayModeManager);
             this.generalController.setConfiguration(this.configuration);
+            
+            this.generalController.setFilterManager(this.filterManager);
             
             this.generalController.setFolderNavigationManager(this.folderNavManager);
             this.generalController.setFolderTreeManager(this.folderTreeManager);
@@ -414,8 +418,8 @@ public class AppInitializer {
             this.projectController.setView(this.view);
 
             // Paso 3.5: Inicializar las Actions que SÍ dependen de la 'view'.
-            this.actionFactory.initializeViewDependentActions();
             this.actionFactory.setCarouselManager(carouselManager);
+            this.actionFactory.initializeViewDependentActions();
 
             // Paso 3.6: Cableado final del DisplayModeManager (AHORA que la UI existe).
             this.displayModeManager.setModel(this.model);
@@ -516,6 +520,19 @@ public class AppInitializer {
             
             // Hacer visible la ventana. A partir de aquí, la aplicación está "viva" para el usuario.
             this.view.setVisible(true);
+            
+            logger.debug("  [AppInitializer] Sincronizando visibilidad inicial de paneles...");
+            for (Action action : this.actionMap.values()) {
+                if (action instanceof controlador.actions.config.ToggleUIElementVisibilityAction) {
+                    boolean isVisible = Boolean.TRUE.equals(action.getValue(Action.SELECTED_KEY));
+                    
+                    if (!isVisible) {
+                        String actionCommand = (String) action.getValue(Action.ACTION_COMMAND_KEY);
+                        logger.debug("    -> Disparando acción inicial para OCULTAR panel: " + actionCommand);
+                        action.actionPerformed(new java.awt.event.ActionEvent(this, java.awt.event.ActionEvent.ACTION_PERFORMED, actionCommand));
+                    }
+                }
+            }
 
             // Aplicar configuraciones y sincronizar estados que dependen de una UI visible
             this.configAppManager.aplicarConfiguracionGlobalmente();
@@ -561,14 +578,13 @@ public class AppInitializer {
                         this.listCoordinator.forzarActualizacionEstadoAcciones();
                     }
                     
-	                // ***** INICIO DE LA MODIFICACIÓN 1 *****
+                    
 	                // Sincroniza el árbol de carpetas con la carpeta que se acaba de cargar.
 	                // Esto asegura que al cambiar a la pestaña "Carpetas", el árbol ya esté en la ubicación correcta.
 	                if (this.folderTreeManager != null && this.model.getCarpetaRaizActual() != null) {
 	                    logger.debug("    -> [Callback] Sincronizando el JTree con la carpeta inicial: " + this.model.getCarpetaRaizActual());
 	                    this.folderTreeManager.sincronizarArbolConCarpeta(this.model.getCarpetaRaizActual());
 	                }
-	                // ***** FIN DE LA MODIFICACIÓN 1 *****
                  
                 };
                 

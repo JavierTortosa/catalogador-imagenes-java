@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.formdev.flatlaf.FlatLaf;
-
 import com.formdev.flatlaf.intellijthemes.FlatArcDarkIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatArcDarkOrangeIJTheme;
 import com.formdev.flatlaf.intellijthemes.FlatArcIJTheme;
@@ -60,6 +59,9 @@ public class ThemeManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ThemeManager.class);
 
+    public static final String KEY_STATUSBAR_BACKGROUND = "Visor.statusBarBackground"; // control del fondo de las toolbar
+    public static final String KEY_STATUSBAR_FOREGROUND = "Visor.statusBarForeground"; // control del texto de las toolbar
+    
     private final ConfigurationManager configManager;
     private final List<ThemeChangeListener> listeners = new java.util.concurrent.CopyOnWriteArrayList<>();
     private ConfigApplicationManager configAppManager; // Mantenemos la referencia
@@ -109,25 +111,6 @@ public class ThemeManager {
         );
     
     
-//    private static final Map<String, ThemeInfo> TEMAS_DISPONIBLES = Map.ofEntries(
-//    		Map.entry("purpura_misterioso", new ThemeInfo("Purpura Misterioso", FlatDarkPurpleIJTheme::new)),
-//    		
-//    		Map.entry("cyan_light", new ThemeInfo("Cian Claro", FlatCyanLightIJTheme::new)),
-//            Map.entry("solarized_light", new ThemeInfo("Solarized Claro", FlatSolarizedLightIJTheme::new)),
-//            Map.entry("carbon", new ThemeInfo("Carbón", FlatCarbonIJTheme::new)),
-//            Map.entry("material_darker", new ThemeInfo("Material Oscuro", FlatMaterialDarkerIJTheme::new)),
-//            Map.entry("dark_purple", new ThemeInfo("Púrpura Oscuro", FlatDarkPurpleIJTheme::new)),
-//            Map.entry("dracula", new ThemeInfo("Drácula", FlatDraculaIJTheme::new)),
-//            Map.entry("cobalt2", new ThemeInfo("Cobalto 2", FlatCobalt2IJTheme::new)),
-//            Map.entry("solarized_dark", new ThemeInfo("Solarized Oscuro", FlatSolarizedDarkIJTheme::new)),
-//            Map.entry("monokai_pro", new ThemeInfo("Monokai Pro", FlatMonokaiProIJTheme::new)),
-//            Map.entry("arc_dark", new ThemeInfo("Arc Oscuro", FlatArcDarkIJTheme::new)),
-//            Map.entry("fuchsia_dark", new ThemeInfo("Fucsia Degradado", FlatGradiantoDarkFuchsiaIJTheme::new)),
-//            Map.entry("high_contrast", new ThemeInfo("Alto Contraste", FlatHighContrastIJTheme::new))
-//            
-//        // ... añade los que quieras
-//    );
-    
     private Tema temaActual; // ¡Volvemos a usar tu objeto Tema!
 
     public ThemeManager(ConfigurationManager configManager) {
@@ -139,6 +122,7 @@ public class ThemeManager {
         setTemaActual(idTemaGuardado, false); // Usamos un método unificado
     } // --- FIN del metodo install ---
 
+    
     public boolean setTemaActual(String idTema, boolean notificarYRepintar) {
         if (idTema == null || !TEMAS_DISPONIBLES.containsKey(idTema)) {
             idTema = "cyan_light"; // Fallback
@@ -156,21 +140,67 @@ public class ThemeManager {
             ThemeInfo info = TEMAS_DISPONIBLES.get(idTema);
             UIManager.setLookAndFeel(info.lafSupplier().get());
 
-         // <<< ¡AQUÍ AÑADIMOS EL MISTERIO! >>>
             // 2. Si el tema es el nuestro, sobrescribimos los colores que queramos.
-            if ("purpura_misterioso".equals(idTema)) {
-                logger.debug("-> Aplicando personalizaciones para 'Púrpura Misterioso'...");
-                // Hacemos que el color de acento (selecciones, toggles activos) sea un cian brillante
-                UIManager.put("Component.accentColor", new Color(0, 255, 255)); 
-                // Y que el fondo de la selección de listas también sea ese cian
-                UIManager.put("List.selectionBackground", new Color(0, 255, 255));
-                // Y el texto seleccionado, negro para que contraste
-                UIManager.put("List.selectionForeground", Color.BLACK);
-                // Hacemos los bordes de los botones un poco más púrpuras
-                UIManager.put("Button.borderColor", new Color(120, 80, 150));
+            if ("purpura_misterioso".equals(idTema) || "gradianto_midnight_blue".equals(idTema)) {
+                
+            	logger.debug("-> Aplicando personalizaciones para 'Púrpura Misterioso'...");
+                
+                UIManager.put("Component.accentColor", new Color(0, 255, 255)); 		//color de acento 
+                UIManager.put("List.selectionBackground", Color.decode("#8A63D2")); 	//fondo de la selección de listas 
+//                UIManager.put("List.selectionForeground", Color.decode("#F0F0F0"));
+                UIManager.put("Button.borderColor", new Color(120, 80, 150)); 			//bordes de los botones
+                UIManager.put(KEY_STATUSBAR_BACKGROUND, new Color(153, 0, 0)); 			// Rojo oscuro (#990000)
+                UIManager.put(KEY_STATUSBAR_FOREGROUND, Color.WHITE);           		// Texto blanco para máximo contraste
+                
+                
+            } else {
+            
+            
+	            // En lugar de un color fijo, vamos a calcularlo.
+	
+	            // 1. Obtenemos el color de fondo principal del tema.
+	            Color colorFondoPrincipal = UIManager.getColor("Panel.background");
+	
+	            // 2. Determinamos si el tema es oscuro o claro (usando el método mejorado que discutimos).
+	            boolean esOscuro = FlatLaf.isLafDark();
+	
+	            // 3. Definimos cuánto queremos que cambie el color.
+	            int offset = 50; // ¿Cuánto más claro/oscuro lo queremos? 
+	            
+	            // 4. Calculamos el color final usando nuestro nuevo y potente método.
+	            //          Si el tema es oscuro, le pasamos un offset positivo para aclarar.
+	            //          Si el tema es claro, le pasamos un offset negativo para oscurecer.
+	            Color colorBarraEstado = cambiarIntensidadColor(colorFondoPrincipal, esOscuro ? offset : -offset);
+	            
+	            // 5. Inyectamos nuestro color ADAPTATIVO en el UIManager.
+	            
+	            
+	            
+	            UIManager.put(KEY_STATUSBAR_BACKGROUND, colorBarraEstado); 
+	            
+	            
+	            logger.debug("-> Inyectado color adaptativo para StatusBars. Es oscuro: {}. Color base: {}. Color final: {}", esOscuro, colorFondoPrincipal, colorBarraEstado);
+	
+		         // 6. Ahora, calculamos el color del TEXTO de la misma forma.
+	             //    Obtenemos el color de texto por defecto del tema. "Label.foreground" es una buena opción.
+		         Color colorTextoPrincipal = UIManager.getColor("Label.foreground");
+		
+		         // 7. Aplicamos la lógica inversa: si el tema es oscuro (texto claro), oscurecemos el texto.
+		         //    Si el tema es claro (texto oscuro), aclaramos el texto.
+		         //    Usamos el MISMO offset para mantener la consistencia visual.
+		         offset = -50;
+		         Color colorTextoBarraEstado = cambiarIntensidadColor(colorTextoPrincipal, esOscuro ? -offset : offset);
+		
+		         // 8. Inyectamos el nuevo color de texto en el UIManager.
+		         
+		         UIManager.put(KEY_STATUSBAR_FOREGROUND, colorTextoBarraEstado);
+		         
+		         logger.debug("-> Inyectado color de texto adaptativo para StatusBars. Color base: {}. Color final: {}", colorTextoPrincipal, colorTextoBarraEstado);
+	        
             }
-            
-            
+	         
+            logger.debug("-> Inyectadas reglas de transparencia total para la styleClass 'Transparent' y sus descendientes.");
+
             // 3. ¡EL PASO CLAVE! Creamos tu objeto `Tema` a partir de los colores del UIManager
             this.temaActual = construirTemaDesdeUIManager(idTema, info.nombreDisplay());
             
@@ -202,6 +232,41 @@ public class ThemeManager {
         }
     } // --- FIN del metodo setTemaActual ---
     
+    
+    /**
+     * Modifica la intensidad de un color base sumando o restando un valor a sus componentes RGB.
+     * Este método es seguro y garantiza que los valores de color resultantes se mantengan
+     * dentro del rango válido (0-255).
+     *
+     * @param colorBase El color original que se va a modificar.
+     * @param offset El valor a sumar a cada componente RGB. Un valor positivo aclara el color,
+     *               mientras que un valor negativo lo oscurece.
+     * @return Un nuevo objeto Color con la intensidad modificada.
+     */
+    private Color cambiarIntensidadColor(Color colorBase, int offset) {
+        if (colorBase == null) {
+            // Devolvemos un color por defecto seguro si el color base es nulo.
+        	
+        	logger.error("color null. Devolviendo Color.GRAY");
+            
+        	return Color.GRAY; 
+        }
+
+        int r = colorBase.getRed();
+        int g = colorBase.getGreen();
+        int b = colorBase.getBlue();
+
+        // Aplicamos el offset a cada componente de color.
+        // La combinación de Math.max y Math.min asegura que el resultado
+        // nunca sea menor que 0 ni mayor que 255.
+        r = Math.max(0, Math.min(255, r + offset));
+        g = Math.max(0, Math.min(255, g + offset));
+        b = Math.max(0, Math.min(255, b + offset));
+
+        return new Color(r, g, b);
+    } // --- FIN del metodo cambiarIntensidadColor ---
+    
+    
     /**
      * ¡Magia! Este método lee los colores del tema de FlatLaf que acabamos de poner
      * y los usa para crear una instancia de tu antiguo objeto `Tema`, manteniendo
@@ -220,7 +285,6 @@ public class ThemeManager {
             UIManager.getColor("TitledBorder.titleColor"),
             UIManager.getColor("List.selectionBackground"),
             UIManager.getColor("List.selectionForeground"),
-            // FALTAN LOS DOS NUEVOS COLORES AQUÍ
             UIManager.getColor("Button.selectedBackground"),
             UIManager.getColor("Button.hoverBackground"),
             UIManager.getColor("Button.selectedBackground"),
@@ -276,11 +340,14 @@ public class ThemeManager {
         listeners.forEach(listener -> listener.onThemeChanged(temaCambiado));
     } // --- FIN del metodo notificarListeners
     
+    
     public boolean isTemaActualOscuro() {
-        if (UIManager.getLookAndFeel() == null) return false;
-        return UIManager.getLookAndFeel().getName().toLowerCase().contains("dark");
+//        if (UIManager.getLookAndFeel() == null) return false;
+//        return UIManager.getLookAndFeel().getName().toLowerCase().contains("dark");
+    	return FlatLaf.isLafDark();
     } // --- FIN del metodo isTemaActualOscuro
 
+    
     public void addThemeChangeListener(ThemeChangeListener listener) { listeners.add(listener); }
     public void removeThemeChangeListener(ThemeChangeListener listener) { listeners.remove(listener); }
     private record ThemeInfo(String nombreDisplay, Supplier<LookAndFeel> lafSupplier) {}

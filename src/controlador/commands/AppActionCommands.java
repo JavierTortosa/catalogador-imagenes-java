@@ -31,13 +31,32 @@ public interface AppActionCommands {
     
     
  // --- Árbol de Carpetas ---
+    public static final String CMD_ORDEN_CICLO 						= "cmd.orden.ciclo";
     public static final String CMD_TREE_OPEN_FOLDER                 = "cmd.tree.open_folder";
     public static final String CMD_TREE_DRILL_DOWN_FOLDER           = "cmd.tree.drill_down_folder";
     
     
+ // --- Filtros
+    public static final String CMD_FILTRO_TOGGLE_LIVE_FILTER		= "cmd.filtro.toggleLiveFilter";
+    public static final String CMD_FILTRO_ADD_POSITIVE 				= "cmd.filtro.addPositive";
+    public static final String CMD_FILTRO_ADD_NEGATIVE 				= "cmd.filtro.addNegative";
+    public static final String CMD_FILTRO_REMOVE_SELECTED 			= "cmd.filtro.removeSelected";
+    public static final String CMD_FILTRO_CLEAR_ALL 				= "cmd.filtro.clearAll";
+    
+    public static final String CMD_FILTRO_UP						= "cmd.filtro.up";
+    public static final String CMD_FILTRO_DOWN						= "cmd.filtro.down";
+    public static final String CMD_FILTRO_TYPE_NAME_FILE			= "cmd.filtro.type.file";
+    public static final String CMD_FILTRO_TYPE_FOLDER				= "cmd.filtro.type.folder";
+    public static final String CMD_FILTRO_TYPE_TAG					= "cmd.filtro.type.tag";
+    
+    
+    
+ // --- Carrousel
+    
  // Comandos para navegación por fotogramas (si son Actions separadas)
-//    public static final String CMD_CAROUSEL_NAV_PRIMERA 		= "cmd.carousel.nav.primera";
-//    public static final String CMD_CAROUSEL_NAV_ANTERIOR 		= "cmd.carousel.nav.anterior";
+    
+//    public static final String CMD_CAROUSEL_NAV_PRIMERA 			= "cmd.carousel.nav.primera";
+//    public static final String CMD_CAROUSEL_NAV_ANTERIOR 			= "cmd.carousel.nav.anterior";
 //    public static final String CMD_CAROUSEL_NAV_SIGUIENTE 		= "cmd.carousel.nav.siguiente";
 //    public static final String CMD_CAROUSEL_NAV_ULTIMA 			= "cmd.carousel.nav.ultima";
 //    public static final String CMD_CAROUSEL_FASTER				= "cmd.carousel.faster";
@@ -128,12 +147,15 @@ public interface AppActionCommands {
 	    public static final String CMD_VISTA_GRID 					= "cmd.vista.grid";					// Para Vista de Grid
 	    public static final String CMD_VISTA_POLAROID 				= "cmd.vista.polaroid";				// Para Vista de Polaroid
 	    public static final String CMD_VISTA_PANTALLA_COMPLETA 		= "cmd.vista.pantalla_completa";	// Para Vista de Pantalla Completa
-	    
+
+//    public static final String CMD_VISTA_TOGGLE_LOCATION_BAR 		= "cmd.vista.toggle.location_bar";  	// Para ToggleLocationBarAction
+	public static final String CMD_VISTA_TOGGLE_INFOBAR_INFERIOR   = "cmd.vista.toggle.infobar.inferior";
+	public static final String CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR   = "cmd.vista.toggle.infobar.superior";
+	
     public static final String CMD_VISTA_TOGGLE_MENU_BAR 			= "cmd.vista.toggle.menu_bar";      	// Para ToggleMenuBarAction
     public static final String CMD_VISTA_TOGGLE_TOOL_BAR 			= "cmd.vista.toggle.tool_bar";      	// Para ToggleToolBarAction
     public static final String CMD_VISTA_TOGGLE_FILE_LIST			= "cmd.vista.toggle.file_list";     	// Para ToggleFileListAction
     public static final String CMD_VISTA_TOGGLE_THUMBNAILS 			= "cmd.vista.toggle.thumbnails";   		// Para ToggleThumbnailsAction
-    public static final String CMD_VISTA_TOGGLE_LOCATION_BAR 		= "cmd.vista.toggle.location_bar";  	// Para ToggleLocationBarAction
     public static final String CMD_VISTA_TOGGLE_CHECKERED_BG 		= "cmd.vista.toggle.checkered_bg";  	// Para ToggleCheckeredBackgroundAction
     public static final String CMD_VISTA_TOGGLE_ALWAYS_ON_TOP		= "cmd.vista.toggle.always_on_top";		// Para ToggleAlwaysOnTopAction
     public static final String CMD_VISTA_MOSTRAR_DIALOGO_LISTA 		= "cmd.vista.mostrar_dialogo_lista";	// Para el menú sin Action directa

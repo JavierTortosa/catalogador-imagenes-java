@@ -162,6 +162,7 @@ public class ToolbarManager implements ThemeChangeListener{
                         String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra(), "visible");
                         boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
                         toolbar.setVisible(isVisibleInConfig);
+                        toolbar.setOpaque(false);
                         
                         // <<< INICIO DE LA LÓGICA DE VISIBILIDAD ADICIONAL >>>
                         // Si la barra es la de "zoom", aplicamos una regla extra.

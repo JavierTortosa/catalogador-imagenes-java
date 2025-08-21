@@ -54,33 +54,6 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
     } // --- Fin del método NombreArchivoRenderer (constructor de conveniencia) ---
 
     
-//    @Override
-//    public Component getListCellRendererComponent(
-//            JList<?> list, 
-//            Object value, 
-//            int index, 
-//            boolean isSelected, 
-//            boolean cellHasFocus) 
-//    {
-//    	
-//    	Tema temaActual = this.themeManager.getTemaActual();
-//    	
-//        // Llamar a super se encarga de los colores de fondo y selección estándar
-////        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-//
-//        // Solo nos preocupamos de establecer el texto del archivo
-//        if (value != null) {
-//            try {
-//                setText(Paths.get(value.toString()).getFileName().toString());
-//            } catch (Exception e) {
-//                setText(value.toString());
-//            }
-//        } else {
-//            setText("");
-//        }
-//        
-//        return this;
-    
     @Override
     public Component getListCellRendererComponent(
             JList<?> list, 

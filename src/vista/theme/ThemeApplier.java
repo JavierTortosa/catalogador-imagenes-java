@@ -1,6 +1,6 @@
 package vista.theme;
 
-import java.awt.Component;
+import java.awt.Color;
 
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
@@ -111,13 +111,45 @@ public class ThemeApplier {
         if (mainFrame != null) {
             mainFrame.getContentPane().setBackground(tema.colorFondoPrincipal());
         }
+        
+        
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Paneles de las barras de estado
+        // Ahora leemos nuestra clave personalizada directamente del UIManager.
+        Color statusBarColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
 
-        // Paneles con fondo secundario
         JPanel panelInfoSuperior = registry.get("panel.info.superior");
-        if (panelInfoSuperior != null) panelInfoSuperior.setBackground(tema.colorFondoSecundario());
+        if (panelInfoSuperior != null) {
+            panelInfoSuperior.setBackground(statusBarColor);
+        }
         
         JPanel bottomStatusBar = registry.get("panel.estado.inferior");
-        if (bottomStatusBar != null) bottomStatusBar.setBackground(tema.colorFondoSecundario());
+        if (bottomStatusBar != null) {
+            bottomStatusBar.setBackground(statusBarColor);
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+        
+        
+        // 1. Buscamos la JToolBar específica en el registro.
+        JToolBar statusBarToolbar = registry.get("toolbar.barra_estado_controles");
+
+        if (statusBarToolbar != null) {
+            // 2. Le damos la orden DIRECTA de pintar su fondo con nuestro color.
+            
+            // 3. Le confirmamos que SÍ debe pintar su fondo (es opaca).
+            statusBarToolbar.setOpaque(true);
+            statusBarToolbar.setBackground(Color.GREEN);//statusBarColor);
+
+            // 4. (Opcional pero recomendado) Le quitamos el borde para una integración limpia.
+            statusBarToolbar.setBorder(null);
+        }
+
+//        // Paneles con fondo secundario
+//        JPanel panelInfoSuperior = registry.get("panel.info.superior");
+//        if (panelInfoSuperior != null) panelInfoSuperior.setBackground(tema.colorFondoSecundario());
+//        
+//        JPanel bottomStatusBar = registry.get("panel.estado.inferior");
+//        if (bottomStatusBar != null) bottomStatusBar.setBackground(tema.colorFondoSecundario());
 
         // Labels con texto secundario
         JLabel modoZoomLabel = registry.get("label.info.modoZoom");

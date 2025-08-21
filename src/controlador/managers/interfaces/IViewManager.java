@@ -22,7 +22,7 @@ public interface IViewManager {
 
     // --- MÉTODOS DE LÓGICA DE LA VISTA ---
 
-    void setComponentePrincipalVisible(String identificadorComponente, boolean nuevoEstadoVisible, String configKeyParaEstado);
+//    void setComponentePrincipalVisible(String identificadorComponente, boolean nuevoEstadoVisible, String configKeyParaEstado);
     void setCheckeredBackgroundEnabled(boolean activar);
     void setSessionBackgroundColor(Color color);
     void setSessionCheckeredBackground();

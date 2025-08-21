@@ -502,7 +502,7 @@ public class ConfigurationManager
 //	    defaults.put(ConfigKeys.WINDOW_MAXIMIZED, "false");// INICIO DE LA APLICACION TAMAÑO VENTANA
 	    defaults.put(ConfigKeys.WINDOW_MAXIMIZED, "true"); // INICIO DE LA APLICACION MAXIMIZADA
 
-	    defaults.put(ConfigKeys.TEMA_NOMBRE, "one_dark");// clear"); TEMA DE INICIO POR DEFECTO
+	    defaults.put(ConfigKeys.TEMA_NOMBRE, "purpura_misterioso");// clear"); TEMA DE INICIO POR DEFECTO
 	    defaults.put("iconos.ancho", "24");
 	    defaults.put("iconos.alto", "24");
 	    

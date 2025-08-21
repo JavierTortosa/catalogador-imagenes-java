@@ -5,15 +5,17 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import controlador.interfaces.InitializableVisibility;
 import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
-public class ToggleUIElementVisibilityAction extends AbstractAction {
+public class ToggleUIElementVisibilityAction extends AbstractAction implements InitializableVisibility {
     private static final long serialVersionUID = 1L;
 
 //    private final VisorController controller;
     private final IViewManager viewManager;
     private final ConfigurationManager configManager;
+    
     // --- CAMBIO 1: Renombrar el campo para mayor claridad ---
     private final String configKeyBase; // Antes: configKeyForVisibilityState
     private final String uiElementIdentifier;

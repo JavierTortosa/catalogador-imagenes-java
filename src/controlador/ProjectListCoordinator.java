@@ -204,6 +204,19 @@ public class ProjectListCoordinator implements IListCoordinator {
     } // --- Fin del método seleccionarAleatorio ---
     
     
+    @Override
+    public int getOfficialSelectedIndex() {
+        // En el modo Proyecto, el "índice oficial" es el de la lista que tiene el foco.
+        JList<String> listaActiva = obtenerListaActivaUI();
+        if (listaActiva != null) {
+            // Devolvemos el índice seleccionado de la lista que está activa.
+            return listaActiva.getSelectedIndex();
+        }
+        // Si por alguna razón no se puede determinar la lista activa, devolvemos -1.
+        return -1;
+    } // --- Fin del método getOfficialSelectedIndex ---
+    
+    
     // =================================================================================
     // === MÉTODOS AUXILIARES ===
     // =================================================================================

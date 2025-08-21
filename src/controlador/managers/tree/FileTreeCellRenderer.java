@@ -8,7 +8,11 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 
 public class FileTreeCellRenderer extends DefaultTreeCellRenderer {
 
-    private final FileSystemView fileSystemView;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final FileSystemView fileSystemView;
 
     public FileTreeCellRenderer() {
         this.fileSystemView = FileSystemView.getFileSystemView();

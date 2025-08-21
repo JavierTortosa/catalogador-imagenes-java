@@ -33,6 +33,7 @@ import vista.config.IconScope;
 import vista.config.LabelDefinition;
 import vista.config.SeparatorDefinition;
 import vista.config.TextFieldDefinition;
+import vista.config.ToolbarAlignment;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.ToolbarComponentDefinition;
 import vista.config.ToolbarDefinition;
@@ -84,6 +85,7 @@ public class ToolbarBuilder {
     } // --- Fin del método ToolbarBuilder (constructor) ---
 
     
+    
     public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) { 
         logger.info("--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
         
@@ -93,7 +95,20 @@ public class ToolbarBuilder {
         toolbar.setRollover(true);
         toolbar.putClientProperty("toolbarDefinition", toolbarDef);
 
+        // Comprobamos si el alineamiento de esta barra es 'FREE'.
+        // Si lo es, significa que está diseñada para integrarse en un panel
+        // personalizado (como la barra de estado roja o los controles de imagen),
+        // y por lo tanto, debe ser transparente.
         
+        if (toolbarDef.alignment() == ToolbarAlignment.FREE) {
+            logger.debug("    -> Barra con alineamiento FREE detectada ('{}'). Aplicando transparencia.", toolbarDef.claveBarra());
+            
+            // La instrucción clave para FlatLaf: no pintar el fondo.
+            toolbar.putClientProperty("FlatLaf.style", "background: null");
+            
+            // También usamos el método estándar de Swing para asegurar el comportamiento.
+            toolbar.setOpaque(false);
+        }
         
         // La lista ahora es 'vista', 'zoom' y 'modo'
         List<String> groupToolbarKeys = List.of("vista", "zoom", "modo");
@@ -275,7 +290,7 @@ public class ToolbarBuilder {
             String nombreBotonParaClave = ConfigKeys.keyPartFromCommand(definition.comandoCanonico());
             String claveBaseBoton = ConfigKeys.buildKey("interfaz.boton", definition.categoriaLayout(), nombreBotonParaClave);
             this.registry.register(claveBaseBoton, abstractButtonComponent);
-
+            
             abstractButtonComponent.putClientProperty("buttonType", definition.tipoBoton());
             abstractButtonComponent.putClientProperty("baseIconName", definition.claveIcono());
             abstractButtonComponent.putClientProperty("buttonConfigKey", claveBaseBoton);
@@ -334,6 +349,7 @@ public class ToolbarBuilder {
         }
 
         return finalComponent;
+
     } // --- Fin del método crearComponenteIndividual ---
     
     

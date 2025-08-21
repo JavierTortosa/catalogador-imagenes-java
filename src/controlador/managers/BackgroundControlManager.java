@@ -93,7 +93,7 @@ public class BackgroundControlManager implements ThemeChangeListener{
                 if (command != null && command.startsWith("cmd.background.")) {
                 	
                 	if (command.equals(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR)) {
-                        continue; // <-- ¡ESTA LÍNEA ES LA SOLUCIÓN!
+                        continue; 
                     }
                 	
                     transformToSwatchButton(button);

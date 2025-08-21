@@ -31,10 +31,15 @@ public class VisorModel {
         POLAROID      // Vista de imagen única con estilo "polaroid"
     }
     
-    
+    public enum SortDirection {
+        NONE,       // Sin orden específico (orden de lectura del disco)
+        ASCENDING,  // Orden ascendente (A-Z)
+        DESCENDING  // Orden descendente (Z-A)
+    }
 
     private WorkMode currentWorkMode;
     private DisplayMode currentDisplayMode;
+    private SortDirection sortDirection = SortDirection.NONE;
     
     private ListContext visualizadorListContext;
     private ListContext proyectoListContext;
@@ -48,28 +53,26 @@ public class VisorModel {
     
     private BufferedImage currentImage;
     
-    
     private int miniaturasAntes;
     private int miniaturasDespues;
     private int miniaturaSelAncho;
     private int miniaturaSelAlto;
     private int miniaturaNormAncho;
     private int miniaturaNormAlto;
-    private boolean navegacionCircularActivada = false;
     private int saltoDeBloque;
     private int carouselDelay;
     
+    private boolean navegacionCircularActivada = false;
     private boolean enModoProyecto = false;
-    
     private boolean modoPantallaCompletaActivado = false;
-    
     private boolean carouselShuffleEnabled = false;
-    
     private boolean syncVisualizadorCarrusel = false;
+    private double zoomCustomPercentage = 100.0;
+
     private Path ultimaCarpetaCarrusel;
     private String ultimaImagenKeyCarrusel; 
+    private boolean liveFilterActive = false;
     
-    private double zoomCustomPercentage = 100.0;
     
     
     public VisorModel() {
@@ -345,6 +348,16 @@ public class VisorModel {
     public void setUltimaCarpetaCarrusel(Path path) {this.ultimaCarpetaCarrusel = path;}
     public String getUltimaImagenKeyCarrusel() {return this.ultimaImagenKeyCarrusel;}
     public void setUltimaImagenKeyCarrusel(String key) {this.ultimaImagenKeyCarrusel = key;}
+    public boolean isLiveFilterActive() {return this.liveFilterActive;}
+    public void setLiveFilterActive(boolean liveFilterActive) {this.liveFilterActive = liveFilterActive;}
     
+    
+    public SortDirection getSortDirection() {return sortDirection;}
+    public void setSortDirection(SortDirection newSortDirection) {
+        SortDirection oldSortDirection = this.sortDirection;
+        this.sortDirection = newSortDirection;
+        // (Opcional pero recomendado) Si usas PropertyChangeSupport para notificar a la UI:
+        // firePropertyChange("sortDirection", oldSortDirection, newSortDirection);
+    } // --- FIN del metodo setSortDirection ---
     
 } // --- FIN DE LA CLASE VisorModel ---

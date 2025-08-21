@@ -221,8 +221,15 @@ public class UIDefinitionService {
         		MenuItemType.CHECKBOX_ITEM, "Lista de Archivos", null),
             new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, 
         		MenuItemType.CHECKBOX_ITEM, "Barra de Miniaturas", null),
-            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, 
-        		MenuItemType.CHECKBOX_ITEM, "Barra de Estado", null),
+            
+//            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, 
+//            		MenuItemType.CHECKBOX_ITEM, "Barra de Estado", null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR, 
+            		MenuItemType.CHECKBOX_ITEM, "Barra de Estado de Imagen", null),
+            new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_INFERIOR, 
+            		MenuItemType.CHECKBOX_ITEM, "Barra de Estado de Aplicacion", null),
+            
+            
             new MenuItemDefinition(null, 
         		MenuItemType.SEPARATOR, null, null),
             new MenuItemDefinition(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, 
@@ -695,27 +702,54 @@ public class UIDefinitionService {
 	        );
 		
 		
-		// --- BARRA DE ORDEN
+		// --- BARRA DE BOTONES orden ---
 		List<ToolbarComponentDefinition> botonesOrdenLista = List.of(
 				
 			 new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_RAIZ,			"30001-carpeta_raiz.png", "Carpeta Raiz", "orden_lista")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_ANTERIOR,		"30002-subir_carpeta.png", "Subir Subcarpeta", "orden_lista")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_SIGUIENTE,		"30003-bajar_carpeta.png", "Entrar en Subcarpeta", "orden_lista")
 			,new SeparatorDefinition()
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_ORDEN_ASCENDENTE,		"30004-orden_ascendente.png", "Orden Ascendente", "orden_lista")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_ORDEN_DESCENDENTE,		"30005-orden_descendente.png", "Orden Descendente", "orden_lista")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_ORDEN_ASCENDENTE,		"30004-orden_ascendente.png", "Orden Ascendente", "orden_lista")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_ORDEN_DESCENDENTE,		"30005-orden_descendente.png", "Orden Descendente", "orden_lista")
+//			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CICLO, 				"30004-orden_ascendente.png", "Orden de Archivos", "orden_lista")
+			
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CICLO, 				"30004-orden_ascendente.png", "Orden de Archivos", "orden_lista")
+			
 			,new SeparatorDefinition()
-			,new TextFieldDefinition("textfield.filtro.orden", "Texto a buscar...")							
+			,new TextFieldDefinition("textfield.filtro.orden", "")		
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER, 	"40001-filter_48x48.png", "Activar/Desactivar Filtro en Vivo","orden_lista", ButtonType.TOGGLE)
+			
 		);
 
-		
-		// --- BARRA DE BOTONES orden ---
-		// boton de on/off, acendente/descendente, nombre, tamaño, fecha, tags...
-		
 		// --- BARRA DE BOTONES filtros ---
 		// filtrado por extension (bmp, gif, png...), filtros por tags, filtros por letra inicial...
-
 		
+		List<ToolbarComponentDefinition> componentesFiltro = List.of(
+            // El JComboBox para elegir la fuente (Nombre/Carpeta) lo añadiremos más tarde.
+            // Por ahora, solo el campo de texto y los botones.
+			
+             new TextFieldDefinition("textfield.filtro.texto", "")
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ADD_POSITIVE,			"40002-filter_positive_48x48.png","Añadir Filtro Positivo (+)","barra_filtros",ButtonType.NORMAL)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ADD_NEGATIVE,			"40003-filter_negative_48x48.png","Añadir Filtro Negativo (-)","barra_filtros",ButtonType.NORMAL)
+
+            ,new SeparatorDefinition()
+            
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TYPE_NAME_FILE,		"40007-filter_file_48x48.png", "Filtro tipo archivo","barra_filtros",ButtonType.NORMAL)	
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TYPE_FOLDER,			"40008-filter_folder_48x48.png", "Filtro tipo carpeta","barra_filtros",ButtonType.NORMAL)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TYPE_TAG,				"40009-filter_tag_48x48.png", "Filtro tipo etiqueta","barra_filtros",ButtonType.NORMAL)
+                       
+			,new SeparatorDefinition()
+			
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_UP,					"40004-filter_up_48x48.png", "Subir 1 nivel","barra_filtros",ButtonType.NORMAL) 
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_DOWN,					"40005-filter_down_48x48.png", "Bajar 1 nivel","barra_filtros",ButtonType.NORMAL)
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_REMOVE_SELECTED,		"40006-filter_delete_48x48.png", "Quitar Filtro Seleccionado","barra_filtros",ButtonType.NORMAL)
+			
+			,new SeparatorDefinition()
+
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_CLEAR_ALL,			"40010-filter_clear_48x48.png","Limpiar Todos los Filtros","barra_filtros",ButtonType.NORMAL)
+             
+            
+        );
 		
             
 		// --- BARRA DE CONTROL DE IMAGEN INFERIOR (CONSOLIDADA: D-Pad, Colores, Cuadros, Paleta) ---
@@ -753,7 +787,7 @@ public class UIDefinitionService {
             new ToolbarButtonDefinition(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR,  	"paint-palette--streamline-core.png", IconScope.COMMON, "Seleccionar Color Personalizado...", 	"controles_imagen_inferior", ButtonType.TRANSPARENT)
         );
 
-        
+        // Toolbar de Exportar
         List<ToolbarButtonDefinition> botonesExportacion = List.of(	
        		new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, 	"6001-selector_de_carpetas_48x48.png", "Seleccionar Carpeta de Destino", "acciones_exportacion"		),	//,ButtonType.STATUS_BAR_BUTTON*/),
             new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, 		"21001-quitar_de_cola.png", "Quitar de la cola", "acciones_exportacion" 							),	//,ButtonType.STATUS_BAR_BUTTON*/),
@@ -763,10 +797,10 @@ public class UIDefinitionService {
             new ToolbarButtonDefinition(AppActionCommands.CMD_INICIAR_EXPORTACION, 			"21005-iniciar_exportación.png","Iniciar Exportación", "acciones_exportacion" 						)	//,ButtonType.STATUS_BAR_BUTTON*/)
         );
         
-        
+        // Toolbar de Statusbar
         List<ToolbarComponentDefinition> componentesBarraEstado = List.of(
-                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, "3001-zoom_48x48.png", "Activar/Desactivar Zoom Manual", "barra_estado", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, "7001-subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 		"3001-zoom_48x48.png", "Activar/Desactivar Zoom Manual", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 		"7001-subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "barra_estado", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,"7002-mantener_proporciones_48x48.png", "Mantener Proporciones", "barra_estado", ButtonType.TOGGLE),
                 new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, "7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "barra_estado", ButtonType.TOGGLE),
                 new SeparatorDefinition(),
@@ -775,8 +809,9 @@ public class UIDefinitionService {
                 new ToolbarButtonDefinition("cmd.control.modoZoom", "3005-escalar_para_ajustar_48x48.png", "Cambiar Modo de Zoom", "barra_estado", /*ButtonType.NORMAL)//*/ButtonType.STATUS_BAR_BUTTON)
                 
 		);
-
         
+        
+        // --- DEFINICION DE TOOLBAR ---
         return List.of(
         	    // Grupo Izquierda
         	    new ToolbarDefinition("navegacion", "Navegación", 			 10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL), List.copyOf(botonesNavegacion), ToolbarAlignment.LEFT),
@@ -807,7 +842,8 @@ public class UIDefinitionService {
         	    new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 	500, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesExportacion), ToolbarAlignment.FREE),
         	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	510, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.FREE),
         	    new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 		600, EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE),
-        	    new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 				700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, ToolbarAlignment.FREE)
+        	    new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 				700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, ToolbarAlignment.FREE),
+        	    new ToolbarDefinition("barra_filtros", "Herramientas de Filtro",			800, EnumSet.allOf(WorkMode.class), componentesFiltro, ToolbarAlignment.FREE)
         	);
         
         

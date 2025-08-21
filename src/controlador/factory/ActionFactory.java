@@ -39,6 +39,9 @@ import controlador.actions.edicion.RotateLeftAction;
 import controlador.actions.edicion.RotateRightAction;
 import controlador.actions.especiales.HiddenButtonsAction;
 import controlador.actions.especiales.MenuAction;
+import controlador.actions.filtro.AddFilterAction;
+import controlador.actions.filtro.ClearAllFiltersAction;
+import controlador.actions.filtro.RemoveFilterAction;
 import controlador.actions.navegacion.EntrarEnSubcarpetaAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
@@ -46,6 +49,7 @@ import controlador.actions.navegacion.NextImageAction;
 import controlador.actions.navegacion.PreviousImageAction;
 import controlador.actions.navegacion.SalirDeSubcarpetaAction;
 import controlador.actions.navegacion.VolverACarpetaRaizAction;
+import controlador.actions.orden.CycleSortAction;
 // Importaciones para PanAction y Direction
 import controlador.actions.pan.PanAction;
 import controlador.actions.projects.GestionarProyectoAction;
@@ -54,6 +58,7 @@ import controlador.actions.projects.RelocateImageAction;
 import controlador.actions.projects.RestoreFromDiscardsAction;
 import controlador.actions.projects.ToggleMarkImageAction;
 import controlador.actions.tema.ToggleThemeAction;
+import controlador.actions.toggle.ToggleLiveFilterAction;
 import controlador.actions.toggle.ToggleNavegacionCircularAction;
 import controlador.actions.toggle.ToggleProporcionesAction;
 import controlador.actions.toggle.ToggleSubfoldersAction;
@@ -64,12 +69,8 @@ import controlador.actions.vista.MostrarDialogoListaAction;
 import controlador.actions.vista.SwitchToVisualizadorAction;
 import controlador.actions.vista.ToggleAlwaysOnTopAction;
 import controlador.actions.vista.ToggleCheckeredBackgroundAction;
-import controlador.actions.vista.ToggleFileListAction;
 import controlador.actions.vista.ToggleFullScreenAction;
-import controlador.actions.vista.ToggleMenuBarAction;
 import controlador.actions.vista.ToggleMiniatureTextAction;
-import controlador.actions.vista.ToggleThumbnailsAction;
-import controlador.actions.vista.ToggleToolBarAction;
 import controlador.actions.workmode.SwitchWorkModeAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.actions.zoom.ResetZoomAction;
@@ -81,6 +82,7 @@ import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.CarouselManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.FileOperationsManager;
+import controlador.managers.filter.FilterCriterion.FilterType;
 import controlador.managers.interfaces.ICarouselListCoordinator;
 import controlador.managers.interfaces.IEditionManager;
 import controlador.managers.interfaces.IListCoordinator;
@@ -322,13 +324,26 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_ORDEN_CARPETA_ANTERIOR, createNavegarCarpetaAnteriorAction());
         actionMap.put(AppActionCommands.CMD_ORDEN_CARPETA_SIGUIENTE, createNavegarCarpetaSiguienteAction());
         actionMap.put(AppActionCommands.CMD_ORDEN_CARPETA_RAIZ, createNavegarCarpetaRaizAction());
+        actionMap.put(AppActionCommands.CMD_ORDEN_CICLO, createCycleSortAction());
+        
+        // --- Actions de Filtros
+        actionMap.put(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER, createToggleLiveFilterAction());
+        actionMap.put(AppActionCommands.CMD_FILTRO_ADD_POSITIVE, createAddFilterAction(FilterType.CONTAINS));
+        actionMap.put(AppActionCommands.CMD_FILTRO_ADD_NEGATIVE, createAddFilterAction(FilterType.DOES_NOT_CONTAIN));
+        actionMap.put(AppActionCommands.CMD_FILTRO_REMOVE_SELECTED, createRemoveFilterAction());
+        actionMap.put(AppActionCommands.CMD_FILTRO_CLEAR_ALL, createClearAllFiltersAction());
+        
+        
         
         // 3.6. Crear y registrar Actions de Vista (Toggles de UI)
+//        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, createToggleLocationBarAction());
+        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_INFERIOR, createToggleStatusBarAction());
+        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR, createToggleInfoBarAction());
+        
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR, createToggleMenuBarAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR, createToggleToolBarAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST, createToggleFileListAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, createToggleThumbnailsAction());
-        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, createToggleLocationBarAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG, createToggleCheckeredBackgroundAction());
         actionMap.put(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA, createMostrarDialogoListaAction());
         actionMap.put(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA, createToggleFullScreenAction());
@@ -748,35 +763,70 @@ public class ActionFactory {
 
     
     // --- 4.7. Métodos Create para Actions de Vista (Toggles UI) ---
-     
     private Action createToggleMenuBarAction() {
-    	return new ToggleMenuBarAction("Barra de Menú", null, this.configuration, this.viewManager, "interfaz.menu.vista.barra_de_menu.seleccionado", "Barra_de_Menu", AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR);
+        return new ToggleUIElementVisibilityAction(
+            this.viewManager,
+            this.configuration,
+            "Barra de Menú",
+            "interfaz.menu.vista.barra_de_menu.seleccionado", // La clave de config
+            "Barra_de_Menu", // El ID que entiende ViewManager
+            AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR
+        );
     } // --- Fin del método createToggleMenuBarAction ---
-    
-    
+
     private Action createToggleToolBarAction() {
-        return new ToggleToolBarAction("Barra de Botones", null, this.configuration, this.viewManager, "interfaz.menu.vista.barra_de_botones", "Barra_de_Botones", AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR);
+        return new ToggleUIElementVisibilityAction( // <-- Usamos la Action genérica
+            this.viewManager,
+            this.configuration,
+            "Barra de Botones",
+            "interfaz.menu.vista.barra_de_botones.seleccionado", // La clave de config
+            "Barra_de_Botones", // El ID que entiende ViewManager
+            AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR
+        );
     } // --- Fin del método createToggleToolBarAction ---
-      
-    
+
     private Action createToggleFileListAction() {
-        return new ToggleFileListAction("Lista de Archivos", null, this.configuration, this.viewManager, "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado", "mostrar_ocultar_la_lista_de_archivos", AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+        return new ToggleUIElementVisibilityAction( // <-- Usamos la Action genérica
+            this.viewManager,
+            this.configuration,
+            "Lista de Archivos",
+            "interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado",
+            "mostrar_ocultar_la_lista_de_archivos",
+            AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST
+        );
     } // --- Fin del método createToggleFileListAction ---
-    
-    
+
     private Action createToggleThumbnailsAction() {
-    	return new ToggleThumbnailsAction( "Barra de Miniaturas", null, this.configuration, this.viewManager, "interfaz.menu.vista.imagenes_en_miniatura.seleccionado", "imagenes_en_miniatura", AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
-   	} // --- Fin del método createToggleThumbnailsAction ---
+        return new ToggleUIElementVisibilityAction( // <-- Usamos la Action genérica
+            this.viewManager,
+            this.configuration,
+            "Barra de Miniaturas",
+            "interfaz.menu.vista.imagenes_en_miniatura.seleccionado",
+            "imagenes_en_miniatura",
+            AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS
+        );
+    } // --- Fin del método createToggleThumbnailsAction ---
     
-    
-    private Action createToggleLocationBarAction() {
+    private Action createToggleStatusBarAction() {
     	return new ToggleUIElementVisibilityAction(
     	        this.viewManager,
     	        this.configuration,
     	        "Barra de Estado",
     	        ConfigKeys.INFOBAR_INF_VISIBLE,
-    	        "REFRESH_INFO_BAR_INFERIOR",
-    	        AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR
+    	        "barra_de_estado",
+    	        //"REFRESH_INFO_BAR_INFERIOR",
+    	        AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_INFERIOR
+    	    );
+    } // --- Fin del método createToggleLocationBarAction ---
+    
+    private Action createToggleInfoBarAction() {
+    	return new ToggleUIElementVisibilityAction(
+    	        this.viewManager,
+    	        this.configuration,
+    	        "Barra de Información",
+    	        ConfigKeys.INFOBAR_SUP_VISIBLE,
+    	        "barra_de_info_imagen", // <-- El ID que pusimos en el switch del ViewManager
+    	        AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR
     	    );
     } // --- Fin del método createToggleLocationBarAction ---
     
@@ -1127,6 +1177,49 @@ public class ActionFactory {
 	    return action;
 	    
 	} // --- FIN del metodo createNavegarCarpetaRaizAction ---
+	
+	
+	private Action createToggleLiveFilterAction() {
+	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
+	    return new ToggleLiveFilterAction(this.model, this.generalController, "Activar/Desactivar Filtro en Vivo", icon);
+	} // --- Fin del método createToggleLiveFilterAction ---
+	
+	private Action createAddFilterAction(FilterType type) {
+        String command = (type == FilterType.CONTAINS) ? AppActionCommands.CMD_FILTRO_ADD_POSITIVE : AppActionCommands.CMD_FILTRO_ADD_NEGATIVE;
+        String name = (type == FilterType.CONTAINS) ? "Añadir Filtro Positivo" : "Añadir Filtro Negativo";
+        ImageIcon icon = getIconForCommand(command);
+        return new AddFilterAction(this.generalController, type, name, icon);
+    } // --- Fin del método createAddFilterAction ---
+
+    private Action createRemoveFilterAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_FILTRO_REMOVE_SELECTED);
+        return new RemoveFilterAction(this.generalController, "Eliminar Filtro Seleccionado", icon);
+    } // --- Fin del método createRemoveFilterAction ---
+
+    private Action createClearAllFiltersAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_FILTRO_CLEAR_ALL);
+        return new ClearAllFiltersAction(this.generalController, "Limpiar Todos los Filtros", icon);
+    } // --- Fin del método createClearAllFiltersAction ---
+	
+	
+	
+	private Action createCycleSortAction() {
+	    // Obtener el icono inicial para la acción.
+	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ORDEN_CICLO);
+	    
+	    // Instanciar la nueva clase, inyectando las dependencias necesarias.
+	    CycleSortAction action = new CycleSortAction(
+	        "Ordenar Lista",      // Nombre para menús, si se usa
+	        icon,                 // Icono inicial
+	        this.model,           // Referencia al modelo
+	        this.generalController // Referencia al orquestador
+	    );
+	    
+	    // Configurar propiedades adicionales que no están en el constructor de la Action.
+	    action.putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_ORDEN_CICLO);
+
+	    return action;
+	} // --- FIN del metodo createCycleSortAction ---
 
 		
 	private Action createOpenFolderAction() {

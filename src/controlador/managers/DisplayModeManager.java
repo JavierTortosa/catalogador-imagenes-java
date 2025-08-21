@@ -144,7 +144,10 @@ public class DisplayModeManager implements ThemeChangeListener{
             case GRID:
                 logger.debug("  -> Configurando para MODO GRID: Ocultando barra de miniaturas.");
                 if (thumbnailScrollPane != null && thumbnailScrollPane.isVisible()) {
-                    viewManager.setComponentePrincipalVisible(thumbnailComponentId, false, configKey);
+                	
+//                    viewManager.setComponentePrincipalVisible(thumbnailComponentId, false, configKey);
+                	viewManager.solicitarActualizacionUI(thumbnailComponentId, configKey, false);
+                		
                     actualizarEstadoAccionToggle(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, false);
                 }
                 poblarYSincronizarGrid();
@@ -153,7 +156,7 @@ public class DisplayModeManager implements ThemeChangeListener{
             case SINGLE_IMAGE:
                  logger.debug("  -> Configurando para MODO SINGLE_IMAGE: Mostrando barra de miniaturas.");
                  if (thumbnailScrollPane != null && !thumbnailScrollPane.isVisible()) {
-                     viewManager.setComponentePrincipalVisible(thumbnailComponentId, true, configKey);
+                     viewManager.solicitarActualizacionUI(thumbnailComponentId, configKey, true);
                      actualizarEstadoAccionToggle(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, true);
                  }
                 break;

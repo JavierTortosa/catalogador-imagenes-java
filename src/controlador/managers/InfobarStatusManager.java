@@ -23,7 +23,6 @@ import javax.swing.UIManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.AppInitializer;
 import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
@@ -35,11 +34,10 @@ import servicios.zoom.ZoomModeEnum;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.UIDefinitionService;
 import vista.theme.Tema;
-//import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
-public class InfobarStatusManager{//  implements ThemeChangeListener{
+public class InfobarStatusManager  {//implements ThemeChangeListener{
 
 	private static final Logger logger = LoggerFactory.getLogger(InfobarStatusManager.class);
 	
@@ -74,6 +72,7 @@ public class InfobarStatusManager{//  implements ThemeChangeListener{
         this.uiDefService = new UIDefinitionService();
         
         configurarListenersControles();
+        
         
     }// --- Fin del constructor --- 
 
@@ -422,6 +421,8 @@ public class InfobarStatusManager{//  implements ThemeChangeListener{
         } else {
             logger.warn("WARN [InfobarStatusManager]: No se pudo encontrar el botón con el comando canónico 'cmd.control.modoZoom'.");
         }
+        
+        
         
     } // --- Fin del método configurarListenersControles ---
     

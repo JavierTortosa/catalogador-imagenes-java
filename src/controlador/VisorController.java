@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
-import java.awt.Graphics2D;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -56,10 +55,12 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
 import org.slf4j.Logger;
@@ -73,6 +74,7 @@ import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
+import controlador.managers.FilterManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
@@ -93,10 +95,8 @@ import servicios.image.ThumbnailService;
 import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
-
 //import vista.dialogos.ProgresoCargaDialog;
 import vista.dialogos.TaskProgressDialog;
-
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
 import vista.theme.Tema;
@@ -718,6 +718,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     
  // ******************************************************************************************************************* CARGA      
 
+    
     /**
      * Carga o recarga la lista de imágenes desde disco para una carpeta específica,
      * utilizando un SwingWorker para no bloquear el EDT. Muestra un diálogo de
@@ -740,14 +741,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     public void cargarListaImagenes(String claveImagenAMantener, Runnable alFinalizarConExito) {
         logger.debug("-->>> INICIO cargarListaImagenes | Mantener Clave: " + claveImagenAMantener);
 
-        // --- 1. VALIDACIONES PREVIAS ---
         if (configuration == null || model == null || executorService == null || executorService.isShutdown() || view == null) {
             logger.error("ERROR [cargarListaImagenes]: Dependencias nulas o Executor apagado.");
             if (view != null) SwingUtilities.invokeLater(this::limpiarUI);
             return;
         }
 
-        // --- 2. ESTADO Y CANCELACIÓN ---
         this.estaCargandoLista = true;
         this.cargaInicialEnCurso = true;
         if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
@@ -755,17 +754,14 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             cargaImagenesFuture.cancel(true);
         }
 
-        // --- 3. PREPARACIÓN ---
         final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
         int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
         Path pathDeInicioWalk = model.getCarpetaRaizActual();
 
-        // --- 4. VALIDAR CARPETA DE INICIO ---
         if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk)) {
             logger.warn("[cargarListaImagenes] No se puede cargar: Carpeta de inicio inválida o nula: " + pathDeInicioWalk);
             limpiarUI();
             if (statusBarManager != null) {
-                // Usamos tu método existente para mostrar un mensaje persistente.
                 statusBarManager.mostrarMensaje("No hay una carpeta válida seleccionada. Usa 'Archivo -> Abrir Carpeta'.");
             }
             this.estaCargandoLista = false;
@@ -773,19 +769,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             return;
         }
         
-        // --- 5. FEEDBACK INMEDIATO AL USUARIO ---
         if (this.servicioMiniaturas != null) {
             this.servicioMiniaturas.limpiarCache();
         }
-        limpiarUI(); // <-- Feedback inmediato: la UI se pone en modo bienvenida mientras carga.
+        limpiarUI(); 
 
-        // --- 6. CREAR DIÁLOGO Y WORKER ---
-        
-        
-        // Creamos una instancia del nuevo diálogo unificado
         final TaskProgressDialog dialogo = new TaskProgressDialog(view, "Cargando Imágenes", "Escaneando carpeta de imágenes...");
-
-        // El worker ahora recibe el nuevo tipo de diálogo
         final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
             pathDeInicioWalk,
             depth,
@@ -793,18 +782,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             this::esArchivoImagenSoportado,
             dialogo
         );
-        // Asociamos el worker con el diálogo para que el botón "Cancelar" funcione
         dialogo.setWorkerAsociado(worker);
-        
         this.cargaImagenesFuture = worker;
-
-        // --- 7. LÓGICA DE FINALIZACIÓN DEL WORKER ---
-        
 
         worker.addPropertyChangeListener(evt -> {
             if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
                 
-                // <<< CAMBIO: La lógica de cierre y mensajes finales se gestiona aquí.
                 if (worker.isCancelled()) {
                     logger.debug("    -> Tarea CANCELADA por el usuario.");
                     dialogo.setFinalMessageAndClose("Carga cancelada.", false, 1500);
@@ -820,25 +803,55 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                     Map<String, Path> mapaResultado = worker.get();
 
                     if (mapaResultado == null || mapaResultado.isEmpty()) {
-                        logger.info("    -> La búsqueda no encontró imágenes soportadas en la carpeta.");
+                        logger.info("    -> La búsqueda no encontró imágenes soportadas. Entrando en estado de bienvenida final.");
                         dialogo.setFinalMessageAndClose("La carpeta no contiene imágenes.", false, 2000);
+                        
+                        this.limpiarUI(); 
+                        
+                        if (listCoordinator != null) {
+                            listCoordinator.forzarActualizacionEstadoAcciones();
+                        }
+                        
                         if (statusBarManager != null) {
-                            statusBarManager.mostrarMensaje("La carpeta no contiene imágenes soportadas. Selecciona otra para continuar.");
+                            statusBarManager.mostrarMensaje("La carpeta no contiene imágenes. Abre otra para empezar.");
                         }
-                        if (view != null) {
-                            view.setTituloPanelIzquierdo("Archivos: 0");
-                        }
-                        return;
+                        
+                        return; 
                     }
 
-                    // Si todo fue bien, cerramos el diálogo inmediatamente para que el usuario vea la app.
                     dialogo.closeDialog();
-
-                    // === El resto del código es el que ya tenías, sin cambios ===
-                    logger.debug("    WORKER HA TERMINADO. Archivos encontrados: " + mapaResultado.size());
                     
-                    if (statusBarManager != null) {
-                        statusBarManager.limpiarMensaje();
+                    if (statusBarManager != null) statusBarManager.limpiarMensaje();
+                    
+                    logger.debug("    -> Restaurando visibilidad de paneles según la configuración del usuario.");
+                    if (registry != null && actionMap != null) {
+                        
+                        // --- INICIO DE LA MODIFICACIÓN FINAL ---
+                        Action fileListAction = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
+                        if (fileListAction != null) {
+                            boolean shouldBeVisible = Boolean.TRUE.equals(fileListAction.getValue(Action.SELECTED_KEY));
+                            JPanel panelIzquierdo = registry.get("panel.izquierdo.contenedorPrincipal");
+                            if (panelIzquierdo != null) {
+                                panelIzquierdo.setVisible(shouldBeVisible);
+                                // ¡LA LÍNEA QUE FALTABA!
+                                if (shouldBeVisible) {
+                                    JSplitPane splitPane = registry.get("splitpane.main");
+                                    if (splitPane != null) {
+                                        splitPane.setDividerLocation(0.25);
+                                    }
+                                }
+                            }
+                        }
+
+                        Action thumbnailsAction = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
+                        if (thumbnailsAction != null) {
+                            boolean shouldBeVisible = Boolean.TRUE.equals(thumbnailsAction.getValue(Action.SELECTED_KEY));
+                            JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
+                            if (scrollMiniaturas != null) {
+                                scrollMiniaturas.setVisible(shouldBeVisible);
+                            }
+                        }
+                        // --- FIN DE LA MODIFICACIÓN FINAL ---
                     }
 
                     List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
@@ -871,7 +884,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 
                 } catch (Exception e) {
                     logger.error("    -> ERROR durante la ejecución del worker: " + e.getMessage(), e);
-                    // <<< CAMBIO: Usamos el nuevo diálogo para mostrar el error.
                     dialogo.setFinalMessageAndClose("Error durante la carga.", true, 2500);
                     limpiarUI();
                     if (statusBarManager != null) {
@@ -887,7 +899,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             }
         });
 
-        // --- 8. EJECUTAR EL WORKER ---
         worker.execute();
         SwingUtilities.invokeLater(() -> {
             if (dialogo != null) {
@@ -895,12 +906,53 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             }
         });
         
-        Action actionMostrar = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-    	actionMostrar.putValue(Action.SELECTED_KEY, true);
-    	actionMostrar.actionPerformed(null);
-    	
-    } // --- FIN del metodo cargarListaImagenes ---
+    } // --- fin del metodo cargarListaImagenes ---
     
+
+    /**
+     * Carga una nueva "lista maestra" en el modelo a partir de un resultado de filtro precalculado.
+     * Este método simula el final de 'cargarListaImagenes', pero usando datos en memoria
+     * en lugar de leer del disco. Activa toda la maquinaria de sincronización de la UI.
+     *
+     * @param resultadoFiltro Un objeto FilterResult que contiene el nuevo modelo de lista y el mapa de rutas.
+     * @param alFinalizarConExito Un Runnable opcional para ejecutar al final.
+     */
+    public void cargarListaDesdeFiltro(FilterManager.FilterResult resultadoFiltro, Runnable alFinalizarConExito) {
+        logger.debug("-->>> INICIO cargarListaDesdeFiltro | Tamaño del filtro: {}", resultadoFiltro.model().getSize());
+
+        if (model == null || view == null || listCoordinator == null) {
+            logger.error("ERROR [cargarListaDesdeFiltro]: Dependencias críticas nulas.");
+            return;
+        }
+
+        // 1. Obtener los datos del resultado del filtro.
+        DefaultListModel<String> modeloFiltrado = resultadoFiltro.model();
+        Map<String, Path> mapaFiltrado = resultadoFiltro.pathMap();
+
+        // 2. Actualizar el modelo central. Esto cambia la "Lista Maestra" en el ListContext.
+        model.actualizarListaCompleta(modeloFiltrado, mapaFiltrado);
+
+        // 3. ¡¡¡PASO CRUCIAL!!! Actualizar la JList de nombres en la VISTA para que use el nuevo modelo.
+        //    Esta es la línea que faltaba y que hace que la lista de la izquierda se actualice visualmente.
+        view.setListaImagenesModel(model.getModeloLista());
+        view.setTituloPanelIzquierdo("Archivos (Filtro): " + model.getModeloLista().getSize());
+
+        // 4. Determinar el índice a seleccionar (el primero de la lista filtrada).
+        int indiceASeleccionar = modeloFiltrado.isEmpty() ? -1 : 0;
+
+        // 5. Reiniciar el coordinador con la nueva lista y la selección inicial.
+        //    Esto disparará la actualización de la imagen principal y las miniaturas.
+        listCoordinator.reiniciarYSeleccionarIndice(indiceASeleccionar);
+
+        // 6. Ejecutar el callback si existe.
+        if (alFinalizarConExito != null) {
+            alFinalizarConExito.run();
+        }
+        
+        logger.debug("-->>> FIN cargarListaDesdeFiltro. Sincronización completa.");
+    
+   
+    } // --- fin del metodo cargarListaDesdeFiltro --- 
     
     
     /**
@@ -1490,85 +1542,83 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         logger.debug("[Controller] Limpiando UI y Modelo a estado de bienvenida...");
 
         if (listCoordinator != null) {
-            listCoordinator.setSincronizandoUI(true); // Bloquea listeners
+            listCoordinator.setSincronizandoUI(true); // Bloquea listeners para evitar eventos en cascada
         }
 
         try {
+            // --- 1. LIMPIEZA DEL MODELO Y CACHÉ ---
             if (model != null) {
                 model.setCurrentImage(null);
                 model.setSelectedImageKey(null);
                 model.resetZoomState();
-                logger.debug("  -> Estado de imagen y selección en modelo limpiado.");
-            }
-
-            if (view != null && iconUtils != null && viewManager != null) {
-                // Limpia visualmente la imagen que pudiera haber antes (importante)
-                view.limpiarImagenMostrada();
-                
-                // Limpia los modelos de datos de las listas de miniaturas
-                if (this.modeloMiniaturasVisualizador != null) {
-                    this.modeloMiniaturasVisualizador.clear();
-                }
-                if (this.modeloMiniaturasCarrusel != null) {
-                    this.modeloMiniaturasCarrusel.clear();
-                }
-                logger.debug("  -> Listas de miniaturas limpiadas.");
-
-                // Lógica para mostrar la imagen de bienvenida
-                
-
-                
-             // --- INICIO DEPURACIÓN ---
-                ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
-                logger.debug(" -> [limpiarUI] ¿Panel de display encontrado?: " + (displayPanel != null));
-                
-                if (displayPanel != null) {
-                    // He corregido el nombre del archivo aquí también
-                	
-                    
-                	ImageIcon welcomeIcon = iconUtils.getWelcomeImage("modeltag-bienvenida-apaisado.png");
-                			//getCommonIcon("application/modeltag-bienvenida-apaisado.png");
-                    		//getWelcomeImage("modeltag-bienvenida-apaisado.png");
-                    
-                    
-                    logger.debug(" -> [limpiarUI] ¿ImageIcon de bienvenida cargado?: " + (welcomeIcon != null));
-
-                    if (welcomeIcon != null) {
-                        // Convertimos a BufferedImage
-                        BufferedImage welcomeImage = new BufferedImage(
-                            welcomeIcon.getIconWidth(),
-                            welcomeIcon.getIconHeight(),
-                            BufferedImage.TYPE_INT_ARGB);
-                        Graphics2D g2d = welcomeImage.createGraphics();
-                        welcomeIcon.paintIcon(null, g2d, 0, 0);
-                        g2d.dispose();
-
-                        logger.debug(" -> [limpiarUI] BufferedImage creado. Llamando a setWelcomeImage y showWelcomeMessage...");
-                        
-                        Action actionOcultar = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-                        actionOcultar.putValue(Action.SELECTED_KEY, false);
-                        actionOcultar.actionPerformed(null);
-                        
-                        displayPanel.setWelcomeImage(welcomeImage);
-                        displayPanel.showWelcomeMessage(); 
-                    } else {
-                    	
-                        displayPanel.limpiar();
-                    }
-                }
-                // --- FIN DEPURACIÓN ---
+                // Limpiamos los modelos de las listas de forma segura
+                if (this.modeloMiniaturasVisualizador != null) this.modeloMiniaturasVisualizador.clear();
+                if (this.modeloMiniaturasCarrusel != null) this.modeloMiniaturasCarrusel.clear();
+                logger.debug("  -> Estado de imagen, selección y modelos de lista en 'model' limpiados.");
             }
 
             if (servicioMiniaturas != null) {
                 servicioMiniaturas.limpiarCache();
                 logger.debug("  -> Caché de miniaturas limpiado.");
             }
+            
+            // --- 2. ACTUALIZACIÓN VISUAL DE LA PANTALLA DE BIENVENIDA ---
+            if (view != null && iconUtils != null && viewManager != null) {
+                view.limpiarImagenMostrada(); // Limpia la imagen anterior si la hubiera
+                
+                ImageDisplayPanel displayPanel = viewManager.getActiveDisplayPanel();
+                if (displayPanel != null) {
+                    ImageIcon welcomeIcon = iconUtils.getWelcomeImage("modeltag-bienvenida-apaisado.png");
+                    if (welcomeIcon != null) {
+                        // Prepara y muestra la imagen de bienvenida
+                        BufferedImage welcomeImage = new BufferedImage(
+                            welcomeIcon.getIconWidth(),
+                            welcomeIcon.getIconHeight(),
+                            BufferedImage.TYPE_INT_ARGB);
+                        java.awt.Graphics2D g2d = welcomeImage.createGraphics();
+                        welcomeIcon.paintIcon(null, g2d, 0, 0);
+                        g2d.dispose();
+                        displayPanel.setWelcomeImage(welcomeImage);
+                        displayPanel.showWelcomeMessage();
+                    } else {
+                        displayPanel.limpiar(); // Fallback si no hay imagen de bienvenida
+                    }
+                }
+            }
+            
+            // --- 3. OCULTAMIENTO DE PANELES POR ESTADO (LA LÓGICA QUE DISCUTIMOS) ---
+            // Se ocultan los paneles que no tienen sentido sin una lista de imágenes.
+            // Esto se hace directamente sobre los componentes, sin afectar la configuración del usuario.
+            if (registry != null) {
+                 logger.debug("  -> Ocultando paneles de lista y miniaturas por estado de bienvenida.");
+                
+                 // Ocultar panel de lista de archivos
+                 JPanel panelIzquierdo = registry.get("panel.izquierdo.contenedorPrincipal");
+                 if (panelIzquierdo != null) panelIzquierdo.setVisible(false);
 
-            Action toggleMarkImageAction = (actionMap != null) ? actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA) : null;
-            if (toggleMarkImageAction != null) {
-                toggleMarkImageAction.setEnabled(false);
-                toggleMarkImageAction.putValue(Action.SELECTED_KEY, Boolean.FALSE);
-                actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
+                 // Ocultar panel de miniaturas del visualizador
+                 JScrollPane scrollMiniaturasVisor = registry.get("scroll.miniaturas");
+                 if (scrollMiniaturasVisor != null) scrollMiniaturasVisor.setVisible(false);
+                 
+                 // Ocultar panel de miniaturas del carrusel (por si acaso)
+                 JScrollPane scrollMiniaturasCarousel = registry.get("scroll.miniaturas.carousel");
+                 if (scrollMiniaturasCarousel != null) scrollMiniaturasCarousel.setVisible(false);
+            }
+
+            // --- 4. PREVENCIÓN DEL NULLPOINTEREXCEPTION ---
+            // Se actualizan las barras de información para que muestren su estado "vacío".
+            // Esto evita que intenten acceder a datos nulos del modelo.
+            if (infobarImageManager != null) {
+                infobarImageManager.actualizar();
+            }
+            if (statusBarManager != null) {
+                statusBarManager.actualizar();
+            }
+            
+            // --- 5. ACTUALIZACIÓN FINAL DE ACCIONES ---
+            // Se actualiza el estado de los botones (deshabilitar "Siguiente", "Anterior", etc.)
+            if (listCoordinator != null) {
+                listCoordinator.forzarActualizacionEstadoAcciones();
             }
 
         } finally {
@@ -1576,24 +1626,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                 SwingUtilities.invokeLater(() -> listCoordinator.setSincronizandoUI(false)); // Libera listeners
             }
         }
-       
-        // Actualizamos las barras de información para que muestren su estado de bienvenida
-        if (infobarImageManager != null) {
-//            infobarImageManager.actualizarParaBienvenida();
-        }
-        if (statusBarManager != null) {
-//            statusBarManager.actualizarParaBienvenida();
-        }
-       
-        if (listCoordinator != null) {
-            listCoordinator.forzarActualizacionEstadoAcciones();
-        }
         
-        logger.debug("[Controller] Limpieza de UI y Modelo completada. Mostrando bienvenida.");
+        logger.debug("[Controller] Limpieza de UI y Modelo completada.");
         
-    } // --- FIN limpiarUI ---
+    } // Fin del metodo limpiarUI ---
     
-     
+    
 // *********************************************************************************************************** FIN DE UTILIDAD  
 // ***************************************************************************************************************************    
 
@@ -2326,6 +2364,31 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 
          logger.debug("[VisorController] Fin cambiarTemaYNotificar.");
      }
+     
+     
+     /**
+      * Recorre un componente contenedor y todos sus hijos (y los hijos de sus hijos, etc.)
+      * para aplicarles un color de texto (foreground) específico.
+      * Este método es crucial para asegurar que todos los elementos dentro de paneles
+      * con colores de fondo personalizados (como la barra de estado) hereden el color
+      * de texto correcto para mantener la legibilidad.
+      *
+      * @param container El componente raíz desde el que empezar a aplicar colores.
+      * @param color El color de texto a aplicar.
+      */
+     private void actualizarColoresDeTextoRecursivamente(java.awt.Container container, Color color) {
+         // Itera sobre todos los componentes directos del contenedor.
+         for (java.awt.Component component : container.getComponents()) {
+             // Aplica el color de texto al componente actual.
+             component.setForeground(color);
+             
+             // Si el componente es a su vez un contenedor (como un JToolBar o un JPanel anidado),
+             // se llama a este mismo método de forma recursiva para que actualice a sus hijos.
+             if (component instanceof java.awt.Container) {
+                 actualizarColoresDeTextoRecursivamente((java.awt.Container) component, color);
+             }
+         }
+     } // --- fin del método actualizarColoresDeTextoRecursivamente ---     
      
      
      /**
@@ -3605,8 +3668,45 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	    if (bottomStatusBar != null) {
 	        bottomStatusBar.setBackground(colorFondoPrincipal);
 	    }
+	    
+	    
+	 // --- INICIO DE LA MODIFICACIÓN ---
+        // 9. SINCRONIZACIÓN ESPECIAL PARA BARRAS DE ESTADO/INFO CON COLORES ADAPTATIVOS
+        //    Aquí aplicamos los colores que calculamos y guardamos en el UIManager.
+	    
+	    // Barra de estado inferior (la que querías roja)
+	    JPanel panelEstadoInferior = registry.get("panel.estado.inferior");
+	    if (panelEstadoInferior != null) {
+	        Color backgroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
+	        Color foregroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_FOREGROUND);
 
-	    // 9. Forzar un repintado general al final
+	        if (backgroundColor != null) {
+	            panelEstadoInferior.setBackground(backgroundColor);
+	        }
+	        if (foregroundColor != null) {
+	            actualizarColoresDeTextoRecursivamente(panelEstadoInferior, foregroundColor);
+	        }
+	    }
+	    
+	    // Barra de información superior (opcional, pero consistente)
+        // Podrías usar los mismos colores o definir otros si quisieras.
+	    JPanel panelInfoSuperior = registry.get("panel.info.superior");
+	    if (panelInfoSuperior != null) {
+	        Color backgroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
+	        Color foregroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_FOREGROUND);
+	        
+            if (backgroundColor != null) {
+	            panelInfoSuperior.setBackground(backgroundColor);
+	        }
+            if (foregroundColor != null) {
+                // Hay que ser cuidadoso aquí si los labels tienen colores especiales (rojo, verde)
+                // Por ahora, aplicamos el color a todos los hijos para consistencia.
+	            actualizarColoresDeTextoRecursivamente(panelInfoSuperior, foregroundColor);
+	        }
+	    }
+        // --- FIN DE LA MODIFICACIÓN ---
+
+	 // 10. Forzar un repintado general al final (ya estaba)
 	    view.repaint();
 	    
 	} // --- Fin del método sincronizarColoresDePanelesPorTema ---

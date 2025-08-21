@@ -44,7 +44,7 @@ public class CarouselManager {
     private final IconUtils iconUtils;
     
     // --- Estado Interno ---
-    private Timer imageChangeTimer;
+//    private Timer imageChangeTimer;
     private Timer countdownTimer;
     private boolean isRunning = false;
     private int countdown;
@@ -135,32 +135,46 @@ public class CarouselManager {
     public void play() {
         if (isRunning || model.getCurrentWorkMode() != WorkMode.CARROUSEL) return;
         logger.debug("[CarouselManager] Iniciando carrusel...");
-        
-        int delay = model.getCarouselDelay();
-        int absoluteDelay = Math.abs(delay); // <-- Usaremos el valor absoluto para el timer
-        
-        this.countdown = absoluteDelay / 1000;
 
-        imageChangeTimer = new Timer(absoluteDelay, e -> { // <-- El timer usa el valor absoluto
-            if (model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
-            	if (model.isCarouselShuffleEnabled()) {
-                    // Si el modo aleatorio está activo, seleccionamos una al azar
+        int delay = model.getCarouselDelay();
+        int absoluteDelay = Math.abs(delay);
+        
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Hacemos la comprobación de seguridad aquí
+        if (absoluteDelay < 1000) {
+            absoluteDelay = 1000;
+        }
+        
+        // Creamos una nueva variable FINAL que la lambda pueda usar de forma segura.
+        final int finalDelay = absoluteDelay;
+        // --- FIN DE LA CORRECCIÓN ---
+
+        // El countdown inicial se establece aquí
+        this.countdown = finalDelay / 1000;
+
+        // --- LÓGICA DEL TEMPORIZADOR ÚNICO ---
+        countdownTimer = new Timer(1000, e -> {
+            if (model.getCurrentWorkMode() != WorkMode.CARROUSEL) {
+                stop();
+                return;
+            }
+
+            countdown--;
+            
+            if (countdown <= 0) {
+                if (model.isCarouselShuffleEnabled()) {
                     listCoordinator.seleccionarAleatorio();
                 } else {
-                    // Si no, usamos la lógica secuencial (hacia adelante o atrás)
-                    if (model.getCarouselDelay() >= 0) {
+                    if (delay >= 0) { // <-- Sigue usando el 'delay' original con signo
                         listCoordinator.seleccionarSiguiente();
                     } else {
                         listCoordinator.seleccionarAnterior();
                     }
                 }
+                // Reinicia la cuenta usando la variable final
+                countdown = finalDelay / 1000;
             }
-        });
-        imageChangeTimer.setInitialDelay(absoluteDelay);
 
-        countdownTimer = new Timer(1000, e -> {
-            countdown--;
-            if (countdown < 0) countdown = (absoluteDelay / 1000);
             if (timerOverlayLabel != null) {
                 int minutos = Math.max(0, countdown) / 60;
                 int segundos = Math.max(0, countdown) % 60;
@@ -175,7 +189,6 @@ public class CarouselManager {
             timerOverlayLabel.setVisible(true);
         }
         
-        imageChangeTimer.start();
         countdownTimer.start();
         isRunning = true;
         if (carouselThumbnails != null) carouselThumbnails.setVisible(false);
@@ -186,39 +199,127 @@ public class CarouselManager {
         }
         
         actualizarEstadoDeAcciones();
-    } // --- Fin del método play ---
+    } // --- Fin del método play (corregido) ---
     
     
     public void pause() {
         if (!isRunning) return;
         logger.debug("[CarouselManager] Pausando carrusel.");
-        if (imageChangeTimer != null) imageChangeTimer.stop();
-        if (countdownTimer != null) countdownTimer.stop();
+        if (countdownTimer != null) countdownTimer.stop(); // Solo paramos un timer
         isRunning = false;
         if (carouselThumbnails != null) carouselThumbnails.setVisible(true);
         
         if (statusIndicatorLabel != null) {
             statusIndicatorLabel.setIcon(pauseIcon);
-            statusIndicatorLabel.setVisible(true); // Se queda visible en pausa
+            statusIndicatorLabel.setVisible(true);
         }
         
         actualizarEstadoDeAcciones();
-    } // --- Fin del método pause ---
+    } // --- Fin del método pause (simplificado) ---
 
     public void stop() {
         logger.debug("[CarouselManager] Deteniendo carrusel.");
-        if (imageChangeTimer != null) { imageChangeTimer.stop(); imageChangeTimer = null; }
+        // if (imageChangeTimer != null) { imageChangeTimer.stop(); imageChangeTimer = null; } // <-- ELIMINA ESTA LÍNEA
         if (countdownTimer != null) { countdownTimer.stop(); countdownTimer = null; }
         isRunning = false;
         if (timerOverlayLabel != null) timerOverlayLabel.setVisible(false);
         if (carouselThumbnails != null) carouselThumbnails.setVisible(true);
         
         if (statusIndicatorLabel != null) {
-            statusIndicatorLabel.setVisible(false); // Se oculta al parar
+            statusIndicatorLabel.setVisible(false);
         }
         
         actualizarEstadoDeAcciones();
-    } // --- Fin del método stop ---
+    } // --- Fin del método stop (simplificado) ---
+    
+    
+//    public void play() {
+//        if (isRunning || model.getCurrentWorkMode() != WorkMode.CARROUSEL) return;
+//        logger.debug("[CarouselManager] Iniciando carrusel...");
+//        
+//        int delay = model.getCarouselDelay();
+//        int absoluteDelay = Math.abs(delay); // <-- Usaremos el valor absoluto para el timer
+//        
+//        this.countdown = absoluteDelay / 1000;
+//
+//        imageChangeTimer = new Timer(absoluteDelay, e -> { // <-- El timer usa el valor absoluto
+//            if (model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
+//            	if (model.isCarouselShuffleEnabled()) {
+//                    // Si el modo aleatorio está activo, seleccionamos una al azar
+//                    listCoordinator.seleccionarAleatorio();
+//                } else {
+//                    // Si no, usamos la lógica secuencial (hacia adelante o atrás)
+//                    if (model.getCarouselDelay() >= 0) {
+//                        listCoordinator.seleccionarSiguiente();
+//                    } else {
+//                        listCoordinator.seleccionarAnterior();
+//                    }
+//                }
+//            }
+//        });
+//        imageChangeTimer.setInitialDelay(absoluteDelay);
+//
+//        countdownTimer = new Timer(1000, e -> {
+//            countdown--;
+//            if (countdown < 0) countdown = (absoluteDelay / 1000);
+//            if (timerOverlayLabel != null) {
+//                int minutos = Math.max(0, countdown) / 60;
+//                int segundos = Math.max(0, countdown) % 60;
+//                timerOverlayLabel.setText(String.format("%02d:%02d", minutos, segundos));
+//            }
+//        });
+//
+//        if (timerOverlayLabel != null) {
+//            int minutos = Math.max(0, countdown) / 60;
+//            int segundos = Math.max(0, countdown) % 60;
+//            timerOverlayLabel.setText(String.format("%02d:%02d", minutos, segundos));
+//            timerOverlayLabel.setVisible(true);
+//        }
+//        
+//        imageChangeTimer.start();
+//        countdownTimer.start();
+//        isRunning = true;
+//        if (carouselThumbnails != null) carouselThumbnails.setVisible(false);
+//        
+//        if (statusIndicatorLabel != null) {
+//            statusIndicatorLabel.setIcon(playIcon);
+//            statusIndicatorLabel.setVisible(true);
+//        }
+//        
+//        actualizarEstadoDeAcciones();
+//    } // --- Fin del método play ---
+//    
+//    
+//    public void pause() {
+//        if (!isRunning) return;
+//        logger.debug("[CarouselManager] Pausando carrusel.");
+//        if (imageChangeTimer != null) imageChangeTimer.stop();
+//        if (countdownTimer != null) countdownTimer.stop();
+//        isRunning = false;
+//        if (carouselThumbnails != null) carouselThumbnails.setVisible(true);
+//        
+//        if (statusIndicatorLabel != null) {
+//            statusIndicatorLabel.setIcon(pauseIcon);
+//            statusIndicatorLabel.setVisible(true); // Se queda visible en pausa
+//        }
+//        
+//        actualizarEstadoDeAcciones();
+//    } // --- Fin del método pause ---
+//
+//    public void stop() {
+//        logger.debug("[CarouselManager] Deteniendo carrusel.");
+//        if (imageChangeTimer != null) { imageChangeTimer.stop(); imageChangeTimer = null; }
+//        if (countdownTimer != null) { countdownTimer.stop(); countdownTimer = null; }
+//        isRunning = false;
+//        if (timerOverlayLabel != null) timerOverlayLabel.setVisible(false);
+//        if (carouselThumbnails != null) carouselThumbnails.setVisible(true);
+//        
+//        if (statusIndicatorLabel != null) {
+//            statusIndicatorLabel.setVisible(false); // Se oculta al parar
+//        }
+//        
+//        actualizarEstadoDeAcciones();
+//    } // --- Fin del método stop ---
 
     // --- NUEVOS MÉTODOS PARA AVANCE/RETROCESO RÁPIDO ---
 

@@ -13,11 +13,16 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.Action;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -38,10 +43,14 @@ import controlador.interfaces.IModoController;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
+import controlador.managers.FilterManager;
 import controlador.managers.FolderNavigationManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager; // <-- Importación necesaria
 import controlador.managers.ViewManager;
+import controlador.managers.filter.FilterCriterion;
+import controlador.managers.filter.FilterCriterion.FilterSource;
+import controlador.managers.filter.FilterCriterion.FilterType;
 import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry; // <-- NUEVO: Importación para ComponentRegistry
 import modelo.ListContext;
@@ -68,19 +77,29 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private VisorController visorController;
     private ProjectController projectController;
     private ViewManager viewManager;
-    private Map<String, Action> actionMap;
     private InfobarStatusManager statusBarManager;
     private ConfigApplicationManager configAppManager;
     private ToolbarManager toolbarManager;
-    private ComponentRegistry registry; // <-- NUEVO: Referencia al ComponentRegistry
-    private int lastMouseX, lastMouseY;
+    private ComponentRegistry registry; 
     private DisplayModeManager displayModeManager; 
     private ConfigurationManager configuration;
     private FolderNavigationManager folderNavManager;
-    
     private FolderTreeManager folderTreeManager;
+    private FilterManager filterManager;
+    
+    private DefaultListModel<String> masterModelSinFiltro;
+    private Map<String, Path> masterMapSinFiltro;
+    private int indiceSeleccionadoAntesDeFiltrar = -1;
+    
+    private javax.swing.border.Border sortButtonActiveBorder;
+    private javax.swing.border.Border sortButtonInactiveBorder;
+    
+    private Map<String, Action> actionMap;
+    private boolean sortBordersInitialized = false;
+    private int lastMouseX, lastMouseY;
     
     private volatile boolean isChangingSubfolderMode = false;
+    private java.beans.PropertyChangeListener listSelectionListener;
     
     /**
      * Constructor de GeneralController.
@@ -90,15 +109,62 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         // Constructor vacío. La inicialización se delega al método initialize.
     } // --- Fin del método GeneralController (constructor) ---
 
+    
     /**
      * Inicializa el controlador después de que todas las dependencias hayan sido inyectadas.
-     * Este método se usa para configurar el estado inicial de la UI.
+     * Este método se usa para configurar el estado inicial de la UI y los listeners.
      */
     public void initialize() {
         logger.debug("[GeneralController] Inicializado.");
-        // Se asegura de que al arrancar, el botón del modo inicial (Visualizador) aparezca correctamente seleccionado.
+        
         sincronizarEstadoBotonesDeModo();
+        
+        SwingUtilities.invokeLater(() -> {
+            javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+            JList<String> fileList = registry.get("list.nombresArchivo");
+
+            if (searchField == null || fileList == null) {
+                logger.error("[GeneralController] ¡ERROR CRÍTICO! Faltan JTextField o JList para inicializar la búsqueda/filtro.");
+                return;
+            }
+
+            // --- 1. Listener para el campo de texto (sigue igual) ---
+            searchField.addActionListener(e -> { if (!model.isLiveFilterActive()) { buscarSiguienteCoincidencia(); } });
+            searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+                public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizarFiltro(); }
+                public void removeUpdate(javax.swing.event.DocumentEvent e) { actualizarFiltro(); }
+                public void changedUpdate(javax.swing.event.DocumentEvent e) { actualizarFiltro(); }
+            });
+            configurePlaceholderText(searchField);
+
+            // --- 2. Listener para la JList (Traductor de Índices, sigue igual) ---
+            fileList.addListSelectionListener(e -> {
+                if (e.getValueIsAdjusting()) return;
+                
+                @SuppressWarnings("unchecked") 
+                JList<String> sourceList = (JList<String>) e.getSource();
+                int selectedIndexInView = sourceList.getSelectedIndex();
+                if (selectedIndexInView == -1) return;
+
+                if (model.isLiveFilterActive()) {
+                    String selectedValue = sourceList.getSelectedValue();
+                    DefaultListModel<String> masterModel = model.getCurrentListContext().getModeloLista();
+                    int realIndexInMaster = masterModel.indexOf(selectedValue);
+                    
+                    if (realIndexInMaster != -1 && visorController.getListCoordinator().getOfficialSelectedIndex() != realIndexInMaster) {
+                       visorController.getListCoordinator().seleccionarImagenPorIndice(realIndexInMaster);
+                    }
+                } else {
+                     if (visorController.getListCoordinator().getOfficialSelectedIndex() != selectedIndexInView) {
+                        visorController.getListCoordinator().seleccionarImagenPorIndice(selectedIndexInView);
+                    }
+                }
+            });
+            
+            logger.debug("[GeneralController] Listeners de búsqueda/filtro configurados correctamente.");
+        });
     } // --- Fin del método initialize ---
+    
     
     // --- Setters para Inyección de Dependencias ---
 
@@ -527,7 +593,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      * Este es el método que se debe llamar al arrancar la aplicación para asegurar
      * que la vista inicial sea coherente.
      */
-    public void sincronizarTodaLaUIConElModelo() {
+	public void sincronizarTodaLaUIConElModelo() {
         logger.info("--- [GeneralController] Iniciando sincronización maestra de ui ---");
 
         if (model == null || actionMap == null || visorController == null) {
@@ -536,23 +602,22 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
 
         // 1. Sincronizar los botones de MODO DE TRABAJO.
-        //    Esto asegura que el botón del modo actual (Visualizador/Proyecto) esté seleccionado.
         sincronizarEstadoBotonesDeModo();
         
         // 2. Sincronizar los botones de MODO DE VISUALIZACIÓN (DisplayMode).
-            displayModeManager.sincronizarEstadoBotonesDisplayMode();
+        displayModeManager.sincronizarEstadoBotonesDisplayMode();
 
         // 3. Delegar el resto de la sincronización específica del modo al VisorController.
-        //    IMPORTANTE: Debemos quitar la sincronización de subcarpetas de allí para evitar redundancia.
         visorController.sincronizarComponentesDeModoVisualizador();
 
-        // 2. Sincronizar los controles de subcarpetas de forma centralizada.
+        // 4. Sincronizar los controles de subcarpetas de forma centralizada.
         sincronizarControlesDeSubcarpetas();
         
+        // ***** INICIO DE LA MODIFICACIÓN *****
+        // 5. Sincronizar el botón de ordenación.
+        sincronizarBotonDeOrdenacion();
+        // ***** FIN DE LA MODIFICACIÓN *****
         
-        // 4. Delegar la sincronización específica del modo PROYECTO a su controlador (cuando sea necesario).
-        // projectController.sincronizarComponentesDeModoProyecto(); // <- Futura implementación
-
         logger.debug("--- [GeneralController] SINCRONIZACIÓN MAESTRA DE UI COMPLETADA ---");
         
     } // --- FIN del metodo sincronizarTodaLaUIConElModelo ---
@@ -1369,48 +1434,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     
     
-    
-//    /**
-//     * Orquesta la carga de una nueva carpeta raíz seleccionada por el usuario.
-//     * Este es el punto de entrada para el selector de carpetas, asegurando que la
-//     * lógica de carga sea la correcta y no la de un simple toggle.
-//     *
-//     * @param nuevaCarpeta La nueva carpeta raíz a visualizar.
-//     */
-//    public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta) {
-//        logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
-//        if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) {
-//            logger.warn("  -> La nueva carpeta es inválida o nula. Abortando.");
-//            return;
-//        }
-//        
-//        // 1. Validar dependencias
-//        if (model == null || visorController == null || displayModeManager == null) {
-//            logger.error("  -> ERROR: Dependencias críticas (model, visorController, displayModeManager) nulas. Abortando.");
-//            return;
-//        }
-//
-//        // 2. Actualizar la carpeta raíz del contexto actual en el modelo.
-//        //    Esta es la nueva "base" para futuras operaciones.
-//        model.setCarpetaRaizActual(nuevaCarpeta);
-//
-//        // 3. Definir la acción de sincronización que se ejecutará DESPUÉS de la carga.
-//        //    Es similar a la del toggle, pero nos aseguramos de que todo quede coherente.
-//        Runnable accionPostCarga = () -> {
-//            logger.debug("  [Callback Post-Carga de Nueva Raíz] Tarea de carga finalizada. Ejecutando sincronización...");
-//            this.sincronizarTodaLaUIConElModelo();
-//            displayModeManager.poblarYSincronizarGrid();
-//            logger.debug("  [Callback Post-Carga de Nueva Raíz] Sincronización finalizada.");
-//        };
-//
-//        // 4. Llamar al método de carga de bajo nivel en VisorController.
-//        //    Pasamos 'null' como clave a mantener para que la lógica de "entrar en subcarpeta"
-//        //    no se active y se seleccione la primera imagen de la nueva lista.
-//        logger.debug("  -> Delegando a VisorController la tarea de recargar la lista de imágenes desde la nueva raíz...");
-//        visorController.cargarListaImagenes(null, accionPostCarga);
-//        
-//    } // --- FIN del metodo solicitarCargaDesdeNuevaRaiz ---
-    
 //  ********************************************************************************** FIN IMPLEMENTACION INTERFAZ IModoController
     
 //  *************************************************************************************************************** INICIO GETTERS    
@@ -1473,6 +1496,420 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- FIN del metodo solicitarToggleModoCargaSubcarpetas ---
     
     
+    /**
+     * Reordena la lista de archivos actual basándose en el estado de sortDirection
+     * del modelo y actualiza la UI del botón de ordenación.
+     * [VERSIÓN CORREGIDA Y LIMPIA]
+     */
+    public void resortFileListAndSyncButton() {
+        VisorModel.SortDirection direction = model.getSortDirection();
+        ListContext currentContext = model.getCurrentListContext();
+        if (currentContext == null) return;
+
+        DefaultListModel<String> listModel = currentContext.getModeloLista();
+        if (listModel.isEmpty()) {
+            // Si la lista está vacía, solo sincronizamos el botón y salimos.
+            syncSortButtonUI(direction);
+            return;
+        }
+
+        // Si el modo es NONE, recargamos la carpeta para obtener el orden "natural" del disco.
+        if (direction == VisorModel.SortDirection.NONE) {
+            solicitarCargaDesdeNuevaRaiz(model.getCarpetaRaizActual());
+            // La recarga se encargará de sincronizar la UI al final, así que salimos.
+            // Pero nos aseguramos de que el botón se apague visualmente de inmediato.
+            syncSortButtonUI(direction);
+            return;
+        }
+
+        // --- Lógica de reordenación en memoria para ASCENDING y DESCENDING ---
+        
+        List<String> items = new ArrayList<>();
+        for (int i = 0; i < listModel.getSize(); i++) {
+            items.add(listModel.getElementAt(i));
+        }
+
+        String selectedKey = model.getSelectedImageKey();
+
+        switch (direction) {
+            case ASCENDING:
+                Collections.sort(items);
+                break;
+            case DESCENDING:
+                items.sort(Collections.reverseOrder());
+                break;
+            case NONE:
+                // Ya manejado arriba
+                break;
+        }
+
+        listModel.clear();
+        listModel.addAll(items);
+        
+        int newIndex = (selectedKey != null) ? listModel.indexOf(selectedKey) : -1;
+        if (newIndex == -1 && !listModel.isEmpty()) {
+            newIndex = 0;
+        }
+        
+        if (this.getVisorController().getListCoordinator() != null) {
+            this.getVisorController().getListCoordinator().reiniciarYSeleccionarIndice(newIndex);
+        }
+
+        // Sincronizamos la UI del botón AL FINAL, después de que toda la lógica ha terminado.
+        syncSortButtonUI(direction);
+    }
+    
+    /**
+     * Sincroniza ÚNICAMENTE la apariencia del botón de ordenación basándose
+     * en el estado actual del modelo, sin alterar la lista.
+     */
+    public void sincronizarBotonDeOrdenacion() {
+        if (model == null) return;
+        syncSortButtonUI(model.getSortDirection());
+    } // --- FIN del metodo sincronizarBotonDeOrdenacion ---
+
+
+    /**
+     * Actualiza el icono, tooltip y BORDE del botón de ordenación, usando
+     * el color de acento del tema actual, igual que el resto de la aplicación.
+     * [VERSIÓN FINAL CON ARQUITECTURA DE TEMA]
+     */
+    private void syncSortButtonUI(VisorModel.SortDirection direction) {
+        Action sortAction = this.actionMap.get(AppActionCommands.CMD_ORDEN_CICLO);
+        if (sortAction == null) return;
+
+        String buttonKey = "interfaz.boton.orden_lista.orden_ciclo";
+        javax.swing.JButton sortButton = registry.get(buttonKey);
+        
+        if (sortButton == null) {
+            return;
+        }
+
+        // --- INICIALIZACIÓN DE BORDES (se hace solo una vez) ---
+        if (!sortBordersInitialized) {
+            int thickness = 2; 
+
+            // LA CLAVE: Usamos el color de acento definido por el tema.
+            // Es el mismo que usa BackgroundControlManager a través del objeto Tema.
+            java.awt.Color activeColor = javax.swing.UIManager.getColor("Component.accentColor");
+            if (activeColor == null) {
+                // Fallback por si la clave no existiera en algún tema raro.
+                activeColor = javax.swing.UIManager.getColor("Component.focusColor");
+                if (activeColor == null) {
+                     activeColor = new java.awt.Color(59, 142, 255);
+                }
+            }
+            
+            this.sortButtonActiveBorder = javax.swing.BorderFactory.createLineBorder(activeColor, thickness);
+
+            // El borde inactivo reserva el espacio para que el botón no "salte".
+            this.sortButtonInactiveBorder = javax.swing.BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
+
+            sortBordersInitialized = true;
+        }
+
+        // --- LÓGICA DE ACTUALIZACIÓN ---
+        String iconKey;
+        String tooltip;
+
+        switch (direction) {
+            case ASCENDING:
+            case DESCENDING:
+                if (direction == VisorModel.SortDirection.ASCENDING) {
+                    iconKey = "30004-orden_ascendente.png";
+                    tooltip = "Orden: Ascendente (clic para Z-A)";
+                } else {
+                    iconKey = "30005-orden_descendente.png";
+                    tooltip = "Orden: Descendente (clic para apagar)";
+                }
+                sortButton.setBorder(this.sortButtonActiveBorder);
+                break;
+                
+            case NONE:
+            default:
+                iconKey = "30006-orden_off.png";
+                tooltip = "Orden: Apagado (clic para A-Z)";
+                sortButton.setBorder(this.sortButtonInactiveBorder);
+                break;
+        }
+
+        int iconSize = configuration.getInt("iconos.ancho", 24);
+        ImageIcon newIcon = this.getVisorController().getIconUtils().getScaledIcon(iconKey, iconSize, iconSize);
+        sortAction.putValue(Action.SMALL_ICON, newIcon);
+        sortAction.putValue(Action.SHORT_DESCRIPTION, tooltip);
+        
+        sortButton.repaint();
+    } // --- FIN del metodo syncSortButtonUI ---
+    
+    
+    /**
+     * Orquesta la búsqueda de la siguiente coincidencia usando el FilterManager.
+     * Este método es llamado por el ActionListener del campo de búsqueda.
+     */
+    private void buscarSiguienteCoincidencia() {
+        if (registry == null || model == null || visorController == null || filterManager == null || visorController.getListCoordinator() == null) {
+            logger.warn("[GeneralController] No se puede buscar, faltan dependencias críticas.");
+            return;
+        }
+
+        // 1. Obtener el campo de texto y el texto a buscar.
+        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+        if (searchField == null) {
+            logger.error("[GeneralController] No se encontró el JTextField 'textfield.filtro.orden' en el registro.");
+            return;
+        }
+        
+        String searchText = searchField.getText();
+        if (searchText.isBlank() || searchText.equals("Texto a buscar...")) {
+            return; // No hay nada que buscar.
+        }
+
+        // 2. Obtener el contexto actual para la búsqueda.
+        ListContext currentContext = model.getCurrentListContext();
+        DefaultListModel<String> masterListModel = currentContext.getModeloLista();
+        int startIndex = visorController.getListCoordinator().getOfficialSelectedIndex();
+
+        // 3. Delegar la búsqueda al FilterManager.
+        int foundIndex = filterManager.buscarSiguiente(masterListModel, startIndex, searchText);
+
+        // 4. Procesar el resultado.
+        if (foundIndex != -1) {
+            // Coincidencia encontrada: usar el ListCoordinator para seleccionar.
+            visorController.getListCoordinator().seleccionarImagenPorIndice(foundIndex);
+            
+            
+            
+//            // Ponemos el foco de vuelta en la lista de nombres para poder navegar con las flechas.
+//            JList<String> fileList = registry.get("list.nombresArchivo");
+//            if (fileList != null) {
+//                fileList.requestFocusInWindow();
+//            }
+            
+            
+        } else {
+            // No se encontró: notificar al usuario.
+            if (statusBarManager != null) {
+                statusBarManager.mostrarMensajeTemporal("No se encontró: \"" + searchText + "\"", 3000);
+            }
+        }
+    } // --- Fin del método buscarSiguienteCoincidencia ---
+    
+    
+    /**
+     * Configura el comportamiento del texto placeholder en un JTextField.
+     */
+    private void configurePlaceholderText(javax.swing.JTextField searchField) {
+        searchField.addFocusListener(new java.awt.event.FocusAdapter() {
+            @Override
+            public void focusGained(java.awt.event.FocusEvent e) {
+                if (searchField.getText().equals("Texto a buscar...")) {
+                    searchField.setText("");
+                    searchField.setForeground(javax.swing.UIManager.getColor("TextField.foreground"));
+                }
+            }
+            @Override
+            public void focusLost(java.awt.event.FocusEvent e) {
+                if (searchField.getText().isEmpty()) {
+                    searchField.setText("Texto a buscar...");
+                    searchField.setForeground(javax.swing.UIManager.getColor("TextField.placeholderForeground"));
+                }
+            }
+        });
+        if (searchField.getText().equals("Texto a buscar...")) {
+             searchField.setForeground(javax.swing.UIManager.getColor("TextField.placeholderForeground"));
+        }
+    } // --- Fin del método configurePlaceholderText ---
+
+    /**
+     * Se activa cuando el botón de filtro en vivo (huracán) es pulsado.
+     * Actualiza el estado en el modelo y aplica o limpia el filtro.
+     */
+    private void onToggleLiveFilter(boolean isSelected) {
+        model.setLiveFilterActive(isSelected);
+        logger.debug("[GeneralController] Modo Filtro en Vivo cambiado a: {}", isSelected);
+        
+        if (isSelected) {
+            actualizarFiltro(); // Aplicar filtro con el texto actual
+        } else {
+            limpiarFiltro(); // Volver a la lista maestra
+        }
+        
+        // Sincroniza la apariencia visual del botón
+        Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
+        configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
+
+    } // --- Fin del método onToggleLiveFilter ---
+
+    
+    /**
+     * Reacciona a los cambios en el campo de texto cuando el filtro en vivo está activo.
+     * Crea un criterio de filtro temporal y le pide al FilterManager que aplique los filtros.
+     */
+    private void actualizarFiltro() {
+        if (!model.isLiveFilterActive() || this.masterModelSinFiltro == null) return;
+
+        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+        if (searchField == null) return;
+        String searchText = searchField.getText().equals("Texto a buscar...") ? "" : searchField.getText();
+
+        // 1. Preparamos el FilterManager con la regla de filtro actual
+        filterManager.clearFilters();
+        if (!searchText.isBlank()) {
+            filterManager.addFilter(new FilterCriterion(searchText, FilterSource.FILENAME, FilterType.CONTAINS));
+        }
+
+        // 2. Generamos el contenido filtrado a partir de nuestra copia maestra
+        DefaultListModel<String> filteredContent = filterManager.applyFilters(this.masterModelSinFiltro);
+
+        // 3. Obtenemos el modelo de lista QUE ESTÁ EN USO y modificamos su contenido
+        DefaultListModel<String> modeloEnUso = model.getModeloLista();
+        modeloEnUso.clear();
+        // --- LÍNEA CORREGIDA ---
+        modeloEnUso.addAll(Collections.list(filteredContent.elements()));
+        
+        // 4. Reiniciamos el coordinador.
+        visorController.getListCoordinator().reiniciarYSeleccionarIndice(modeloEnUso.isEmpty() ? -1 : 0);
+            
+        
+    } // --- Fin del método actualizarFiltro ---
+    
+
+    /**
+     * Restaura la JList de nombres para que muestre el modelo maestro original.
+     */
+    private void limpiarFiltro() {
+        if (this.masterModelSinFiltro == null) return;
+
+        // 1. Obtenemos el modelo de lista QUE ESTÁ EN USO
+        DefaultListModel<String> modeloEnUso = model.getModeloLista();
+        
+        // 2. Restauramos su contenido a partir de nuestra copia maestra
+        modeloEnUso.clear();
+        // --- LÍNEA CORREGIDA ---
+        modeloEnUso.addAll(Collections.list(this.masterModelSinFiltro.elements()));
+
+        // 3. Le decimos al coordinador que vuelva al índice que teníamos guardado.
+        visorController.getListCoordinator().reiniciarYSeleccionarIndice(this.indiceSeleccionadoAntesDeFiltrar);
+
+        // 4. Limpiamos nuestra copia de seguridad.
+        this.masterModelSinFiltro = null;
+        this.indiceSeleccionadoAntesDeFiltrar = -1;
+        
+    } // --- Fin del método limpiarFiltro ---
+    
+    
+    /**
+     * Es llamado por la AddFilterAction. Orquesta la adición de un nuevo filtro.
+     * @param source La fuente del filtro (FILENAME o FOLDER_PATH).
+     * @param type El tipo de filtro (CONTAINS o DOES_NOT_CONTAIN).
+     */
+    public void solicitarAnadirFiltro(FilterSource source, FilterType type) {
+        javax.swing.JTextField filterTextField = registry.get("textfield.filtro.texto");
+        if (filterTextField == null) return;
+
+        String texto = filterTextField.getText();
+        if (texto.isBlank()) {
+            if (statusBarManager != null) {
+                statusBarManager.mostrarMensajeTemporal("El texto del filtro no puede estar vacío", 2000);
+            }
+            return;
+        }
+
+        FilterCriterion nuevoFiltro = new FilterCriterion(texto, source, type);
+        filterManager.addFilter(nuevoFiltro);
+        
+        filterTextField.setText(""); // Limpiamos el campo después de añadir
+        refrescarVistasDeFiltros();
+
+    } // --- Fin del método solicitarAnadirFiltro ---
+
+    /**
+     * Es llamado por la RemoveFilterAction. Elimina el filtro actualmente seleccionado.
+     */
+    public void solicitarEliminarFiltroSeleccionado() {
+        JList<FilterCriterion> filterList = registry.get("list.filtrosActivos");
+        if (filterList == null) return;
+
+        FilterCriterion filtroSeleccionado = filterList.getSelectedValue();
+        if (filtroSeleccionado != null) {
+            filterManager.removeFilter(filtroSeleccionado);
+            refrescarVistasDeFiltros();
+        } else {
+            if (statusBarManager != null) {
+                statusBarManager.mostrarMensajeTemporal("Selecciona un filtro para eliminarlo", 2000);
+            }
+        }
+    } // --- Fin del método solicitarEliminarFiltroSeleccionado ---
+
+    /**
+     * Es llamado por la ClearAllFiltersAction. Limpia todos los filtros activos.
+     */
+    public void solicitarLimpiarTodosLosFiltros() {
+        filterManager.clearFilters();
+        refrescarVistasDeFiltros();
+    } // --- Fin del método solicitarLimpiarTodosLosFiltros ---
+    
+    /**
+     * Método central para actualizar la UI después de cualquier cambio en los filtros.
+     * Refresca tanto la lista de filtros activos como la lista de archivos filtrada.
+     */
+    private void refrescarVistasDeFiltros() {
+        // 1. Actualizar la JList de la pestaña "Filtros"
+        JList<FilterCriterion> filterList = registry.get("list.filtrosActivos");
+        if (filterList != null) {
+            // Creamos un nuevo modelo para la lista de filtros
+            DefaultListModel<FilterCriterion> filterListModel = new DefaultListModel<>();
+            filterListModel.addAll(filterManager.getActiveFilters());
+            filterList.setModel(filterListModel);
+        }
+
+        // 2. Actualizar la JList de la pestaña "Lista" (la lista de archivos)
+        JList<String> fileList = registry.get("list.nombresArchivo");
+        if (fileList != null) {
+            DefaultListModel<String> masterModel = model.getCurrentListContext().getModeloLista();
+            DefaultListModel<String> filteredModel = filterManager.applyFilters(masterModel);
+            fileList.setModel(filteredModel);
+            
+            // Después de filtrar, deseleccionamos todo para evitar inconsistencias.
+            // El usuario tendrá que hacer una nueva selección en la lista filtrada.
+            if (visorController != null && visorController.getListCoordinator() != null) {
+                visorController.getListCoordinator().reiniciarYSeleccionarIndice(-1);
+            }
+        }
+    } // --- Fin del método refrescarVistasDeFiltros ---
+    
+    
+    /**
+     * Es llamado por la ToggleLiveFilterAction cuando el estado del filtro cambia.
+     * Orquesta la actualización de la UI aplicando o limpiando el filtro.
+     * @param isSelected El nuevo estado del modo filtro.
+     */
+    public void onLiveFilterStateChanged(boolean isSelected) {
+        model.setLiveFilterActive(isSelected);
+        logger.debug("[GeneralController] Modo Filtro en Vivo cambiado a: {}", isSelected);
+        
+        if (isSelected) {
+            // Guardamos el estado original ANTES de aplicar el primer filtro
+            this.masterModelSinFiltro = new DefaultListModel<>();
+            DefaultListModel<String> modeloActual = model.getModeloLista();
+            for(int i = 0; i < modeloActual.getSize(); i++){
+                this.masterModelSinFiltro.addElement(modeloActual.getElementAt(i));
+            }
+            this.indiceSeleccionadoAntesDeFiltrar = visorController.getListCoordinator().getOfficialSelectedIndex();
+            
+            actualizarFiltro(); // Aplicar filtro con el texto actual
+        } else {
+            limpiarFiltro(); // Volver a la lista maestra
+        }
+        
+        Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
+        if (configAppManager != null && liveFilterAction != null) {
+            configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
+        }
+        
+    } // --- Fin del método onLiveFilterStateChanged ---
+    
+
     public JPopupMenu crearMenuContextualParaArbol() {
         JPopupMenu menu = new JPopupMenu();
         
@@ -1488,6 +1925,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         
         return menu;
     } // --- Fin del método crearMenuContextualParaArbol ---
+    
     
     public void solicitarAbrirCarpetaDesdeArbol() {
         if (folderTreeManager != null) {
@@ -1553,6 +1991,11 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     public void setFolderTreeManager(FolderTreeManager folderTreeManager) {
         this.folderTreeManager = Objects.requireNonNull(folderTreeManager);
     } // --- FIN del metodo setFolderTreeManager ---
+    
+    
+    public void setFilterManager(FilterManager filterManager) {
+        this.filterManager = Objects.requireNonNull(filterManager, "FilterManager no puede ser null en GeneralController");
+    } // --- Fin del método setFilterManager ---
     
     
     public ComponentRegistry getRegistry() {

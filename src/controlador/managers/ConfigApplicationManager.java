@@ -39,8 +39,8 @@ public class ConfigApplicationManager {
     private final ThemeManager themeManager;
     private final ComponentRegistry registry;
     private Map<String, Action> actionMap;
-    private VisorView view;
     private BackgroundControlManager backgroundControlManager;
+    private VisorView view;
     private DisplayModeManager displayModeManager;
     
     // --- ESTADO ---
@@ -80,7 +80,7 @@ public class ConfigApplicationManager {
         aplicarConfiguracionAlModelo();
         
         // 2. AHORA sembramos los colores custom si es necesario.
-        seedInitialCustomColors(); // <-- AÑADE ESTA LÍNEA AQUÍ
+        seedInitialCustomColors(); 
         
         // Ahora, este método solo se encarga de aplicar la configuración,
         // no de la sincronización visual, que ocurrirá más tarde.
@@ -258,11 +258,27 @@ public class ConfigApplicationManager {
         for(String key : registry.getAllComponentKeys()) {
         	
             if (key.startsWith("interfaz.boton.")) {
-            	AbstractButton  button = registry.get(key);
-                if (button != null) {
+            	
+            	
+            	// --- INICIO DE LA CORRECCIÓN ---
+                Object componente = registry.get(key);
+                
+                // Comprobamos si el componente es REALMENTE un botón antes de tratarlo como tal.
+                if (componente instanceof AbstractButton) {
+                    AbstractButton button = (AbstractButton) componente;
                     button.setVisible(config.getBoolean(key + ".visible", true));
-                    // El estado 'enabled' es mejor que lo gestione la propia Action.
                 }
+                // Si no es un AbstractButton (como nuestro JPanel wrapper), simplemente lo ignoramos.
+                // --- FIN DE LA CORRECCIÓN ---
+            	
+//            	AbstractButton  button = registry.get(key);
+//                if (button != null) {
+//                    button.setVisible(config.getBoolean(key + ".visible", true));
+//                    // El estado 'enabled' es mejor que lo gestione la propia Action.
+//                }
+                
+                
+                
             } else if (key.startsWith("interfaz.menu.")) {
                 JMenuItem menuItem = registry.get(key);
                 if (menuItem != null) {

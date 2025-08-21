@@ -1,5 +1,3 @@
-// Contenido de la clase vista.components.icons.ColorOverlayIcon.java
-
 package vista.components.icons;
 
 import java.awt.AlphaComposite;

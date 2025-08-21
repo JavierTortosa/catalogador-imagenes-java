@@ -1,6 +1,5 @@
 package controlador.managers;
 
-import java.awt.Component;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -21,8 +20,6 @@ import modelo.VisorModel;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import utils.ImageUtils;
-import vista.theme.Tema;
-import vista.theme.ThemeChangeListener;
 
 /**
  * Gestiona la actualización de la barra de información superior, que muestra
@@ -30,7 +27,7 @@ import vista.theme.ThemeChangeListener;
  * Esta clase es responsable de leer el estado del modelo y la configuración,
  * y de reflejarlo en los componentes de la UI correspondientes.
  */
-public class InfobarImageManager implements ThemeChangeListener{
+public class InfobarImageManager { //implements ThemeChangeListener{
 
 	private static final Logger logger = LoggerFactory.getLogger(InfobarImageManager.class);
 	
@@ -94,30 +91,6 @@ public class InfobarImageManager implements ThemeChangeListener{
     } // --- Fin del método actualizarBarraInfoSuperior ---
 
 
-    @Override
-    public void onThemeChanged(Tema nuevoTema) {
-        logger.debug("[InfobarImageManager] Reaccionando al cambio de tema...");
-        
-        SwingUtilities.invokeLater(() -> {
-            JPanel topInfoPanel = registry.get("panel.info.superior");
-            
-            if (topInfoPanel != null) {
-                // Establecemos el color de fondo del panel
-                topInfoPanel.setBackground(nuevoTema.colorFondoPrincipal());
-                topInfoPanel.setOpaque(true);
-
-                // Actualizamos la UI de todos los componentes hijos (para el color del texto)
-                for (Component component : topInfoPanel.getComponents()) {
-                    if (component instanceof javax.swing.JComponent) {
-                        ((javax.swing.JComponent) component).updateUI();
-                    }
-                }
-                logger.debug("[InfobarImageManager] Barra de información superior actualizada.");
-            }
-        });
-    } // --- fin del método onThemeChanged ---
-    
-    
     private void actualizarNombreArchivo() {
         JLabel label = registry.get("label.info.nombreArchivo");
         if (label == null) return;
