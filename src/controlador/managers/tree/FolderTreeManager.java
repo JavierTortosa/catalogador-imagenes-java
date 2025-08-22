@@ -189,5 +189,11 @@ public class FolderTreeManager {
         generalController.solicitarCargaDesdeNuevaRaiz(selectedFile.toPath());
     } // --- Fin del método handleDrillDownFolderAction ---
     
+    
+    public javax.swing.JTree getTree() {
+        return this.folderTree; // O como se llame tu variable JTree
+    }
+    
+    
 } // --- FIN DE LA CLASE FolderTreeManager ---
 

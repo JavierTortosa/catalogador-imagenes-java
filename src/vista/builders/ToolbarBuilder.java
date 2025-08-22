@@ -85,7 +85,6 @@ public class ToolbarBuilder {
     } // --- Fin del método ToolbarBuilder (constructor) ---
 
     
-    
     public JToolBar buildSingleToolbar(ToolbarDefinition toolbarDef) { 
         logger.info("--- [ToolbarBuilder] Construyendo barra: '" + toolbarDef.titulo() + "' ---");
         
@@ -109,6 +108,8 @@ public class ToolbarBuilder {
             // También usamos el método estándar de Swing para asegurar el comportamiento.
             toolbar.setOpaque(false);
         }
+        
+//        ButtonGroup currentGroup = null;
         
         // La lista ahora es 'vista', 'zoom' y 'modo'
         List<String> groupToolbarKeys = List.of("vista", "zoom", "modo");
@@ -165,8 +166,6 @@ public class ToolbarBuilder {
                 // <<< FIN DEL CÓDIGO A AÑADIR >>>
                 
                 }
-                
-                
             }
         }
         // ***** FIN DE LA CORRECCIÓN DEL BUCLE *****

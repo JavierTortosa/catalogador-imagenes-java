@@ -865,7 +865,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                         view.setListaImagenesModel(model.getModeloLista());
                         view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
                     }
-
+                    
                     int indiceCalculado = -1;
                     if (claveImagenAMantener != null && !claveImagenAMantener.isEmpty()) {
                         indiceCalculado = model.getModeloLista().indexOf(claveImagenAMantener);
@@ -911,17 +911,17 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 
     /**
      * Carga una nueva "lista maestra" en el modelo a partir de un resultado de filtro precalculado.
-     * Este método simula el final de 'cargarListaImagenes', pero usando datos en memoria
-     * en lugar de leer del disco. Activa toda la maquinaria de sincronización de la UI.
+     * Este método actualiza el modelo de datos y luego reinicia el ListCoordinator.
+     * NO actualiza la JList de la vista directamente; esa es responsabilidad del GeneralController.
      *
      * @param resultadoFiltro Un objeto FilterResult que contiene el nuevo modelo de lista y el mapa de rutas.
      * @param alFinalizarConExito Un Runnable opcional para ejecutar al final.
      */
     public void cargarListaDesdeFiltro(FilterManager.FilterResult resultadoFiltro, Runnable alFinalizarConExito) {
-        logger.debug("-->>> INICIO cargarListaDesdeFiltro | Tamaño del filtro: {}", resultadoFiltro.model().getSize());
+        logger.debug("-->>> INICIO VisorController.cargarListaDesdeFiltro | Tamaño: {}", resultadoFiltro.model().getSize());
 
-        if (model == null || view == null || listCoordinator == null) {
-            logger.error("ERROR [cargarListaDesdeFiltro]: Dependencias críticas nulas.");
+        if (model == null || listCoordinator == null) {
+            logger.error("ERROR [cargarListaDesdeFiltro]: Dependencias críticas (model, listCoordinator) nulas.");
             return;
         }
 
@@ -929,30 +929,78 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         DefaultListModel<String> modeloFiltrado = resultadoFiltro.model();
         Map<String, Path> mapaFiltrado = resultadoFiltro.pathMap();
 
-        // 2. Actualizar el modelo central. Esto cambia la "Lista Maestra" en el ListContext.
+        // 2. Actualizar el modelo central. Esto cambia la "Lista Maestra" en el ListContext ACTIVO.
         model.actualizarListaCompleta(modeloFiltrado, mapaFiltrado);
 
-        // 3. ¡¡¡PASO CRUCIAL!!! Actualizar la JList de nombres en la VISTA para que use el nuevo modelo.
-        //    Esta es la línea que faltaba y que hace que la lista de la izquierda se actualice visualmente.
-        view.setListaImagenesModel(model.getModeloLista());
-        view.setTituloPanelIzquierdo("Archivos (Filtro): " + model.getModeloLista().getSize());
+        // --- LÍNEA ELIMINADA ---
+        // view.setListaImagenesModel(model.getModeloLista());  <-- ESTO SE QUITA
+        // view.setTituloPanelIzquierdo(...);                    <-- ESTO TAMBIÉN
 
-        // 4. Determinar el índice a seleccionar (el primero de la lista filtrada).
+        // 3. Determinar el índice a seleccionar (el primero de la lista filtrada).
         int indiceASeleccionar = modeloFiltrado.isEmpty() ? -1 : 0;
 
-        // 5. Reiniciar el coordinador con la nueva lista y la selección inicial.
+        // 4. Reiniciar el coordinador con la nueva lista y la selección inicial.
         //    Esto disparará la actualización de la imagen principal y las miniaturas.
         listCoordinator.reiniciarYSeleccionarIndice(indiceASeleccionar);
 
-        // 6. Ejecutar el callback si existe.
+        // 5. Ejecutar el callback si existe.
         if (alFinalizarConExito != null) {
+            // Se ejecuta en el hilo actual, si necesita ser en EDT, quien llama es responsable.
             alFinalizarConExito.run();
         }
         
-        logger.debug("-->>> FIN cargarListaDesdeFiltro. Sincronización completa.");
+        logger.debug("-->>> FIN VisorController.cargarListaDesdeFiltro. Modelo actualizado.");
     
-   
-    } // --- fin del metodo cargarListaDesdeFiltro --- 
+    } // --- Fin del método cargarListaDesdeFiltro ---
+    
+    
+//    /**
+//     * Carga una nueva "lista maestra" en el modelo a partir de un resultado de filtro precalculado.
+//     * Este método simula el final de 'cargarListaImagenes', pero usando datos en memoria
+//     * en lugar de leer del disco. Activa toda la maquinaria de sincronización de la UI.
+//     *
+//     * @param resultadoFiltro Un objeto FilterResult que contiene el nuevo modelo de lista y el mapa de rutas.
+//     * @param alFinalizarConExito Un Runnable opcional para ejecutar al final.
+//     */
+//    public void cargarListaDesdeFiltro(FilterManager.FilterResult resultadoFiltro, Runnable alFinalizarConExito) {
+//        logger.debug("-->>> INICIO cargarListaDesdeFiltro | Tamaño del filtro: {}", resultadoFiltro.model().getSize());
+//
+//        if (model == null || view == null || listCoordinator == null) {
+//            logger.error("ERROR [cargarListaDesdeFiltro]: Dependencias críticas nulas.");
+//            return;
+//        }
+//
+//        // 1. Obtener los datos del resultado del filtro.
+//        DefaultListModel<String> modeloFiltrado = resultadoFiltro.model();
+//        Map<String, Path> mapaFiltrado = resultadoFiltro.pathMap();
+//
+//        // 2. Actualizar el modelo central. Esto cambia la "Lista Maestra" en el ListContext.
+//        model.actualizarListaCompleta(modeloFiltrado, mapaFiltrado);
+//
+//        // 3. ¡¡¡PASO CRUCIAL!!! Actualizar la JList de nombres en la VISTA para que use el nuevo modelo.
+//        //    Esta es la línea que faltaba y que hace que la lista de la izquierda se actualice visualmente.
+//        view.setListaImagenesModel(model.getModeloLista());
+//        view.setTituloPanelIzquierdo("Archivos (Filtro): " + model.getModeloLista().getSize());
+//
+//        // 4. Determinar el índice a seleccionar (el primero de la lista filtrada).
+//        int indiceASeleccionar = modeloFiltrado.isEmpty() ? -1 : 0;
+//
+//        // 5. Reiniciar el coordinador con la nueva lista y la selección inicial.
+//        //    Esto disparará la actualización de la imagen principal y las miniaturas.
+//        listCoordinator.reiniciarYSeleccionarIndice(indiceASeleccionar);
+//
+//        // 6. Ejecutar el callback si existe.
+//        if (alFinalizarConExito != null) {
+//            alFinalizarConExito.run();
+//        }
+//        
+//        logger.debug("-->>> FIN cargarListaDesdeFiltro. Sincronización completa.");
+//    
+//   
+//    } // --- fin del metodo cargarListaDesdeFiltro --- 
+    
+    
+    
     
     
     /**
@@ -3643,6 +3691,39 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	        }
 	    }
 	    
+	    
+	    
+	    // --- INICIO DE LA MODIFICACIÓN ---
+        
+        // Pestaña 2: "Carpetas" - Obtenemos los componentes desde el registry
+	    JPanel panelArbol = registry.get("panel.izquierdo.arbol");
+        if (panelArbol != null) {
+            panelArbol.setBackground(colorFondoSecundario);
+            javax.swing.JTree tree = registry.get("tree.carpetas");
+            if (tree != null) {
+                tree.setBackground(colorFondoSecundario);
+            }
+            if (panelArbol.getBorder() instanceof TitledBorder) {
+                ((TitledBorder) panelArbol.getBorder()).setTitleColor(colorTextoPrimario);
+            }
+        }
+        
+        // --- Pestaña 3: "Filtros" ---
+        JPanel panelFiltros = registry.get("panel.izquierdo.filtros");
+        if (panelFiltros != null) {
+            panelFiltros.setBackground(colorFondoSecundario);
+            JList<controlador.managers.filter.FilterCriterion> listaFiltros = registry.get("list.filtrosActivos");
+            if (listaFiltros != null) {
+                listaFiltros.setBackground(colorFondoSecundario);
+            }
+            if (panelFiltros.getBorder() instanceof TitledBorder) {
+                ((TitledBorder) panelFiltros.getBorder()).setTitleColor(colorTextoPrimario);
+            }
+        }
+        
+        // --- FIN DE LA MODIFICACIÓN ---
+        
+	    
 	    // 6. Panel de miniaturas (JScrollPane) y su JList interna
 	    JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
 	    JList<String> listaMiniaturas = registry.get("list.miniaturas");
@@ -4308,3 +4389,4 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 
      
 } // --- FIN CLASE VisorController ---
+

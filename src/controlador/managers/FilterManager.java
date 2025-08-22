@@ -109,27 +109,36 @@ public class FilterManager {
         String fileName = filePath.getFileName().toString().toLowerCase();
         String folderPath = (filePath.getParent() != null) ? filePath.getParent().toString().toLowerCase() : "";
 
+        // Iteramos sobre CADA filtro en la lista de filtros activos.
         for (FilterCriterion filter : activeFilters) {
-            String lowerCaseValue = filter.getValue().toLowerCase();
-            String targetString;
+            
+            // Determinamos sobre qué texto vamos a buscar (nombre de archivo o ruta)
+            String targetString = (filter.getSource() == FilterSource.FILENAME) ? fileName : folderPath;
+            String filterValue = filter.getValue().toLowerCase();
 
-            if (filter.getSource() == FilterSource.FILENAME) {
-                targetString = fileName;
-            } else { // FOLDER_PATH
-                targetString = folderPath;
-            }
+            // Verificamos la condición del filtro
+            boolean conditionMet = targetString.contains(filterValue);
+
+            // --- INICIO DE LA LÓGICA AND/Y NO ---
             
-            boolean contains = targetString.contains(lowerCaseValue);
-            
-            if (filter.getType() == FilterType.CONTAINS && !contains) {
-                return false;
+            // CASO 1: Es un filtro POSITIVO (+) y la condición NO se cumple.
+            // Si el archivo NO contiene el texto que debería, lo descartamos inmediatamente.
+            if (filter.getType() == FilterType.CONTAINS && !conditionMet) {
+                return false; // No cumple una de las condiciones OBLIGATORIAS.
             }
-            if (filter.getType() == FilterType.DOES_NOT_CONTAIN && contains) {
-                return false;
+
+            // CASO 2: Es un filtro NEGATIVO (-) y la condición SÍ se cumple.
+            // Si el archivo SÍ contiene el texto que NO debería, lo descartamos inmediatamente.
+            if (filter.getType() == FilterType.DOES_NOT_CONTAIN && conditionMet) {
+                return false; // Contiene algo prohibido.
             }
+            // --- FIN DE LA LÓGICA AND/Y NO ---
         }
 
+        // Si el bucle termina, significa que el archivo ha sobrevivido a TODAS las reglas.
+        // Por lo tanto, es un archivo válido.
         return true;
+
     } // --- Fin del método passesAllFilters ---
     
     

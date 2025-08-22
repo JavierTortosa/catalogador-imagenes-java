@@ -81,5 +81,6 @@ public record ToolbarButtonDefinition (
     public ToolbarButtonDefinition(String comandoCanonico, String claveIcono, IconScope scope, String textoTooltip, String categoriaLayout, List<HotspotDefinition> listaDeHotspots, int rows, int cols) {
         this(comandoCanonico, claveIcono, scope, textoTooltip, categoriaLayout, ButtonType.DPAD_GRID, listaDeHotspots, rows, cols);
     }
-
+    
+   
 } // --- FIN del record ToolbarButtonDefinition ---

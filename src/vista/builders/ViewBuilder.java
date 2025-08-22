@@ -2,7 +2,8 @@
 	
 	import java.awt.BorderLayout;
 	import java.awt.CardLayout;
-	import java.awt.Dimension;
+import java.awt.Color;
+import java.awt.Dimension;
 	import java.awt.FlowLayout;
 	import java.awt.GridBagConstraints;
 	import java.awt.GridBagLayout;
@@ -412,16 +413,10 @@
 	        fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 	        fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
 	        registry.register("list.nombresArchivo", fileList, "WHEEL_NAVIGABLE");
-	
-	        
-	        
 	        
 	        JScrollPane scrollPaneLista = new JScrollPane(fileList);
 	        registry.register("scroll.nombresArchivo", scrollPaneLista);
 	        panelListaArchivos.add(scrollPaneLista, BorderLayout.CENTER);
-	        
-	        
-	        
 	        
 	        JToolBar ordenToolbar = toolbarManager.getToolbar("botonesOrdenLista");
 	        if (ordenToolbar != null) {
@@ -430,9 +425,6 @@
 	            panelListaArchivos.add(ordenToolbar, BorderLayout.NORTH);
 	        }
 	
-	        
-	        
-	        
 	        javax.swing.JTabbedPane tabbedPaneIzquierdo = new javax.swing.JTabbedPane();
 	        registry.register("tabbedpane.izquierdo", tabbedPaneIzquierdo);
 	
@@ -440,6 +432,20 @@
 	        
 	        if (this.folderTreeManager != null) {
 	            JPanel panelArbol = this.folderTreeManager.crearPanelDelArbol();
+	            
+	            registry.register("panel.izquierdo.arbol", panelArbol);
+	            registry.register("tree.carpetas", this.folderTreeManager.getTree()); // Asumo que tienes un getter para el JTree
+	            
+	            
+	            
+	            
+//	            TitledBorder borderCarpetas = BorderFactory.createTitledBorder("Carpetas");
+//	            panelArbol.setBorder(borderCarpetas);
+//	            
+//	            panelArbol.setBackground(UIManager.getColor("Panel.background"));
+////	            panelArbol.setBackground(Color.RED);
+	            
+	            
 	            tabbedPaneIzquierdo.addTab("Carpetas", panelArbol);
 	        } else {
 	            logger.error("[ViewBuilder] FolderTreeManager es nulo. No se puede construir la pestaña de carpetas.");
@@ -448,42 +454,52 @@
 	            tabbedPaneIzquierdo.addTab("Carpetas", panelError);
 	        }
 	        
+	        
+	        
 	     // --- INICIO DE LA MODIFICACIÓN ---
-	
-	        // --- Pestaña 3: Filtros (NUEVO) ---
+
+	        // --- Pestaña 3: Filtros (RECONSTRUIDO PARA COHERENCIA) ---
+	        // Se crea el panel principal para la pestaña de filtros.
 	        JPanel panelFiltros = new JPanel(new BorderLayout());
 	        TitledBorder borderFiltros = BorderFactory.createTitledBorder("Filtros Activos");
 	        panelFiltros.setBorder(borderFiltros);
 	        registry.register("panel.izquierdo.filtros", panelFiltros);
-	
-	        // Creamos la JList que mostrará los filtros. Por ahora, estará vacía.
-	        // Usamos un tipo genérico `Object` porque mostrará objetos `FilterCriterion`.
 	        
-	//        JList<Object> filterList = new JList<>();
+//	        panelFiltros.setBackground(UIManager.getColor("Panel.background"));
+//	        panelFiltros.setBackground(Color.RED);
+//	        panelFiltros.setBackground(panelListaArchivos.getBackground());
+//	        panelFiltros.setBackground(colorFondoSecundario);
+	        		
+	        // NO registramos este panel todavía, registramos el componente final.
+
+	        // Se crea la JList para mostrar los criterios de filtro.
 	        JList<controlador.managers.filter.FilterCriterion> filterList = new JList<>();
-	        
 	        filterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-	        // En el futuro, podríamos crear un renderer personalizado para que se vea más bonito.
 	        registry.register("list.filtrosActivos", filterList, "WHEEL_NAVIGABLE");
-	
+
+	        // Se añade la JList a su JScrollPane.
 	        JScrollPane scrollPaneFiltros = new JScrollPane(filterList);
+//	        scrollPaneFiltros.setBorder(null); 
 	        registry.register("scroll.filtrosActivos", scrollPaneFiltros);
-	        panelFiltros.add(scrollPaneFiltros, BorderLayout.CENTER);
+	        panelFiltros.add(scrollPaneFiltros, BorderLayout.CENTER); // La lista va en el centro.
 	        
-	        tabbedPaneIzquierdo.addTab("Filtros", panelFiltros);
 	        
-	        // Nueva barra de herramientas para los filtros.
+	        // Se obtiene y configura la barra de herramientas de filtros.
 	        JToolBar filterToolbar = toolbarManager.getToolbar("barra_filtros");
 	        if (filterToolbar != null) {
 	            filterToolbar.setFloatable(false);
 	            filterToolbar.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
-	            // La añadimos a la parte de abajo del panel de filtros.
-	            panelFiltros.add(filterToolbar, BorderLayout.SOUTH);
+	            // Se añade la barra de herramientas ARRIBA, igual que en la pestaña de la lista.
+	            panelFiltros.add(filterToolbar, BorderLayout.NORTH); 
 	        }
 	        
+	        // Se añade el panel de filtros completo como una pestaña.
+	        tabbedPaneIzquierdo.addTab("Filtros", panelFiltros);
+	        
+	        // --- FIN DE LA MODIFICACIÓN ---
 	        
 	        
-	        
+	     // --- Contenedor final ---
 	        JPanel panelIzquierdoContenedor = new JPanel(new BorderLayout());
 	        panelIzquierdoContenedor.add(tabbedPaneIzquierdo, BorderLayout.CENTER);
 	

@@ -37,6 +37,7 @@ public interface AppActionCommands {
     
     
  // --- Filtros
+    public static final String CMD_FILTRO_ACTIVO					= "cmd.filtro.activo";
     public static final String CMD_FILTRO_TOGGLE_LIVE_FILTER		= "cmd.filtro.toggleLiveFilter";
     public static final String CMD_FILTRO_ADD_POSITIVE 				= "cmd.filtro.addPositive";
     public static final String CMD_FILTRO_ADD_NEGATIVE 				= "cmd.filtro.addNegative";
@@ -45,9 +46,9 @@ public interface AppActionCommands {
     
     public static final String CMD_FILTRO_UP						= "cmd.filtro.up";
     public static final String CMD_FILTRO_DOWN						= "cmd.filtro.down";
-    public static final String CMD_FILTRO_TYPE_NAME_FILE			= "cmd.filtro.type.file";
-    public static final String CMD_FILTRO_TYPE_FOLDER				= "cmd.filtro.type.folder";
-    public static final String CMD_FILTRO_TYPE_TAG					= "cmd.filtro.type.tag";
+    public static final String CMD_FILTRO_SET_TYPE_FILENAME 		= "cmd.filtro.setType.filename";
+    public static final String CMD_FILTRO_SET_TYPE_FOLDER 			= "cmd.filtro.setType.folder";
+    public static final String CMD_FILTRO_SET_TYPE_TAG 				= "cmd.filtro.setType.tag";
     
     
     

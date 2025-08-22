@@ -37,6 +37,7 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.actions.filtro.SetFilterTypeAction;
 import controlador.commands.AppActionCommands;
 import controlador.interfaces.ContextSensitiveAction;
 import controlador.interfaces.IModoController;
@@ -87,9 +88,26 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private FolderTreeManager folderTreeManager;
     private FilterManager filterManager;
     
+    //Variables de filtros
+    private DefaultListModel<String> contextoRealGuardado_modelo;
+    private Map<String, Path> contextoRealGuardado_mapaRutas;
+    private String contextoRealGuardado_punteroKey;
+    private boolean filtroPersistenteActivo = false;
+    
+    
+ // Checkpoint para el FILTRO PERSISTENTE ---
+    // Guardará la lista original cargada desde el disco, nuestra fuente de verdad.
+    private DefaultListModel<String> persistente_listaMaestraOriginal;
+    private Map<String, Path> persistente_mapaRutasOriginal;
+    private String persistente_punteroOriginalKey;
+    private boolean persistente_activo = false;
+    private FilterSource filtroActivoSource = FilterSource.FILENAME;
+    
+    // --- Checkpoint para el TORNADO (se mantiene igual) ---
     private DefaultListModel<String> masterModelSinFiltro;
     private Map<String, Path> masterMapSinFiltro;
     private int indiceSeleccionadoAntesDeFiltrar = -1;
+    
     
     private javax.swing.border.Border sortButtonActiveBorder;
     private javax.swing.border.Border sortButtonInactiveBorder;
@@ -622,6 +640,20 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         
     } // --- FIN del metodo sincronizarTodaLaUIConElModelo ---
 	
+	
+	/**
+     * Recorre todas las actions del actionMap y, si son de tipo SetFilterTypeAction,
+     * les ordena que se sincronicen con el estado actual del controlador.
+     */
+    public void sincronizarAccionesDeTipoFiltro() {
+        if (actionMap == null) return;
+        
+        for (Action action : actionMap.values()) {
+            if (action instanceof SetFilterTypeAction) {
+                ((SetFilterTypeAction) action).sincronizarEstadoConControlador();
+            }
+        }
+    } // --- Fin del método sincronizarAccionesDeTipoFiltro ---
 	
 // ************************************************************************************************************************** FIN SINCRONIZACION 
 
@@ -1390,47 +1422,61 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      * @param nuevaCarpeta La nueva carpeta raíz a visualizar.
      */
     public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta) {
+    	
         solicitarCargaDesdeNuevaRaiz(nuevaCarpeta, null);
     } // --- Fin del método solicitarCargaDesdeNuevaRaiz (simple) ---
 
-    /**
-     * Orquesta la carga de una nueva carpeta raíz, con la opción de intentar
-     * preseleccionar un archivo o subcarpeta específico dentro de ella.
-     * Este es el método central que maneja la lógica de recarga.
-     *
-     * @param nuevaCarpeta La nueva carpeta raíz a visualizar.
-     * @param claveASeleccionar (Opcional) La clave (nombre de archivo/subcarpeta) que se intentará
-     *                          seleccionar después de la carga. Puede ser null.
-     */
     public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta, String claveASeleccionar) {
-        logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta + ", preseleccionar: " + claveASeleccionar);
-        if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) {
-            logger.warn("  -> La nueva carpeta es inválida o nula. Abortando.");
-            return;
+        logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
+
+        // --- LÓGICA DE LIMPIEZA ---
+        if (persistente_activo) {
+            logger.info("[GC] Carga de nueva carpeta. Limpiando estado de filtro persistente.");
+            filterManager.clearFilters();
+            persistente_activo = false;
+            persistente_punteroOriginalKey = null;
         }
-        
-        if (model == null || visorController == null || displayModeManager == null) {
-            logger.error("  -> ERROR: Dependencias críticas (model, visorController, displayModeManager) nulas. Abortando.");
-            return;
+        if (model.isLiveFilterActive()) {
+            onLiveFilterStateChanged(false);
         }
+        // --- FIN LÓGICA DE LIMPIEZA ---
+
+        if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) { /* ... (código existente)... */ return; }
+        if (model == null || visorController == null || displayModeManager == null) { /* ... */ return; }
 
         model.setCarpetaRaizActual(nuevaCarpeta);
-
-        if (this.folderTreeManager != null) {
-            this.folderTreeManager.sincronizarArbolConCarpeta(nuevaCarpeta);
-        }
+        if (this.folderTreeManager != null) { this.folderTreeManager.sincronizarArbolConCarpeta(nuevaCarpeta); }
 
         Runnable accionPostCarga = () -> {
-            logger.debug("  [Callback Post-Carga de Nueva Raiz] Tarea de carga finalizada. Ejecutando sincronización...");
+            logger.debug("  [Callback Post-Carga de Nueva Raíz] Tarea de carga finalizada.");
+            
+            // --- Capturamos la lista maestra inmutable ---
+            if (model != null && model.getModeloLista() != null) {
+                this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
+                this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
+                logger.info("[GC] Contexto Maestro Inmutable capturado. Tamaño: " + this.persistente_listaMaestraOriginal.getSize());
+            } else {
+                this.persistente_listaMaestraOriginal = null;
+                this.persistente_mapaRutasOriginal = null;
+            }
+            
             this.sincronizarTodaLaUIConElModelo();
             displayModeManager.poblarYSincronizarGrid();
-            logger.debug("  [Callback Post-Carga de Nueva Raíz] Sincronización finalizada.");
         };
 
-        logger.debug("  -> Delegando a VisorController la tarea de recargar la lista de imágenes desde la nueva raíz...");
         visorController.cargarListaImagenes(claveASeleccionar, accionPostCarga);
         
     } // --- Fin del método solicitarCargaDesdeNuevaRaiz (con preselección) ---
+    
+    private DefaultListModel<String> clonarModelo(DefaultListModel<String> original) {
+        if (original == null) return null;
+        DefaultListModel<String> copia = new DefaultListModel<>();
+        for (int i = 0; i < original.getSize(); i++) {
+            copia.addElement(original.getElementAt(i));
+        }
+        return copia;
+    }// --- Fin del método helper clonarModelo ---
+    
     
     
     
@@ -1786,12 +1832,17 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         // 2. Restauramos su contenido a partir de nuestra copia maestra
         modeloEnUso.clear();
         // --- LÍNEA CORREGIDA ---
+        
         modeloEnUso.addAll(Collections.list(this.masterModelSinFiltro.elements()));
-
+        
         // 3. Le decimos al coordinador que vuelva al índice que teníamos guardado.
         visorController.getListCoordinator().reiniciarYSeleccionarIndice(this.indiceSeleccionadoAntesDeFiltrar);
 
         // 4. Limpiamos nuestra copia de seguridad.
+        if (filterManager != null) {
+            filterManager.clearFilters();
+        }
+        
         this.masterModelSinFiltro = null;
         this.indiceSeleccionadoAntesDeFiltrar = -1;
         
@@ -1804,22 +1855,18 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      * @param type El tipo de filtro (CONTAINS o DOES_NOT_CONTAIN).
      */
     public void solicitarAnadirFiltro(FilterSource source, FilterType type) {
-        javax.swing.JTextField filterTextField = registry.get("textfield.filtro.texto");
-        if (filterTextField == null) return;
-
-        String texto = filterTextField.getText();
-        if (texto.isBlank()) {
-            if (statusBarManager != null) {
-                statusBarManager.mostrarMensajeTemporal("El texto del filtro no puede estar vacío", 2000);
-            }
-            return;
-        }
-
-        FilterCriterion nuevoFiltro = new FilterCriterion(texto, source, type);
-        filterManager.addFilter(nuevoFiltro);
+    	
+    	limpiarEstadoFiltroRapidoSiActivo();
+    	
+        javax.swing.JTextField tf = registry.get("textfield.filtro.texto");
+        if (tf == null || tf.getText().isBlank()) return;
         
-        filterTextField.setText(""); // Limpiamos el campo después de añadir
-        refrescarVistasDeFiltros();
+//        filterManager.addFilter(new FilterCriterion(tf.getText(), source, type));
+        filterManager.addFilter(new FilterCriterion(tf.getText(), this.filtroActivoSource, type));
+        
+        tf.setText("");
+        
+        gestionarFiltroPersistente();
 
     } // --- Fin del método solicitarAnadirFiltro ---
 
@@ -1827,53 +1874,304 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      * Es llamado por la RemoveFilterAction. Elimina el filtro actualmente seleccionado.
      */
     public void solicitarEliminarFiltroSeleccionado() {
+    	
+    	limpiarEstadoFiltroRapidoSiActivo(); 
+    	
+//        if (model.isLiveFilterActive()) { onLiveFilterStateChanged(false); }
+        
         JList<FilterCriterion> filterList = registry.get("list.filtrosActivos");
-        if (filterList == null) return;
+        if (filterList == null || filterList.getSelectedValue() == null) return;
 
-        FilterCriterion filtroSeleccionado = filterList.getSelectedValue();
-        if (filtroSeleccionado != null) {
-            filterManager.removeFilter(filtroSeleccionado);
-            refrescarVistasDeFiltros();
-        } else {
-            if (statusBarManager != null) {
-                statusBarManager.mostrarMensajeTemporal("Selecciona un filtro para eliminarlo", 2000);
-            }
-        }
+        filterManager.removeFilter(filterList.getSelectedValue());
+        gestionarFiltroPersistente();
     } // --- Fin del método solicitarEliminarFiltroSeleccionado ---
 
     /**
      * Es llamado por la ClearAllFiltersAction. Limpia todos los filtros activos.
      */
     public void solicitarLimpiarTodosLosFiltros() {
+    	
+    	limpiarEstadoFiltroRapidoSiActivo();
+    	
+//        if (model.isLiveFilterActive()) { onLiveFilterStateChanged(false); }
+        
         filterManager.clearFilters();
-        refrescarVistasDeFiltros();
+        gestionarFiltroPersistente();
+        
     } // --- Fin del método solicitarLimpiarTodosLosFiltros ---
+    
+    
+    /**
+     * NUEVO MÉTODO HELPER.
+     * Cumple la "Regla del Reset Total": si el filtro rápido ("Tornado") está
+     * activo, lo desactiva y limpia su JTextField asociado.
+     */
+    private void limpiarEstadoFiltroRapidoSiActivo() {
+        
+    	javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+    	
+    	if (model.isLiveFilterActive()) {
+          // Desactiva la lógica del filtro rápido y restaura la lista
+          onLiveFilterStateChanged(false); 
+    	}
+    	
+    	if (searchField != null) {
+          // Usamos invokeLater para asegurar que la limpieza ocurra sin conflictos
+          // con otros eventos de la UI.
+          SwingUtilities.invokeLater(() -> searchField.setText("")); 
+    	}
+        
+    } // --- Fin del método limpiarEstadoFiltroRapidoSiActivo ---
+    
+    
+    private void gestionarFiltroPersistente() {
+        // Su única responsabilidad ahora es llamar al método de refresco.
+        // Toda la lógica de checkpoint está ahora dentro de refrescarConFiltrosPersistentes.
+        refrescarConFiltrosPersistentes();
+    } // --- Fin del método gestionarFiltroPersistente ---
+    
+    
+    /**
+     * NUEVO MÉTODO CENTRALIZADO
+     * La única función que aplica el filtro persistente y actualiza la UI.
+     */
+    private void refrescarConFiltrosPersistentes() {
+        // Actualiza la UI de la lista de filtros (esto siempre es necesario)
+        JList<FilterCriterion> filterListUI = registry.get("list.filtrosActivos");
+        if (filterListUI != null) {
+            DefaultListModel<FilterCriterion> modelUI = new DefaultListModel<>();
+            modelUI.addAll(filterManager.getActiveFilters());
+            filterListUI.setModel(modelUI);
+        }
+
+        // Si hay filtros, activamos el modo persistente y filtramos
+        if (filterManager.isFilterActive()) {
+            // Si el modo persistente no está activo, lo activamos y guardamos el checkpoint.
+            if (!persistente_activo) {
+                this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
+                this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
+                this.persistente_punteroOriginalKey = model.getSelectedImageKey();
+                this.persistente_activo = true;
+            }
+
+            // Filtramos SIEMPRE sobre la lista guardada
+            DefaultListModel<String> listaFiltrada = filterManager.applyFilters(this.persistente_listaMaestraOriginal);
+            actualizarListaVisibleConResultado(listaFiltrada, 0, false);
+
+        } else { // Si no hay filtros, restauramos
+            if (persistente_activo) {
+                // Restauramos la lista guardada
+                DefaultListModel<String> listaRestaurada = this.persistente_listaMaestraOriginal;
+                int indiceOriginal = (persistente_punteroOriginalKey != null) 
+                                   ? listaRestaurada.indexOf(persistente_punteroOriginalKey) : -1;
+                final int indiceFinal = (indiceOriginal != -1) ? indiceOriginal : 0;
+                
+                actualizarListaVisibleConResultado(listaRestaurada, indiceFinal, true);
+                
+                // Reseteamos el estado del checkpoint
+                this.persistente_listaMaestraOriginal = null;
+                this.persistente_mapaRutasOriginal = null;
+                this.persistente_punteroOriginalKey = null;
+                this.persistente_activo = false;
+            }
+        }
+    } // --- Fin del método refrescarConFiltrosPersistentes ---
+    
+    
+    /**
+     * Cambia el tipo de filtro que se usará al añadir un nuevo criterio.
+     * Es llamado por las Actions de los JToggleButtons de tipo de filtro.
+     * @param nuevoSource El nuevo FilterSource a establecer como activo.
+     */
+    public void solicitarCambioTipoFiltro(FilterSource nuevoSource) {
+        if (this.filtroActivoSource != nuevoSource) {
+            this.filtroActivoSource = nuevoSource;
+            logger.debug("[GeneralController] Tipo de filtro activo cambiado a: {}", nuevoSource);
+            
+            // Aquí podrías añadir una notificación en la barra de estado si quisieras
+            // statusBarManager.mostrarMensajeTemporal("Filtrar por: " + nuevoSource.toString(), 2000);
+        }
+    } // --- Fin del método solicitarCambioTipoFiltro ---
+    
+    
+    /**
+     * Actualiza la JList visible modificando el contenido de su modelo actual
+     * y reinicia el coordinador en la posición deseada.
+     * @param nuevaLista El nuevo contenido para la lista.
+     * @param indiceASeleccionar El índice que se debe seleccionar tras la actualización.
+     */
+    private void actualizarListaVisibleConResultado(DefaultListModel<String> nuevaLista, int indiceASeleccionar, boolean resetearCheckpoint) {
+        DefaultListModel<String> modeloEnUso = model.getModeloLista();
+        
+        final int finalIndice = indiceASeleccionar;
+
+        SwingUtilities.invokeLater(() -> {
+            // Técnica Tornado: modificar el modelo existente.
+            modeloEnUso.clear();
+            modeloEnUso.addAll(Collections.list(nuevaLista.elements()));
+            
+            // Actualizar el título
+            String titulo = filterManager.isFilterActive() ? "Archivos (Filtro): " : "Archivos: ";
+            visorController.getView().setTituloPanelIzquierdo(titulo + modeloEnUso.getSize());
+            
+            // Reiniciar el coordinador
+            visorController.getListCoordinator().reiniciarYSeleccionarIndice(finalIndice);
+            
+            if (resetearCheckpoint) {
+                logger.info("[GC] Reseteando estado del checkpoint persistente...");
+                this.persistente_listaMaestraOriginal = null;
+                this.persistente_mapaRutasOriginal = null;
+                this.persistente_punteroOriginalKey = null;
+                this.persistente_activo = false;
+            }
+        });
+    } // --- Fin del método actualizarListaVisibleConResultado ---
+    
+    
+    /**
+     * NUEVO MÉTODO HELPER.
+     * Actualiza la JList principal de la vista (la lista de nombres de archivo)
+     * con el modelo de datos que está actualmente activo en el VisorModel.
+     * También actualiza el título del panel que la contiene.
+     */
+    private void actualizarListaPrincipalDeLaVista() {
+        if (visorController == null || visorController.getView() == null || model == null) return;
+
+        // El modelo de la vista debe ser el que está activo en el modelo de datos
+        DefaultListModel<String> modeloActual = model.getModeloLista();
+        
+        // El método setListaImagenesModel ya está en tu VisorView y hace lo correcto
+        visorController.getView().setListaImagenesModel(modeloActual);
+        
+        // Actualizamos el título del panel
+        String titulo = filterManager.isFilterActive() ? "Archivos (Filtro): " : "Archivos: ";
+        visorController.getView().setTituloPanelIzquierdo(titulo + modeloActual.getSize());
+
+        logger.debug("[GeneralController] La JList principal de la vista ha sido actualizada. Tamaño: {}", modeloActual.getSize());
+        
+    } // --- Fin del método actualizarListaPrincipalDeLaVista ---
+
+    
+    /**
+     * Helper para construir un mapa de rutas a partir de una lista filtrada.
+     */
+    private Map<String, Path> construirMapaDesdeLista(DefaultListModel<String> lista, Map<String, Path> mapaOriginal) {
+        Map<String, Path> nuevoMapa = new HashMap<>();
+        for (int i = 0; i < lista.getSize(); i++) {
+            String key = lista.getElementAt(i);
+            nuevoMapa.put(key, mapaOriginal.get(key));
+        }
+        return nuevoMapa;
+        
+    } // --- Fin del método construirMapaDesdeLista ---
+    
+    
+    /**
+     * Orquesta la conversión del filtro rápido (Tornado) en un filtro persistente.
+     * Este método es llamado por la Action del botón "hacer persistente".
+     * AÑADE el filtro del Tornado a los filtros persistentes existentes.
+     */
+    public void solicitarPersistenciaDeFiltroRapido() {
+        logger.debug("[GeneralController] Solicitud para AÑADIR filtro rápido a persistentes...");
+
+        // 1. Obtener el texto del filtro rápido
+        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+        if (searchField == null || searchField.getText().isBlank() || searchField.getText().equals("Texto a buscar...")) {
+            return;
+        }
+        String textoFiltro = searchField.getText();
+
+        // 2. Limpiar el estado del Tornado (pero SIN TOCAR LA LISTA VISIBLE)
+        if (model.isLiveFilterActive()) {
+            model.setLiveFilterActive(false);
+            Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
+            if (liveFilterAction != null) {
+                liveFilterAction.putValue(Action.SELECTED_KEY, false);
+                if (configAppManager != null) {
+                    configAppManager.actualizarAspectoBotonToggle(liveFilterAction, false);
+                }
+            }
+        }
+        SwingUtilities.invokeLater(() -> searchField.setText(""));
+
+        // 3. Añadir el nuevo criterio al FilterManager
+        FilterCriterion nuevoFiltroPersistente = new FilterCriterion(textoFiltro, FilterSource.FILENAME, FilterType.CONTAINS);
+        filterManager.addFilter(nuevoFiltroPersistente);
+
+        // 4. Llamar a la función de refresco.
+        refrescarConFiltrosPersistentes();
+
+    } // --- Fin del método solicitarPersistenciaDeFiltroRapido ---
+    
     
     /**
      * Método central para actualizar la UI después de cualquier cambio en los filtros.
      * Refresca tanto la lista de filtros activos como la lista de archivos filtrada.
      */
     private void refrescarVistasDeFiltros() {
-        // 1. Actualizar la JList de la pestaña "Filtros"
-        JList<FilterCriterion> filterList = registry.get("list.filtrosActivos");
-        if (filterList != null) {
-            // Creamos un nuevo modelo para la lista de filtros
+        // 1. Actualizar la JList de la pestaña "Filtros" (esto es solo visual y no cambia)
+        JList<FilterCriterion> filterListUI = registry.get("list.filtrosActivos");
+        if (filterListUI != null) {
             DefaultListModel<FilterCriterion> filterListModel = new DefaultListModel<>();
             filterListModel.addAll(filterManager.getActiveFilters());
-            filterList.setModel(filterListModel);
+            filterListUI.setModel(filterListModel);
         }
 
-        // 2. Actualizar la JList de la pestaña "Lista" (la lista de archivos)
-        JList<String> fileList = registry.get("list.nombresArchivo");
-        if (fileList != null) {
-            DefaultListModel<String> masterModel = model.getCurrentListContext().getModeloLista();
-            DefaultListModel<String> filteredModel = filterManager.applyFilters(masterModel);
-            fileList.setModel(filteredModel);
+        // 2. Comprobar si hay filtros persistentes para aplicar
+        if (!filterManager.getActiveFilters().isEmpty()) {
+            // --- ACTIVAR MODO FILTRO PERSISTENTE ---
+            logger.debug("[Filtro Persistente] Activando modo. Hay {} filtros.", filterManager.getActiveFilters().size());
             
-            // Después de filtrar, deseleccionamos todo para evitar inconsistencias.
-            // El usuario tendrá que hacer una nueva selección en la lista filtrada.
-            if (visorController != null && visorController.getListCoordinator() != null) {
-                visorController.getListCoordinator().reiniciarYSeleccionarIndice(-1);
+            // 2a. Guardar checkpoint del contexto real, SI NO LO HEMOS HECHO YA
+            if (!filtroPersistenteActivo) {
+                logger.info("[Filtro Persistente] Creando checkpoint del contexto real.");
+                ListContext contextoReal = model.getCurrentListContext();
+                
+                // Clonar el modelo de lista para no tener referencias cruzadas
+                contextoRealGuardado_modelo = new DefaultListModel<>();
+                DefaultListModel<String> modeloOriginal = contextoReal.getModeloLista();
+                if(modeloOriginal != null) {
+                    for(int i=0; i < modeloOriginal.getSize(); i++) {
+                        contextoRealGuardado_modelo.addElement(modeloOriginal.getElementAt(i));
+                    }
+                }
+
+                contextoRealGuardado_mapaRutas = new HashMap<>(contextoReal.getRutaCompletaMap());
+                contextoRealGuardado_punteroKey = contextoReal.getSelectedImageKey();
+                filtroPersistenteActivo = true;
+            }
+            
+            // 2b. Crear la "carpeta virtual" filtrando desde el checkpoint
+            DefaultListModel<String> listaVirtual = filterManager.applyFilters(contextoRealGuardado_modelo);
+            Map<String, Path> mapaVirtual = new HashMap<>();
+            for (String key : Collections.list(listaVirtual.elements())) {
+                mapaVirtual.put(key, contextoRealGuardado_mapaRutas.get(key));
+            }
+
+            // 2c. ¡EL GRAN INTERCAMBIO! Simulamos la carga de una nueva carpeta
+            visorController.cargarListaDesdeFiltro(new FilterManager.FilterResult(listaVirtual, mapaVirtual), null);
+
+        } else {
+            // --- DESACTIVAR MODO FILTRO PERSISTENTE ---
+            if (filtroPersistenteActivo) {
+                logger.info("[Filtro Persistente] Desactivando modo. Restaurando checkpoint.");
+                
+                // 2d. Restaurar el checkpoint
+                visorController.cargarListaDesdeFiltro(new FilterManager.FilterResult(contextoRealGuardado_modelo, contextoRealGuardado_mapaRutas), () -> {
+                    // Callback que se ejecuta DESPUÉS de la carga: restaurar el puntero
+                    if (visorController != null && visorController.getListCoordinator() != null && contextoRealGuardado_punteroKey != null) {
+                        int indiceOriginal = contextoRealGuardado_modelo.indexOf(contextoRealGuardado_punteroKey);
+                        if(indiceOriginal != -1) {
+                             visorController.getListCoordinator().seleccionarImagenPorIndice(indiceOriginal);
+                        }
+                    }
+                });
+
+                // 2e. Limpiar el estado
+                contextoRealGuardado_modelo = null;
+                contextoRealGuardado_mapaRutas = null;
+                contextoRealGuardado_punteroKey = null;
+                filtroPersistenteActivo = false;
             }
         }
     } // --- Fin del método refrescarVistasDeFiltros ---
@@ -2001,6 +2299,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     public ComponentRegistry getRegistry() {
         return this.registry;
     }
+    
+    public FilterSource getFiltroActivoSource() {
+        return this.filtroActivoSource;
+    } // --- Fin del método getFiltroActivoSource ---
     
 } // --- Fin de la clase GeneralController ---
 

@@ -39,9 +39,12 @@ import controlador.actions.edicion.RotateLeftAction;
 import controlador.actions.edicion.RotateRightAction;
 import controlador.actions.especiales.HiddenButtonsAction;
 import controlador.actions.especiales.MenuAction;
+import controlador.actions.especiales.PlaceholderToggleAction;
 import controlador.actions.filtro.AddFilterAction;
 import controlador.actions.filtro.ClearAllFiltersAction;
+import controlador.actions.filtro.PersistLiveFilterAction;
 import controlador.actions.filtro.RemoveFilterAction;
+import controlador.actions.filtro.SetFilterTypeAction;
 import controlador.actions.navegacion.EntrarEnSubcarpetaAction;
 import controlador.actions.navegacion.FirstImageAction;
 import controlador.actions.navegacion.LastImageAction;
@@ -82,6 +85,7 @@ import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.CarouselManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.FileOperationsManager;
+import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
 import controlador.managers.interfaces.ICarouselListCoordinator;
 import controlador.managers.interfaces.IEditionManager;
@@ -332,7 +336,16 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_FILTRO_ADD_NEGATIVE, createAddFilterAction(FilterType.DOES_NOT_CONTAIN));
         actionMap.put(AppActionCommands.CMD_FILTRO_REMOVE_SELECTED, createRemoveFilterAction());
         actionMap.put(AppActionCommands.CMD_FILTRO_CLEAR_ALL, createClearAllFiltersAction());
+        actionMap.put(AppActionCommands.CMD_FILTRO_ACTIVO, createPersistLiveFilterAction());
         
+        actionMap.put(AppActionCommands.CMD_FILTRO_SET_TYPE_FILENAME, createSetFilterTypeAction(FilterSource.FILENAME));
+        actionMap.put(AppActionCommands.CMD_FILTRO_SET_TYPE_FOLDER, createSetFilterTypeAction(FilterSource.FOLDER_PATH));
+        
+        // botones que faltan por implemetar la logica
+        actionMap.put(AppActionCommands.CMD_FILTRO_UP, getFuncionalidadPendienteAction());
+        actionMap.put(AppActionCommands.CMD_FILTRO_DOWN, getFuncionalidadPendienteAction());
+        // Por ahora, el de TAG llamará a la acción de "funcionalidad pendiente"
+        actionMap.put(AppActionCommands.CMD_FILTRO_SET_TYPE_TAG, new PlaceholderToggleAction("Filtrar por Etiqueta")); //getFuncionalidadPendienteAction());
         
         
         // 3.6. Crear y registrar Actions de Vista (Toggles de UI)
@@ -1201,8 +1214,33 @@ public class ActionFactory {
         return new ClearAllFiltersAction(this.generalController, "Limpiar Todos los Filtros", icon);
     } // --- Fin del método createClearAllFiltersAction ---
 	
+    private Action createPersistLiveFilterAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_FILTRO_ACTIVO);
+        return new PersistLiveFilterAction(this.generalController, "Hacer Filtro Persistente", icon);
+    } // --- Fin del método createPersistLiveFilterAction ---
 	
-	
+    private Action createSetFilterTypeAction(FilterSource source) {
+        String command;
+        String name;
+        switch (source) {
+            case FOLDER_PATH:
+                command = AppActionCommands.CMD_FILTRO_SET_TYPE_FOLDER;
+                name = "Establecer filtro por Carpeta";
+                break;
+            case FILENAME:
+            default:
+                command = AppActionCommands.CMD_FILTRO_SET_TYPE_FILENAME;
+                name = "Establecer filtro por Nombre de Archivo";
+                break;
+        }
+        ImageIcon icon = getIconForCommand(command);
+        return new SetFilterTypeAction(generalController, source, name, icon, command);
+    } // --- Fin del método createSetFilterTypeAction ---
+
+    // Helper para obtener la acción pendiente
+    public Action getFuncionalidadPendienteAction() {
+        return this.funcionalidadPendienteAction;
+    } // --- Fin del método getFuncionalidadPendienteAction ---
 	private Action createCycleSortAction() {
 	    // Obtener el icono inicial para la acción.
 	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ORDEN_CICLO);

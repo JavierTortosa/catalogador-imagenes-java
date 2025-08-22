@@ -718,7 +718,7 @@ public class UIDefinitionService {
 			,new SeparatorDefinition()
 			,new TextFieldDefinition("textfield.filtro.orden", "")		
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER, 	"40001-filter_48x48.png", "Activar/Desactivar Filtro en Vivo","orden_lista", ButtonType.TOGGLE)
-			
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ACTIVO,				"40011-cambio de filtro_48x48.png","Añadir Filtro Positivo (+)","orden_lista",ButtonType.TOGGLE)
 		);
 
 		// --- BARRA DE BOTONES filtros ---
@@ -728,21 +728,25 @@ public class UIDefinitionService {
             // El JComboBox para elegir la fuente (Nombre/Carpeta) lo añadiremos más tarde.
             // Por ahora, solo el campo de texto y los botones.
 			
-             new TextFieldDefinition("textfield.filtro.texto", "")
+//		 	 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ACTIVO,				"40011-cambio de filtro_48x48.png","Cambia el filtro activo","barra_filtros",ButtonType.TOGGLE)
+            new TextFieldDefinition("textfield.filtro.texto", "")
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ADD_POSITIVE,			"40002-filter_positive_48x48.png","Añadir Filtro Positivo (+)","barra_filtros",ButtonType.NORMAL)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ADD_NEGATIVE,			"40003-filter_negative_48x48.png","Añadir Filtro Negativo (-)","barra_filtros",ButtonType.NORMAL)
 
             ,new SeparatorDefinition()
             
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TYPE_NAME_FILE,		"40007-filter_file_48x48.png", "Filtro tipo archivo","barra_filtros",ButtonType.NORMAL)	
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TYPE_FOLDER,			"40008-filter_folder_48x48.png", "Filtro tipo carpeta","barra_filtros",ButtonType.NORMAL)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TYPE_TAG,				"40009-filter_tag_48x48.png", "Filtro tipo etiqueta","barra_filtros",ButtonType.NORMAL)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_SET_TYPE_FILENAME,	"40007-filter_file_48x48.png", "Filtro tipo archivo","barra_filtros",ButtonType.TOGGLE)	
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_SET_TYPE_FOLDER,		"40008-filter_folder_48x48.png", "Filtro tipo carpeta","barra_filtros",ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_SET_TYPE_TAG,			"40009-filter_tag_48x48.png", "Filtro tipo etiqueta","barra_filtros",ButtonType.TOGGLE)
                        
 			,new SeparatorDefinition()
 			
+//			new ButtonGroupDefinition.ButtonGroupDefinition("start")
+//			,new ButtonGroupDefinition("start")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_UP,					"40004-filter_up_48x48.png", "Subir 1 nivel","barra_filtros",ButtonType.NORMAL) 
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_DOWN,					"40005-filter_down_48x48.png", "Bajar 1 nivel","barra_filtros",ButtonType.NORMAL)
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_REMOVE_SELECTED,		"40006-filter_delete_48x48.png", "Quitar Filtro Seleccionado","barra_filtros",ButtonType.NORMAL)
+//			,new ButtonGroupDefinition("end")
 			
 			,new SeparatorDefinition()
 
