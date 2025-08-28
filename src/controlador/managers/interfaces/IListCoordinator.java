@@ -1,7 +1,9 @@
 package controlador.managers.interfaces;
 
 import java.util.List;
+
 import controlador.interfaces.ContextSensitiveAction;
+import modelo.MasterSelectionChangeListener;
 
 /**
  * Interfaz (Contrato) que define las responsabilidades públicas del ListCoordinator.
@@ -45,6 +47,12 @@ public interface IListCoordinator {
     void setSincronizandoUI(boolean sincronizando);
     void setContextSensitiveActions(List<ContextSensitiveAction> actions);
 
+    /**
+     * Registra un oyente que será notificado de los cambios en la selección maestra.
+     * @param listener El oyente a añadir.
+     */
+    void addMasterSelectionChangeListener(MasterSelectionChangeListener listener);
+    
     int getOfficialSelectedIndex();
     
 } // --- Fin de la interfaz IListCoordinator ---

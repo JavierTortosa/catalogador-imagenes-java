@@ -7,15 +7,14 @@ import java.util.List;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
-import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.interfaces.ContextSensitiveAction;
-import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
 import modelo.ListContext;
+import modelo.MasterSelectionChangeListener;
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
@@ -26,7 +25,7 @@ import servicios.ConfigKeys;
  * contexto de lista dado.
  * Mantiene un estado interno del índice seleccionado para mayor robustez.
  */
-public class ListCoordinator implements IListCoordinator {
+public class ListCoordinator extends AbstractListCoordinator {
 
 	private static final Logger logger = LoggerFactory.getLogger(ListCoordinator.class);
 	
@@ -34,14 +33,23 @@ public class ListCoordinator implements IListCoordinator {
     private VisorModel model;
     private VisorController controller;
     private ComponentRegistry registry;
+    private GridCoordinator gridCoordinator;
+    
     private List<ContextSensitiveAction> contextSensitiveActions = Collections.emptyList();
     
+    private final List<MasterSelectionChangeListener> selectionListeners = new ArrayList<>();
+    
+    
+    
     // --- Estado Interno ---
-    private boolean isSyncingUI = false;
+    
+//    private boolean isSyncingUI = false;
+    
     private int pageScrollIncrement;
-    // ¡LA MEMORIA VUELVE! Este es el índice oficial para este coordinador.
     private int officialSelectedIndex = -1;
 
+    private boolean thumbnailUpdatesEnabled = true;
+    
     public ListCoordinator() {
         // Constructor simple. Las dependencias se inyectan.
     } // --- Fin del método ListCoordinator (constructor) ---
@@ -50,59 +58,69 @@ public class ListCoordinator implements IListCoordinator {
     // === LÓGICA CENTRAL DE SELECCIÓN Y SINCRONIZACIÓN ===
     // =================================================================================
 
+    
+    // --- INICIO DE MODIFICACIÓN 2: MÉTODOS PARA GESTIONAR LISTENERS ---
+    public void addMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
+        if (!selectionListeners.contains(listener)) {
+            selectionListeners.add(listener);
+        }
+    }
+
+    public void removeMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
+        selectionListeners.remove(listener);
+    }
+
+    private void fireMasterSelectionChanged(int newIndex) {
+        for (MasterSelectionChangeListener listener : selectionListeners) {
+            listener.onMasterSelectionChanged(newIndex, this);
+        }
+    }
+    // --- FIN DE MODIFICACIÓN 2 ---
+    
+    
+    
+    
+    
     @Override
     public synchronized void seleccionarImagenPorIndice(int desiredIndex) {
-        if (isSyncingUI) {
-            return; // Prevenir bucles de eventos
-        }
-        
-        // Obtiene el contexto del modo de trabajo ACTUAL.
-        // Esto hace que el coordinador sea reutilizable para Visualizador y Carrusel.
-        ListContext currentContext = model.getCurrentListContext();
-        if (currentContext == null || currentContext.getModeloLista() == null) {
-            return;
-        }
+    	 ListContext currentContext = model.getCurrentListContext();
+         if (currentContext == null || currentContext.getModeloLista() == null) return;
 
-        DefaultListModel<String> listModel = currentContext.getModeloLista();
+         DefaultListModel<String> listModel = currentContext.getModeloLista();
 
-        // Validaciones: No hacer nada si el índice es inválido o es el mismo que ya está seleccionado.
-        if (desiredIndex < -1 || desiredIndex >= listModel.getSize() || desiredIndex == this.officialSelectedIndex) {
-            return;
-        }
+         // La comprobación de índice duplicado se hace AHORA en los listeners.
+         // Aquí solo validamos los límites.
+         if (desiredIndex < -1 || desiredIndex >= listModel.getSize()) {
+             return;
+         }
+         
+         // ¡Esta comprobación es redundante si los listeners ya la hacen, pero es una buena
+         // segunda línea de defensa para evitar trabajo innecesario!
+         if (desiredIndex == this.officialSelectedIndex) {
+             return;
+         }
 
-        logger.debug("[ListCoordinator] Nueva selección. Modo: " + model.getCurrentWorkMode() + ". Índice: " + desiredIndex);
+         logger.debug("[ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: " + desiredIndex);
 
-        // 1. Actualizar el estado interno y el del Modelo (la fuente de verdad)
-        this.officialSelectedIndex = desiredIndex;
-        String selectedKey = (desiredIndex != -1) ? listModel.getElementAt(desiredIndex) : null;
-        currentContext.setSelectedImageKey(selectedKey);
-        
-        // 2. Cargar la imagen principal en la vista
-        // El índice que pasamos es el del modelo principal del contexto, que es el que espera el método.
-        controller.actualizarImagenPrincipal(desiredIndex);
-        
-        // 3. Sincronizar las Vistas (JLists)
-        // Solo actualizamos las miniaturas si estamos en modo Visualizador o Carrusel (modos con tira de miniaturas).
-        if (model.getCurrentWorkMode() == WorkMode.VISUALIZADOR || model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
-            sincronizarVistasConMiniaturas(desiredIndex);
-        } else {
-            // Para otros modos futuros que solo tengan una lista de nombres.
-            JList<String> mainList = getMainJListForCurrentMode();
-            sincronizarSeleccionJList(mainList, desiredIndex);
-        }
+         // 1. Actualizar el Modelo (la única fuente de verdad)
+         this.officialSelectedIndex = desiredIndex;
+         String selectedKey = (desiredIndex != -1) ? listModel.getElementAt(desiredIndex) : null;
+         currentContext.setSelectedImageKey(selectedKey);
+         
+         // 2. Cargar la imagen principal
+         controller.actualizarImagenPrincipal(desiredIndex);
+         
+         // 3. Ordenar a TODAS las vistas que se sincronicen
+         sincronizarSeleccionJList(getMainJListForCurrentMode(), desiredIndex);
+         actualizarTiraDeMiniaturas(desiredIndex);
 
-        // 4. Actualizar el estado de los botones (enabled/disabled)
-        forzarActualizacionEstadoAcciones();
-        
-     // --- INICIO DE LA NUEVA LÓGICA ---
-        // Después de actualizar las acciones, sincronizamos el grid si está activo.
-        if (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
-            JList<String> gridList = registry.get("list.grid");
-            sincronizarSeleccionJList(gridList, desiredIndex);
-        }
-        // --- FIN DE LA NUEVA LÓGICA ---
-        
-    } // --- Fin del método seleccionarImagenPorIndice ---
+         // En lugar de llamar directamente al grid, notificamos a todos los que escuchan.
+         logger.debug("[ListCoordinator] Notificando a {} listeners del cambio de selección al índice {}.", selectionListeners.size(), desiredIndex);
+         fireMasterSelectionChanged(desiredIndex);
+
+         // 4. Actualizar estado de los botones
+         forzarActualizacionEstadoAcciones();
+     } // --- Fin del método seleccionarImagenPorIndice ---
 
     /**
      * Orquesta la actualización de la lista de nombres y la tira de miniaturas.
@@ -121,6 +139,19 @@ public class ListCoordinator implements IListCoordinator {
      * Lógica CLAVE para actualizar el modelo de la tira de miniaturas y su selección.
      */
     private void actualizarTiraDeMiniaturas(int selectedIndex) {
+    	
+    	logger.debug("[ListCoordinator] Iniciando ActualizarTiraDeMiniaturas");
+    	
+    	// --- INICIO DE LA MODIFICACIÓN ---
+        // Si estamos en modo Grid, la barra de miniaturas está oculta y no necesita actualizarse.
+        if (model != null && model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
+            return; // No hacer nada.
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+    	
+    	
+    	if (!thumbnailUpdatesEnabled || controller.getModeloMiniaturas() == null || model.getCurrentListContext() == null) return;
+    	
         if (controller.getModeloMiniaturas() == null || model.getCurrentListContext() == null) return;
 
         DefaultListModel<String> modeloMiniaturas = controller.getModeloMiniaturas();
@@ -163,18 +194,16 @@ public class ListCoordinator implements IListCoordinator {
      * Sincroniza de forma segura la selección de una JList.
      */
     private void sincronizarSeleccionJList(JList<String> lista, int index) {
-        if (lista == null || lista.getSelectedIndex() == index) return;
+        if (lista == null) return;
         
-        isSyncingUI = true;
-        try {
-            if (index >= 0 && index < lista.getModel().getSize()) {
-                lista.setSelectedIndex(index);
-                lista.ensureIndexIsVisible(index);
-            } else {
-                lista.clearSelection();
-            }
-        } finally {
-            SwingUtilities.invokeLater(() -> isSyncingUI = false);
+        // No comprobamos el índice aquí (if lista.getSelectedIndex() == index)
+        // porque queremos FORZAR a la vista a obedecer al modelo, incluso si cree que ya está sincronizada.
+        
+        if (index >= 0 && index < lista.getModel().getSize()) {
+            lista.setSelectedIndex(index);
+            lista.ensureIndexIsVisible(index);
+        } else {
+            lista.clearSelection();
         }
     } // --- Fin del método sincronizarSeleccionJList ---
 
@@ -286,7 +315,6 @@ public class ListCoordinator implements IListCoordinator {
         seleccionarImagenPorIndice(randomIndex); // true para asegurar que la UI se actualice
     } // --- Fin del método seleccionarAleatorio ---
     
-    
     // =================================================================================
     // === MÉTODOS VARIOS (DELEGACIÓN) ===
     // =================================================================================
@@ -313,6 +341,18 @@ public class ListCoordinator implements IListCoordinator {
         return null; 
     } // --- Fin del método getMainJListForCurrentMode ---
 
+    public void setThumbnailUpdatesEnabled(boolean enabled) {
+        this.thumbnailUpdatesEnabled = enabled;
+        logger.debug("[ListCoordinator] Actualizaciones de la tira de miniaturas " + (enabled ? "HABILITADAS" : "DESHABILITADAS"));
+    } // --- Fin del método setThumbnailUpdatesEnabled ---
+
+    public void forzarActualizacionDeTiraDeMiniaturas() {
+        if(this.thumbnailUpdatesEnabled) {
+            actualizarTiraDeMiniaturas(this.officialSelectedIndex);
+        }
+    } // --- Fin del método forzarActualizacionDeTiraDeMiniaturas ---
+    
+    
     // =================================================================================
     // === SETTERS Y GETTERS ===
     // =================================================================================
@@ -326,9 +366,9 @@ public class ListCoordinator implements IListCoordinator {
     } // --- Fin del método setController ---
     public void setRegistry(ComponentRegistry registry) { this.registry = registry; }
     public void setContextSensitiveActions(List<ContextSensitiveAction> actions) { this.contextSensitiveActions = actions; }
-    public synchronized boolean isSincronizandoUI() { return isSyncingUI; }
-    public synchronized void setSincronizandoUI(boolean sincronizando) { this.isSyncingUI = sincronizando; }
-
+    public synchronized boolean isSincronizandoUI() { return false;  }
+    public synchronized void setSincronizandoUI(boolean sincronizando) {  }
+    
     public int getOfficialSelectedIndex() {return this.officialSelectedIndex;}
     
 } // --- Fin de la clase ListCoordinator ---

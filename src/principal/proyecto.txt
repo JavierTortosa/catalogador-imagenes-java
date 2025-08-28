@@ -1,4 +1,8 @@
 ------------------------------------------------------------------------------------------------------------------------------------
+
+Implementacion LoogerFactory
+----------------------------
+
 private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class); 
 logger.info
 logger.debug
@@ -21,6 +25,60 @@ FLATLAF
 web para buscar componentes para cambiar el color: 
 https://www.formdev.com/flatlaf/properties-files/
 ------------------------------------------------------------------------------------------------------------------------------------
+
+1. - OBJETIVO DE ESTA SESIÓN:
+[Aquí describes qué quieres lograr hoy. Ej: "Implementar la lógica para que el botón 'Exportar a PDF' genere un archivo con los datos de la tabla de clientes."]
+
+2. - CONTEXTO GENERAL DE LA APLICACIÓN:
+
+1. OBJETIVO DEL PROYECTO:
+
+Aplicación de escritorio para visualizar, catalogar y gestionar una gran colección (~26,000+) de imágenes asociadas a modelos 3D. El objetivo principal es agilizar la búsqueda y organización de estos recursos.
+2. ARQUITECTURA Y PRINCIPIOS DE DISEÑO:
+Tecnología: Java, Swing (UI), Maven (Gestión de proyecto).
+Layout Principal: CardLayout para cambiar entre los diferentes "modos" de la aplicación (Visualizador, Proyectos, Catalogador). La UI se compone de paneles modulares cuya visibilidad es configurable.
+Barras de Herramientas: Múltiples JToolBar independientes que se muestran/ocultan según el contexto de la tarea actual.
+Configuración y Futuro MegaConfig:
+Actualmente, la configuración se gestiona a través de un archivo config.cfg.
+Directriz de Diseño Clave: Todas las nuevas funcionalidades y refactorizaciones deben diseñarse de forma modular y flexible para facilitar su futura integración en una interfaz gráfica de configuración centralizada (MegaConfig). El código no debe tener valores "hard-coded" que luego sean difíciles de externalizar.
+3. MÓDULOS PRINCIPALES:
+A) Visualizador de Imágenes:
+Vista Principal: Compuesta por tres paneles:
+Lista de Nombres (JList): Muestra todos los nombres de archivo de la selección actual.
+Barra de Miniaturas (JPanel con JScrollPane): Muestra un subconjunto de imágenes en miniatura para navegación rápida.
+Visor Central: Muestra la imagen seleccionada a tamaño completo.
+Lógica de Miniaturas (Crítico):
+No se renderizan todas las miniaturas a la vez por rendimiento.
+Se gestiona un "viewport" de miniaturas: al hacer scroll, se eliminan las miniaturas que salen de la vista y se añaden las nuevas.
+Existe un sistema de caché de miniaturas para agilizar la carga.
+El número de miniaturas visibles es dinámico y se adapta al ancho de la ventana.
+Funcionalidades: Zoom (manual y predefinido), navegación por carpetas (con/sin subcarpetas), modos de visualización (Grid, Pantalla Completa, Carrusel), edición básica (rotar, espejo, recortar).
+B) Gestor de Proyectos:
+Permite marcar imágenes de interés.
+Las imágenes marcadas se añaden a una lista temporal (ej. un archivo de texto).
+Permite visualizar y gestionar estas listas como "proyectos" guardados.
+C) Catalogador de Imágenes (Futuro/Grueso del proyecto):
+Funcionalidad principal a largo plazo.
+Utilizará una base de datos o metadatos para permitir búsquedas por etiquetas/tags (ej. "elfo", "skaven").
+El objetivo es superar la limitación de la estructura de carpetas.
+4. SINCRONIZACIÓN DE LISTAS:
+Existe una lista de datos principal (el "modelo") que contiene la información de los archivos en disco.
+Esta lista principal alimenta tanto a la JList de nombres como a la barra de miniaturas.
+Un método de sincronización se encarga de que la selección en una lista se refleje correctamente en la otra y en el visor principal.
+
+
+3. - DIRECTRICES INQUEBRANTABLES (Nuestras Reglas de Trabajo):
+Regla 1 (CÓDIGO REAL): Trabaja siempre con el código real. Antes de darme un código basado en lo que supuestamente hace una clase/método, PIDE LA CLASE. No asumas ninguna implementación.
+Regla 2 (COMENTARIOS): Añade siempre los comentarios de final de bloque // ---FIN de metodo ---  y // --- FIN de clase ---
+Regla 3 (SIN RENOMBRAR): No se pueden cambiar los nombres de variables, métodos o clases que ya existen.
+Regla 4 (NO REFACTORIZAR): No refactorices ni simplifiques métodos existentes sin consultarme primero. Céntrate únicamente en la tarea solicitada.
+
+4. - ESTRUCTURA DEL PROYECTO (dir /b /s):
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
 
 	el github es: https://github.com/JavierTortosa/catalogador-imagenes-java.git
 	
@@ -239,39 +297,7 @@ https://www.streamlinehq.com/icons/core-duo-color/interface-essential
 
 
 
-Los Prefijos Más Comunes y Útiles
 
-feat (Feature / Característica)
-Cuándo usarlo: Cuando añades una nueva funcionalidad visible para el usuario o una nueva característica a la arquitectura.
-Ejemplo: feat: Add project management mode
-Tu caso: feat: Implement GeneralController for mode management (Lo que hicimos es una nueva característica arquitectónica).
-
-fix (Fix / Arreglo)
-Cuándo usarlo: Cuando corriges un error (un bug) en el código.
-Ejemplo: fix: Prevent NullPointerException when creating thumbnails
-Tu caso: fix: UI controls not disabled on mode switch (También sería válido, ya que arreglamos un bug visual).
-
-refactor (Refactorización)
-Cuándo usarlo: Cuando cambias la estructura del código sin cambiar su comportamiento externo. Es una mejora interna.
-Ejemplo: refactor: Extract UI update logic into ViewManager
-Tu caso: refactor: Move mode switching logic to GeneralController (Muy apropiado para lo que hicimos).
-
-docs (Documentation / Documentación)
-Cuándo usarlo: Cuando solo haces cambios en la documentación (comentarios en el código, archivos README, etc.).
-Ejemplo: docs: Update README with installation instructions
-style (Estilo)
-
-Cuándo usarlo: Cambios que no afectan el significado del código (espacios en blanco, formato, puntos y comas faltantes, etc.). Suelen ser cambios que haría un formateador de código automático.
-Ejemplo: style: Apply code formatter to all Java files
-test (Pruebas)
-Cuándo usarlo: Cuando añades pruebas que faltaban o corriges pruebas existentes. No cambia el código de producción.
-Ejemplo: test: Add unit tests for ThumbnailService
-
-chore (Tarea / Mantenimiento)
-Cuándo usarlo: Para cambios en el proceso de construcción, tareas de mantenimiento, o actualización de dependencias que no afectan al código de producción. Es la "limpieza de la casa".
-Ejemplo: chore: Update gitignore to exclude log files o chore: Upgrade Swing version
-
-----------------------------------------------------------------
 
 
 ======================================================================
@@ -1369,3 +1395,45 @@ Implementar un modo de visualización "Grid" (cuadrícula) completamente funcion
 ======================================================================
 == FIN DEL INFORME
 ======================================================================
+
+
+============================================================
+CLASES INVOLUCRADAS EN EL SISTEMA DE LA BARRA DE MINIATURAS
+============================================================
+
+--- Capa de la Vista (El "Cómo se ve") ---
+
+1. vista.builders.ViewBuilder
+   Funcion: Es el "arquitecto". Construye la JList y el JScrollPane de la barra de miniaturas y le asigna el MiniaturaListCellRenderer.
+
+2. vista.renderers.MiniaturaListCellRenderer
+   Funcion: Es el "pintor". Se encarga de dibujar cada celda individual de la lista, solicitando la imagen al ThumbnailService y aplicando los colores y bordes del tema actual.
+
+
+--- Capa del Controlador (La "Lógica") ---
+
+3. controlador.ListCoordinator
+   Funcion: Es el "director de orquesta". Gestiona la lógica del "viewport" (qué miniaturas mostrar) y mantiene sincronizadas la selección en la lista de nombres, la barra de miniaturas y la imagen principal.
+
+4. controlador.VisorController
+   Funcion: Es el "controlador general". Inicia la carga de la lista de imágenes y sirve de nexo entre la vista, el modelo y los coordinadores/servicios.
+
+
+--- Capa del Modelo (Los "Datos") ---
+
+5. modelo.VisorModel
+   Funcion: Es la "fuente de la verdad". Contiene la lista maestra completa con las rutas de todas las imágenes y el estado de la selección actual.
+
+
+--- Capa de Servicios (Los "Trabajadores") ---
+
+6. servicios.image.ThumbnailService
+   Funcion: Es la "fábrica de miniaturas". Carga las imágenes desde el disco, las redimensiona al tamaño correcto y las guarda en un caché para un acceso rápido.
+
+7. servicios.cache.LruCache
+   Funcion: Es el "gestor de memoria" del ThumbnailService. Implementa el caché que almacena las miniaturas, descartando automáticamente las más antiguas para evitar un consumo excesivo de memoria.
+   
+***********************************************************************************************************************************************   
+
+
+

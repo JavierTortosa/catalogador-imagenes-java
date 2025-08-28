@@ -1,0 +1,556 @@
+commit 7dfd8b7e9e4b6a1cb617116608fccdfe57563c38
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Aug 22 09:19:05 2025 +0200
+
+    20250822: Feat(filtros): Implementación completa del sistema de filtrado dual
+    
+    Implementa un sistema de filtrado dual robusto que incluye un Filtro Rápido ("Tornado") temporal y un sistema de Filtros Persistentes multicriterio.
+    
+    El sistema se basa en un patrón de "checkpoint al vuelo" donde el Filtro Persistente opera sobre una copia inmutable de la lista de archivos actual en el momento de su activación. Se ha refactorizado la lógica de aplicación de filtros para que toda la UI se actualice de forma consistente a través del ListCoordinator, simulando una carga de "carpeta virtual".
+    
+    Se ha corregido la lógica de la UI para asegurar la coherencia visual entre pestañas y se ha implementado un sistema de agrupamiento funcional para los botones de tipo de filtro.
+    
+    Principales Cambios:
+    
+    - feat(filtros): Añadido sistema de Filtro Persistente con lógica AND para múltiples criterios.
+    - feat(filtros): Implementado atajo para convertir el Filtro Rápido en un Filtro Persistente.
+    - feat(filtros): Añadido soporte para selección de tipo de filtro (Nombre/Carpeta) mediante JToggleButtons.
+    - fix(ui): Corregida la lógica de `FilterManager` para aplicar correctamente múltiples filtros positivos.
+    - fix(ui): Solucionado el bug que impedía la restauración de la lista maestra al eliminar todos los filtros.
+    - fix(ui): Solucionado el problema de renderizado de fondos inconsistentes en las pestañas del panel izquierdo.
+    - refactor(controller): Centralizada la lógica de gestión de checkpoints y refresco de UI en `GeneralController`.
+    - refactor(builder): Refactorizado `ToolbarBuilder` para manejar `ButtonGroup`s de forma coherente.
+
+commit f1759e2eff028b3a75775290965bc361aebe0207
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Aug 21 04:54:23 2025 +0200
+
+    202550821: feat: añadido el sistema de filtrado de listas
+
+commit ec1181ac979e43230895ead23cc2d0c6ee226cec
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Aug 16 19:00:18 2025 +0200
+
+    20250816: feat: añadida toolbar de navegacion por carpetas
+
+commit eb28d738acd50a061032bb2bf30af378db02d532
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Aug 14 00:26:05 2025 +0200
+
+    20250814: refactor: unificadas las barras de progreso y añadidas unas cuantas hotkeys: f5, f11, spacebar
+
+commit ec49741715cefe64a3f3e76e1185e428be1a92e2
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Tue Aug 12 06:14:33 2025 +0200
+
+    20250812: feat: implmentado flatlaf completamente y cambio de tema en caliente con multiples temas
+
+commit 87fe3790e37b049dbfb014fd0e26646dceeedb2b
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun Aug 10 10:42:46 2025 +0200
+
+    20250810: feat: Implementado el displaymode grid en modo proyecto
+
+commit 0ac46032b98340b124424b5920bafc36945a3b08
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Aug 7 11:09:49 2025 +0200
+
+    20250807: feat: Implementado el gestor de logs slf4j-api a traves de maven
+
+commit dd87867269fdc983111537b725c82cd102823503
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Aug 6 04:47:28 2025 +0200
+
+    20250806: fix: reparacion de toda la aplicacion para el cambio de tema en caliente
+
+commit 524f9e0a4b84cab52a2af4bf3153f51d07724801
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jul 30 21:26:09 2025 +0200
+
+    20250730: feat: implementacion de la sincronizacion del modo carrousel con el visor
+
+commit 84eed9ef8e5bcd6cdbd13de4be6a2d16848f06d0
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon Jul 28 23:38:04 2025 +0200
+
+    20252807: feat: implementados los botones de avance y retroceso rapido en modo carrousel
+
+commit 19dbcf81b6edb8dfc280ffc6af8a538c5f307b97
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun Jul 27 11:46:02 2025 +0200
+
+    20250727: feat: Implementado el modo paneo en carrousel
+
+commit 4f3f20afd6b78c1b4be989ccf68336032dae7227
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Jul 26 20:16:10 2025 +0200
+
+    20250726: fit: refactorizacion del sistema de navegacion de los modos carrousel y visualizador
+
+commit edc428bad1c938d58d7fb447675ece76e22ae25d
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Jul 24 22:47:23 2025 +0200
+
+    20250724: fix: Reparacion de la toolbar que controla el fondo de la imagen en pantalla
+
+commit 844437246b46e586b74291f7bdffad33ed2e28ae
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon Jul 21 19:30:50 2025 +0200
+
+    20250721: feat: Implementada una ventana para ver imagenes de miniaturas con doble click
+
+commit 41a4672f6e327fcb667996520faf6349977299db
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun Jul 20 22:48:42 2025 +0200
+
+    20250720: feat: implementacion completada de la barra de cambio de fondo de imagen
+
+commit 78aa928beed9203a4bb700ec439c6c1231e6eb1a
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Jul 19 00:48:52 2025 +0200
+
+    20250719: feat: implementada previsualizacion de imagenes en miniatura en un panel independiente con modo paneo
+
+commit b3babb670b626b17f09a7499e960f791d1df9884
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Jul 18 20:12:52 2025 +0200
+
+    20250717: feat: Implementado el popupmenu del Visualizador y modos de visualizacion
+
+commit d1229481a86af32bc84b7706ecbd9b10e78c085b
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun Jul 13 10:42:09 2025 +0200
+
+    20251307: fix: Reparacion de la barra de exportacion
+
+commit ba168774f3676d5792c65f513b3ce01354b90557
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Jul 12 02:24:17 2025 +0200
+
+    20250712: feat: Mejora de UX en el Modo Proyecto y Refinamiento Estético de UI
+
+commit f344b6430c995d83f8011fa30c78fba5a62e47c0
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Jul 11 23:46:10 2025 +0200
+
+    20250711: feat: Implementados los iconos de estado y la toolbar de exportacion de proyecto
+
+commit 3df3e8d010ecf8863f8274cebe902fa99b518c85
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Jul 11 14:30:58 2025 +0200
+
+    20250711: feat: añadidas barra de carrousel y proyecto, añadida persistencia de modo proyecto
+
+commit 5a3931a70005ae9f51c5b9bf21258378e6e5db15
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jul 9 17:05:59 2025 +0200
+
+    20250709: feat: Añadido el foco de las listas de seleccion y descartes e implementacion de la navegacion por teclado y mouse en ambas
+
+commit 3a493e20ab6bbf61df90395ad48782501de4b89f
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jul 9 03:29:03 2025 +0200
+
+    20250709: feat: Implementacion de seleccion de archivos a exportar
+
+commit 07a090b7a19cf76d489ed6ff5f74ea15efacec66
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jul 9 01:17:12 2025 +0200
+
+    20250709: Feat: Añadida la funcion de exportar proyecto
+
+commit 47558897d166490de4c8da1e381d41f269ecf381
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Tue Jul 8 23:01:51 2025 +0200
+
+    20250708: feat: Añadido el nuevo interfaz de proyecto y las listas de descartes
+
+commit f141cb709e68a96072adec50cd6abdbf896db45d
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon Jul 7 20:00:49 2025 +0200
+
+    20250707: feat: Añadido modo paeno y control del teclado al modo proyecto
+
+commit 4241da3641657a0a3b9d21682058010e6b382027
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun Jul 6 20:36:13 2025 +0200
+
+    20250706: fix: Reparacion de las ToolbarFlotantes, botones de edicion y colocacion de botones
+
+commit 77d63ff53ab969c56df7b04ec1be704345853202
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Jul 4 15:33:48 2025 +0200
+
+    20250704: feat: Implementado el cambio de tema en caliente
+
+commit 00e79d9f007acd4419569b67bca67c0c86f75e4e
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jul 2 23:31:25 2025 +0200
+
+    20250702: feat:  Migración a Maven y configuración de FlatLaf
+
+commit 748f76be65eae7e4f001aac98141f4364544099a
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jul 2 22:04:46 2025 +0200
+
+    20250702: fix: Reparacion del Zoom Inteligente y registro de componentes en ComponentRegistry
+
+commit 758317a30d993c498665c079571d1786c050e8b3
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Tue Jul 1 13:27:20 2025 +0200
+
+    20250701: feat: el DPad ahora cambia de color internamente en funcion del tamaño que se le pide
+
+commit 29d14719843ddbb0657df79513f78fbb003371e5
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Tue Jul 1 11:28:46 2025 +0200
+
+    20250701: feat: Implementacion de la nueva Barra de debajo de la imagen con un nuevo componente diseñado desde cero: el DPad
+
+commit 7922391fbf925d610b386ad0ef75077bac23a0e2
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun Jun 29 13:43:02 2025 +0200
+
+    20250629: feat(zoom): Refactorización completa y corrección de la lógica de zoom y toolbars flotantes
+
+commit 8b298434c9c846ccf223c891dd4bdcd71fb39520
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Jun 28 21:27:04 2025 +0200
+
+    20252806: feat: Implementado GeneralController para gestionar modos y estado de UI
+
+commit ea4fdc935e20bc817888a3af5471a1ef47abd655
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Jun 28 11:37:03 2025 +0200
+
+    20252806: Reparacion de la barra de miniaturas e inicio de configuracion del modo proyecto
+
+commit 73a939dc4afb2ee38261d034cc48f86ae11d130b
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon Jun 23 08:53:51 2025 +0200
+
+    20250623: Mejora del Modo Paneo y del uso de memoria para el cache
+
+commit 2868bf93f36f9af9e8ecc3f8d17d519dc9970122
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun Jun 22 17:43:34 2025 +0200
+
+    20250622: Implementacion de las interfaces para los managers y refactorizacion del arranque
+
+commit 47a9bf9a921c1421973038513dba6b9370ea3faa
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Jun 21 18:37:19 2025 +0200
+
+    20250621: Estabiliza la inicialización y prepara para CardLayout
+
+commit cc68fdb7c5b41b88de5d641aefc40d67d0530540
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Jun 19 05:04:12 2025 +0200
+
+    20250619: Implementación completa de navegación por teclado y rueda de ratón
+
+commit 39f31fc2eadfb199979d51a7e49e444fc4010b62
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jun 18 22:23:26 2025 +0200
+
+    20251806: reparacion de modos de zoom y botones de control de fondo despues de refactorizar VisorView
+
+commit f3274fb7297f97edb6282ceedce470c943186b14
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jun 11 08:14:53 2025 +0200
+
+    20251106: Refactorizacion de todo el inicio, reparacion de todos los fallos de la interfaz, botones y barras
+
+commit 0216f05d6238624ec68c23ef39426b3a9b132d78
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Jun 11 03:01:07 2025 +0200
+
+    20250611: Creacion dinamica de los nombres de los componentes y reparacion de las toolbars y el menu de configuracion
+
+commit 7447a4f8adae3aba15f65eea798f408a61c037e9
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon Jun 9 23:43:12 2025 +0200
+
+    20250609: Creadas las toolbars y modificado el menu de configuracion de forma dinamica
+
+commit bbaa7ae19fdcde7aa7c6329e3fc757a197a7b438
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Jun 6 19:12:41 2025 +0200
+
+    20250606: Reparacion del bug de cerrar la aplicacion maximizada
+
+commit 425f4cb5261b1111100156ee82480abe34294fce
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Jun 6 10:11:17 2025 +0200
+
+    20250606: implementacion de un control del fondo del label de la imagen temporal
+
+commit 2a3554fd57f036c986f5ac41eee6c068df207690
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Jun 6 02:32:54 2025 +0200
+
+    20250605: Limpieza final de todos los warnings del LOG
+
+commit aa9b94599171af12eb852f981bb56c942cf7e539
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Tue Jun 3 21:38:42 2025 +0200
+
+    20250603: Reparacion de Errores en el log, creacion del popupMenu para cuando se oculta el menu principal
+
+commit bbeb01028639294642023e2dfe5647172c9c8e13
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun Jun 1 22:53:22 2025 +0200
+
+    20250601: Reestructuracion para ver una imagen de error cuando la imagen objetivo no es legible
+
+commit 87540c0c29ef274219602900167abaddc3581f22
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat May 31 22:25:22 2025 +0200
+
+    20250531: Reparacion de acciones del menu e implementacion del warp arround en las listas
+
+commit 3e0762b8107ad797a53eed28e5a66bea048322d7
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat May 31 06:45:57 2025 +0200
+
+    20250531: actualizacion y limpieza del config y reparacion del menu con las opciones de los paneles de datos
+
+commit ef8975efd25befdaacf9ecc1cf75e4d550e1c017
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu May 29 05:58:23 2025 +0200
+
+    20250529: reparado el acceso a las opciones del menu sin action e implementacion de la opcion Zoom Personalizado %
+
+commit cc173aa0d9d20cf60c3726907233c0a4443ba27b
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu May 29 03:04:39 2025 +0200
+
+    20250529: implementacion del popupmenu de % de zoom en la barra inferior y estados de zoom dinamicos
+
+commit c4c5fe6b7cac07950a3ba09e968dc23ad545c36e
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed May 28 04:32:53 2025 +0200
+
+    20250528: implementada funcionalidad de los botones de la barra inferior para los botones toggle
+
+commit 1a022b7fe93837fb4dc2c318f2e88d1174bd5713
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed May 28 02:09:02 2025 +0200
+
+    20250528: Implementacion de las barras de status con iconos
+
+commit f66ae30619cd27b66b8c2c550ee3d03614388cd6
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon May 26 03:33:32 2025 +0200
+
+    20250526: sincronizados los estados de los botones toggle con la barra de status
+
+commit 2a146c52d7552967afbf86d1e8cc5e61bdb6171c
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun May 25 11:01:44 2025 +0200
+
+    20250525: reestructuracion de los paneles en pantalla, los elementos de los paneles son moviles y el inicializarComponentes refactorizado
+
+commit 296f18020580e492c847e896f5c1888936516b2f
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun May 25 03:13:46 2025 +0200
+
+    20250525: reparacion del flujo de carga de imagenes para carpetas gigantes
+
+commit d8d8ddd93d77dcd3c7e115376496ff513ad5ec2a
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun May 25 01:26:42 2025 +0200
+
+    20250525: actualizacion del metodo -localizar imagen- ahora selecciona el archivo en la carpeta de windows
+
+commit 130d0d9d85ee7a9f7a2ac93f27c1dd7bbd48a37c
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat May 24 21:11:29 2025 +0200
+
+    20250524: Carga y gurdado del modo de zoom en el config.cfg
+
+commit 98e4a3e33fc720ddfb0468cae172d30eb8b6e8d1
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat May 24 03:06:48 2025 +0200
+
+    20250524: añadida funcionalidad de movimiento rapido con shift y zoom ajustar al ancho
+
+commit 03a5cea31a3dc3a05af215db0690f702f02f26a0
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat May 24 02:35:37 2025 +0200
+
+    20250524: modo de zoom automatico y ajustar a pantalla operativos
+
+commit e75c6d4bba0d8e718db681710722321e55399b0d
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat May 24 01:36:35 2025 +0200
+
+    20250524: Modo zoom activado de inicio y config.cfg actualizado comportamiento.zoom.estado_inicial
+
+commit fb811a589dd561163e167824537897f7428dbfb5
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri May 23 10:22:06 2025 +0200
+
+    20250523: Reparacion de los botones toggle y selector de carpetas despues de la refactorizacion
+
+commit 6482afceb238004e9f79bab4b3ab78af7b7e3edb
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed May 21 20:25:46 2025 +0200
+
+    20250521: Refactorizacion de VisorController e implementacion de tipos de zoom
+
+commit 39ba2cc0d70e38c145311073c85718ccaa5f94e5
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed May 14 09:44:59 2025 +0200
+
+    20250514: reparacion de la barra de miniaturas cuando cambiamos de ver carpeta a subcarpeta
+
+commit 1a2c101fdbcd2cc4e8749750661fc65ed30c86c6
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed May 14 03:25:49 2025 +0200
+
+    20250514: nueva funcion de ver nombre de miniaturas y reparacion del centrado de miniaturas en la barra
+
+commit 55d496a67102e67363e8d264a4147e7018bd6cf6
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun May 11 22:26:25 2025 +0200
+
+    20250511: implementada generacion de lista de favoritos -a partir de arhoa proyectos- y reparacion config.cfg
+
+commit 97da9ab4acb7f852b0c5e4f1990d7460081396c2
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sun May 11 09:55:58 2025 +0200
+
+    20250511: reparacion del configMaster y las acciones de los botones
+
+commit 6a04ee553a6b27a7fb61069d0782843b33993a84
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri May 9 21:52:21 2025 +0200
+
+    20250509: refactorizacion y cambio de metodologia para los menus y sus actions
+
+commit 5bd1ba1454e27525122409d00973e85ba68f5bed
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed May 7 15:21:57 2025 +0200
+
+    20250507: añadidos algunos action pendientes de implementar
+
+commit 4a6e04e66c7531189cf85475e4d29c674b80ce54
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon May 5 10:28:47 2025 +0200
+
+    20250505: reparacion fallos ya implementados de menu y botones fase 1
+
+commit 543e40406239164ca55a7d4f133bcce2588eae32
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon May 5 08:47:46 2025 +0200
+
+    20250504: actualizacion e implementacion de navegacion por teclado en nombres y miniaturas
+
+commit 121329827ee67f168def1133ce975afdc0537ef4
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat May 3 14:29:25 2025 +0200
+
+    20250503: Implementacion operativa de la sincronizacion de nombres con miniaturas
+
+commit e35295583f5ec178159c65bac92fbbdd9a5b4a45
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Apr 26 10:08:26 2025 +0200
+
+    20250426: mejora de carga de miniaturas y barra de progreso e implementacion de mi primer worker
+
+commit 803cec31a95cc67e1272cf930ee12a67003ed5f8
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Apr 26 03:08:01 2025 +0200
+
+    20250426: Implementacion de mantener proporcion (boton - menu - config)
+
+commit 3ad8c1ea3a494555973b0353b5058400a766a803
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Apr 26 02:38:24 2025 +0200
+
+    20250426: implementacion de localizar imagen en el explorador de archivos (boton, menuitem, config
+
+commit 4626711423e87655bf65f37d6bfe782ca0266fcc
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Sat Apr 26 01:11:54 2025 +0200
+
+    20250426: comportamiento de arrancar con el mismo tamaño que se cerro la aplicacion
+
+commit 3e1810b8db171d0fd24433b1dee3f51d69273f12
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Fri Apr 25 23:51:08 2025 +0200
+
+    20250425: implementacion satisfactoria del mostrar subcarpetas (boton, menu y config)
+
+commit ffae73069eaa9c4098ba0e3e314c490949dab2f0
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Apr 24 11:58:31 2025 +0200
+
+    20250424: Reparado el bug del fondo a cuadros en base al config
+
+commit 5187030df0acb7ee7d65430576b906c1c1a7780a
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Apr 24 09:00:46 2025 +0200
+
+    20250424: añadidas las Actions para el menu vista
+
+commit de22d30fa43fd9b26b6ae289408e7a0c1268b5bc
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Apr 24 08:19:19 2025 +0200
+
+    20252404: añadido de iconos y acciones toggle
+
+commit e73adb59e67497aa027d4ec55caf7caddd9b3d8e
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Apr 24 03:12:43 2025 +0200
+
+    20250424: Actions creadas para rotar y espejo
+
+commit 796f8de7d4238eefe97037477b841e04c5b332b2
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Thu Apr 24 02:30:09 2025 +0200
+
+    20250424: personalizacion funcional de los temas con los botones en base al config
+
+commit 458b2de98a8979a57950a8ddab804e33d2566c0a
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Apr 23 14:04:39 2025 +0200
+
+    20250423: creacion del config con arreglo al tema seleccionado
+
+commit a8cb9151c6fa0b02efe720a5e684437d6a70dddd
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Wed Apr 23 10:29:53 2025 +0200
+
+    20250423: añadido configuracion de temas y actualizacion nombre botones
+
+commit e1cc78eef6caa149274a1a4f37afbe966c6ce538
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Tue Apr 22 10:21:51 2025 +0200
+
+    20250422: actualizacion de clases Action de navegacion
+
+commit 2a73735052377c9868b6f8c9b6d2199d308d890b
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Tue Apr 22 04:52:03 2025 +0200
+
+    20250422: actualizacion de los iconos de los botones
+
+commit d1558a4fab017e60f4959026729876c31354e34a
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Tue Apr 22 03:28:41 2025 +0200
+
+    20250422: inicio actualizacion temas botones
+
+commit aacff29f047d13f3832f1712c2bda8448f4bde0d
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon Apr 21 17:10:05 2025 +0200
+
+    Eliminar archivos de copia de seguridad obsoletos
+
+commit b8a77f7c7e9a3963bac098430a187933e65b9943
+Author: Javier Tortosa <fjaviertortosa@gmail.com>
+Date:   Mon Apr 21 16:30:59 2025 +0200
+
+    Primer commit: Añadir archivos iniciales del proyecto

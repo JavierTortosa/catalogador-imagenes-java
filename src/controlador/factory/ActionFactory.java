@@ -281,7 +281,8 @@ public class ActionFactory {
         // 3.1. Crear la Action genérica para funcionalidades pendientes primero.
         this.funcionalidadPendienteAction = createFuncionalidadPendienteAction();
         actionMap.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
-
+        actionMap.put(AppActionCommands.CMD_AYUDA_VER_ATAJOS, createVerAtajosAction());
+        
         // 3.2. Crear y registrar Actions de Zoom
         Action resetZoomAct = createResetZoomAction();
         actionMap.put(AppActionCommands.CMD_ZOOM_RESET, resetZoomAct);
@@ -452,6 +453,13 @@ public class ActionFactory {
         
         actionMap.put(AppActionCommands.CMD_BACKGROUND_CHECKERED, createSetCheckeredBackgroundAction("Fondo a Cuadros"));
         actionMap.put(AppActionCommands.CMD_BACKGROUND_CUSTOM_COLOR, createRequestCustomColorAction("Elegir Color..."));
+        
+        // 3.13. Crear y registrar Actions de Grid
+        //--- Actions de Grid (para Proyecto) ---
+        actionMap.put(AppActionCommands.CMD_GRID_SET_TEXT, createSetGridTextAction());
+        actionMap.put(AppActionCommands.CMD_GRID_REMOVE_TEXT, createRemoveGridTextAction());
+        actionMap.put(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA, createGridSizeUpAction());
+        actionMap.put(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA, createGridSizeDownAction());
         
     	// --- Acciones para cambio de DisplayMode (Modos de Visualización de Contenido) ---
         // Estas acciones delegan al GeneralController y son ContextSensitive (para su selección).
@@ -1271,7 +1279,76 @@ public class ActionFactory {
 	} // --- Fin del método createDrillDownFolderAction ---
 	
 	
+	// Acciones de la toolbar del GRID
+	
+	private Action createSetGridTextAction() {
+        return new AbstractAction("Añadir/Editar Etiqueta") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (projectControllerRef != null) {
+                    projectControllerRef.solicitarEtiquetaParaImagenSeleccionada();
+                }
+            }
+        };
+    } // ---FIN de metodo ---
+
+    private Action createRemoveGridTextAction() {
+        return new AbstractAction("Borrar Etiqueta") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (projectControllerRef != null) {
+                    projectControllerRef.solicitarBorradoEtiquetaParaImagenSeleccionada();
+                }
+            }
+        };
+    } // ---FIN de metodo ---
+
+    private Action createGridSizeUpAction() {
+        return new AbstractAction("Aumentar Tamaño Miniatura") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (projectControllerRef != null) {
+                    projectControllerRef.cambiarTamanoGrid(1.2); // Aumenta un 20%
+                }
+            }
+        };
+    } // ---FIN de metodo ---
+
+    private Action createGridSizeDownAction() {
+        return new AbstractAction("Reducir Tamaño Miniatura") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (projectControllerRef != null) {
+                    projectControllerRef.cambiarTamanoGrid(0.8); // Reduce un 20%
+                }
+            }
+        };
+    } // ---FIN de metodo ---
+	
+    
+    private Action createVerAtajosAction() {
+        return new AbstractAction("Ver Atajos de Teclado...") {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // La Action ahora solo delega la llamada al VisorController
+                if (generalController != null && generalController.getVisorController() != null) {
+                    generalController.getVisorController().mostrarDialogoAyudaAtajos();
+                }
+            }
+        };
+    } // ---FIN de metodo createVerAtajosAction---
+    
+	
+	// *********************************************** 
     // --- SECCIÓN 5: GETTERS Y SETTERS ---
+	// ***********************************************	
+	
     public Map<String, Action> getActionMap() {
          return this.actionMap; 
     } // --- Fin del método getActionMap ---
@@ -1343,6 +1420,8 @@ public class ActionFactory {
         }
         logger.debug("[ActionFactory] Actualización de iconos completada. Se actualizaron " + iconosActualizados + " acciones con un nuevo icono.");
     } // --- Fin del método actualizarIconosDeAcciones ---
+    
+    
     
     
     public void setView(VisorView view) { this.view = view; }

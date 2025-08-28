@@ -1,0 +1,179 @@
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+
+*******************************************************************************************************************************
+-----------------
+HACER COMMIT (Copia de seguridad)
+-----------------
+
+pirmiero ir a la carpeta del proyecto
+
+git add .	-> añade todo lo nuevo a la copia de segurada
+
+git commit		-> abre el editor (mirar edicion mas abajo) 
+	-m "texto"	-> añade el texto como comentario de la copia de seguridad
+	
+git push		-> sube a github la copia de seguridad
+
+git status		->	Muestra el estado actual del repositorio. Es el comando más importante.
+					Te dice qué archivos han sido modificados, cuáles están preparados para el
+					commit (en el "staging area") y cuáles no están siendo rastreados por Git.
+					Úsalo constantemente para saber dónde estás.
+
+git diff		->	Muestra los cambios exactos (línea por línea) que has hecho en los
+					archivos modificados desde el último commit. Muy útil para revisar tu
+					trabajo antes de hacer "git add".
+
+git pull		->	Descarga los últimos cambios del repositorio remoto (GitHub) y los fusiona
+					con tu versión local. Es lo primero que deberías hacer cuando empiezas a
+					trabajar cada día para asegurarte de que tienes la última versión.
+
+git branch		->	Muestra en qué "rama" de trabajo estás. Al principio solo tendrás la
+					rama "main", pero en el futuro podrías tener ramas para nuevas
+					funcionalidades (ej. "feat/modo-datos") sin tocar el código principal.
+					
+git clone
+	path		->	clona un proyecto de github. (VER "PREPARAR CARPETA PARA HACER COPIAS DE SEGURIDAD CON GIT" ESCENARIO 2	mas abajo				
+					
+*******************************************************************************************************************************
+
+
+*******************************************************************************************************************************
+-----------------
+Comandos mas comunes
+-----------------
+
+git add 		->	Añade a la copia de seguridad	
+
+git commit		->	Añade un comentario con el editor de git (VIM)
+	-m "texto"	->	Añade un comentario ("texto")
+
+git push		->	Sube a github la copia de seguridad
+
+git log			->	Muestra los commit que hemos hecho
+	-1			->	Muestra el ultimo commit
+
+*******************************************************************************************************************************
+-----------------
+Editor Vim (git commit sin nada)
+-----------------
+
+Nos permite usar este editor de texto para añadir el comentario al commit
+
+La primera linea es como si hicieramos git commit -m "texto"
+
+i 		-> 	entramos en el modo edicion y nos permite escribir 
+ESC		-> 	salimos del modo edicion
+:wq 	->	salimos del editor y guardamos 
+
+*******************************************************************************************************************************
+*******************************************************************************************************************************
+-----------------
+git log
+-----------------
+Cómo Navegar Mejor (para la próxima vez)
+Ya que estás ahí, aquí tienes una pequeña "chuleta" para navegar por git log como un profesional la próxima vez que lo uses.
+Tecla	Acción
+q	Salir del visor y volver a la terminal.
+Barra espaciadora	Avanzar una página completa hacia abajo.
+b	Retroceder una página completa hacia arriba (de back).
+Flecha abajo o j	Avanzar una línea (como Enter).
+Flecha arriba o k	Retroceder una línea.
+/	Buscar. Escribe / seguido de una palabra (ej: /filtros) y presiona Enter.
+n	Ir a la siguiente coincidencia de tu búsqueda.
+N	Ir a la coincidencia anterior de tu búsqueda.
+g	Ir al principio del todo.
+G (mayúscula)	Ir al final del todo.
+En resumen: la próxima vez, en lugar de Enter, usa la barra espaciadora para bajar rápido y la q para salir.
+
+*******************************************************************************************************************************
+
+*******************************************************************************************************************************
+-----------------
+PREPARAR CARPETA PARA HACER COPIAS DE SEGURIDAD CON GIT
+-----------------
+
+Existen 2 maneras de empezar a trabajar con Git en un proyecto:
+
+---
+ESCENARIO 1: Crear un repositorio NUEVO en una carpeta existente (lo más común)
+---
+Usamos este método cuando tenemos un proyecto en nuestro ordenador y queremos empezar a usar Git para controlarlo.
+
+1. Navegar a la carpeta raíz del proyecto con la terminal:
+   cd RUTA/A/MI/PROYECTO
+
+2. Inicializar el repositorio Git (¡EL PASO CLAVE!):
+   git init
+
+   Esto crea una carpeta oculta ".git" que guardará toda la historia.
+
+3. Crear un archivo .gitignore:
+   Es un archivo de texto llamado ".gitignore" (con el punto delante) en la raíz del proyecto.
+   Sirve para decirle a Git qué archivos y carpetas NO debe incluir en las copias de seguridad.
+   (Ej: carpetas de compilación como /bin/, archivos del IDE como .settings/, logs, etc.).
+   Puedes generar uno para tu tipo de proyecto en: https://www.toptal.com/developers/gitignore
+
+4. Realizar el primer commit:
+   git add .
+   git commit -m "Initial commit: Estructura inicial del proyecto"
+
+   Ahora el proyecto ya está bajo el control de Git.
+
+---
+ESCENARIO 2: Clonar un repositorio que YA EXISTE en internet (GitHub, GitLab...)
+---
+Usamos este método para descargar y empezar a trabajar en un proyecto que ya está en la nube.
+
+1. Navegar a la carpeta DONDE QUIERES GUARDAR el proyecto (ej. la carpeta "Workspace"):
+   cd RUTA/A/MI/WORKSPACE
+
+2. Clonar el repositorio usando su URL:
+   git clone https://github.com/usuario/nombre-del-repositorio.git
+
+   Este comando hace todo por ti:
+   - Crea una nueva carpeta con el nombre del repositorio.
+   - Descarga todos los archivos.
+   - Ejecuta "git init" internamente y configura la conexión al servidor remoto.
+
+   No necesitas hacer "git init" ni un primer commit. Ya puedes empezar a trabajar.
+
+
+*******************************************************************************************************************************
+
+*******************************************************************************************************************************
+-----------------
+Los Prefijos Más Comunes y Útiles
+-----------------
+
+feat (Feature / Característica)
+Cuándo usarlo: Cuando añades una nueva funcionalidad visible para el usuario o una nueva característica a la arquitectura.
+Ejemplo: feat: Add project management mode
+Tu caso: feat: Implement GeneralController for mode management (Lo que hicimos es una nueva característica arquitectónica).
+
+fix (Fix / Arreglo)
+Cuándo usarlo: Cuando corriges un error (un bug) en el código.
+Ejemplo: fix: Prevent NullPointerException when creating thumbnails
+Tu caso: fix: UI controls not disabled on mode switch (También sería válido, ya que arreglamos un bug visual).
+
+refactor (Refactorización)
+Cuándo usarlo: Cuando cambias la estructura del código sin cambiar su comportamiento externo. Es una mejora interna.
+Ejemplo: refactor: Extract UI update logic into ViewManager
+Tu caso: refactor: Move mode switching logic to GeneralController (Muy apropiado para lo que hicimos).
+
+docs (Documentation / Documentación)
+Cuándo usarlo: Cuando solo haces cambios en la documentación (comentarios en el código, archivos README, etc.).
+Ejemplo: docs: Update README with installation instructions
+style (Estilo)
+
+Cuándo usarlo: Cambios que no afectan el significado del código (espacios en blanco, formato, puntos y comas faltantes, etc.). Suelen ser cambios que haría un formateador de código automático.
+Ejemplo: style: Apply code formatter to all Java files
+test (Pruebas)
+Cuándo usarlo: Cuando añades pruebas que faltaban o corriges pruebas existentes. No cambia el código de producción.
+Ejemplo: test: Add unit tests for ThumbnailService
+
+chore (Tarea / Mantenimiento)
+Cuándo usarlo: Para cambios en el proceso de construcción, tareas de mantenimiento, o actualización de dependencias que no afectan al código de producción. Es la "limpieza de la casa".
+Ejemplo: chore: Update gitignore to exclude log files o chore: Upgrade Swing version
+
+*******************************************************************************************************************************

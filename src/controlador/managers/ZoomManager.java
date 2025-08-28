@@ -98,6 +98,20 @@ public class ZoomManager implements IZoomManager {
             if (onComplete != null) onComplete.run();
             return;
         }
+        
+     // =========================================================================
+        // === INICIO DE LA CORRECCIÓN ===
+        // =========================================================================
+        // La comprobación ahora solo falla si las dependencias ESENCIALES son nulas.
+        // statusBarManager es opcional.
+        if (registry == null || viewManager == null) {
+            logger.error("ERROR [aplicarModoDeZoom]: Dependencias nulas (registry o viewManager).");
+            if (onComplete != null) onComplete.run();
+            return;
+        }
+        // =========================================================================
+        // === FIN DE LA CORRECCIÓN ===
+        // =========================================================================
 
         if (model.getCurrentImage() == null) {
             ImageDisplayPanel panelActivo = getActiveDisplayPanel();
@@ -125,8 +139,23 @@ public class ZoomManager implements IZoomManager {
                 porcentajeLabel.setText(String.format("Z: %.0f%%", porcentaje));
             }
         } else if (modo == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
-            double porcentajeDelLabel = statusBarManager.getValorActualDelLabelZoom();
-            factorDeZoomParaAplicar = porcentajeDelLabel / 100.0;
+        	
+        	// =========================================================================
+            // === INICIO DE LA CORRECCIÓN 2: Comprobación de null para statusBarManager ===
+            // =========================================================================
+            if (statusBarManager != null) {
+                double porcentajeDelLabel = statusBarManager.getValorActualDelLabelZoom();
+                factorDeZoomParaAplicar = porcentajeDelLabel / 100.0;
+            } else {
+                factorDeZoomParaAplicar = model.getZoomCustomPercentage() / 100.0;
+            }
+            // =========================================================================
+            // === FIN DE LA CORRECCIÓN 2 ===
+            // =========================================================================
+//            double porcentajeDelLabel = statusBarManager.getValorActualDelLabelZoom();
+//            factorDeZoomParaAplicar = porcentajeDelLabel / 100.0;
+            
+            
         } else {
             factorDeZoomParaAplicar = _calcularFactorDeZoom(modo);
         }

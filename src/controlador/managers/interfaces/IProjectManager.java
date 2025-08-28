@@ -84,5 +84,20 @@ public interface IProjectManager {
     
     
     void vaciarDescartes();
+    
+    /**
+     * Obtiene la etiqueta personalizada para una imagen del proyecto.
+     * @param rutaImagen La ruta de la imagen.
+     * @return La etiqueta como un String, o null si no tiene ninguna.
+     */
+    String getEtiqueta(Path rutaImagen);
+
+    /**
+     * Establece o actualiza la etiqueta para una imagen del proyecto.
+     * Si la etiqueta es null o vacía, se considera borrada.
+     * @param rutaImagen La ruta de la imagen a etiquetar.
+     * @param etiqueta El texto de la etiqueta.
+     */
+    void setEtiqueta(Path rutaImagen, String etiqueta);
 
 } // --- FIN de la interfaz IProjectManager ---

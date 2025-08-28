@@ -80,6 +80,7 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
         if (isSelected) {
             // --- CELDA SELECCIONADA ---
             // Usa los colores de selección de tu tema. ¡Esto arreglará el selector invisible!
+        	
             setBackground(temaActual.colorSeleccionFondo());
             setForeground(temaActual.colorSeleccionTexto());
         } else {

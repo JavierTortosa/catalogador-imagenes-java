@@ -557,7 +557,18 @@ public class UIDefinitionService {
         // 7.8. Añadir el menú "Configuración" a la barra de menú principal
         menuBarStructure.add(new MenuItemDefinition(null, MenuItemType.MAIN_MENU, "Configuración", configSubItems));
 
-        // --- SECCIÓN 8: FIN DE LA DEFINICIÓN DE TODOS LOS MENÚS ---
+        
+     // --- SECCIÓN 9: MENÚ "AYUDA" ---
+        List<MenuItemDefinition> ayudaSubItems = List.of(
+            new MenuItemDefinition(AppActionCommands.CMD_AYUDA_VER_ATAJOS, 
+                    MenuItemType.ITEM, "Ver Atajos de Teclado...", null)
+        );
+        menuBarStructure.add(new MenuItemDefinition(null, 
+                MenuItemType.MAIN_MENU, "Ayuda", ayudaSubItems));
+        
+        
+        
+        // --- SECCIÓN 9: FIN DE LA DEFINICIÓN DE TODOS LOS MENÚS ---
         return menuBarStructure;
     }// --- FIN del metodo generateMenuStructure ---
 
@@ -741,7 +752,7 @@ public class UIDefinitionService {
                        
 			,new SeparatorDefinition()
 			
-//			new ButtonGroupDefinition.ButtonGroupDefinition("start")
+//			 new ButtonGroupDefinition.ButtonGroupDefinition("start")
 //			,new ButtonGroupDefinition("start")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_UP,					"40004-filter_up_48x48.png", "Subir 1 nivel","barra_filtros",ButtonType.NORMAL) 
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_DOWN,					"40005-filter_down_48x48.png", "Bajar 1 nivel","barra_filtros",ButtonType.NORMAL)
@@ -752,10 +763,20 @@ public class UIDefinitionService {
 
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_CLEAR_ALL,			"40010-filter_clear_48x48.png","Limpiar Todos los Filtros","barra_filtros",ButtonType.NORMAL)
              
-            
         );
 		
-            
+		
+		// --- BARRA DE BOTONES Grid Control ---
+		List<ToolbarComponentDefinition> botonesGrid = List.of(
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SET_TEXT,				"50001-add_texto_48x48.png", "Añadir/Modificar Etiqueta","barra_grid",ButtonType.NORMAL)
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_REMOVE_TEXT, 			"50002-subst_texto_48x48.png", "Borrar Etiqueta","barra_grid",ButtonType.NORMAL)
+			,new SeparatorDefinition()
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA, 		"50003-agrandar_miniatura_48x48.png", "Agrandar Miniatura","barra_grid",ButtonType.NORMAL)
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA, 	"50004-reducir_miniatura_48x48.png", "Reducir Miniatura","barra_grid",ButtonType.NORMAL)
+			,new SeparatorDefinition()
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SHOW_STATE,				"50005-mostrar_estado_48x48.png", "Mostrar Estado","barra_grid",ButtonType.TOGGLE)
+         );
+		
 		// --- BARRA DE CONTROL DE IMAGEN INFERIOR (CONSOLIDADA: D-Pad, Colores, Cuadros, Paleta) ---
 		// -- ICONOS INTERNOS DEL DPAD
 		// 0: UP, 1: DOWN, 2: LEFT, 3: RIGHT
@@ -847,7 +868,8 @@ public class UIDefinitionService {
         	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	510, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.FREE),
         	    new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 		600, EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE),
         	    new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 				700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, ToolbarAlignment.FREE),
-        	    new ToolbarDefinition("barra_filtros", "Herramientas de Filtro",			800, EnumSet.allOf(WorkMode.class), componentesFiltro, ToolbarAlignment.FREE)
+        	    new ToolbarDefinition("barra_filtros", "Herramientas de Filtro",			800, EnumSet.allOf(WorkMode.class), componentesFiltro, ToolbarAlignment.FREE),
+        	    new ToolbarDefinition("barra_grid", "Herramientas de Grid", 				900, EnumSet.of(WorkMode.PROYECTO), botonesGrid, ToolbarAlignment.FREE)
         	);
         
         

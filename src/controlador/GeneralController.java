@@ -992,6 +992,32 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             return false;
         }
 
+        // Atajos que solo funcionan en Modo Proyecto y Vista Grid
+        if (model.getCurrentWorkMode() == WorkMode.PROYECTO && model.getCurrentDisplayMode() == DisplayMode.GRID) {
+            Action action = null;
+            // CTRL+T para Etiquetar (Text)
+            if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_T) {
+                action = actionMap.get(AppActionCommands.CMD_GRID_SET_TEXT);
+            }
+            // CTRL+SUPR para Borrar Etiqueta
+            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_DELETE) {
+                action = actionMap.get(AppActionCommands.CMD_GRID_REMOVE_TEXT);
+            }
+            // CTRL + '+' para Aumentar tamaño
+            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_ADD) {
+                action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);
+            }
+            // CTRL + '-' para Reducir tamaño
+            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_SUBTRACT) {
+                action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA);
+            }
+            
+            if (action != null) {
+                action.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, null));
+                e.consume(); // Consumimos el evento para que no se propague
+                return true; // Indicamos que hemos manejado el evento
+            }
+        }
         
         // PRIORIDAD 1: Manejar la BARRA ESPACIADORA de forma global.
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
@@ -1364,7 +1390,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             this.sincronizarTodaLaUIConElModelo();
             
             // b) Repoblar el Grid con la nueva lista.
-            displayModeManager.poblarYSincronizarGrid();
+            if (displayModeManager != null) {
+                displayModeManager.poblarGridConModelo(model.getModeloLista());
+                displayModeManager.sincronizarSeleccionGrid();
+            }
             
             logger.debug("  [Callback Post-Carga] Sincronización finalizada.");
         };
@@ -1429,7 +1458,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta, String claveASeleccionar) {
         logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
 
-        // --- LÓGICA DE LIMPIEZA ---
         if (persistente_activo) {
             logger.info("[GC] Carga de nueva carpeta. Limpiando estado de filtro persistente.");
             filterManager.clearFilters();
@@ -1439,10 +1467,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         if (model.isLiveFilterActive()) {
             onLiveFilterStateChanged(false);
         }
-        // --- FIN LÓGICA DE LIMPIEZA ---
 
-        if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) { /* ... (código existente)... */ return; }
-        if (model == null || visorController == null || displayModeManager == null) { /* ... */ return; }
+        if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) { return; }
+        if (model == null || visorController == null || displayModeManager == null) { return; }
 
         model.setCarpetaRaizActual(nuevaCarpeta);
         if (this.folderTreeManager != null) { this.folderTreeManager.sincronizarArbolConCarpeta(nuevaCarpeta); }
@@ -1450,7 +1477,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         Runnable accionPostCarga = () -> {
             logger.debug("  [Callback Post-Carga de Nueva Raíz] Tarea de carga finalizada.");
             
-            // --- Capturamos la lista maestra inmutable ---
             if (model != null && model.getModeloLista() != null) {
                 this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
                 this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
@@ -1461,7 +1487,17 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             }
             
             this.sincronizarTodaLaUIConElModelo();
-            displayModeManager.poblarYSincronizarGrid();
+            
+            // =========================================================================
+            // === CORRECCIÓN: Usar los métodos correctos del DisplayModeManager ===
+            // =========================================================================
+            if (displayModeManager != null) {
+                displayModeManager.poblarGridConModelo(model.getModeloLista());
+                displayModeManager.sincronizarSeleccionGrid();
+            }
+            // =========================================================================
+            // === FIN DE LA CORRECCIÓN ===
+            // =========================================================================
         };
 
         visorController.cargarListaImagenes(claveASeleccionar, accionPostCarga);
@@ -1525,7 +1561,12 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 try {
                     logger.debug("  [Callback Post-Carga] Tarea de carga finalizada. Ejecutando sincronización maestra...");
                     this.sincronizarTodaLaUIConElModelo();
-                    displayModeManager.poblarYSincronizarGrid();
+                    
+                    if (displayModeManager != null) {
+                        displayModeManager.poblarGridConModelo(model.getModeloLista());
+                        displayModeManager.sincronizarSeleccionGrid();
+                    }
+                    
                     logger.debug("  [Callback Post-Carga] Sincronización finalizada.");
                 } finally {
                     isChangingSubfolderMode = false; // --- DESBLOQUEAMOS ---
@@ -1723,15 +1764,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             // Coincidencia encontrada: usar el ListCoordinator para seleccionar.
             visorController.getListCoordinator().seleccionarImagenPorIndice(foundIndex);
             
-            
-            
-//            // Ponemos el foco de vuelta en la lista de nombres para poder navegar con las flechas.
-//            JList<String> fileList = registry.get("list.nombresArchivo");
-//            if (fileList != null) {
-//                fileList.requestFocusInWindow();
-//            }
-            
-            
         } else {
             // No se encontró: notificar al usuario.
             if (statusBarManager != null) {
@@ -1861,7 +1893,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         javax.swing.JTextField tf = registry.get("textfield.filtro.texto");
         if (tf == null || tf.getText().isBlank()) return;
         
-//        filterManager.addFilter(new FilterCriterion(tf.getText(), source, type));
         filterManager.addFilter(new FilterCriterion(tf.getText(), this.filtroActivoSource, type));
         
         tf.setText("");
@@ -1877,8 +1908,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     	
     	limpiarEstadoFiltroRapidoSiActivo(); 
     	
-//        if (model.isLiveFilterActive()) { onLiveFilterStateChanged(false); }
-        
         JList<FilterCriterion> filterList = registry.get("list.filtrosActivos");
         if (filterList == null || filterList.getSelectedValue() == null) return;
 
@@ -1893,8 +1922,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     	
     	limpiarEstadoFiltroRapidoSiActivo();
     	
-//        if (model.isLiveFilterActive()) { onLiveFilterStateChanged(false); }
-        
         filterManager.clearFilters();
         gestionarFiltroPersistente();
         
@@ -2285,6 +2312,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
     }// --- FIN del metodo solicitarSalirDeSubcarpeta ---
 
+    
+    
+    
     
     public void setFolderTreeManager(FolderTreeManager folderTreeManager) {
         this.folderTreeManager = Objects.requireNonNull(folderTreeManager);

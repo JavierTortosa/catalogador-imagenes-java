@@ -554,6 +554,11 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.INFOBAR_INF_CTRL_MODO_ZOOM_VISIBLE, "true");
 	    defaults.put(ConfigKeys.INFOBAR_INF_MENSAJES_APP_VISIBLE, "true");
 
+	    defaults.put(ConfigKeys.GRID_MOSTRAR_NOMBRES_STATE, "true");
+	    defaults.put(ConfigKeys.GRID_THUMBNAIL_WIDTH, "120");
+	    defaults.put(ConfigKeys.GRID_THUMBNAIL_HEIGHT, "120");
+	    
+	    
 	    // --- 5. VISIBILIDAD DINÁMICA DE TOOLBARS Y BOTONES ---
 	    UIDefinitionService uiDefs = new UIDefinitionService();
 	    

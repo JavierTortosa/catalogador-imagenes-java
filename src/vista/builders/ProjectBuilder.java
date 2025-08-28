@@ -6,6 +6,7 @@ import java.util.Objects;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -23,6 +24,8 @@ import org.slf4j.LoggerFactory;
 
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
+import controlador.managers.DisplayModeManager;
+import controlador.managers.ToolbarManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import vista.panels.GridDisplayPanel;
@@ -31,6 +34,7 @@ import vista.renderers.NombreArchivoRenderer;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
+import vista.util.ThumbnailPreviewer; // <<< AÑADIR IMPORT
 
 public class ProjectBuilder implements ThemeChangeListener{
 
@@ -40,13 +44,15 @@ public class ProjectBuilder implements ThemeChangeListener{
     private final VisorModel model;
     private final ThemeManager themeManager;
     private final GeneralController generalController;
-
+    private final ToolbarManager toolbarManager;
+    
     // Constructor ahora necesita ThemeManager ---
-    public ProjectBuilder(ComponentRegistry registry, VisorModel model, ThemeManager themeManager, GeneralController generalController) {
+    public ProjectBuilder(ComponentRegistry registry, VisorModel model, ThemeManager themeManager, GeneralController generalController, ToolbarManager toolbarManager) {
         this.registry = Objects.requireNonNull(registry, "Registry no puede ser null en ProjectBuilder");
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en ProjectBuilder");
         this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ProjectBuilder");
         this.generalController = Objects.requireNonNull(generalController, "GeneralController no puede ser null");
+        this.toolbarManager = Objects.requireNonNull(toolbarManager, "ToolbarManager no puede ser null");
     } // --- Fin del método ProjectBuilder (constructor) ---
 
     
@@ -78,7 +84,7 @@ public class ProjectBuilder implements ThemeChangeListener{
         
         JPanel panelListas = createProjectListsPanel();
         JPanel panelHerramientas = createProjectToolsPanel();
-
+        
         // =========================================================================
         // === INICIO DE LA CORRECCIÓN ESTRUCTURAL ===
         // =========================================================================
@@ -98,11 +104,6 @@ public class ProjectBuilder implements ThemeChangeListener{
         border.setTitleColor(themeManager.getTemaActual().colorBordeTitulo());
         singleImageViewPanel.setBorder(border);
         
-        
-	     // =========================================================================
-	     // === INICIO DE LA IMPLEMENTACIÓN: MENÚ CONTEXTUAL PARA SINGLE IMAGE VIEW ===
-	     // =========================================================================
-	
 	     singleImageViewPanel.getInternalLabel().addMouseListener(new java.awt.event.MouseAdapter() {
 	         public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) { showProjectSingleImageMenu(e); } }
 	         public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) { showProjectSingleImageMenu(e); } }
@@ -162,24 +163,57 @@ public class ProjectBuilder implements ThemeChangeListener{
 	         }
 	     });
 	
-	     // =========================================================================
-	     // === FIN DE LA IMPLEMENTACIÓN ===
-	     // =========================================================================
-        
+        // 3. Creamos el previsualizador para el grid del proyecto.
+        ThumbnailPreviewer projectGridPreviewer = new ThumbnailPreviewer(
+            null, 
+            this.model, 
+            this.themeManager, 
+            null, // viewManager no está disponible y no es necesario para el previsualizador.
+            this.registry
+        );
 
-        // 3. Creamos el panel para la vista GRID del proyecto.
+        // 4. Creamos el panel para la vista GRID del proyecto, pasándole el previsualizador.
         GridDisplayPanel gridViewPanel = new GridDisplayPanel(
-            generalController.getModel(), 
+            this.model, 
             generalController.getVisorController().getServicioMiniaturas(), 
             this.themeManager, 
-            generalController.getVisorController().getIconUtils()
+            generalController.getVisorController().getIconUtils(),
+            projectGridPreviewer,
+            generalController.getProjectController().getProjectManager() // <<< Pasamos la instancia que acabamos de crear
         );
+        
+        
+        // --- Bloque de conexión de la toolbar ---
+        if (this.toolbarManager != null) {
+            logger.debug("[ProjectBuilder] Obteniendo 'barra_grid' desde ToolbarManager...");
+            JToolBar gridToolbar = this.toolbarManager.getToolbar("barra_grid");
+            
+            if (gridToolbar != null) {
+                logger.info(">>> ÉXITO: Toolbar 'barra_grid' obtenida. Inyectando en GridDisplayPanel. <<<");
+                gridViewPanel.setToolbar(gridToolbar);
+            } else {
+                logger.error(">>> FALLO: ToolbarManager devolvió NULL para 'barra_grid'. La toolbar no se añadirá. <<<");
+            }
+        } else {
+            logger.error("[ProjectBuilder] ToolbarManager es NULL. No se puede obtener la 'barra_grid'.");
+        }
+        // --- Fin del bloque ---
+        
+        
+        ToolbarManager toolbarManager = generalController.getToolbarManager();
+        if (toolbarManager != null) {
+            JToolBar gridToolbar = toolbarManager.getToolbar("barra_grid");
+            // Y se la pasamos al GridDisplayPanel para que la muestre
+            gridViewPanel.setToolbar(gridToolbar);
+            logger.debug(" -> Toolbar 'barra_grid' inyectada en el GridDisplayPanel del proyecto.");
+        }
+        
         registry.register("panel.display.grid.proyecto", gridViewPanel);
         
         JList<String> projectGridList = gridViewPanel.getGridList();
         registry.register("list.grid.proyecto", gridViewPanel.getGridList(), "WHEEL_NAVIGABLE");
 
-        // 4. Creamos un MouseListener inteligente para el grid del proyecto.
+        // 5. Creamos el MouseListener para el menú contextual del grid (esta parte no cambia).
         projectGridList.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mousePressed(java.awt.event.MouseEvent e) { 
                 handlePopupAndSelection(e);
@@ -194,21 +228,13 @@ public class ProjectBuilder implements ThemeChangeListener{
             private void handlePopupAndSelection(java.awt.event.MouseEvent e) {
                 int index = projectGridList.locationToIndex(e.getPoint());
                 if (index != -1) {
-                    // Aseguramos que la selección visual del grid se actualice
                     if (projectGridList.getSelectedIndex() != index) {
                         projectGridList.setSelectedIndex(index);
                     }
                     
-                    // Notificamos al coordinador de la selección del proyecto sobre el nuevo índice.
-                    // Esto actualizará el modelo y las listas de la izquierda, sincronizando todo.
-                    // Necesitamos acceso al ProjectListCoordinator, que está dentro de ProjectController.
-                    
-                    // Asumiendo que tenemos acceso a 'generalController' en ProjectBuilder
                     if (generalController != null && generalController.getProjectController() != null) {
-                        // Obtenemos la referencia al ProjectListCoordinator
                         controlador.ProjectListCoordinator coordinator = generalController.getProjectController().getProjectListCoordinator();
                         if (coordinator != null) {
-                            // Le decimos que la selección ha cambiado. ¡Él se encarga del resto!
                             coordinator.seleccionarImagenPorIndice(index);
                         }
                     }
@@ -216,23 +242,19 @@ public class ProjectBuilder implements ThemeChangeListener{
             }
             
             private void showProjectGridMenu(java.awt.event.MouseEvent e) {
-                // a) Seleccionar la celda bajo el cursor antes de mostrar el menú.
                 int index = projectGridList.locationToIndex(e.getPoint());
                 if (index != -1) {
                     projectGridList.setSelectedIndex(index);
                 }
 
-                // b) Determinar qué lista tiene el foco para saber qué menú mostrar.
                 String listaActiva = model.getProyectoListContext().getNombreListaActiva();
                 
                 JPopupMenu menu = new JPopupMenu();
 
-                // c) Obtener las Actions que vamos a necesitar.
                 Action moveToDiscardsAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES);
                 Action restoreFromDiscardsAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES);
                 Action deleteFromProjectAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE);
 
-                // d) Construir el menú dinámicamente.
                 if ("seleccion".equals(listaActiva)) {
                     if (moveToDiscardsAction != null) {
                         menu.add(moveToDiscardsAction);
@@ -247,19 +269,18 @@ public class ProjectBuilder implements ThemeChangeListener{
                     }
                 }
 
-                // e) Mostrar el menú solo si tiene items.
                 if (menu.getComponentCount() > 0) {
                     menu.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
         });
         
-        // 5. Creamos un placeholder para POLAROID en proyecto.
+        // 6. Creamos un placeholder para POLAROID en proyecto.
         JPanel polaroidViewPanel = new JPanel();
         polaroidViewPanel.add(new JLabel("Vista POLAROID (Proyecto) en construcción..."));
         registry.register("panel.display.polaroid.proyecto", polaroidViewPanel);
         
-        // 6. Añadimos las "tarjetas" al CardLayout.
+        // 7. Añadimos las "tarjetas" al CardLayout.
         displayModesContainer.add(singleImageViewPanel, "VISTA_SINGLE_IMAGE");
         displayModesContainer.add(gridViewPanel, "VISTA_GRID");
         displayModesContainer.add(polaroidViewPanel, "VISTA_POLAROID");
@@ -429,12 +450,26 @@ public class ProjectBuilder implements ThemeChangeListener{
 
         // --- LÓGICA DE CARGA AUTOMÁTICA ---
         herramientasTabbedPane.addChangeListener(e -> {
+        	
+        	// --- INICIO DE LA MODIFICACIÓN ---
+            DisplayModeManager dmm = generalController.getVisorController().getDisplayModeManager();
+
             // Comprobamos si la pestaña recién seleccionada es la de "Exportar"
             if (herramientasTabbedPane.getSelectedIndex() == 1) { // El índice 1 corresponde a "Exportar"
-                logger.debug("[ChangeListener] Pestaña 'Exportar' seleccionada. Solicitando preparación de cola...");
-                // Llamamos directamente al método del controlador
+                logger.debug("[ChangeListener] Pestaña 'Exportar' seleccionada. Limpiando lista maestra y preparando cola...");
+                
+                // Vaciamos la lista maestra para que el grid se quede en blanco
+                if (dmm != null) {
+                    dmm.poblarGridConModelo(new DefaultListModel<>());
+                }
+
                 generalController.getProjectController().solicitarPreparacionColaExportacion();
+            } else {
+                // Si se selecciona CUALQUIER OTRA pestaña (como "Descartes"), restauramos la lista.
+                logger.debug("[ChangeListener] Pestaña que no es 'Exportar' seleccionada. Restaurando modelo principal...");
+                generalController.getProjectController().actualizarModeloPrincipalConListaDeProyectoActiva();
             }
+            // --- FIN DE LA MODIFICACIÓN ---
         });
         // --- FIN DE LÓGICA DE CARGA AUTOMÁTICA ---
         
@@ -515,14 +550,14 @@ public class ProjectBuilder implements ThemeChangeListener{
             border.setTitleColor(tema.colorBordeTitulo());
             panel.repaint();
         }
-    }
+    } // ---FIN de metodo ---
 
     private void actualizarColorPanel(String panelKey, java.awt.Color color) {
         JPanel panel = registry.get(panelKey);
         if (panel != null) {
             panel.setBackground(color);
         }
-    }
+    } // ---FIN de metodo ---
 
     
     /**
@@ -575,5 +610,3 @@ public class ProjectBuilder implements ThemeChangeListener{
     
 
 } // --- FIN DE LA CLASE ProjectBuilder ---
-
-

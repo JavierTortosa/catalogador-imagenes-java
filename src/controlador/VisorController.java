@@ -337,7 +337,11 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	    }
 	    logger.debug("[VisorController Internal] Configurando listeners para listas de VISUALIZADOR y CARRUSEL...");
 
-	    // --- 1. LISTENER PARA LA LISTA DE NOMBRES (Solo existe en el modo Visualizador) ---
+	    // =========================================================================
+        // === INICIO DE LA IMPLEMENTACIÓN DE TU LÓGICA ===
+        // =========================================================================
+	    
+	    // --- 1. LISTENER INTELIGENTE PARA LA LISTA DE NOMBRES ---
 	    JList<String> listaNombres = registry.get("list.nombresArchivo");
 	    if (listaNombres != null) {
 	        // Limpiamos listeners antiguos para evitar duplicados
@@ -346,12 +350,32 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	        }
 	        
 	        listaNombres.addListSelectionListener(e -> {
-	            if (!e.getValueIsAdjusting() && !listCoordinator.isSincronizandoUI()) {
-	                listCoordinator.seleccionarImagenPorIndice(listaNombres.getSelectedIndex());
+	            if (!e.getValueIsAdjusting()) {
+                    // 1. Obtenemos el índice MAESTRO de la acción del usuario en ESTA vista.
+                    //    Como esta lista usa el modelo maestro directamente, el índice es el correcto.
+	                int selectedMasterIndex = listaNombres.getSelectedIndex();
+                    if (selectedMasterIndex == -1) return;
+
+                    // 2. Comprobamos el estado actual del MODELO MAESTRO.
+                    int officialMasterIndex = listCoordinator.getOfficialSelectedIndex();
+
+                    // 3. El "no hacemos nada": si la acción del usuario coincide con el estado
+                    //    actual del modelo, es un evento de rebote. Lo ignoramos.
+                    if (selectedMasterIndex == officialMasterIndex) {
+                        return;
+                    }
+
+                    // 4. Si llegamos aquí, es una acción genuina. Ordenamos al controlador
+                    //    maestro que actualice el estado de toda la aplicación.
+	                listCoordinator.seleccionarImagenPorIndice(selectedMasterIndex);
 	            }
 	        });
-	        logger.debug("  -> Listener añadido a 'list.nombresArchivo'");
+	        logger.debug("  -> Listener INTELIGENTE añadido a 'list.nombresArchivo'");
 	    }
+	    
+        // =========================================================================
+        // === FIN DE LA IMPLEMENTACIÓN DE TU LÓGICA ===
+        // =========================================================================
 
 	    // --- 2. CREACIÓN DE UN LISTENER DE MINIATURAS REUTILIZABLE E INTELIGENTE ---
 	    javax.swing.event.ListSelectionListener thumbnailListener = e -> {
@@ -860,7 +884,8 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                     DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
                     nuevoModeloListaPrincipal.addAll(new java.util.Vector<>(clavesOrdenadas));
                     
-                    model.actualizarListaCompleta(nuevoModeloListaPrincipal, mapaResultado);
+                    model.setMasterListAndNotify(nuevoModeloListaPrincipal, mapaResultado, this); // linea adaptada
+
                     if (view != null) {
                         view.setListaImagenesModel(model.getModeloLista());
                         view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
@@ -878,6 +903,9 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                         listCoordinator.reiniciarYSeleccionarIndice(indiceCalculado);
                     }
 
+                    
+                    
+                    
                     if (alFinalizarConExito != null) {
                         alFinalizarConExito.run();
                     }
@@ -3557,6 +3585,65 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 // ***************************************************************************************************************************
 	  
 	  
+// ********************************************************************************************************** METODOS DE AYUDA
+// ***************************************************************************************************************************	
+	
+	public void mostrarDialogoAyudaAtajos() {
+        String helpText = """
+            <html>
+            <body style='width: 350px; font-family: Segoe UI, sans-serif;'>
+                <h2 style='color: #337ab7;'>Atajos de Teclado</h2>
+                
+                <h3>Navegaci&oacute;n General</h3>
+                <ul>
+                    <li><b>Flechas / Rueda Rat&oacute;n:</b> Imagen Siguiente/Anterior</li>
+                    <li><b>Inicio / Fin:</b> Primera/&Uacute;ltima Imagen</li>
+                    <li><b>Av P&aacute;g / Re P&aacute;g:</b> Saltar bloque de im&aacute;genes</li>
+                </ul>
+                
+                <h3>Gesti&oacute;n de Proyectos</h3>
+                <ul>
+                    <li><b>Barra Espaciadora:</b> Marcar / Desmarcar imagen</li>
+                </ul>
+                
+                <h3>Funcionalidad del Grid (Modo Proyecto)</h3>
+                <ul>
+                    <li><b>Ctrl + T:</b> A&ntilde;adir / Editar Etiqueta</li>
+                    <li><b>Ctrl + Supr:</b> Borrar Etiqueta</li>
+                    <li><b>Ctrl + M&aacute;s (+):</b> Aumentar Tama&ntilde;o Miniaturas</li>
+                    <li><b>Ctrl + Menos (-):</b> Reducir Tama&ntilde;o Miniaturas</li>
+                </ul>
+                
+                <h3>Zoom y Paneo (Sobre la imagen)</h3>
+                <ul>
+                    <li><b>Rueda Rat&oacute;n:</b> Zoom (con zoom manual activo)</li>
+                    <li><b>Shift + Rueda Rat&oacute;n:</b> Paneo Horizontal</li>
+                    <li><b>Ctrl + Rueda Rat&oacute;n:</b> Paneo Vertical</li>
+                    <li><b>Clic y Arrastrar:</b> Panear</li>
+                </ul>
+
+                <h3>Otros</h3>
+                <ul>
+                    <li><b>Alt:</b> Activar Foco en Barra de Men&uacute;</li>
+                    <li><b>ESC:</b> Cerrar Ventana de Previsualizaci&oacute;n</li>
+                </ul>
+            </body>
+            </html>
+        """;
+
+        JOptionPane.showMessageDialog(
+            view, // Usa la 'view' de esta clase como padre
+            helpText,
+            "Ayuda: Atajos de Teclado",
+            JOptionPane.INFORMATION_MESSAGE
+        );
+    } // ---FIN de metodo ---
+	
+	
+// ****************************************************************************************************** FIN METODOS DE AYUDA
+// ***************************************************************************************************************************
+	
+	
 // ********************************************************************************************************* GETTERS Y SETTERS
 // ***************************************************************************************************************************
 	
@@ -4389,4 +4476,3 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 
      
 } // --- FIN CLASE VisorController ---
-

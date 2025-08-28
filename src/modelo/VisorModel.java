@@ -2,6 +2,10 @@ package modelo;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+// --- INICIO DE MODIFICACIÓN: AÑADIR IMPORTS ---
+import java.util.ArrayList;
+import java.util.List;
+// --- FIN DE MODIFICACIÓN ---
 import java.util.Map;
 import java.util.Objects;
 
@@ -73,6 +77,15 @@ public class VisorModel {
     private String ultimaImagenKeyCarrusel; 
     private boolean liveFilterActive = false;
     
+    // =========================================================================
+    // === INICIO DE MODIFICACIÓN: AÑADIR SISTEMA DE EVENTOS ===
+    // =========================================================================
+    
+    private final List<MasterListChangeListener> masterListListeners = new ArrayList<>();
+
+    // =========================================================================
+    // === FIN DE MODIFICACIÓN ===
+    // =========================================================================
     
     
     public VisorModel() {
@@ -129,6 +142,55 @@ public class VisorModel {
         this.navegacionCircularActivada = navCircularInicial;
     }
     
+    // =========================================================================
+    // === INICIO DE MODIFICACIÓN: AÑADIR MÉTODOS PARA GESTIONAR OYENTES Y EVENTOS ===
+    // =========================================================================
+
+    /**
+     * Registra un oyente que será notificado de los cambios en la lista maestra.
+     * @param listener El oyente a añadir.
+     */
+    public void addMasterListChangeListener(MasterListChangeListener listener) {
+        if (!masterListListeners.contains(listener)) {
+            masterListListeners.add(listener);
+        }
+    } // --- Fin del método addMasterListChangeListener ---
+
+    /**
+     * Elimina un oyente de la lista de notificaciones.
+     * @param listener El oyente a eliminar.
+     */
+    public void removeMasterListChangeListener(MasterListChangeListener listener) {
+        masterListListeners.remove(listener);
+    } // --- Fin del método removeMasterListChangeListener ---
+    
+    /**
+     * Reemplaza la lista maestra y el mapa de rutas para el contexto de trabajo actual,
+     * y notifica a todos los oyentes registrados sobre este cambio fundamental.
+     * Este es el método PREFERIDO para cambiar la lista de datos.
+     * 
+     * @param nuevoModelo El nuevo DefaultListModel que actuará como lista maestra.
+     * @param nuevoMapaRutas El mapa de rutas correspondiente al nuevo modelo.
+     * @param source El objeto controlador que inició el cambio (para depuración).
+     */
+    public void setMasterListAndNotify(DefaultListModel<String> nuevoModelo, Map<String, Path> nuevoMapaRutas, Object source) {
+        logger.debug("[Model] Estableciendo nueva lista maestra para el modo: " + this.currentWorkMode);
+        ListContext currentContext = getCurrentListContext();
+        if (currentContext != null) {
+            currentContext.actualizarContextoCompleto(nuevoModelo, nuevoMapaRutas);
+            
+            // ¡EL GRITO! Notificamos a todos los oyentes que la lista ha cambiado.
+            logger.debug("[Model] Notificando a " + masterListListeners.size() + " oyentes sobre el cambio de la lista maestra.");
+            for (MasterListChangeListener listener : masterListListeners) {
+                listener.onMasterListChanged(nuevoModelo, source);
+            }
+        }
+    } // --- Fin del método setMasterListAndNotify ---
+
+    // =========================================================================
+    // === FIN DE MODIFICACIÓN ===
+    // =========================================================================
+
     public WorkMode getCurrentWorkMode() {return this.currentWorkMode;}    
     public void setCurrentWorkMode(WorkMode newMode) {
         if (this.currentWorkMode != newMode) {

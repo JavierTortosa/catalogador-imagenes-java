@@ -1,107 +1,131 @@
 package vista.panels;
 
 import java.awt.BorderLayout;
-import java.util.List;
+import java.awt.Color;
+import java.awt.FlowLayout;
 
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.managers.interfaces.IProjectManager; // <<< AÑADIR IMPORT
 import modelo.VisorModel;
+import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
 import vista.renderers.GridCellRenderer;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
-import vista.util.ThumbnailPreviewer; // <--- 1. IMPORTAMOS LA CLASE
+import vista.util.ThumbnailPreviewer;
 
-/**
- * Panel de visualización que muestra imágenes en una cuadrícula.
- * REUTILIZA ThumbnailPreviewer para mostrar un previsualizador en doble clic.
- */
-@SuppressWarnings("serial")
 public class GridDisplayPanel extends JPanel {
 
-	private static final Logger logger = LoggerFactory.getLogger(GridDisplayPanel.class);
+	private static final Logger logger = LoggerFactory.getLogger(GridDisplayPanel.class); 
 	
-    private final JList<String> gridList;
-    private final DefaultListModel<String> listModel;
+    private static final long serialVersionUID = 1L;
+    private JList<String> gridList;
+    private JPanel toolbarContainer;
 
-    public GridDisplayPanel(VisorModel model, ThumbnailService thumbnailService, ThemeManager themeManager, IconUtils iconUtils) {
+    /**
+     * Constructor para el MODO VISUALIZADOR.
+     * No necesita un IProjectManager.
+     */
+    public GridDisplayPanel(
+            VisorModel model,
+            ThumbnailService gridThumbnailService,
+            ThemeManager themeManager,
+            IconUtils iconUtils,
+            ThumbnailPreviewer gridPreviewer
+    ) {
+        // Llama al constructor principal pasando 'null' para el projectManager.
+        this(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, null);
+    } // ---FIN de metodo ---
+
+    /**
+     * Constructor principal y extendido para el MODO PROYECTO.
+     * Acepta un IProjectManager para poder gestionar etiquetas.
+     */
+    public GridDisplayPanel(
+            VisorModel model,
+            ThumbnailService gridThumbnailService,
+            ThemeManager themeManager,
+            IconUtils iconUtils,
+            ThumbnailPreviewer gridPreviewer,
+            IProjectManager projectManager // <<< Parámetro opcional
+    ) {
         super(new BorderLayout());
+        logger.debug("Creando un nuevo GridDisplayPannel");
         
-        this.listModel = new DefaultListModel<>();
-        this.gridList = new JList<>(listModel);
-
-        // --- Configuración del JList (sin cambios) ---
+        toolbarContainer = new JPanel(new BorderLayout());
+        add(toolbarContainer, BorderLayout.SOUTH);
+        
+        gridList = new JList<>();
+        gridList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        gridList.setBackground(themeManager.getTemaActual().colorFondoSecundario());
+        gridList.setSelectionBackground(new Color(0, 0, 0, 0));
+        gridList.setSelectionForeground(new Color(0, 0, 0, 0));
         gridList.setLayoutOrientation(JList.HORIZONTAL_WRAP);
         gridList.setVisibleRowCount(-1);
-        gridList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         
-        GridCellRenderer cellRenderer = new GridCellRenderer(thumbnailService, model, themeManager, iconUtils);
-        gridList.setCellRenderer(cellRenderer);
+        
+        
+        GridCellRenderer renderer = new GridCellRenderer(
+            gridThumbnailService,
+            model,
+            themeManager,
+            iconUtils,
+            ConfigurationManager.getInstance(),
+            gridPreviewer,
+            projectManager // <<< Se pasa a GridCellRenderer, puede ser null
+        );
+        gridList.setCellRenderer(renderer);
 
-        gridList.setFixedCellWidth(150);
-        gridList.setFixedCellHeight(180);
-        gridList.setBackground(themeManager.getTemaActual().colorFondoSecundario());
-        
+        gridList.setFixedCellWidth(renderer.getCellSize().width);
+        gridList.setFixedCellHeight(renderer.getCellSize().height);
+
         JScrollPane scrollPane = new JScrollPane(gridList);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
         scrollPane.getVerticalScrollBar().setUnitIncrement(20);
+        
+        add(scrollPane, BorderLayout.CENTER);
+    } // ---FIN de metodo ---
 
-        this.add(scrollPane, BorderLayout.CENTER);
-        
-        // =========================================================================
-        // === LA SOLUCIÓN: INSTANCIAR Y "CONECTAR" EL PREVISUALIZADOR ===
-        // =========================================================================
-        
-        // 2. ¡Y YA ESTÁ! Creamos una instancia de ThumbnailPreviewer y le pasamos
-        //    nuestra JList del grid. Él se encargará de añadir sus propios listeners.
-        new ThumbnailPreviewer(this.gridList, model, themeManager);
-        
-        // =========================================================================
-        
-    } // --- Fin del constructor GridDisplayPanel ---
-
-    /**
-     * Rellena el grid con una nueva lista de identificadores de imagen.
-     * @param imageKeys La lista de claves de imagen a mostrar.
-     */
-    public void setImageKeys(List<String> imageKeys) {
-        SwingUtilities.invokeLater(() -> {
-            listModel.clear();
-            if (imageKeys != null) {
-                listModel.addAll(imageKeys);
-            }
-        });
-    } // --- Fin del método setImageKeys ---
-    
-    /**
-     * Expone la JList interna para que los controladores puedan interactuar con ella.
-     * @return La JList que conforma el grid.
-     */
     public JList<String> getGridList() {
         return gridList;
-    } // --- Fin del método getGridList ---
-    
-    
-    /**
-     * Actualiza el color de fondo de la JList interna basándose en el tema
-     * actualmente activo en el ThemeManager.
-     */
-    public void actualizarColorDeFondoPorTema(ThemeManager themeManager) {
-        if (themeManager != null && gridList != null) {
-            gridList.setBackground(themeManager.getTemaActual().colorFondoSecundario());
-            logger.debug("  -> GridDisplayPanel (JList interna) actualizado al color de fondo del nuevo tema.");
+    } // ---FIN de metodo ---
+
+    public void setGridCellSize(int nuevoAncho, int nuevoAlto) {
+        if (gridList != null) {
+            gridList.setFixedCellWidth(nuevoAncho);
+            gridList.setFixedCellHeight(nuevoAlto);
+            gridList.revalidate();
+            gridList.repaint();
+            logger.debug("Tamaño de celda del grid actualizado a: {}x{}", nuevoAncho, nuevoAlto);
         }
-    }
+    } // ---FIN de metodo ---
     
+    public void setToolbar(JToolBar toolbar) {
+        toolbarContainer.removeAll();
+        if (toolbar != null) {
+        	
+            // 1. Creamos un panel "envoltorio" que usa FlowLayout.
+            //    FlowLayout.RIGHT alinea todos los componentes que contiene a la derecha.
+            JPanel wrapperPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0)); // 0, 0 para quitar espacios
+            wrapperPanel.setOpaque(false); // Hacemos el envoltorio transparente
 
-} // --- Fin de la clase GridDisplayPanel ---
+            // 2. Añadimos la toolbar al envoltorio.
+            wrapperPanel.add(toolbar);
+            
+            // 3. Añadimos el envoltorio (y no la toolbar directamente) al contenedor principal.
+            toolbarContainer.add(wrapperPanel, BorderLayout.CENTER);
 
+        }
+        
+        toolbarContainer.revalidate();
+        toolbarContainer.repaint();
+    } // ---FIN de metodo ---
+
+} // --- FIN de clase ---

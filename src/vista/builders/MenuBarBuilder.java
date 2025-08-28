@@ -414,75 +414,40 @@ public class MenuBarBuilder {
      * @param itemDef La {@link MenuItemDefinition} de donde obtener la información.
      */
     private void assignActionOrCommand(JMenuItem item, MenuItemDefinition itemDef) {
-        // --- 1. VALIDACIONES BÁSICAS ---
-        if (item == null) {
-            logger.error("ERROR [assignActionOrCommand]: El JMenuItem es null.");
-            return;
-        }
-        if (itemDef == null) {
-            logger.error("ERROR [assignActionOrCommand]: La MenuItemDefinition es null para el item: " + item.getText());
-            // Intentar poner el texto si el itemDef es null pero el item no lo es (caso raro)
-            if (item.getText() == null || item.getText().isEmpty()) item.setText("(Definición Nula)");
+        if (item == null || itemDef == null) {
+            logger.error("ERROR [assignActionOrCommand]: JMenuItem o MenuItemDefinition es null.");
             return;
         }
 
-        // --- 2. OBTENER COMANDO/CLAVE DE LA DEFINICIÓN ---
         String comandoOClave = itemDef.actionCommand();
 
-        // --- 3. PROCESAR SI HAY UN COMANDO O CLAVE DEFINIDO EN MenuItemDefinition ---
         if (comandoOClave != null && !comandoOClave.isBlank()) {
-            // 3.1. Intentar buscar una Action en el `this.actionMap` usando el `comandoOClave`.
             Action action = (this.actionMap != null) ? this.actionMap.get(comandoOClave) : null;
 
-            // 3.2. CASO: SE ENCONTRÓ UNA ACTION EN EL MAPA
+            // --- INICIO DE LA LÓGICA MEJORADA ---
             if (action != null) {
-                // 3.2.1. Asignar la Action al JMenuItem.
+                // Si encontramos una Action pre-creada, la usamos directamente.
                 item.setAction(action);
                 
-                // --- INICIO DE LA MODIFICACIÓN ---
-                // Forzar la asignación del icono, ya que JMenuItem a veces no lo toma al vuelo de la Action.
-                // Verificamos si la Action tiene un valor para SMALL_ICON y si es una instancia de Icon.
-                if (action.getValue(Action.SMALL_ICON) instanceof javax.swing.Icon) {
-                    item.setIcon((javax.swing.Icon) action.getValue(Action.SMALL_ICON));
-                }
-                // --- FIN DE LA MODIFICACIÓN ---
-
-                // 3.2.2. Sobrescribir el texto del JMenuItem si `itemDef.textoMostrado()` es diferente
-                //        al nombre de la Action (Action.NAME).
-                if (itemDef.textoMostrado() != null &&
-                    !itemDef.textoMostrado().isBlank() &&
-                    !Objects.equals(itemDef.textoMostrado(), action.getValue(Action.NAME))) {
-                    item.setText(itemDef.textoMostrado());
-                }
-            }
-            // 3.3. CASO: NO SE ENCONTRÓ UNA ACTION EN EL MAPA PARA ESTE COMANDO/CLAVE
-            else {
-                // 3.3.1. Establecer el `comandoOClave` como el `ActionCommand` del JMenuItem.
-                item.setActionCommand(comandoOClave);
-
-                // 3.3.2. Establecer el texto del JMenuItem desde `itemDef.textoMostrado()`.
+                // Forzamos el texto del menú por si es diferente al de la Action.
                 if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
                     item.setText(itemDef.textoMostrado());
-                } else {
-                    item.setText(comandoOClave);
                 }
-
-                // 3.3.3. Añadir el ActionListener global (VisorController) a este JMenuItem.
-                if (this.controllerGlobalActionListener != null && !(item instanceof JMenu)) {
+            } else {
+                // Si NO hay Action, volvemos al comportamiento original.
+                item.setActionCommand(comandoOClave);
+                item.setText(itemDef.textoMostrado());
+                if (this.controllerGlobalActionListener != null) {
                     item.addActionListener(this.controllerGlobalActionListener);
-                } else if (this.controllerGlobalActionListener == null && !(item instanceof JMenu)) {
-                    logger.warn("WARN [AssignActCmd]: controllerGlobalActionListener ES NULL. No se pudo añadir listener a JMenuItem: " +
-                                       item.getText() + " (Comando: " + comandoOClave + "). Este ítem no funcionará.");
                 }
             }
-        }
-        // --- 4. CASO: NO HAY COMANDO O CLAVE DEFINIDO EN MenuItemDefinition ---
-        else {
-            // 4.1. Si no hay `comandoOClave`, solo se puede establecer el texto.
+            // --- FIN DE LA LÓGICA MEJORADA ---
+
+        } else {
             if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
                 item.setText(itemDef.textoMostrado());
             } else {
-                item.setText("(Ítem sin texto ni comando)"); // Placeholder
+                item.setText("(Ítem sin texto ni comando)");
             }
         }
     } // --- Fin del método assignActionOrCommand ---

@@ -249,6 +249,12 @@ public final class ConfigKeys {
     public static final String BACKGROUND_CUSTOM_COLOR_3 						= "ui.background.custom.color.3";
     public static final String BACKGROUND_CUSTOM_COLOR_4 						= "ui.background.custom.color.4";
     
+    
+    // --- Claves para el grid
+    public static final String GRID_MOSTRAR_NOMBRES_STATE = "grid.mostrar.nombres.state";
+    public static final String GRID_THUMBNAIL_WIDTH = "grid.thumbnail.width";
+    public static final String GRID_THUMBNAIL_HEIGHT = "grid.thumbnail.height";
+    
     // ... (Añade aquí las claves para el resto de barras: vista, proyecto, etc.) ...
     
     

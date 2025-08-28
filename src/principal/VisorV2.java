@@ -41,9 +41,6 @@ public class VisorV2 {
 	    //TODO Pasar las imagenes rapido con la rueda del raton no debe mostrar las imagenes, 
 			//solo un placebo que parezca que estan pasando imagenes pero en realidad no se ve nada
 		//TODO añadir botones de agrandar o encoger las miniaturas y que se ajuste a la pantalla
-		//TODO mostrar arbol de carpetas
-		//TODO añadir los botones de siguiente y anterior al panel de la imagen
-		//TODO ir a la primera imagen que empiece por la letra marcada (como el explorador de windows)
 		//TODO buscar por nombre de archivo en la carpeta actual y si le doy la ruta que cambie la lista en funcion de esa nueva imagen (si existe)
 		//TODO hacer un boton que ponga en amarillo las imagenes que no tienen su correspondiente zip
 

@@ -1,123 +1,138 @@
 package vista.renderers;
 
-import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
+import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.nio.file.Path;
+import java.util.Objects;
 
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
-import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
-import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
+import servicios.ConfigKeys;
+import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
-import vista.theme.Tema;
+import vista.components.CustomGridCellPanel;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
+import vista.util.ThumbnailPreviewer;
 
-/**
- * Renderer para las celdas del GridDisplayPanel. Se encarga de dibujar una
- * miniatura de mayor tamaño con su nombre de archivo debajo.
- */
-public class GridCellRenderer extends JPanel implements ListCellRenderer<String> {
-
-	private static final Logger logger = LoggerFactory.getLogger(GridCellRenderer.class);
+public class GridCellRenderer implements ListCellRenderer<String> {
 	
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
-	// --- Componentes Internos ---
-    private final JLabel imageLabel;
-    private final JLabel nameLabel;
-    
-    // --- Dependencias (Inyectadas) ---
-    private final ThumbnailService thumbnailService;
-    private final VisorModel model;
-    private final ThemeManager themeManager;
+	private static final Logger logger = LoggerFactory.getLogger(GridCellRenderer.class); 
+
+    private final ThumbnailService gridThumbnailService;
+    private final VisorModel modeloVisor;
+    private final CustomGridCellPanel cellPanel;
+    private final boolean showNamesDefault;
     private final IconUtils iconUtils;
-
-    // --- Constantes de Diseño ---
-    private static final int THUMBNAIL_WIDTH = 128;
-    private static final int THUMBNAIL_HEIGHT = 128;
-    private static final int NAME_LABEL_HEIGHT = 35; // Altura para aprox. 2 líneas de texto
-
-    public GridCellRenderer(ThumbnailService thumbnailService, VisorModel model, ThemeManager themeManager, IconUtils iconUtils) {
-        this.thumbnailService = thumbnailService;
-        this.model = model;
-        this.themeManager = themeManager;
-        this.iconUtils = iconUtils;
-
-        // Configuración del layout del panel del renderer
-        setLayout(new BorderLayout(5, 5));
-        setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-        setOpaque(true);
+    private final ThumbnailPreviewer previewer;
+    private final IProjectManager projectManager;
+    private final Color selectionBorderColor;
+    
+    public GridCellRenderer(
+            ThumbnailService gridThumbnailService,
+            VisorModel modeloVisor,
+            ThemeManager themeManager,
+            IconUtils iconUtils,
+            ConfigurationManager configuration,
+            ThumbnailPreviewer previewer,
+            IProjectManager projectManager // <<< AHORA PUEDE SER NULL
+    ) {
+        this.gridThumbnailService = Objects.requireNonNull(gridThumbnailService);
+        this.modeloVisor = Objects.requireNonNull(modeloVisor);
+        this.iconUtils = Objects.requireNonNull(iconUtils);
+        this.previewer = Objects.requireNonNull(previewer);
+        this.projectManager = projectManager; // <<< Simplemente lo asignamos, sea null o no.
         
-        // Label para la miniatura
-        imageLabel = new JLabel();
-        imageLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        imageLabel.setVerticalAlignment(SwingConstants.CENTER);
-        imageLabel.setPreferredSize(new java.awt.Dimension(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT));
-
-        // Label para el nombre del archivo
-        nameLabel = new JLabel();
-        nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
-        nameLabel.setVerticalAlignment(SwingConstants.TOP);
-        nameLabel.setPreferredSize(new java.awt.Dimension(THUMBNAIL_WIDTH, NAME_LABEL_HEIGHT));
-
-        add(imageLabel, BorderLayout.CENTER);
-        add(nameLabel, BorderLayout.SOUTH);
-    } // --- Fin del Constructor ---
+        this.selectionBorderColor = themeManager.getTemaActual().colorSeleccionFondo();//.colorBordeSeleccionActiva();
+        
+        int anchoMiniatura = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
+        int altoMiniatura = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_HEIGHT, 120);
+        this.showNamesDefault = configuration.getBoolean("grid.mostrar.nombres.state", true);
+        
+        this.cellPanel = new CustomGridCellPanel();
+        this.cellPanel.setPreferredSize(new java.awt.Dimension(anchoMiniatura + 12, altoMiniatura + 12));
+        
+        this.cellPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                    Component sourceComponent = (Component) e.getSource();
+                    if (sourceComponent.getParent() instanceof JList) {
+                        JList<?> list = (JList<?>) sourceComponent.getParent();
+                        Point pointInList = SwingUtilities.convertPoint(sourceComponent, e.getPoint(), list);
+                        int index = list.locationToIndex(pointInList);
+                        if (index != -1) {
+                            previewer.showPreviewForIndexPublic((JList<String>) list, index);
+                        }
+                    }
+                }
+            }
+        });
+    } // ---FIN de metodo ---
+    
+    public java.awt.Dimension getCellSize() {
+        return this.cellPanel.getPreferredSize();
+    } // ---FIN de metodo ---
 
     @Override
     public Component getListCellRendererComponent(JList<? extends String> list, String value, int index, boolean isSelected, boolean cellHasFocus) {
         
-        Tema temaActual = themeManager.getTemaActual();
-        Path rutaCompleta = (value != null) ? model.getRutaCompleta(value) : null;
+        Path rutaCompleta = (value != null) ? this.modeloVisor.getRutaCompleta(value) : null;
         
-        // --- 1. Cargar la Miniatura ---
-        ImageIcon thumbnail = null;
+        int anchoMiniatura = cellPanel.getPreferredSize().width - 12;
+        int altoMiniatura = cellPanel.getPreferredSize().height - 12;
+        
+        ImageIcon miniaturaIcono = null;
         if (rutaCompleta != null) {
-            thumbnail = thumbnailService.obtenerOCrearMiniatura(rutaCompleta, value, THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, false);
+            miniaturaIcono = this.gridThumbnailService.obtenerOCrearMiniatura(
+                rutaCompleta, value, anchoMiniatura, altoMiniatura, true,
+                (generatedKey) -> {
+                    if (list != null && list.isShowing()) {
+                        Rectangle cellBounds = list.getCellBounds(index, index);
+                        if (cellBounds != null && list.getVisibleRect().intersects(cellBounds)) {
+                            list.repaint(cellBounds);
+                        }
+                    }
+                }
+            );
         }
         
-        if (thumbnail != null) {
-            imageLabel.setIcon(thumbnail);
-            imageLabel.setText(null);
-        } else {
-            imageLabel.setIcon(iconUtils.getScaledCommonIcon("imagen-rota.png", 64, 64));
-            imageLabel.setText(null);
+        if (miniaturaIcono == null) {
+            miniaturaIcono = this.iconUtils.getScaledCommonIcon("placeholder-grid.png", 32, 32);
         }
 
-        // --- 2. Establecer el Nombre del Archivo ---
+        String textoParaMostrar = null;
         if (rutaCompleta != null) {
-            String fileName = rutaCompleta.getFileName().toString();
-            nameLabel.setText("<html><div style='text-align: center; width: 120px;'>" + fileName + "</div></html>");
-        } else {
-            nameLabel.setText("");
+            // --- INICIO DE LA MODIFICACIÓN ---
+            // Solo intentamos obtener la etiqueta si estamos en un contexto de proyecto
+            if (projectManager != null) {
+                String etiqueta = projectManager.getEtiqueta(rutaCompleta);
+                if (etiqueta != null && !etiqueta.isBlank()) {
+                    textoParaMostrar = etiqueta;
+                }
+            }
+            // Si después de comprobar la etiqueta, el texto sigue siendo null, usamos el nombre del archivo.
+            if (textoParaMostrar == null && this.showNamesDefault) {
+                textoParaMostrar = rutaCompleta.getFileName().toString();
+            }
+            // --- FIN DE LA MODIFICACIÓN ---
         }
-        
-        // --- 3. Aplicar Estilos de Selección ---
-        if (isSelected) {
-            setBackground(temaActual.colorSeleccionFondo());
-            nameLabel.setForeground(temaActual.colorSeleccionTexto());
-            setBorder(BorderFactory.createLineBorder(temaActual.colorBordeSeleccionActiva(), 2));
-        } else {
-            setBackground(temaActual.colorFondoPrincipal());
-            nameLabel.setForeground(temaActual.colorTextoPrimario());
-            setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(temaActual.colorFondoPrincipal(), 2),
-                BorderFactory.createEmptyBorder(3, 3, 3, 3)
-            ));
-        }
-        
-        return this;
-    } // --- Fin del método getListCellRendererComponent ---
 
-} // --- Fin de la clase GridCellRenderer ---
+        this.cellPanel.setData(miniaturaIcono, textoParaMostrar, isSelected, list.getBackground(), this.selectionBorderColor);
+
+        return this.cellPanel;
+    } // ---FIN de metodo ---
+    
+} // --- FIN de clase ---

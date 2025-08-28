@@ -1,5 +1,6 @@
 package controlador;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -11,8 +12,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.interfaces.ContextSensitiveAction;
-import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
+import modelo.MasterSelectionChangeListener;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
 
@@ -21,20 +22,54 @@ import servicios.ConfigKeys;
  * del MODO PROYECTO. Maneja la lógica de la lista de "Selección" y "Descartes",
  * así como el cambio de foco entre ellas.
  */
-public class ProjectListCoordinator implements IListCoordinator {
+public class ProjectListCoordinator extends AbstractListCoordinator  {
 	
 	private static final Logger logger = LoggerFactory.getLogger(ProjectListCoordinator.class);
 
+	
     // --- Dependencias ---
     private final VisorModel model;
     private final VisorController controller;
     private final ComponentRegistry registry;
+    
     private List<ContextSensitiveAction> contextSensitiveActions;
 
     // --- Estado Interno ---
     private boolean isSyncingUI = false;
     private int pageScrollIncrement;
 
+    
+    
+    // =========================================================================
+    // === INICIO DE MODIFICACIÓN: AÑADIR SISTEMA DE LISTENERS ===
+    // =========================================================================
+    
+    private final List<MasterSelectionChangeListener> selectionListeners = new ArrayList<>();
+
+    public void addMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
+        if (!selectionListeners.contains(listener)) {
+            selectionListeners.add(listener);
+        }
+    } // end of addMasterSelectionChangeListener
+
+    public void removeMasterSelectionChangeListener(MasterSelectionChangeListener listener) {
+        selectionListeners.remove(listener);
+    } // end of removeMasterSelectionChangeListener
+
+    private void fireMasterSelectionChanged(int newIndex, String activeListName) {
+        // En modo proyecto, el índice es relativo a la lista activa.
+        // Por ahora, el DisplayModeManager es suficientemente inteligente para manejarlo.
+        for (MasterSelectionChangeListener listener : selectionListeners) {
+            listener.onMasterSelectionChanged(newIndex, this);
+        }
+    } // end of fireMasterSelectionChanged
+    
+    // =========================================================================
+    // === FIN DE MODIFICACIÓN ===
+    // =========================================================================
+    
+    
+    
     /**
      * Constructor.
      * @param model El modelo principal de datos.
@@ -290,16 +325,29 @@ public class ProjectListCoordinator implements IListCoordinator {
      * @param indice El nuevo índice a seleccionar en esa JList.
      */
     private synchronized void seleccionarImagenEnLista(JList<String> lista, int indice) {
-        if (isSyncingUI || lista == null || indice < 0 || indice >= lista.getModel().getSize()) {
+    	if (isSyncingUI || lista == null) { // Quitamos la validación de índice de aquí
+            return;
+        }
+
+        // <<< CORRECCIÓN: Manejar deselección (-1) de forma segura
+        if (indice < 0 || indice >= lista.getModel().getSize()) {
+            if (model.getProyectoListContext().getSelectedImageKey() != null) {
+                logger.debug("[ProjectListCoordinator] Deseleccionando todo en Proyecto.");
+                model.getProyectoListContext().setSelectedImageKey(null);
+                controller.actualizarImagenPrincipal(-1); // Usamos -1 para limpiar
+                lista.clearSelection();
+                fireMasterSelectionChanged(-1, lista.getName()); // Notificar deselección
+                forzarActualizacionEstadoAcciones();
+            }
             return;
         }
 
         String claveSeleccionada = lista.getModel().getElementAt(indice);
         
-        // Evitar trabajo innecesario si ya es la imagen seleccionada
         if (Objects.equals(claveSeleccionada, model.getProyectoListContext().getSelectedImageKey())) {
             return;
         }
+        
         
         logger.debug("[ProjectListCoordinator] Nueva selección en Proyecto. Clave: " + claveSeleccionada);
         
@@ -322,8 +370,17 @@ public class ProjectListCoordinator implements IListCoordinator {
             lista.setSelectedIndex(indice);
             lista.ensureIndexIsVisible(indice);
             
-            // AÑADE ESTA LLAMADA JUSTO AQUÍ, ANTES DE ACTUALIZAR LAS ACCIONES
-            sincronizarSeleccionEnGrid(indice);
+            
+            // =========================================================================
+            // === INICIO DE MODIFICACIÓN: NOTIFICAR A LOS LISTENERS ===
+            // =========================================================================
+            
+            fireMasterSelectionChanged(indice, lista.getName());
+            
+            // =========================================================================
+            // === FIN DE MODIFICACIÓN ===
+            // =========================================================================
+            
             
             // 4. Actualizar estado de los botones
             forzarActualizacionEstadoAcciones();

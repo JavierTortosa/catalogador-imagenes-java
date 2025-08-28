@@ -1,337 +1,259 @@
 package controlador.managers;
 
-import java.util.Collections;
-import java.util.List;
+import java.awt.CardLayout;
 import java.util.Map;
 
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JList;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.ListCoordinator;
-import controlador.commands.AppActionCommands;
+import controlador.ProjectController; // <<< IMPORT NECESARIO
+import controlador.ProjectListCoordinator; // <<< IMPORT NECESARIO
+import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
-import modelo.ListContext;
+import modelo.MasterListChangeListener;
+import modelo.MasterSelectionChangeListener;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
-import servicios.ConfigKeys;
+import modelo.VisorModel.WorkMode; // <<< IMPORT NECESARIO
 import servicios.ConfigurationManager;
-import vista.panels.GridDisplayPanel;
+import servicios.image.ThumbnailService;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 
-/**
- * Gestor especializado en la lógica de transición y configuración 
- * de los diferentes Modos de Visualización (DisplayModes).
- */
-public class DisplayModeManager implements ThemeChangeListener{
+public class DisplayModeManager implements ThemeChangeListener, MasterListChangeListener, MasterSelectionChangeListener {
 
-	private static final Logger logger = LoggerFactory.getLogger(DisplayModeManager.class);
-	
-    // --- Dependencias (Inyectadas) ---
-	private Map<String, Action> actionMap;
+    private static final Logger logger = LoggerFactory.getLogger(DisplayModeManager.class);
+    
+    // =========================================================================
+    // === CAMPOS ORIGINALES RESTAURADOS (SIN SIMPLIFICAR) ===
+    // =========================================================================
     private VisorModel model;
     private ViewManager viewManager;
     private ComponentRegistry registry;
-    private ListCoordinator listCoordinator;
+    private IListCoordinator listCoordinator;
+    private Map<String, Action> actionMap;
     private ConfigurationManager configuration;
     private ThemeManager themeManager;
     private ToolbarManager toolbarManager;
-    private ConfigApplicationManager configAppManager;
+    private ConfigApplicationManager configApplicationManager;
+    private ThumbnailService gridThumbnailService;
     private InfobarStatusManager infobarStatusManager;
+    private ProjectController projectController; // Restaurado
+    private ProjectListCoordinator projectListCoordinator; // Añadido para el grid de proyecto
+    // =========================================================================
+
+    // --- Estado ---
+    private boolean isSyncingFromManager = false; // Flag para evitar bucles de eventos
     
-    public DisplayModeManager() {} // --- Fin del Constructor ---
+    public DisplayModeManager() {
+        logger.info("Iniciando DisplayModeManager");
+    } // end of constructor
 
-
-    /**
-     * Se debe llamar a este método UNA VEZ después de que todas las dependencias
-     * hayan sido inyectadas (por ejemplo, desde AppInitializer).
-     * Conecta los listeners necesarios para la interactividad.
-     */
     public void initializeListeners() {
-        conectarGridListener();
-    } // --- Fin del método initializeListeners ---
+        // --- Listener para el grid del MODO VISUALIZADOR ---
+        JList<String> gridListVisualizador = registry.get("list.grid");
+        if (gridListVisualizador != null) {
+            gridListVisualizador.addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting() && !isSyncingFromManager) {
+                    int selectedIndex = gridListVisualizador.getSelectedIndex();
+                    if (selectedIndex != -1 && listCoordinator != null && selectedIndex != listCoordinator.getOfficialSelectedIndex()) {
+                        logger.debug("[DisplayModeManager] Selección del usuario en Grid-Visualizador. Índice: {}. Notificando a ListCoordinator.", selectedIndex);
+                        listCoordinator.seleccionarImagenPorIndice(selectedIndex);
+                    }
+                }
+            });
+            logger.debug(" -> Listener de selección añadido a 'list.grid' (Visualizador).");
+        }
 
-    
-    /**
-     * Añade un ListSelectionListener a la JList del grid para que notifique
-     * al ListCoordinator cuando el usuario selecciona un elemento.
-     */
-    private void conectarGridListener() {
-        JList<String> gridList = registry.get("list.grid");
-        if (gridList == null) {
-            logger.error("ERROR [DisplayModeManager]: No se pudo conectar el listener, 'list.grid' no encontrada.");
+        // --- Listener para el grid del MODO PROYECTO ---
+        JList<String> gridListProyecto = registry.get("list.grid.proyecto");
+        if (gridListProyecto != null) {
+            gridListProyecto.addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting() && !isSyncingFromManager) {
+                    int selectedIndex = gridListProyecto.getSelectedIndex();
+                    if (selectedIndex != -1 && projectListCoordinator != null && selectedIndex != projectListCoordinator.getOfficialSelectedIndex()) {
+                        logger.debug("[DisplayModeManager] Selección del usuario en Grid-Proyecto. Índice: {}. Notificando a ProjectListCoordinator.", selectedIndex);
+                        projectListCoordinator.seleccionarImagenPorIndice(selectedIndex);
+                    }
+                }
+            });
+            logger.debug(" -> Listener de selección añadido a 'list.grid.proyecto'.");
+        }
+
+        // Registrar este manager como oyente de cambios en la lista maestra
+        if (model != null) {
+            model.addMasterListChangeListener(this);
+        }
+    } // end of initializeListeners
+
+    public void switchToDisplayMode(DisplayMode newMode) {
+        if (model.getCurrentDisplayMode() == newMode) {
             return;
         }
-
-        gridList.addListSelectionListener(e -> {
-            // 'getValueIsAdjusting' es true mientras el usuario está arrastrando el ratón para seleccionar.
-            // Solo nos interesa el evento final.
-            if (!e.getValueIsAdjusting()) {
-                // Prevenir que el listener actúe si la UI se está sincronizando desde otro sitio
-                if (listCoordinator.isSincronizandoUI()) {
-                    return;
-                }
-
-                int selectedIndex = gridList.getSelectedIndex();
-                // Si hay algo seleccionado (no es -1), notificamos al coordinador.
-                if (selectedIndex != -1) {
-                    listCoordinator.seleccionarImagenPorIndice(selectedIndex);
-                }
-            }
-        });
-        logger.debug("[DisplayModeManager] Listener de selección conectado al Grid.");
-    } // --- Fin del método conectarGridListener ---
-    
-    
-    // =================================================================================
-    // === Lógica Principal de Transición ===
-    // =================================================================================
-
-    
-    public void switchToDisplayMode(DisplayMode newDisplayMode) {
-        // <-- CAMBIO CLAVE 1: La guarda principal -->
-        // Si no hay imágenes, no se debe cambiar el modo de visualización.
-        // Esto protege la pantalla de bienvenida.
-        if (model.getModeloLista() == null || model.getModeloLista().isEmpty()) {
-            logger.debug("[DisplayModeManager] Transición a " + newDisplayMode + " OMITIDA. No hay imágenes cargadas.");
-            return;
-        }
-        // <-- FIN DEL CAMBIO CLAVE 1 -->
-
-        if (model.getCurrentDisplayMode() == newDisplayMode) {
-            // No hacemos nada si ya estamos en ese modo
-        }
-        logger.debug("--- [DisplayModeManager] INICIANDO TRANSICIÓN -> " + newDisplayMode + " ---");
         
-        this.model.setCurrentDisplayMode(newDisplayMode);
+        logger.info("Cambiando a DisplayMode: {}", newMode);
+        model.setCurrentDisplayMode(newMode);
         
-        if (configuration != null) {
-            configuration.setString(ConfigKeys.COMPORTAMIENTO_DISPLAY_MODE_ULTIMO_USADO, newDisplayMode.name());
-        }
-        
-        String containerKey = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) 
+        String containerKey = (model.getCurrentWorkMode() == WorkMode.PROYECTO) 
                             ? "container.displaymodes.proyecto" 
                             : "container.displaymodes";
-        
-        String cardName = mapDisplayModeToCardLayoutKey(newDisplayMode);
-        this.viewManager.cambiarAVista(containerKey, cardName);
-        
-        enterDisplayMode(newDisplayMode);
-        
-        if (toolbarManager != null) {
-            toolbarManager.reconstruirContenedorDeToolbars(model.getCurrentWorkMode());
-        }
-        
-        sincronizarEstadoBotonesDisplayMode();
-        logger.debug("--- [DisplayModeManager] TRANSICIÓN COMPLETADA a " + newDisplayMode + " ---");
-        
-    } // --- Fin del método switchToDisplayMode ---
-    
-    
-    private void enterDisplayMode(DisplayMode modo) {
-        JScrollPane thumbnailScrollPane = registry.get("scroll.miniaturas");
-        String thumbnailComponentId = "imagenes_en_miniatura";
-        String configKey = ConfigKeys.menuState("vista", "imagenes_en_miniatura");
+                            
+        logger.debug("  -> Actuando sobre el contenedor CardLayout: {}", containerKey);
 
-        switch (modo) {
-            case GRID:
-                logger.debug("  -> Configurando para MODO GRID: Ocultando barra de miniaturas.");
-                if (thumbnailScrollPane != null && thumbnailScrollPane.isVisible()) {
-                	
-//                    viewManager.setComponentePrincipalVisible(thumbnailComponentId, false, configKey);
-                	viewManager.solicitarActualizacionUI(thumbnailComponentId, configKey, false);
-                		
-                    actualizarEstadoAccionToggle(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, false);
-                }
-                poblarYSincronizarGrid();
-                break;
-
-            case SINGLE_IMAGE:
-                 logger.debug("  -> Configurando para MODO SINGLE_IMAGE: Mostrando barra de miniaturas.");
-                 if (thumbnailScrollPane != null && !thumbnailScrollPane.isVisible()) {
-                     viewManager.solicitarActualizacionUI(thumbnailComponentId, configKey, true);
-                     actualizarEstadoAccionToggle(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS, true);
-                 }
-                break;
-
-            case POLAROID:
-                logger.debug("  -> Configurando para MODO POLAROID (en desarrollo)...");
-                break;
-        }
-    } // --- Fin del método enterDisplayMode ---
-    
-    
-    public void poblarYSincronizarGrid() {
-        boolean isProjectMode = (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO);
-        String gridPanelKey = isProjectMode ? "panel.display.grid.proyecto" : "panel.display.grid";
-        String gridListKey = isProjectMode ? "list.grid.proyecto" : "list.grid";
-
-        GridDisplayPanel gridPanel = registry.get(gridPanelKey);
-        JList<String> gridList = registry.get(gridListKey);
-    	
-        if (gridPanel == null || gridList == null || model == null || registry == null) {
-            logger.error("ERROR [DisplayModeManager]: Dependencias nulas para poblar grid.");
+        JPanel container = registry.get(containerKey);
+        if (container == null) {
+            logger.error("ERROR CRÍTICO: No se encontró el contenedor CardLayout con la clave '{}'", containerKey);
             return;
         }
+        
+        CardLayout cardLayout = (CardLayout) container.getLayout();
+        JScrollPane thumbnailBar = registry.get("scroll.miniaturas");
 
-        List<String> imageKeys;
-        String selectedKey = null;
-        int currentIndex = -1;
-
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
-            logger.debug("[DisplayModeManager] Poblando grid para el MODO PROYECTO.");
-            String focoActual = model.getProyectoListContext().getNombreListaActiva();
-            
-            JList<String> listaFuenteUI = "descartes".equals(focoActual) 
-                                        ? registry.get("list.proyecto.descartes") 
-                                        : registry.get("list.proyecto.nombres");
-
-            if (listaFuenteUI != null && listaFuenteUI.getModel() instanceof DefaultListModel) {
-                DefaultListModel<String> sourceModel = (DefaultListModel<String>) listaFuenteUI.getModel();
-                imageKeys = Collections.list(sourceModel.elements());
-                
-                int selectedIndexInSourceList = listaFuenteUI.getSelectedIndex();
-                if (selectedIndexInSourceList != -1) {
-                    selectedKey = sourceModel.getElementAt(selectedIndexInSourceList);
-                    currentIndex = selectedIndexInSourceList;
+        switch (newMode) {
+            case SINGLE_IMAGE:
+                cardLayout.show(container, "VISTA_SINGLE_IMAGE");
+                if (thumbnailBar != null) thumbnailBar.setVisible(true);
+                if (infobarStatusManager != null) infobarStatusManager.mostrarMensaje("Modo: Vista Individual");
+                break;
+            case GRID:
+                if (model.getCurrentWorkMode() == WorkMode.PROYECTO && projectController != null) {
+                    projectController.actualizarModeloPrincipalConListaDeProyectoActiva();
+                } else {
+                    poblarGridConModelo(model.getModeloLista());
+                    sincronizarSeleccionGrid();
                 }
-            } else {
-                imageKeys = Collections.emptyList();
-            }
-        } else {
-            logger.debug("[DisplayModeManager] Poblando grid para el MODO VISUALIZADOR/otro.");
-            ListContext currentContext = model.getCurrentListContext();
-            if (currentContext != null && currentContext.getModeloLista() != null) {
-                DefaultListModel<String> sourceModel = currentContext.getModeloLista();
-                imageKeys = Collections.list(sourceModel.elements());
-                
-                selectedKey = currentContext.getSelectedImageKey();
-                if (selectedKey != null) {
-                    currentIndex = sourceModel.indexOf(selectedKey);
-                }
-            } else {
-                imageKeys = Collections.emptyList();
-            }
+                cardLayout.show(container, "VISTA_GRID");
+                if (thumbnailBar != null) thumbnailBar.setVisible(false);
+                if (infobarStatusManager != null) infobarStatusManager.mostrarMensaje("Modo: Parrilla de Miniaturas");
+                break;
+            case POLAROID:
+                cardLayout.show(container, "VISTA_POLAROID");
+                if (thumbnailBar != null) thumbnailBar.setVisible(false);
+                if (infobarStatusManager != null) infobarStatusManager.mostrarMensaje("Modo: Polaroid (En desarrollo)");
+                break;
         }
 
-        gridPanel.setImageKeys(imageKeys);
+        sincronizarBotonesDeModo();
+        container.revalidate();
+        container.repaint();
+    } // end of switchToDisplayMode
+    
+    public void poblarGridConModelo(DefaultListModel<String> modelToShow) {
+        if (modelToShow == null) {
+            modelToShow = new DefaultListModel<>();
+        }
         
-        final int finalCurrentIndex = currentIndex;
+        JList<String> gridList = getActiveGridList();
+        
+        if (gridList == null) {
+            logger.error("No se puede poblar la parrilla, no se encontró una JList de grid activa en el registro para el modo {}.", model.getCurrentWorkMode());
+            return;
+        }
+        
+        gridList.setModel(modelToShow);
+        logger.debug("Parrilla del modo {} poblada con un modelo de {} elementos.", model.getCurrentWorkMode(), modelToShow.getSize());
+    }
+
+    public void sincronizarSeleccionGrid() {
+        isSyncingFromManager = true;
         SwingUtilities.invokeLater(() -> {
-            if (finalCurrentIndex >= 0 && finalCurrentIndex < gridList.getModel().getSize()) {
-                gridList.setSelectedIndex(finalCurrentIndex);
-                gridList.ensureIndexIsVisible(finalCurrentIndex);
-            } else {
-                gridList.clearSelection();
+            try {
+                JList<String> gridList = getActiveGridList();
+                if (gridList == null) return;
+                
+                int masterIndex = -1;
+                if (model.getCurrentWorkMode() == WorkMode.PROYECTO && projectListCoordinator != null) {
+                    masterIndex = projectListCoordinator.getOfficialSelectedIndex();
+                } else if (listCoordinator != null) {
+                    masterIndex = listCoordinator.getOfficialSelectedIndex();
+                }
+                
+                if (masterIndex >= 0 && masterIndex < gridList.getModel().getSize()) {
+                    if (gridList.getSelectedIndex() != masterIndex) {
+                        gridList.setSelectedIndex(masterIndex);
+                    }
+                    gridList.ensureIndexIsVisible(masterIndex);
+                } else {
+                    gridList.clearSelection();
+                }
+            } finally {
+                isSyncingFromManager = false;
             }
         });
-        
-        logger.debug("[DisplayModeManager] Grid poblado con " + imageKeys.size() + " claves. Selección en índice: " + currentIndex);
-        
-    }// --- Fin del método poblarYSincronizarGrid ---
-    
-    
-    private String mapDisplayModeToCardLayoutKey(DisplayMode displayMode) {
-        switch (displayMode) {
-            case SINGLE_IMAGE: return "VISTA_SINGLE_IMAGE";
-            case GRID: return "VISTA_GRID";
-            case POLAROID: return "VISTA_POLAROID";
-            default: return "VISTA_SINGLE_IMAGE";
+    } // end of sincronizarSeleccionGrid
+
+    private void sincronizarBotonesDeModo() {
+        if (actionMap == null) return;
+        for (Action action : actionMap.values()) {
+            if (action instanceof controlador.actions.displaymode.SwitchDisplayModeAction) {
+                ((controlador.actions.displaymode.SwitchDisplayModeAction) action).updateSelectedState(model);
+            }
         }
-    } // --- Fin del método mapDisplayModeToCardLayoutKey ---
-    
+    } // end of sincronizarBotonesDeModo
     
     public void sincronizarEstadoBotonesDisplayMode() {
-        if (actionMap == null || model == null || configAppManager == null) {
-            logger.warn("WARN [DisplayModeManager]: No se puede sincronizar botones de modo, faltan dependencias.");
-            return;
-        }
+        sincronizarBotonesDeModo();
+    } // end of sincronizarEstadoBotonesDisplayMode
 
-        // <-- CAMBIO CLAVE 2: La guarda de sincronización -->
-        // Si no hay imágenes, no hay nada que sincronizar.
-        if (model.getModeloLista() == null || model.getModeloLista().isEmpty()) {
-            return;
-        }
-        // <-- FIN DEL CAMBIO CLAVE 2 -->
-
-        DisplayMode currentMode = model.getCurrentDisplayMode();
-        
-        List<String> displayModeCommands = List.of(
-            AppActionCommands.CMD_VISTA_SINGLE,
-            AppActionCommands.CMD_VISTA_GRID,
-            AppActionCommands.CMD_VISTA_POLAROID
-        );
-
-        logger.debug("[DisplayModeManager] Sincronizando botones de DisplayMode. Activo: " + currentMode);
-
-        for (String command : displayModeCommands) {
-            Action action = actionMap.get(command);
-            if (action != null) {
-                boolean isSelected = command.equals(mapDisplayModeToActionCommand(currentMode));
-                
-                action.putValue(Action.SELECTED_KEY, isSelected);
-                configAppManager.actualizarAspectoBotonToggle(action, isSelected);
-            }
-        }
-        
-    } // --- FIN del metodo sincronizarEstadoBotonesDisplayMode ---
-    
-    
-    private String mapDisplayModeToActionCommand(DisplayMode displayMode) {
-        if (displayMode == null) return "";
-        switch (displayMode) {
-            case SINGLE_IMAGE: return AppActionCommands.CMD_VISTA_SINGLE;
-            case GRID:         return AppActionCommands.CMD_VISTA_GRID;
-            case POLAROID:     return AppActionCommands.CMD_VISTA_POLAROID;
-            default:           return "";
-        }
-    }// --- Fin del método mapDisplayModeToActionCommand ---
-    
-    
-    private void actualizarEstadoAccionToggle(String commandKey, boolean isSelected) {
-        Action action = actionMap.get(commandKey);
-        if (action != null) {
-            action.putValue(Action.SELECTED_KEY, isSelected);
-        }
-    } // --- Fin del método actualizarEstadoAccionToggle ---
-    
-    
     @Override
     public void onThemeChanged(Tema nuevoTema) {
-        logger.debug("[DisplayModeManager] Notificación de cambio de tema recibida. Actualizando paneles de modo de visualización...");
-        
-        SwingUtilities.invokeLater(() -> {
-            
-            GridDisplayPanel gridPanel = registry.get("panel.display.grid");
-            
-            if (gridPanel != null) {
-                gridPanel.actualizarColorDeFondoPorTema(this.themeManager);
-            } else {
-                logger.warn("  WARN [onThemeChanged]: No se encontró 'panel.display.grid' para actualizar.");
-            }
-        });
-    } // --- FIN del método onThemeChanged ---
+        JList<String> gridListVis = registry.get("list.grid");
+        if (gridListVis != null) {
+            gridListVis.setBackground(nuevoTema.colorFondoSecundario());
+            gridListVis.repaint();
+        }
+        JList<String> gridListProy = registry.get("list.grid.proyecto");
+        if (gridListProy != null) {
+            gridListProy.setBackground(nuevoTema.colorFondoSecundario());
+            gridListProy.repaint();
+        }
+    } // end of onThemeChanged
     
+    @Override
+    public void onMasterListChanged(DefaultListModel<String> newMasterList, Object source) {
+        if (model.getCurrentDisplayMode() == DisplayMode.GRID) {
+            logger.debug("[DisplayModeManager] Notificado de cambio en lista maestra. Repoblando la parrilla...");
+            poblarGridConModelo(newMasterList);
+            sincronizarSeleccionGrid();
+        }
+    } // end of onMasterListChanged
+    
+    @Override
+    public void onMasterSelectionChanged(int newMasterIndex, Object source) {
+        if (source != this && model.getCurrentDisplayMode() == DisplayMode.GRID) {
+            logger.debug("[DisplayModeManager] Notificado de cambio de selección maestra (desde {}). Sincronizando grid...", source != null ? source.getClass().getSimpleName() : "null");
+            sincronizarSeleccionGrid();
+        }
+    } // end of onMasterSelectionChanged
+    
+    private JList<String> getActiveGridList() {
+        if (model == null || registry == null) return null;
+        return (model.getCurrentWorkMode() == WorkMode.PROYECTO)
+             ? registry.get("list.grid.proyecto")
+             : registry.get("list.grid");
+    } // end of getActiveGridList
 
-    // --- Setters para Inyección de Dependencias ---
+    // --- Setters para Inyección de Dependencias (RESTAURADOS Y COMPLETOS) ---
     public void setModel(VisorModel model) { this.model = model; }
     public void setViewManager(ViewManager viewManager) { this.viewManager = viewManager; }
     public void setRegistry(ComponentRegistry registry) { this.registry = registry; }
-    public void setListCoordinator(ListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
+    public void setListCoordinator(IListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
     public void setActionMap(Map<String, Action> actionMap) { this.actionMap = actionMap; }
     public void setConfiguration(ConfigurationManager configuration) { this.configuration = configuration; }
-    public void setInfobarStatusManager(InfobarStatusManager infobarStatusManager) {this.infobarStatusManager = infobarStatusManager;}
-    public void setThemeManager(ThemeManager themeManager) {this.themeManager = themeManager;}
-    public void setToolbarManager(ToolbarManager tm) { this.toolbarManager = tm; }
-    public void setConfigApplicationManager(ConfigApplicationManager cam) { this.configAppManager = cam; }
-    
-} // --- Fin de la clase DisplayModeManager ---
-    
-    
+    public void setThemeManager(ThemeManager themeManager) { this.themeManager = themeManager; }
+    public void setToolbarManager(ToolbarManager toolbarManager) { this.toolbarManager = toolbarManager; }
+    public void setConfigApplicationManager(ConfigApplicationManager configApplicationManager) { this.configApplicationManager = configApplicationManager; }
+    public void setGridThumbnailService(ThumbnailService gridThumbnailService) { this.gridThumbnailService = gridThumbnailService; }
+    public void setInfobarStatusManager(InfobarStatusManager infobarStatusManager) { this.infobarStatusManager = infobarStatusManager; }
+    public void setProjectController(ProjectController projectController) { this.projectController = projectController; }
+    public void setProjectListCoordinator(ProjectListCoordinator projectListCoordinator) { this.projectListCoordinator = projectListCoordinator; }
+
+} // end of class

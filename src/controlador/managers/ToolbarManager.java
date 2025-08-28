@@ -196,6 +196,25 @@ public class ToolbarManager implements ThemeChangeListener{
         }
         // <<< FIN DE LA LÓGICA PARA LA BARRA DE ESTADO >>>
 
+        
+//       // --- INICIO DE LA MODIFICACIÓN (CON LOGS DE DIAGNÓSTICO) ---
+//        ToolbarManager toolbarManager = this.generalController.getToolbarManager();
+//        if (toolbarManager != null) {
+//            logger.debug("[ProjectBuilder] Obteniendo 'barra_grid' desde ToolbarManager...");
+//            JToolBar gridToolbar = toolbarManager.getToolbar("barra_grid");
+//            
+//            if (gridToolbar != null) {
+//                logger.info(">>> ÉXITO: Toolbar 'barra_grid' obtenida. Inyectando en GridDisplayPanel. <<<");
+//                gridViewPanel.setToolbar(gridToolbar);
+//            } else {
+//                logger.error(">>> FALLO: ToolbarManager devolvió NULL para 'barra_grid'. La toolbar no se añadirá. <<<");
+//            }
+//        } else {
+//            logger.error("[ProjectBuilder] ToolbarManager es NULL. No se puede obtener la 'barra_grid'.");
+//        }
+//        // --- FIN DE LA MODIFICACIÓN ---
+        
+        
         leftPanel.revalidate();
         leftPanel.repaint();
         centerPanel.revalidate();

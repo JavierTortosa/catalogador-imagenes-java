@@ -11,6 +11,8 @@ public interface AppActionCommands {
  // --- Generico pendiente de implementar ---
 	public static final String CMD_FUNCIONALIDAD_PENDIENTE 			= "cmd.todo.funcionalidad_pendiente";
 
+ // --- Ayuda ---
+	public static final String CMD_AYUDA_VER_ATAJOS 				= "cmd.ayuda.ver_atajos";
 	
  // --- Archivo ---
     public static final String CMD_ARCHIVO_ABRIR 					= "cmd.archivo.abrir";
@@ -51,6 +53,13 @@ public interface AppActionCommands {
     public static final String CMD_FILTRO_SET_TYPE_TAG 				= "cmd.filtro.setType.tag";
     
     
+ // --- Grid
+    
+    public static final String CMD_GRID_SET_TEXT					= "cmd.grid.set_text";
+    public static final String CMD_GRID_REMOVE_TEXT					= "cmd.grid.remove_text";
+    public static final String CMD_GRID_SIZE_UP_MINIATURA			= "cmd.grid.size_up_miniatura";
+    public static final String CMD_GRID_SIZE_DOWN_MINIATURA			= "cmd.grid.size_down_miniatura";
+    public static final String CMD_GRID_SHOW_STATE					= "cmd.grid.mostrar_estado";
     
  // --- Carrousel
     
@@ -238,7 +247,6 @@ public interface AppActionCommands {
     
     
     
-    //public static final 
     public static final String CMD_REFRESH_TOOLBARS = "cmd.refresh.toolbars";
     
     // --- Comandos para IDENTIFICAR elementos de UI (usados como ActionCommand en Fallback) ---

@@ -1,29 +1,38 @@
 package vista.util;
 
-import java.awt.AWTEvent;
+import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Toolkit;
+import java.awt.Component;
 import java.awt.Window;
 import java.awt.event.AWTEventListener;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JWindow;
+import javax.swing.JRootPane;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
-import javax.swing.Timer;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.ZoomManager;
+import controlador.managers.interfaces.IViewManager;
+import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
+import servicios.ConfigurationManager;
 import servicios.zoom.ZoomModeEnum;
 import vista.panels.ImageDisplayPanel;
 import vista.theme.ThemeManager;
@@ -32,152 +41,144 @@ public class ThumbnailPreviewer {
 
 	private static final Logger logger = LoggerFactory.getLogger(ThumbnailPreviewer.class);
 	
-    private final JList<String> thumbnailList;
+    private final JList<String> targetList;
     private final VisorModel mainModel;
     private final ThemeManager themeManager;
+    private final IViewManager viewManager;
+    private final ComponentRegistry registry;
 
-    private JWindow previewWindow;
+    private JDialog previewDialog;
     private ImageDisplayPanel previewPanel;
     private VisorModel previewModel;
-    private ZoomManager previewZoomManager;
-
-    private Timer closeTimer;
-    private int lastClickedIndex = -1;
-
-    private static final int PREVIEW_WIDTH = 400;
-    private static final int PREVIEW_HEIGHT = 400;
-
+    private ZoomManager previewZoomManager; // <-- Lo mantenemos para el paneo/zoom interactivo
     private AWTEventListener clickOutsideListener;
 
-    public ThumbnailPreviewer(JList<String> thumbnailList, VisorModel mainModel, ThemeManager themeManager) {
-        this.thumbnailList = thumbnailList;
+    private static final int PREVIEW_WIDTH = 500;
+    private static final int PREVIEW_HEIGHT = 500;
+
+    public ThumbnailPreviewer(JList<String> targetList, VisorModel mainModel, ThemeManager themeManager, IViewManager viewManager, ComponentRegistry registry) {
+        this.targetList = targetList;
         this.mainModel = mainModel;
         this.themeManager = themeManager;
+        this.viewManager = viewManager;
+        this.registry = registry;
         
-        setupPreviewComponents();
-        installListeners();
+        if (this.targetList != null) {
+            installListeners();
+        }
     } // --- FIN del Constructor ---   
 
-    private void setupPreviewComponents() {
-        this.previewModel = new VisorModel();
-        this.previewPanel = new ImageDisplayPanel(this.themeManager, previewModel);
-        
-        Color borderColor = themeManager.getTemaActual().colorBordeSeleccionActiva();
-        int borderThickness = 5;
-        int padding = 10;
-
-        this.previewPanel.setBorder(
-            javax.swing.BorderFactory.createCompoundBorder(
-                javax.swing.BorderFactory.createLineBorder(borderColor, borderThickness),
-                javax.swing.BorderFactory.createEmptyBorder(padding, padding, padding, padding)
-            )
-        );
-        
-        Window owner = SwingUtilities.getWindowAncestor(thumbnailList);
-        this.previewWindow = new JWindow(owner);
-        this.previewWindow.setSize(PREVIEW_WIDTH, PREVIEW_HEIGHT);
-        this.previewWindow.getContentPane().add(this.previewPanel);
-        this.previewWindow.setFocusableWindowState(false);
-        this.previewZoomManager = new ZoomManager();
-        this.previewZoomManager.setModel(previewModel);
-        this.previewZoomManager.setSpecificPanel(this.previewPanel);
-        
-        JLabel internalLabel = this.previewPanel.getInternalLabel();
-        internalLabel.addMouseWheelListener(e -> {
-            if (previewModel.isZoomHabilitado()) {
-                previewZoomManager.aplicarZoomConRueda(e);
-            }
-        });
-        internalLabel.addMouseListener(new MouseAdapter() {
-            @Override public void mousePressed(MouseEvent e) { 
-                if (previewModel.isZoomHabilitado()) {
-                    previewZoomManager.iniciarPaneo(e);
-                }
-            }
-        });
-        internalLabel.addMouseMotionListener(new MouseAdapter() {
-            @Override public void mouseDragged(MouseEvent e) {
-                if (previewModel.isZoomHabilitado()) {
-                    previewZoomManager.continuarPaneo(e);
-                }
-            }
-        });
-    } // --- FIN del metodo setupPreviewComponents ---
-
-    
     private void installListeners() {
-        closeTimer = new Timer(250, e -> {
-            if (previewWindow == null || !previewWindow.isVisible()) {
-                ((Timer)e.getSource()).stop();
-                return;
-            }
-            Point mousePos = java.awt.MouseInfo.getPointerInfo().getLocation();
-            
-            // <<< CAMBIO: Lógica del Timer corregida para ser más permisiva
-            Point mouseInListCoords = new Point(mousePos);
-            SwingUtilities.convertPointFromScreen(mouseInListCoords, thumbnailList);
-
-            Point mouseInPopupCoords = new Point(mousePos);
-            SwingUtilities.convertPointFromScreen(mouseInPopupCoords, previewWindow);
-
-            // Comprobamos si el ratón está sobre la parte visible de la lista O sobre la ventana emergente
-            boolean isMouseOverList = thumbnailList.getVisibleRect().contains(mouseInListCoords);
-            boolean isMouseOverPopup = previewWindow.getBounds().contains(mouseInPopupCoords);
-
-            // Solo cerramos si NO está sobre NINGUNO de los dos
-            if (!isMouseOverList && !isMouseOverPopup) {
-                hidePreview();
-            }
-        });
-        closeTimer.setRepeats(true);
-
-        thumbnailList.addMouseListener(new MouseAdapter() {
+        targetList.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                    int index = thumbnailList.locationToIndex(e.getPoint());
+                    int index = targetList.locationToIndex(e.getPoint());
                     if (index != -1) {
-                        // Si ya hay una ventana visible para el mismo índice, la cerramos. Si no, la mostramos.
-                        if (previewWindow.isVisible() && index == lastClickedIndex) {
-                            hidePreview();
-                        } else {
-                            lastClickedIndex = index;
-                            showPreview();
-                        }
-                    }
-                }
-            } // --- Fin del método mouseClicked ---
-        });
-
-        clickOutsideListener = event -> {
-            if (event instanceof MouseEvent && event.getID() == MouseEvent.MOUSE_CLICKED) {
-                if (previewWindow != null && previewWindow.isVisible()) {
-                    MouseEvent me = (MouseEvent) event;
-                    Point clickPoint = me.getLocationOnScreen();
-                    
-                    SwingUtilities.convertPointFromScreen(clickPoint, previewWindow);
-                    
-                    if (!previewWindow.contains(clickPoint)) {
-                        hidePreview();
+                        showPreviewForIndex(targetList, index);
                     }
                 }
             }
-        };
+        });
     } // --- FIN del metodo installListeners ---
 
-    private void showPreview() {
-        if (lastClickedIndex == -1) return;
+    private void createPreviewDialogIfNeeded(JList<String> listContext) {
+        if (previewDialog == null) {
+            Window owner = SwingUtilities.getWindowAncestor(listContext);
+            
+            // --- ESTRATEGIA FINAL: MODELESS + GLASS PANE ---
+            // 1. El diálogo DEBE ser MODELESS.
+            previewDialog = new JDialog(owner, "Previsualización", JDialog.ModalityType.MODELESS);
+            
+            previewDialog.getContentPane().setLayout(new BorderLayout());
+
+            previewModel = new VisorModel();
+            previewPanel = new ImageDisplayPanel(this.themeManager, previewModel);
+            previewPanel.setPreferredSize(new java.awt.Dimension(PREVIEW_WIDTH, PREVIEW_HEIGHT));
+
+            Color borderColor = themeManager.getTemaActual().colorBordeSeleccionActiva();
+            previewPanel.setBorder(javax.swing.BorderFactory.createLineBorder(borderColor, 3));
+            
+            previewDialog.getContentPane().add(this.previewPanel, BorderLayout.CENTER);
+            
+            previewZoomManager = new ZoomManager();
+            previewZoomManager.setModel(previewModel);
+            previewZoomManager.setSpecificPanel(this.previewPanel);
+            previewZoomManager.setViewManager(this.viewManager);
+            previewZoomManager.setRegistry(this.registry);
+            previewZoomManager.setConfiguration(ConfigurationManager.getInstance());
+            JLabel internalLabel = this.previewPanel.getInternalLabel();
+            internalLabel.addMouseWheelListener(e -> { if (previewModel.isZoomHabilitado()) { previewZoomManager.aplicarZoomConRueda(e); } });
+            internalLabel.addMouseListener(new MouseAdapter() { @Override public void mousePressed(MouseEvent e) { if (previewModel.isZoomHabilitado()) { previewZoomManager.iniciarPaneo(e); } } });
+            internalLabel.addMouseMotionListener(new MouseAdapter() { @Override public void mouseDragged(MouseEvent e) { if (previewModel.isZoomHabilitado()) { previewZoomManager.continuarPaneo(e); } } });
+            
+            // CERRAR CON LA TECLA ESC (sin cambios)
+            JRootPane rootPane = previewDialog.getRootPane();
+            KeyStroke escapeKeyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(escapeKeyStroke, "CLOSE_DIALOG");
+            rootPane.getActionMap().put("CLOSE_DIALOG", new AbstractAction() {
+                private static final long serialVersionUID = 1L;
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    previewDialog.dispose();
+                }
+            });
+            
+            // 2. Listener para limpiar el Glass Pane cuando el diálogo se cierre
+            previewDialog.addWindowListener(new WindowAdapter() {
+                @Override
+                public void windowClosed(WindowEvent e) {
+                    if (owner instanceof JFrame) {
+                        Component glassPane = ((JFrame) owner).getGlassPane();
+                        // Limpiamos sus listeners y lo hacemos invisible
+                        glassPane.setVisible(false);
+                        for (MouseAdapter listener : glassPane.getListeners(MouseAdapter.class)) {
+                             glassPane.removeMouseListener(listener);
+                        }
+                        logger.debug("Glass Pane limpiado y ocultado.");
+                    }
+                }
+            });
+        }
+    } // --- FIN del metodo createPreviewDialogIfNeeded ---
+    
+
+    // Este es el método que hace el trabajo del ajuste inicial,
+    // sin llamar al ZoomManager. Es una lógica matemática simple y segura.
+    private double calculateSmartFitZoom() {
+        BufferedImage img = previewModel.getCurrentImage();
+        if (img == null || previewPanel.getWidth() <= 0 || previewPanel.getHeight() <= 0) {
+            return 1.0;
+        }
+        double widthRatio = (double) previewPanel.getWidth() / img.getWidth();
+        double heightRatio = (double) previewPanel.getHeight() / img.getHeight();
+        return Math.min(widthRatio, heightRatio);
+    } // ---FIN de metodo ---
+
+    public void showPreviewForIndexPublic(JList<String> list, int index) {
+        showPreviewForIndex(list, index);
+    }
+    
+    private void showPreviewForIndex(JList<String> list, int index) {
+        if (index == -1) return;
+
+        createPreviewDialogIfNeeded(list);
 
         new SwingWorker<BufferedImage, Void>() {
             @Override
             protected BufferedImage doInBackground() throws Exception {
-                String imageKey = thumbnailList.getModel().getElementAt(lastClickedIndex);
+                String imageKey = list.getModel().getElementAt(index);
                 java.nio.file.Path imagePath = mainModel.getRutaCompleta(imageKey);
+                
+                if (imagePath != null) {
+                    SwingUtilities.invokeLater(() -> previewDialog.setTitle("Previsualización: " + imagePath.getFileName()));
+                }
+                
                 if (imagePath != null && java.nio.file.Files.exists(imagePath)) {
                     return ImageIO.read(imagePath.toFile());
                 }
                 return null;
-            } // --- Fin del método doInBackground ---
+            }
 
             @Override
             protected void done() {
@@ -185,70 +186,49 @@ public class ThumbnailPreviewer {
                     BufferedImage image = get();
                     if (image != null) {
                         previewModel.setCurrentImage(image);
-                        double factorZoom = Math.min(
-                            (double) PREVIEW_WIDTH / image.getWidth(), 
-                            (double) PREVIEW_HEIGHT / image.getHeight()
-                        );
-                        previewModel.setCurrentZoomMode(ZoomModeEnum.SMART_FIT);
-                        previewModel.setZoomFactor(factorZoom);
-                        previewModel.resetPan();
                         previewModel.setZoomHabilitado(true);
-                        previewPanel.repaint();
-
-                        Rectangle cellBounds = thumbnailList.getCellBounds(lastClickedIndex, lastClickedIndex);
-                        Point cellLocationOnScreen = cellBounds.getLocation();
-                        SwingUtilities.convertPointToScreen(cellLocationOnScreen, thumbnailList);
-                        Rectangle screenBounds = thumbnailList.getGraphicsConfiguration().getBounds();
-
-                        int finalX = cellLocationOnScreen.x;
-                        int finalY;
-
-                        if (cellLocationOnScreen.y - PREVIEW_HEIGHT > screenBounds.y) {
-                            finalY = cellLocationOnScreen.y - PREVIEW_HEIGHT;
-                        } else {
-                            finalY = cellLocationOnScreen.y + cellBounds.height;
-                        }
+                        previewDialog.pack();
                         
-                        if (finalX + PREVIEW_WIDTH > screenBounds.x + screenBounds.width) {
-                            finalX = screenBounds.x + screenBounds.width - PREVIEW_WIDTH;
-                        }
-                        if (finalX < screenBounds.x) {
-                            finalX = screenBounds.x;
-                        }
+                        double initialZoomFactor = calculateSmartFitZoom();
+                        previewModel.setZoomFactor(initialZoomFactor);
+                        previewModel.setCurrentZoomMode(ZoomModeEnum.SMART_FIT);
+                        previewModel.resetPan();
                         
-                        previewWindow.setLocation(finalX, finalY);
-                        previewWindow.setVisible(true);
+                        previewDialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(list));
                         
-                        if (!closeTimer.isRunning()) {
-                            closeTimer.start();
+                        // --- INICIO DE LA LÓGICA DEL GLASS PANE ---
+                        // 3. Activar el Glass Pane ANTES de mostrar el diálogo
+                        Window owner = previewDialog.getOwner();
+                        if (owner instanceof JFrame) {
+                            Component glassPane = ((JFrame) owner).getGlassPane();
+                            
+                            // Añadimos un listener que cerrará el diálogo al hacer clic
+                            MouseAdapter glassPaneListener = new MouseAdapter() {
+                                @Override
+                                public void mousePressed(MouseEvent e) {
+                                    previewDialog.dispose();
+                                }
+                            };
+                            glassPane.addMouseListener(glassPaneListener);
+                            
+                            glassPane.setVisible(true);
+                            logger.debug("Glass Pane activado con listener.");
                         }
+                        // --- FIN DE LA LÓGICA DEL GLASS PANE ---
+                        
+                        previewDialog.setVisible(true);
 
-                        // <<< CAMBIO: El listener se añade en un invokeLater para evitar la condición de carrera
-                        SwingUtilities.invokeLater(() -> {
-                            Toolkit.getDefaultToolkit().addAWTEventListener(clickOutsideListener, AWTEvent.MOUSE_EVENT_MASK);
-                        });
+                    } else {
+                        previewPanel.mostrarError("No se pudo cargar la imagen", null);
+                        previewDialog.pack();
+                        previewDialog.setLocationRelativeTo(SwingUtilities.getWindowAncestor(list));
+                        previewDialog.setVisible(true);
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    hidePreview();
+                    logger.error("Error al mostrar la previsualización", e);
                 }
-            } // --- Fin del método done ---
+            }
         }.execute();
-    } // --- FIN del metodo showPreview ---
+    } // --- FIN del metodo showPreviewForIndex ---
     
-    private void hidePreview() {
-        if (closeTimer.isRunning()) {
-            closeTimer.stop();
-        }
-        
-        lastClickedIndex = -1;
-        if (previewWindow != null && previewWindow.isVisible()) {
-            previewWindow.setVisible(false);
-        }
-        
-        // <<< CAMBIO: El listener se elimina directamente
-        Toolkit.getDefaultToolkit().removeAWTEventListener(clickOutsideListener);
-    } // --- FIN del metodo hidePreview ---
-    
-} // --- FIN DE LA CLASE ThumbnailPreviewer ---
-
+} // --- FIN DE LA CLASE ---

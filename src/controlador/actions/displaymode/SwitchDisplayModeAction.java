@@ -41,6 +41,27 @@ public class SwitchDisplayModeAction extends AbstractAction {
         manager.switchToDisplayMode(targetDisplayMode);
     } // --- Fin del método actionPerformed ---
 
+    
+    /**
+     * Sincroniza el estado de selección de esta acción (y por tanto, del botón asociado)
+     * con el estado actual del modelo. Este método es llamado por DisplayModeManager
+     * para asegurar que solo el botón del modo activo aparezca seleccionado.
+     * 
+     * @param model El modelo de datos principal que contiene el estado actual.
+     */
+    public void updateSelectedState(VisorModel model) {
+        if (model == null) {
+            return;
+        }
+        // Compara el modo de esta acción con el modo actual del modelo.
+        boolean isSelected = (model.getCurrentDisplayMode() == this.targetDisplayMode);
+        
+        // Pone el valor booleano en la propiedad SELECTED_KEY de la Action.
+        // Swing se encarga de que JToggleButton, JCheckBoxMenuItem, etc. reflejen este estado.
+        putValue(SELECTED_KEY, isSelected);
+    } // --- Fin del método updateSelectedState ---
+    
+    
     /**
      * Sincroniza el estado de selección de esta acción con el estado actual del modelo.
      * Este método es llamado por un manager (como DisplayModeManager o GeneralController)
