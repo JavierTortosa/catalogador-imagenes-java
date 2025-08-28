@@ -69,7 +69,7 @@ Un método de sincronización se encarga de que la selección en una lista se re
 
 3. - DIRECTRICES INQUEBRANTABLES (Nuestras Reglas de Trabajo):
 Regla 1 (CÓDIGO REAL): Trabaja siempre con el código real. Antes de darme un código basado en lo que supuestamente hace una clase/método, PIDE LA CLASE. No asumas ninguna implementación.
-Regla 2 (COMENTARIOS): Añade siempre los comentarios de final de bloque // ---FIN de metodo ---  y // --- FIN de clase ---
+Regla 2 (COMENTARIOS): Añade siempre los comentarios de final de bloque // ---FIN de metodo [nombre]---  y // --- FIN de clase [nombre]---
 Regla 3 (SIN RENOMBRAR): No se pueden cambiar los nombres de variables, métodos o clases que ya existen.
 Regla 4 (NO REFACTORIZAR): No refactorices ni simplifiques métodos existentes sin consultarme primero. Céntrate únicamente en la tarea solicitada.
 

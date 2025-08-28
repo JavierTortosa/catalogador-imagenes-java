@@ -64,7 +64,7 @@ La primera linea es como si hicieramos git commit -m "texto"
 
 i 		-> 	entramos en el modo edicion y nos permite escribir 
 ESC		-> 	salimos del modo edicion
-:wq 	->	salimos del editor y guardamos 
+:wq 	->	salimos del editor y guardamos    
 
 *******************************************************************************************************************************
 *******************************************************************************************************************************

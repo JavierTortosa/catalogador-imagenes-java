@@ -289,13 +289,28 @@ private void crearUIyComponentesDependientesEnEDT() {
         this.toolbarManager = new ToolbarManager(registry, this.configuration, toolbarBuilder, uiDefSvc, this.model);
 
         // 3. Crear el ProjectBuilder. AHORA this.toolbarManager NO es null.
-        ProjectBuilder projectBuilder = new ProjectBuilder(registry, this.model, this.themeManager, this.generalController, this.toolbarManager);
+        ProjectBuilder projectBuilder = new ProjectBuilder(
+        		registry, 
+        		this.model, 
+        		this.themeManager, 
+        		this.generalController, 
+        		this.toolbarManager, 
+        		this.projectController
+    		);
         
         // 4. Crear el ViewBuilder. AHORA tiene todas sus dependencias listas.
         ViewBuilder viewBuilder = new ViewBuilder(
-            registry, this.model, this.themeManager, this.configuration,
-            this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService
+            registry, 
+            this.model, 
+            this.themeManager, 
+            this.configuration,
+            this.iconUtils, 
+            this.thumbnailServiceGlobal, 
+            this.gridThumbnailService,
+            projectBuilder
+            
         );
+        
         viewBuilder.setProjectBuilder(projectBuilder); // Inyectamos el ProjectBuilder recién creado.
 
         // --- FIN DE LA REORDENACIÓN ---
@@ -312,7 +327,7 @@ private void crearUIyComponentesDependientesEnEDT() {
                 this.model, null, this.zoomManager, this.fileOperationsManager, 
                 this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, 
                 this.projectManagerService, iconMap, this.viewManager, this.themeManager, 
-                this.generalController, this.projectController
+                registry, this.generalController, this.projectController
            );
         this.configAppManager = new ConfigApplicationManager(this.model, this.configuration, this.themeManager, registry);
         this.infobarImageManager = new InfobarImageManager(this.model, registry, this.configuration);
@@ -649,73 +664,28 @@ private void crearUIyComponentesDependientesEnEDT() {
             SwingUtilities.invokeLater(() -> {
                 String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
                 
-                
-                // --- INICIO DE LA MODIFICACIÓN ---
-                // El Runnable ahora está VACÍO. La lógica se ha movido.
-//                Runnable accionPostCarga = () -> {
-//                    // Este callback ya no es necesario aquí.
-//                };
-                
                 // Decidir si cargar imágenes o simplemente limpiar y sincronizar
                 if (this.model.getCarpetaRaizActual() != null) {
                     // Llamamos a cargarListaImagenes SIN el callback.
                     this.controller.cargarListaImagenes(imagenInicialKey, null); 
                 } else {
                     // ... (la lógica para el estado de bienvenida se queda igual)
+                	
+                	
+                	
+                	// --- INICIO DE LA RESTAURACIÓN DEL CÓDIGO ---
+                    // Si NO hay carpeta, se llama a limpiarUI() para mostrar la bienvenida.
+                    logger.debug("  [AppInitializer] No hay carpeta inicial válida. Se mostrará el estado de bienvenida.");
+                    this.controller.limpiarUI();
+                    
+                    // Sincronizamos la UI para que los botones (Siguiente, Anterior, etc.) se deshabiliten.
+                    this.generalController.sincronizarTodaLaUIConElModelo();
+                    
+                    // Mostramos un mensaje útil en la barra de estado.
+                    if (this.controller != null && this.controller.getStatusBarManager() != null) {
+                         this.controller.getStatusBarManager().mostrarMensaje("Abre una carpeta para empezar (Archivo -> Abrir Carpeta)");
+                    }
                 }
-                // --- FIN DE LA MODIFICACIÓN ---
-                
-//                Runnable accionPostCarga = () -> {
-//                    logger.debug("  [Callback Post-Carga] Carga inicial completada. Aplicando estado final de UI...");
-//                    
-//                    if (this.displayModeManager != null) {
-//                        logger.debug("    -> [Callback] Sincronizando DisplayMode final a: " + this.model.getCurrentDisplayMode());
-//                        this.displayModeManager.switchToDisplayMode(this.model.getCurrentDisplayMode());
-//                    }
-//                    
-//                    logger.debug("    -> [Callback] Forzando refresco de las listas visuales...");
-//                    
-//                    if (registry != null) {
-//                        JList<String> listaNombres = registry.get("list.nombresArchivo");
-//                        if (listaNombres != null) { listaNombres.repaint(); }
-//                        if (this.displayModeManager != null) { this.displayModeManager.poblarYSincronizarGrid(); }
-//                    }
-//                    
-//                    if (this.listCoordinator != null) {
-//                        logger.debug("    -> [Callback] Forzando actualización final del estado de las acciones.");
-//                        this.listCoordinator.forzarActualizacionEstadoAcciones();
-//                    }
-//                    
-//                    
-//	                // Sincroniza el árbol de carpetas con la carpeta que se acaba de cargar.
-//	                // Esto asegura que al cambiar a la pestaña "Carpetas", el árbol ya esté en la ubicación correcta.
-//	                if (this.folderTreeManager != null && this.model.getCarpetaRaizActual() != null) {
-//	                    logger.debug("    -> [Callback] Sincronizando el JTree con la carpeta inicial: " + this.model.getCarpetaRaizActual());
-//	                    this.folderTreeManager.sincronizarArbolConCarpeta(this.model.getCarpetaRaizActual());
-//	                }
-//                 
-//                };
-//                
-//                // Decidir si cargar imágenes o simplemente limpiar y sincronizar
-//                if (this.model.getCarpetaRaizActual() != null) {
-//                    this.controller.cargarListaImagenes(imagenInicialKey, accionPostCarga);
-//                } else {
-//                    // --- INICIO DE LA CORRECCIÓN DEFINITIVA ---
-//                    logger.debug("  [AppInitializer] No hay carpeta inicial válida. Se mostrará el estado de bienvenida.");
-//                    this.controller.limpiarUI();
-//                    
-//                    // Sincronizamos la UI para que los botones y menús reflejen el estado "vacío".
-//                    this.generalController.sincronizarTodaLaUIConElModelo();
-//                    
-//                    // La línea problemática ha sido ELIMINADA. Ya no se fuerza el cambio de vista.
-//                    // ELIMINADO: this.displayModeManager.switchToDisplayMode(this.model.getCurrentDisplayMode());
-//                    
-//                    // Añadimos el mensaje informativo que faltaba al arrancar.
-//                    if (this.controller != null && this.controller.getStatusBarManager() != null) {
-//                         this.controller.getStatusBarManager().mostrarMensaje("Abre una carpeta para empezar (Archivo -> Abrir Carpeta)");
-//                    }
-//                    // --- FIN DE LA CORRECCIÓN DEFINITIVA ---
-//                }
             });
             
             logger.info("--- [AppInitializer Fase B - EDT] Inicialización de UI completada. La aplicación está lista. ---");

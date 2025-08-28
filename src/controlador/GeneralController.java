@@ -13,6 +13,7 @@ import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeListener;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1455,6 +1456,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         solicitarCargaDesdeNuevaRaiz(nuevaCarpeta, null);
     } // --- Fin del método solicitarCargaDesdeNuevaRaiz (simple) ---
 
+    
     public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta, String claveASeleccionar) {
         logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
 
@@ -1503,6 +1505,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         visorController.cargarListaImagenes(claveASeleccionar, accionPostCarga);
         
     } // --- Fin del método solicitarCargaDesdeNuevaRaiz (con preselección) ---
+    
     
     private DefaultListModel<String> clonarModelo(DefaultListModel<String> original) {
         if (original == null) return null;
@@ -1595,22 +1598,16 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 
         DefaultListModel<String> listModel = currentContext.getModeloLista();
         if (listModel.isEmpty()) {
-            // Si la lista está vacía, solo sincronizamos el botón y salimos.
             syncSortButtonUI(direction);
             return;
         }
 
-        // Si el modo es NONE, recargamos la carpeta para obtener el orden "natural" del disco.
         if (direction == VisorModel.SortDirection.NONE) {
             solicitarCargaDesdeNuevaRaiz(model.getCarpetaRaizActual());
-            // La recarga se encargará de sincronizar la UI al final, así que salimos.
-            // Pero nos aseguramos de que el botón se apague visualmente de inmediato.
             syncSortButtonUI(direction);
             return;
         }
 
-        // --- Lógica de reordenación en memoria para ASCENDING y DESCENDING ---
-        
         List<String> items = new ArrayList<>();
         for (int i = 0; i < listModel.getSize(); i++) {
             items.add(listModel.getElementAt(i));
@@ -1618,16 +1615,16 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 
         String selectedKey = model.getSelectedImageKey();
 
-        switch (direction) {
-            case ASCENDING:
-                Collections.sort(items);
-                break;
-            case DESCENDING:
-                items.sort(Collections.reverseOrder());
-                break;
-            case NONE:
-                // Ya manejado arriba
-                break;
+        // Lógica de ordenación por NOMBRE DE ARCHIVO
+        items.sort((pathStr1, pathStr2) -> {
+            String fileName1 = Paths.get(pathStr1).getFileName().toString();
+            String fileName2 = Paths.get(pathStr2).getFileName().toString();
+            return fileName1.compareToIgnoreCase(fileName2);
+        });
+
+        // Si es descendente, simplemente invertimos la lista ya ordenada
+        if (direction == VisorModel.SortDirection.DESCENDING) {
+            Collections.reverse(items);
         }
 
         listModel.clear();
@@ -1642,9 +1639,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             this.getVisorController().getListCoordinator().reiniciarYSeleccionarIndice(newIndex);
         }
 
-        // Sincronizamos la UI del botón AL FINAL, después de que toda la lógica ha terminado.
         syncSortButtonUI(direction);
-    }
+    } // ---FIN de metodo resortFileListAndSyncButton---
+    
     
     /**
      * Sincroniza ÚNICAMENTE la apariencia del botón de ordenación basándose

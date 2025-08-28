@@ -2,10 +2,12 @@ package vista.renderers;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.nio.file.Path;
 import java.util.Objects;
 
@@ -17,8 +19,10 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.ProjectController;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
+import modelo.proyecto.ExportItem;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
@@ -40,6 +44,13 @@ public class GridCellRenderer implements ListCellRenderer<String> {
     private final IProjectManager projectManager;
     private final Color selectionBorderColor;
     
+    private final ProjectController projectController;
+
+    private static final Color COLOR_OK = new Color(34, 139, 34);
+    private static final Color COLOR_WARNING = new Color(255, 165, 0);
+    private static final Color COLOR_ERROR = Color.RED;//new Color(178, 34, 34);
+    
+    
     public GridCellRenderer(
             ThumbnailService gridThumbnailService,
             VisorModel modeloVisor,
@@ -47,15 +58,17 @@ public class GridCellRenderer implements ListCellRenderer<String> {
             IconUtils iconUtils,
             ConfigurationManager configuration,
             ThumbnailPreviewer previewer,
-            IProjectManager projectManager // <<< AHORA PUEDE SER NULL
+            IProjectManager projectManager,
+            ProjectController projectController
     ) {
         this.gridThumbnailService = Objects.requireNonNull(gridThumbnailService);
         this.modeloVisor = Objects.requireNonNull(modeloVisor);
         this.iconUtils = Objects.requireNonNull(iconUtils);
         this.previewer = Objects.requireNonNull(previewer);
-        this.projectManager = projectManager; // <<< Simplemente lo asignamos, sea null o no.
+        this.projectManager = projectManager;
+        this.projectController = projectController;
         
-        this.selectionBorderColor = themeManager.getTemaActual().colorSeleccionFondo();//.colorBordeSeleccionActiva();
+        this.selectionBorderColor = themeManager.getTemaActual().colorSeleccionFondo();
         
         int anchoMiniatura = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
         int altoMiniatura = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_HEIGHT, 120);
@@ -112,27 +125,81 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         if (miniaturaIcono == null) {
             miniaturaIcono = this.iconUtils.getScaledCommonIcon("placeholder-grid.png", 32, 32);
         }
-
+        
         String textoParaMostrar = null;
         if (rutaCompleta != null) {
-            // --- INICIO DE LA MODIFICACIÓN ---
-            // Solo intentamos obtener la etiqueta si estamos en un contexto de proyecto
             if (projectManager != null) {
                 String etiqueta = projectManager.getEtiqueta(rutaCompleta);
                 if (etiqueta != null && !etiqueta.isBlank()) {
                     textoParaMostrar = etiqueta;
                 }
             }
-            // Si después de comprobar la etiqueta, el texto sigue siendo null, usamos el nombre del archivo.
             if (textoParaMostrar == null && this.showNamesDefault) {
                 textoParaMostrar = rutaCompleta.getFileName().toString();
             }
-            // --- FIN DE LA MODIFICACIÓN ---
         }
 
-        this.cellPanel.setData(miniaturaIcono, textoParaMostrar, isSelected, list.getBackground(), this.selectionBorderColor);
+        // =========================================================================
+        // === INICIO DE LA CORRECCIÓN ===
+        // =========================================================================
+        
+        Color backgroundColor = list.getBackground();
+        boolean desaturar = false;
+
+//        if (this.projectController != null) {
+        if (this.projectController != null && modeloVisor.isGridMuestraEstado()) {
+            ExportItem item = this.projectController.getExportItem(value);
+
+            if (item != null) {
+            	
+                switch (item.getEstadoArchivoComprimido()) {
+                    case ENCONTRADO_OK:
+                        backgroundColor = COLOR_OK;
+//                    	backgroundColor = Color.GREEN.darker();
+                        break;
+                    case ASIGNADO_MANUAL:
+                    case IGNORAR_COMPRIMIDO:
+                        backgroundColor = COLOR_WARNING;
+//                    	backgroundColor = Color.YELLOW.darker();
+                        break;
+                    case NO_ENCONTRADO:
+                    case IMAGEN_NO_ENCONTRADA:
+                        backgroundColor = COLOR_ERROR;
+//                    	backgroundColor = Color.RED.darker();
+                        break;
+                    default:
+                        break;
+                }
+                
+                if (!item.isSeleccionadoParaExportar()) {
+                    desaturar = true;
+                }
+            }
+        }
+        
+        ImageIcon iconoFinal = miniaturaIcono;
+        if (desaturar && miniaturaIcono != null && miniaturaIcono.getImage() != null) {
+        	// Convertimos Image a BufferedImage para poder desaturar
+            BufferedImage bufferedImage = new BufferedImage(
+                miniaturaIcono.getIconWidth(),
+                miniaturaIcono.getIconHeight(),
+                BufferedImage.TYPE_INT_ARGB
+            );
+            Graphics2D g = bufferedImage.createGraphics();
+            g.drawImage(miniaturaIcono.getImage(), 0, 0, null);
+            g.dispose();
+            
+            // Usamos la clase IconUtils para la conversión
+            iconoFinal = new ImageIcon(IconUtils.toGrayscale(bufferedImage));
+        }
+
+        // AHORA llamamos a setData con el icono y color correctos
+        this.cellPanel.setData(iconoFinal, textoParaMostrar, isSelected, backgroundColor, this.selectionBorderColor);
+        // =========================================================================
+        // === FIN DE LA CORRECCIÓN ===
+        // =========================================================================
 
         return this.cellPanel;
     } // ---FIN de metodo ---
     
-} // --- FIN de clase ---
+} // --- FIN de clase GridCellRenderer ---

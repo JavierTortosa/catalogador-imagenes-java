@@ -210,7 +210,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	 * Se llama desde AppInitializer (en el EDT) después de aplicar la config inicial a la vista.
 	 * Llama a `cargarListaImagenes` para iniciar la carga en segundo plano.
 	 */
-	/*package-private*/ void cargarEstadoInicialInternal() {
+/*package-private*/ void cargarEstadoInicialInternal() {
 		
 	    // --- SECCIÓN 1: Log de Inicio y Verificación de Dependencias ---
 	    // 1.1. Imprimir log indicando el inicio de la carga del estado.
@@ -222,7 +222,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	        logger.error("ERROR [cargarEstadoInicialInternal]: Config, Modelo o Vista nulos. No se puede cargar estado.");
 	        
 	        // 1.2.1. Intentar limpiar la UI si faltan componentes esenciales.
-	        limpiarUI(); // Llama al método de limpieza general.
+	        SwingUtilities.invokeLater(this::limpiarUI); // Llama al método de limpieza general de forma segura.
 	        return; // Salir del método.
 	    }
 	
@@ -302,16 +302,125 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	    // 3.2. Si NO se encontró una carpeta inicial válida.
 	    } else {
 	        // 3.2.1. Log indicando que no se cargará nada y se limpiará la UI.
-	        logger.debug("    -> No hay carpeta inicial válida configurada o accesible. Limpiando UI.");
-	        // 3.2.2. Llamar al método que resetea el modelo y la vista a un estado vacío.
-	        limpiarUI();
+	        logger.debug("    -> No hay carpeta inicial válida configurada o accesible. Programando limpieza de UI en EDT.");
+            
+            // --- INICIO DE LA CORRECCIÓN ---
+            // En lugar de llamar a limpiarUI() directamente, lo encolamos en el EDT.
+            // Esto asegura que se ejecute DESPUÉS de que la ventana principal se haya
+            // pintado por primera vez y sus componentes tengan un tamaño válido.
+	        SwingUtilities.invokeLater(this::limpiarUI);
+            // --- FIN DE LA CORRECCIÓN ---
 	    }
 	
 	    // --- SECCIÓN 4: Log Final ---
 	    // 4.1. Indicar que el proceso de carga del estado inicial ha finalizado (o se ha iniciado la carga en background).
 	    logger.debug("  [Load Initial State Internal] Finalizado.");
 	
-	} // --- FIN cargarEstadoInicialInternal ---
+	} // ---FIN de metodo cargarEstadoInicialInternal]---
+    
+    
+//	/*package-private*/ void cargarEstadoInicialInternal() {
+//		
+//	    // --- SECCIÓN 1: Log de Inicio y Verificación de Dependencias ---
+//	    // 1.1. Imprimir log indicando el inicio de la carga del estado.
+//	    logger.debug("  [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...");
+//	    
+//	    // 1.2. Verificar que las dependencias necesarias (configuration, model, view) existan.
+//	    //      Son necesarias para determinar qué cargar y para limpiar la UI si falla.
+//	    if (configuration == null || model == null || view == null) {
+//	        logger.error("ERROR [cargarEstadoInicialInternal]: Config, Modelo o Vista nulos. No se puede cargar estado.");
+//	        
+//	        // 1.2.1. Intentar limpiar la UI si faltan componentes esenciales.
+//	        limpiarUI(); // Llama al método de limpieza general.
+//	        return; // Salir del método.
+//	    }
+//	
+//	    // --- SECCIÓN 2: Determinar y Validar la Carpeta Inicial ---
+//	    
+//	    // 2.1. Obtener la ruta de la carpeta inicial desde ConfigurationManager.
+//	    //      Se usa "" como valor por defecto si la clave "inicio.carpeta" no existe.
+//	    String folderInit = configuration.getString("inicio.carpeta", "");
+//	   
+//	    // 2.2. Variable para almacenar el Path de la carpeta validada.
+//	    Path folderPath = null;
+//	    
+//	    // 2.3. Flag para indicar si la carpeta encontrada es válida.
+//	    boolean carpetaValida = false;
+//	
+//	    // 2.4. Comprobar si la ruta obtenida no está vacía.
+//	    if (!folderInit.isEmpty()) {
+//	    
+//	    	// 2.4.1. Intentar convertir la cadena de ruta en un objeto Path.
+//	        try {
+//	            folderPath = Paths.get(folderInit);
+//	        
+//	            // 2.4.2. Verificar si el Path resultante es realmente un directorio existente.
+//	            if (Files.isDirectory(folderPath)) {
+//	            
+//	            	// 2.4.2.1. Si es un directorio válido, marcar como válida y actualizar
+//	                //          la variable de instancia `carpetaRaizActual` del controlador.
+//	                carpetaValida = true;
+//	                
+//	                this.model.setCarpetaRaizActual(folderPath);// <<< CAMBIO AQUÍ
+//	                
+//	                logger.debug("    -> Carpeta inicial válida encontrada: " + folderPath);
+//	            } else {
+//	                // 2.4.2.2. Log si la ruta existe pero no es un directorio.
+//	                 logger.warn("WARN [cargarEstadoInicialInternal]: Carpeta inicial en config no es un directorio válido: " + folderInit);
+//	                 
+//	                 this.model.setCarpetaRaizActual(null);// <<< CAMBIO AQUÍ
+//	                 
+//	            }
+//	        // 2.4.3. Capturar cualquier excepción durante la conversión/verificación de la ruta.
+//	        } catch (Exception e) {
+//	            logger.warn("WARN [cargarEstadoInicialInternal]: Ruta de carpeta inicial inválida en config: " + folderInit + " - " + e.getMessage());
+//	            
+//	            this.model.setCarpetaRaizActual(null);// <<< CAMBIO AQUÍ
+//	            
+//	        }
+//	    } else {
+//	        // 2.5. Log si la clave "inicio.carpeta" no estaba definida en la configuración.
+//	        logger.debug("    -> No hay definida una carpeta inicial en la configuración.");
+//	        
+//	        this.model.setCarpetaRaizActual(null); // <<< CAMBIO AQUÍ
+//	    }
+//	
+//	    // --- SECCIÓN 3: Cargar Lista de Imágenes o Limpiar UI ---
+//	    // 3.1. Proceder a cargar la lista SOLO si se encontró una carpeta inicial válida.
+//	    
+//	    if (carpetaValida && this.model.getCarpetaRaizActual() != null) { // <<< CAMBIO AQUÍ
+//	
+//	    	
+//	        // 3.1.1. Log indicando que se procederá a la carga.
+//	        
+//	    	logger.debug("    -> Cargando lista para carpeta inicial (desde MODELO): " + this.model.getCarpetaRaizActual()); // <<< CAMBIO AQUÍ
+//	        
+//	    	// 3.1.2. Obtener la clave de la imagen inicial desde la configuración.
+//	        //        Puede ser null si no hay una imagen específica guardada.
+//	        String imagenInicialKey = configuration.getString("inicio.imagen", null);
+//	        logger.debug("    -> Clave de imagen inicial a intentar seleccionar: " + imagenInicialKey);
+//	
+//	        // 3.1.3. Llamar al método `cargarListaImagenes`. Este método se encargará de:
+//	        //        - Ejecutar la búsqueda de archivos en segundo plano (SwingWorker).
+//	        //        - Mostrar un diálogo de progreso.
+//	        //        - Actualizar el modelo y la vista cuando termine.
+//	        //        - Seleccionar la `imagenInicialKey` si se proporciona y se encuentra,
+//	        //          o seleccionar el primer elemento (índice 0) si no.
+//	        cargarListaImagenes(imagenInicialKey, null);
+//	
+//	    // 3.2. Si NO se encontró una carpeta inicial válida.
+//	    } else {
+//	        // 3.2.1. Log indicando que no se cargará nada y se limpiará la UI.
+//	        logger.debug("    -> No hay carpeta inicial válida configurada o accesible. Limpiando UI.");
+//	        // 3.2.2. Llamar al método que resetea el modelo y la vista a un estado vacío.
+//	        limpiarUI();
+//	    }
+//	
+//	    // --- SECCIÓN 4: Log Final ---
+//	    // 4.1. Indicar que el proceso de carga del estado inicial ha finalizado (o se ha iniciado la carga en background).
+//	    logger.debug("  [Load Initial State Internal] Finalizado.");
+//	
+//	} // --- FIN cargarEstadoInicialInternal ---
  
 	
 	/**
@@ -796,8 +905,11 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         if (this.servicioMiniaturas != null) {
             this.servicioMiniaturas.limpiarCache();
         }
-        limpiarUI(); 
-
+        
+        
+//        limpiarUI(); 
+        
+        
         final TaskProgressDialog dialogo = new TaskProgressDialog(view, "Cargando Imágenes", "Escaneando carpeta de imágenes...");
         final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
             pathDeInicioWalk,
@@ -1418,6 +1530,22 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             return;
         }
 
+        
+//        // =========================================================================
+//        // === INICIO DE LA CORRECCIÓN ===
+//        // =========================================================================
+//        // Si el panel ya está mostrando el mensaje de bienvenida, una llamada con índice -1
+//        // (que ocurre a menudo durante la inicialización o limpieza) no debe hacer nada.
+//        // Esto previene que un repaint posterior borre la imagen de bienvenida.
+//        if (displayPanel.isShowingWelcome() && indiceSeleccionado == -1) {
+//            logger.debug("[actualizarImagenPrincipal] Ignorando llamada de limpieza (índice -1) porque la pantalla de bienvenida ya está activa.");
+//            return;
+//        }
+//        // =========================================================================
+//        // === FIN DE LA CORRECCIÓN ===
+//        // =========================================================================
+        
+        
         // --- 3. MANEJO DEL CASO SIN SELECCIÓN ---
         if (indiceSeleccionado == -1) {
             model.setCurrentImage(null);
@@ -1615,6 +1743,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     
     
     public void limpiarUI() {
+    	
+    	// --- SONDA DE DEPURACIÓN ---
+        System.out.println("##### SE HA LLAMADO A limpiarUI() - SIGUIENTE TRACE MUESTRA QUIÉN #####");
+        new Exception("Punto de seguimiento: ¿Quién llama a limpiarUI()?").printStackTrace(System.out);
+        // --- FIN DE LA SONDA ---
+        
         logger.debug("[Controller] Limpiando UI y Modelo a estado de bienvenida...");
 
         if (listCoordinator != null) {
@@ -1697,6 +1831,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                 listCoordinator.forzarActualizacionEstadoAcciones();
             }
 
+            if (view != null) {
+                logger.debug("  -> Forzando revalidate() y repaint() de la ventana principal para imponer el estado de bienvenida.");
+                view.revalidate();
+                view.repaint();
+            }
+            
         } finally {
             if (listCoordinator != null) {
                 SwingUtilities.invokeLater(() -> listCoordinator.setSincronizandoUI(false)); // Libera listeners

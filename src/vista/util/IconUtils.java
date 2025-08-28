@@ -4,7 +4,9 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
+import java.awt.image.ColorConvertOp;
 import java.net.URL;
 import java.util.Objects;
 
@@ -530,6 +532,41 @@ public class IconUtils {
             return null;
         }
     }
+    
+    
+    /**
+     * Convierte una BufferedImage a escala de grises.
+     * Es rápido y utiliza las APIs nativas de Java2D.
+     * @param original La imagen a color.
+     * @return Una nueva imagen en escala de grises.
+     */
+    public static BufferedImage toGrayscale(BufferedImage original) {
+        if (original == null) {
+            return null;
+        }
+        
+        // Creamos una operación de conversión al espacio de color de escala de grises.
+        ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
+        ColorConvertOp op = new ColorConvertOp(cs, null);
+        
+        // La operación puede no funcionar bien con imágenes que tienen canal alfa (transparencia).
+        // Para asegurar compatibilidad, creamos una imagen de destino sin alfa.
+        BufferedImage grayImage = new BufferedImage(
+            original.getWidth(),
+            original.getHeight(),
+            BufferedImage.TYPE_BYTE_GRAY // Tipo específico para escala de grises
+        );
+
+        // Dibujamos la imagen original en la imagen de destino gris.
+        // La operación de conversión se aplica durante el dibujado.
+        Graphics2D g2d = grayImage.createGraphics();
+        g2d.drawImage(original, 0, 0, null);
+        g2d.dispose();
+
+        // Aplicamos la operación de conversión de color.
+        // Aunque el dibujado anterior a menudo es suficiente, esta es la forma canónica.
+        return op.filter(original, null);
+    } // ---FIN de metodo toGrayscale---
     
     
 } // --- FIN de la clase IconUtils

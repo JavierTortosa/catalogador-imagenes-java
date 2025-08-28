@@ -336,7 +336,7 @@ public class InfobarStatusManager  {//implements ThemeChangeListener{
         if (estaMarcada) {
             mensajesLabel.setText("[MARCADA]");
             if (themeManager != null) {
-                mensajesLabel.setForeground(themeManager.getTemaActual().colorBotonFondoActivado()); 
+                mensajesLabel.setForeground(themeManager.getTemaActual().colorTextoPrimario().brighter());
             }
         } else {
             mensajesLabel.setText(" ");

@@ -87,9 +87,10 @@ public class ViewBuilder{
             ConfigurationManager configuration,
             IconUtils iconUtils,
             ThumbnailService thumbnailService,
-            ThumbnailService gridThumbnailService
-//            ,ProjectBuilder projectBuilder
+            ThumbnailService gridThumbnailService,
+            ProjectBuilder projectBuilder
         ){
+    	
         this.registry = registry;
         this.model = model;
         this.themeManager = themeManager;
@@ -97,7 +98,7 @@ public class ViewBuilder{
         this.iconUtils = iconUtils;
         this.thumbnailService = Objects.requireNonNull(thumbnailService, "thumbnailService (global) no puede ser null");
         this.gridThumbnailService = Objects.requireNonNull(gridThumbnailService, "gridThumbnailService no puede ser null");
-//        this.projectBuilder = Objects.requireNonNull(projectBuilder, "ProjectBuilder no puede ser null");
+        
     } // --- Fin del método ViewBuilder (constructor) ---
 
 

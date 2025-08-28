@@ -251,9 +251,10 @@ public final class ConfigKeys {
     
     
     // --- Claves para el grid
-    public static final String GRID_MOSTRAR_NOMBRES_STATE = "grid.mostrar.nombres.state";
-    public static final String GRID_THUMBNAIL_WIDTH = "grid.thumbnail.width";
-    public static final String GRID_THUMBNAIL_HEIGHT = "grid.thumbnail.height";
+    public static final String GRID_MOSTRAR_NOMBRES_STATE 						= "grid.mostrar.nombres.state";
+    public static final String GRID_THUMBNAIL_WIDTH 							= "grid.thumbnail.width";
+    public static final String GRID_THUMBNAIL_HEIGHT 							= "grid.thumbnail.height";
+    public static final String GRID_MOSTRAR_ESTADO_STATE 						= "grid.mostrar.estado.state";
     
     // ... (Añade aquí las claves para el resto de barras: vista, proyecto, etc.) ...
     

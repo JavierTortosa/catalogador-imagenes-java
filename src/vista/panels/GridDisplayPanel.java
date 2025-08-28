@@ -13,6 +13,7 @@ import javax.swing.ListSelectionModel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.ProjectController;
 import controlador.managers.interfaces.IProjectManager; // <<< AÑADIR IMPORT
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
@@ -42,7 +43,7 @@ public class GridDisplayPanel extends JPanel {
             ThumbnailPreviewer gridPreviewer
     ) {
         // Llama al constructor principal pasando 'null' para el projectManager.
-        this(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, null);
+        this(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, null, null);
     } // ---FIN de metodo ---
 
     /**
@@ -55,7 +56,8 @@ public class GridDisplayPanel extends JPanel {
             ThemeManager themeManager,
             IconUtils iconUtils,
             ThumbnailPreviewer gridPreviewer,
-            IProjectManager projectManager // <<< Parámetro opcional
+            IProjectManager projectManager,
+            ProjectController projectController
     ) {
         super(new BorderLayout());
         logger.debug("Creando un nuevo GridDisplayPannel");
@@ -80,7 +82,8 @@ public class GridDisplayPanel extends JPanel {
             iconUtils,
             ConfigurationManager.getInstance(),
             gridPreviewer,
-            projectManager // <<< Se pasa a GridCellRenderer, puede ser null
+            projectManager,
+            projectController
         );
         gridList.setCellRenderer(renderer);
 

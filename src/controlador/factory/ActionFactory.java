@@ -59,6 +59,7 @@ import controlador.actions.projects.GestionarProyectoAction;
 import controlador.actions.projects.MoveToDiscardsAction;
 import controlador.actions.projects.RelocateImageAction;
 import controlador.actions.projects.RestoreFromDiscardsAction;
+import controlador.actions.projects.ToggleGridStateAction;
 import controlador.actions.projects.ToggleMarkImageAction;
 import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.toggle.ToggleLiveFilterAction;
@@ -93,6 +94,7 @@ import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
+import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode;
@@ -126,7 +128,6 @@ public class ActionFactory {
     private IViewManager viewManager;
 
     private final GeneralController generalController;
-    
     private final ProjectController projectControllerRef;
     private final ThemeManager themeManager;
     
@@ -162,7 +163,9 @@ public class ActionFactory {
     // 1.8. Campo para registrar los DisplayModes
     private DisplayModeManager displayModeManager;
     
-
+    // 1.9. Campo para el registro de componentes
+    private ComponentRegistry registry;
+    
     // --- SECCIÓN 2: CONSTRUCTOR ---
     /**
      * Constructor de ActionFactory.
@@ -197,6 +200,7 @@ public class ActionFactory {
             IViewManager viewManager,
             ThemeManager themeManager,
             
+            ComponentRegistry registry,
             GeneralController generalController,
             
             ProjectController projectController
@@ -209,8 +213,9 @@ public class ActionFactory {
         this.iconUtils 					= Objects.requireNonNull(iconUtils, "IconUtils no puede ser null en ActionFactory");
         
         this.generalController			= Objects.requireNonNull(generalController, "GeneralController no puede ser null en ActionFactory");
-        
+        this.registry 					= Objects.requireNonNull(registry, "Registry no puede ser null en ActionFactory");
         this.themeManager 				= Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ActionFactory");
+        
         this.projectControllerRef       = Objects.requireNonNull(projectController);
         
         // 2.2. Asignar Managers y Coordinadores.
@@ -460,6 +465,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_GRID_REMOVE_TEXT, createRemoveGridTextAction());
         actionMap.put(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA, createGridSizeUpAction());
         actionMap.put(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA, createGridSizeDownAction());
+        actionMap.put(AppActionCommands.CMD_GRID_SHOW_STATE, createToggleGridStateAction());
         
     	// --- Acciones para cambio de DisplayMode (Modos de Visualización de Contenido) ---
         // Estas acciones delegan al GeneralController y son ContextSensitive (para su selección).
@@ -1329,6 +1335,15 @@ public class ActionFactory {
         };
     } // ---FIN de metodo ---
 	
+    
+    private Action createToggleGridStateAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_GRID_SHOW_STATE);
+        // Leemos el estado inicial desde la configuración
+        boolean initialState = configuration.getBoolean(ConfigKeys.GRID_MOSTRAR_ESTADO_STATE, true);
+        model.setGridMuestraEstado(initialState);
+        return new ToggleGridStateAction("Mostrar Estado", icon, model, registry);
+    } // ---FIN de metodo---
+    
     
     private Action createVerAtajosAction() {
         return new AbstractAction("Ver Atajos de Teclado...") {

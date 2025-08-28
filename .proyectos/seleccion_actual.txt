@@ -3,7 +3,6 @@
 [SELECCION]
 F:/ARCHIVOS 3D/Chibi/star wars/3DXM - General Grievous Chibi.JPG
 F:/ARCHIVOS 3D/Chibi/star wars/3DXM - Stormtrooper Chibi-20240701T175456Z-001.jpg
-F:/ARCHIVOS 3D/Chibi/star wars/AT-AT Chibi.jpg
 M:/Archivos 3D/Wargames/Star Wars legion/BlueWolf/CC-1004 'Gree' - BW033.jpg
 M:/Archivos 3D/Wargames/Star Wars legion/BlueWolf/CC-1004 - 'Gree' - BWS002.jpg
 M:/Archivos 3D/Wargames/Star Wars legion/BlueWolf/Clay - BW069.jpg
@@ -11,7 +10,6 @@ F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader cabezon.jpg
 M:/Archivos 3D/Miniaturas/Star Wars/Desert Trooper - Squad - SQ005.png
 F:/ARCHIVOS 3D/Figuras/Star Wars/Gambody - Stormtrooper.jpg
 M:/Archivos 3D/Miniaturas/Star Wars/Hey Captain Robots - Diorama - SQ007.jpg
-F:/ARCHIVOS 3D/Chibi/star wars/IG11 Chibi.jpg
 M:/Archivos 3D/Miniaturas/Star Wars/Imperial Spec Ops - WB016.jpg
 D:/Compartir/Encargos/Cuchi Cuchi 2025/Jawa sentado en 2 dados.png
 M:/Archivos 3D/Miniaturas/Star Wars/Magma Trooper - Squad - SQ015.png
@@ -33,7 +31,8 @@ M:/Archivos 3D/Wargames/Star Wars legion/Warblade Studio - 2024 - 04.jpg
 M:/Archivos 3D/Miniaturas/Star Wars/Welcome Gift - PD01.jpg
 M:/Archivos 3D/Wargames/Star Wars legion/X+wing+(Star+Wars+Legion+scale).jpg
 F:/ARCHIVOS 3D/Figuras/Yoda_UnSupported.jpg
+F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
 
 [DESCARTES]
-D:/Programacion/Eclipse/Workspace 2024-12R/VisorImagenes/resources/A-gigante de hierro.jpg
-D:/Compartir/Encargos/Cuchi Cuchi 2025/R2D2 montado en X-Wing.jpeg
+F:/ARCHIVOS 3D/Chibi/star wars/IG11 Chibi.jpg
+F:/ARCHIVOS 3D/Chibi/star wars/AT-AT Chibi.jpg

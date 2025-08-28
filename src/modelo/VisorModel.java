@@ -76,6 +76,7 @@ public class VisorModel {
     private Path ultimaCarpetaCarrusel;
     private String ultimaImagenKeyCarrusel; 
     private boolean liveFilterActive = false;
+    private boolean gridMuestraEstado = true;
     
     // =========================================================================
     // === INICIO DE MODIFICACIÓN: AÑADIR SISTEMA DE EVENTOS ===
@@ -412,7 +413,8 @@ public class VisorModel {
     public void setUltimaImagenKeyCarrusel(String key) {this.ultimaImagenKeyCarrusel = key;}
     public boolean isLiveFilterActive() {return this.liveFilterActive;}
     public void setLiveFilterActive(boolean liveFilterActive) {this.liveFilterActive = liveFilterActive;}
-    
+    public boolean isGridMuestraEstado() {return this.gridMuestraEstado;} 
+    public void setGridMuestraEstado(boolean gridMuestraEstado) {this.gridMuestraEstado = gridMuestraEstado;}
     
     public SortDirection getSortDirection() {return sortDirection;}
     public void setSortDirection(SortDirection newSortDirection) {

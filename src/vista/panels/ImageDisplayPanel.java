@@ -273,4 +273,9 @@ public class ImageDisplayPanel extends JPanel {
     } // --- FIN del método actualizarColorDeFondoPorTema ---
     
     
+    public boolean isShowingWelcome() {
+        return this.showingWelcome;
+    } // ---FIN de metodo---
+    
+    
 } // --- FIN DE LA CLASE ImageDisplayPanel ---

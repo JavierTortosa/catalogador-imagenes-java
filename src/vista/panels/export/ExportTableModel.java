@@ -118,5 +118,9 @@ public class ExportTableModel extends AbstractTableModel {
         }
         // --- FIN DE CAMBIO (4/4) ---
     } // --- Fin del método setValueAt ---
+    
+    public java.util.List<modelo.proyecto.ExportItem> getCola() {
+        return this.cola; // O como se llame tu variable interna que guarda la lista
+    } // ---FIN de metodo ---
 
 } // --- FIN de la clase ExportTableModel ---
