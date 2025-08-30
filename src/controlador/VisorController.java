@@ -133,7 +133,8 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     private ActionFactory actionFactory;
     private BackgroundControlManager backgroundControlManager;
     private controlador.managers.DisplayModeManager displayModeManager;
-
+    private GeneralController generalController;
+    
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
     private int calculatedMiniaturePanelHeight;		//
@@ -169,9 +170,11 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     private JPopupMenu popupMenuImagenPrincipal;
     private JPopupMenu popupMenuListaNombres;
     private JPopupMenu popupMenuListaMiniaturas;
+    private JPopupMenu popupMenuGrid;
     private MouseListener popupListenerImagenPrincipal;
     private MouseListener popupListenerListaNombres;
     private MouseListener popupListenerListaMiniaturas;
+    private MouseListener popupListenerGrid;
     
     /**
      * Constructor principal (AHORA SIMPLIFICADO).
@@ -1218,12 +1221,14 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         popupMenuImagenPrincipal = crearMenuContextualStandard();
         popupMenuListaNombres = crearMenuContextualStandard();
         popupMenuListaMiniaturas = crearMenuContextualStandard();
+        popupMenuGrid = crearMenuContextualStandard();
 
         // Obtener los componentes de la UI donde se activarán los menús desde el registro.
         JLabel labelImagenPrincipal = registry.get("label.imagenPrincipal");
         JList<String> listaNombres = registry.get("list.nombresArchivo");
         JList<String> listaMiniaturas = registry.get("list.miniaturas");
-
+        JList<String> gridList = registry.get("list.grid");
+        
         // --- INICIO CORRECCIÓN: Instanciar PopupListener y guardar la referencia ---
         // Para labelImagenPrincipal
         if (labelImagenPrincipal != null) {
@@ -1266,10 +1271,47 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         } else {
             logger.warn("WARN [configurarMenusContextuales]: 'list.miniaturas' no encontrado en el registro.");
         }
-        // --- FIN CORRECCIÓN ---
 
+        
+        // --- INICIO DEL NUEVO BLOQUE PARA EL GRID ---
+        
+        if (gridList != null) {
+            // Eliminar listeners antiguos para evitar duplicados
+            if (popupListenerGrid != null) {
+                gridList.removeMouseListener(popupListenerGrid);
+            }
+            
+            // Creamos un listener especial para la JList del grid
+            popupListenerGrid = new MouseAdapter() {
+                public void mousePressed(MouseEvent e) { maybeShowPopup(e); }
+                public void mouseReleased(MouseEvent e) { maybeShowPopup(e); }
+
+                private void maybeShowPopup(MouseEvent e) {
+                    if (e.isPopupTrigger()) {
+                        // Paso CRUCIAL: Identificar la celda bajo el cursor
+                        int index = gridList.locationToIndex(e.getPoint());
+                        
+                        // Si el cursor está sobre una celda válida y no está ya seleccionada, la seleccionamos.
+                        // Esto asegura que la Action (ej. "Marcar Imagen") actúe sobre la imagen correcta.
+                        if (index != -1 && gridList.getSelectedIndex() != index) {
+                            gridList.setSelectedIndex(index);
+                        }
+                        
+                        // Ahora que la selección es correcta, mostramos el menú.
+                        popupMenuGrid.show(e.getComponent(), e.getX(), e.getY());
+                    }
+                }
+            };
+            
+            gridList.addMouseListener(popupListenerGrid);
+            logger.debug("    -> Menú contextual añadido a list.grid.");
+        } else {
+            logger.warn("WARN [configurarMenusContextuales]: 'list.grid' no encontrado en el registro.");
+        }
+        // --- FIN DEL NUEVO BLOQUE PARA EL GRID ---
+        
         logger.debug("  [VisorController] Menús Contextuales configurados.");
-    }
+    } // --- FIN del metodo configurarMenusContextuales ---
 
     /**
      * Crea y devuelve un JPopupMenu con un conjunto estándar de acciones
@@ -1419,6 +1461,31 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 
     
     /**
+     * Actualiza el título de la ventana principal de la aplicación.
+     * El título incluirá el nombre del proyecto activo si estamos en modo Proyecto,
+     * o el nombre de la aplicación si estamos en otro modo.
+     */
+    public void actualizarTituloVentana() {
+        if (view == null || model == null || projectManager == null) {
+            return;
+        }
+        
+        String tituloBase = "Visor de Imágenes 3D"; // Puedes externalizar esto a un archivo de config si quieres
+        String tituloFinal;
+
+        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+            String nombreProyecto = projectManager.getNombreProyectoActivo();
+            tituloFinal = tituloBase + " - [Proyecto: " + nombreProyecto + "]";
+        } else {
+            tituloFinal = tituloBase;
+        }
+        
+        view.setTitle(tituloFinal);
+        logger.debug("Título de la ventana actualizado a: {}", tituloFinal);
+    } // ---FIN de metodo actualizarTituloVentana---
+    
+    
+    /**
      * Orquesta el refresco de la vista principal después de una operación de edición.
      * Este método es llamado por el EditionManager después de modificar la imagen en el modelo.
      *
@@ -1529,22 +1596,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             logger.error("ERROR CRÍTICO: No se encontró el panel de display activo.");
             return;
         }
-
-        
-//        // =========================================================================
-//        // === INICIO DE LA CORRECCIÓN ===
-//        // =========================================================================
-//        // Si el panel ya está mostrando el mensaje de bienvenida, una llamada con índice -1
-//        // (que ocurre a menudo durante la inicialización o limpieza) no debe hacer nada.
-//        // Esto previene que un repaint posterior borre la imagen de bienvenida.
-//        if (displayPanel.isShowingWelcome() && indiceSeleccionado == -1) {
-//            logger.debug("[actualizarImagenPrincipal] Ignorando llamada de limpieza (índice -1) porque la pantalla de bienvenida ya está activa.");
-//            return;
-//        }
-//        // =========================================================================
-//        // === FIN DE LA CORRECCIÓN ===
-//        // =========================================================================
-        
         
         // --- 3. MANEJO DEL CASO SIN SELECCIÓN ---
         if (indiceSeleccionado == -1) {
@@ -1581,9 +1632,13 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             } catch (Exception ex) {
                 logger.error("Error al cargar la imagen: " + ex.getMessage());
             }
-
-            final BufferedImage finalImagenCargada = imagenCargadaDesdeDisco;
-
+            
+            // Si la carga fue exitosa, pasamos la imagen por nuestro corrector EXIF.
+            // Si la carga falló (imagenCargadaDesdeDisco es null), el corrector simplemente devolverá null.
+            final BufferedImage imagenCorregida = utils.ImageUtils.correctImageOrientation(imagenCargadaDesdeDisco, rutaCompleta);
+            
+            final BufferedImage finalImagenCargada = imagenCorregida;
+            
             if (Thread.currentThread().isInterrupted()) {
                 return;
             }
@@ -1744,10 +1799,10 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     
     public void limpiarUI() {
     	
-    	// --- SONDA DE DEPURACIÓN ---
-        System.out.println("##### SE HA LLAMADO A limpiarUI() - SIGUIENTE TRACE MUESTRA QUIÉN #####");
-        new Exception("Punto de seguimiento: ¿Quién llama a limpiarUI()?").printStackTrace(System.out);
-        // --- FIN DE LA SONDA ---
+//    	// --- SONDA DE DEPURACIÓN ---
+//        System.out.println("##### SE HA LLAMADO A limpiarUI() - SIGUIENTE TRACE MUESTRA QUIÉN #####");
+//        new Exception("Punto de seguimiento: ¿Quién llama a limpiarUI()?").printStackTrace(System.out);
+//        // --- FIN DE LA SONDA ---
         
         logger.debug("[Controller] Limpiando UI y Modelo a estado de bienvenida...");
 
@@ -1917,6 +1972,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
              case "png":
              case "gif":
              case "bmp":
+             case "tiff":
+             case "psd":
+             case "webp":
+             case "tga":
+             case "pcx":
+            	 
                  // TODO: Añadir más si se soportan (tiff, webp, etc.)
                  return true; // Es una extensión soportada
              default:
@@ -2210,7 +2271,21 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
          inputMap.put(f11Key, f11Command);
          actionMapGlobal.put(f11Command, actionMap.get(f11Command));
          logger.debug("  -> Atajo registrado: F11 -> " + f11Command);
+         
 
+         // --- Ctrl+L para Localizar Archivo ---
+         KeyStroke ctrlLKey = KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+         String ctrlLCommand = AppActionCommands.CMD_IMAGEN_LOCALIZAR;
+         
+         // 1. Añadimos el atajo al InputMap del panel raíz.
+         inputMap.put(ctrlLKey, ctrlLCommand);
+         
+         // 2. Asociamos el comando con la Action correspondiente que ya tenemos en nuestro actionMap.
+         actionMapGlobal.put(ctrlLCommand, actionMap.get(ctrlLCommand));
+         
+         logger.debug("  -> Atajo registrado: Ctrl+L -> " + ctrlLCommand);
+
+         
          logger.debug("  -> Atajos de teclado globales configurados para teclado estándar y numérico.");
      } // --- Fin del método configurarAtajosTecladoGlobales ---
 
@@ -3731,53 +3806,86 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	public void mostrarDialogoAyudaAtajos() {
         String helpText = """
             <html>
-            <body style='width: 350px; font-family: Segoe UI, sans-serif;'>
+            <body style='width: 400px; font-family: Segoe UI, sans-serif;'>
                 <h2 style='color: #337ab7;'>Atajos de Teclado</h2>
                 
-                <h3>Navegaci&oacute;n General</h3>
+                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Navegaci&oacute;n General</h3>
                 <ul>
                     <li><b>Flechas / Rueda Rat&oacute;n:</b> Imagen Siguiente/Anterior</li>
-                    <li><b>Inicio / Fin:</b> Primera/&Uacute;ltima Imagen</li>
+                    <li><b>Inicio / Fin:</b> Primera / &Uacute;ltima Imagen</li>
                     <li><b>Av P&aacute;g / Re P&aacute;g:</b> Saltar bloque de im&aacute;genes</li>
                 </ul>
                 
-                <h3>Gesti&oacute;n de Proyectos</h3>
+                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Gesti&oacute;n de Proyectos y Archivos</h3>
                 <ul>
-                    <li><b>Barra Espaciadora:</b> Marcar / Desmarcar imagen</li>
+                    <li><b>Barra Espaciadora:</b> Marcar / Desmarcar imagen para el proyecto</li>
+                    <li><b>Ctrl + L:</b> Localizar archivo actual en el explorador</li>
+                </ul>
+
+                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Ventana y Vista Global</h3>
+                <ul>
+                    <li><b>F5:</b> Refrescar lista de im&aacute;genes</li>
+                    <li><b>F11:</b> Activar / Desactivar Modo Pantalla Completa</li>
+                    <li><b>Alt:</b> Activar Foco en la Barra de Men&uacute;</li>
+                    <li><b>ESC:</b> Cerrar Ventana de Previsualizaci&oacute;n (si est&aacute; abierta)</li>
                 </ul>
                 
-                <h3>Funcionalidad del Grid (Modo Proyecto)</h3>
+                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Zoom y Paneo (Sobre la imagen)</h3>
+                <ul>
+                    <li><b>Rueda Rat&oacute;n:</b> Zoom (con modo zoom manual activo)</li>
+                    <li><b>Shift + Rueda Rat&oacute;n:</b> Paneo Horizontal r&aacute;pido</li>
+                    <li><b>Ctrl + Rueda Rat&oacute;n:</b> Paneo Vertical r&aacute;pido</li>
+                    <li><b>Clic y Arrastrar:</b> Panear imagen</li>
+                </ul>
+                <h4>Atajos Num&eacute;ricos para Modos de Zoom:</h4>
+                <ul>
+                    <li><b>1:</b> Ajustar a Pantalla</li>
+                    <li><b>2:</b> Tama&ntilde;o Original (100%)</li>
+                    <li><b>3:</b> Ajustar a Ancho</li>
+                    <li><b>4:</b> Ajustar a Alto</li>
+                    <li><b>5:</b> Rellenar Pantalla</li>
+                    <li><b>6:</b> Mantener Zoom Actual (Fijo)</li>
+                    <li><b>7:</b> Zoom Personalizado (%)</li>
+                    <li><b>8:</b> Activar/Desactivar Zoom/Paneo Manual</li>
+                    <li><b>9:</b> Resetear Zoom</li>
+                </ul>
+
+                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Atajos del Grid (Modo Proyecto)</h3>
                 <ul>
                     <li><b>Ctrl + T:</b> A&ntilde;adir / Editar Etiqueta</li>
                     <li><b>Ctrl + Supr:</b> Borrar Etiqueta</li>
-                    <li><b>Ctrl + M&aacute;s (+):</b> Aumentar Tama&ntilde;o Miniaturas</li>
-                    <li><b>Ctrl + Menos (-):</b> Reducir Tama&ntilde;o Miniaturas</li>
-                </ul>
-                
-                <h3>Zoom y Paneo (Sobre la imagen)</h3>
-                <ul>
-                    <li><b>Rueda Rat&oacute;n:</b> Zoom (con zoom manual activo)</li>
-                    <li><b>Shift + Rueda Rat&oacute;n:</b> Paneo Horizontal</li>
-                    <li><b>Ctrl + Rueda Rat&oacute;n:</b> Paneo Vertical</li>
-                    <li><b>Clic y Arrastrar:</b> Panear</li>
-                </ul>
-
-                <h3>Otros</h3>
-                <ul>
-                    <li><b>Alt:</b> Activar Foco en Barra de Men&uacute;</li>
-                    <li><b>ESC:</b> Cerrar Ventana de Previsualizaci&oacute;n</li>
+                    <li><b>Ctrl + M&aacute;s (+):</b> Aumentar Tama&ntilde;o de Miniaturas</li>
+                    <li><b>Ctrl + Menos (-):</b> Reducir Tama&ntilde;o de Miniaturas</li>
                 </ul>
             </body>
             </html>
         """;
 
+        // --- INICIO DE LA MODIFICACIÓN ---
+        
+        // 1. Crear un JEditorPane, el componente ideal para mostrar HTML.
+        javax.swing.JEditorPane editorPane = new javax.swing.JEditorPane();
+        
+        // 2. Configurar el JEditorPane.
+        editorPane.setContentType("text/html"); // Le decimos que interprete el texto como HTML.
+        editorPane.setText(helpText);           // Le pasamos el texto.
+        editorPane.setEditable(false);          // Lo hacemos de solo lectura.
+        editorPane.setOpaque(false);            // Hacemos su fondo transparente para que use el del diálogo.
+
+        // 3. Envolver el JEditorPane en un JScrollPane.
+        javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(editorPane);
+        scrollPane.setPreferredSize(new java.awt.Dimension(450, 500));
+        scrollPane.setBorder(null); // Quitamos el borde del scrollpane para un look más limpio.
+        
+        // --- FIN DE LA MODIFICACIÓN ---
+
         JOptionPane.showMessageDialog(
-            view, // Usa la 'view' de esta clase como padre
-            helpText,
+            view,
+            scrollPane,
             "Ayuda: Atajos de Teclado",
             JOptionPane.INFORMATION_MESSAGE
         );
-    } // ---FIN de metodo ---
+    } // ---FIN de metodo mostrarDialogoAyudaAtajos---
 	
 	
 // ****************************************************************************************************** FIN METODOS DE AYUDA
@@ -4135,7 +4243,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     public DefaultListModel<String> getModeloMiniaturasCarrusel() {return this.modeloMiniaturasCarrusel;}
     public DisplayModeManager getDisplayModeManager() {return this.displayModeManager;}
     public InfobarStatusManager getStatusBarManager() {return this.statusBarManager;}
-    
+    public GeneralController getGeneralController() {return this.generalController;}
     
     /**
      * Devuelve el modelo de lista de miniaturas correcto según el modo de trabajo actual.
@@ -4332,6 +4440,8 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     public void setConfigApplicationManager	(ConfigApplicationManager manager) { this.configAppManager = manager; }
     public void setBackgroundControlManager	(BackgroundControlManager manager) {this.backgroundControlManager = manager;}
     public void setDisplayModeManager		(controlador.managers.DisplayModeManager displayModeManager) {this.displayModeManager = displayModeManager;}
+    public void setGeneralController		(GeneralController generalController) {this.generalController = generalController;}
+    
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS
 // ***************************************************************************************************************************    

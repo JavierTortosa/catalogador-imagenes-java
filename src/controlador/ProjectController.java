@@ -827,6 +827,133 @@ public class ProjectController implements IModoController {
     } // --- Fin del método solicitudAlternarMarcaImagen ---
     
     
+// ********************************************************************************************
+// *********************************************** MÉTODOS PARA GESTIÓN DE ARCHIVOS DE PROYECTO    
+// ********************************************************************************************
+
+    /**
+     * Orquesta la creación de un nuevo proyecto.
+     * Llama al manager, refresca la UI del proyecto y actualiza el título de la ventana.
+     */
+    public void solicitarNuevoProyecto() {
+        if (projectManager == null || controllerRef == null || controllerRef.getGeneralController() == null) {
+            logger.error("ERROR [solicitarNuevoProyecto]: Dependencias nulas.");
+            return;
+        }
+        projectManager.nuevoProyecto();
+        logger.info("Nuevo proyecto creado. Volviendo al modo Visualizador...");
+        // Llamamos al GeneralController para que orqueste el cambio de vuelta al modo principal.
+        // Él se encargará de actualizar el título de la ventana y la UI.
+        controllerRef.getGeneralController().cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
+    } // ---FIN de metodo solicitarNuevoProyecto---
+    
+    
+//    public void solicitarNuevoProyecto() {
+//        if (projectManager == null || controllerRef == null) {
+//            logger.error("ERROR [solicitarNuevoProyecto]: Dependencias nulas.");
+//            return;
+//        }
+//        projectManager.nuevoProyecto();
+//        refrescarListasDeProyecto(); // Refresca las JList para que se muestren vacías
+//        controllerRef.actualizarTituloVentana(); // Pide al GeneralController que actualice el título
+//        logger.info("Nuevo proyecto creado y UI actualizada.");
+//    } // ---FIN de metodo solicitarNuevoProyecto---
+
+    /**
+     * Orquesta la apertura de un proyecto existente desde un archivo.
+     * @param rutaArchivo El Path del archivo .prj a abrir.
+     */
+    public void solicitarAbrirProyecto(Path rutaArchivo) {
+        if (projectManager == null || controllerRef == null) {
+            logger.error("ERROR [solicitarAbrirProyecto]: Dependencias nulas.");
+            return;
+        }
+        projectManager.abrirProyecto(rutaArchivo);
+        refrescarListasDeProyecto();
+        controllerRef.actualizarTituloVentana();
+        logger.info("Proyecto {} abierto y UI actualizada.", rutaArchivo.getFileName());
+    } // ---FIN de metodo solicitarAbrirProyecto---
+
+    /**
+     * Orquesta el guardado del proyecto actual.
+     * Si el proyecto es temporal (no tiene un archivo .prj asociado),
+     * delega a `solicitarGuardarProyectoComo`.
+     */
+    public void solicitarGuardarProyecto() {
+        if (projectManager == null) return;
+
+        if (projectManager.getArchivoProyectoActivo() == null) {
+            // Si es un proyecto temporal, la acción "Guardar" debe comportarse como "Guardar Como".
+            solicitarGuardarProyectoComo(null); // Pasamos null para que la lógica interna muestre el JFileChooser
+        } else {
+            // Si ya tiene un archivo, simplemente guardamos los cambios.
+            // (Actualmente, se guarda en cada acción, pero este método es útil para un botón explícito de "Guardar")
+            // projectManager.guardarAArchivo(); // Esta línea es redundante si guardamos en cada cambio, pero la dejamos por claridad.
+            logger.info("Proyecto {} guardado.", projectManager.getNombreProyectoActivo());
+            // Opcional: Mostrar un mensaje en la barra de estado.
+        }
+    } // ---FIN de metodo solicitarGuardarProyecto---
+
+    /**
+     * Orquesta el guardado del proyecto actual en una nueva ubicación.
+     * Muestra un JFileChooser si no se proporciona una ruta.
+     * @param rutaArchivo La ruta donde guardar el archivo, o null para que el usuario elija.
+     */
+    public void solicitarGuardarProyectoComo(Path rutaArchivo) {
+        if (projectManager == null || controllerRef == null || view == null) {
+            logger.error("ERROR [solicitarGuardarProyectoComo]: Dependencias nulas.");
+            return;
+        }
+
+        Path archivoDestino = rutaArchivo;
+
+        if (archivoDestino == null) {
+            // Esta lógica es un duplicado de la Action, se puede refactorizar en el futuro,
+            // pero es útil tenerla aquí por si se llama a guardar un proyecto temporal.
+            JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setDialogTitle("Guardar Proyecto Como...");
+            fileChooser.setCurrentDirectory(projectManager.getCarpetaBaseProyectos().toFile());
+            javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos de Proyecto (*.prj)", "prj");
+            fileChooser.setFileFilter(filter);
+            fileChooser.setSelectedFile(new java.io.File("MiProyecto.prj"));
+
+            int result = fileChooser.showSaveDialog(view);
+            if (result != JFileChooser.APPROVE_OPTION) {
+                return; // El usuario canceló
+            }
+            archivoDestino = fileChooser.getSelectedFile().toPath();
+        }
+
+        // Asegurar la extensión .prj
+        if (!archivoDestino.toString().toLowerCase().endsWith(".prj")) {
+            archivoDestino = archivoDestino.resolveSibling(archivoDestino.getFileName().toString() + ".prj");
+        }
+
+        // Verificar sobrescritura (solo si la ruta no vino de la Action que ya lo verificó)
+        if (rutaArchivo == null && java.nio.file.Files.exists(archivoDestino)) {
+            int overwriteConfirm = JOptionPane.showConfirmDialog(
+                view, "El archivo ya existe. ¿Deseas sobrescribirlo?", "Confirmar Sobrescribir",
+                JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
+            );
+            if (overwriteConfirm != JOptionPane.YES_OPTION) {
+                return;
+            }
+        }
+        
+        projectManager.guardarProyectoComo(archivoDestino);
+        controllerRef.actualizarTituloVentana();
+        logger.info("Proyecto guardado como {} y UI actualizada.", archivoDestino.getFileName());
+    } // ---FIN de metodo solicitarGuardarProyectoComo---
+    
+    
+    
+    
+// ********************************************************************************************
+// ********************************************************** METODOS DE LA TOOLBAR DE PROYECTO    
+// ********************************************************************************************
+    
+    
+    
     public void solicitarEliminacionPermanente() {
         if (registry == null || projectManager == null || view == null) {
             logger.warn("WARN [solicitarEliminacionPermanente]: Dependencias nulas.");

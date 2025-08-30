@@ -1,0 +1,45 @@
+body {
+    /* Usamos una pila de fuentes estándar y un fondo casi blanco */
+    font-family: Segoe UI, sans-serif;
+    background-color: #ECEFF1; /* Un gris azulado muy claro */
+    color: #263238; /* Un gris oscuro para el texto, no negro puro */
+    margin: 15px;
+    line-height: 1.5; /* Mejora la legibilidad del texto */
+}
+
+h1, h2, h3 {
+    /* Usamos un color de acento para los títulos */
+    color: #455A64; /* Un gris azulado más oscuro */
+    border-bottom: 1px solid #B0BEC5; /* Una línea sutil debajo de los títulos */
+    padding-bottom: 5px;
+    margin-top: 25px;
+}
+
+h1 {
+    font-size: 1.8em;
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+b, strong {
+    /* Hacemos la negrita un poco más oscura para que destaque */
+    color: #000;
+}
+
+code {
+    /* Estilo para fragmentos de código o nombres de archivo */
+    background-color: #CFD8DC;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: Consolas, monospace;
+}
+
+ul {
+    padding-left: 20px;
+}
+
+li {
+    margin-bottom: 8px; /* Espacio entre elementos de la lista */
+}

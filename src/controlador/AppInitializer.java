@@ -409,6 +409,7 @@ private void crearUIyComponentesDependientesEnEDT() {
             this.generalController.setModel(this.model);
             this.generalController.setViewManager(this.viewManager);
             this.generalController.setVisorController(this.controller);
+            this.controller.setGeneralController(this.generalController);
             this.generalController.setProjectController(this.projectController);
             this.generalController.setConfigApplicationManager(this.configAppManager);
             this.generalController.setRegistry(registry);

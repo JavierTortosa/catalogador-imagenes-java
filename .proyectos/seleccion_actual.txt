@@ -1,38 +1,14 @@
 # VisorImagenes - Archivo de Proyecto
 
 [SELECCION]
-F:/ARCHIVOS 3D/Chibi/star wars/3DXM - General Grievous Chibi.JPG
-F:/ARCHIVOS 3D/Chibi/star wars/3DXM - Stormtrooper Chibi-20240701T175456Z-001.jpg
-M:/Archivos 3D/Wargames/Star Wars legion/BlueWolf/CC-1004 'Gree' - BW033.jpg
-M:/Archivos 3D/Wargames/Star Wars legion/BlueWolf/CC-1004 - 'Gree' - BWS002.jpg
-M:/Archivos 3D/Wargames/Star Wars legion/BlueWolf/Clay - BW069.jpg
-F:/ARCHIVOS 3D/Figuras/Star Wars/Darth Vader cabezon.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Desert Trooper - Squad - SQ005.png
-F:/ARCHIVOS 3D/Figuras/Star Wars/Gambody - Stormtrooper.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Hey Captain Robots - Diorama - SQ007.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Imperial Spec Ops - WB016.jpg
-D:/Compartir/Encargos/Cuchi Cuchi 2025/Jawa sentado en 2 dados.png
-M:/Archivos 3D/Miniaturas/Star Wars/Magma Trooper - Squad - SQ015.png
-F:/ARCHIVOS 3D/Chibi/star wars/Mini Ewok.jpg
-D:/Compartir/Encargos/Cuchi Cuchi 2025/cuchara/piloto platano.png
-F:/ARCHIVOS 3D/Figuras/Star Wars/Sexy Starwars Girl 2.jpg
-F:/ARCHIVOS 3D/Figuras/Star Wars/Sexy Starwars Girl 3.jpg
-F:/ARCHIVOS 3D/Figuras/Star Wars/Sexy Storm Trooper 2.jpg
-F:/ARCHIVOS 3D/Chibi/star wars/Storm Troopers.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Stormparty - Core - ND001.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Stormparty - Female Sqaud - ND002.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Stormparty - Heavy - ND003.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Stormparty - Vader - ND032.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Stormtrooper - Jungle - SQ079.png
-M:/Archivos 3D/Miniaturas/Star Wars/Stormtrooper - Livery - SF211.png
-F:/ARCHIVOS 3D/Figuras/Star Wars/SW3D Ewoks Diorama t.me_MOXOMOR_aka.jpg
-D:/Compartir/Encargos/Cuchi Cuchi 2025/Vader Wins.jpg
-M:/Archivos 3D/Wargames/Star Wars legion/Warblade Studio - 2024 - 04.jpg
-M:/Archivos 3D/Miniaturas/Star Wars/Welcome Gift - PD01.jpg
-M:/Archivos 3D/Wargames/Star Wars legion/X+wing+(Star+Wars+Legion+scale).jpg
-F:/ARCHIVOS 3D/Figuras/Yoda_UnSupported.jpg
-F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Chibi Santa - 6313818.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Christmas Present_Mimic - 6346014.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Christmas Pine Tree - 6324616.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Skeleton Knight (Black Knight) - 6571644.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Skeleton Mage (Black Bishop) - 6484761.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Skeleton Queen (Black Queen) - 6621265.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Skeleton Soldier Unarmed (Black Pawn) - 6446809.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Skull Brazier (Black Rook) - 6594792.jpg
+F:/ARCHIVOS 3D/Chibi/Cupio Pax Miniatures/Velorian Cleric (White Bishop) - 6484758.jpg
 
 [DESCARTES]
-F:/ARCHIVOS 3D/Chibi/star wars/IG11 Chibi.jpg
-F:/ARCHIVOS 3D/Chibi/star wars/AT-AT Chibi.jpg

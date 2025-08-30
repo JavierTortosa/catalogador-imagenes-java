@@ -23,6 +23,7 @@ import controlador.actions.archivo.DeleteAction;
 // --- SECCIÓN 0: IMPORTS DE CLASES ACTION ESPECCÍFICAS ---
 import controlador.actions.archivo.OpenFileAction;
 import controlador.actions.archivo.RefreshAction;
+import controlador.actions.ayuda.ShowHelpAction;
 import controlador.actions.carousel.ChangeCarouselSpeedAction;
 import controlador.actions.carousel.PauseCarouselAction;
 import controlador.actions.carousel.PlayCarouselAction;
@@ -55,8 +56,13 @@ import controlador.actions.navegacion.VolverACarpetaRaizAction;
 import controlador.actions.orden.CycleSortAction;
 // Importaciones para PanAction y Direction
 import controlador.actions.pan.PanAction;
+import controlador.actions.projects.AbrirProyectoAction;
+import controlador.actions.projects.EliminarProyectoAction;
 import controlador.actions.projects.GestionarProyectoAction;
+import controlador.actions.projects.GuardarProyectoAction;
+import controlador.actions.projects.GuardarProyectoComoAction;
 import controlador.actions.projects.MoveToDiscardsAction;
+import controlador.actions.projects.NuevoProyectoAction;
 import controlador.actions.projects.RelocateImageAction;
 import controlador.actions.projects.RestoreFromDiscardsAction;
 import controlador.actions.projects.ToggleGridStateAction;
@@ -286,7 +292,10 @@ public class ActionFactory {
         // 3.1. Crear la Action genérica para funcionalidades pendientes primero.
         this.funcionalidadPendienteAction = createFuncionalidadPendienteAction();
         actionMap.put(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, this.funcionalidadPendienteAction);
+        
+        
         actionMap.put(AppActionCommands.CMD_AYUDA_VER_ATAJOS, createVerAtajosAction());
+//        actionMap.put(AppActionCommands.CMD_AYUDA_MOSTRAR_GUIA, createShowHelpAction());
         
         // 3.2. Crear y registrar Actions de Zoom
         Action resetZoomAct = createResetZoomAction();
@@ -396,6 +405,11 @@ public class ActionFactory {
         // 3.9. Crear y registrar Actions de Proyecto
         actionMap.put(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, createToggleMarkImageAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_GESTIONAR, createGestionarProyectoAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_NUEVO, createNuevoProyectoAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_ABRIR, createAbrirProyectoAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_GUARDAR, createGuardarProyectoAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, createGuardarProyectoComoAction());
+        actionMap.put(AppActionCommands.CMD_PROYECTO_ELIMINAR, createEliminarProyectoAction());
         actionMap.put(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR, createSwitchToVisualizadorAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES, createMoveToDiscardsAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES, createRestoreFromDiscardsAction());
@@ -499,6 +513,8 @@ public class ActionFactory {
         // Action que depende explícitamente de la 'view'.
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT, createToggleMiniatureTextAction());
 
+        registerAction(AppActionCommands.CMD_AYUDA_MOSTRAR_GUIA, createShowHelpAction());
+        
         registerAction(AppActionCommands.CMD_CAROUSEL_PLAY, new PlayCarouselAction("Iniciar Carrusel", this.carouselManager));
         registerAction(AppActionCommands.CMD_CAROUSEL_PAUSE, new PauseCarouselAction("Pausar Carrusel", this.carouselManager));
         registerAction(AppActionCommands.CMD_CAROUSEL_STOP, new StopCarouselAction("Detener Carrusel", this.carouselManager));
@@ -959,6 +975,32 @@ public class ActionFactory {
     } // --- Fin del método createGestionarProyectoAction ---
     
     
+    private Action createNuevoProyectoAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_NUEVO);
+        return new NuevoProyectoAction(this.generalController, "Nuevo Proyecto", icon);
+    } // ---FIN de metodo createNuevoProyectoAction---
+
+    private Action createAbrirProyectoAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_ABRIR);
+        return new AbrirProyectoAction(this.generalController, "Abrir Proyecto...", icon);
+    } // ---FIN de metodo createAbrirProyectoAction---
+
+    private Action createGuardarProyectoAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GUARDAR);
+        return new GuardarProyectoAction(this.generalController, "Guardar Proyecto", icon);
+    } // ---FIN de metodo createGuardarProyectoAction---
+
+    private Action createGuardarProyectoComoAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO);
+        return new GuardarProyectoComoAction(this.generalController, "Guardar Proyecto Como...", icon);
+    } // ---FIN de metodo createGuardarProyectoComoAction---
+
+    private Action createEliminarProyectoAction() {
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_ELIMINAR);
+        return new EliminarProyectoAction(this.generalController, "Eliminar Proyecto...", icon);
+    } // ---FIN de metodo createEliminarProyectoAction---
+    
+    
     private Action createMoveToDiscardsAction() {
         // Esta acción no necesita icono ya que es para un menú contextual
         return new MoveToDiscardsAction(this.generalController, this.model);
@@ -1358,6 +1400,14 @@ public class ActionFactory {
             }
         };
     } // ---FIN de metodo createVerAtajosAction---
+    
+    
+    private Action createShowHelpAction() {
+        // Esta acción depende de la vista, pero la creamos en la fase "Core"
+        // y le pasamos la referencia a la vista que ya tenemos.
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_AYUDA_MOSTRAR_GUIA);
+        return new ShowHelpAction("Guía de Usuario...", icon, this.view);
+    } // ---FIN de metodo createShowHelpAction---
     
 	
 	// *********************************************** 

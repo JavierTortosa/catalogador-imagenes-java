@@ -275,6 +275,22 @@ public class UIDefinitionService {
         List<MenuItemDefinition> proyectoSubItems = List.of(
             new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_GESTIONAR, 
             		MenuItemType.ITEM, "Gestionar Proyecto Actual...", null),
+            
+            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_NUEVO, 
+                    MenuItemType.ITEM, "Nuevo Proyecto", null),
+            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_ABRIR, 
+                    MenuItemType.ITEM, "Abrir Proyecto...", null),
+            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR, 
+                    MenuItemType.ITEM, "Guardar Proyecto", null),
+            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, 
+                    MenuItemType.ITEM, "Guardar Proyecto Como...", null),
+            new MenuItemDefinition(null, 
+                    MenuItemType.SEPARATOR, null, null),
+            new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_ELIMINAR, 
+                    MenuItemType.ITEM, "Eliminar Proyecto...", null),
+            new MenuItemDefinition(null, 
+                    MenuItemType.SEPARATOR, null, null),
+            
             new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 
             		MenuItemType.CHECKBOX_ITEM, "Marcar para Proyecto", null),
             new MenuItemDefinition(null,//AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
@@ -560,6 +576,10 @@ public class UIDefinitionService {
         
      // --- SECCIÓN 9: MENÚ "AYUDA" ---
         List<MenuItemDefinition> ayudaSubItems = List.of(
+    		new MenuItemDefinition(AppActionCommands.CMD_AYUDA_MOSTRAR_GUIA, 
+                    MenuItemType.ITEM, "Guía de Usuario...", null),
+            new MenuItemDefinition(null, // <-- AÑADIDO
+                    MenuItemType.SEPARATOR, null, null),
             new MenuItemDefinition(AppActionCommands.CMD_AYUDA_VER_ATAJOS, 
                     MenuItemType.ITEM, "Ver Atajos de Teclado...", null)
         );
@@ -663,14 +683,13 @@ public class UIDefinitionService {
 		
 		List<ToolbarButtonDefinition> botonesProyectoEnProyecto = List.of(
 			 new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7101-marcar_imagen_48x48.png", "Cambia la iamgen de Seleccion a Descartes", "proyecto", ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7102-nuevo_proyecto_48x48.png", "Nuevo Proyecto", "proyecto")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7103-abrir_proyecto_48x48.png", "Abrir Proyecto", "proyecto")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7104-guardar_proyecto_48x48.png", "Guardar Proyecto", "proyecto")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7105-guardar_proyecto_como_48x48.png", "Guardar Proyecto Como", "proyecto")//, ButtonType.TOGGLE)
-            ,new ToolbarButtonDefinition(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE, 	"7106-eliminar_proyecto_48x48.png", "Eliminar Proyecto", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_NUEVO, 				"7102-nuevo_proyecto_48x48.png", "Nuevo Proyecto", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ABRIR, 				"7103-abrir_proyecto_48x48.png", "Abrir Proyecto", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR, 			"7104-guardar_proyecto_48x48.png", "Guardar Proyecto", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, 		"7105-guardar_proyecto_como_48x48.png", "Guardar Proyecto Como", "proyecto")//, ButtonType.TOGGLE)
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ELIMINAR,		 	"7106-eliminar_proyecto_48x48.png", "Eliminar Proyecto", "proyecto")//, ButtonType.TOGGLE)
 		);    
-            
-		
+		         
 		// --- BARRA DE BOTONES modos ---
 		List<ToolbarButtonDefinition> botonesModo = List.of(
 				//INICIO GRUPO DE BOTONES

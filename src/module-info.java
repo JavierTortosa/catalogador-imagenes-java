@@ -20,6 +20,7 @@ module VisorImagenes {
     // El módulo necesita la implementación de Logback (tanto classic como core).
     requires ch.qos.logback.classic;
     requires ch.qos.logback.core;
+	requires metadata.extractor;
     // NO HAY NADA MÁS AQUÍ. SE ACABARON LOS REQUIRES.
 
     

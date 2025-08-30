@@ -11,6 +11,44 @@ import java.util.List;
  */
 public interface IProjectManager {
 
+	
+	/**
+     * Inicia un nuevo proyecto vacío, limpiando la selección actual y los descartes.
+     * Pasa a trabajar sobre el archivo temporal.
+     */
+    void nuevoProyecto();
+
+    /**
+     * Carga un proyecto desde el archivo especificado, reemplazando la selección actual.
+     * @param rutaArchivo La ruta completa al archivo .prj del proyecto a abrir.
+     */
+    void abrirProyecto(Path rutaArchivo);
+
+    /**
+     * Guarda el proyecto actual en un archivo específico, estableciéndolo como el proyecto activo.
+     * @param rutaArchivo La ruta completa donde se guardará el archivo .prj.
+     */
+    void guardarProyectoComo(Path rutaArchivo);
+
+    /**
+     * Devuelve la ruta del archivo de proyecto actualmente activo (.prj).
+     * @return El Path del proyecto activo, o null si se está trabajando en el proyecto temporal.
+     */
+    Path getArchivoProyectoActivo();
+
+    /**
+     * Devuelve el nombre del archivo del proyecto activo, o un nombre genérico si es temporal.
+     * @return El nombre del proyecto para mostrar en la UI.
+     */
+    String getNombreProyectoActivo();
+
+    /**
+     * Devuelve la ruta de la carpeta base donde se almacenan los proyectos.
+     * @return El Path de la carpeta de proyectos.
+     */
+    Path getCarpetaBaseProyectos();
+	
+	
     /**
      * Devuelve una lista de los Paths absolutos de todas las imágenes en la SELECCIÓN PRINCIPAL.
      * @return Una nueva lista de Paths (ordenada).

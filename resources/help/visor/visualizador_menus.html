@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .icon-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .icon-table td {
+            padding: 8px;
+            border-bottom: 1px solid #B0BEC5;
+            vertical-align: middle;
+        }
+        .icon-table td:first-child {
+            width: 40px; /* Ancho fijo para la columna del icono */
+            text-align: center;
+        }
+        .icon-table img {
+            width: 24px;
+            height: 24px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Menús y Barras de Herramientas</h2>
+    <p>
+        La mayoría de las funciones son accesibles tanto desde la barra de menús superior como desde las barras de herramientas contextuales. Estas barras aparecen y desaparecen según el modo de trabajo en el que te encuentres.
+    </p>
+
+    <h3>Barra de Navegación</h3>
+    <p>Controles básicos para moverse por la lista de imágenes.</p>
+    <table class="icon-table">
+        <tr>
+            <td><img src="ICON_NAV_PRIMERA"></td>
+            <td><b>Primera Imagen:</b> Salta a la primera imagen de la lista actual.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_NAV_ANTERIOR"></td>
+            <td><b>Imagen Anterior:</b> Retrocede a la imagen anterior.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_NAV_SIGUIENTE"></td>
+            <td><b>Siguiente Imagen:</b> Avanza a la siguiente imagen.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_NAV_ULTIMA"></td>
+            <td><b>Última Imagen:</b> Salta a la última imagen de la lista.</td>
+        </tr>
+    </table>
+
+    <h3>Barra de Edición</h3>
+    <p>Herramientas para la manipulación básica de la imagen visualizada.</p>
+    <table class="icon-table">
+        <tr>
+            <td><img src="ICON_EDIT_ROTAR_IZQ"></td>
+            <td><b>Rotar Izquierda:</b> Gira la imagen 90° en sentido antihorario.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_EDIT_ROTAR_DER"></td>
+            <td><b>Rotar Derecha:</b> Gira la imagen 90° en sentido horario.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_EDIT_VOLTEAR_H"></td>
+            <td><b>Voltear Horizontal:</b> Crea un efecto de espejo horizontal.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_EDIT_VOLTEAR_V"></td>
+            <td><b>Voltear Vertical:</b> Crea un efecto de espejo vertical.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_EDIT_RECORTAR"></td>
+            <td><b>Recortar:</b> (Función en desarrollo) Permitirá recortar la imagen.</td>
+        </tr>
+    </table>
+    
+    <h3>Barra de Zoom</h3>
+    <p>Controla cómo se ajusta la imagen al panel de visualización.</p>
+    <table class="icon-table">
+        <tr>
+            <td><img src="ICON_ZOOM_AJUSTAR"></td>
+            <td><b>Ajustar a Pantalla:</b> Escala la imagen para que quepa completamente en el visor, manteniendo proporciones. <b>Atajo:</b> <code>1</code>.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_ZOOM_AUTO"></td>
+            <td><b>Tamaño Original (100%):</b> Muestra la imagen a su tamaño real, pixel por pixel. <b>Atajo:</b> <code>2</code>.</td>
+        </tr>
+		<tr>
+            <td><img src="ICON_ZOOM_ANCHO"></td>
+            <td><b>Ancho al Maximo:</b> Muestra la imagen ajustada al ancho maximo del espacio sin importar el alto. <b>Atajo:</b> <code>3</code>.</td>
+        </tr>
+		<tr>
+            <td><img src="ICON_ZOOM_ALTO"></td>
+            <td><b>Alto al Maximo:</b> Muestra la imagen ajustada al alto maximo del espacio sin importar el ancho. <b>Atajo:</b> <code>4</code>.</td>
+        </tr>
+		<tr>
+            <td><img src="ICON_ZOOM_RELLENAR"></td>
+            <td><b>Relleno (100%):</b> Modifica la vista para que la imagen ocupe el ancho y el alto Maximo sin importar si se deforma. <b>Atajo:</b> <code>5</code>.</td>
+        </tr>
+		<tr>
+            <td><img src="ICON_ZOOM_FIJO"></td>
+            <td><b>Zoom Fijo:</b> Captura el % de zoom de la imagen actual, podemos ajustar este % con el selector o con la rueda del mouse. <b>Atajo:</b> <code>6</code>.</td>
+        </tr>
+		<tr>
+            <td><img src="ICON_ZOOM_ESPECIFICO"></td>
+            <td><b>Zoom Especifico:</b> Muestra la imagen al tamaño que hemos especificado en el selector manteniendo proporciones. <b>Atajo:</b> <code>7</code>.</td>
+        </tr>
+		
+		
+		
+		
+         <!-- Añadidos todos los modos de zoom -->
+    </table>
+    
+    <h3>Barra de Proyecto (en Modo Visualizador)</h3>
+    <p>Acciones rápidas relacionadas con el proyecto activo.</p>
+    <table class="icon-table">
+        <tr>
+            <td><img src="ICON_PROYECTO_MARCAR"></td>
+            <td><b>Marcar/Desmarcar Imagen:</b> Añade o quita la imagen actual de la selección del proyecto. <b>Atajo:</b> <code>Barra Espaciadora</code>.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_ZOOM_MANUAL"></td>
+            <td><b>Activar Zoom Manual:</b> Permite usar la rueda del ratón sobre la imagen para hacer zoom y arrastrar para panear. <b>Atajo:</b> <code>8</code>.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_ZOOM_RESET"></td>
+            <td><b>Resetear Zoom:</b> Devuelve la imagen al tamaño del zoom actual y la centra. <b>Atajo:</b> <code>9</code>.</td>
+        </tr>
+    </table>
+
+    <h3>Barra de Proyecto (en Modo Proyecto)</h3>
+    <p>Herramientas para la gestión de archivos de proyecto.</p>
+    <table class="icon-table">
+        <tr>
+            <td><img src="ICON_PROYECTO_NUEVO"></td>
+            <td><b>Nuevo Proyecto:</b> Cierra el proyecto actual y crea uno nuevo, vacío.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_PROYECTO_ABRIR"></td>
+            <td><b>Abrir Proyecto:</b> Permite buscar y cargar un archivo de proyecto <code>.prj</code> guardado previamente.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_PROYECTO_GUARDAR"></td>
+            <td><b>Guardar Proyecto:</b> Guarda los cambios en el archivo de proyecto actual. Si es un proyecto nuevo (temporal), se comportará como "Guardar Como...".</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_PROYECTO_GUARDAR_COMO"></td>
+            <td><b>Guardar Proyecto Como:</b> Permite guardar el proyecto actual en un nuevo archivo <code>.prj</code>.</td>
+        </tr>
+        <tr>
+            <td><img src="ICON_PROYECTO_ELIMINAR"></td>
+            <td><b>Eliminar Proyecto:</b> Permite seleccionar un archivo de proyecto <code>.prj</code> del disco y eliminarlo permanentemente.</td>
+        </tr>
+    </table>
+</body>
+</html>

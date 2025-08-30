@@ -233,6 +233,19 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 
 //****************************************************************************************** Fin Setters
     
+    
+    /**
+     * Delega la solicitud de actualizar el título de la ventana principal al VisorController.
+     * Este método se llama después de operaciones que pueden cambiar el contexto,
+     * como cargar un nuevo proyecto.
+     */
+    public void actualizarTituloVentana() {
+        if (visorController != null) {
+            visorController.actualizarTituloVentana();
+        }
+    } // ---FIN de metodo actualizarTituloVentana---
+    
+    
     /**
      * Orquesta la transición entre los diferentes modos de trabajo de la aplicación.
      * Es el punto de entrada central para cambiar de vista. Contiene la lógica

@@ -13,6 +13,7 @@ public interface AppActionCommands {
 
  // --- Ayuda ---
 	public static final String CMD_AYUDA_VER_ATAJOS 				= "cmd.ayuda.ver_atajos";
+	public static final String CMD_AYUDA_MOSTRAR_GUIA 				= "cmd.ayuda.mostrar_guia";
 	
  // --- Archivo ---
     public static final String CMD_ARCHIVO_ABRIR 					= "cmd.archivo.abrir";
@@ -134,6 +135,11 @@ public interface AppActionCommands {
     public static final String CMD_PROYECTO_TOGGLE_MARCA 			= "cmd.proyecto.toggle_marca"; 			// Para Marcar/Desmarcar imagen actual
     public static final String CMD_PROYECTO_GESTIONAR 				= "cmd.proyecto.gestionar";     		// Para abrir el diálogo/funcionalidad de gestión de proyectos (el JOptionPane por ahora)
     public static final String CMD_PROYECTO_TOGGLE_VISTA 			= "cmd.proyecto.toggle_vista_seleccion";//  botón/menú para alternar vista
+    public static final String CMD_PROYECTO_NUEVO          			= "cmd.proyecto.nuevo";
+    public static final String CMD_PROYECTO_ABRIR          			= "cmd.proyecto.abrir";
+    public static final String CMD_PROYECTO_GUARDAR        			= "cmd.proyecto.guardar";
+    public static final String CMD_PROYECTO_GUARDAR_COMO   			= "cmd.proyecto.guardar_como";
+    public static final String CMD_PROYECTO_ELIMINAR   				= "cmd.proyecto.borrar";
     
     
     // Gestor de proyectos - TOOLBAR EXPORTAR
