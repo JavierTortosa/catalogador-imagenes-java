@@ -34,6 +34,7 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.zoom.ZoomModeEnum;
+import utils.ImageUtils;
 import vista.panels.ImageDisplayPanel;
 import vista.theme.ThemeManager;
 
@@ -175,7 +176,18 @@ public class ThumbnailPreviewer {
                 }
                 
                 if (imagePath != null && java.nio.file.Files.exists(imagePath)) {
-                    return ImageIO.read(imagePath.toFile());
+                	
+                	// 1. Cargamos la imagen original del disco.
+                    BufferedImage imagenOriginal = ImageIO.read(imagePath.toFile());
+                    
+                    // 2. Aplicamos la corrección de orientación EXIF.
+                    BufferedImage imagenCorregida = ImageUtils.correctImageOrientation(imagenOriginal, imagePath);
+                    
+                    // 3. Devolvemos la imagen YA CORREGIDA.
+                    return imagenCorregida;
+                	
+//                    return ImageIO.read(imagePath.toFile());
+                    
                 }
                 return null;
             }

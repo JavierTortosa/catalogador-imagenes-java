@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Área de Visualización Principal</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>El Área de Visualización Principal</h1>
+    <p>
+        Esta es la zona central de la aplicación, donde interactúas directamente con tus imágenes. Su comportamiento cambia según el <strong>Modo de Vista</strong> seleccionado.
+    </p>
+
+    <h2>Modos de Vista (Display Modes)</h2>
+    <p>Puedes cambiar entre estos modos desde el menú <strong>Vista > Modos de Visualización</strong> o desde la barra de herramientas "Vista".</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_4007-imagen_unica_48x48.png"></td>
+            <td>
+                <strong>Vista de Imagen Única (Single Image)</strong>
+                <p>El modo por defecto. Muestra la imagen seleccionada a gran tamaño. Permite un análisis detallado. En este modo puedes:</p>
+                <ul>
+                    <li><strong>Panear:</strong> Haz clic izquierdo y arrastra la imagen para moverla si tiene zoom.</li>
+                    <li><strong>Zoom:</strong> Usa la rueda del ratón si el <a href="#" onclick="alert('Link a la sección de Zoom pendiente'); return false;">Modo de Zoom Manual</a> está activado.</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_4002-grid_48x48.png"></td>
+            <td>
+                <strong>Vista de Cuadrícula (Grid)</strong>
+                <p>Muestra una parrilla de miniaturas de la lista actual. Ideal para una vista de pájaro de tu colección.</p>
+                <ul>
+                    <li><strong>Doble Clic:</strong> Haz doble clic sobre cualquier miniatura para abrir una ventana de <strong>previsualización</strong> grande y temporal.</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+    <hr>
+
+    <h2>Controles Inferiores del Visor (Barra de Control de Imagen)</h2>
+    <p>
+        Debajo del área de la imagen, encontrarás una barra de herramientas con controles interactivos avanzados. Muchos de estos botones tienen funciones ocultas con diferentes tipos de clic.
+    </p>
+    
+    <h3>Control de Paneo (D-Pad)</h3>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_d-pad_none_48x48.png"></td>
+            <td>
+                <strong>D-Pad de Paneo Rápido</strong>
+                <p>Permite mover la imagen rápidamente a sus bordes. Es especialmente útil para imágenes muy altas o anchas.</p>
+                <ul>
+                    <li><strong>Clic Izquierdo:</strong> Mueve la imagen al borde correspondiente de forma instantánea. (Ej: Clic en flecha arriba lleva al borde superior de la imagen).</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_3008-reset_48x48.png"></td>
+            <td><strong>Resetear Zoom y Paneo:</strong> Restaura la imagen a la posición y tamaño definidos por el modo de zoom actual.</td>
+        </tr>
+    </table>
+    
+    <h3>Controles de Fondo</h3>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_background_theme.png"></td>
+            <td>
+                <strong>Fondo del Tema (Fijo):</strong>
+                <ul>
+                    <li><strong>Clic Izquierdo:</strong> Aplica el color de fondo por defecto del tema actual a la vista de la imagen (cambio temporal para la sesión).</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_background_checkered.png"></td>
+            <td>
+                <strong>Fondo a Cuadros (Fijo):</strong>
+                <ul>
+                    <li><strong>Clic Izquierdo:</strong> Aplica un fondo a cuadros de tablero de ajedrez (cambio temporal para la sesión).</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_background_slot.png"></td>
+            <td>
+                <strong>Ranuras de Color Personalizadas (x4):</strong>
+                <p>Estos 4 puntos te permiten guardar y acceder rápidamente a tus colores de fondo favoritos.</p>
+                <ul>
+                    <li><strong>Clic Izquierdo:</strong> Si la ranura tiene un color guardado, lo aplica al fondo. Si está vacía, abre el selector de color para que elijas uno y lo guardes en esa ranura.</li>
+                    <li><strong>Doble Clic:</strong> Borra el color guardado de la ranura, dejándola vacía.</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_paint-palette--streamline-core.png"></td>
+            <td>
+                <strong>Selector de Color:</strong>
+                <ul>
+                    <li><strong>Clic Izquierdo:</strong> Abre el selector de color para que elijas un fondo personalizado para la sesión actual, sin guardarlo en ninguna ranura.</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+</body>
+</html>

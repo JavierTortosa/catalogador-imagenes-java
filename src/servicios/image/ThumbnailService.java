@@ -20,7 +20,8 @@ import org.slf4j.LoggerFactory;
 
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
-import servicios.cache.LruCache; 
+import servicios.cache.LruCache;
+import utils.ImageUtils; 
 
 public class ThumbnailService {
 	
@@ -120,6 +121,11 @@ public class ThumbnailService {
                 logger.error("[ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: " + rutaArchivo);
                 return null;
             }
+            
+            // La variable 'imagenOriginal' ahora contendrá la imagen ya rotada correctamente.
+            imagenOriginal = ImageUtils.correctImageOrientation(imagenOriginal, rutaArchivo);
+            
+            
             int anchoFinalMiniatura = anchoObjetivo;
             int altoFinalMiniatura;
             if (altoObjetivo <= 0) {

@@ -62,6 +62,8 @@ public class ToggleSyncAction extends AbstractAction {
             logger.debug("[ToggleSyncAction] El usuario ha confirmado el cambio. Nuevo estado: " + (estadoDeseado ? "ACTIVADO" : "DESACTIVADO"));
             model.setSyncVisualizadorCarrusel(estadoDeseado);
             configuration.setString(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, String.valueOf(estadoDeseado));
+            
+            // Le decimos al GeneralController que actualice TODO lo que dependa del nuevo estado
             generalController.notificarAccionesSensiblesAlContexto();
         } else {
             // El usuario canceló: NO cambiamos el estado del modelo.

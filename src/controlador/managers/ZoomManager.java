@@ -45,9 +45,9 @@ public class ZoomManager implements IZoomManager {
         // Constructor vacío. Las dependencias se inyectan.
     } // --- FIN del método ZoomManager (constructor) ---
 
-    // =================================================================================
-    // MÉTODOS PÚBLICOS DE LA INTERFAZ IZoomManager
-    // =================================================================================
+// =================================================================================
+// 										MÉTODOS PÚBLICOS DE LA INTERFAZ IZoomManager
+// =================================================================================
     
     @Override
     public void setPermisoManual(boolean activar) {
@@ -99,9 +99,6 @@ public class ZoomManager implements IZoomManager {
             return;
         }
         
-     // =========================================================================
-        // === INICIO DE LA CORRECCIÓN ===
-        // =========================================================================
         // La comprobación ahora solo falla si las dependencias ESENCIALES son nulas.
         // statusBarManager es opcional.
         if (registry == null || viewManager == null) {
@@ -109,9 +106,6 @@ public class ZoomManager implements IZoomManager {
             if (onComplete != null) onComplete.run();
             return;
         }
-        // =========================================================================
-        // === FIN DE LA CORRECCIÓN ===
-        // =========================================================================
 
         if (model.getCurrentImage() == null) {
             ImageDisplayPanel panelActivo = getActiveDisplayPanel();
@@ -140,21 +134,12 @@ public class ZoomManager implements IZoomManager {
             }
         } else if (modo == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
         	
-        	// =========================================================================
-            // === INICIO DE LA CORRECCIÓN 2: Comprobación de null para statusBarManager ===
-            // =========================================================================
             if (statusBarManager != null) {
                 double porcentajeDelLabel = statusBarManager.getValorActualDelLabelZoom();
                 factorDeZoomParaAplicar = porcentajeDelLabel / 100.0;
             } else {
                 factorDeZoomParaAplicar = model.getZoomCustomPercentage() / 100.0;
             }
-            // =========================================================================
-            // === FIN DE LA CORRECCIÓN 2 ===
-            // =========================================================================
-//            double porcentajeDelLabel = statusBarManager.getValorActualDelLabelZoom();
-//            factorDeZoomParaAplicar = porcentajeDelLabel / 100.0;
-            
             
         } else {
             factorDeZoomParaAplicar = _calcularFactorDeZoom(modo);

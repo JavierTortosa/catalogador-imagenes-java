@@ -43,8 +43,8 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 36: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 37: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 38: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = C:\Users\ameri\Desktop\Menu] -> Clave: 'inicio.carpeta', Valor: 'C:\Users\ameri\Desktop\Menu'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = ] -> Clave: 'inicio.imagen', Valor: ''
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = F:\ARCHIVOS 3D\Chibi] -> Clave: 'inicio.carpeta', Valor: 'F:\ARCHIVOS 3D\Chibi'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = 3DXM - Armoured Mon-Star Chibi.jpg] -> Clave: 'inicio.imagen', Valor: '3DXM - Armoured Mon-Star Chibi.jpg'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 41: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 42: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 43: Ignorada (comentario/vacía)
@@ -123,180 +123,179 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 116: [interfaz.boton.navegacion.nav_primera.visible = true] -> Clave: 'interfaz.boton.navegacion.nav_primera.visible', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 117: [interfaz.boton.navegacion.nav_siguiente.visible = true] -> Clave: 'interfaz.boton.navegacion.nav_siguiente.visible', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 118: [interfaz.boton.navegacion.nav_ultima.visible = true] -> Clave: 'interfaz.boton.navegacion.nav_ultima.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 119: [interfaz.boton.proyecto.proyecto_toggle_marca.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_toggle_marca.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 120: [interfaz.boton.proyecto.todo_funcionalidad_pendiente.visible = true] -> Clave: 'interfaz.boton.proyecto.todo_funcionalidad_pendiente.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 121: [interfaz.boton.proyecto_vista.proyecto_toggle_marca.visible = true] -> Clave: 'interfaz.boton.proyecto_vista.proyecto_toggle_marca.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 122: [interfaz.boton.proyecto_vista.zoom_manual_toggle.visible = true] -> Clave: 'interfaz.boton.proyecto_vista.zoom_manual_toggle.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 123: [interfaz.boton.proyecto_vista.zoom_reset.visible = true] -> Clave: 'interfaz.boton.proyecto_vista.zoom_reset.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 124: [interfaz.boton.sincronizacion.sync_visor_carrusel.visible = true] -> Clave: 'interfaz.boton.sincronizacion.sync_visor_carrusel.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 125: [interfaz.boton.toggle.mantener_proporciones.visible = true] -> Clave: 'interfaz.boton.toggle.mantener_proporciones.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 126: [interfaz.boton.toggle.subcarpetas.visible = true] -> Clave: 'interfaz.boton.toggle.subcarpetas.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 127: [interfaz.boton.toggle.vista_pantalla_completa.visible = true] -> Clave: 'interfaz.boton.toggle.vista_pantalla_completa.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 128: [interfaz.boton.toggle.vista_toggle_always_on_top.visible = true] -> Clave: 'interfaz.boton.toggle.vista_toggle_always_on_top.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 129: [interfaz.boton.velocidad_carrousel.carousel_speed_decrease.visible = true] -> Clave: 'interfaz.boton.velocidad_carrousel.carousel_speed_decrease.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 130: [interfaz.boton.velocidad_carrousel.carousel_speed_increase.visible = true] -> Clave: 'interfaz.boton.velocidad_carrousel.carousel_speed_increase.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 131: [interfaz.boton.velocidad_carrousel.carousel_speed_reset.visible = true] -> Clave: 'interfaz.boton.velocidad_carrousel.carousel_speed_reset.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 132: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 133: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 134: [interfaz.boton.vista.vista_grid.visible = true] -> Clave: 'interfaz.boton.vista.vista_grid.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 135: [interfaz.boton.vista.vista_mostrar_dialogo_lista.visible = true] -> Clave: 'interfaz.boton.vista.vista_mostrar_dialogo_lista.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 136: [interfaz.boton.vista.vista_polaroid.visible = true] -> Clave: 'interfaz.boton.vista.vista_polaroid.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 137: [interfaz.boton.vista.vista_single.visible = true] -> Clave: 'interfaz.boton.vista.vista_single.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 138: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 139: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 140: [interfaz.boton.zoom.zoom_tipo_ajustar.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_ajustar.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 141: [interfaz.boton.zoom.zoom_tipo_alto.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_alto.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 142: [interfaz.boton.zoom.zoom_tipo_ancho.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_ancho.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 143: [interfaz.boton.zoom.zoom_tipo_auto.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_auto.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 144: [interfaz.boton.zoom.zoom_tipo_especificado.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_especificado.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 145: [interfaz.boton.zoom.zoom_tipo_fijo.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_fijo.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 146: [interfaz.boton.zoom.zoom_tipo_rellenar.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_rellenar.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 147: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 148: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 149: [interfaz.herramientas.acciones_exportacion.visible = true] -> Clave: 'interfaz.herramientas.acciones_exportacion.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 150: [interfaz.herramientas.barra_estado_controles.visible = true] -> Clave: 'interfaz.herramientas.barra_estado_controles.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 151: [interfaz.herramientas.barra_filtros.visible = true] -> Clave: 'interfaz.herramientas.barra_filtros.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 152: [interfaz.herramientas.barra_grid.visible = true] -> Clave: 'interfaz.herramientas.barra_grid.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 153: [interfaz.herramientas.botonesordenlista.visible = true] -> Clave: 'interfaz.herramientas.botonesordenlista.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 154: [interfaz.herramientas.carrousel.visible = true] -> Clave: 'interfaz.herramientas.carrousel.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 155: [interfaz.herramientas.control.visible = true] -> Clave: 'interfaz.herramientas.control.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 156: [interfaz.herramientas.controles_imagen_inferior.visible = true] -> Clave: 'interfaz.herramientas.controles_imagen_inferior.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 157: [interfaz.herramientas.edicion.visible = true] -> Clave: 'interfaz.herramientas.edicion.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 158: [interfaz.herramientas.especiales.visible = true] -> Clave: 'interfaz.herramientas.especiales.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 159: [interfaz.herramientas.modo.visible = true] -> Clave: 'interfaz.herramientas.modo.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 160: [interfaz.herramientas.navegacion.visible = true] -> Clave: 'interfaz.herramientas.navegacion.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 161: [interfaz.herramientas.proyecto.visible = true] -> Clave: 'interfaz.herramientas.proyecto.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 162: [interfaz.herramientas.proyecto_vista.visible = true] -> Clave: 'interfaz.herramientas.proyecto_vista.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 163: [interfaz.herramientas.sincronizacion.visible = true] -> Clave: 'interfaz.herramientas.sincronizacion.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 164: [interfaz.herramientas.toggle.visible = true] -> Clave: 'interfaz.herramientas.toggle.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 165: [interfaz.herramientas.velocidad_carrousel.visible = true] -> Clave: 'interfaz.herramientas.velocidad_carrousel.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 166: [interfaz.herramientas.vista.visible = true] -> Clave: 'interfaz.herramientas.vista.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 167: [interfaz.herramientas.zoom.visible = true] -> Clave: 'interfaz.herramientas.zoom.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 168: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 169: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 170: [interfaz.infobar.inferior.ctrl_modo_zoom.visible = true] -> Clave: 'interfaz.infobar.inferior.ctrl_modo_zoom.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 171: [interfaz.infobar.inferior.ctrl_zoom_pct.visible = true] -> Clave: 'interfaz.infobar.inferior.ctrl_zoom_pct.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 172: [interfaz.infobar.inferior.icono_prop.visible = true] -> Clave: 'interfaz.infobar.inferior.icono_prop.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 173: [interfaz.infobar.inferior.icono_subc.visible = true] -> Clave: 'interfaz.infobar.inferior.icono_subc.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 174: [interfaz.infobar.inferior.icono_zm.visible = true] -> Clave: 'interfaz.infobar.inferior.icono_zm.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 175: [interfaz.infobar.inferior.mensajes_app.visible = true] -> Clave: 'interfaz.infobar.inferior.mensajes_app.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 176: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 177: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 178: [interfaz.infobar.inferior.nombre_ruta.formato = ruta_completa] -> Clave: 'interfaz.infobar.inferior.nombre_ruta.formato', Valor: 'ruta_completa'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 179: [interfaz.infobar.inferior.nombre_ruta.visible = true] -> Clave: 'interfaz.infobar.inferior.nombre_ruta.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 119: [interfaz.boton.proyecto.proyecto_abrir.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_abrir.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 120: [interfaz.boton.proyecto.proyecto_borrar.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_borrar.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 121: [interfaz.boton.proyecto.proyecto_guardar.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_guardar.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 122: [interfaz.boton.proyecto.proyecto_guardar_como.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_guardar_como.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 123: [interfaz.boton.proyecto.proyecto_nuevo.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_nuevo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 124: [interfaz.boton.proyecto.proyecto_toggle_marca.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_toggle_marca.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 125: [interfaz.boton.proyecto_vista.proyecto_toggle_marca.visible = true] -> Clave: 'interfaz.boton.proyecto_vista.proyecto_toggle_marca.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 126: [interfaz.boton.proyecto_vista.zoom_manual_toggle.visible = true] -> Clave: 'interfaz.boton.proyecto_vista.zoom_manual_toggle.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 127: [interfaz.boton.proyecto_vista.zoom_reset.visible = true] -> Clave: 'interfaz.boton.proyecto_vista.zoom_reset.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 128: [interfaz.boton.sincronizacion.sync_visor_carrusel.visible = true] -> Clave: 'interfaz.boton.sincronizacion.sync_visor_carrusel.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 129: [interfaz.boton.toggle.mantener_proporciones.visible = true] -> Clave: 'interfaz.boton.toggle.mantener_proporciones.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 130: [interfaz.boton.toggle.subcarpetas.visible = true] -> Clave: 'interfaz.boton.toggle.subcarpetas.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 131: [interfaz.boton.toggle.vista_pantalla_completa.visible = true] -> Clave: 'interfaz.boton.toggle.vista_pantalla_completa.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 132: [interfaz.boton.toggle.vista_toggle_always_on_top.visible = true] -> Clave: 'interfaz.boton.toggle.vista_toggle_always_on_top.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 133: [interfaz.boton.velocidad_carrousel.carousel_speed_decrease.visible = true] -> Clave: 'interfaz.boton.velocidad_carrousel.carousel_speed_decrease.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 134: [interfaz.boton.velocidad_carrousel.carousel_speed_increase.visible = true] -> Clave: 'interfaz.boton.velocidad_carrousel.carousel_speed_increase.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 135: [interfaz.boton.velocidad_carrousel.carousel_speed_reset.visible = true] -> Clave: 'interfaz.boton.velocidad_carrousel.carousel_speed_reset.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 136: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 137: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 138: [interfaz.boton.vista.vista_grid.visible = true] -> Clave: 'interfaz.boton.vista.vista_grid.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 139: [interfaz.boton.vista.vista_mostrar_dialogo_lista.visible = true] -> Clave: 'interfaz.boton.vista.vista_mostrar_dialogo_lista.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 140: [interfaz.boton.vista.vista_polaroid.visible = true] -> Clave: 'interfaz.boton.vista.vista_polaroid.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 141: [interfaz.boton.vista.vista_single.visible = true] -> Clave: 'interfaz.boton.vista.vista_single.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 142: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 143: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 144: [interfaz.boton.zoom.zoom_tipo_ajustar.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_ajustar.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 145: [interfaz.boton.zoom.zoom_tipo_alto.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_alto.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 146: [interfaz.boton.zoom.zoom_tipo_ancho.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_ancho.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 147: [interfaz.boton.zoom.zoom_tipo_auto.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_auto.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 148: [interfaz.boton.zoom.zoom_tipo_especificado.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_especificado.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 149: [interfaz.boton.zoom.zoom_tipo_fijo.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_fijo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 150: [interfaz.boton.zoom.zoom_tipo_rellenar.visible = true] -> Clave: 'interfaz.boton.zoom.zoom_tipo_rellenar.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 151: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 152: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 153: [interfaz.herramientas.acciones_exportacion.visible = true] -> Clave: 'interfaz.herramientas.acciones_exportacion.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 154: [interfaz.herramientas.barra_estado_controles.visible = true] -> Clave: 'interfaz.herramientas.barra_estado_controles.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 155: [interfaz.herramientas.barra_filtros.visible = true] -> Clave: 'interfaz.herramientas.barra_filtros.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 156: [interfaz.herramientas.barra_grid.visible = true] -> Clave: 'interfaz.herramientas.barra_grid.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 157: [interfaz.herramientas.botonesordenlista.visible = true] -> Clave: 'interfaz.herramientas.botonesordenlista.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 158: [interfaz.herramientas.carrousel.visible = true] -> Clave: 'interfaz.herramientas.carrousel.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 159: [interfaz.herramientas.control.visible = true] -> Clave: 'interfaz.herramientas.control.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 160: [interfaz.herramientas.controles_imagen_inferior.visible = true] -> Clave: 'interfaz.herramientas.controles_imagen_inferior.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 161: [interfaz.herramientas.edicion.visible = true] -> Clave: 'interfaz.herramientas.edicion.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 162: [interfaz.herramientas.especiales.visible = true] -> Clave: 'interfaz.herramientas.especiales.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 163: [interfaz.herramientas.modo.visible = true] -> Clave: 'interfaz.herramientas.modo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 164: [interfaz.herramientas.navegacion.visible = true] -> Clave: 'interfaz.herramientas.navegacion.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 165: [interfaz.herramientas.proyecto.visible = true] -> Clave: 'interfaz.herramientas.proyecto.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 166: [interfaz.herramientas.proyecto_vista.visible = true] -> Clave: 'interfaz.herramientas.proyecto_vista.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 167: [interfaz.herramientas.sincronizacion.visible = true] -> Clave: 'interfaz.herramientas.sincronizacion.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 168: [interfaz.herramientas.toggle.visible = true] -> Clave: 'interfaz.herramientas.toggle.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 169: [interfaz.herramientas.velocidad_carrousel.visible = true] -> Clave: 'interfaz.herramientas.velocidad_carrousel.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 170: [interfaz.herramientas.vista.visible = true] -> Clave: 'interfaz.herramientas.vista.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 171: [interfaz.herramientas.zoom.visible = true] -> Clave: 'interfaz.herramientas.zoom.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 172: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 173: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 174: [interfaz.infobar.inferior.ctrl_modo_zoom.visible = true] -> Clave: 'interfaz.infobar.inferior.ctrl_modo_zoom.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 175: [interfaz.infobar.inferior.ctrl_zoom_pct.visible = true] -> Clave: 'interfaz.infobar.inferior.ctrl_zoom_pct.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 176: [interfaz.infobar.inferior.icono_prop.visible = true] -> Clave: 'interfaz.infobar.inferior.icono_prop.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 177: [interfaz.infobar.inferior.icono_subc.visible = true] -> Clave: 'interfaz.infobar.inferior.icono_subc.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 178: [interfaz.infobar.inferior.icono_zm.visible = true] -> Clave: 'interfaz.infobar.inferior.icono_zm.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 179: [interfaz.infobar.inferior.mensajes_app.visible = true] -> Clave: 'interfaz.infobar.inferior.mensajes_app.visible', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 180: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 181: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 182: [interfaz.infobar.inferior.visible = true] -> Clave: 'interfaz.infobar.inferior.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 183: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 182: [interfaz.infobar.inferior.nombre_ruta.formato = ruta_completa] -> Clave: 'interfaz.infobar.inferior.nombre_ruta.formato', Valor: 'ruta_completa'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 183: [interfaz.infobar.inferior.nombre_ruta.visible = true] -> Clave: 'interfaz.infobar.inferior.nombre_ruta.visible', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 184: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 185: [interfaz.infobar.superior.dimensiones.visible = true] -> Clave: 'interfaz.infobar.superior.dimensiones.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 186: [interfaz.infobar.superior.fecha_archivo.visible = true] -> Clave: 'interfaz.infobar.superior.fecha_archivo.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 187: [interfaz.infobar.superior.formato_imagen.visible = true] -> Clave: 'interfaz.infobar.superior.formato_imagen.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 188: [interfaz.infobar.superior.indice_total.visible = true] -> Clave: 'interfaz.infobar.superior.indice_total.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 189: [interfaz.infobar.superior.modo_zoom.visible = true] -> Clave: 'interfaz.infobar.superior.modo_zoom.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 190: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 191: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 192: [interfaz.infobar.superior.nombre_ruta.formato = solo_nombre] -> Clave: 'interfaz.infobar.superior.nombre_ruta.formato', Valor: 'solo_nombre'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 193: [interfaz.infobar.superior.nombre_ruta.visible = true] -> Clave: 'interfaz.infobar.superior.nombre_ruta.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 185: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 186: [interfaz.infobar.inferior.visible = true] -> Clave: 'interfaz.infobar.inferior.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 187: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 188: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 189: [interfaz.infobar.superior.dimensiones.visible = true] -> Clave: 'interfaz.infobar.superior.dimensiones.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 190: [interfaz.infobar.superior.fecha_archivo.visible = true] -> Clave: 'interfaz.infobar.superior.fecha_archivo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 191: [interfaz.infobar.superior.formato_imagen.visible = true] -> Clave: 'interfaz.infobar.superior.formato_imagen.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 192: [interfaz.infobar.superior.indice_total.visible = true] -> Clave: 'interfaz.infobar.superior.indice_total.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 193: [interfaz.infobar.superior.modo_zoom.visible = true] -> Clave: 'interfaz.infobar.superior.modo_zoom.visible', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 194: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 195: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 196: [interfaz.infobar.superior.tamano_archivo.visible = true] -> Clave: 'interfaz.infobar.superior.tamano_archivo.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 197: [interfaz.infobar.superior.visible = true] -> Clave: 'interfaz.infobar.superior.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 198: [interfaz.infobar.superior.zoom_real_pct.visible = true] -> Clave: 'interfaz.infobar.superior.zoom_real_pct.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 196: [interfaz.infobar.superior.nombre_ruta.formato = solo_nombre] -> Clave: 'interfaz.infobar.superior.nombre_ruta.formato', Valor: 'solo_nombre'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 197: [interfaz.infobar.superior.nombre_ruta.visible = true] -> Clave: 'interfaz.infobar.superior.nombre_ruta.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 198: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 199: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 200: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 201: [interfaz.menu.vista.barra_de_botones.seleccionado = true] -> Clave: 'interfaz.menu.vista.barra_de_botones.seleccionado', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 202: [interfaz.menu.vista.barra_de_menu.seleccionado = true] -> Clave: 'interfaz.menu.vista.barra_de_menu.seleccionado', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 203: [interfaz.menu.vista.fondo_a_cuadros.seleccionado = false] -> Clave: 'interfaz.menu.vista.fondo_a_cuadros.seleccionado', Valor: 'false'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 204: [interfaz.menu.vista.imagenes_en_miniatura.seleccionado = true] -> Clave: 'interfaz.menu.vista.imagenes_en_miniatura.seleccionado', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 205: [interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado = false] -> Clave: 'interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado', Valor: 'false'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 206: [interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado = true] -> Clave: 'interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 207: [interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado = true] -> Clave: 'interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 208: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 209: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 210: [interfaz.menu.zoom.mantener_proporciones.seleccionado = true] -> Clave: 'interfaz.menu.zoom.mantener_proporciones.seleccionado', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 211: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 200: [interfaz.infobar.superior.tamano_archivo.visible = true] -> Clave: 'interfaz.infobar.superior.tamano_archivo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 201: [interfaz.infobar.superior.visible = true] -> Clave: 'interfaz.infobar.superior.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 202: [interfaz.infobar.superior.zoom_real_pct.visible = true] -> Clave: 'interfaz.infobar.superior.zoom_real_pct.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 203: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 204: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 205: [interfaz.menu.vista.barra_de_botones.seleccionado = true] -> Clave: 'interfaz.menu.vista.barra_de_botones.seleccionado', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 206: [interfaz.menu.vista.barra_de_menu.seleccionado = true] -> Clave: 'interfaz.menu.vista.barra_de_menu.seleccionado', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 207: [interfaz.menu.vista.fondo_a_cuadros.seleccionado = false] -> Clave: 'interfaz.menu.vista.fondo_a_cuadros.seleccionado', Valor: 'false'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 208: [interfaz.menu.vista.imagenes_en_miniatura.seleccionado = true] -> Clave: 'interfaz.menu.vista.imagenes_en_miniatura.seleccionado', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 209: [interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado = false] -> Clave: 'interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado', Valor: 'false'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 210: [interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado = true] -> Clave: 'interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 211: [interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado = true] -> Clave: 'interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 212: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 213: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 214: [miniaturas.cache.tamano.maximo = 200] -> Clave: 'miniaturas.cache.tamano.maximo', Valor: '200'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 214: [interfaz.menu.zoom.mantener_proporciones.seleccionado = true] -> Clave: 'interfaz.menu.zoom.mantener_proporciones.seleccionado', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 215: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 216: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 217: [miniaturas.cantidad.antes = 8] -> Clave: 'miniaturas.cantidad.antes', Valor: '8'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 218: [miniaturas.cantidad.despues = 15] -> Clave: 'miniaturas.cantidad.despues', Valor: '15'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 217: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 218: [miniaturas.cache.tamano.maximo = 200] -> Clave: 'miniaturas.cache.tamano.maximo', Valor: '200'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 219: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 220: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 221: [miniaturas.tamano.normal.alto = 40] -> Clave: 'miniaturas.tamano.normal.alto', Valor: '40'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 222: [miniaturas.tamano.normal.ancho = 40] -> Clave: 'miniaturas.tamano.normal.ancho', Valor: '40'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 221: [miniaturas.cantidad.antes = 8] -> Clave: 'miniaturas.cantidad.antes', Valor: '8'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 222: [miniaturas.cantidad.despues = 15] -> Clave: 'miniaturas.cantidad.despues', Valor: '15'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 223: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 224: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 225: [miniaturas.tamano.seleccionada.alto = 60] -> Clave: 'miniaturas.tamano.seleccionada.alto', Valor: '60'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 226: [miniaturas.tamano.seleccionada.ancho = 60] -> Clave: 'miniaturas.tamano.seleccionada.ancho', Valor: '60'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 225: [miniaturas.tamano.normal.alto = 40] -> Clave: 'miniaturas.tamano.normal.alto', Valor: '40'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 226: [miniaturas.tamano.normal.ancho = 40] -> Clave: 'miniaturas.tamano.normal.ancho', Valor: '40'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 227: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 228: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 229: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 230: [proyectos.archivo_temporal_nombre = seleccion_actual.txt] -> Clave: 'proyectos.archivo_temporal_nombre', Valor: 'seleccion_actual.txt'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 231: [proyectos.carpeta_base = D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos] -> Clave: 'proyectos.carpeta_base', Valor: 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 229: [miniaturas.tamano.seleccionada.alto = 60] -> Clave: 'miniaturas.tamano.seleccionada.alto', Valor: '60'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 230: [miniaturas.tamano.seleccionada.ancho = 60] -> Clave: 'miniaturas.tamano.seleccionada.ancho', Valor: '60'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 231: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 232: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 233: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 234: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 235: [tema.nombre = purpura_misterioso] -> Clave: 'tema.nombre', Valor: 'purpura_misterioso'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 234: [proyectos.archivo_temporal_nombre = seleccion_actual.txt] -> Clave: 'proyectos.archivo_temporal_nombre', Valor: 'seleccion_actual.txt'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 235: [proyectos.carpeta_base = D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos] -> Clave: 'proyectos.carpeta_base', Valor: 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 236: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 237: [ui.splitpane.main.dividerLocation = 0.25] -> Clave: 'ui.splitpane.main.dividerLocation', Valor: '0.25'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 237: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 238: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 239: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 240: [window.height = 500] -> Clave: 'window.height', Valor: '500'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 241: [window.maximized = false] -> Clave: 'window.maximized', Valor: 'false'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 242: [window.width = 1544] -> Clave: 'window.width', Valor: '1544'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 243: [window.x = -10] -> Clave: 'window.x', Valor: '-10'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 244: [window.y = 0] -> Clave: 'window.y', Valor: '0'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 245: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 246: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 247: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 248: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 249: [grid.mostrar.estado.state = true] -> Clave: 'grid.mostrar.estado.state', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 250: [interfaz.boton.barra_estado.control_modoZoom.visible = true] -> Clave: 'interfaz.boton.barra_estado.control_modoZoom.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 251: [interfaz.boton.barra_estado.mantener_proporciones.visible = true] -> Clave: 'interfaz.boton.barra_estado.mantener_proporciones.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 252: [interfaz.boton.barra_estado.subcarpetas.visible = true] -> Clave: 'interfaz.boton.barra_estado.subcarpetas.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 253: [interfaz.boton.barra_estado.vista_toggle_always_on_top.visible = true] -> Clave: 'interfaz.boton.barra_estado.vista_toggle_always_on_top.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 254: [interfaz.boton.barra_estado.zoom_manual_toggle.visible = true] -> Clave: 'interfaz.boton.barra_estado.zoom_manual_toggle.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 255: [interfaz.boton.botonesOrdenLista.filtro_activo.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.filtro_activo.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 256: [interfaz.boton.botonesOrdenLista.filtro_toggleLiveFilter.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.filtro_toggleLiveFilter.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 257: [interfaz.boton.botonesOrdenLista.orden_carpeta_anterior.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.orden_carpeta_anterior.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 258: [interfaz.boton.botonesOrdenLista.orden_carpeta_raiz.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.orden_carpeta_raiz.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 259: [interfaz.boton.botonesOrdenLista.orden_carpeta_siguiente.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.orden_carpeta_siguiente.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 260: [interfaz.boton.botonesOrdenLista.orden_ciclo.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.orden_ciclo.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 261: [interfaz.boton.orden_lista.filtro_activo.visible = true] -> Clave: 'interfaz.boton.orden_lista.filtro_activo.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 262: [interfaz.boton.orden_lista.filtro_toggleLiveFilter.visible = true] -> Clave: 'interfaz.boton.orden_lista.filtro_toggleLiveFilter.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 263: [interfaz.boton.orden_lista.orden_carpeta_anterior.visible = true] -> Clave: 'interfaz.boton.orden_lista.orden_carpeta_anterior.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 264: [interfaz.boton.orden_lista.orden_carpeta_raiz.visible = true] -> Clave: 'interfaz.boton.orden_lista.orden_carpeta_raiz.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 265: [interfaz.boton.orden_lista.orden_carpeta_siguiente.visible = true] -> Clave: 'interfaz.boton.orden_lista.orden_carpeta_siguiente.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 266: [interfaz.boton.orden_lista.orden_ciclo.visible = true] -> Clave: 'interfaz.boton.orden_lista.orden_ciclo.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 267: [interfaz.herramientas.botonesOrdenLista.visible = true] -> Clave: 'interfaz.herramientas.botonesOrdenLista.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 268: [interfaz.menu.vista.barra_de_botones.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.barra_de_botones.seleccionado.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 269: [interfaz.menu.vista.barra_de_menu.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.barra_de_menu.seleccionado.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 270: [interfaz.menu.vista.imagenes_en_miniatura.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.imagenes_en_miniatura.seleccionado.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 271: [interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 272: [proyectos.estado.lista_activa = seleccion] -> Clave: 'proyectos.estado.lista_activa', Valor: 'seleccion'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 273: [proyectos.estado.ultima_descartes_key = ] -> Clave: 'proyectos.estado.ultima_descartes_key', Valor: ''
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 274: [proyectos.estado.ultima_seleccion_key = ] -> Clave: 'proyectos.estado.ultima_seleccion_key', Valor: ''
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 275: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 239: [tema.nombre = purpura_misterioso] -> Clave: 'tema.nombre', Valor: 'purpura_misterioso'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 240: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 241: [ui.splitpane.main.dividerLocation = 0.25] -> Clave: 'ui.splitpane.main.dividerLocation', Valor: '0.25'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 242: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 243: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 244: [window.height = 500] -> Clave: 'window.height', Valor: '500'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 245: [window.maximized = true] -> Clave: 'window.maximized', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 246: [window.width = 1544] -> Clave: 'window.width', Valor: '1544'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 247: [window.x = -6] -> Clave: 'window.x', Valor: '-6'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 248: [window.y = 3] -> Clave: 'window.y', Valor: '3'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 249: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 250: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 251: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 252: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 253: [grid.mostrar.estado.state = true] -> Clave: 'grid.mostrar.estado.state', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 254: [interfaz.boton.barra_estado.control_modoZoom.visible = true] -> Clave: 'interfaz.boton.barra_estado.control_modoZoom.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 255: [interfaz.boton.barra_estado.mantener_proporciones.visible = true] -> Clave: 'interfaz.boton.barra_estado.mantener_proporciones.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 256: [interfaz.boton.barra_estado.subcarpetas.visible = true] -> Clave: 'interfaz.boton.barra_estado.subcarpetas.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 257: [interfaz.boton.barra_estado.vista_toggle_always_on_top.visible = true] -> Clave: 'interfaz.boton.barra_estado.vista_toggle_always_on_top.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 258: [interfaz.boton.barra_estado.zoom_manual_toggle.visible = true] -> Clave: 'interfaz.boton.barra_estado.zoom_manual_toggle.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 259: [interfaz.boton.botonesOrdenLista.filtro_activo.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.filtro_activo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 260: [interfaz.boton.botonesOrdenLista.filtro_toggleLiveFilter.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.filtro_toggleLiveFilter.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 261: [interfaz.boton.botonesOrdenLista.orden_carpeta_anterior.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.orden_carpeta_anterior.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 262: [interfaz.boton.botonesOrdenLista.orden_carpeta_raiz.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.orden_carpeta_raiz.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 263: [interfaz.boton.botonesOrdenLista.orden_carpeta_siguiente.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.orden_carpeta_siguiente.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 264: [interfaz.boton.botonesOrdenLista.orden_ciclo.visible = true] -> Clave: 'interfaz.boton.botonesOrdenLista.orden_ciclo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 265: [interfaz.boton.orden_lista.filtro_activo.visible = true] -> Clave: 'interfaz.boton.orden_lista.filtro_activo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 266: [interfaz.boton.orden_lista.filtro_toggleLiveFilter.visible = true] -> Clave: 'interfaz.boton.orden_lista.filtro_toggleLiveFilter.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 267: [interfaz.boton.orden_lista.orden_carpeta_anterior.visible = true] -> Clave: 'interfaz.boton.orden_lista.orden_carpeta_anterior.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 268: [interfaz.boton.orden_lista.orden_carpeta_raiz.visible = true] -> Clave: 'interfaz.boton.orden_lista.orden_carpeta_raiz.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 269: [interfaz.boton.orden_lista.orden_carpeta_siguiente.visible = true] -> Clave: 'interfaz.boton.orden_lista.orden_carpeta_siguiente.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 270: [interfaz.boton.orden_lista.orden_ciclo.visible = true] -> Clave: 'interfaz.boton.orden_lista.orden_ciclo.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 271: [interfaz.herramientas.botonesOrdenLista.visible = true] -> Clave: 'interfaz.herramientas.botonesOrdenLista.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 272: [interfaz.menu.vista.barra_de_botones.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.barra_de_botones.seleccionado.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 273: [interfaz.menu.vista.barra_de_menu.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.barra_de_menu.seleccionado.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 274: [interfaz.menu.vista.imagenes_en_miniatura.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.imagenes_en_miniatura.seleccionado.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 275: [interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado.visible', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 276: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 277: [interfaz.boton.proyecto.proyecto_abrir.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_abrir.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 278: [interfaz.boton.proyecto.proyecto_borrar.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_borrar.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 279: [interfaz.boton.proyecto.proyecto_guardar.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_guardar.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 280: [interfaz.boton.proyecto.proyecto_guardar_como.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_guardar_como.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 281: [interfaz.boton.proyecto.proyecto_nuevo.visible = true] -> Clave: 'interfaz.boton.proyecto.proyecto_nuevo.visible', Valor: 'true'
-[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 204
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 277: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 278: [proyectos.estado.lista_activa = seleccion] -> Clave: 'proyectos.estado.lista_activa', Valor: 'seleccion'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 279: [proyectos.estado.ultima_descartes_key = ] -> Clave: 'proyectos.estado.ultima_descartes_key', Valor: ''
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 280: [proyectos.estado.ultima_seleccion_key = ] -> Clave: 'proyectos.estado.ultima_seleccion_key', Valor: ''
+[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 203
 [0;39m[34mINFO  servicios.ConfigurationManager - --- DEBUG PRE-SINCRONIZACIÓN ---
 [0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de DEFAULT_CONFIG: 177
-[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 204
+[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 203
 [0;39m[39mDEBUG servicios.ConfigurationManager - DEFAULT_CONFIG contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - loadedConfig contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - ---------------------------------
 [0;39m[34mINFO  servicios.ConfigurationManager - Sincronizando configuración cargada con mapa de defaults...
 [0;39m[39mDEBUG servicios.ConfigurationManager - La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 [0;39m[39mDEBUG servicios.ConfigurationManager - ConfigurationManager inicializado.
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 2016018086
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 671811733
 [0;39m[34mINFO  controlador.AppInitializer -   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
 [0;39m[34mINFO  modelo.VisorModel - [VisorModel] Inicializando estado por defecto de todos los contextos...
 [0;39m[39mDEBUG modelo.VisorModel - [VisorModel] Retardo del carrusel actualizado a: 3000ms
@@ -500,9 +499,9 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.managers.DisplayModeManager -  -> Listener de selección añadido a 'list.grid.proyecto'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> DisplayModeManager registrado como oyente en ListCoordinator y ProjectListCoordinator.
 [0;39m[39mDEBUG controlador.AppInitializer -     -> DisplayModeManager configurado y conectado.
-[0;39m[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 9, Descartes: 0
+[0;39m[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 12, Descartes: 5
 [0;39m[39mDEBUG servicios.ProjectManager - [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-[0;39m[39mDEBUG servicios.ProjectManager -   -> Proyecto inicial cargado. Selección: 9, Descartes: 0
+[0;39m[39mDEBUG servicios.ProjectManager -   -> Proyecto inicial cargado. Selección: 12, Descartes: 5
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -     -> MouseListener configurado para 'label.control.zoomPorcentaje'.
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -     -> ActionListener configurado para el botón de Modo de Zoom.
@@ -615,7 +614,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.miniaturas'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.grid'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.grid.proyecto'.
-[0;39m[39mDEBUG modelo.VisorModel -   [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: C:\Users\ameri\Desktop\Menu
+[0;39m[39mDEBUG modelo.VisorModel -   [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: F:\ARCHIVOS 3D\Chibi
 [0;39m[39mDEBUG controlador.AppInitializer -   [AppInitializer] Sincronizando visibilidad inicial de paneles...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -   [ConfigAppManager] Aplicando configuración al Modelo...
@@ -686,6 +685,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[34mINFO  controlador.managers.ViewManager - [ViewManager] Sistema de bordes de foco inicializado para 7 paneles en total.
 [0;39m[39mDEBUG controlador.AppInitializer -     -> BackgroundControlManager inicializado y enlazado a la UI.
 [0;39m[34mINFO  controlador.AppInitializer - --- [AppInitializer Fase B - EDT] Inicialización de UI completada. La aplicación está lista. ---
+[0;39m[39mDEBUG vista.VisorView - [VisorView] Actualizando borde de sincronización a: false
 [0;39m[34mINFO  c.managers.BackgroundControlManager - --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
@@ -696,43 +696,44 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -     -> Configuración básica de Vista aplicada.
-[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: 
+[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: 3DXM - Armoured Mon-Star Chibi.jpg
 [0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Caché de miniaturas limpiado.
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en C:\Users\ameri\Desktop\Menu con profundidad 2147483647
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 0
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x374,invalid,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en F:\ARCHIVOS 3D\Chibi con profundidad 2147483647
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 1539
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,382x691,invalid,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
 [0;39m[39mDEBUG c.worker.BuscadorArchivosWorker - [Worker EDT] Método done() alcanzado.
-[0;39m[34mINFO  controlador.VisorController -     -> La búsqueda no encontró imágenes soportadas. Entrando en estado de bienvenida final.
-[0;39m[39mDEBUG controlador.VisorController - [Controller] Limpiando UI y Modelo a estado de bienvenida...
-[0;39m[39mDEBUG controlador.VisorController -   -> Estado de imagen, selección y modelos de lista en 'model' limpiados.
-[0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Caché de miniaturas limpiado.
-[0;39m[39mDEBUG controlador.VisorController -   -> Caché de miniaturas limpiado.
-[0;39m[39mDEBUG controlador.VisorController -   -> Ocultando paneles de lista y miniaturas por estado de bienvenida.
+[0;39m[39mDEBUG controlador.VisorController -     -> Restaurando visibilidad de paneles según la configuración del usuario.
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: VISUALIZADOR
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@76cd65ab: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@76cd65ab actualizado. Nuevo tamaño: 1539
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 1 oyentes sobre el cambio de la lista maestra.
+[0;39m[39mDEBUG vista.VisorView - [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 1539
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 0
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: '3DXM - Armoured Mon-Star Chibi.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 0.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
 [0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[0;39m[39mDEBUG controlador.VisorController -   -> Forzando revalidate() y repaint() de la ventana principal para imponer el estado de bienvenida.
-[0;39m[39mDEBUG controlador.VisorController - [Controller] Limpieza de UI y Modelo completada.
-[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
 [0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
 [0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: vista.VisorView[frame0,-10,0,1544x500,invalid,layout=java.awt.BorderLayout,title=ModelTag - Your visual STL manager,resizable,normal,defaultCloseOperation=EXIT_ON_CLOSE,rootPane=javax.swing.JRootPane[,7,0,1530x493,invalid,layout=com.formdev.flatlaf.ui.FlatRootPaneUI$FlatRootLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=16777673,maximumSize=,minimumSize=,preferredSize=],rootPaneCheckingEnabled=true]
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JRootPane[,7,0,1530x493,invalid,layout=com.formdev.flatlaf.ui.FlatRootPaneUI$FlatRootLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=16777673,maximumSize=,minimumSize=,preferredSize=]
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/main_welcome.html
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: vista.VisorView[frame0,-10,0,1544x500,invalid,layout=java.awt.BorderLayout,title=ModelTag - Your visual STL manager,resizable,normal,defaultCloseOperation=EXIT_ON_CLOSE,rootPane=javax.swing.JRootPane[,7,0,1530x493,invalid,layout=com.formdev.flatlaf.ui.FlatRootPaneUI$FlatRootLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=16777673,maximumSize=,minimumSize=,preferredSize=],rootPaneCheckingEnabled=true]
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTree[,0,0,244x557,alignmentX=0.0,alignmentY=0.0,border=com.formdev.flatlaf.ui.FlatEmptyBorder@f175cea,flags=360,maximumSize=,minimumSize=,preferredSize=,editable=false,invokesStopCellEditing=false,largeModel=false,rootVisible=true,rowHeight=0,scrollsOnExpand=true,showsRootHandles=false,toggleClickCount=2,visibleRowCount=20]
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/proyecto_componentes.html
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: vista.VisorView[frame0,-10,0,1544x500,invalid,layout=java.awt.BorderLayout,title=ModelTag - Your visual STL manager,resizable,normal,defaultCloseOperation=EXIT_ON_CLOSE,rootPane=javax.swing.JRootPane[,7,0,1530x493,invalid,layout=com.formdev.flatlaf.ui.FlatRootPaneUI$FlatRootLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=16777673,maximumSize=,minimumSize=,preferredSize=],rootPaneCheckingEnabled=true]
 [0;39m[39mDEBUG controlador.VisorController - --- [Controller] Iniciando apagado de la aplicación ---
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Guardando estado final de todos los contextos...
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=null, UltimaCarpeta=C:\Users\ameri\Desktop\Menu
+[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=3DXM - Armoured Mon-Star Chibi.jpg, UltimaCarpeta=F:\ARCHIVOS 3D\Chibi
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=null
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Carrusel/Sync: Sync=false, UltimaCarpeta=null
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 2016018086
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 671811733
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'purpura_misterioso'
@@ -740,7 +741,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 [0;39m[39mDEBUG servicios.ConfigurationManager - ------------------------------------------
 [0;39m[39mDEBUG servicios.ConfigurationManager - Guardando configuración (preservando estructura) en config.cfg
-[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 204
+[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 203
 [0;39m[39mDEBUG servicios.ConfigurationManager - Archivo de configuración actualizado exitosamente.
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Configuración guardada exitosamente.
 [0;39m[39mDEBUG controlador.VisorController -   -> Apagando ExecutorService...

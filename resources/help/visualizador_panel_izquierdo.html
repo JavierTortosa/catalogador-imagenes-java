@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Panel de Navegación Izquierdo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>El Panel de Navegación Izquierdo</h1>
+    <p>
+        Este panel es tu centro de control para encontrar y filtrar las imágenes que quieres visualizar. Está organizado en tres pestañas con funcionalidades muy potentes.
+    </p>
+
+    <h2>Pestaña Lista</h2>
+    <p>
+        Muestra una lista con los nombres de archivo de las imágenes en la carpeta actual. La barra de herramientas superior te permite navegar y filtrar esta lista.
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_30001-carpeta_raiz.png"></td>
+            <td><strong>Navegar a Carpeta Raíz:</strong> Vuelve a la carpeta principal que abriste inicialmente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_30002-subir_carpeta.png"></td>
+            <td><strong>Subir un Nivel:</strong> Navega a la carpeta contenedora de la actual, guardando el historial para poder regresar.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_30003-bajar_carpeta.png"></td>
+            <td><strong>Entrar en Subcarpeta:</strong> Si tienes una subcarpeta seleccionada en la lista, este botón te permite navegar dentro de ella, guardando el historial.</td>
+        </tr>
+         <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_30004-orden_ascendente.png"></td>
+            <td><strong>Ciclo de Orden:</strong> Cambia el orden de los archivos (por defecto, A-Z, Z-A).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_40001-filter_48x48.png"></td>
+            <td><strong>Filtro "Tornado" (Filtro en Vivo):</strong> Cuando está activo, el campo de texto filtra la lista de archivos en tiempo real mientras escribes. Es una forma muy rápida de encontrar algo. Si está desactivado, el campo de texto sirve para buscar la siguiente coincidencia al pulsar Enter.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_40011-cambio de filtro_48x48.png"></td>
+            <td><strong>Hacer Filtro Persistente:</strong> Toma el texto del filtro "Tornado" y lo añade como un filtro permanente en la pestaña "Filtros". Útil cuando un filtro rápido te resulta muy útil y quieres guardarlo.</td>
+        </tr>
+    </table>
+
+    <h2>Pestaña Carpetas</h2>
+    <p>
+        Muestra una vista de árbol de tu sistema de archivos. Esta pestaña tiene un sistema de navegación con historial:
+    </p>
+    <ul>
+        <li><strong>Doble Clic (o "Abrir aquí" con clic derecho):</strong> Carga la carpeta seleccionada como la nueva carpeta raíz. Esto <strong>limpia el historial de navegación</strong> y establece un nuevo punto de partida. Es como usar "Archivo > Abrir Carpeta".</li>
+        <li><strong>Clic Simple (o "Entrar en esta carpeta" con clic derecho):</strong> Entra en la carpeta de forma temporal, <strong>guardando tu ubicación anterior en el historial</strong>. Puedes volver a la carpeta anterior usando el botón "Subir un Nivel" de la Pestaña Lista.</li>
+    </ul>
+
+    <h2>Pestaña Filtros</h2>
+    <p>
+        Aquí puedes construir filtros complejos y persistentes para mostrar solo las imágenes que te interesan. Puedes combinar múltiples reglas.
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_40007-filter_file_48x48.png"> / <img src="ICON_PLACEHOLDER_40008-filter_folder_48x48.png"></td>
+            <td><strong>Fuente del Filtro:</strong> Elige si el texto que escribas se buscará en el <strong>nombre del archivo</strong> o en la <strong>ruta de la carpeta</strong>.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_40002-filter_positive_48x48.png"> / <img src="ICON_PLACEHOLDER_40003-filter_negative_48x48.png"></td>
+            <td><strong>Tipo de Filtro:</strong> Añade un filtro <strong>positivo [+]</strong> (la imagen DEBE contener el texto) o un filtro <strong>negativo [-]</strong> (la imagen NO DEBE contener el texto).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_40006-filter_delete_48x48.png"></td>
+            <td><strong>Eliminar Filtro:</strong> Quita la regla de filtro que tengas seleccionada en la lista de filtros activos.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_40010-filter_clear_48x48.png"></td>
+            <td><strong>Limpiar Todos:</strong> Elimina todas las reglas de filtro activas y vuelve a mostrar la lista completa de archivos.</td>
+        </tr>
+    </table>
+    
+</body>
+</html>

@@ -1351,6 +1351,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             configAppManager.actualizarAspectoBotonToggle(syncAction, model.isSyncVisualizadorCarrusel());
         }
         
+        // Aseguramos que el borde también se actualice en cualquier notificación general.
+        actualizarBordeDeSincronizacion(model.isSyncVisualizadorCarrusel());
+        
         logger.debug("[GeneralController] Notificación completada.");
     } // --- Fin del método notificarAccionesSensiblesAlContexto ---
     
@@ -2323,7 +2326,16 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     }// --- FIN del metodo solicitarSalirDeSubcarpeta ---
 
     
-    
+    /**
+     * Comanda a la VisorView para que actualice su borde visual de sincronización.
+     * Este método actúa como un puente seguro entre las acciones y la vista.
+     * @param activado El nuevo estado de sincronización.
+     */
+    public void actualizarBordeDeSincronizacion(boolean activado) {
+        if (visorController != null && visorController.getView() != null) {
+            visorController.getView().actualizarBordeDeSincronizacion(activado);
+        }
+    } // --- Fin del método actualizarBordeDeSincronizacion ---
     
     
     public void setFolderTreeManager(FolderTreeManager folderTreeManager) {

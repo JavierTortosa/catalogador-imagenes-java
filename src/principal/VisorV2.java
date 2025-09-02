@@ -59,7 +59,9 @@ public class VisorV2 {
 		//TODO importar un txt que contenga ruta/nombre y poder añadir ese txt o crear nuevo proyecto con base a ese txt
 		//TODO hacer que la lista de imagenes cargada pueda copiar las imagenes al portapapeles para enviar por whatsapp por ej....
 		//FIXME la lista de imagenes cargadas no oculta la ruta y solo copia al portapapeles los archivos con la ruta
-
+    	//TODO Que pasa cuando 2 archivos con el mismo nombre se exportan a una carpeta?
+    	//TODO poner un mensaje en la status bar cuando se guarda el proyecto
+    	//TODO añadir boton para Permitir cargar proyecto en modo visor 
 
 
 	//TOOLBAR
@@ -70,16 +72,18 @@ public class VisorV2 {
 //29/08/2025
     // GENERAL
     
-    // TODO AÑADIR HOTKEY CTRL+L PARA LOCALIZAR ARCHIVO
     // FIXME INTERCAMBIO ENTRE VISOR Y PROYECTO NO GUARDA EL VISORMODE... Y SE DESINCRONIZA
     
 	//VISUALIZADOR 
     
-	// TODO PONER UN MARCO ALREDEDOR DE LA APLICACION QUE NOS INDIQUE QUE ESTAMOS SINCORNIZADOS CON EL CARROUSEL
-    // FIXME ACTIVAR EL MENU POPUP EN GRID
-    
     //PROYECTO
-    // FIXME CAMBIAR EL COLOR DEL SELECTORDE EXPORTAR
-
+    // TODO CUANDO GUARDAMOS EL PROYECTO QUE SE GUARDE LAS CORRECCIONES QUE HEMOS HECHO A MANO
+    // FIXME EL BOTON DE CAMBIAR DE CARPETA NO DEBERIA PODERSE UTILIZAR
+    // FIXME el modo proyecto no se acuerda de una sesion a otra que proyecto estaba usando.
+    //		- Si no tiene proyecto guardado, abre con proyecto temporal
+    //		- Si tiene proyecto guardado, abre con proyecto guardado
+    //		- debe avisar que el proyecto no se ha guardado pero que se guardara en un proyecto temporal que añadira las imagenes que se sigan marcando
+    
+    
     
 }    

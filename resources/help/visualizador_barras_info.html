@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Barras de Información</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1><img src="ICON_PLACEHOLDER_info.png" class="header-icon">Barras de Información y Estado</h1>
+    <p>
+        El visor cuenta con dos barras de información, una superior y una inferior, que proporcionan datos en tiempo real sobre la imagen seleccionada y el estado de la aplicación. Puedes mostrar u ocultar cada una de estas barras desde el menú <strong>Vista</strong>.
+    </p>
+
+    <h2>Barra de Información Superior (Info. de Imagen)</h2>
+    <p>
+        Esta barra muestra detalles técnicos del archivo de imagen actual:
+    </p>
+    <ul>
+        <li><strong>Nombre Archivo:</strong> Muestra el nombre del archivo o la ruta completa (configurable en el menú <strong>Configuración > Paneles de Datos</strong>).</li>
+        <li><strong>Dim:</strong> Las dimensiones de la imagen en píxeles (Ancho x Alto).</li>
+        <li><strong>Tam:</strong> El tamaño del archivo en disco (KB, MB, etc.).</li>
+        <li><strong>Fch:</strong> La fecha y hora de la última modificación del archivo.</li>
+        <li><strong>Idx:</strong> El índice de la imagen actual dentro de la lista total de imágenes cargadas (ej. "5/250").</li>
+        <li><strong>%Z:</strong> El porcentaje de zoom real al que se está renderizando la imagen en pantalla.</li>
+        <li><strong>Modo:</strong> El nombre del modo de zoom automático que está activo.</li>
+        <li><strong>Fmt:</strong> El formato del archivo (JPG, PNG, WEBP, etc.).</li>
+    </ul>
+
+    <hr>
+    
+    <h2>Barra de Estado Inferior (Estado de la Aplicación)</h2>
+    <p>
+        Esta barra muestra la ruta del archivo y contiene controles interactivos sobre el estado global del visualizador.
+    </p>
+    <ul>
+        <li><strong>Ruta del Archivo:</strong> Muestra la ruta completa o solo el nombre del archivo seleccionado.</li>
+        <li>
+            <strong>Iconos de Estado:</strong>
+            <ul>
+                <li><img src="ICON_PLACEHOLDER_3001-zoom_48x48.png" class="inline-icon"> Indica si el <strong>Zoom Manual</strong> está activado.</li>
+                <li><img src="ICON_PLACEHOLDER_7001-subcarpetas_48x48.png" class="inline-icon"> Indica si la <strong>lectura de subcarpetas</strong> está activada.</li>
+                <li><img src="ICON_PLACEHOLDER_7002-mantener_proporciones_48x48.png" class="inline-icon"> Indica si se están <strong>manteniendo las proporciones</strong> de la imagen.</li>
+            </ul>
+        </li>
+        <li>
+            <strong>Controles de Zoom:</strong>
+            <ul>
+                <li><strong>Z: 100%:</strong> Muestra el porcentaje de zoom personalizado. Haz clic para abrir un menú de porcentajes predefinidos o introducir uno manualmente.</li>
+                <li><img src="ICON_PLACEHOLDER_3005-escalar_para_ajustar_48x48.png" class="inline-icon"> Muestra el icono del modo de zoom automático actual. Haz clic para abrir un menú y cambiar de modo.</li>
+            </ul>
+        </li>
+        <li><strong>Área de Mensajes:</strong> Muestra información contextual, como "[MARCADA]" si la imagen pertenece al proyecto, o notificaciones temporales de la aplicación.</li>
+    </ul>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda - Controles del Modo Proyecto</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <h1>Controles del Modo Proyecto</h1>
+
+    <p>
+        La interfaz del Modo Proyecto está dividida en las listas de trabajo y un panel de herramientas con pestañas.
+    </p>
+
+    <h2>Listas de Imágenes</h2>
+    <p>
+        A la izquierda se muestran las dos listas principales. La lista que tiene el foco (con el fondo más claro) es la que está activa para la navegación y las acciones.
+    </p>
+    <ul>
+        <li><strong>Selección Actual:</strong> Contiene las imágenes marcadas. Sobre estas imágenes se aplican las acciones de las pestañas "Exportar" y "Etiquetar".</li>
+        <li><strong>Descartes:</strong> Contiene las imágenes que has apartado temporalmente de la selección principal.</li>
+    </ul>
+    
+    <h3>Acciones sobre las Listas</h3>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_7101-marcar_imagen_48x48.png"></td>
+            <td><strong>Mover a Descartes / Restaurar a Selección:</strong> Este botón cambia su función dependiendo de la lista activa. Si tienes una imagen seleccionada en "Selección Actual", la moverá a "Descartes". Si la tienes en "Descartes", la restaurará a "Selección Actual". El atajo de teclado es la <strong>barra espaciadora</strong>.</td>
+        </tr>
+    </table>
+
+    <h2>Panel de Herramientas</h2>
+    <p>
+        A la derecha se encuentran las pestañas con las herramientas disponibles.
+    </p>
+    
+    <h3>Pestaña Descartes</h3>
+    <p>Actualmente, las acciones sobre los elementos de la lista de Descartes (como restaurar o eliminar) se realizan a través del botón principal de la barra de herramientas y futuros menús contextuales.</p>
+    
+    <h3>Pestaña Exportar</h3>
+    <p>Prepara las imágenes de la "Selección Actual" para ser copiadas a otra carpeta. La barra de herramientas inferior contiene las siguientes acciones:</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_6001-selector_de_carpetas_48x48.png"></td>
+            <td><strong>Seleccionar Carpeta:</strong> Abre un diálogo para elegir la carpeta de destino para la exportación.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21001-quitar_de_cola.png"></td>
+            <td><strong>Quitar de la cola:</strong> Elimina el ítem seleccionado de la tabla de exportación.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21002-asignar_archivo.png"></td>
+            <td><strong>Asignar archivo:</strong> Permite localizar manualmente el archivo comprimido (.rar, .zip) si la aplicación no lo encontró automáticamente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21003-ignorar_comprimido.png"></td>
+            <td><strong>Ignorar comprimido:</strong> Marca un archivo como "listo" para exportar aunque no se haya encontrado su .rar/.zip asociado.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21004-relocalizar_imagen.png"></td>
+            <td><strong>Relocalizar Imagen:</strong> Si una imagen del proyecto fue movida de su ubicación original, esta opción permite encontrarla en su nueva ruta.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21005-iniciar_exportación.png"></td>
+            <td><strong>Iniciar Exportación (Rayo):</strong> Comienza el proceso de copia de los archivos válidos y seleccionados a la carpeta de destino.</td>
+        </tr>
+    </table>
+    
+    <h3>Pestaña Etiquetar</h3>
+    <p>Herramientas para gestionar las etiquetas de las imágenes en la vista de Grid.</p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_50001-add_texto_48x48.png"></td>
+            <td><strong>Etiquetar (Ctrl+T):</strong> Abre un diálogo para añadir o editar la etiqueta de la imagen seleccionada en el grid.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_50002-subst_texto_48x48.png"></td>
+            <td><strong>Borrar Etiqueta (Ctrl+Supr):</strong> Elimina la etiqueta de la imagen seleccionada.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_50003-agrandar_miniatura_48x48.png"></td>
+            <td><strong>Aumentar Tamaño (Ctrl + '+'):</strong> Hace las miniaturas del grid más grandes.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_50004-reducir_miniatura_48x48.png"></td>
+            <td><strong>Reducir Tamaño (Ctrl + '-'):</strong> Hace las miniaturas del grid más pequeñas.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_50005-mostrar_estado_48x48.png"></td>
+            <td><strong>Mostrar Estado:</strong> Activa o desactiva el resaltado de color (verde/amarillo/rojo) en las celdas del grid para reflejar el estado de exportación.</td>
+        </tr>
+    </table>
+
+</body>
+</html>

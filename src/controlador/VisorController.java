@@ -322,110 +322,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	} // ---FIN de metodo cargarEstadoInicialInternal]---
     
     
-//	/*package-private*/ void cargarEstadoInicialInternal() {
-//		
-//	    // --- SECCIÓN 1: Log de Inicio y Verificación de Dependencias ---
-//	    // 1.1. Imprimir log indicando el inicio de la carga del estado.
-//	    logger.debug("  [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...");
-//	    
-//	    // 1.2. Verificar que las dependencias necesarias (configuration, model, view) existan.
-//	    //      Son necesarias para determinar qué cargar y para limpiar la UI si falla.
-//	    if (configuration == null || model == null || view == null) {
-//	        logger.error("ERROR [cargarEstadoInicialInternal]: Config, Modelo o Vista nulos. No se puede cargar estado.");
-//	        
-//	        // 1.2.1. Intentar limpiar la UI si faltan componentes esenciales.
-//	        limpiarUI(); // Llama al método de limpieza general.
-//	        return; // Salir del método.
-//	    }
-//	
-//	    // --- SECCIÓN 2: Determinar y Validar la Carpeta Inicial ---
-//	    
-//	    // 2.1. Obtener la ruta de la carpeta inicial desde ConfigurationManager.
-//	    //      Se usa "" como valor por defecto si la clave "inicio.carpeta" no existe.
-//	    String folderInit = configuration.getString("inicio.carpeta", "");
-//	   
-//	    // 2.2. Variable para almacenar el Path de la carpeta validada.
-//	    Path folderPath = null;
-//	    
-//	    // 2.3. Flag para indicar si la carpeta encontrada es válida.
-//	    boolean carpetaValida = false;
-//	
-//	    // 2.4. Comprobar si la ruta obtenida no está vacía.
-//	    if (!folderInit.isEmpty()) {
-//	    
-//	    	// 2.4.1. Intentar convertir la cadena de ruta en un objeto Path.
-//	        try {
-//	            folderPath = Paths.get(folderInit);
-//	        
-//	            // 2.4.2. Verificar si el Path resultante es realmente un directorio existente.
-//	            if (Files.isDirectory(folderPath)) {
-//	            
-//	            	// 2.4.2.1. Si es un directorio válido, marcar como válida y actualizar
-//	                //          la variable de instancia `carpetaRaizActual` del controlador.
-//	                carpetaValida = true;
-//	                
-//	                this.model.setCarpetaRaizActual(folderPath);// <<< CAMBIO AQUÍ
-//	                
-//	                logger.debug("    -> Carpeta inicial válida encontrada: " + folderPath);
-//	            } else {
-//	                // 2.4.2.2. Log si la ruta existe pero no es un directorio.
-//	                 logger.warn("WARN [cargarEstadoInicialInternal]: Carpeta inicial en config no es un directorio válido: " + folderInit);
-//	                 
-//	                 this.model.setCarpetaRaizActual(null);// <<< CAMBIO AQUÍ
-//	                 
-//	            }
-//	        // 2.4.3. Capturar cualquier excepción durante la conversión/verificación de la ruta.
-//	        } catch (Exception e) {
-//	            logger.warn("WARN [cargarEstadoInicialInternal]: Ruta de carpeta inicial inválida en config: " + folderInit + " - " + e.getMessage());
-//	            
-//	            this.model.setCarpetaRaizActual(null);// <<< CAMBIO AQUÍ
-//	            
-//	        }
-//	    } else {
-//	        // 2.5. Log si la clave "inicio.carpeta" no estaba definida en la configuración.
-//	        logger.debug("    -> No hay definida una carpeta inicial en la configuración.");
-//	        
-//	        this.model.setCarpetaRaizActual(null); // <<< CAMBIO AQUÍ
-//	    }
-//	
-//	    // --- SECCIÓN 3: Cargar Lista de Imágenes o Limpiar UI ---
-//	    // 3.1. Proceder a cargar la lista SOLO si se encontró una carpeta inicial válida.
-//	    
-//	    if (carpetaValida && this.model.getCarpetaRaizActual() != null) { // <<< CAMBIO AQUÍ
-//	
-//	    	
-//	        // 3.1.1. Log indicando que se procederá a la carga.
-//	        
-//	    	logger.debug("    -> Cargando lista para carpeta inicial (desde MODELO): " + this.model.getCarpetaRaizActual()); // <<< CAMBIO AQUÍ
-//	        
-//	    	// 3.1.2. Obtener la clave de la imagen inicial desde la configuración.
-//	        //        Puede ser null si no hay una imagen específica guardada.
-//	        String imagenInicialKey = configuration.getString("inicio.imagen", null);
-//	        logger.debug("    -> Clave de imagen inicial a intentar seleccionar: " + imagenInicialKey);
-//	
-//	        // 3.1.3. Llamar al método `cargarListaImagenes`. Este método se encargará de:
-//	        //        - Ejecutar la búsqueda de archivos en segundo plano (SwingWorker).
-//	        //        - Mostrar un diálogo de progreso.
-//	        //        - Actualizar el modelo y la vista cuando termine.
-//	        //        - Seleccionar la `imagenInicialKey` si se proporciona y se encuentra,
-//	        //          o seleccionar el primer elemento (índice 0) si no.
-//	        cargarListaImagenes(imagenInicialKey, null);
-//	
-//	    // 3.2. Si NO se encontró una carpeta inicial válida.
-//	    } else {
-//	        // 3.2.1. Log indicando que no se cargará nada y se limpiará la UI.
-//	        logger.debug("    -> No hay carpeta inicial válida configurada o accesible. Limpiando UI.");
-//	        // 3.2.2. Llamar al método que resetea el modelo y la vista a un estado vacío.
-//	        limpiarUI();
-//	    }
-//	
-//	    // --- SECCIÓN 4: Log Final ---
-//	    // 4.1. Indicar que el proceso de carga del estado inicial ha finalizado (o se ha iniciado la carga en background).
-//	    logger.debug("  [Load Initial State Internal] Finalizado.");
-//	
-//	} // --- FIN cargarEstadoInicialInternal ---
- 
-	
 	/**
      * Configura un AWTEventListener global para detectar cuándo una JToolBar
      * se cierra mientras está flotando. Dispara una recreación y reconstrucción
@@ -1097,55 +993,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     } // --- Fin del método cargarListaDesdeFiltro ---
     
     
-//    /**
-//     * Carga una nueva "lista maestra" en el modelo a partir de un resultado de filtro precalculado.
-//     * Este método simula el final de 'cargarListaImagenes', pero usando datos en memoria
-//     * en lugar de leer del disco. Activa toda la maquinaria de sincronización de la UI.
-//     *
-//     * @param resultadoFiltro Un objeto FilterResult que contiene el nuevo modelo de lista y el mapa de rutas.
-//     * @param alFinalizarConExito Un Runnable opcional para ejecutar al final.
-//     */
-//    public void cargarListaDesdeFiltro(FilterManager.FilterResult resultadoFiltro, Runnable alFinalizarConExito) {
-//        logger.debug("-->>> INICIO cargarListaDesdeFiltro | Tamaño del filtro: {}", resultadoFiltro.model().getSize());
-//
-//        if (model == null || view == null || listCoordinator == null) {
-//            logger.error("ERROR [cargarListaDesdeFiltro]: Dependencias críticas nulas.");
-//            return;
-//        }
-//
-//        // 1. Obtener los datos del resultado del filtro.
-//        DefaultListModel<String> modeloFiltrado = resultadoFiltro.model();
-//        Map<String, Path> mapaFiltrado = resultadoFiltro.pathMap();
-//
-//        // 2. Actualizar el modelo central. Esto cambia la "Lista Maestra" en el ListContext.
-//        model.actualizarListaCompleta(modeloFiltrado, mapaFiltrado);
-//
-//        // 3. ¡¡¡PASO CRUCIAL!!! Actualizar la JList de nombres en la VISTA para que use el nuevo modelo.
-//        //    Esta es la línea que faltaba y que hace que la lista de la izquierda se actualice visualmente.
-//        view.setListaImagenesModel(model.getModeloLista());
-//        view.setTituloPanelIzquierdo("Archivos (Filtro): " + model.getModeloLista().getSize());
-//
-//        // 4. Determinar el índice a seleccionar (el primero de la lista filtrada).
-//        int indiceASeleccionar = modeloFiltrado.isEmpty() ? -1 : 0;
-//
-//        // 5. Reiniciar el coordinador con la nueva lista y la selección inicial.
-//        //    Esto disparará la actualización de la imagen principal y las miniaturas.
-//        listCoordinator.reiniciarYSeleccionarIndice(indiceASeleccionar);
-//
-//        // 6. Ejecutar el callback si existe.
-//        if (alFinalizarConExito != null) {
-//            alFinalizarConExito.run();
-//        }
-//        
-//        logger.debug("-->>> FIN cargarListaDesdeFiltro. Sincronización completa.");
-//    
-//   
-//    } // --- fin del metodo cargarListaDesdeFiltro --- 
-    
-    
-    
-    
-    
     /**
      * Configura listeners en los paneles de visualización de imágenes para que
      * se reajuste el zoom automáticamente cuando el tamaño del panel cambia.
@@ -1673,8 +1520,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                          ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
                          
                          // Usamos la variable 'rutaCompleta' que ya es final y está en el scope.
-                         
-                         //FIXME establecer la imagen del logo como imagen rota
                          displayPanel.mostrarError("Error al cargar:\n" + rutaCompleta.getFileName().toString(), errorIcon);
                     }
                     actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
@@ -1744,7 +1589,11 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                 logger.error("Error al cargar la imagen directamente por Path: " + ex.getMessage());
             }
 
-            final BufferedImage finalImagenCargada = imagenCargadaDesdeDisco;
+            final BufferedImage imagenCorregida = utils.ImageUtils.correctImageOrientation(imagenCargadaDesdeDisco, rutaCompleta);
+//            final BufferedImage finalImagenCargada = imagenCargadaDesdeDisco;
+            
+            final BufferedImage finalImagenCargada = imagenCorregida;
+            
             final Path finalPath = rutaCompleta; // Capturar para el EDT
             final String finalClave = claveImagen; // Capturar para el EDT
 
@@ -1755,45 +1604,27 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 
             // 7. ACTUALIZAR LA UI EN EL EVENT DISPATCH THREAD (EDT)
             SwingUtilities.invokeLater(() -> {
-                // Si esta no es la imagen actualmente seleccionada por el modelo de lista,
-                // PERO SÍ es una carga directa, igual la mostramos.
-                // Sin embargo, si el usuario ha hecho una nueva selección en la lista principal,
-                // esa selección tiene prioridad y esta carga directa podría ser descartada.
-                // Aquí, la clave es que esta función no altera `model.selectedImageKey`
-                // para no interferir con la navegación de listas.
-
+                // ... (el resto del método no necesita cambios) ...
                 if (finalImagenCargada != null) {
-                    // --- Caso de Éxito ---
-                    model.setCurrentImage(finalImagenCargada); // Establecer la imagen cargada en el modelo
-                    displayPanel.limpiar(); // Limpiar el texto de "Cargando..."
-
-                    // Aplicar el modo de zoom. Siempre se aplica el del contexto actual.
+                    model.setCurrentImage(finalImagenCargada);
+                    displayPanel.limpiar();
                     if (zoomManager != null) {
                          zoomManager.aplicarModoDeZoom(model.getCurrentZoomMode());
                     } else {
-                         displayPanel.repaint(); // Fallback si no hay zoomManager
+                         displayPanel.repaint();
                     }
-
-                    // No actualizamos el estado del botón "Marcar" aquí directamente,
-                    // ya que esta imagen puede no estar marcada o no ser del proyecto.
-                    // Esa lógica debería ser manejada por la selección de lista, no por la previsualización.
-
                 } else { 
-                    // --- Caso de Error de Carga ---
                     model.setCurrentImage(null);
                     if (iconUtils != null) {
                          ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
                          displayPanel.mostrarError("Error al cargar:\n" + finalPath.getFileName().toString(), errorIcon);
                     }
                 }
-
-                // 8. ACTUALIZACIÓN FINAL DE COMPONENTES DE INFORMACIÓN
-                //    Estos managers deben leer del model.getCurrentImage()
                 if (infobarImageManager != null) infobarImageManager.actualizar();
                 if (statusBarManager != null) statusBarManager.actualizar();
-                // No forzamos actualización de acciones aquí, ya que no cambiamos la selección de lista.
             });
         });
+        
     }// --- Fin del nuevo método actualizarImagenPrincipalPorPath ---
     
     
@@ -1978,7 +1809,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
              case "tga":
              case "pcx":
             	 
-                 // TODO: Añadir más si se soportan (tiff, webp, etc.)
                  return true; // Es una extensión soportada
              default:
                  return false; // No es una extensión soportada
@@ -2925,6 +2755,11 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
           // actuará como "dueño" temporal del contenido (implementa ClipboardOwner).
           clipboard.setContents(stringSelection, this);
           logger.debug("[Portapapeles] Lista copiada exitosamente (" + numeroElementos + " líneas).");
+          
+          if (statusBarManager != null) {
+              statusBarManager.mostrarMensajeTemporal("Lista copiada al portapapeles (" + numeroElementos + " ítems)", 3000); // Muestra por 3 segundos
+          }
+          
           // Opcional: Mostrar mensaje de éxito
            if (view != null) {
                // Podríamos usar un mensaje no modal o una etiqueta temporal

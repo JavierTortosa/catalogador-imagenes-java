@@ -65,18 +65,26 @@ public class HelpDialog extends JDialog {
         top.add(new DefaultMutableTreeNode(new HelpPageInfo("Bienvenida", "index.html")));
 
         DefaultMutableTreeNode visualizadorFolder = new DefaultMutableTreeNode("Modo Visualizador");
-        visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("La Interfaz", "visualizador_ui.html")));
+        visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Introducción", "visualizador.html")));
+        visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Panel de Navegación", "visualizador_panel_izquierdo.html")));
+        visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Área Principal y Vistas", "visualizador_area_principal.html")));
+        visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Sistema de Zoom", "visualizador_zoom.html")));
+        visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barras de Información", "visualizador_barras_info.html")));
         top.add(visualizadorFolder);
         
         DefaultMutableTreeNode proyectoFolder = new DefaultMutableTreeNode("Modo Proyecto");
-        proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Componentes Principales", "proyecto_componentes.html")));
+        proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Introducción", "proyecto.html")));
+        proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Controles y Pestañas", "proyecto_controles.html")));
         top.add(proyectoFolder);
+
+        DefaultMutableTreeNode carruselFolder = new DefaultMutableTreeNode("Modo Carrusel");
+        carruselFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Introducción", "carrusel.html")));
+        carruselFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Controles", "carrusel_controles.html")));
+        top.add(carruselFolder);
         
         DefaultMutableTreeNode uiRefFolder = new DefaultMutableTreeNode("Referencia de UI");
-        // --- INICIO DE LA MODIFICACIÓN: DOS ENTRADAS SEPARADAS ---
         uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barras de Herramientas", "toolbars_autogen.html")));
         uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barra de Menús", "menus_autogen.html")));
-        // --- FIN DE LA MODIFICACIÓN ---
         top.add(uiRefFolder);
 
         top.add(new DefaultMutableTreeNode(new HelpPageInfo("Atajos de Teclado", "atajos.html")));
@@ -146,6 +154,9 @@ public class HelpDialog extends JDialog {
                     String baseTag = "<base href=\"" + baseUrl.toExternalForm() + "\">";
                     htmlContent = htmlContent.replaceFirst("(?i)<head>", "<head>" + baseTag);
                 }
+                
+                // Procesamos los placeholders también para las páginas estáticas.
+                htmlContent = replaceIconPlaceholders(htmlContent);
                 
                 contentPane.setText(htmlContent);
                 SwingUtilities.invokeLater(() -> contentPane.setCaretPosition(0));

@@ -22,6 +22,7 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.border.Border;
 import javax.swing.border.TitledBorder; // Para panelIzquierdo
 
 import org.slf4j.Logger;
@@ -74,6 +75,9 @@ public class VisorView extends JFrame {
     
     private DefaultListModel<String> modeloListaMiniaturas;
     
+    // --- BORDES PARA EL ESTADO DE SYNC ---
+    private final Border syncActiveBorder = javax.swing.BorderFactory.createLineBorder(java.awt.Color.GREEN.darker(), 3);
+    private final Border syncInactiveBorder = javax.swing.BorderFactory.createEmptyBorder(3, 3, 3, 3);
     
     /**
       * Constructor principal de la ventana VisorView.
@@ -164,6 +168,8 @@ public class VisorView extends JFrame {
             }
         });
 
+        actualizarBordeDeSincronizacion(modelo.isSyncVisualizadorCarrusel());
+        
     } // --- FIN del constructor VisorView ---
     
     
@@ -367,6 +373,19 @@ public class VisorView extends JFrame {
     } // --- FIN del metodo mostrarIndicadorCargaImagenPrincipal ---
     
     
+    /**
+     * Actualiza el borde de la ventana principal para indicar visualmente
+     * si el modo de sincronización está activo o no.
+     * @param activado true para mostrar un borde rojo, false para quitarlo.
+     */
+    public void actualizarBordeDeSincronizacion(boolean activado) {
+        SwingUtilities.invokeLater(() -> {
+            logger.debug("[VisorView] Actualizando borde de sincronización a: {}", activado);
+            getRootPane().setBorder(activado ? syncActiveBorder : syncInactiveBorder);
+        });
+    } // --- Fin del método actualizarBordeDeSincronizacion ---
+    
+    
     // Métodos para actualizar los mapas y barras (recibidos de AppInitializer)
     public void setActualJMenuBar(JMenuBar menuBar) {
         if (menuBar != null) this.setJMenuBar(menuBar);
@@ -384,6 +403,8 @@ public class VisorView extends JFrame {
     }
     
     
+    
+    
     /**
      * Solicita un refresco completo de los renderers de la lista de miniaturas.
      * Esto es útil cuando cambian las configuraciones que afectan la apariencia
@@ -392,7 +413,6 @@ public class VisorView extends JFrame {
      * Crea una nueva instancia del renderer con la configuración actual y la asigna
      * a la JList de miniaturas, forzando una revalidación y repintado.
      */
-
     public void solicitarRefrescoRenderersMiniaturas() {
         logger.debug("[VisorView] Iniciando solicitud de refresco para renderers de miniaturas...");
 

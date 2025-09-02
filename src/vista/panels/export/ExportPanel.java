@@ -12,6 +12,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
+import javax.swing.border.Border;
 import javax.swing.table.TableColumn;
 
 import org.slf4j.Logger;
@@ -35,7 +37,10 @@ public class ExportPanel extends JPanel {
     private ProjectController projectController;
     private JToolBar actionToolBar; 
     private ExportTableModel tableModel;
-
+    
+    private Border originalTextFieldBorder; // Guardar el borde original
+    private final Border warningBorder = javax.swing.BorderFactory.createLineBorder(Color.RED, 1);
+    
     public ExportPanel(ProjectController controller, java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {
         super(new BorderLayout(5, 5));
         this.projectController = controller;
@@ -53,13 +58,11 @@ public class ExportPanel extends JPanel {
 
         txtCarpetaDestino = new JTextField("Seleccione una carpeta de destino...");
         txtCarpetaDestino.setEditable(false); 
+        
+        this.originalTextFieldBorder = txtCarpetaDestino.getBorder();
+        
         panelDestino.add(txtCarpetaDestino, BorderLayout.CENTER);
 
-        Action seleccionarCarpetaAction = projectController.getController().getActionFactory()
-                .getActionMap().get(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA);
-        
-        btnSeleccionarCarpeta = new JButton(seleccionarCarpetaAction);
-        panelDestino.add(btnSeleccionarCarpeta, BorderLayout.EAST); // Corregido: btnSeleccionarCarpeta
         
         this.add(panelDestino, BorderLayout.NORTH);
         
@@ -186,11 +189,19 @@ public class ExportPanel extends JPanel {
         if (lblResumen != null) {
             lblResumen.setText("  " + mensajeResumen);
         }
+        
+        if (puedeExportar) {
+            lblResumen.setForeground(UIManager.getColor("Label.foreground")); // Color normal
+        } else {
+            lblResumen.setForeground(Color.ORANGE); // Color de advertencia
+        }
+        
         // El estado del botón de exportación lo maneja su propia Action, pero podemos forzarlo si es necesario.
         Action iniciarExportAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_INICIAR_EXPORTACION);
         if (iniciarExportAction != null) {
             iniciarExportAction.setEnabled(puedeExportar);
         }
+        
     } // --- Fin del método actualizarEstadoControles ---
     
     
@@ -209,12 +220,20 @@ public class ExportPanel extends JPanel {
     public void resaltarRutaDestino(boolean resaltar) {
         if (txtCarpetaDestino != null) {
             if (resaltar) {
-                txtCarpetaDestino.setBackground(new Color(255, 220, 220));
+
+            	txtCarpetaDestino.setBackground(new Color(255, 220, 220));
+            	
+            	txtCarpetaDestino.setBorder(javax.swing.BorderFactory.createLineBorder(UIManager.getColor("Component.error.borderColor"), 2));
+            	
             } else {
+            	
                 txtCarpetaDestino.setBackground(null);
+                txtCarpetaDestino.setBorder(originalTextFieldBorder);
+                
             }
         }
     } // --- Fin del método resaltarRutaDestino ---
+    
     
     public String getRutaDestino() {
         return (this.txtCarpetaDestino != null) ? this.txtCarpetaDestino.getText() : "";

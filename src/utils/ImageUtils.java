@@ -115,4 +115,4 @@ public class ImageUtils {
         return t;
     } // ---FIN de metodo getExifTransform---
 
-}
+} // --- FIN de la clase ImageUtils ---
