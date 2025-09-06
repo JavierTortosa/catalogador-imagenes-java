@@ -1,5 +1,7 @@
 package controlador;
 
+import java.awt.Component;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.nio.file.Files;
@@ -22,7 +24,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.slf4j.Logger;
@@ -141,95 +142,121 @@ public class ProjectController implements IModoController {
                 herramientasTabbedPane.removeChangeListener(cl);
             }
 
+            
+            
+         // --- INICIO DE LA SECCIÓN A REEMPLAZAR ---
             herramientasTabbedPane.addChangeListener(e -> {
-                if (herramientasTabbedPane.getSelectedIndex() == -1) return; // Evitar eventos extraños
+                if (herramientasTabbedPane.getSelectedIndex() == -1) return;
 
                 int selectedIndex = herramientasTabbedPane.getSelectedIndex();
                 String selectedTitle = herramientasTabbedPane.getTitleAt(selectedIndex);
 
                 logger.info("--- Cambio de pestaña en Modo Proyecto. Nueva pestaña: '{}' ---", selectedTitle);
 
-                JList<String> gridList = registry.get("list.grid.proyecto");
-                if (gridList == null) {
-                    logger.error("CRITICAL: No se encontró 'list.grid.proyecto' en el registro. No se puede sincronizar.");
-                    return;
-                }
-                
-                // Escenario 1: El usuario entra en la pestaña "Exportar"
+                // --- LÓGICA CORREGIDA: Volvemos a usar los métodos especializados ---
                 if (selectedTitle.startsWith("Exportar")) {
-                    if (!enModoVistaExportacion) { // Solo actuar si no estábamos ya en este modo
-                        logger.debug("  -> Transición a VISTA DE EXPORTACIÓN...");
-                        // Guardamos el estado ANTES de hacer cualquier cambio
-                        this.modoVistaAnterior = model.getCurrentDisplayMode();
-                        this.nombreListaActivaAnterior = model.getProyectoListContext().getNombreListaActiva();
-                        this.enModoVistaExportacion = true;
-                        
-                        
-                        // 0. ¡¡EL PASO QUE FALTABA!! Poblar la tabla de exportación.
-                        solicitarPreparacionColaExportacion();
-                        
-                        // 1. Forzar modo GRID
-                        displayModeManager.switchToDisplayMode(VisorModel.DisplayMode.GRID);
-                        
-                        // 2. CREAR Y ASIGNAR EL MODELO TEMPORAL AL GRID
-                        JTable tablaExportacion = getTablaExportacionDesdeRegistro();
-                        ExportTableModel exportModel = (ExportTableModel) tablaExportacion.getModel();
-                        List<ExportItem> items = exportModel.getCola();
-                        
-                        DefaultListModel<String> modeloExportacion = new DefaultListModel<>();
-                        for (ExportItem item : items) {
-                            if (item.getRutaImagen() != null) {
-                                modeloExportacion.addElement(item.getRutaImagen().toString().replace("\\", "/"));
-                            }
-                        }
-                        gridList.setModel(modeloExportacion);
-                        
-                        // 3. Sincronizar selección inicial
-                        SwingUtilities.invokeLater(() -> {
-                            if (tablaExportacion.getRowCount() > 0) {
-                                tablaExportacion.setRowSelectionInterval(0, 0);
-                            }
-                            if (gridList.getModel().getSize() > 0) {
-                                gridList.setSelectedIndex(0);
-                                gridList.ensureIndexIsVisible(0);
-                            }
-                        });
-                    }
-                } 
-                // Escenario 2: El usuario sale de "Exportar" a cualquier otra pestaña ("Descartes" o "Etiquetar")
-                else {
-                    if (enModoVistaExportacion) { // Solo actuar si venimos del modo exportación
-                        logger.debug("  -> Transición DESDE VISTA DE EXPORTACIÓN...");
-                        this.enModoVistaExportacion = false;
-                        
-                        // 1. RESTAURAR EL MODELO ORIGINAL DEL GRID
-                        gridList.setModel(model.getProyectoListContext().getModeloLista());
-                        
-                        // 2. Restaurar el foco a la lista que estaba activa antes
-                        String listaARestaurar = this.nombreListaActivaAnterior != null ? this.nombreListaActivaAnterior : "seleccion";
-                        model.getProyectoListContext().setNombreListaActiva(listaARestaurar);
-                        actualizarAparienciaListasPorFoco();
-                        
-                        // 3. Restaurar DisplayMode (GRID/SINGLE)
-                        if (this.modoVistaAnterior != null) {
-                            displayModeManager.switchToDisplayMode(this.modoVistaAnterior);
-                        }
-
-                        // 4. Restaurar la selección
-                        String claveARestaurar = "seleccion".equals(listaARestaurar)
-                                               ? model.getProyectoListContext().getSeleccionListKey()
-                                               : model.getProyectoListContext().getDescartesListKey();
-                        
-                        projectListCoordinator.seleccionarImagenPorClave(claveARestaurar);
-                        
-                        // 5. Limpiar variables de estado
-                        this.modoVistaAnterior = null;
-                        this.nombreListaActivaAnterior = null;
-                        this.exportItemMap.clear();
-                    }
+                    // Si entramos en la pestaña de exportar, activamos su modo de vista.
+                    activarModoVistaExportacion();
+                } else {
+                    // Si salimos de la pestaña de exportar a cualquier otra, lo desactivamos.
+                    desactivarModoVistaExportacion();
                 }
             });
+            // --- FIN DE LA SECCIÓN A REEMPLAZAR ---
+            
+            
+            
+//            herramientasTabbedPane.addChangeListener(e -> {
+//                if (herramientasTabbedPane.getSelectedIndex() == -1) return; // Evitar eventos extraños
+//
+//                int selectedIndex = herramientasTabbedPane.getSelectedIndex();
+//                String selectedTitle = herramientasTabbedPane.getTitleAt(selectedIndex);
+//
+//                logger.info("--- Cambio de pestaña en Modo Proyecto. Nueva pestaña: '{}' ---", selectedTitle);
+//
+//                JList<String> gridList = registry.get("list.grid.proyecto");
+//                if (gridList == null) {
+//                    logger.error("CRITICAL: No se encontró 'list.grid.proyecto' en el registro. No se puede sincronizar.");
+//                    return;
+//                }
+//                
+//                // Escenario 1: El usuario entra en la pestaña "Exportar"
+//                if (selectedTitle.startsWith("Exportar")) {
+//                    if (!enModoVistaExportacion) { // Solo actuar si no estábamos ya en este modo
+//                        logger.debug("  -> Transición a VISTA DE EXPORTACIÓN...");
+//                        // Guardamos el estado ANTES de hacer cualquier cambio
+//                        this.modoVistaAnterior = model.getCurrentDisplayMode();
+//                        this.nombreListaActivaAnterior = model.getProyectoListContext().getNombreListaActiva();
+//                        this.enModoVistaExportacion = true;
+//                        
+//                        
+//                        // 0. ¡¡EL PASO QUE FALTABA!! Poblar la tabla de exportación.
+//                        solicitarPreparacionColaExportacion();
+//                        
+//                        // 1. Forzar modo GRID
+//                        displayModeManager.switchToDisplayMode(VisorModel.DisplayMode.GRID);
+//                        
+//                        // 2. CREAR Y ASIGNAR EL MODELO TEMPORAL AL GRID
+//                        JTable tablaExportacion = getTablaExportacionDesdeRegistro();
+//                        ExportTableModel exportModel = (ExportTableModel) tablaExportacion.getModel();
+//                        List<ExportItem> items = exportModel.getCola();
+//                        
+//                        DefaultListModel<String> modeloExportacion = new DefaultListModel<>();
+//                        for (ExportItem item : items) {
+//                            if (item.getRutaImagen() != null) {
+//                                modeloExportacion.addElement(item.getRutaImagen().toString().replace("\\", "/"));
+//                            }
+//                        }
+//                        gridList.setModel(modeloExportacion);
+//                        
+//                        // 3. Sincronizar selección inicial
+//                        SwingUtilities.invokeLater(() -> {
+//                            if (tablaExportacion.getRowCount() > 0) {
+//                                tablaExportacion.setRowSelectionInterval(0, 0);
+//                            }
+//                            if (gridList.getModel().getSize() > 0) {
+//                                gridList.setSelectedIndex(0);
+//                                gridList.ensureIndexIsVisible(0);
+//                            }
+//                        });
+//                    }
+//                } 
+//                // Escenario 2: El usuario sale de "Exportar" a cualquier otra pestaña ("Descartes" o "Etiquetar")
+//                else {
+//                    if (enModoVistaExportacion) { // Solo actuar si venimos del modo exportación
+//                        logger.debug("  -> Transición DESDE VISTA DE EXPORTACIÓN...");
+//                        this.enModoVistaExportacion = false;
+//                        
+//                        // 1. RESTAURAR EL MODELO ORIGINAL DEL GRID
+//                        gridList.setModel(model.getProyectoListContext().getModeloLista());
+//                        
+//                        // 2. Restaurar el foco a la lista que estaba activa antes
+//                        String listaARestaurar = this.nombreListaActivaAnterior != null ? this.nombreListaActivaAnterior : "seleccion";
+//                        model.getProyectoListContext().setNombreListaActiva(listaARestaurar);
+//                        actualizarAparienciaListasPorFoco();
+//                        
+//                        // 3. Restaurar DisplayMode (GRID/SINGLE)
+//                        if (this.modoVistaAnterior != null) {
+//                            displayModeManager.switchToDisplayMode(this.modoVistaAnterior);
+//                        }
+//
+//                        // 4. Restaurar la selección
+//                        String claveARestaurar = "seleccion".equals(listaARestaurar)
+//                                               ? model.getProyectoListContext().getSeleccionListKey()
+//                                               : model.getProyectoListContext().getDescartesListKey();
+//                        
+//                        projectListCoordinator.seleccionarImagenPorClave(claveARestaurar);
+//                        
+//                        // 5. Limpiar variables de estado
+//                        this.modoVistaAnterior = null;
+//                        this.nombreListaActivaAnterior = null;
+//                        this.exportItemMap.clear();
+//                    }
+//                }
+//            });
 
+            
+            
         } else {
             logger.error("No se encontró 'tabbedpane.proyecto.herramientas' en el ComponentRegistry. La lógica de vista de exportación no funcionará.");
         }
@@ -237,183 +264,63 @@ public class ProjectController implements IModoController {
     } // --- Fin del método configurarListeners ---
     
     
-    
-//    void configurarListeners() {
-//        if (registry == null || model == null || projectListCoordinator == null) {
-//            logger.error("ERROR [ProjectController]: Dependencias nulas (registry, model o projectListCoordinator).");
-//            return;
-//        }
-//
-//        // --- Listeners para las listas de Selección y Descartes ---
-//        JList<String> projectList = registry.get("list.proyecto.nombres");
-//        JList<String> descartesList = registry.get("list.proyecto.descartes");
-//
-//        MouseAdapter listMouseAdapter = new MouseAdapter() {
-//            @Override
-//            public void mousePressed(MouseEvent e) {
-//                JList<?> sourceList = (JList<?>) e.getSource();
-//                String nombreListaClicada = (sourceList == projectList) ? "seleccion" : "descartes";
-//                if (!nombreListaClicada.equals(model.getProyectoListContext().getNombreListaActiva())) {
-//                    cambiarFocoListaActiva(nombreListaClicada);
-//                }
-//            }
-//        };
-//
-//        if (projectList != null) {
-//            projectList.addMouseListener(listMouseAdapter);
-//            for (javax.swing.event.ListSelectionListener lsl : projectList.getListSelectionListeners()) {
-//                projectList.removeListSelectionListener(lsl);
-//            }
-//            projectList.addListSelectionListener(e -> {
-//                if (e.getValueIsAdjusting() || projectListCoordinator.isSincronizandoUI()) return;
-//                
-//                if ("seleccion".equals(model.getProyectoListContext().getNombreListaActiva())) {
-//                    projectListCoordinator.seleccionarImagenPorIndice(projectList.getSelectedIndex());
-//                }
-//            });
-//        }
-//
-//        if (descartesList != null) {
-//            descartesList.addMouseListener(listMouseAdapter);
-//            for (javax.swing.event.ListSelectionListener lsl : descartesList.getListSelectionListeners()) {
-//                descartesList.removeListSelectionListener(lsl);
-//            }
-//            descartesList.addListSelectionListener(e -> {
-//                if (e.getValueIsAdjusting() || projectListCoordinator.isSincronizandoUI()) return;
-//
-//                if ("descartes".equals(model.getProyectoListContext().getNombreListaActiva())) {
-//                    projectListCoordinator.seleccionarImagenPorIndice(descartesList.getSelectedIndex());
-//                }
-//            });
-//        }
-//        
-//        vista.panels.export.ExportPanel panelExportar = registry.get("panel.proyecto.herramientas.exportar");
-//        if(panelExportar != null) {
-//            JButton btnSeleccionarCarpeta = panelExportar.getBotonSeleccionarCarpeta();
-//            if (btnSeleccionarCarpeta != null) {
-//                btnSeleccionarCarpeta.addActionListener(e -> solicitarSeleccionCarpetaDestino());
-//            }
-//        }
-//        
-//        JTabbedPane herramientasTabbedPane = registry.get("tabbedpane.proyecto.herramientas");
-//        if (herramientasTabbedPane != null) {
-//            herramientasTabbedPane.addChangeListener(new ChangeListener() {
-//                @Override
-//                public void stateChanged(ChangeEvent e) {
-//                    int selectedIndex = herramientasTabbedPane.getSelectedIndex();
-//                    String selectedTitle = herramientasTabbedPane.getTitleAt(selectedIndex);
-//                    
-//                    logger.info("--- Cambio de pestaña en Modo Proyecto. Nueva pestaña: '{}' ---", selectedTitle);
-//                    
-//                    
-//                    
-//                    // --- INICIO DE LA NUEVA LÓGICA ---
-//
-//                    JList<String> gridList = registry.get("list.grid.proyecto");
-//                    if (gridList == null) {
-//                        logger.error("CRITICAL: No se encontró 'list.grid.proyecto' en el registro. No se puede sincronizar.");
-//                        return;
-//                    }
-//                    
-//                    // Escenario 1: El usuario entra en la pestaña "Exportar"
-//                    if (selectedTitle.startsWith("Exportar")) {
-//                        if (!enModoVistaExportacion) {
-//                            logger.debug("  -> Transición a VISTA DE EXPORTACIÓN...");
-//                            // Guardamos el estado ANTES de hacer cualquier cambio
-//                            this.modoVistaAnterior = model.getCurrentDisplayMode();
-//                            this.nombreListaActivaAnterior = model.getProyectoListContext().getNombreListaActiva();
-//                            this.enModoVistaExportacion = true;
-//                            
-//                            // 1. Forzar modo GRID
-//                            displayModeManager.switchToDisplayMode(VisorModel.DisplayMode.GRID);
-//                            
-//                            // 2. CREAR Y ASIGNAR EL MODELO TEMPORAL AL GRID
-//                            // No tocamos la lista maestra del VisorModel.
-//                            JTable tablaExportacion = getTablaExportacionDesdeRegistro();
-//                            ExportTableModel exportModel = (ExportTableModel) tablaExportacion.getModel();
-//                            List<ExportItem> items = exportModel.getCola();
-//                            
-//                            DefaultListModel<String> modeloExportacion = new DefaultListModel<>();
-//                            for (ExportItem item : items) {
-//                                if (item.getRutaImagen() != null) {
-//                                    modeloExportacion.addElement(item.getRutaImagen().toString().replace("\\", "/"));
-//                                }
-//                            }
-//                            gridList.setModel(modeloExportacion);
-//                            
-//                            // 3. Sincronizar selección inicial
-//                            SwingUtilities.invokeLater(() -> {
-//                                if (tablaExportacion.getRowCount() > 0) {
-//                                    tablaExportacion.setRowSelectionInterval(0, 0);
-//                                }
-//                                // El listener de la tabla llamará a `mostrarImagenDeExportacion`
-//                                // que a su vez debe llamar a `projectListCoordinator.seleccionarImagenPorClave`
-//                                // para sincronizar el grid. Vamos a asegurarlo.
-//                                if (gridList.getModel().getSize() > 0) {
-//                                    gridList.setSelectedIndex(0);
-//                                    gridList.ensureIndexIsVisible(0);
-//                                }
-//                            });
-//                        }
-//                    } 
-//                    // Escenario 2: El usuario sale de "Exportar" a cualquier otra pestaña ("Descartes" o "Etiquetar")
-//                    else {
-//                        if (enModoVistaExportacion) {
-//                            logger.debug("  -> Transición DESDE VISTA DE EXPORTACIÓN...");
-//                            this.enModoVistaExportacion = false;
-//                            
-//                            // 1. RESTAURAR EL MODELO ORIGINAL DEL GRID
-//                            // Volvemos a poner la lista maestra del proyecto (la unificada) en el grid.
-//                            gridList.setModel(model.getProyectoListContext().getModeloLista());
-//                            
-//                            // 2. Restaurar el foco a la lista que estaba activa antes
-//                            String listaARestaurar = this.nombreListaActivaAnterior != null ? this.nombreListaActivaAnterior : "seleccion";
-//                            model.getProyectoListContext().setNombreListaActiva(listaARestaurar);
-//                            actualizarAparienciaListasPorFoco();
-//                            
-//                            // 3. Restaurar DisplayMode (GRID/SINGLE)
-//                            if (this.modoVistaAnterior != null) {
-//                                displayModeManager.switchToDisplayMode(this.modoVistaAnterior);
-//                            }
-//
-//                            // 4. Restaurar la selección
-//                            String claveARestaurar = "seleccion".equals(listaARestaurar)
-//                                                   ? model.getProyectoListContext().getSeleccionListKey()
-//                                                   : model.getProyectoListContext().getDescartesListKey();
-//                            
-//                            projectListCoordinator.seleccionarImagenPorClave(claveARestaurar);
-//                            
-//                            // 5. Limpiar variables de estado
-//                            this.modoVistaAnterior = null;
-//                            this.nombreListaActivaAnterior = null;
-//                            this.exportItemMap.clear();
-//                        }
-//                    }
-//                     // --- FIN DE LA NUEVA LÓGICA ---
-//                    
-//                    
-//                    
-//
-////                    if ("Exportar".equals(selectedTitle)) {
-////                        activarModoVistaExportacion();
-////                    } else {
-////                        if (enModoVistaExportacion) {
-////                            desactivarModoVistaExportacion();
-////                        }
-////                    }
-////                }
-//                
-//                
-//                
-//            });
-//            
-//        } else {
-//            logger.error("No se encontró 'tabbedpane.proyecto.herramientas' en el ComponentRegistry. La lógica de vista de exportación no funcionará.");
-//        }
-//
-//    } // --- Fin del método configurarListeners ---
-    
+    /**
+     * Limpia por completo la interfaz de usuario del modo Proyecto.
+     * Vacía las JLists de selección y descartes, el grid, y deselecciona cualquier imagen.
+     * Este método es seguro y no fallará incluso si las JLists no tienen el modelo esperado.
+     */
+    private void limpiarVistaProyecto() {
+        logger.debug("[ProjectController] Limpiando la vista del modo proyecto...");
 
+        // 1. Limpiar modelos de las JLists de la izquierda de forma segura
+        JList<String> listaSeleccion = registry.get("list.proyecto.nombres");
+        if (listaSeleccion != null) {
+            // Comprobamos si el modelo es del tipo que esperamos
+            if (listaSeleccion.getModel() instanceof DefaultListModel) {
+                ((DefaultListModel<String>) listaSeleccion.getModel()).clear();
+            } else {
+                // Si no lo es, simplemente le asignamos un nuevo modelo vacío.
+                listaSeleccion.setModel(new DefaultListModel<>());
+            }
+        }
+        
+        JList<String> listaDescartes = registry.get("list.proyecto.descartes");
+        if (listaDescartes != null) {
+            if (listaDescartes.getModel() instanceof DefaultListModel) {
+                ((DefaultListModel<String>) listaDescartes.getModel()).clear();
+            } else {
+                listaDescartes.setModel(new DefaultListModel<>());
+            }
+        }
+
+        // 2. Limpiar el modelo "maestro" del contexto del proyecto en el VisorModel.
+        ListContext proyectoContext = model.getProyectoListContext();
+        if (proyectoContext.getModeloLista() != null && !proyectoContext.getModeloLista().isEmpty()) {
+             model.setMasterListAndNotify(new DefaultListModel<>(), new HashMap<>(), this);
+        }
+
+        // 3. Limpiar la imagen principal mostrada
+        if (projectListCoordinator != null) {
+            projectListCoordinator.reiniciarYSeleccionarIndice(-1);
+        }
+
+        // 4. Actualizar títulos y contadores
+        actualizarAparienciaListasPorFoco();
+        JTabbedPane herramientasTabbedPane = registry.get("tabbedpane.proyecto.herramientas");
+        if (herramientasTabbedPane != null && herramientasTabbedPane.getTabCount() > 0) {
+            // Buscamos la pestaña por el nombre para ser más robustos
+            for (int i = 0; i < herramientasTabbedPane.getTabCount(); i++) {
+                if (herramientasTabbedPane.getTitleAt(i).startsWith("Descartes")) {
+                    herramientasTabbedPane.setTitleAt(i, "Descartes: 0");
+                    break;
+                }
+            }
+        }
+
+        logger.debug("[ProjectController] Vista del proyecto limpiada.");
+    } // --- fin de metodo limpiarVistaProyecto ---
+    
+    
     /**
      * Activa la vista especializada para la pestaña "Exportar".
      * Cambia el visor a modo GRID y utiliza la lista de exportación como fuente de datos.
@@ -429,11 +336,10 @@ public class ProjectController implements IModoController {
         this.nombreListaActivaAnterior = model.getProyectoListContext().getNombreListaActiva();
         logger.debug(" -> Estado guardado: DisplayMode={}, ListaActiva={}", modoVistaAnterior, nombreListaActivaAnterior);
         
-//        // 2. Forzar modo GRID. El otro listener (en ProjectBuilder) se encargará de poblarlo con datos.
-//        displayModeManager.switchToDisplayMode(VisorModel.DisplayMode.GRID);
         
-        // --- INICIO DE LA MODIFICACIÓN ---
-
+        // Poblar la tabla de exportación ANTES de hacer nada más.
+        solicitarPreparacionColaExportacion();
+        
         // 2. Poblar la lista maestra del modelo con los datos de exportación.
         //    Esto notificará al GridCoordinator para que se actualice.
         setExportListAsMasterList();
@@ -452,7 +358,6 @@ public class ProjectController implements IModoController {
             // lo que a su vez actualizará la selección en el grid.
         });
 
-        // --- FIN DE LA MODIFICACIÓN ---
         
     } // ---FIN de metodo activarModoVistaExportacion---
 
@@ -467,10 +372,6 @@ public class ProjectController implements IModoController {
 
         this.enModoVistaExportacion = false;
         
-        
-        
-        // --- INICIO DE LA MODIFICACIÓN ---
-        
         // 1. Usamos el método centralizado que ya funciona para restaurar el estado.
         //    Esto asegura que la lista maestra se actualice, el grid se repoble, la selección se restaure, etc.
         cambiarFocoListaActiva(this.nombreListaActivaAnterior != null ? this.nombreListaActivaAnterior : "seleccion");
@@ -480,21 +381,6 @@ public class ProjectController implements IModoController {
         if (this.modoVistaAnterior != null) {
             displayModeManager.switchToDisplayMode(this.modoVistaAnterior);
         }
-        
-        // --- FIN DE LA MODIFICACIÓN ---
-        
-        
-        
-//        // 1. Restaurar el foco a la lista que estaba activa
-//        model.getProyectoListContext().setNombreListaActiva(this.nombreListaActivaAnterior);
-//        
-//        // 2. Recargar el modelo principal con los datos de la lista de proyecto activa
-//        actualizarModeloPrincipalConListaDeProyectoActiva();
-//        
-//        // 3. Restaurar el modo de display (SINGLE/GRID) que estaba antes
-//        if (this.modoVistaAnterior != null) {
-//            displayModeManager.switchToDisplayMode(this.modoVistaAnterior);
-//        }
         
         logger.info("Modo de vista de Exportación desactivado. Estado restaurado a: DisplayMode={}, ListaActiva={}", this.modoVistaAnterior, this.nombreListaActivaAnterior);
         
@@ -636,88 +522,164 @@ public class ProjectController implements IModoController {
         logger.debug("  [ProjectController] Cambiando foco a lista: " + nuevoFoco);
         model.getProyectoListContext().setNombreListaActiva(nuevoFoco);
         
-        actualizarModeloPrincipalConListaDeProyectoActiva();
         
-        String claveARestaurar;
-        JList<String> listaQueGanaFoco;
-        
-        if ("seleccion".equals(nuevoFoco)) {
-            claveARestaurar = model.getProyectoListContext().getSeleccionListKey();
-            listaQueGanaFoco = registry.get("list.proyecto.nombres");
-        } else {
-            claveARestaurar = model.getProyectoListContext().getDescartesListKey();
-            listaQueGanaFoco = registry.get("list.proyecto.descartes");
-        }
+        // 1. Obtener el ListModel correcto (el de Selección o el de Descartes).
+        JList<String> listaActivaUI = "seleccion".equals(nuevoFoco)
+                                    ? registry.get("list.proyecto.nombres")
+                                    : registry.get("list.proyecto.descartes");
 
-        if (claveARestaurar == null && listaQueGanaFoco != null && listaQueGanaFoco.getModel().getSize() > 0) {
-            claveARestaurar = listaQueGanaFoco.getModel().getElementAt(0);
+        if (listaActivaUI == null || !(listaActivaUI.getModel() instanceof DefaultListModel)) {
+            logger.error("No se pudo obtener el modelo de la lista activa: {}", nuevoFoco);
+            return;
         }
+        DefaultListModel<String> modeloCorrecto = (DefaultListModel<String>) listaActivaUI.getModel();
+
+        // 2. Poner ESE modelo en la lista maestra del VisorModel.
+        //    El grid "tonto" reaccionará a esto.
+        model.setMasterListAndNotify(modeloCorrecto, model.getProyectoListContext().getRutaCompletaMap(), this);
         
+        // 3. Seleccionar la primera imagen (o la recordada) de esa lista.
+        String claveARestaurar = determinarClaveASeleccionar(model.getProyectoListContext());
         projectListCoordinator.seleccionarImagenPorClave(claveARestaurar);
-        
+
+        // 4. Actualizar la apariencia.
         actualizarAparienciaListasPorFoco();
         
-        DisplayModeManager dmm = controllerRef.getDisplayModeManager();
-
-        if (dmm != null) {
-            VisorModel.DisplayMode modoGuardado = model.getCurrentDisplayMode();
-            logger.debug("  -> Restaurando DisplayMode para la lista '" + nuevoFoco + "' a: " + modoGuardado);
-            dmm.switchToDisplayMode(modoGuardado);
-        } else {
-            logger.error("ERROR: DisplayModeManager es nulo. No se puede restaurar la vista.");
-        }
+//        actualizarModeloPrincipalConListaDeProyectoActiva();
+//        
+//        String claveARestaurar;
+//        JList<String> listaQueGanaFoco;
+//        
+//        if ("seleccion".equals(nuevoFoco)) {
+//            claveARestaurar = model.getProyectoListContext().getSeleccionListKey();
+//            listaQueGanaFoco = registry.get("list.proyecto.nombres");
+//        } else {
+//            claveARestaurar = model.getProyectoListContext().getDescartesListKey();
+//            listaQueGanaFoco = registry.get("list.proyecto.descartes");
+//        }
+//
+//        if (claveARestaurar == null && listaQueGanaFoco != null && listaQueGanaFoco.getModel().getSize() > 0) {
+//            claveARestaurar = listaQueGanaFoco.getModel().getElementAt(0);
+//        }
+//        
+//        projectListCoordinator.seleccionarImagenPorClave(claveARestaurar);
+//        
+//        actualizarAparienciaListasPorFoco();
+//        
+//        DisplayModeManager dmm = controllerRef.getDisplayModeManager();
+//
+//        if (dmm != null) {
+//            VisorModel.DisplayMode modoGuardado = model.getCurrentDisplayMode();
+//            logger.debug("  -> Restaurando DisplayMode para la lista '" + nuevoFoco + "' a: " + modoGuardado);
+//            dmm.switchToDisplayMode(modoGuardado);
+//        } else {
+//            logger.error("ERROR: DisplayModeManager es nulo. No se puede restaurar la vista.");
+//        }
 
     } // --- Fin del método cambiarFocoListaActiva ---
-    
+
     
     public boolean prepararDatosProyecto() {
         logger.debug("  [ProjectController] Preparando datos para el modo proyecto...");
-        if (projectManager == null || model == null) {
-            logger.error("ERROR CRÍTICO [prepararDatosProyecto]: ProjectManager o Model nulos.");
-            return false;
-        }
+        if (projectManager == null || model == null) { return false; }
 
-        List<java.nio.file.Path> imagenesMarcadas = projectManager.getImagenesMarcadas();
-        List<java.nio.file.Path> imagenesDescartadas = projectManager.getImagenesDescartadas();
-        
-        List<java.nio.file.Path> todasLasImagenes = new java.util.ArrayList<>();
+        List<Path> imagenesMarcadas = projectManager.getImagenesMarcadas();
+        List<Path> imagenesDescartadas = projectManager.getImagenesDescartadas();
+        List<Path> todasLasImagenes = new java.util.ArrayList<>();
         todasLasImagenes.addAll(imagenesMarcadas);
         todasLasImagenes.addAll(imagenesDescartadas);
-        
         todasLasImagenes = todasLasImagenes.stream().distinct().collect(Collectors.toList());
-        
         todasLasImagenes.sort((p1, p2) -> p1.toString().compareToIgnoreCase(p2.toString()));
 
         if (todasLasImagenes.isEmpty()) {
-            JOptionPane.showMessageDialog(view, "No hay imágenes marcadas ni descartadas en el proyecto actual.", "Proyecto Vacío", JOptionPane.INFORMATION_MESSAGE);
+            // Limpiamos el contexto por si tenía datos viejos.
+            model.getProyectoListContext().actualizarContextoCompleto(new DefaultListModel<>(), new HashMap<>());
             return false;
         }
 
         DefaultListModel<String> modeloUnificado = new DefaultListModel<>();
         Map<String, Path> mapaRutasProyecto = new HashMap<>();
-        
-        for (java.nio.file.Path rutaAbsoluta : todasLasImagenes) {
+        for (Path rutaAbsoluta : todasLasImagenes) {
             String clave = rutaAbsoluta.toString().replace("\\", "/");
             modeloUnificado.addElement(clave);
             mapaRutasProyecto.put(clave, rutaAbsoluta);
         }
 
-        ListContext proyectoContext = model.getProyectoListContext();
-        proyectoContext.actualizarContextoCompleto(modeloUnificado, mapaRutasProyecto);
-        
-        logger.debug("    -> Datos del proyecto preparados en proyectoListContext. Total de imágenes (selección + descartes): " + modeloUnificado.getSize());
+        model.getProyectoListContext().actualizarContextoCompleto(modeloUnificado, mapaRutasProyecto);
+        logger.debug("    -> Datos del proyecto preparados. Total imágenes: " + modeloUnificado.getSize());
         return true;
-    } // --- Fin del método prepararDatosProyecto ---
-
-
+    } // ---FIN de metodo prepararDatosProyecto---
+    
+    
+    /**
+     * Se llama desde GeneralController cuando se entra en el modo Proyecto.
+     * Es el punto de entrada principal para activar y configurar la vista del proyecto.
+     * Contiene la lógica para decidir si mostrar un proyecto existente o preguntar para abrir uno.
+     */
     public void activarVistaProyecto() {
         logger.debug("  [ProjectController] Activando la UI de la vista de proyecto...");
-        if (registry == null || model == null || projectManager == null || projectListCoordinator == null) {
+        if (registry == null || model == null || projectManager == null || projectListCoordinator == null || controllerRef == null) {
             logger.error("ERROR [ProjectController.activarVistaProyecto]: Dependencias nulas.");
             return;
         }
 
-        // 1. Poblar las JLists con los datos del proyecto (esto sigue siendo necesario para la vista)
+        boolean hayDatosParaMostrar = prepararDatosProyecto();
+
+        if (hayDatosParaMostrar) {
+            // --- FLUJO 1: Hay imágenes en el proyecto. Las mostramos. ---
+            logger.debug("   -> Hay imágenes en el proyecto. Poblando la vista...");
+
+            poblarListasSeleccionYDescartes();
+
+            
+            String focoGuardado = model.getProyectoListContext().getNombreListaActiva();
+            cambiarFocoListaActiva(focoGuardado != null ? focoGuardado : "seleccion");
+            
+//            ListContext proyectoContext = model.getProyectoListContext();
+//            model.setMasterListAndNotify(proyectoContext.getModeloLista(), proyectoContext.getRutaCompletaMap(), this);
+//            
+//            String claveParaMostrar = determinarClaveASeleccionar(proyectoContext);
+//            
+//            // FIX BUG 1: Seleccionar la imagen para que se muestre.
+//            projectListCoordinator.seleccionarImagenPorClave(claveParaMostrar);
+            
+            ajustarLayoutProyectoUI();
+            
+        } else {
+            // --- FLUJO 2: No hay imágenes. Limpiamos la vista y preguntamos al usuario. ---
+            logger.debug("   -> El proyecto está vacío. Limpiando vista y preguntando al usuario...");
+            limpiarVistaProyecto(); // Limpia visualmente las listas y la imagen.
+
+            Component parentWindow = (view != null) ? view : null;
+            int choice = JOptionPane.showConfirmDialog(
+                parentWindow,
+                "El proyecto actual está vacío.\n¿Desea abrir un proyecto existente?",
+                "Proyecto Vacío",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE
+            );
+
+            if (choice == JOptionPane.YES_OPTION) {
+                Action abrirProyectoAction = actionMap.get(AppActionCommands.CMD_PROYECTO_ABRIR);
+                if (abrirProyectoAction != null) {
+                    abrirProyectoAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+                }
+            } else {
+                // FIX BUG 2: Si el usuario dice "No", lo devolvemos al modo Visualizador.
+                logger.debug("   -> Usuario no quiere abrir proyecto. Volviendo al modo Visualizador.");
+                SwingUtilities.invokeLater(() -> {
+                    controllerRef.getGeneralController().cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
+                });
+            }
+        }
+    } // ---FIN de metodo activarVistaProyecto---
+    
+    
+    
+    /**
+     * Rellena las JList de Selección y Descartes con los datos del ProjectManager.
+     */
+    private void poblarListasSeleccionYDescartes() {
         List<Path> imagenesMarcadas = projectManager.getImagenesMarcadas();
         DefaultListModel<String> modeloSeleccion = new DefaultListModel<>();
         for (Path p : imagenesMarcadas) {
@@ -728,15 +690,14 @@ public class ProjectController implements IModoController {
             projectList.setModel(modeloSeleccion);
         }
         poblarListaDescartes();
+    } // ---fin de metodo poblarListasSeleccionYDescartes---
 
-        // 2. LA GRAN CORRECCIÓN:
-        // La lista maestra del modelo YA fue preparada por prepararDatosProyecto().
-        // Le decimos al VisorModel que notifique a todos sus listeners (GridCoordinator) sobre ESTA lista.
-        // Esto asegura que el Grid se pueble con la lista UNIFICADA (selección + descartes).
-        ListContext proyectoContext = model.getProyectoListContext();
-        model.setMasterListAndNotify(proyectoContext.getModeloLista(), proyectoContext.getRutaCompletaMap(), this);
-        
-        // 3. Determinar qué imagen debe estar seleccionada
+    
+    
+    /**
+     * Determina qué clave de imagen debe estar seleccionada al activar la vista.
+     */
+    private String determinarClaveASeleccionar(ListContext proyectoContext) {
         String focoActual = proyectoContext.getNombreListaActiva();
         String claveParaMostrar = null;
 
@@ -746,103 +707,48 @@ public class ProjectController implements IModoController {
             claveParaMostrar = proyectoContext.getSeleccionListKey();
         }
         
-        // 4. Fallback: si no hay clave guardada, seleccionar la primera de la lista activa.
+        // --- INICIO DE LA MODIFICACIÓN CLAVE ---
+        // Si después de buscar la clave guardada, sigue siendo nula o no está en la lista actual...
         if (claveParaMostrar == null || !proyectoContext.getModeloLista().contains(claveParaMostrar)) {
+            
+            // ...intentamos seleccionar la primera de la lista activa.
             JList<String> listaActivaUI = "descartes".equals(focoActual)
                                         ? registry.get("list.proyecto.descartes")
                                         : registry.get("list.proyecto.nombres");
+                                        
             if (listaActivaUI != null && listaActivaUI.getModel().getSize() > 0) {
                 claveParaMostrar = listaActivaUI.getModel().getElementAt(0);
+            } else {
+                // Si incluso la lista activa está vacía, intentamos con la otra lista.
+                JList<String> otraListaUI = "descartes".equals(focoActual)
+                                            ? registry.get("list.proyecto.nombres")
+                                            : registry.get("list.proyecto.descartes");
+                if (otraListaUI != null && otraListaUI.getModel().getSize() > 0) {
+                    claveParaMostrar = otraListaUI.getModel().getElementAt(0);
+                }
             }
         }
-        
-        // 5. Usar el coordinador para establecer la selección.
-        // Esto cargará la imagen, actualizará la selección en el grid, etc.
-        projectListCoordinator.seleccionarImagenPorClave(claveParaMostrar);
+        // --- FIN DE LA MODIFICACIÓN CLAVE ---
 
-        // 6. Actualizar la apariencia y la UI.
+        logger.debug("[ProjectController] Clave determinada para la selección inicial: {}", claveParaMostrar);
+        return claveParaMostrar;
+        
+    } // ---fin de metodo determinarClaveASeleccionar---
+    
+    
+    /**
+     * Ajusta los componentes visuales de la UI del modo proyecto.
+     */
+    private void ajustarLayoutProyectoUI() {
         SwingUtilities.invokeLater(() -> {
             actualizarAparienciaListasPorFoco();
             final JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
             if (leftSplit != null) leftSplit.setDividerLocation(0.55);
             final JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
             if (mainSplit != null) mainSplit.setDividerLocation(0.25);
-            
             logger.debug("  [ProjectController] UI de la vista de proyecto activada y restaurada.");
         });
-    } // --- Fin del método activarVistaProyecto ---
-    
-    
-//    public void activarVistaProyecto() {
-//        logger.debug("  [ProjectController] Activando la UI de la vista de proyecto (Lógica Directa)...");
-//        if (registry == null || model == null || projectManager == null || projectListCoordinator == null) {
-//            logger.error("ERROR [ProjectController.activarVistaProyecto]: Dependencias nulas.");
-//            return;
-//        }
-//
-//        List<Path> imagenesMarcadas = projectManager.getImagenesMarcadas();
-//        DefaultListModel<String> modeloSeleccion = new DefaultListModel<>();
-//        for (Path p : imagenesMarcadas) {
-//            modeloSeleccion.addElement(p.toString().replace("\\", "/"));
-//        }
-//        JList<String> projectList = registry.get("list.proyecto.nombres");
-//        if (projectList != null) {
-//            projectList.setModel(modeloSeleccion);
-//        }
-//        poblarListaDescartes();
-//
-//        String claveParaMostrar = null;
-//        String focoActual = model.getProyectoListContext().getNombreListaActiva();
-//        JList<String> descartesList = registry.get("list.proyecto.descartes");
-//        
-//        if ("descartes".equals(focoActual)) {
-//            claveParaMostrar = model.getProyectoListContext().getDescartesListKey();
-//        } else {
-//            claveParaMostrar = model.getProyectoListContext().getSeleccionListKey();
-//        }
-//
-//        if (claveParaMostrar == null || !model.getProyectoListContext().getModeloLista().contains(claveParaMostrar)) {
-//            if ("descartes".equals(focoActual) && descartesList != null && descartesList.getModel().getSize() > 0) {
-//                claveParaMostrar = descartesList.getModel().getElementAt(0);
-//            } else if (projectList != null && projectList.getModel().getSize() > 0) {
-//                claveParaMostrar = projectList.getModel().getElementAt(0);
-//                model.getProyectoListContext().setNombreListaActiva("seleccion");
-//            }
-//        }
-//        
-//        projectListCoordinator.seleccionarImagenPorClave(claveParaMostrar);
-//
-//        actualizarModeloPrincipalConListaDeProyectoActiva();
-//        
-//        SwingUtilities.invokeLater(() -> {
-//            actualizarAparienciaListasPorFoco();
-//            final JSplitPane leftSplit = registry.get("splitpane.proyecto.left");
-//            if (leftSplit != null) leftSplit.setDividerLocation(0.55);
-//            final JSplitPane mainSplit = registry.get("splitpane.proyecto.main");
-//            if (mainSplit != null) mainSplit.setDividerLocation(0.25);
-//            
-//            logger.debug("  -> Solicitando foco para la lista activa del proyecto...");
-//            
-//            String listaActiva = model.getProyectoListContext().getNombreListaActiva();
-//            JList<String> listaParaEnfocar = null;
-//
-//            if ("seleccion".equals(listaActiva)) {
-//                listaParaEnfocar = registry.get("list.proyecto.nombres");
-//            } else if ("descartes".equals(listaActiva)) {
-//                listaParaEnfocar = registry.get("list.proyecto.descartes");
-//            }
-//
-//            if (listaParaEnfocar != null) {
-//                boolean focusRequested = listaParaEnfocar.requestFocusInWindow();
-//                logger.debug("    -> Foco solicitado para '" + listaActiva + "'. ¿Éxito?: " + focusRequested);
-//            } else {
-//                logger.warn("    -> No se pudo encontrar la JList activa ('" + listaActiva + "') para darle el foco.");
-//            }
-//
-//            logger.debug("  [ProjectController] UI de la vista de proyecto activada y restaurada.");
-//        });
-//        
-//    } // --- Fin del método activarVistaProyecto ---
+    } // ---fin de metodo ajustarLayoutProyectoUI---
     
     
     @Override
@@ -916,6 +822,13 @@ public class ProjectController implements IModoController {
             zoomManager.continuarPaneo(e);
         }
     } // --- Fin del método continuarPaneo ---
+    
+    
+    @Override
+    public void solicitarRefresco() {
+        logger.debug("[ProjectController] Solicitud de refresco recibida. Llamando a refrescarListasDeProyecto...");
+        refrescarListasDeProyecto();
+    } // --- Fin del método solicitarRefresco ---
     
     
     public void poblarListaDescartes() {
@@ -1234,36 +1147,71 @@ public class ProjectController implements IModoController {
 // *********************************************** MÉTODOS PARA GESTIÓN DE ARCHIVOS DE PROYECTO    
 // ********************************************************************************************
 
+    
     /**
      * Orquesta la creación de un nuevo proyecto.
-     * Llama al manager, refresca la UI del proyecto y actualiza el título de la ventana.
+     * Limpia el estado del proyecto y devuelve al usuario al modo Visualizador.
      */
     public void solicitarNuevoProyecto() {
         if (projectManager == null || controllerRef == null || controllerRef.getGeneralController() == null) {
             logger.error("ERROR [solicitarNuevoProyecto]: Dependencias nulas.");
             return;
         }
+        
+        // 1. Limpiar el estado del proyecto en el backend.
         projectManager.nuevoProyecto();
-        logger.info("Nuevo proyecto creado. Volviendo al modo Visualizador...");
-        // Llamamos al GeneralController para que orqueste el cambio de vuelta al modo principal.
-        // Él se encargará de actualizar el título de la ventana y la UI.
+        logger.info("Nuevo proyecto creado en el backend (ProjectManager).");
+        
+        // 2. Devolver al modo Visualizador.
+        logger.info("Volviendo al modo Visualizador después de crear nuevo proyecto...");
         controllerRef.getGeneralController().cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
+        
+        // 3. Actualizar el título de la ventana para que refleje el nuevo estado (ej. "Proyecto Temporal").
+        controllerRef.actualizarTituloVentana();
     } // ---FIN de metodo solicitarNuevoProyecto---
     
     
     /**
      * Orquesta la apertura de un proyecto existente desde un archivo.
+     * Carga los datos y se asegura de que la UI se actualice, ya sea
+     * refrescando la vista actual o cambiando al modo proyecto.
      * @param rutaArchivo El Path del archivo .prj a abrir.
      */
     public void solicitarAbrirProyecto(Path rutaArchivo) {
-        if (projectManager == null || controllerRef == null) {
+        if (projectManager == null || controllerRef == null || model == null) {
             logger.error("ERROR [solicitarAbrirProyecto]: Dependencias nulas.");
             return;
         }
-        projectManager.abrirProyecto(rutaArchivo);
-        refrescarListasDeProyecto();
-        controllerRef.actualizarTituloVentana();
-        logger.info("Proyecto {} abierto y UI actualizada.", rutaArchivo.getFileName());
+
+        try {
+            // 1. Cargar los datos del proyecto en el backend (ProjectManager).
+            projectManager.abrirProyecto(rutaArchivo);
+
+            // 2. Comprobar en qué modo estamos AHORA.
+            if (model.isEnModoProyecto()) {
+                // --- CASO 1: Ya estamos en modo proyecto ---
+                // No necesitamos un cambio de modo completo. Solo necesitamos que la vista se refresque
+                // con los nuevos datos que acabamos de cargar.
+                logger.info("Ya se está en modo proyecto. Refrescando la vista con el nuevo proyecto cargado...");
+                activarVistaProyecto(); // Este método ya contiene toda la lógica de refresco.
+            } else {
+                // --- CASO 2: Estamos en otro modo (ej. Visualizador) ---
+                // Iniciamos la transición de modo completa. El GeneralController se encargará
+                // de llamar a activarVistaProyecto en el momento adecuado.
+                logger.info("Cambiando al modo proyecto para mostrar el proyecto recién cargado...");
+                controllerRef.getGeneralController().cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+            }
+
+        } catch (java.io.IOException e) {
+            logger.error("Falló la carga del proyecto: {}", e.getMessage());
+            Component parentWindow = (view != null) ? view : null;
+            JOptionPane.showMessageDialog(
+                parentWindow,
+                "No se pudo abrir el archivo de proyecto.\n" + e.getMessage(),
+                "Error al Abrir Proyecto",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
     } // ---FIN de metodo solicitarAbrirProyecto---
 
     
@@ -1472,40 +1420,10 @@ public class ProjectController implements IModoController {
         
         String claveImagen = rutaImagen.toString().replace("\\", "/");
         
-        
-        
-        // --- INICIO DE LA MODIFICACIÓN ---
         // SIN IMPORTAR EL MODO, le decimos al ProjectListCoordinator que esta es la nueva clave seleccionada.
         // Él se encargará de buscarla en la lista que sea relevante y sincronizar las vistas.
         projectListCoordinator.seleccionarImagenPorClave(claveImagen);
-        // --- FIN DE LA MODIFICACIÓN ---
-        
-        
-        
-//        if (enModoVistaExportacion) {
-//            int indiceEnMasterList = model.getModeloLista().indexOf(claveImagen);
-//            if(indiceEnMasterList != -1) {
-//                controllerRef.actualizarImagenPrincipal(indiceEnMasterList);
-//            } else {
-//                 controllerRef.actualizarImagenPrincipalPorPath(rutaImagen, claveImagen);
-//            }
-//        } else {
-//            int indiceEnProyectoContext = model.getProyectoListContext().getModeloLista().indexOf(claveImagen);
-//            if (indiceEnProyectoContext != -1) {
-//                model.getProyectoListContext().setSelectedImageKey(claveImagen);
-//                logger.debug("  -> Imagen encontrada en el contexto del proyecto (índice " + indiceEnProyectoContext + "). Cargando...");
-//                controllerRef.actualizarImagenPrincipal(indiceEnProyectoContext);
-//            } else {
-//                logger.debug("  -> Imagen NO encontrada en el contexto del proyecto. Cargando directamente por Path...");
-//                controllerRef.actualizarImagenPrincipalPorPath(rutaImagen, claveImagen);
-//                javax.swing.SwingUtilities.invokeLater(() -> {
-//                    JList<String> listaSeleccion = registry.get("list.proyecto.nombres");
-//                    JList<String> listaDescartes = registry.get("list.proyecto.descartes");
-//                    if (listaSeleccion != null) listaSeleccion.clearSelection();
-//                    if (listaDescartes != null) listaDescartes.clearSelection();
-//                });
-//            }
-//        }
+
     } // --- Fin del nuevo método mostrarImagenDeExportacion ---
     
     

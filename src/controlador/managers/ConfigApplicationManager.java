@@ -259,8 +259,6 @@ public class ConfigApplicationManager {
         	
             if (key.startsWith("interfaz.boton.")) {
             	
-            	
-            	// --- INICIO DE LA CORRECCIÓN ---
                 Object componente = registry.get(key);
                 
                 // Comprobamos si el componente es REALMENTE un botón antes de tratarlo como tal.
@@ -269,15 +267,6 @@ public class ConfigApplicationManager {
                     button.setVisible(config.getBoolean(key + ".visible", true));
                 }
                 // Si no es un AbstractButton (como nuestro JPanel wrapper), simplemente lo ignoramos.
-                // --- FIN DE LA CORRECCIÓN ---
-            	
-//            	AbstractButton  button = registry.get(key);
-//                if (button != null) {
-//                    button.setVisible(config.getBoolean(key + ".visible", true));
-//                    // El estado 'enabled' es mejor que lo gestione la propia Action.
-//                }
-                
-                
                 
             } else if (key.startsWith("interfaz.menu.")) {
                 JMenuItem menuItem = registry.get(key);

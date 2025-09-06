@@ -31,6 +31,7 @@ import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
 import vista.config.MenuItemType;
+import vista.theme.ThemeManager;
 
 
 public class MenuBarBuilder {
@@ -46,25 +47,32 @@ public class MenuBarBuilder {
     private ButtonGroup currentButtonGroup = null;
     private ActionListener controllerGlobalActionListener; // Para ítems sin Action propia
 
-    // --- Prefijo base para las claves de configuración del menú
-    private final String CONFIG_KEY_PREFIX = "interfaz.menu";
-    
     // --- Clases internas
     private final ConfigurationManager configuration;
     private final VisorController controllerRef;
     private final IViewManager viewManager;
     private final ComponentRegistry registry;
+    
+    private final ThemeManager themeManager;
 
     /**
      * Constructor simplificado. Inicializa las estructuras internas.
      */
-    public MenuBarBuilder(VisorController controller, ConfigurationManager config, IViewManager viewManager, ComponentRegistry registry) {
+    public MenuBarBuilder(
+    		VisorController controller, 
+    		ConfigurationManager config, 
+    		IViewManager viewManager, 
+    		ComponentRegistry registry,
+    		ThemeManager themeManager
+    		) {
         this.menuItemsPorNombre = new HashMap<>();
         this.menuBar = new JMenuBar();
         this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
         this.configuration = Objects.requireNonNull(config, "ConfigurationManager no puede ser null");
         this.viewManager = Objects.requireNonNull(viewManager, "IViewManager no puede ser null");
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en MenuBarBuilder");
+        this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null");
+        
         // actionMap y controllerGlobalActionListener se recibirán/establecerán externamente.
         // currentButtonGroup se inicializa a null y se gestiona durante la construcción.
     } // --- Fin del método MenuBarBuilder (constructor) ---
@@ -160,12 +168,6 @@ public class MenuBarBuilder {
         
     } // --- FIN del método buildMenuBar ---
 
-
-    // (El resto de los métodos: processMenuItemDefinition, assignActionOrCommand,
-    //  addMenuItemToParent, generateKeyPart, generateFullConfigKey, getMenuItemsMap
-    //  permanecerían como te los mostré en la respuesta anterior, con la adición
-    //  de la lógica para usar `this.controllerGlobalActionListener` en `assignActionOrCommand`)
-    // Por completitud, te los incluyo aquí de nuevo con los comentarios de sección.
 
     /**
      * Procesa recursivamente una definición de ítem de menú y sus sub-ítems,
@@ -371,7 +373,12 @@ public class MenuBarBuilder {
                 // 2.8.2. No es un componente visible. Salir.
                 return; // Salir del método para RADIO_GROUP_END
 
-            
+            case PLACEHOLDER:
+                if ("placeholder.temas".equals(itemDef.actionCommand())) {
+                    buildDynamicThemeMenu(parentContainer);
+                }
+                return;
+                
             default:
                 // 2.9. Manejar tipos de ítem desconocidos o no soportados.
                 logger.error("ERROR [MenuBarBuilder]: Tipo de MenuItemDefinition no reconocido o no manejado: " +
@@ -404,6 +411,78 @@ public class MenuBarBuilder {
         }
     } // --- FIN del método processMenuItemDefinition ---
 
+    
+    /**
+     * Construye dinámicamente el contenido del submenú de temas, organizándolos
+     * en sub-submenús por categoría.
+     * @param parentContainer El JMenu "Tema" donde se añadirán los ítems.
+     */
+    private void buildDynamicThemeMenu(JComponent parentContainer) {
+        if (!(parentContainer instanceof JMenu)) {
+            logger.error("Error: El placeholder de temas debe estar dentro de un JMenu.");
+            return;
+        }
+
+        JMenu temaMenu = (JMenu) parentContainer;
+        ButtonGroup themeGroup = new ButtonGroup();
+
+        // Pedimos al ThemeManager la lista completa de temas
+        Map<String, ThemeManager.ThemeInfo> todosLosTemas = this.themeManager.getAvailableThemes();
+        
+        // Agrupamos los temas por categoría
+        Map<ThemeManager.ThemeCategory, List<Map.Entry<String, ThemeManager.ThemeInfo>>> temasAgrupados = 
+            todosLosTemas.entrySet().stream()
+                         .collect(java.util.stream.Collectors.groupingBy(entry -> entry.getValue().category()));
+
+        logger.debug("[MenuBarBuilder] Construyendo menú dinámico con {} temas en {} categorías.", todosLosTemas.size(), temasAgrupados.size());
+
+        // --- ORDEN DE LAS CATEGORÍAS EN EL MENÚ ---
+        ThemeManager.ThemeCategory[] categoryOrder = {
+            ThemeManager.ThemeCategory.LIGHT,
+            ThemeManager.ThemeCategory.DARK,
+            ThemeManager.ThemeCategory.GRADIENT,
+            ThemeManager.ThemeCategory.CUSTOM_INTERNAL,
+            ThemeManager.ThemeCategory.CUSTOM
+        };
+
+        boolean firstCategory = true;
+        for (ThemeManager.ThemeCategory category : categoryOrder) {
+            List<Map.Entry<String, ThemeManager.ThemeInfo>> temasEnCategoria = temasAgrupados.get(category);
+
+            if (temasEnCategoria != null && !temasEnCategoria.isEmpty()) {
+                // Añadir separador antes de cada categoría, excepto la primera
+                if (!firstCategory) {
+                    temaMenu.addSeparator();
+                }
+                firstCategory = false;
+
+                // Crear el submenú para la categoría
+                JMenu categorySubMenu = new JMenu(category.getDisplayName());
+                temaMenu.add(categorySubMenu);
+
+                // Añadir los temas a este submenú
+                for (Map.Entry<String, ThemeManager.ThemeInfo> entry : temasEnCategoria) {
+                    String id = entry.getKey();
+                    ThemeManager.ThemeInfo temaInfo = entry.getValue();
+                    
+                    String commandKey = "cmd.tema." + id;
+                    MenuItemDefinition temaDef = new MenuItemDefinition(commandKey, MenuItemType.RADIO_BUTTON_ITEM, temaInfo.nombreDisplay(), null);
+                    
+                    JRadioButtonMenuItem radioItem = new JRadioButtonMenuItem();
+                    themeGroup.add(radioItem);
+                    categorySubMenu.add(radioItem);
+                    
+                    assignActionOrCommand(radioItem, temaDef);
+                    
+                    String fullConfigKey = generateFullConfigKey(temaDef, categorySubMenu);
+                    if (fullConfigKey != null && !fullConfigKey.isEmpty()) {
+                        this.menuItemsPorNombre.put(fullConfigKey, radioItem);
+                    }
+                }
+            }
+        }
+    } // --- FIN del metodo buildDynamicThemeMenu ---
+    
     
     /**
      * Asigna la Action correspondiente del actionMap al JMenuItem si existe una para su comando/clave,
@@ -576,6 +655,7 @@ public class MenuBarBuilder {
         // return Collections.unmodifiableMap(new HashMap<>(this.menuItemsPorNombre));
         return this.menuItemsPorNombre; // O devolver la referencia directa si se confía en el uso.
     }
+    
 } // --- FIN de la clase MenuBarBuilder ---
 
 

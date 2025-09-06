@@ -209,12 +209,30 @@ public class ProjectManager implements IProjectManager {
         guardarAArchivo(); // Guarda el estado vacío en el archivo temporal.
     } // ---FIN de metodo nuevoProyecto---
 
-    public void abrirProyecto(Path rutaArchivo) {
+    
+    public void abrirProyecto(Path rutaArchivo) throws ProyectoIOException { // <-- CAMBIO: Añadido 'throws'
         logger.info("[ProjectManager] Abriendo proyecto desde: {}", rutaArchivo);
+        
+        if (rutaArchivo == null || !Files.isReadable(rutaArchivo)) {
+            String errorMsg = "Error al abrir proyecto: La ruta es nula o el archivo no se puede leer. Ruta: " + rutaArchivo;
+            logger.error(errorMsg);
+            // Lanzamos la excepción para que quien nos llamó se entere del problema.
+            throw new ProyectoIOException(errorMsg);
+        }
+
+        // La lógica de cargarDesdeArchivo puede lanzar una IOException normal, así que ya está cubierta.
         cargarDesdeArchivo(rutaArchivo);
         this.archivoProyectoActivo = rutaArchivo;
-        // No es necesario llamar a guardarAArchivo() aquí, ya que solo estamos leyendo.
+        
     } // ---FIN de metodo abrirProyecto---
+    
+    
+//    public void abrirProyecto(Path rutaArchivo) {
+//        logger.info("[ProjectManager] Abriendo proyecto desde: {}", rutaArchivo);
+//        cargarDesdeArchivo(rutaArchivo);
+//        this.archivoProyectoActivo = rutaArchivo;
+//        // No es necesario llamar a guardarAArchivo() aquí, ya que solo estamos leyendo.
+//    } // ---FIN de metodo abrirProyecto---
 
     public void guardarProyectoComo(Path rutaArchivo) {
         logger.info("[ProjectManager] Guardando proyecto como: {}", rutaArchivo);

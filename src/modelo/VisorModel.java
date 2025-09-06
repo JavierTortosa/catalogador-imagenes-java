@@ -2,10 +2,8 @@ package modelo;
 
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
-// --- INICIO DE MODIFICACIÓN: AÑADIR IMPORTS ---
 import java.util.ArrayList;
 import java.util.List;
-// --- FIN DE MODIFICACIÓN ---
 import java.util.Map;
 import java.util.Objects;
 
@@ -78,16 +76,8 @@ public class VisorModel {
     private boolean liveFilterActive = false;
     private boolean gridMuestraEstado = true;
     
-    // =========================================================================
-    // === INICIO DE MODIFICACIÓN: AÑADIR SISTEMA DE EVENTOS ===
-    // =========================================================================
-    
     private final List<MasterListChangeListener> masterListListeners = new ArrayList<>();
 
-    // =========================================================================
-    // === FIN DE MODIFICACIÓN ===
-    // =========================================================================
-    
     
     public VisorModel() {
         this.currentWorkMode = WorkMode.VISUALIZADOR;
@@ -143,9 +133,6 @@ public class VisorModel {
         this.navegacionCircularActivada = navCircularInicial;
     }
     
-    // =========================================================================
-    // === INICIO DE MODIFICACIÓN: AÑADIR MÉTODOS PARA GESTIONAR OYENTES Y EVENTOS ===
-    // =========================================================================
 
     /**
      * Registra un oyente que será notificado de los cambios en la lista maestra.
@@ -188,9 +175,6 @@ public class VisorModel {
         }
     } // --- Fin del método setMasterListAndNotify ---
 
-    // =========================================================================
-    // === FIN DE MODIFICACIÓN ===
-    // =========================================================================
 
     public WorkMode getCurrentWorkMode() {return this.currentWorkMode;}    
     public void setCurrentWorkMode(WorkMode newMode) {
@@ -234,7 +218,7 @@ public class VisorModel {
         switch (this.currentWorkMode) {
             case PROYECTO: return this.proyectoListContext;
             case DATOS: return this.datosListContext;
-            case CARROUSEL: return this.carouselListContext; // <<< AÑADIDO
+            case CARROUSEL: return this.carouselListContext; 
             case VISUALIZADOR: 
             default: 
                 return this.visualizadorListContext;
@@ -245,7 +229,7 @@ public class VisorModel {
         switch (this.currentWorkMode) {
             case PROYECTO: return this.proyectoZoomContext;
             case DATOS: return this.datosZoomContext;
-            case CARROUSEL: return this.carouselZoomContext; // <<< AÑADIDO
+            case CARROUSEL: return this.carouselZoomContext; 
             case VISUALIZADOR: 
             default: 
                 return this.visualizadorZoomContext;

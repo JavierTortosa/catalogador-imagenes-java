@@ -1,10 +1,12 @@
 package vista.renderers;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.nio.file.Paths;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JList;
+import javax.swing.UIManager;
 
 import modelo.VisorModel;
 import vista.theme.Tema;
@@ -53,6 +55,73 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
         setOpaque(true); 
     } // --- Fin del método NombreArchivoRenderer (constructor de conveniencia) ---
 
+    
+//    @Override
+//    public Component getListCellRendererComponent(
+//            JList<?> list, 
+//            Object value, 
+//            int index, 
+//            boolean isSelected, 
+//            boolean cellHasFocus) 
+//    {
+//        // 1. Establecer el texto de la celda
+//        if (value != null) {
+//            try {
+//                setText(Paths.get(value.toString()).getFileName().toString());
+//            } catch (Exception e) {
+//                setText(value.toString());
+//            }
+//        } else {
+//            setText("");
+//        }
+//        
+//        Tema temaActual = this.themeManager.getTemaActual();
+//
+//        // --- INICIO DE LA LÓGICA DE FOCO ---
+//        boolean hasListFocus = list.hasFocus();
+//        // --- FIN DE LA LÓGICA DE FOCO ---
+//
+//        if (isSelected) {
+//            if (hasListFocus) {
+//                // --- SELECCIÓN ACTIVA (la lista tiene el foco) ---
+//                // Usamos los colores de acento vibrantes del tema.
+//                setBackground(temaActual.colorSeleccionFondo());
+//                setForeground(temaActual.colorSeleccionTexto());
+//            } else {
+//                // --- SELECCIÓN INACTIVA (la lista NO tiene el foco) ---
+//                // Usamos un color gris neutro para indicar que la selección existe, pero no está activa.
+//                // UIManager.getColor("List.selectionInactiveBackground") es el estándar en muchos LookAndFeels.
+//                Color inactiveBg = UIManager.getColor("List.selectionInactiveBackground");
+//                Color inactiveFg = UIManager.getColor("List.selectionInactiveForeground");
+//                
+//                setBackground(inactiveBg != null ? inactiveBg : Color.DARK_GRAY);
+//                setForeground(inactiveFg != null ? inactiveFg : Color.LIGHT_GRAY);
+//            }
+//        } else {
+//            // --- CELDA NO SELECCIONADA ---
+//            // La lógica para las celdas no seleccionadas se queda igual,
+//            // pero ahora distinguimos el fondo del panel activo/inactivo del proyecto.
+//            String listaActivaEnModelo = model.getProyectoListContext().getNombreListaActiva();
+//            boolean esEstaLaListaActiva = (isForDiscardsList && "descartes".equals(listaActivaEnModelo)) ||
+//                                         (!isForDiscardsList && "seleccion".equals(listaActivaEnModelo));
+//
+//            if (esEstaLaListaActiva) {
+//                setBackground(list.getBackground()); // Usar el color de fondo que le puso el ProjectController
+//                setForeground(temaActual.colorTextoPrimario());
+//            } else {
+//                // El color de fondo de la lista inactiva
+//                setBackground(list.getBackground()); 
+//                setForeground(temaActual.colorTextoSecundario());
+//            }
+//        }
+//
+//        // El borde del foco de la celda individual se mantiene como estaba.
+//        setBorder(cellHasFocus ? UIManager.getBorder("List.focusCellHighlightBorder") : noFocusBorder);
+//        
+//        return this;
+//        
+//    } // --- Fin del método getListCellRendererComponent ---
+    
     
     @Override
     public Component getListCellRendererComponent(

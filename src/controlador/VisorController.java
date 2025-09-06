@@ -4,6 +4,10 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
@@ -35,6 +39,9 @@ import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.ActionMap;
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
@@ -61,7 +68,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.UIManager;
-import javax.swing.border.TitledBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -70,6 +76,7 @@ import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
+import controlador.interfaces.IModoController;
 import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
@@ -95,7 +102,6 @@ import servicios.image.ThumbnailService;
 import servicios.zoom.ZoomModeEnum;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
-//import vista.dialogos.ProgresoCargaDialog;
 import vista.dialogos.TaskProgressDialog;
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
@@ -109,7 +115,7 @@ import vista.util.IconUtils;
  * Controlador principal para el Visor de Imágenes (Versión con 2 JList sincronizadas).
  * Orquesta la interacción entre Modelo y Vista, maneja acciones y lógica de negocio.
  */
-public class VisorController implements ActionListener, ClipboardOwner, ThemeChangeListener  {
+public class VisorController implements IModoController, ActionListener, ClipboardOwner, ThemeChangeListener  {
 	
 	private static final Logger logger = LoggerFactory.getLogger(VisorController.class);
 
@@ -1520,7 +1526,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                          ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
                          
                          // Usamos la variable 'rutaCompleta' que ya es final y está en el scope.
-                         displayPanel.mostrarError("Error al cargar:\n" + rutaCompleta.getFileName().toString(), errorIcon);
+                         displayPanel.mostrarError("Error al cargar: \n" + rutaCompleta.getFileName().toString(), errorIcon);
                     }
                     actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
                 }
@@ -1590,7 +1596,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
             }
 
             final BufferedImage imagenCorregida = utils.ImageUtils.correctImageOrientation(imagenCargadaDesdeDisco, rutaCompleta);
-//            final BufferedImage finalImagenCargada = imagenCargadaDesdeDisco;
             
             final BufferedImage finalImagenCargada = imagenCorregida;
             
@@ -1617,7 +1622,7 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
                     model.setCurrentImage(null);
                     if (iconUtils != null) {
                          ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
-                         displayPanel.mostrarError("Error al cargar:\n" + finalPath.getFileName().toString(), errorIcon);
+                         displayPanel.mostrarError("Error al cargar: \n" + finalPath.getFileName().toString(), errorIcon);
                     }
                 }
                 if (infobarImageManager != null) infobarImageManager.actualizar();
@@ -1630,11 +1635,6 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
     
     public void limpiarUI() {
     	
-//    	// --- SONDA DE DEPURACIÓN ---
-//        System.out.println("##### SE HA LLAMADO A limpiarUI() - SIGUIENTE TRACE MUESTRA QUIÉN #####");
-//        new Exception("Punto de seguimiento: ¿Quién llama a limpiarUI()?").printStackTrace(System.out);
-//        // --- FIN DE LA SONDA ---
-        
         logger.debug("[Controller] Limpiando UI y Modelo a estado de bienvenida...");
 
         if (listCoordinator != null) {
@@ -2030,94 +2030,191 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
      * Estos atajos funcionarán sin importar qué componente tenga el foco.
      */
      void configurarAtajosTecladoGlobales() {
-    	 
-         if (view == null || actionMap == null) {
-             logger.warn("WARN [configurarAtajosTecladoGlobales]: Vista o ActionMap nulos.");
-             return;
-         }
-         logger.debug("  [Controller] Configurando atajos de teclado globales...");
-
-         javax.swing.JRootPane rootPane = view.getRootPane();
-         javax.swing.InputMap inputMap = rootPane.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
-         javax.swing.ActionMap actionMapGlobal = rootPane.getActionMap();
-
-         // --- Mapeo de Teclas Numéricas a Modos de Zoom ---
-
-         // 1: Ajustar a Pantalla
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR));
          
-         // 2: Tamaño Original (100%)
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AUTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AUTO));
+	 	if (view == null || actionMap == null) {
+	        logger.warn("WARN [configurarAtajosTecladoGlobales]: Vista o ActionMap nulos.");
+	        return;
+	    }
+	    logger.debug("  [Controller] Configurando atajos de teclado globales...");
 
-         // 3: Ajustar a Ancho
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ANCHO));
+	    javax.swing.JRootPane rootPane = view.getRootPane();
+	    // Usamos WHEN_IN_FOCUSED_WINDOW para que los atajos funcionen siempre que la ventana esté activa
+	    javax.swing.InputMap inputMap = rootPane.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
+	    javax.swing.ActionMap actionMapGlobal = rootPane.getActionMap();
+	    
+	    // Obtenemos el modificador de atajos estándar del sistema (Cmd en Mac, Ctrl en Win/Linux)
+	    final int shortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
-         // 4: Ajustar a Alto
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ALTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ALTO));
+	    // --- Mapeo de Teclas Numéricas a Modos de Zoom (código existente) ---
+	    inputMap.put(KeyStroke.getKeyStroke("1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR));
+	    
+	    inputMap.put(KeyStroke.getKeyStroke("2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AUTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AUTO));
 
-         // 5: Rellenar
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR));
+	    inputMap.put(KeyStroke.getKeyStroke("3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ANCHO));
 
-         // 6: Zoom Fijo (Mantener Actual)
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_FIJO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_FIJO));
-         
-         // 7: Zoom Especificado (%)
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
+	    inputMap.put(KeyStroke.getKeyStroke("4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ALTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ALTO));
 
-         // 8: Activar/Desactivar Modo Paneo (Zoom Manual)
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE));
-         
-         // 9: Resetear Zoom
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("9"), AppActionCommands.CMD_ZOOM_RESET);
-         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD9"), AppActionCommands.CMD_ZOOM_RESET); // <-- Teclado numérico
-         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_RESET, actionMap.get(AppActionCommands.CMD_ZOOM_RESET));
+	    inputMap.put(KeyStroke.getKeyStroke("5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR));
 
-         // F5 para Refrescar
-         KeyStroke f5Key = KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0);
-         String f5Command = AppActionCommands.CMD_ESPECIAL_REFRESCAR;
-         inputMap.put(f5Key, f5Command);
-         actionMapGlobal.put(f5Command, actionMap.get(f5Command));
-         logger.debug("  -> Atajo registrado: F5 -> " + f5Command);
+	    inputMap.put(KeyStroke.getKeyStroke("6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_FIJO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_FIJO));
+	    
+	    inputMap.put(KeyStroke.getKeyStroke("7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
 
-         // F11 para Pantalla Completa
-         KeyStroke f11Key = KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0);
-         String f11Command = AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA;
-         inputMap.put(f11Key, f11Command);
-         actionMapGlobal.put(f11Command, actionMap.get(f11Command));
-         logger.debug("  -> Atajo registrado: F11 -> " + f11Command);
-         
+	    inputMap.put(KeyStroke.getKeyStroke("8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE));
+	    
+	    inputMap.put(KeyStroke.getKeyStroke("9"), AppActionCommands.CMD_ZOOM_RESET);
+	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD9"), AppActionCommands.CMD_ZOOM_RESET);
+	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_RESET, actionMap.get(AppActionCommands.CMD_ZOOM_RESET));
 
-         // --- Ctrl+L para Localizar Archivo ---
-         KeyStroke ctrlLKey = KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-         String ctrlLCommand = AppActionCommands.CMD_IMAGEN_LOCALIZAR;
-         
-         // 1. Añadimos el atajo al InputMap del panel raíz.
-         inputMap.put(ctrlLKey, ctrlLCommand);
-         
-         // 2. Asociamos el comando con la Action correspondiente que ya tenemos en nuestro actionMap.
-         actionMapGlobal.put(ctrlLCommand, actionMap.get(ctrlLCommand));
-         
-         logger.debug("  -> Atajo registrado: Ctrl+L -> " + ctrlLCommand);
 
-         
-         logger.debug("  -> Atajos de teclado globales configurados para teclado estándar y numérico.");
-     } // --- Fin del método configurarAtajosTecladoGlobales ---
+	    // --- Atajos Globales de Aplicación (código existente) ---
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), AppActionCommands.CMD_ESPECIAL_REFRESCAR);
+	    actionMapGlobal.put(AppActionCommands.CMD_ESPECIAL_REFRESCAR, actionMap.get(AppActionCommands.CMD_ESPECIAL_REFRESCAR));
+	    
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0), AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA);
+	    actionMapGlobal.put(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA, actionMap.get(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA));
+	    
+	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_L, shortcutKeyMask), AppActionCommands.CMD_IMAGEN_LOCALIZAR);
+	    actionMapGlobal.put(AppActionCommands.CMD_IMAGEN_LOCALIZAR, actionMap.get(AppActionCommands.CMD_IMAGEN_LOCALIZAR));
+	    
+
+	    // --- INICIO DE LA NUEVA SECCIÓN: Atajos del Modo Proyecto ---
+	    
+	    // CTRL+S -> Guardar Proyecto
+	    KeyStroke ctrlS = KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutKeyMask);
+	    inputMap.put(ctrlS, AppActionCommands.CMD_PROYECTO_GUARDAR);
+	    actionMapGlobal.put(AppActionCommands.CMD_PROYECTO_GUARDAR, actionMap.get(AppActionCommands.CMD_PROYECTO_GUARDAR));
+	    logger.debug("  -> Atajo registrado: Ctrl+S -> " + AppActionCommands.CMD_PROYECTO_GUARDAR);
+
+	    // CTRL+SHIFT+S -> Guardar Proyecto Como
+	    KeyStroke ctrlShiftS = KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutKeyMask | KeyEvent.SHIFT_DOWN_MASK);
+	    inputMap.put(ctrlShiftS, AppActionCommands.CMD_PROYECTO_GUARDAR_COMO);
+	    actionMapGlobal.put(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, actionMap.get(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO));
+	    logger.debug("  -> Atajo registrado: Ctrl+Shift+S -> " + AppActionCommands.CMD_PROYECTO_GUARDAR_COMO);
+
+	    // CTRL+N -> Nuevo Proyecto
+	    KeyStroke ctrlN = KeyStroke.getKeyStroke(KeyEvent.VK_N, shortcutKeyMask);
+	    inputMap.put(ctrlN, AppActionCommands.CMD_PROYECTO_NUEVO);
+	    actionMapGlobal.put(AppActionCommands.CMD_PROYECTO_NUEVO, actionMap.get(AppActionCommands.CMD_PROYECTO_NUEVO));
+	    logger.debug("  -> Atajo registrado: Ctrl+N -> " + AppActionCommands.CMD_PROYECTO_NUEVO);
+
+	    // CTRL+O -> Abrir Proyecto
+	    KeyStroke ctrlO = KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcutKeyMask);
+	    inputMap.put(ctrlO, AppActionCommands.CMD_PROYECTO_ABRIR);
+	    actionMapGlobal.put(AppActionCommands.CMD_PROYECTO_ABRIR, actionMap.get(AppActionCommands.CMD_PROYECTO_ABRIR));
+	    logger.debug("  -> Atajo registrado: Ctrl+O -> " + AppActionCommands.CMD_PROYECTO_ABRIR);
+	    
+	    // --- FIN DE LA NUEVA SECCIÓN ---
+
+	    logger.debug("  -> Atajos de teclado globales configurados.");
+	} // --- Fin del método configurarAtajosTecladoGlobales ---
+     
+     
+//     void configurarAtajosTecladoGlobales() {
+//    	 
+//         if (view == null || actionMap == null) {
+//             logger.warn("WARN [configurarAtajosTecladoGlobales]: Vista o ActionMap nulos.");
+//             return;
+//         }
+//         logger.debug("  [Controller] Configurando atajos de teclado globales...");
+//
+//         javax.swing.JRootPane rootPane = view.getRootPane();
+//         javax.swing.InputMap inputMap = rootPane.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
+//         javax.swing.ActionMap actionMapGlobal = rootPane.getActionMap();
+//
+//         // --- Mapeo de Teclas Numéricas a Modos de Zoom ---
+//
+//         // 1: Ajustar a Pantalla
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR));
+//         
+//         // 2: Tamaño Original (100%)
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AUTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AUTO));
+//
+//         // 3: Ajustar a Ancho
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ANCHO));
+//
+//         // 4: Ajustar a Alto
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ALTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ALTO));
+//
+//         // 5: Rellenar
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR));
+//
+//         // 6: Zoom Fijo (Mantener Actual)
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_FIJO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_FIJO));
+//         
+//         // 7: Zoom Especificado (%)
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
+//
+//         // 8: Activar/Desactivar Modo Paneo (Zoom Manual)
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE));
+//         
+//         // 9: Resetear Zoom
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("9"), AppActionCommands.CMD_ZOOM_RESET);
+//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD9"), AppActionCommands.CMD_ZOOM_RESET); // <-- Teclado numérico
+//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_RESET, actionMap.get(AppActionCommands.CMD_ZOOM_RESET));
+//
+//         // F5 para Refrescar
+//         KeyStroke f5Key = KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0);
+//         String f5Command = AppActionCommands.CMD_ESPECIAL_REFRESCAR;
+//         inputMap.put(f5Key, f5Command);
+//         actionMapGlobal.put(f5Command, actionMap.get(f5Command));
+//         logger.debug("  -> Atajo registrado: F5 -> " + f5Command);
+//
+//         // F11 para Pantalla Completa
+//         KeyStroke f11Key = KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0);
+//         String f11Command = AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA;
+//         inputMap.put(f11Key, f11Command);
+//         actionMapGlobal.put(f11Command, actionMap.get(f11Command));
+//         logger.debug("  -> Atajo registrado: F11 -> " + f11Command);
+//         
+//
+//         // --- Ctrl+L para Localizar Archivo ---
+//         KeyStroke ctrlLKey = KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
+//         String ctrlLCommand = AppActionCommands.CMD_IMAGEN_LOCALIZAR;
+//         
+//         // 1. Añadimos el atajo al InputMap del panel raíz.
+//         inputMap.put(ctrlLKey, ctrlLCommand);
+//         
+//         // 2. Asociamos el comando con la Action correspondiente que ya tenemos en nuestro actionMap.
+//         actionMapGlobal.put(ctrlLCommand, actionMap.get(ctrlLCommand));
+//         
+//         logger.debug("  -> Atajo registrado: Ctrl+L -> " + ctrlLCommand);
+//
+//         
+//         logger.debug("  -> Atajos de teclado globales configurados para teclado estándar y numérico.");
+//     } // --- Fin del método configurarAtajosTecladoGlobales ---
 
 // *************************************************************************************************************** FIN DE ZOOM     
 // ***************************************************************************************************************************
@@ -2321,6 +2418,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
         }
     } // --- Fin del método continuarPaneo ---
 
+    
+    @Override
+    public void solicitarRefresco() {
+        logger.debug("[VisorController] Solicitud de refresco recibida. Llamando a ejecutarRefrescoCompleto...");
+        ejecutarRefrescoCompleto();
+    }
     
     
      
@@ -3639,88 +3742,145 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 // ***************************************************************************************************************************	
 	
 	public void mostrarDialogoAyudaAtajos() {
-        String helpText = """
-            <html>
-            <body style='width: 400px; font-family: Segoe UI, sans-serif;'>
-                <h2 style='color: #337ab7;'>Atajos de Teclado</h2>
-                
-                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Navegaci&oacute;n General</h3>
-                <ul>
-                    <li><b>Flechas / Rueda Rat&oacute;n:</b> Imagen Siguiente/Anterior</li>
-                    <li><b>Inicio / Fin:</b> Primera / &Uacute;ltima Imagen</li>
-                    <li><b>Av P&aacute;g / Re P&aacute;g:</b> Saltar bloque de im&aacute;genes</li>
-                </ul>
-                
-                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Gesti&oacute;n de Proyectos y Archivos</h3>
-                <ul>
-                    <li><b>Barra Espaciadora:</b> Marcar / Desmarcar imagen para el proyecto</li>
-                    <li><b>Ctrl + L:</b> Localizar archivo actual en el explorador</li>
-                </ul>
 
-                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Ventana y Vista Global</h3>
-                <ul>
-                    <li><b>F5:</b> Refrescar lista de im&aacute;genes</li>
-                    <li><b>F11:</b> Activar / Desactivar Modo Pantalla Completa</li>
-                    <li><b>Alt:</b> Activar Foco en la Barra de Men&uacute;</li>
-                    <li><b>ESC:</b> Cerrar Ventana de Previsualizaci&oacute;n (si est&aacute; abierta)</li>
-                </ul>
-                
-                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Zoom y Paneo (Sobre la imagen)</h3>
-                <ul>
-                    <li><b>Rueda Rat&oacute;n:</b> Zoom (con modo zoom manual activo)</li>
-                    <li><b>Shift + Rueda Rat&oacute;n:</b> Paneo Horizontal r&aacute;pido</li>
-                    <li><b>Ctrl + Rueda Rat&oacute;n:</b> Paneo Vertical r&aacute;pido</li>
-                    <li><b>Clic y Arrastrar:</b> Panear imagen</li>
-                </ul>
-                <h4>Atajos Num&eacute;ricos para Modos de Zoom:</h4>
-                <ul>
-                    <li><b>1:</b> Ajustar a Pantalla</li>
-                    <li><b>2:</b> Tama&ntilde;o Original (100%)</li>
-                    <li><b>3:</b> Ajustar a Ancho</li>
-                    <li><b>4:</b> Ajustar a Alto</li>
-                    <li><b>5:</b> Rellenar Pantalla</li>
-                    <li><b>6:</b> Mantener Zoom Actual (Fijo)</li>
-                    <li><b>7:</b> Zoom Personalizado (%)</li>
-                    <li><b>8:</b> Activar/Desactivar Zoom/Paneo Manual</li>
-                    <li><b>9:</b> Resetear Zoom</li>
-                </ul>
+	    // --- PANEL PRINCIPAL Y LAYOUT ---
+	    JPanel panelPrincipal = new JPanel(new GridBagLayout());
+	    panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+	    GridBagConstraints gbc = new GridBagConstraints();
 
-                <h3 style='border-bottom: 1px solid #ccc; padding-bottom: 2px;'>Atajos del Grid (Modo Proyecto)</h3>
-                <ul>
-                    <li><b>Ctrl + T:</b> A&ntilde;adir / Editar Etiqueta</li>
-                    <li><b>Ctrl + Supr:</b> Borrar Etiqueta</li>
-                    <li><b>Ctrl + M&aacute;s (+):</b> Aumentar Tama&ntilde;o de Miniaturas</li>
-                    <li><b>Ctrl + Menos (-):</b> Reducir Tama&ntilde;o de Miniaturas</li>
-                </ul>
-            </body>
-            </html>
-        """;
+	    // --- TÍTULO PRINCIPAL ---
+	    JLabel titulo = new JLabel("Atajos de Teclado");
+	    titulo.setFont(titulo.getFont().deriveFont(Font.BOLD, 16f));
+	    titulo.putClientProperty("FlatLaf.style", "font: bold $h2.font"); // Estilo para FlatLaf
+	    gbc.gridx = 0;
+	    gbc.gridy = 0;
+	    gbc.gridwidth = 2; // Ocupa las dos columnas
+	    gbc.anchor = GridBagConstraints.CENTER;
+	    gbc.insets = new Insets(0, 0, 20, 0);
+	    panelPrincipal.add(titulo, gbc);
 
-        // --- INICIO DE LA MODIFICACIÓN ---
-        
-        // 1. Crear un JEditorPane, el componente ideal para mostrar HTML.
-        javax.swing.JEditorPane editorPane = new javax.swing.JEditorPane();
-        
-        // 2. Configurar el JEditorPane.
-        editorPane.setContentType("text/html"); // Le decimos que interprete el texto como HTML.
-        editorPane.setText(helpText);           // Le pasamos el texto.
-        editorPane.setEditable(false);          // Lo hacemos de solo lectura.
-        editorPane.setOpaque(false);            // Hacemos su fondo transparente para que use el del diálogo.
+	    // --- COLUMNA 1 ---
+	    gbc.gridwidth = 1;
+	    gbc.gridy = 1;
+	    gbc.anchor = GridBagConstraints.NORTHWEST; // Alinear todo arriba a la izquierda
+	    gbc.insets = new Insets(0, 0, 10, 20); // Espaciado: arriba, izq, abajo, derecha (espacio entre columnas)
+	    
+	    // Contenedor para la columna 1
+	    JPanel columna1 = new JPanel();
+	    columna1.setLayout(new BoxLayout(columna1, BoxLayout.Y_AXIS));
+	    
+	    // --- Sección Navegación General ---
+	    columna1.add(createHelpSection("Navegación General", new String[][]{
+	        {"Flechas / Rueda Ratón", "Imagen Siguiente/Anterior"},
+	        {"Inicio / Fin", "Primera / Última Imagen"},
+	        {"Av Pág / Re Pág", "Saltar bloque de imágenes"}
+	    }));
+	    columna1.add(Box.createVerticalStrut(15)); // Espacio entre secciones
 
-        // 3. Envolver el JEditorPane en un JScrollPane.
-        javax.swing.JScrollPane scrollPane = new javax.swing.JScrollPane(editorPane);
-        scrollPane.setPreferredSize(new java.awt.Dimension(450, 500));
-        scrollPane.setBorder(null); // Quitamos el borde del scrollpane para un look más limpio.
-        
-        // --- FIN DE LA MODIFICACIÓN ---
+	    // --- Sección Gestión ---
+	    columna1.add(createHelpSection("Gestión y Archivos", new String[][]{
+	        {"Barra Espaciadora", "Marcar / Desmarcar imagen"},
+	        {"Ctrl + L", "Localizar archivo en el explorador"}
+	    }));
+	    columna1.add(Box.createVerticalStrut(15));
+	    
+	    // --- Sección Acciones de Proyecto ---
+	    columna1.add(createHelpSection("Acciones de Proyecto", new String[][]{
+	        {"Ctrl + S", "Guardar Proyecto Actual"},
+	        {"Ctrl + Shift + S", "Guardar Proyecto Como..."},
+	        {"Ctrl + N", "Nuevo Proyecto"},
+	        {"Ctrl + O", "Abrir Proyecto..."}
+	    }));
 
-        JOptionPane.showMessageDialog(
-            view,
-            scrollPane,
-            "Ayuda: Atajos de Teclado",
-            JOptionPane.INFORMATION_MESSAGE
-        );
-    } // ---FIN de metodo mostrarDialogoAyudaAtajos---
+	    panelPrincipal.add(columna1, gbc);
+
+	    // --- COLUMNA 2 ---
+	    gbc.gridx = 1;
+	    gbc.insets = new Insets(0, 20, 10, 0); // Espaciado: arriba, izq, abajo, derecha
+	    
+	    JPanel columna2 = new JPanel();
+	    columna2.setLayout(new BoxLayout(columna2, BoxLayout.Y_AXIS));
+
+	    // --- Sección Vista Global ---
+	    columna2.add(createHelpSection("Ventana y Vista Global", new String[][]{
+	        {"F5", "Refrescar vista actual"},
+	        {"F11", "Modo Pantalla Completa"},
+	        {"Alt", "Activar Foco en Menú"},
+	        {"ESC", "Salir de Pantalla Completa"}
+	    }));
+	    columna2.add(Box.createVerticalStrut(15));
+
+	    // --- Sección Zoom ---
+	    columna2.add(createHelpSection("Zoom (Numérico y Paneo)", new String[][]{
+	        {"1 / Rueda Ratón", "Ajustar / Zoom (manual)"},
+	        {"2", "Tamaño Original (100%)"},
+	        {"3", "Ajustar a Ancho"},
+	        {"4", "Ajustar a Alto"},
+	        {"8", "Activar/Desactivar Paneo"},
+	        {"9", "Resetear Zoom"}
+	    }));
+	    columna2.add(Box.createVerticalStrut(15));
+
+	    // --- Sección Grid ---
+	    columna2.add(createHelpSection("Atajos del Grid", new String[][]{
+	        {"Ctrl + T", "Añadir / Editar Etiqueta"},
+	        {"Ctrl + Supr", "Borrar Etiqueta"},
+	        {"Ctrl + Más (+)", "Aumentar Tamaño"},
+	        {"Ctrl + Menos (-)", "Reducir Tamaño"}
+	    }));
+
+	    panelPrincipal.add(columna2, gbc);
+
+	    // --- MOSTRAR EL DIÁLOGO ---
+	    JOptionPane.showMessageDialog(
+	        view,
+	        panelPrincipal,
+	        "Ayuda: Atajos de Teclado",
+	        JOptionPane.INFORMATION_MESSAGE
+	    );
+	} // ---FIN de metodo [mostrarDialogoAyudaAtajos]---
+	
+	/**
+	 * Método de ayuda para crear una sección de la ayuda (título + lista de atajos).
+	 * @param title El título de la sección.
+	 * @param shortcuts Un array de arrays de String, donde cada subarray es [tecla, descripción].
+	 * @return Un JComponent que contiene la sección formateada.
+	 */
+	private JComponent createHelpSection(String title, String[][] shortcuts) {
+	    JPanel sectionPanel = new JPanel();
+	    sectionPanel.setLayout(new BoxLayout(sectionPanel, BoxLayout.Y_AXIS));
+	    sectionPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+	    JLabel titleLabel = new JLabel(title);
+	    titleLabel.putClientProperty("FlatLaf.style", "font: bold $h3.font");
+	    titleLabel.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Component.borderColor")));
+	    titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+	    
+	    JPanel shortcutsPanel = new JPanel(new GridBagLayout());
+	    shortcutsPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+	    GridBagConstraints gbc = new GridBagConstraints();
+	    gbc.anchor = GridBagConstraints.WEST;
+	    gbc.insets = new Insets(2, 0, 2, 5);
+	    
+	    for (int i = 0; i < shortcuts.length; i++) {
+	        gbc.gridy = i;
+	        
+	        gbc.gridx = 0;
+	        gbc.weightx = 0;
+	        JLabel keyLabel = new JLabel("<html><b>" + shortcuts[i][0] + ":</b></html>");
+	        shortcutsPanel.add(keyLabel, gbc);
+	        
+	        gbc.gridx = 1;
+	        gbc.weightx = 1.0;
+	        shortcutsPanel.add(new JLabel(shortcuts[i][1]), gbc);
+	    }
+	    
+	    sectionPanel.add(titleLabel);
+	    sectionPanel.add(Box.createVerticalStrut(5));
+	    sectionPanel.add(shortcutsPanel);
+	    
+	    return sectionPanel;
+	} // ---FIN de metodo [createHelpSection]---
 	
 	
 // ****************************************************************************************************** FIN METODOS DE AYUDA
@@ -3735,7 +3895,12 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	public void onThemeChanged(Tema nuevoTema) {
 	    logger.debug("\n--- [VisorController] ORQUESTANDO REFRESCO COMPLETO DE UI POR CAMBIO DE TEMA ---");
 
-	    // FASE 1: Preparación
+	    if (nuevoTema == null) {
+	        logger.error("Se recibió un tema nulo en onThemeChanged. Abortando refresco.");
+	        return;
+	    }
+
+	    // FASE 0: PREPARACIÓN Y LIMPIEZA ATÓMICA (FUERA DEL EDT)
 	    if (this.actionFactory != null) {
 	        this.actionFactory.actualizarIconosDeAcciones();
 	    }
@@ -3743,224 +3908,192 @@ public class VisorController implements ActionListener, ClipboardOwner, ThemeCha
 	        this.registry.unregisterToolbarComponents();
 	    }
 
-	    // FASE 2: Reconstrucción y Sincronización en el Hilo de UI (EDT)
+	    // FASE 1: Reconstrucción y Sincronización en el Hilo de UI (EDT)
 	    SwingUtilities.invokeLater(() -> {
-	        logger.debug("  [EDT] Iniciando reconstrucción y sincronización...");
+	        logger.debug("  [EDT] Iniciando reconstrucción y sincronización para el tema '{}'...", nuevoTema.nombreDisplay());
 
-	        // ¡LLAMADA AL NUEVO MÉTODO!
-	        sincronizarColoresDePanelesPorTema();
-	        
-	        // El resto de la lógica de reconstrucción se mantiene igual
+	        // 1. Reconstruir las Toolbars.
 	        if (this.toolbarManager != null && this.model != null) {
 	            this.toolbarManager.reconstruirContenedorDeToolbars(this.model.getCurrentWorkMode());
 	        }
-	        
-	        logger.debug("  [EDT] Reconstruyendo explícitamente la barra de estado...");
-	        JPanel panelContenedorStatusBar = registry.get("panel.estado.controles");
-	        if (panelContenedorStatusBar != null) {
-	            panelContenedorStatusBar.removeAll();
-	            JToolBar nuevaStatusBarToolbar = this.toolbarManager.getToolbar("barra_estado_controles");
-	            panelContenedorStatusBar.add(nuevaStatusBarToolbar);
-	            panelContenedorStatusBar.revalidate();
-	            panelContenedorStatusBar.repaint();
-	            logger.debug("  [EDT] Barra de estado reconstruida y reemplazada.");
-	        }
-	        
+
 	        if (this.viewManager != null) {
 	            this.viewManager.reconstruirPanelesEspecialesTrasTema();
 	        }
 
+	        // 2. Volver a llamar a updateComponentTreeUI para asegurar que los nuevos componentes
+	        //    y los existentes se actualicen al LookAndFeel base.
 	        if (this.view != null) {
-	            logger.debug("  [EDT] Aplicando updateComponentTreeUI a la ventana principal...");
 	            SwingUtilities.updateComponentTreeUI(this.view);
 	        }
 
-	        logger.debug("  [EDT] Sincronizando componentes del VisorController...");
+	        // --- INICIO DE LA CORRECCIÓN ---
+	        // 3. AHORA, DESPUÉS del reseteo de Swing, aplicamos nuestros colores personalizados.
+	        //    Esto sobreescribe los colores por defecto de la UI solo donde queremos.
+	        sincronizarColoresDePanelesPorTema(nuevoTema);
+	        // --- FIN DE LA CORRECCIÓN ---
+
+	        // 4. Sincronizar el estado lógico (botones seleccionados, etc.)
+	        logger.debug("  [EDT] Sincronizando estado de controles...");
 	        sincronizarEstadoVisualBotonesYRadiosZoom();
 	        sincronizarComponentesDeModoVisualizador();
 	        sincronizarEstadoDeTodasLasToggleThemeActions();
-	        
+
 	        if (this.statusBarManager != null) {
-	            logger.debug("  [EDT] Ordenando a InfobarStatusManager que actualice su estado...");
-	            this.statusBarManager.configurarListenersControles();
 	            this.statusBarManager.actualizar();
 	        }
-	        
+
+	        // 5. Forzar un revalidate/repaint final.
 	        if (this.view != null) {
 	            this.view.revalidate();
 	            this.view.repaint();
 	        }
-	        
+
 	        logger.debug("--- [VisorController] REFRESCO DE UI COMPLETADO ---\n");
 	    });
-	    
+
 	} // --- Fin del método onThemeChanged ---
 	
 	
-	/**
-	 * Sincroniza manualmente los colores de fondo de los paneles estructurales (listas,
-	 * contenedores, etc.) para que coincidan con el tema actual. Esencial para
-	 * corregir colores al arrancar la aplicación y al cambiar de tema en caliente.
-	 */
-	public void sincronizarColoresDePanelesPorTema() {
-	    if (registry == null || themeManager == null || view == null) {
-	        logger.warn("WARN [sincronizarColoresDePanelesPorTema]: Dependencias nulas.");
+	
+	public void sincronizarColoresDePanelesPorTema(Tema temaAFlejar) {
+	    if (registry == null || temaAFlejar == null) {
+	        logger.warn("WARN [sincronizarColoresDePanelesPorTema]: Dependencias nulas (registry o tema nulo).");
 	        return;
 	    }
 	    
-	    final Tema temaActual = themeManager.getTemaActual();
-	    if (temaActual == null) {
-	        logger.warn("WARN [sincronizarColoresDePanelesPorTema]: No hay un tema actual cargado.");
-	        return;
+	    logger.debug("  [Sync Colors] Sincronizando colores de paneles para el tema: {}", temaAFlejar.nombreDisplay());
+
+	    // Obtenemos los colores específicos para las barras de estado desde el objeto Tema.
+	    Color backgroundColor = temaAFlejar.colorBarraEstadoFondo();
+	    Color foregroundColor = temaAFlejar.colorBarraEstadoTexto();
+
+	    // LÓGICA DE FALLBACK: Si el tema actual NO define estos colores específicos, 
+	    // usamos los colores genéricos del LookAndFeel como alternativa segura.
+	    if (backgroundColor == null) {
+	        backgroundColor = UIManager.getColor("Panel.background"); 
+	        logger.debug("    -> Usando color de fondo de fallback (UIManager) para la barra de estado.");
 	    }
-	    
-	    logger.debug("  [Sync Colors] Sincronizando colores de paneles para el tema: " + temaActual.nombreInterno());
-
-	    final Color colorFondoPrincipal = temaActual.colorFondoPrincipal();
-	    final Color colorFondoSecundario = temaActual.colorFondoSecundario();
-	    final Color colorTextoPrimario = temaActual.colorTextoPrimario();
-
-	    // 1. Fondo principal del content pane
-	    view.getContentPane().setBackground(colorFondoPrincipal);
-
-	    // 2. Barra de Menú
-	    JMenuBar menuBar = view.getJMenuBar();
-	    if (menuBar != null) {
-	        menuBar.setBackground(colorFondoPrincipal);
+	    if (foregroundColor == null) {
+	        foregroundColor = UIManager.getColor("Label.foreground");
+	        logger.debug("    -> Usando color de texto de fallback (UIManager) para la barra de estado.");
 	    }
 
-	    // 3. Contenedores de Toolbars
-	    JPanel toolbarContainer = registry.get("container.toolbars");
-	    if (toolbarContainer != null) {
-	        toolbarContainer.setBackground(colorFondoPrincipal);
-	        // También los sub-paneles internos
-	        Component left = registry.get("container.toolbars.left");
-	        Component center = registry.get("container.toolbars.center");
-	        Component right = registry.get("container.toolbars.right");
-	        if (left != null) left.setBackground(colorFondoPrincipal);
-	        if (center != null) center.setBackground(colorFondoPrincipal);
-	        if (right != null) right.setBackground(colorFondoPrincipal);
-	    }
-	    
-	    // 4. Panel de información superior
-	    JPanel topInfoPanel = registry.get("panel.info.superior");
-	    if (topInfoPanel != null) {
-	        topInfoPanel.setBackground(colorFondoPrincipal);
-	    }
+	    // --- APLICACIÓN A LOS PANELES DE STATUSBAR ---
 
-	    // 5. Panel izquierdo y su JList interna
-	    JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
-	    JList<String> listaNombres = registry.get("list.nombresArchivo");
-	    if (panelIzquierdo != null) {
-	        panelIzquierdo.setBackground(colorFondoSecundario);
-	        if (panelIzquierdo.getBorder() instanceof TitledBorder) {
-	            ((TitledBorder) panelIzquierdo.getBorder()).setTitleColor(colorTextoPrimario);
-	        }
-	        if (listaNombres != null) {
-	            listaNombres.setBackground(colorFondoSecundario);
-	        }
-	    }
-	    
-	    
-	    
-	    // --- INICIO DE LA MODIFICACIÓN ---
-        
-        // Pestaña 2: "Carpetas" - Obtenemos los componentes desde el registry
-	    JPanel panelArbol = registry.get("panel.izquierdo.arbol");
-        if (panelArbol != null) {
-            panelArbol.setBackground(colorFondoSecundario);
-            javax.swing.JTree tree = registry.get("tree.carpetas");
-            if (tree != null) {
-                tree.setBackground(colorFondoSecundario);
-            }
-            if (panelArbol.getBorder() instanceof TitledBorder) {
-                ((TitledBorder) panelArbol.getBorder()).setTitleColor(colorTextoPrimario);
-            }
-        }
-        
-        // --- Pestaña 3: "Filtros" ---
-        JPanel panelFiltros = registry.get("panel.izquierdo.filtros");
-        if (panelFiltros != null) {
-            panelFiltros.setBackground(colorFondoSecundario);
-            JList<controlador.managers.filter.FilterCriterion> listaFiltros = registry.get("list.filtrosActivos");
-            if (listaFiltros != null) {
-                listaFiltros.setBackground(colorFondoSecundario);
-            }
-            if (panelFiltros.getBorder() instanceof TitledBorder) {
-                ((TitledBorder) panelFiltros.getBorder()).setTitleColor(colorTextoPrimario);
-            }
-        }
-        
-        // --- FIN DE LA MODIFICACIÓN ---
-        
-	    
-	    // 6. Panel de miniaturas (JScrollPane) y su JList interna
-	    JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-	    JList<String> listaMiniaturas = registry.get("list.miniaturas");
-	    if (scrollMiniaturas != null) {
-	        scrollMiniaturas.setBackground(colorFondoSecundario);
-	        scrollMiniaturas.getViewport().setBackground(colorFondoSecundario);
-	        if (scrollMiniaturas.getBorder() instanceof TitledBorder) {
-	            ((TitledBorder) scrollMiniaturas.getBorder()).setTitleColor(colorTextoPrimario);
-	        }
-	        if (listaMiniaturas != null) {
-	            listaMiniaturas.setBackground(colorFondoSecundario);
-	        }
-	    }
-
-	    // 7. Barra de herramientas de controles de imagen (debajo de la imagen principal)
-	    JToolBar imageControlsToolbar = registry.get("toolbar.controles_imagen_inferior");
-	    if (imageControlsToolbar != null) {
-	        imageControlsToolbar.setBackground(colorFondoPrincipal);
-	    }
-	    
-	    // 8. Barra de estado inferior
-	    JPanel bottomStatusBar = registry.get("panel.estado.inferior");
-	    if (bottomStatusBar != null) {
-	        bottomStatusBar.setBackground(colorFondoPrincipal);
-	    }
-	    
-	    
-	 // --- INICIO DE LA MODIFICACIÓN ---
-        // 9. SINCRONIZACIÓN ESPECIAL PARA BARRAS DE ESTADO/INFO CON COLORES ADAPTATIVOS
-        //    Aquí aplicamos los colores que calculamos y guardamos en el UIManager.
-	    
-	    // Barra de estado inferior (la que querías roja)
+	    // 1. Panel de estado inferior (StatusBar de la aplicación)
 	    JPanel panelEstadoInferior = registry.get("panel.estado.inferior");
 	    if (panelEstadoInferior != null) {
-	        Color backgroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
-	        Color foregroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_FOREGROUND);
-
-	        if (backgroundColor != null) {
-	            panelEstadoInferior.setBackground(backgroundColor);
-	        }
-	        if (foregroundColor != null) {
-	            actualizarColoresDeTextoRecursivamente(panelEstadoInferior, foregroundColor);
-	        }
+	        panelEstadoInferior.setBackground(backgroundColor);
+	        // Usamos el método recursivo para asegurar que todos los JLabels y otros componentes
+	        // dentro de este panel (incluso si están anidados) reciban el color de texto correcto.
+	        actualizarColoresDeTextoRecursivamente(panelEstadoInferior, foregroundColor);
+	        logger.debug("    -> Colores personalizados aplicados a 'panel.estado.inferior'.");
 	    }
 	    
-	    // Barra de información superior (opcional, pero consistente)
-        // Podrías usar los mismos colores o definir otros si quisieras.
+	    // 2. Panel de información superior (StatusBar de la imagen)
 	    JPanel panelInfoSuperior = registry.get("panel.info.superior");
 	    if (panelInfoSuperior != null) {
-	        Color backgroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
-	        Color foregroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_FOREGROUND);
-	        
-            if (backgroundColor != null) {
-	            panelInfoSuperior.setBackground(backgroundColor);
-	        }
-            if (foregroundColor != null) {
-                // Hay que ser cuidadoso aquí si los labels tienen colores especiales (rojo, verde)
-                // Por ahora, aplicamos el color a todos los hijos para consistencia.
-	            actualizarColoresDeTextoRecursivamente(panelInfoSuperior, foregroundColor);
-	        }
+	        panelInfoSuperior.setBackground(backgroundColor);
+	        // Hacemos lo mismo para la barra superior.
+	        actualizarColoresDeTextoRecursivamente(panelInfoSuperior, foregroundColor);
+	        logger.debug("    -> Colores personalizados aplicados a 'panel.info.superior'.");
 	    }
-        // --- FIN DE LA MODIFICACIÓN ---
 
-	 // 10. Forzar un repintado general al final (ya estaba)
-	    view.repaint();
-	    
 	} // --- Fin del método sincronizarColoresDePanelesPorTema ---
+	
+	
+	
+//	public void sincronizarColoresDePanelesPorTema(Tema temaAFlejar) {
+//	    if (registry == null || temaAFlejar == null) {
+//	        logger.warn("WARN [sincronizarColoresDePanelesPorTema]: Dependencias nulas (registry o tema nulo).");
+//	        return;
+//	    }
+//	    
+//	    logger.debug("  [Sync Colors] Sincronizando colores de paneles para el tema: {}", temaAFlejar.nombreDisplay());
+//
+//	    // Pintado de paneles con colores personalizados (los que FlatLaf no conoce)
+//	    JPanel panelEstadoInferior = registry.get("panel.estado.inferior");
+//	    if (panelEstadoInferior != null) {
+//	        Color backgroundColor = temaAFlejar.colorBarraEstadoFondo();
+//	        Color foregroundColor = temaAFlejar.colorBarraEstadoTexto();
+//
+//	        // LÓGICA DE FALLBACK: Si el tema NO define un color, usamos los del LaF actual.
+//	        if (backgroundColor == null) backgroundColor = UIManager.getColor("Panel.background"); 
+//	        if (foregroundColor == null) foregroundColor = UIManager.getColor("Label.foreground");
+//
+//	        panelEstadoInferior.setBackground(backgroundColor);
+//	        actualizarColoresDeTextoRecursivamente(panelEstadoInferior, foregroundColor);
+//	    }
+//	    
+//	    JPanel panelInfoSuperior = registry.get("panel.info.superior");
+//	    if (panelInfoSuperior != null) {
+//	        Color backgroundColor = temaAFlejar.colorBarraEstadoFondo();
+//	        Color foregroundColor = temaAFlejar.colorBarraEstadoTexto();
+//	        
+//	        if (backgroundColor == null) backgroundColor = UIManager.getColor("Panel.background");
+//	        if (foregroundColor == null) foregroundColor = UIManager.getColor("Label.foreground");
+//
+//	        panelInfoSuperior.setBackground(backgroundColor);
+//	        actualizarColoresDeTextoRecursivamente(panelInfoSuperior, foregroundColor);
+//	        
+//	        
+////	        // La JToolBar de la barra de estado también necesita ser coloreada manualmente
+////	        // después de ser reconstruida.
+////	        JToolBar statusBarToolbar = registry.get("toolbar.barra_estado_controles");
+////	        if (statusBarToolbar != null) {
+////	            statusBarToolbar.setBackground(backgroundColor);
+////	            statusBarToolbar.setOpaque(true); // Aseguramos que pinte su fondo
+////	            statusBarToolbar.setBorder(null);   // Le quitamos el borde para una integración limpia
+////	            actualizarColoresDeTextoRecursivamente(statusBarToolbar, foregroundColor); // Aplicamos color de texto a sus hijos
+////	            logger.debug("    -> Colores personalizados aplicados a 'toolbar.barra_estado_controles'.");
+////	        }
+//	        
+//	        
+//	     // Panel de estado inferior (StatusBar de la aplicación)
+//	        JPanel panelEstadoInferior = registry.get("panel.estado.inferior");
+//	        if (panelEstadoInferior != null) {
+//	            panelEstadoInferior.setBackground(backgroundColor);
+//	            // Usamos el método recursivo para asegurar que todos los JLabels y otros componentes
+//	            // dentro de este panel (incluso si están anidados) reciban el color de texto correcto.
+//	            actualizarColoresDeTextoRecursivamente(panelEstadoInferior, foregroundColor);
+//	            logger.debug("    -> Colores personalizados aplicados a 'panel.estado.inferior'.");
+//	        }
+//	        
+//	        // Panel de información superior (StatusBar de la imagen)
+//	        JPanel panelInfoSuperior = registry.get("panel.info.superior");
+//	        if (panelInfoSuperior != null) {
+//	            panelInfoSuperior.setBackground(backgroundColor);
+//	            // Hacemos lo mismo para la barra superior.
+//	            actualizarColoresDeTextoRecursivamente(panelInfoSuperior, foregroundColor);
+//	            logger.debug("    -> Colores personalizados aplicados a 'panel.info.superior'.");
+//	        }
+//	        
+//	    }
+//	} // --- Fin del método sincronizarColoresDePanelesPorTema ---
+	
+	/**
+	 * Sincroniza los colores de los paneles usando el tema actualmente activo en el ThemeManager.
+	 * Este es un método de conveniencia para la inicialización y otros refrescos generales
+	 * que no tienen un 'nuevoTema' a mano.
+	 */
+	public void sincronizarColoresDePanelesPorTema() {
+	    if (themeManager != null) {
+	        // Llama a la versión detallada pasando el tema que ya está activo.
+	        sincronizarColoresDePanelesPorTema(themeManager.getTemaActual());
+	    } else {
+	        logger.error("ERROR [sincronizarColoresDePanelesPorTema]: ThemeManager es nulo. No se puede sincronizar colores.");
+	    }
+	} // ---FIN de metodo [sincronizarColoresDePanelesPorTema]---
+	
+	
+	private void sincronizarColoresDesdeObjetoTema() {
+		final Tema temaActual = themeManager.getTemaActual();
+		view.getContentPane().setBackground(temaActual.colorFondoPrincipal());
+		// ... podrías replicar la lógica de arriba usando temaActual.color...()
+		view.repaint();
+	}// --- Fin del método sincronizarColoresDesdeObjetoTema ---
+	
 	
 	
 	/**

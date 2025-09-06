@@ -1,10 +1,16 @@
 package vista.theme;
 
 import java.awt.Color;
+import java.io.File;
+import java.io.InputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.function.Supplier;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.LookAndFeel;
 import javax.swing.SwingUtilities;
@@ -47,310 +53,303 @@ import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDeepOc
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialLighterIJTheme;
 import com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialOceanicIJTheme;
 
-// los temas estan en esta ubicacion: 
-// C:\Users\ameri\.m2\repository\com\formdev\flatlaf-intellij-themes\3.4.1
-
 import controlador.managers.ConfigApplicationManager;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import vista.config.UIDefinitionService;
+import vista.theme.themes.FlatAzulMedianochePersonalizadoIJTheme;
+import vista.theme.themes.FlatCarbonOrangeIJTheme;
+import vista.theme.themes.FlatObsidianOrangeIJTheme;
+import vista.theme.themes.FlatPurpuraMisteriosoIJTheme;
 
 public class ThemeManager {
 
     private static final Logger logger = LoggerFactory.getLogger(ThemeManager.class);
 
-    public static final String KEY_STATUSBAR_BACKGROUND = "Visor.statusBarBackground"; // control del fondo de las toolbar
-    public static final String KEY_STATUSBAR_FOREGROUND = "Visor.statusBarForeground"; // control del texto de las toolbar
+    public static final String KEY_STATUSBAR_BACKGROUND = "Visor.statusBarBackground";
+    public static final String KEY_STATUSBAR_FOREGROUND = "Visor.statusBarForeground";
     
     private final ConfigurationManager configManager;
     private final List<ThemeChangeListener> listeners = new java.util.concurrent.CopyOnWriteArrayList<>();
-    private ConfigApplicationManager configAppManager; // Mantenemos la referencia
+    private ConfigApplicationManager configAppManager;
 
-    // Mapa de temas disponibles, igual que antes.
-    private static final Map<String, ThemeInfo> TEMAS_DISPONIBLES = Map.ofEntries(
-            // --- TEMAS CLAROS ---
-            Map.entry("arc_light", new ThemeInfo("Arc", FlatArcIJTheme::new)),
-            Map.entry("arc_orange_light", new ThemeInfo("Arc Orange", FlatArcOrangeIJTheme::new)),
-            Map.entry("cyan_light", new ThemeInfo("Cyan Light", FlatCyanLightIJTheme::new)),
-            Map.entry("github_light", new ThemeInfo("GitHub", FlatGitHubIJTheme::new)),
-            Map.entry("light_owl_light", new ThemeInfo("Light Owl", FlatLightOwlIJTheme::new)),
-            Map.entry("material_lighter", new ThemeInfo("Material Lighter", FlatMaterialLighterIJTheme::new)),
-            Map.entry("solarized_light", new ThemeInfo("Solarized Light", FlatSolarizedLightIJTheme::new)),
-
-            // --- TEMAS OSCUROS ---
-            Map.entry("arc_dark", new ThemeInfo("Arc Dark", FlatArcDarkIJTheme::new)),
-            Map.entry("arc_dark_orange", new ThemeInfo("Arc Dark Orange", FlatArcDarkOrangeIJTheme::new)),
-            Map.entry("carbon_dark", new ThemeInfo("Carbon", FlatCarbonIJTheme::new)),
-            Map.entry("cobalt_2_dark", new ThemeInfo("Cobalt 2", FlatCobalt2IJTheme::new)),
-            Map.entry("dark_purple", new ThemeInfo("Dark Purple", FlatDarkPurpleIJTheme::new)),
-            Map.entry("dracula_dark", new ThemeInfo("Dracula", FlatDraculaIJTheme::new)),
-            Map.entry("github_dark", new ThemeInfo("GitHub Dark", FlatGitHubDarkIJTheme::new)),
-            Map.entry("gruvbox_dark_hard", new ThemeInfo("Gruvbox Dark Hard", FlatGruvboxDarkHardIJTheme::new)),
-            Map.entry("gruvbox_dark_medium", new ThemeInfo("Gruvbox Dark Medium", FlatGruvboxDarkMediumIJTheme::new)),
-            Map.entry("gruvbox_dark_soft", new ThemeInfo("Gruvbox Dark Soft", FlatGruvboxDarkSoftIJTheme::new)),
-            Map.entry("high_contrast", new ThemeInfo("High Contrast", FlatHighContrastIJTheme::new)),
-            Map.entry("material_darker", new ThemeInfo("Material Darker", FlatMaterialDarkerIJTheme::new)),
-            Map.entry("material_deep_ocean", new ThemeInfo("Material Deep Ocean", FlatMaterialDeepOceanIJTheme::new)),
-            Map.entry("material_oceanic", new ThemeInfo("Material Oceanic", FlatMaterialOceanicIJTheme::new)),
-            Map.entry("monocai_dark", new ThemeInfo("Monocai", FlatMonocaiIJTheme::new)),
-            Map.entry("monokai_pro_dark", new ThemeInfo("Monokai Pro", FlatMonokaiProIJTheme::new)),
-            Map.entry("nord_dark", new ThemeInfo("Nord", FlatNordIJTheme::new)),
-            Map.entry("one_dark", new ThemeInfo("One Dark", FlatOneDarkIJTheme::new)),
-            Map.entry("solarized_dark", new ThemeInfo("Solarized Dark", FlatSolarizedDarkIJTheme::new)),
-            Map.entry("spacegray_dark", new ThemeInfo("Spacegray", FlatSpacegrayIJTheme::new)),
-            Map.entry("vuesion_dark", new ThemeInfo("Vuesion", FlatVuesionIJTheme::new)),
-            
-            // --- TEMAS CON DEGRADADOS (pueden ser más "llamativos") ---
-            Map.entry("gradianto_dark_fuchsia", new ThemeInfo("Gradianto Dark Fuchsia", FlatGradiantoDarkFuchsiaIJTheme::new)),
-            Map.entry("gradianto_deep_ocean", new ThemeInfo("Gradianto Deep Ocean", FlatGradiantoDeepOceanIJTheme::new)),
-            Map.entry("gradianto_midnight_blue", new ThemeInfo("Gradianto Midnight Blue", FlatGradiantoMidnightBlueIJTheme::new)),
-            Map.entry("gradianto_nature_green", new ThemeInfo("Gradianto Nature Green", FlatGradiantoNatureGreenIJTheme::new)),
-            
-            // --- TU TEMA PERSONALIZADO ---
-            Map.entry("purpura_misterioso", new ThemeInfo("Púrpura Misterioso", FlatDarkPurpleIJTheme::new))
-        );
+//    private static final Map<String, ThemeInfo> TEMAS_DISPONIBLES = Map.ofEntries(
+    private static final Map<String, ThemeInfo> TEMAS_DISPONIBLES = new java.util.HashMap<>(Map.ofEntries(
+    	    // -- TEMAS CLAROS --
+    	    Map.entry("arc_light", 					new ThemeInfo("Arc", FlatArcIJTheme::new, null, ThemeCategory.LIGHT)),
+    	    Map.entry("arc_orange_light", 			new ThemeInfo("Arc Orange", FlatArcOrangeIJTheme::new, null, ThemeCategory.LIGHT)),
+    	    Map.entry("cyan_light", 				new ThemeInfo("Cyan Light", FlatCyanLightIJTheme::new, null, ThemeCategory.LIGHT)),
+    	    Map.entry("github_light", 				new ThemeInfo("GitHub", FlatGitHubIJTheme::new, null, ThemeCategory.LIGHT)),
+    	    Map.entry("light_owl_light", 			new ThemeInfo("Light Owl", FlatLightOwlIJTheme::new, null, ThemeCategory.LIGHT)),
+    	    Map.entry("material_lighter", 			new ThemeInfo("Material Lighter", FlatMaterialLighterIJTheme::new, null, ThemeCategory.LIGHT)),
+    	    Map.entry("solarized_light", 			new ThemeInfo("Solarized Light", FlatSolarizedLightIJTheme::new, null, ThemeCategory.LIGHT)),
+    	    
+    	    // -- TEMAS OSCUROS --
+    	    Map.entry("arc_dark", 					new ThemeInfo("Arc Dark", FlatArcDarkIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("arc_dark_orange", 			new ThemeInfo("Arc Dark Orange", FlatArcDarkOrangeIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("carbon_dark", 				new ThemeInfo("Carbon", FlatCarbonIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("cobalt_2_dark", 				new ThemeInfo("Cobalt 2", FlatCobalt2IJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("dark_purple", 				new ThemeInfo("Dark Purple", FlatDarkPurpleIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("dracula_dark", 				new ThemeInfo("Dracula", FlatDraculaIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("github_dark", 				new ThemeInfo("GitHub Dark", FlatGitHubDarkIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("gruvbox_dark_hard", 			new ThemeInfo("Gruvbox Dark Hard", FlatGruvboxDarkHardIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("gruvbox_dark_medium", 		new ThemeInfo("Gruvbox Dark Medium", FlatGruvboxDarkMediumIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("gruvbox_dark_soft", 			new ThemeInfo("Gruvbox Dark Soft", FlatGruvboxDarkSoftIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("high_contrast", 				new ThemeInfo("High Contrast", FlatHighContrastIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("material_darker", 			new ThemeInfo("Material Darker", FlatMaterialDarkerIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("material_deep_ocean", 		new ThemeInfo("Material Deep Ocean", FlatMaterialDeepOceanIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("material_oceanic", 			new ThemeInfo("Material Oceanic", FlatMaterialOceanicIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("monocai_dark", 				new ThemeInfo("Monocai", FlatMonocaiIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("monokai_pro_dark", 			new ThemeInfo("Monokai Pro", FlatMonokaiProIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("nord_dark", 					new ThemeInfo("Nord", FlatNordIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("one_dark", 					new ThemeInfo("One Dark", FlatOneDarkIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("solarized_dark", 			new ThemeInfo("Solarized Dark", FlatSolarizedDarkIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("spacegray_dark", 			new ThemeInfo("Spacegray", FlatSpacegrayIJTheme::new, null, ThemeCategory.DARK)),
+    	    Map.entry("vuesion_dark", 				new ThemeInfo("Vuesion", FlatVuesionIJTheme::new, null, ThemeCategory.DARK)),
+    	    
+    	    // -- TEMAS DEGRADADOS --
+    	    Map.entry("gradianto_dark_fuchsia", 	new ThemeInfo("Gradianto Dark Fuchsia", FlatGradiantoDarkFuchsiaIJTheme::new, null, ThemeCategory.GRADIENT)),
+    	    Map.entry("gradianto_deep_ocean", 		new ThemeInfo("Gradianto Deep Ocean", FlatGradiantoDeepOceanIJTheme::new, null, ThemeCategory.GRADIENT)),
+    	    Map.entry("gradianto_midnight_blue", 	new ThemeInfo("Gradianto Midnight Blue", FlatGradiantoMidnightBlueIJTheme::new, null, ThemeCategory.GRADIENT)),
+    	    Map.entry("gradianto_nature_green", 	new ThemeInfo("Gradianto Nature Green", FlatGradiantoNatureGreenIJTheme::new, null, ThemeCategory.GRADIENT)),
+    	    
+    	    // -- TEMAS PERSONALIZADOS INTERNOS (LOS TUYOS) --
+    	    Map.entry("purpura_misterioso", 		new ThemeInfo("Púrpura Misterioso", FlatPurpuraMisteriosoIJTheme::new, "/vista/theme/themes/FlatPurpuraMisteriosoIJTheme.properties", ThemeCategory.CUSTOM_INTERNAL)),
+    	    Map.entry("gradianto_azul_medianoche", 	new ThemeInfo("Azul Medianoche", FlatAzulMedianochePersonalizadoIJTheme::new, "/vista/theme/themes/FlatAzulMedianochePersonalizadoIJTheme.properties", ThemeCategory.CUSTOM_INTERNAL)), 
+    	    Map.entry("carbon_orange", 				new ThemeInfo("Carbon Orange", FlatCarbonOrangeIJTheme::new, "/vista/theme/themes/FlatCarbonOrangeIJTheme.properties", ThemeCategory.CUSTOM_INTERNAL)),
+    	    Map.entry("obsidian_orange", 			new ThemeInfo("Obsidian Orange", FlatObsidianOrangeIJTheme::new, "/vista/theme/themes/FlatObsidianOrangeIJTheme.properties", ThemeCategory.CUSTOM_INTERNAL))
+    	));
     
-    
-    private Tema temaActual; // ¡Volvemos a usar tu objeto Tema!
+    private Tema temaActual;
 
     public ThemeManager(ConfigurationManager configManager) {
         this.configManager = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null");
-    } // --- FIN del constructor --- 
+        loadCustomThemes();
+    } // ---FIN de metodo [Constructor ThemeManager]---
 
     public void install() {
         String idTemaGuardado = configManager.getString(ConfigKeys.TEMA_NOMBRE, "cyan_light");
-        setTemaActual(idTemaGuardado, false); // Usamos un método unificado
-    } // --- FIN del metodo install ---
-
+        setTemaActual(idTemaGuardado, false);
+    } // ---FIN de metodo [install]---
+    
     
     public boolean setTemaActual(String idTema, boolean notificarYRepintar) {
         if (idTema == null || !TEMAS_DISPONIBLES.containsKey(idTema)) {
-            idTema = "cyan_light"; // Fallback
-        }
-        
-        // Si no hay cambio, no hacemos nada
-        if (this.temaActual != null && this.temaActual.nombreInterno().equals(idTema)) {
-            return false;
+            logger.warn("ID de tema '{}' no válido. Usando 'cyan_light' como fallback.", idTema);
+            idTema = "cyan_light";
         }
 
         final Tema temaAnterior = this.temaActual;
 
         try {
-            // 1. Establecer el LookAndFeel de FlatLaf
             ThemeInfo info = TEMAS_DISPONIBLES.get(idTema);
-            UIManager.setLookAndFeel(info.lafSupplier().get());
 
-            // 2. Si el tema es el nuestro, sobrescribimos los colores que queramos.
-            if ("purpura_misterioso".equals(idTema) || "gradianto_midnight_blue".equals(idTema)) {
+            // --- INICIO DE LA CORRECCIÓN DEFINITIVA ---
+            // 1. Creamos la instancia del LookAndFeel ANTES de establecerlo.
+            LookAndFeel laf = info.lafSupplier().get();
+
+            // 2. Cargamos las propiedades personalizadas del nuevo tema (si las tiene).
+            Properties customProps = loadAndProcessCustomProperties(info.customPropertiesPath());
+
+            // 3. Si hay propiedades y el LaF es una instancia de FlatLaf, las configuramos.
+            if (!customProps.isEmpty() && laf instanceof FlatLaf) {
+                // Convertimos Properties a Map<String, String> que es lo que el método espera.
+                Map<String, String> extraDefaults = new HashMap<>();
+                customProps.forEach((key, value) -> extraDefaults.put(String.valueOf(key), String.valueOf(value)));
                 
-            	logger.debug("-> Aplicando personalizaciones para 'Púrpura Misterioso'...");
-                
-                UIManager.put("Component.accentColor", new Color(0, 255, 255)); 		//color de acento 
-                UIManager.put("List.selectionBackground", Color.decode("#8A63D2")); 	//fondo de la selección de listas 
-//                UIManager.put("List.selectionForeground", Color.decode("#F0F0F0"));
-                UIManager.put("Button.borderColor", new Color(120, 80, 150)); 			//bordes de los botones
-                UIManager.put(KEY_STATUSBAR_BACKGROUND, new Color(153, 0, 0)); 			// Rojo oscuro (#990000)
-                UIManager.put(KEY_STATUSBAR_FOREGROUND, Color.WHITE);           		// Texto blanco para máximo contraste
-                
-                
-            } else {
-            
-            
-	            // En lugar de un color fijo, vamos a calcularlo.
-	
-	            // 1. Obtenemos el color de fondo principal del tema.
-	            Color colorFondoPrincipal = UIManager.getColor("Panel.background");
-	
-	            // 2. Determinamos si el tema es oscuro o claro (usando el método mejorado que discutimos).
-	            boolean esOscuro = FlatLaf.isLafDark();
-	
-	            // 3. Definimos cuánto queremos que cambie el color.
-	            int offset = 50; // ¿Cuánto más claro/oscuro lo queremos? 
-	            
-	            // 4. Calculamos el color final usando nuestro nuevo y potente método.
-	            //          Si el tema es oscuro, le pasamos un offset positivo para aclarar.
-	            //          Si el tema es claro, le pasamos un offset negativo para oscurecer.
-	            Color colorBarraEstado = cambiarIntensidadColor(colorFondoPrincipal, esOscuro ? offset : -offset);
-	            
-	            // 5. Inyectamos nuestro color ADAPTATIVO en el UIManager.
-	            
-	            
-	            
-	            UIManager.put(KEY_STATUSBAR_BACKGROUND, colorBarraEstado); 
-	            
-	            
-	            logger.debug("-> Inyectado color adaptativo para StatusBars. Es oscuro: {}. Color base: {}. Color final: {}", esOscuro, colorFondoPrincipal, colorBarraEstado);
-	
-		         // 6. Ahora, calculamos el color del TEXTO de la misma forma.
-	             //    Obtenemos el color de texto por defecto del tema. "Label.foreground" es una buena opción.
-		         Color colorTextoPrincipal = UIManager.getColor("Label.foreground");
-		
-		         // 7. Aplicamos la lógica inversa: si el tema es oscuro (texto claro), oscurecemos el texto.
-		         //    Si el tema es claro (texto oscuro), aclaramos el texto.
-		         //    Usamos el MISMO offset para mantener la consistencia visual.
-		         offset = -50;
-		         Color colorTextoBarraEstado = cambiarIntensidadColor(colorTextoPrincipal, esOscuro ? -offset : offset);
-		
-		         // 8. Inyectamos el nuevo color de texto en el UIManager.
-		         
-		         UIManager.put(KEY_STATUSBAR_FOREGROUND, colorTextoBarraEstado);
-		         
-		         logger.debug("-> Inyectado color de texto adaptativo para StatusBars. Color base: {}. Color final: {}", colorTextoPrincipal, colorTextoBarraEstado);
-	        
+                // Llamamos al método DE INSTANCIA en el objeto laf que acabamos de crear.
+                ((FlatLaf) laf).setExtraDefaults(extraDefaults);
             }
-	         
-            logger.debug("-> Inyectadas reglas de transparencia total para la styleClass 'Transparent' y sus descendientes.");
-
-            // 3. ¡EL PASO CLAVE! Creamos tu objeto `Tema` a partir de los colores del UIManager
-            this.temaActual = construirTemaDesdeUIManager(idTema, info.nombreDisplay());
             
-            // 4. Guardar configuración
-            configManager.setString(ConfigKeys.TEMA_NOMBRE, this.temaActual.nombreInterno());
-            logger.info("Tema '{}' establecido con éxito.", this.temaActual.nombreDisplay());
+            // 4. AHORA establecemos el LookAndFeel, ya pre-configurado.
+            //    Al hacer esto, el LaF anterior y sus "extra defaults" se descartan automáticamente.
+            UIManager.setLookAndFeel(laf);
+            logger.debug("LookAndFeel base '{}' aplicado.", laf.getName());
+            // --- FIN DE LA CORRECCIÓN DEFINITIVA ---
 
-            // 5. Ejecutar la lógica de tu aplicación
+            // 5. Creamos el objeto Tema DESPUÉS de que UIManager esté completamente configurado.
+            final Tema nuevoTema = new Tema(idTema, info.nombreDisplay(), customProps);
+            this.temaActual = nuevoTema;
+
+            // 6. Guardamos el nuevo tema en la configuración
+            configManager.setString(ConfigKeys.TEMA_NOMBRE, idTema);
+
+            // 7. Actualizamos la UI y notificamos si es necesario
             if (notificarYRepintar) {
                 SwingUtilities.invokeLater(() -> {
-                    // Actualizamos la UI para que tome los nuevos valores base
                     FlatLaf.updateUI();
+                    logger.info("Tema '{}' establecido y FlatLaf.updateUI() ejecutado.", this.temaActual.nombreDisplay());
 
-                    // Aplicamos nuestras personalizaciones ADICIONALES
-                    // (Esto ya no es necesario si no tienes personalizaciones muy específicas)
-                    // applyCustomizations(); 
-
-                    // Notificamos al resto de la aplicación
                     if (configAppManager != null && temaAnterior != null) {
                         configAppManager.rotarColoresDeSlotPorCambioDeTema(temaAnterior, this.temaActual);
                     }
+                    
                     notificarListeners(this.temaActual);
                 });
+            } else {
+                logger.info("Tema inicial '{}' establecido (sin notificar).", this.temaActual.nombreDisplay());
             }
+            
             return true;
         } catch (Exception ex) {
             logger.error("Falló al aplicar el tema con ID '{}'.", idTema, ex);
             return false;
         }
-    } // --- FIN del metodo setTemaActual ---
+    } // ---FIN de metodo [setTemaActual]---
     
     
     /**
-     * Modifica la intensidad de un color base sumando o restando un valor a sus componentes RGB.
-     * Este método es seguro y garantiza que los valores de color resultantes se mantengan
-     * dentro del rango válido (0-255).
-     *
-     * @param colorBase El color original que se va a modificar.
-     * @param offset El valor a sumar a cada componente RGB. Un valor positivo aclara el color,
-     *               mientras que un valor negativo lo oscurece.
-     * @return Un nuevo objeto Color con la intensidad modificada.
+     * Carga el archivo .properties, resuelve las variables de color (ej. @myVar),
+     * y devuelve un objeto Properties listo para usar.
+     * IMPORTANTE: Este método YA NO modifica UIManager directamente y solo devuelve valores String.
+     * @param resourcePath La ruta al archivo de propiedades.
+     * @return Un objeto Properties que contiene los valores resueltos.
      */
-    private Color cambiarIntensidadColor(Color colorBase, int offset) {
-        if (colorBase == null) {
-            // Devolvemos un color por defecto seguro si el color base es nulo.
-        	
-        	logger.error("color null. Devolviendo Color.GRAY");
-            
-        	return Color.GRAY; 
+    private Properties loadAndProcessCustomProperties(String resourcePath) {
+        Properties loadedProps = new Properties();
+        if (resourcePath == null) return loadedProps;
+
+        try (InputStream stream = getClass().getResourceAsStream(resourcePath)) {
+            if (stream == null) {
+                logger.error("No se pudo encontrar el archivo de propiedades personalizado: {}", resourcePath);
+                return loadedProps;
+            }
+            loadedProps.load(stream);
+        } catch (java.io.IOException e) {
+            logger.error("Error al leer el archivo de propiedades personalizado: {}", resourcePath, e);
+            return loadedProps;
         }
 
-        int r = colorBase.getRed();
-        int g = colorBase.getGreen();
-        int b = colorBase.getBlue();
+        Properties resolvedProps = new Properties();
+        final Pattern varPattern = Pattern.compile("@(\\w+)");
 
-        // Aplicamos el offset a cada componente de color.
-        // La combinación de Math.max y Math.min asegura que el resultado
-        // nunca sea menor que 0 ni mayor que 255.
-        r = Math.max(0, Math.min(255, r + offset));
-        g = Math.max(0, Math.min(255, g + offset));
-        b = Math.max(0, Math.min(255, b + offset));
+        for (String key : loadedProps.stringPropertyNames()) {
+            String value = loadedProps.getProperty(key);
 
-        return new Color(r, g, b);
-    } // --- FIN del metodo cambiarIntensidadColor ---
-    
-    
-    /**
-     * ¡Magia! Este método lee los colores del tema de FlatLaf que acabamos de poner
-     * y los usa para crear una instancia de tu antiguo objeto `Tema`, manteniendo
-     * la compatibilidad con el resto de tu código.
-     */
-    private Tema construirTemaDesdeUIManager(String id, String nombreDisplay) {
-        return new Tema(
-            id,
-            nombreDisplay,
-            isTemaActualOscuro() ? "white" : "black", // Lógica de iconos
-            UIManager.getColor("Panel.background"),
-            UIManager.getColor("TabbedPane.contentAreaColor"), // O la que uses para fondo secundario
-            UIManager.getColor("Label.foreground"),
-            UIManager.getColor("Label.disabledForeground"),
-            UIManager.getColor("Component.borderColor"),
-            UIManager.getColor("TitledBorder.titleColor"),
-            UIManager.getColor("List.selectionBackground"),
-            UIManager.getColor("List.selectionForeground"),
-            UIManager.getColor("Button.selectedBackground"),
-            UIManager.getColor("Button.hoverBackground"),
-            UIManager.getColor("Button.selectedBackground"),
-            UIManager.getColor("Button.hoverBackground"),
-            UIManager.getColor("Component.accentColor"), // O la que uses para borde activo
-            UIManager.getColor("Label.foreground"), // Para label activo
+            Matcher matcher = varPattern.matcher(value);
+            while (matcher.find()) {
+                String varName = matcher.group(1);
+                String varValue = loadedProps.getProperty(varName, "");
+                value = value.replace("@" + varName, varValue);
+                matcher = varPattern.matcher(value);
+            }
             
-            // "Component.accentColor" es una excelente opción.
-            UIManager.getColor("Component.accentColor"),
-            
-            // Usaremos el de la selección de lista como un buen candidato.
-            UIManager.getColor("List.selectionForeground") 
-        );
-        
-    } // --- FIN del metodo construirTemaDesdeUIManager ---
+            if (!key.startsWith("@")) {
+                // Guardamos el valor final como String. FlatLaf se encargará de parsearlo.
+                resolvedProps.put(key, value);
+            }
+        }
+        logger.debug("Procesadas {} propiedades personalizadas desde '{}'", resolvedProps.size(), resourcePath);
+        return resolvedProps;
+    } // ---FIN de metodo [loadAndProcessCustomProperties]---
     
-
-    // Mantenemos la referencia para que tu lógica de "rotarColores" funcione
-    public void setConfigApplicationManager(ConfigApplicationManager configAppManager) {
-        this.configAppManager = configAppManager;
-    } // --- FIN del metodo setConfigApplicationManager
     
-    // --- Métodos que tu código antiguo necesita ---
-
-    public Tema getTemaActual() {
-        return this.temaActual;
-    } // --- FIN del metodo getTemaActual
-
-    /**
-     * Devuelve una lista de los temas "principales" definidos en UIDefinitionService.
-     * Este método es usado por clases como ConfigApplicationManager para la lógica de rotación de colores.
-     */
+    public void setConfigApplicationManager(ConfigApplicationManager configAppManager) { this.configAppManager = configAppManager; } // ---FIN de metodo [setConfigApplicationManager]---
+    
+    public Tema getTemaActual() { return this.temaActual; } // ---FIN de metodo [getTemaActual]---
+    
     public List<Tema> getTemasDisponibles() {
-        // Leemos la definición de la fuente de verdad.
-        List<vista.config.UIDefinitionService.TemaDefinicion> temasDefs = UIDefinitionService.getTemasPrincipales();
-
-        // Creamos y devolvemos los objetos `Tema` ligeros que tu lógica espera.
-        return temasDefs.stream()
-                .map(def -> new Tema(def.id(), def.nombreDisplay(), null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null))
+        return UIDefinitionService.getTemasPrincipales().stream()
+                .map(def -> new Tema(def.id(), def.nombreDisplay()))
                 .toList();
-    } // --- Fin del método getTemasDisponibles ---
+    } // ---FIN de metodo [getTemasDisponibles]---
     
+    public Color getFondoSecundarioParaTema(String idTema) { return null; } // ---FIN de metodo [getFondoSecundarioParaTema]---
     
-    public Color getFondoSecundarioParaTema(String idTema) {
-        Tema tema = construirTemaDesdeUIManager(idTema, ""); // Es un apaño, pero funciona
-        return tema.colorFondoSecundario();
-    }// --- Fin del método getFondoSecundarioParaTema ---
-
+    public boolean isTemaActualOscuro() { return FlatLaf.isLafDark(); } // ---FIN de metodo [isTemaActualOscuro]---
     
-    // --- El resto de métodos de listener y ayuda ---
-
+    public void addThemeChangeListener(ThemeChangeListener listener) { listeners.add(listener); } // ---FIN de metodo [addThemeChangeListener]---
+    
+    public void removeThemeChangeListener(ThemeChangeListener listener) { listeners.remove(listener); } // ---FIN de metodo [removeThemeChangeListener]---
+    
     private void notificarListeners(Tema temaCambiado) {
-        listeners.forEach(listener -> listener.onThemeChanged(temaCambiado));
-    } // --- FIN del metodo notificarListeners
+        for (ThemeChangeListener listener : listeners) { 
+            if (listener != null) {
+                listener.onThemeChanged(temaCambiado); 
+            } 
+        } 
+    } // ---FIN de metodo [notificarListeners]---
     
-    
-    public boolean isTemaActualOscuro() {
-//        if (UIManager.getLookAndFeel() == null) return false;
-//        return UIManager.getLookAndFeel().getName().toLowerCase().contains("dark");
-    	return FlatLaf.isLafDark();
-    } // --- FIN del metodo isTemaActualOscuro
 
-    
-    public void addThemeChangeListener(ThemeChangeListener listener) { listeners.add(listener); }
-    public void removeThemeChangeListener(ThemeChangeListener listener) { listeners.remove(listener); }
-    private record ThemeInfo(String nombreDisplay, Supplier<LookAndFeel> lafSupplier) {}
+    private void loadCustomThemes() {
+        File customThemesDir = new File(".temas_personalizados");
+        if (!customThemesDir.exists() || !customThemesDir.isDirectory()) {
+            return; // No hay temas personalizados que cargar
+        }
 
-} // --- Fin de la clase ThemeManager ---
+        File[] files = customThemesDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".properties"));
+        if (files == null) return;
+
+        for (File file : files) {
+            try {
+                Properties props = new Properties();
+                // Usamos un try-with-resources para asegurar que el stream se cierra
+                try (java.io.InputStream input = new java.io.FileInputStream(file)) {
+                    props.load(input);
+                }
+                
+                String baseThemeClassName = props.getProperty("# Basado en");
+                String themeName = props.getProperty("#", file.getName().replace(".properties", ""));
+
+                if (baseThemeClassName != null && !baseThemeClassName.isBlank()) {
+                    String themeId = "custom_" + file.getName().replace(".properties", "").toLowerCase().replaceAll("\\s+", "_");
+                    
+                    Class<?> baseClass = Class.forName(baseThemeClassName.trim());
+                    java.util.function.Supplier<javax.swing.LookAndFeel> supplier = () -> {
+                        try {
+                            return (javax.swing.LookAndFeel) baseClass.getDeclaredConstructor().newInstance();
+                        } catch (Exception e) {
+                            logger.error("No se pudo instanciar el tema base para el tema personalizado: " + themeName, e);
+                            return null;
+                        }
+                    };
+                    
+                    // --- CORRECCIÓN CLAVE ---
+                    // Construimos la ruta al .properties de forma que FlatLaf pueda encontrarla
+                    String propertiesPath = file.toURI().toString();
+
+                    TEMAS_DISPONIBLES.put(themeId, new ThemeInfo(themeName, supplier, propertiesPath, ThemeCategory.CUSTOM));
+                    logger.info("Tema personalizado cargado: '{}' (ID: {}) basado en '{}'", themeName, themeId, baseThemeClassName);
+                
+                } else {
+                     logger.warn("El archivo de tema '{}' no contiene la clave '# Basado en'. Se ignora.", file.getName());
+                }
+            } catch (Exception e) {
+                logger.error("Error al cargar el tema personalizado desde el archivo: " + file.getName(), e);
+            }
+        }
+    } // ---FIN de metodo [loadCustomThemes]---
+    
+    
+    public Map<String, ThemeInfo> getAvailableThemes() {
+        // Devuelve una copia del mapa para evitar modificaciones externas.
+        return new java.util.HashMap<>(TEMAS_DISPONIBLES);
+    } // ---FIN de metodo [getAvailableThemes]---
+    
+    
+    
+// *****************************************************************************************************************
+//												RECORD DE INFORMACION DE LOS TEMAS 
+// *****************************************************************************************************************
+    
+    public record ThemeInfo(String nombreDisplay, Supplier<LookAndFeel> lafSupplier, String customPropertiesPath, ThemeCategory category) {}
+    
+    
+    
+// *****************************************************************************************************************
+//												ENUM DE TIPOS DE TEMAS 
+// *****************************************************************************************************************
+    public enum ThemeCategory {
+        LIGHT("Temas Claros"),
+        DARK("Temas Oscuros"),
+        GRADIENT("Degradados"),
+        CUSTOM("Personalizados"),
+        CUSTOM_INTERNAL("Personalizados Internos"); // Para los tuyos que no vienen de .properties
+
+        private final String displayName;
+        ThemeCategory(String displayName) { this.displayName = displayName; }
+        public String getDisplayName() { return displayName; }
+    }
+    
+} // --- FIN de clase [ThemeManager]---
 

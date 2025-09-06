@@ -170,6 +170,7 @@ public class ComponentRegistry {
 	        key.startsWith("toolbar.")  
 	        || key.startsWith("interfaz.boton.")
 	        || key.startsWith("interfaz.dpad.") 
+	        || key.startsWith("textfield.") 
         );
     } // --- Fin del método unregisterToolbarComponents ---
     

@@ -65,4 +65,9 @@ public interface IModoController {
      */
     void continuarPaneo(MouseEvent e);
     
+    /**
+     * Solicita al controlador de modo que ejecute su lógica de refresco principal.
+     */
+    void solicitarRefresco();
+    
 } // --- FIN de la interfaz IModoController ---

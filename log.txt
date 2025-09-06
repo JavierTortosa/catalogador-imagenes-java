@@ -1,8 +1,8 @@
 Iniciando Visor de Imágenes V2...
 [39mDEBUG controlador.VisorController - --- Iniciando VisorController (Constructor Simple) ---
 [0;39m[34mINFO  controlador.AppInitializer - --- Iniciando Proceso de Inicialización Global ---
-[0;39m[34mINFO  controlador.AppInitializer -   [AppInitializer Fase A.1] Inicializando Componentes Base (Modelo, Configuración)...
-[0;39m[39mDEBUG servicios.ConfigurationManager - Mapa de configuración por defecto inicializado con 177 claves.
+[0;39m[34mINFO  controlador.AppInitializer - --- [Fase 1/3] Instanciando todos los componentes...
+[0;39m[39mDEBUG servicios.ConfigurationManager - Mapa de configuración por defecto inicializado con 178 claves.
 [0;39m[39mDEBUG servicios.ConfigurationManager - Mapa DEFAULT_GROUP_COMMENTS inicializado con 37 entradas.
 [0;39m[34mINFO  servicios.ConfigurationManager - Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 1: Ignorada (comentario/vacía)
@@ -43,8 +43,8 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 36: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 37: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 38: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = F:\ARCHIVOS 3D\Chibi] -> Clave: 'inicio.carpeta', Valor: 'F:\ARCHIVOS 3D\Chibi'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = 3DXM - Armoured Mon-Star Chibi.jpg] -> Clave: 'inicio.imagen', Valor: '3DXM - Armoured Mon-Star Chibi.jpg'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = M:\Archivos 3D\Peanas] -> Clave: 'inicio.carpeta', Valor: 'M:\Archivos 3D\Peanas'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = Lost Colony- 100 scifi Bases.jpg] -> Clave: 'inicio.imagen', Valor: 'Lost Colony- 100 scifi Bases.jpg'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 41: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 42: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 43: Ignorada (comentario/vacía)
@@ -243,7 +243,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 236: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 237: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 238: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 239: [tema.nombre = purpura_misterioso] -> Clave: 'tema.nombre', Valor: 'purpura_misterioso'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 239: [tema.nombre = obsidian_orange] -> Clave: 'tema.nombre', Valor: 'obsidian_orange'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 240: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 241: [ui.splitpane.main.dividerLocation = 0.25] -> Clave: 'ui.splitpane.main.dividerLocation', Valor: '0.25'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 242: Ignorada (comentario/vacía)
@@ -285,35 +285,36 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 278: [proyectos.estado.lista_activa = seleccion] -> Clave: 'proyectos.estado.lista_activa', Valor: 'seleccion'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 279: [proyectos.estado.ultima_descartes_key = ] -> Clave: 'proyectos.estado.ultima_descartes_key', Valor: ''
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 280: [proyectos.estado.ultima_seleccion_key = ] -> Clave: 'proyectos.estado.ultima_seleccion_key', Valor: ''
-[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 203
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 281: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 282: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 283: [ui.background.custom.color.1 = 0,51,102] -> Clave: 'ui.background.custom.color.1', Valor: '0,51,102'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 284: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 285: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 286: [ui.background.custom.color.2 = 91,89,92] -> Clave: 'ui.background.custom.color.2', Valor: '91,89,92'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 287: [ui.background.custom.color.3 = 44,62,80] -> Clave: 'ui.background.custom.color.3', Valor: '44,62,80'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 288: [ui.background.custom.color.4 = 194,194,194] -> Clave: 'ui.background.custom.color.4', Valor: '194,194,194'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 289: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 290: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 291: [interfaz.boton.modo.modo_settings.visible = true] -> Clave: 'interfaz.boton.modo.modo_settings.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 292: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 293: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 294: [interfaz.boton.modo.config_custom_theme.visible = true] -> Clave: 'interfaz.boton.modo.config_custom_theme.visible', Valor: 'true'
+[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 209
 [0;39m[34mINFO  servicios.ConfigurationManager - --- DEBUG PRE-SINCRONIZACIÓN ---
-[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de DEFAULT_CONFIG: 177
-[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 203
+[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de DEFAULT_CONFIG: 178
+[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 209
 [0;39m[39mDEBUG servicios.ConfigurationManager - DEFAULT_CONFIG contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - loadedConfig contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - ---------------------------------
 [0;39m[34mINFO  servicios.ConfigurationManager - Sincronizando configuración cargada con mapa de defaults...
 [0;39m[39mDEBUG servicios.ConfigurationManager - La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 [0;39m[39mDEBUG servicios.ConfigurationManager - ConfigurationManager inicializado.
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 671811733
-[0;39m[34mINFO  controlador.AppInitializer -   [AppInitializer Fase A.2] Aplicando Configuración a los contextos del Modelo...
-[0;39m[34mINFO  modelo.VisorModel - [VisorModel] Inicializando estado por defecto de todos los contextos...
-[0;39m[39mDEBUG modelo.VisorModel - [VisorModel] Retardo del carrusel actualizado a: 3000ms
-[0;39m[39mDEBUG controlador.AppInitializer -   [Initializer] Estado de Sincronización cargado: false
-[0;39m[34mINFO  controlador.AppInitializer -   [AppInitializer Fase A.3] Inicializando Servicios Esenciales...
-[0;39m[39mDEBUG vista.theme.ThemeManager - -> Aplicando personalizaciones para 'Púrpura Misterioso'...
-[0;39m[39mDEBUG vista.theme.ThemeManager - -> Inyectadas reglas de transparencia total para la styleClass 'Transparent' y sus descendientes.
-[0;39m[34mINFO  vista.theme.ThemeManager - Tema 'Púrpura Misterioso' establecido con éxito.
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 260068108
+[0;39m[39mDEBUG vista.theme.ThemeManager - Procesadas 4 propiedades personalizadas desde '/vista/theme/themes/FlatObsidianOrangeIJTheme.properties'
+[0;39m[39mDEBUG vista.theme.ThemeManager - LookAndFeel base 'Obsidian Orange' aplicado.
+[0;39m[34mINFO  vista.theme.ThemeManager - Tema inicial 'Obsidian Orange' establecido (sin notificar).
 [0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Servicio inicializado. LruCache (tamaño: 200) y Executor (threads: 8) creados.
 [0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Servicio inicializado. LruCache (tamaño: 200) y Executor (threads: 8) creados.
-[0;39m[39mDEBUG controlador.AppInitializer -   [AppInitializer] Creados servicios de Thumbnail: Global y Grid-Dedicado.
-[0;39m[34mINFO  controlador.AppInitializer -   [AppInitializer Fase A.4] Creando instancia de ProjectManager...
-[0;39m[39mDEBUG controlador.AppInitializer -   [AppInitializer] Programando creación de UI y componentes dependientes en EDT...
-[0;39m[39mDEBUG controlador.AppInitializer - --- Inicialización base (fuera de EDT) completada. ---
-[0;39m[39mDEBUG controlador.VisorController - --- VisorController: Inicialización delegada completada con éxito ---
-[0;39m[39mDEBUG principal.VisorV2 - VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.
-[0;39m[34mINFO  controlador.AppInitializer - --- [AppInitializer Fase B - EDT] Iniciando creación de UI y componentes dependientes ---
-[0;39m[39mDEBUG controlador.AppInitializer -   -> Fase B.1: Creando todas las instancias...
 [0;39m[34mINFO  c.managers.DisplayModeManager - Iniciando DisplayModeManager
 [0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Instancia creada.
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder - [ToolbarBuilder Constructor] Iniciando...
@@ -321,9 +322,16 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.managers.ToolbarManager - [ToolbarManager] Instancia creada con éxito.
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - [ConfigApplicationManager] Creando instancia refactorizada...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - [ConfigApplicationManager] Instancia creada.
-[0;39m[39mDEBUG controlador.AppInitializer -   -> Fase B.2: Cableando dependencias (sets)...
+[0;39m[39mDEBUG controlador.AppInitializer -  -> Instanciación de componentes completada.
+[0;39m[34mINFO  controlador.AppInitializer - --- [Fase 2/3] Cableando dependencias entre componentes...
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - [MenuBarBuilder] ControllerGlobalActionListener establecido: controlador.VisorController
-[0;39m[39mDEBUG controlador.AppInitializer -   -> Fase B.3: Inicialización secuenciada y construcción de UI...
+[0;39m[39mDEBUG controlador.AppInitializer -  -> Cableado de dependencias completado.
+[0;39m[34mINFO  controlador.AppInitializer - --- [Fase 3/3] Inicializando la aplicación en el EDT...
+[0;39m[39mDEBUG controlador.VisorController - --- VisorController: Inicialización delegada completada con éxito ---
+[0;39m[39mDEBUG principal.VisorV2 - VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.
+[0;39m[39mDEBUG controlador.AppInitializer -   -> Aplicando Configuración a los contextos del Modelo...
+[0;39m[34mINFO  modelo.VisorModel - [VisorModel] Inicializando estado por defecto de todos los contextos...
+[0;39m[39mDEBUG modelo.VisorModel - [VisorModel] Retardo del carrusel actualizado a: 3000ms
 [0;39m[34mINFO  controlador.factory.ActionFactory -   [ActionFactory] Inicializando Actions principales (no dependientes de la vista)...
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 3008-reset_48x48.png
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 3001-zoom_48x48.png
@@ -396,6 +404,9 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.factory.ActionFactory -     -> Action creada para tema: Gradianto Midnight Blue con comando: cmd.tema.gradianto_midnight_blue
 [0;39m[39mDEBUG controlador.factory.ActionFactory -     -> Action creada para tema: Gradianto Nature Green con comando: cmd.tema.gradianto_nature_green
 [0;39m[39mDEBUG controlador.factory.ActionFactory -     -> Action creada para tema: Púrpura Misterioso con comando: cmd.tema.purpura_misterioso
+[0;39m[39mDEBUG controlador.factory.ActionFactory -     -> Action creada para tema: Azul Medianoche con comando: cmd.tema.gradianto_azul_medianoche
+[0;39m[39mDEBUG controlador.factory.ActionFactory -     -> Action creada para tema: Carbon Orange con comando: cmd.tema.carbon_orange
+[0;39m[39mDEBUG controlador.factory.ActionFactory -     -> Action creada para tema: Obsidian Orange con comando: cmd.tema.obsidian_orange
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 7001-subcarpetas_48x48.png
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 7002-mantener_proporciones_48x48.png
 [0;39m[39mDEBUG c.a.toggle.ToggleProporcionesAction - [ToggleProporcionesAction Constructor] Estado inicial SELECTED_KEY: true (desde modelo)
@@ -427,7 +438,8 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.modo.edicion
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.tree.open_folder
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.tree.drill_down_folder
-[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Actions principales inicializadas y mapeadas. Total: 160
+[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Actions principales inicializadas y mapeadas. Total: 163
+[0;39m[39mDEBUG controlador.AppInitializer -     -> Creando VisorView (JFrame)...
 [0;39m[39mDEBUG vista.builders.ViewBuilder -   [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
 [0;39m[39mDEBUG vista.VisorView - [VisorView Constructor SIMPLIFICADO] Iniciando...
 [0;39m[39mDEBUG vista.builders.ViewBuilder -   [ViewBuilder] Toolbar container creado con estructura BorderLayout (WEST, CENTER, EAST).
@@ -484,7 +496,6 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG vista.builders.ProjectBuilder -  -> Toolbar 'barra_grid' inyectada en el GridDisplayPanel del proyecto.
 [0;39m[34mINFO  vista.builders.ProjectBuilder -   [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.
 [0;39m[39mDEBUG vista.builders.ViewBuilder -   [ViewBuilder] Frame principal construido y ensamblado.
-[0;39m[39mDEBUG controlador.AppInitializer -     -> VisorView (JFrame) creado.
 [0;39m[39mDEBUG controlador.AppInitializer -     -> Inyectando la instancia de 'view' en los componentes...
 [0;39m[34mINFO  controlador.factory.ActionFactory -   [ActionFactory] Inicializando Actions dependientes de la vista...
 [0;39m[39mDEBUG c.a.vista.ToggleMiniatureTextAction - [ToggleMiniatureTextAction Constructor] Configurada con clave de estado: interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado
@@ -494,24 +505,21 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.stop
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.rewind
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.fast_forward
-[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 171
-[0;39m[39mDEBUG c.managers.DisplayModeManager -  -> Listener de selección añadido a 'list.grid' (Visualizador).
-[0;39m[39mDEBUG c.managers.DisplayModeManager -  -> Listener de selección añadido a 'list.grid.proyecto'.
-[0;39m[39mDEBUG controlador.AppInitializer -   -> DisplayModeManager registrado como oyente en ListCoordinator y ProjectListCoordinator.
-[0;39m[39mDEBUG controlador.AppInitializer -     -> DisplayModeManager configurado y conectado.
-[0;39m[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 12, Descartes: 5
-[0;39m[39mDEBUG servicios.ProjectManager - [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-[0;39m[39mDEBUG servicios.ProjectManager -   -> Proyecto inicial cargado. Selección: 12, Descartes: 5
+[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.config.custom_theme
+[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 175
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -     -> MouseListener configurado para 'label.control.zoomPorcentaje'.
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -     -> ActionListener configurado para el botón de Modo de Zoom.
-[0;39m[39mDEBUG controlador.AppInitializer -   -> Fase B.4: Ensamblaje final, visibilidad y carga de datos...
+[0;39m[39mDEBUG c.managers.DisplayModeManager -  -> Listener de selección añadido a 'list.grid' (Visualizador).
+[0;39m[39mDEBUG c.managers.DisplayModeManager -  -> Listener de selección añadido a 'list.grid.proyecto'.
+[0;39m[39mDEBUG controlador.AppInitializer -     -> Ensamblando UI: Menús, Toolbars, Listeners...
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] ActionMap recibido con 171 acciones.
+[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] ActionMap recibido con 175 acciones.
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
+[0;39m[39mDEBUG vista.builders.MenuBarBuilder - [MenuBarBuilder] Construyendo menú dinámico con 36 temas en 4 categorías.
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 286
+[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 291
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] JMenuBar registrada en ComponentRegistry con la clave 'menubar.main'.
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - --- MenuBarBuilder: Construcción de JMenuBar completada. ---
 [0;39m[34mINFO  controlador.managers.ToolbarManager - --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
@@ -568,6 +576,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -       -> Botón Toggle 'cmd.modo.datos' añadido al ButtonGroup.
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -       -> Botón Toggle 'cmd.modo.edicion' añadido al ButtonGroup.
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -       -> Botón Toggle 'cmd.vista.carousel' añadido al ButtonGroup.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -       -> Botón Toggle 'cmd.config.custom_theme' añadido al ButtonGroup.
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'modo'
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'modo' registrada en ComponentRegistry con la clave: 'toolbar.modo'
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'especiales' no está en caché. Construyéndola ahora...
@@ -577,11 +586,15 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'barra_estado_controles': true
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...
 [0;39m[39mDEBUG controlador.managers.ToolbarManager - --- [ToolbarManager] Reconstrucción de toolbars completada. ---
+[0;39m[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 0, Descartes: 0
+[0;39m[39mDEBUG servicios.ProjectManager - [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
+[0;39m[39mDEBUG servicios.ProjectManager -   -> Proyecto inicial cargado. Selección: 0, Descartes: 0
 [0;39m[39mDEBUG controlador.VisorController -   [Controller] Configurando atajos de teclado globales...
-[0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: F5 -> cmd.especial.refrescar
-[0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: F11 -> cmd.vista.pantalla_completa
-[0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: Ctrl+L -> cmd.imagen.localizar
-[0;39m[39mDEBUG controlador.VisorController -   -> Atajos de teclado globales configurados para teclado estándar y numérico.
+[0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: Ctrl+S -> cmd.proyecto.guardar
+[0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: Ctrl+Shift+S -> cmd.proyecto.guardar_como
+[0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: Ctrl+N -> cmd.proyecto.nuevo
+[0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: Ctrl+O -> cmd.proyecto.abrir
+[0;39m[39mDEBUG controlador.VisorController -   -> Atajos de teclado globales configurados.
 [0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Configurando listeners de entrada globales para todos los modos...
 [0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Encontrados 14 componentes etiquetados como 'WHEEL_NAVIGABLE'.
 [0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Listeners de entrada globales configurados.
@@ -614,25 +627,18 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.miniaturas'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.grid'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.grid.proyecto'.
-[0;39m[39mDEBUG modelo.VisorModel -   [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: F:\ARCHIVOS 3D\Chibi
-[0;39m[39mDEBUG controlador.AppInitializer -   [AppInitializer] Sincronizando visibilidad inicial de paneles...
+[0;39m[39mDEBUG modelo.VisorModel -   [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: M:\Archivos 3D\Peanas
+[0;39m[39mDEBUG controlador.AppInitializer -     -> Ventana principal visible. La aplicación está 'viva'.
+[0;39m[39mDEBUG controlador.AppInitializer -   -> Sincronizando visibilidad inicial de paneles...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -   [ConfigAppManager] Aplicando configuración al Modelo...
 [0;39m[34mINFO  modelo.VisorModel - [VisorModel] Inicializando estado por defecto de todos los contextos...
 [0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo DisplayMode inicial a: SINGLE_IMAGE
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -   -> Configuración del Modelo aplicada.
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -   [ConfigAppManager] Verificando y sembrando colores de fondo por defecto...
-[0;39m[39mDEBUG servicios.ConfigurationManager -   [ConfigManager] Propiedad eliminada de la configuración en memoria: ui.background.custom.color.1
-[0;39m[39mDEBUG c.managers.ConfigApplicationManager -     -> SEMBRADO: La clave 'ui.background.custom.color.1' se ha inicializado en memoria con el color del tema 'arc_light'.
-[0;39m[39mDEBUG servicios.ConfigurationManager -   [ConfigManager] Propiedad eliminada de la configuración en memoria: ui.background.custom.color.2
-[0;39m[39mDEBUG c.managers.ConfigApplicationManager -     -> SEMBRADO: La clave 'ui.background.custom.color.2' se ha inicializado en memoria con el color del tema 'arc_orange_light'.
-[0;39m[39mDEBUG servicios.ConfigurationManager -   [ConfigManager] Propiedad eliminada de la configuración en memoria: ui.background.custom.color.3
-[0;39m[39mDEBUG c.managers.ConfigApplicationManager -     -> SEMBRADO: La clave 'ui.background.custom.color.3' se ha inicializado en memoria con el color del tema 'cyan_light'.
-[0;39m[39mDEBUG servicios.ConfigurationManager -   [ConfigManager] Propiedad eliminada de la configuración en memoria: ui.background.custom.color.4
-[0;39m[39mDEBUG c.managers.ConfigApplicationManager -     -> SEMBRADO: La clave 'ui.background.custom.color.4' se ha inicializado en memoria con el color del tema 'github_light'.
-[0;39m[39mDEBUG controlador.AppInitializer -   [AppInitializer] Forzando sincronización de colores de paneles al arranque...
-[0;39m[39mDEBUG controlador.VisorController -   [Sync Colors] Sincronizando colores de paneles para el tema: purpura_misterioso
-[0;39m[39mDEBUG controlador.AppInitializer -   [AppInitializer] Ejecutando sincronización maestra INICIAL...
+[0;39m[39mDEBUG controlador.VisorController -   [Sync Colors] Sincronizando colores de paneles para el tema: Obsidian Orange
+[0;39m[39mDEBUG controlador.VisorController -     -> Colores personalizados aplicados a 'panel.estado.inferior'.
+[0;39m[39mDEBUG controlador.VisorController -     -> Colores personalizados aplicados a 'panel.info.superior'.
 [0;39m[34mINFO  controlador.GeneralController - --- [GeneralController] Iniciando sincronización maestra de ui ---
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.vista.switch_to_visualizador ---
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.vista.switch_to_visualizador ---
@@ -675,16 +681,18 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
 [0;39m[39mDEBUG controlador.managers.ViewManager - [FOCUS_INIT] Buscando paneles de todos los modos para registrar...
-[0;39m[39mDEBUG controlador.managers.ViewManager -   -> [VISUALIZADOR] Registrado: 'scroll.nombresArchivo'
-[0;39m[39mDEBUG controlador.managers.ViewManager -   -> [VISUALIZADOR] Registrado: 'scroll.miniaturas'
-[0;39m[39mDEBUG controlador.managers.ViewManager -   -> [VISUALIZADOR] Registrado: 'container.displaymodes' (para imagen/grid)
-[0;39m[39mDEBUG controlador.managers.ViewManager -   -> [CARRUSEL] Registrado: 'scroll.miniaturas.carousel'
-[0;39m[39mDEBUG controlador.managers.ViewManager -   -> [PROYECTO] Registrado: 'scroll.proyecto.nombres' (Selección)
-[0;39m[39mDEBUG controlador.managers.ViewManager -   -> [PROYECTO] Registrado: 'scroll.proyecto.descartes'
-[0;39m[39mDEBUG controlador.managers.ViewManager -   -> [PROYECTO] Registrado: 'container.displaymodes.proyecto' (para imagen/grid)
-[0;39m[34mINFO  controlador.managers.ViewManager - [ViewManager] Sistema de bordes de foco inicializado para 7 paneles en total.
-[0;39m[39mDEBUG controlador.AppInitializer -     -> BackgroundControlManager inicializado y enlazado a la UI.
-[0;39m[34mINFO  controlador.AppInitializer - --- [AppInitializer Fase B - EDT] Inicialización de UI completada. La aplicación está lista. ---
+[0;39m[39mDEBUG controlador.managers.ViewManager -   -> Panel de foco registrado: 'panel.izquierdo.listaArchivos' (Lista de Nombres (Visor))
+[0;39m[39mDEBUG controlador.managers.ViewManager -   -> Panel de foco registrado: 'scroll.miniaturas' (Barra de Miniaturas (Visor))
+[0;39m[39mDEBUG controlador.managers.ViewManager -   -> Panel de foco registrado: 'container.displaymodes' (Grid/Imagen Principal (Visor))
+[0;39m[39mDEBUG controlador.managers.ViewManager -   -> Panel de foco registrado: 'scroll.proyecto.nombres' (Lista de Selección (Proyecto))
+[0;39m[39mDEBUG controlador.managers.ViewManager -   -> Panel de foco registrado: 'scroll.proyecto.descartes' (Lista de Descartes (Proyecto))
+[0;39m[39mDEBUG controlador.managers.ViewManager -   -> Panel de foco registrado: 'container.displaymodes.proyecto' (Grid/Imagen Principal (Proyecto))
+[0;39m[34mINFO  controlador.managers.ViewManager - [ViewManager] Sistema de bordes de foco inicializado para 6 paneles en total.
+[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: Lost Colony- 100 scifi Bases.jpg
+[0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Caché de miniaturas limpiado.
+[0;39m[34mINFO  controlador.AppInitializer - --- [Fase 3/3] Inicialización de UI completada. La aplicación está lista. ---
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en M:\Archivos 3D\Peanas con profundidad 2147483647
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 106
 [0;39m[39mDEBUG vista.VisorView - [VisorView] Actualizando borde de sincronización a: false
 [0;39m[34mINFO  c.managers.BackgroundControlManager - --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
@@ -696,27 +704,23 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -     -> Configuración básica de Vista aplicada.
-[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: 3DXM - Armoured Mon-Star Chibi.jpg
-[0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Caché de miniaturas limpiado.
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en F:\ARCHIVOS 3D\Chibi con profundidad 2147483647
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 1539
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,382x691,invalid,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
 [0;39m[39mDEBUG c.worker.BuscadorArchivosWorker - [Worker EDT] Método done() alcanzado.
 [0;39m[39mDEBUG controlador.VisorController -     -> Restaurando visibilidad de paneles según la configuración del usuario.
 [0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: VISUALIZADOR
-[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@76cd65ab: SelectedKey set to NULL (old key not found or was null).
-[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@76cd65ab actualizado. Nuevo tamaño: 1539
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@67532a9a: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@67532a9a actualizado. Nuevo tamaño: 106
 [0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 1 oyentes sobre el cambio de la lista maestra.
-[0;39m[39mDEBUG vista.VisorView - [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 1539
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 0
-[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: '3DXM - Armoured Mon-Star Chibi.jpg'
+[0;39m[39mDEBUG vista.VisorView - [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 106
+[0;39m[31mWARN  vista.VisorView - WARN [setTituloPanelIzquierdo]: panelIzquierdo o su TitledBorder nulos.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 60
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Lost Colony- 100 scifi Bases.jpg'
 [0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
 [0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 16 miniaturas...
-[0;39m[39mDEBUG controlador.VisorController - [Controller] 16 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 0.
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 60.
 [0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,invalid,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
 [0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
 [0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
 [0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
@@ -725,23 +729,30 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
 [0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
 [0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
 [0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JRootPane[,7,7,1536x816,invalid,layout=com.formdev.flatlaf.ui.FlatRootPaneUI$FlatRootLayout,alignmentX=0.0,alignmentY=0.0,border=javax.swing.border.EmptyBorder@2e38e67,flags=16777673,maximumSize=,minimumSize=,preferredSize=]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton[OptionPane.button,569,12,78x26,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@249a3d55,flags=288,maximumSize=,minimumSize=,preferredSize=,defaultIcon=,disabledIcon=,disabledSelectedIcon=,margin=javax.swing.plaf.InsetsUIResource[top=2,left=14,bottom=2,right=14],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=Aceptar,defaultCapable=true]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
 [0;39m[39mDEBUG controlador.VisorController - --- [Controller] Iniciando apagado de la aplicación ---
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Guardando estado final de todos los contextos...
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=3DXM - Armoured Mon-Star Chibi.jpg, UltimaCarpeta=F:\ARCHIVOS 3D\Chibi
+[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=Lost Colony- 100 scifi Bases.jpg, UltimaCarpeta=M:\Archivos 3D\Peanas
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=null
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Carrusel/Sync: Sync=false, UltimaCarpeta=null
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 671811733
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 260068108
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
-[0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'purpura_misterioso'
+[0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'obsidian_orange'
 [0;39m[39mDEBUG servicios.ConfigurationManager - --- DEBUG: Contenido del mapa a guardar ---
 [0;39m[39mDEBUG servicios.ConfigurationManager -   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 [0;39m[39mDEBUG servicios.ConfigurationManager - ------------------------------------------
 [0;39m[39mDEBUG servicios.ConfigurationManager - Guardando configuración (preservando estructura) en config.cfg
-[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 203
+[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 209
 [0;39m[39mDEBUG servicios.ConfigurationManager - Archivo de configuración actualizado exitosamente.
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Configuración guardada exitosamente.
 [0;39m[39mDEBUG controlador.VisorController -   -> Apagando ExecutorService...

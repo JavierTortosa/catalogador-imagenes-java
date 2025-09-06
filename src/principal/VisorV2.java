@@ -75,15 +75,54 @@ public class VisorV2 {
     // FIXME INTERCAMBIO ENTRE VISOR Y PROYECTO NO GUARDA EL VISORMODE... Y SE DESINCRONIZA
     
 	//VISUALIZADOR 
+    // FIXME cuando la carpeta que estamos viendo cambia, que no cambie donde tengo el selector.
+    // FIXME al salir de una carpeta con el boton de subir un nivel, no se guarda la posicion que teniamos al cambiar de carpeta 
+    // TODO AÑADIR UN MARCO ALREDEDOR DEL PANEL DEL DISPLAY (EN SINGLE) EN ALGUN COLOR QUE QUERE COHERENTE CON EL TEMA PERO QUE NOS INDIQUE QUE LA IMAGEN ESTA MARCADA
+
     
     //PROYECTO
+    
     // TODO CUANDO GUARDAMOS EL PROYECTO QUE SE GUARDE LAS CORRECCIONES QUE HEMOS HECHO A MANO
     // FIXME EL BOTON DE CAMBIAR DE CARPETA NO DEBERIA PODERSE UTILIZAR
-    // FIXME el modo proyecto no se acuerda de una sesion a otra que proyecto estaba usando.
-    //		- Si no tiene proyecto guardado, abre con proyecto temporal
-    //		- Si tiene proyecto guardado, abre con proyecto guardado
-    //		- debe avisar que el proyecto no se ha guardado pero que se guardara en un proyecto temporal que añadira las imagenes que se sigan marcando
     
+    // FIXME Al abrir el programa, si entramos en proyecto, que pregunte si queremos recuperar el ultimo proyecto, si no entramos en proyecto no
+    // FIXME si no hay carpeta de destino no se puede activar el boton de exportar
+    // TODO antes de exportar, que muestre una pantalla de confirmacion (se van a exportar estas imagenes con estos archivos asociados a esta carpeta
+    // TODO no se como asignar varios archivos a una imagen (part1.zip, part2.zip) 
+    // FIXME permitir buscar a mano una imagen que ha cambiado de nombre 
+    // FIXME error entre imagen en carga y el icono de imagen erronea. si una imagen cambia de nombre no se puede cargar
+    // TODO: ATAJOS QUE FALTAN
+    //	EN MODO PROYECTO
+    //		-CTRL+S GUARDAR PROYECTO
+    // 		-CTRL+SHIFT+S GUARDAR PROYECTO COMO 
+    //		-CTRL+N NUEVO PROYECTO
+    //		-CTRL+O ABRIR PROYECTO
+    //		
     
+    // FIXME IDEAS de como actuar entre sesiones con respecto a los proyectos (mayor robustez)
+    //
+    //	tendremos 3 tipos de archivos de proyecto:
+    //		actual(temporal): en donde hacemos las modificaciones de esta sesion
+    //		seguridad: seria una copia de seguridad de las acciones que hacemos en esta sesion
+    //		guardado: el archivo que guarda el usuario con su proyecto
+    //
+    //
+    //	Actuar como un Notepad o similares
+    //	-Al Salir
+    //  	- Preguntar antes de cerrar el programa
+    //			- si tenemos un proyecto abierto avisar de si se quiere guardar el proyecto o se pierden los cambios
+    //			- si no tenemos un proyecto abierto solo tenemos el proyecto actual y hay que avisar de que si no se guarda se perderan los cambios
+    //			- si guardamos el proyecto actual se añade al proyecto guardado y se convierte en proyecto seguridad
+    //
+    //		- como medida de seguridad, el proyecto actual se convierte en proyecto seguridad
+    //
+    //	-Al Entrar
+    //		- Empezar con un proyecto actual vacio
+    //		- Si pulsamos en ir al modo proyecto sin ninguna imagen seleccionada, abrir el selector de proyecto para abrir un proyecto o recuperar sesion anterior
+    //		- En el selector de abrir proyecto añadir un boton de abrir proyecto anterior
+    //
+    //		
+
     
 }    
+

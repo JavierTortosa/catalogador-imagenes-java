@@ -549,6 +549,8 @@ public class ActionFactory {
             new ChangeCarouselSpeedAction(model, carouselManager, configuration, ChangeCarouselSpeedAction.SpeedChangeType.RESET)
         );
         
+        Action openThemeCustomizerAction = new controlador.actions.config.OpenThemeCustomizerAction("Personalizar Tema...", this.view, this.themeManager);
+        registerAction(AppActionCommands.CMD_CONFIG_CUSTOM_THEME, openThemeCustomizerAction);
         
         // Actions que dependen del 'actionMap' completo para construir menús emergentes.
     } // --- FIN del metodo createViewDependentActions ---
@@ -793,7 +795,7 @@ public class ActionFactory {
     
     private Action createRefreshAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_REFRESCAR); 
-        return new RefreshAction("Refrescar", icon, this.generalController.getVisorController());
+        return new RefreshAction("Refrescar", icon, this.generalController);
     } // --- Fin del método createRefreshAction ---
     
     
@@ -968,6 +970,7 @@ public class ActionFactory {
             }
         };
     } // --- FIN del método createVaciarDescartesAction ---
+
     
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
@@ -977,7 +980,8 @@ public class ActionFactory {
     
     private Action createNuevoProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_NUEVO);
-        return new NuevoProyectoAction(this.generalController, "Nuevo Proyecto", icon);
+        
+        return new NuevoProyectoAction(this.generalController, this.projectControllerRef, "Nuevo Proyecto", icon);
     } // ---FIN de metodo createNuevoProyectoAction---
 
     private Action createAbrirProyectoAction() {

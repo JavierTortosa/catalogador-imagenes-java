@@ -550,18 +550,17 @@ public class UIDefinitionService {
         // 7.5. Submenú "Tema" (movido después de visibilidad de barras por orden lógico)
         
         List<MenuItemDefinition> configTemaSubItems = new ArrayList<>();
-        configTemaSubItems.add(new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_START, null, null));
+
+        // Simplemente añadimos un marcador de posición. MenuBarBuilder se encargará del resto.
+        configTemaSubItems.add(
+        	new MenuItemDefinition("placeholder.temas", MenuItemType.PLACEHOLDER, "PLACEHOLDER_TEMAS", null)
+        );
         
-        // Usamos el bucle para generar los items a partir de nuestra lista estática
-        for (TemaDefinicion temaDef : getTemasPrincipales()) {
-            String commandKey = "cmd.tema." + temaDef.id();
-            configTemaSubItems.add(
-                new MenuItemDefinition(commandKey, MenuItemType.RADIO_BUTTON_ITEM, temaDef.nombreDisplay(), null)
-            );
-        }
-        
-        configTemaSubItems.add(new MenuItemDefinition(null, MenuItemType.RADIO_GROUP_END, null, null));
         configSubItems.add(new MenuItemDefinition(null, MenuItemType.SUB_MENU, "Tema", configTemaSubItems));
+        
+        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
+        configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_CONFIG_CUSTOM_THEME, MenuItemType.ITEM, "Personalizar Tema...", null));
+        configSubItems.add(new MenuItemDefinition(null, MenuItemType.SEPARATOR, null, null));
         
         // 7.7. Ítems finales del menú "Configuración" (Guardar, Cargar, Versión)
         configSubItems.add(new MenuItemDefinition(AppActionCommands.CMD_ESPECIAL_REFRESCAR, MenuItemType.ITEM, "Refrescar UI y Lista", null));
@@ -688,6 +687,7 @@ public class UIDefinitionService {
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR, 			"7104-guardar_proyecto_48x48.png", "Guardar Proyecto", "proyecto")//, ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, 		"7105-guardar_proyecto_como_48x48.png", "Guardar Proyecto Como", "proyecto")//, ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ELIMINAR,		 	"7106-eliminar_proyecto_48x48.png", "Eliminar Proyecto", "proyecto")//, ButtonType.TOGGLE)
+            
 		);    
 		         
 		// --- BARRA DE BOTONES modos ---
@@ -698,7 +698,7 @@ public class UIDefinitionService {
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_DATOS, 					"8003-datos_48x48.png", 				"Modo Datos", "modo", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_MODO_EDICION,			 	"8004-edicion_48x48.png", 				"Modo Edicion", "modo", ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_CAROUSEL, 				"4005-carrousel_48x48.png", 			"Vista Carrusel", "modo", ButtonType.TOGGLE)
-            
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_CONFIG_CUSTOM_THEME, 		"7005-settings_48x48.png", 				"Configuracion", "modo", ButtonType.TOGGLE)
             	//FIN GRUPO DE BOTONES
             
 	    );
@@ -739,9 +739,6 @@ public class UIDefinitionService {
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_ANTERIOR,		"30002-subir_carpeta.png", "Subir Subcarpeta", "orden_lista")
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CARPETA_SIGUIENTE,		"30003-bajar_carpeta.png", "Entrar en Subcarpeta", "orden_lista")
 			,new SeparatorDefinition()
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_ORDEN_ASCENDENTE,		"30004-orden_ascendente.png", "Orden Ascendente", "orden_lista")
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_ORDEN_DESCENDENTE,		"30005-orden_descendente.png", "Orden Descendente", "orden_lista")
-//			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CICLO, 				"30004-orden_ascendente.png", "Orden de Archivos", "orden_lista")
 			
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CICLO, 				"30004-orden_ascendente.png", "Orden de Archivos", "orden_lista")
 			
@@ -984,8 +981,12 @@ public class UIDefinitionService {
         new TemaDefinicion("gradianto_midnight_blue", "Gradianto Midnight Blue"),
         new TemaDefinicion("gradianto_nature_green", "Gradianto Nature Green"),
         
+        
         // --- TEMA PERSONALIZADO ---
-        new TemaDefinicion("purpura_misterioso", "Púrpura Misterioso")
+        new TemaDefinicion("purpura_misterioso", "Púrpura Misterioso"),
+        new TemaDefinicion("gradianto_azul_medianoche", "Azul Medianoche"),
+        new TemaDefinicion("carbon_orange", "Carbon Orange"),
+        new TemaDefinicion("obsidian_orange", "Obsidian Orange")
     );
     
     // --- Fin de la Definición de Temas ---

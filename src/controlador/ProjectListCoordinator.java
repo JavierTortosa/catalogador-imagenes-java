@@ -265,9 +265,12 @@ public class ProjectListCoordinator extends AbstractListCoordinator  {
      */
     public void seleccionarImagenPorClave(String clave) {
         if (clave == null) {
+        	
             // Si la clave es nula, deseleccionamos todo
-            seleccionarImagenEnLista(obtenerListaActivaUI(), -1);
-            return;
+            //seleccionarImagenEnLista(obtenerListaActivaUI(), -1);
+        	seleccionarPrimero();
+            
+        	return;
         }
 
         JList<String> listaSeleccion = registry.get("list.proyecto.nombres");

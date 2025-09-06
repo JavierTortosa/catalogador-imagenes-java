@@ -4,6 +4,8 @@ import java.awt.Component;
 import java.nio.file.Path;
 import java.util.List;
 
+import servicios.ProyectoIOException;
+
 /**
  * Interfaz (Contrato) que define las responsabilidades del ProjectManager.
  * Define las operaciones para marcar, gestionar y recuperar selecciones de imágenes,
@@ -22,7 +24,7 @@ public interface IProjectManager {
      * Carga un proyecto desde el archivo especificado, reemplazando la selección actual.
      * @param rutaArchivo La ruta completa al archivo .prj del proyecto a abrir.
      */
-    void abrirProyecto(Path rutaArchivo);
+    void abrirProyecto(Path rutaArchivo) throws ProyectoIOException;
 
     /**
      * Guarda el proyecto actual en un archivo específico, estableciéndolo como el proyecto activo.

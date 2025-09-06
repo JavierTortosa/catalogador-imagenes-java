@@ -1,5 +1,6 @@
 package controlador.managers;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -19,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.border.LineBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +36,11 @@ import servicios.zoom.ZoomModeEnum;
 import vista.config.ToolbarButtonDefinition;
 import vista.config.UIDefinitionService;
 import vista.theme.Tema;
+import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 import vista.util.IconUtils;
 
-public class InfobarStatusManager  {//implements ThemeChangeListener{
+public class InfobarStatusManager implements ThemeChangeListener{
 
 	private static final Logger logger = LoggerFactory.getLogger(InfobarStatusManager.class);
 	
@@ -599,6 +602,107 @@ public class InfobarStatusManager  {//implements ThemeChangeListener{
             return 100.0;
         }
     }// --- FIN DEL METODO getValorActualDelLabelZoom ---
+    
+    
+    /**
+     * Se ejecuta cuando el tema de la aplicación cambia.
+     * Vuelve a aplicar el estilo personalizado a la barra de estado inferior.
+     * @param newTheme El nuevo tema que se ha aplicado.
+     */
+    @Override
+    public void onThemeChanged(Tema newTheme) {
+        logger.debug("Cambio de tema detectado en InfobarStatusManager. Re-aplicando estilo.");
+        applyCustomStatusBarStyle();
+    } // ---FIN de metodo [onThemeChanged]---
+
+    
+    /**
+     * Recorre un componente contenedor y todos sus hijos recursivamente
+     * para aplicarles un color de texto (foreground) específico.
+     * @param container El componente raíz desde el que empezar a aplicar colores.
+     * @param color El color de texto a aplicar.
+     */
+    private void actualizarColoresDeTextoRecursivamente(java.awt.Container container, Color color) {
+        for (java.awt.Component component : container.getComponents()) {
+            if (component.isEnabled()) { // Solo cambiamos el color de componentes habilitados
+                component.setForeground(color);
+            }
+            if (component instanceof java.awt.Container) {
+                actualizarColoresDeTextoRecursivamente((java.awt.Container) component, color);
+            }
+        }
+    } // --- fin del método actualizarColoresDeTextoRecursivamente ---
+    
+    
+    /**
+     * Aplica el estilo de fondo y borde a la barra de estado inferior.
+     * Lee el color personalizado del UIManager y lo aplica. Si no existe,
+     * restaura el estilo por defecto del tema actual.
+     */
+    private void applyCustomStatusBarStyle() {
+        JPanel panel = registry.get("panel.estado.inferior");
+        if (panel == null) return;
+
+        // Buscamos los colores personalizados definidos en los .properties
+        Color customBackgroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
+        Color customForegroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_FOREGROUND); // <-- AÑADIDO
+
+        if (customBackgroundColor != null) {
+            // Si el tema actual define este color, lo usamos.
+            panel.setBackground(customBackgroundColor);
+            panel.setBorder(new LineBorder(customBackgroundColor, 2));
+
+            // --- INICIO DE LA CORRECCIÓN ---
+            if (customForegroundColor != null) {
+                actualizarColoresDeTextoRecursivamente(panel, customForegroundColor);
+            }
+            // --- FIN DE LA CORRECCIÓN ---
+
+        } else {
+            // Si no, restauramos el estilo por defecto de FlatLaf.
+            panel.setBackground(UIManager.getColor("Panel.background"));
+            panel.setBorder(UIManager.getBorder("Panel.border"));
+            
+            // --- INICIO DE LA CORRECCIÓN ---
+            // También restauramos el color del texto al por defecto
+            Color defaultForegroundColor = UIManager.getColor("Label.foreground");
+            if (defaultForegroundColor != null) {
+                actualizarColoresDeTextoRecursivamente(panel, defaultForegroundColor);
+            }
+            // --- FIN DE LA CORRECCIÓN ---
+        }
+        
+        panel.revalidate();
+        panel.repaint();
+    } // ---FIN de metodo [applyCustomStatusBarStyle]---
+    
+    
+    
+//    /**
+//     * Aplica el estilo de fondo y borde a la barra de estado inferior.
+//     * Lee el color personalizado del UIManager y lo aplica. Si no existe,
+//     * restaura el estilo por defecto del tema actual.
+//     */
+//    private void applyCustomStatusBarStyle() {
+//        JPanel panel = registry.get("panel.estado.inferior");
+//        if (panel == null) return;
+//
+//        // Buscamos el color personalizado definido en los .properties
+//        Color customBackgroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
+//
+//        if (customBackgroundColor != null) {
+//            // Si el tema actual define este color, lo usamos.
+//            panel.setBackground(customBackgroundColor);
+//            panel.setBorder(new LineBorder(customBackgroundColor, 2));
+//        } else {
+//            // Si no, restauramos el estilo por defecto de FlatLaf.
+//            panel.setBackground(UIManager.getColor("Panel.background"));
+//            panel.setBorder(UIManager.getBorder("Panel.border"));
+//        }
+//        
+//        panel.revalidate();
+//        panel.repaint();
+//    } // ---FIN de metodo [applyCustomStatusBarStyle]---
     
     
     public void setController(VisorController controller) {this.visorController = Objects.requireNonNull(controller);}

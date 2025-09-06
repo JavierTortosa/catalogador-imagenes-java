@@ -253,6 +253,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      * @param modoDestino El modo al que se desea cambiar (VISUALIZADOR o PROYECTO).
      */
     public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
+    	System.out.println("DEBUG: cambiarModoDeTrabajo llamado para: " + modoDestino);
         WorkMode modoActual = this.model.getCurrentWorkMode();
         if (modoActual == modoDestino) {
             logger.debug("[GeneralController] Intento de cambiar al modo que ya está activo: " + modoDestino + ". No se hace nada.");
@@ -280,13 +281,19 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
         // --- FIN LÓGICA DE SEGURIDAD ---
 
-        if (modoDestino == VisorModel.WorkMode.PROYECTO) {
-            if (!this.projectController.prepararDatosProyecto()) {
-                sincronizarEstadoBotonesDeModo();
-                logger.debug("--- [GeneralController] TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
-                return;
-            }
-        }
+//        if (modoDestino == VisorModel.WorkMode.PROYECTO) {
+//        	
+//        	System.out.println("DEBUG: Llamando a projectController.prepararDatosProyecto()...");
+//        	
+//            if (!this.projectController.prepararDatosProyecto()) {
+//            	
+//            	System.out.println("DEBUG: prepararDatosProyecto() devolvió FALSE. Transición cancelada."); 
+//            	
+//                sincronizarEstadoBotonesDeModo();
+//                logger.debug("--- [GeneralController] TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
+//                return;
+//            }
+//        }
         
         salirModo(modoActual);
         this.model.setCurrentWorkMode(modoDestino);
@@ -875,6 +882,13 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- Fin del método solicitudAlternarMarcaImagenActual ---
     
     
+    public void solicitarEntrarEnModoProyecto() {
+        logger.debug("[GeneralController] Solicitud para cambiar a modo proyecto...");
+        cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+        
+    } // --- Fin del método solicitarEntrarEnModoProyecto ---
+    
+    
 //  ************************************************************************************** IMPLEMENTACION INTERFAZ IModoController
     
     
@@ -992,6 +1006,20 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         logger.debug("[GeneralController] Listeners de entrada globales configurados.");
         
     } // --- Fin del método configurarListenersDeEntradaGlobal ---
+    
+    
+    /**
+     * Delega una solicitud de refresco al controlador del modo de trabajo activo.
+     */
+    public void solicitarRefrescoDelModoActivo() {
+        logger.debug("[GeneralController] Enrutando solicitud de refresco para el modo: " + model.getCurrentWorkMode());
+        if (model.isEnModoProyecto()) {
+            projectController.solicitarRefresco(); // Llama al método de la interfaz
+        } else {
+            // Para el modo Visualizador o Carrusel, la lógica de refresco ya está en VisorController
+            visorController.ejecutarRefrescoCompleto();
+        }
+    } // ---FIN del metodo solicitarRefrescoDelModoActivo ---
     
     
     /**
@@ -2355,6 +2383,15 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     public FilterSource getFiltroActivoSource() {
         return this.filtroActivoSource;
     } // --- Fin del método getFiltroActivoSource ---
+
+
+    @Override
+    public void solicitarRefresco() {
+        // Esta implementación del método de la interfaz simplemente llama
+        // a nuestro método "router" más descriptivo.
+        solicitarRefrescoDelModoActivo();
+    }// FIN del metodo solicitarRefresco ---
+    
     
 } // --- Fin de la clase GeneralController ---
 

@@ -1,22 +1,5 @@
 # VisorImagenes - Archivo de Proyecto
 
 [SELECCION]
-F:/ARCHIVOS 3D/Chibi/3DXM - Clayface Chibi.jpg
-F:/ARCHIVOS 3D/Chibi/3DXM - Egon Spengler Chibi.jpg
-F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
-F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
-F:/ARCHIVOS 3D/Chibi/Albert+Einstein+-+cute+AMS+model.jpg
-F:/ARCHIVOS 3D/Chibi/Arale/Arale Running.jpg
-F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
-F:/ARCHIVOS 3D/Chibi/Arale/Arale.jpg
-F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
-F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Jow.jpg
-F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
-F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Samorrey.jpg
 
 [DESCARTES]
-F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
-F:/ARCHIVOS 3D/Chibi/3DXM - Ash Evil Dead Chibi.jpg
-F:/ARCHIVOS 3D/Chibi/3DXM - Black Adam Chibi.jpg
-F:/ARCHIVOS 3D/Chibi/3DXM - Bumblebee Chibi.jpg
-F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg

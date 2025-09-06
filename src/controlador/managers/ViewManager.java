@@ -14,6 +14,7 @@ import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
+import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -682,59 +683,34 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         
         this.focusablePanels = new ArrayList<>();
         
-        // --- Definición de bordes ---
         int thickness = 2;
         this.unfocusedBorder = BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
-        this.focusedBorder = BorderFactory.createLineBorder(Color.CYAN, thickness); // Color por defecto antes del primer tema
+        this.focusedBorder = BorderFactory.createLineBorder(Color.CYAN, thickness);
 
-        // --- Búsqueda de componentes en el ComponentRegistry ---
         logger.debug("[FOCUS_INIT] Buscando paneles de todos los modos para registrar...");
 
-        // MODO VISUALIZADOR
-        JScrollPane fileListScrollPane = registry.get("scroll.nombresArchivo");
-        JScrollPane thumbnailScrollPane = registry.get("scroll.miniaturas");
-        JPanel displayModesContainer = registry.get("container.displaymodes");
+        // --- CLAVES CORRECTAS VERIFICADAS ---
+        // registerFocusablePanel es un método helper que definimos antes, asegúrate de que siga ahí.
 
-        // MODO CARRUSEL
-        JScrollPane carouselThumbnailScrollPane = registry.get("scroll.miniaturas.carousel");
-        // El panel de imagen del carrusel está en un JLayeredPane, que no es ideal para un borde.
-        // De momento, solo la tira de miniaturas del carrusel tendrá foco.
+        // Modo Visualizador
+        // Este funciona, lo dejamos. Es un JPanel que contiene el JScrollPane de la lista.
+        registerFocusablePanel("panel.izquierdo.listaArchivos", "Lista de Nombres (Visor)"); 
 
-        // MODO PROYECTO
-        JScrollPane projectSelectionScrollPane = registry.get("scroll.proyecto.nombres"); // <-- CLAVE CORREGIDA
-        JScrollPane projectDiscardsScrollPane = registry.get("scroll.proyecto.descartes"); // <-- CLAVE CORRECTA
-        JPanel projectDisplayModesContainer = registry.get("container.displaymodes.proyecto"); // <-- CLAVE CORREGIDA
+        // Este es el JScrollPane de las miniaturas. La clave es correcta según tu ViewBuilder.
+        registerFocusablePanel("scroll.miniaturas", "Barra de Miniaturas (Visor)");
 
-        // --- Registro de los paneles en la lista 'focusablePanels' ---
+        // Este es el JPanel que contiene el Grid O la Imagen Principal. Funciona, lo dejamos.
+        registerFocusablePanel("container.displaymodes", "Grid/Imagen Principal (Visor)");
         
-        if (fileListScrollPane != null) {
-            focusablePanels.add(fileListScrollPane);
-            logger.debug("  -> [VISUALIZADOR] Registrado: 'scroll.nombresArchivo'");
-        }
-        if (thumbnailScrollPane != null) {
-            focusablePanels.add(thumbnailScrollPane);
-            logger.debug("  -> [VISUALIZADOR] Registrado: 'scroll.miniaturas'");
-        }
-        if (displayModesContainer != null) {
-            focusablePanels.add(displayModesContainer);
-            logger.debug("  -> [VISUALIZADOR] Registrado: 'container.displaymodes' (para imagen/grid)");
-        }
-        if (carouselThumbnailScrollPane != null) {
-            focusablePanels.add(carouselThumbnailScrollPane);
-            logger.debug("  -> [CARRUSEL] Registrado: 'scroll.miniaturas.carousel'");
-        }
-        if (projectSelectionScrollPane != null) {
-            focusablePanels.add(projectSelectionScrollPane);
-            logger.debug("  -> [PROYECTO] Registrado: 'scroll.proyecto.nombres' (Selección)");
-        }
-        if (projectDiscardsScrollPane != null) {
-            focusablePanels.add(projectDiscardsScrollPane);
-            logger.debug("  -> [PROYECTO] Registrado: 'scroll.proyecto.descartes'");
-        }
-        if (projectDisplayModesContainer != null) {
-            focusablePanels.add(projectDisplayModesContainer);
-            logger.debug("  -> [PROYECTO] Registrado: 'container.displaymodes.proyecto' (para imagen/grid)");
-        }
+        // Modo Proyecto
+        // Este es el JScrollPane para la lista de Selección. La clave es correcta según tu ProjectBuilder.
+        registerFocusablePanel("scroll.proyecto.nombres", "Lista de Selección (Proyecto)");
+
+        // Este es el JScrollPane para la lista de Descartes. La clave es correcta según tu ProjectBuilder.
+        registerFocusablePanel("scroll.proyecto.descartes", "Lista de Descartes (Proyecto)");
+
+        // Este es el JPanel que contiene el Grid O la Imagen del proyecto.
+        registerFocusablePanel("container.displaymodes.proyecto", "Grid/Imagen Principal (Proyecto)");
 
         // Aplicamos el borde inicial sin foco a todos los paneles registrados
         for (JComponent panel : focusablePanels) {
@@ -743,39 +719,220 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         
         logger.info("[ViewManager] Sistema de bordes de foco inicializado para {} paneles en total.", focusablePanels.size());
         updateFocusBorderColor(); // Sincronizamos con el color del tema actual
-    } // --- FIN del metodo initializeFocusBorders ---
+        
+    }// --- FIN del metodo initializeFocusBorders ---
+    
+    /**
+     * Método de ayuda para buscar un JComponent en el registro y añadirlo
+     * a la lista de paneles que pueden recibir el foco visual.
+     * @param registryKey La clave del componente en el ComponentRegistry.
+     * @param description Una descripción para los logs.
+     */
+    private void registerFocusablePanel(String registryKey, String description) {
+        JComponent panel = registry.get(registryKey);
+        if (panel != null) {
+            focusablePanels.add(panel);
+            logger.debug("  -> Panel de foco registrado: '{}' ({})", registryKey, description);
+        } else {
+            logger.error("  -> ADVERTENCIA: No se encontró el panel de foco con la clave '{}' ({}) en el registro.", registryKey, description);
+        }
+    }// --- FIN del metodo registerFocusablePanel ---
+    
+
+    
+    
+//    public void initializeFocusBorders() {
+//        if (registry == null || themeManager == null) {
+//            logger.error("[ViewManager] No se pueden inicializar los bordes de foco. Registry o ThemeManager son null.");
+//            return;
+//        }
+//        
+//        this.focusablePanels = new ArrayList<>();
+//        
+//        // --- Definición de bordes ---
+//        int thickness = 2;
+//        this.unfocusedBorder = BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
+//        this.focusedBorder = BorderFactory.createLineBorder(Color.CYAN, thickness); // Color por defecto antes del primer tema
+//
+//        // --- Búsqueda de componentes en el ComponentRegistry ---
+//        logger.debug("[FOCUS_INIT] Buscando paneles de todos los modos para registrar...");
+//
+//        // MODO VISUALIZADOR
+//        JScrollPane fileListScrollPane = registry.get("scroll.nombresArchivo");
+//        JScrollPane thumbnailScrollPane = registry.get("scroll.miniaturas");
+//        JPanel displayModesContainer = registry.get("container.displaymodes");
+//
+//        // MODO CARRUSEL
+//        JScrollPane carouselThumbnailScrollPane = registry.get("scroll.miniaturas.carousel");
+//        // El panel de imagen del carrusel está en un JLayeredPane, que no es ideal para un borde.
+//        // De momento, solo la tira de miniaturas del carrusel tendrá foco.
+//
+//        // MODO PROYECTO
+//        JScrollPane projectSelectionScrollPane = registry.get("scroll.proyecto.nombres"); // <-- CLAVE CORREGIDA
+//        JScrollPane projectDiscardsScrollPane = registry.get("scroll.proyecto.descartes"); // <-- CLAVE CORRECTA
+//        JPanel projectDisplayModesContainer = registry.get("container.displaymodes.proyecto"); // <-- CLAVE CORREGIDA
+//
+//        // --- Registro de los paneles en la lista 'focusablePanels' ---
+//        
+//        if (fileListScrollPane != null) {
+//            focusablePanels.add(fileListScrollPane);
+//            logger.debug("  -> [VISUALIZADOR] Registrado: 'scroll.nombresArchivo'");
+//        }
+//        if (thumbnailScrollPane != null) {
+//            focusablePanels.add(thumbnailScrollPane);
+//            logger.debug("  -> [VISUALIZADOR] Registrado: 'scroll.miniaturas'");
+//        }
+//        if (displayModesContainer != null) {
+//            focusablePanels.add(displayModesContainer);
+//            logger.debug("  -> [VISUALIZADOR] Registrado: 'container.displaymodes' (para imagen/grid)");
+//        }
+//        if (carouselThumbnailScrollPane != null) {
+//            focusablePanels.add(carouselThumbnailScrollPane);
+//            logger.debug("  -> [CARRUSEL] Registrado: 'scroll.miniaturas.carousel'");
+//        }
+//        if (projectSelectionScrollPane != null) {
+//            focusablePanels.add(projectSelectionScrollPane);
+//            logger.debug("  -> [PROYECTO] Registrado: 'scroll.proyecto.nombres' (Selección)");
+//        }
+//        if (projectDiscardsScrollPane != null) {
+//            focusablePanels.add(projectDiscardsScrollPane);
+//            logger.debug("  -> [PROYECTO] Registrado: 'scroll.proyecto.descartes'");
+//        }
+//        if (projectDisplayModesContainer != null) {
+//            focusablePanels.add(projectDisplayModesContainer);
+//            logger.debug("  -> [PROYECTO] Registrado: 'container.displaymodes.proyecto' (para imagen/grid)");
+//        }
+//
+//        // Aplicamos el borde inicial sin foco a todos los paneles registrados
+//        for (JComponent panel : focusablePanels) {
+//            panel.setBorder(unfocusedBorder);
+//        }
+//        
+//        logger.info("[ViewManager] Sistema de bordes de foco inicializado para {} paneles en total.", focusablePanels.size());
+//        updateFocusBorderColor(); // Sincronizamos con el color del tema actual
+//    } // --- FIN del metodo initializeFocusBorders ---
     
     
     /**
      * Actualiza el borde de los paneles monitorizados según el nuevo componente con foco.
-     * Es llamado por GeneralController cada vez que el foco de la aplicación cambia.
+     * También fuerza un repintado de las JLists afectadas para que sus renderers puedan
+     * actualizar la apariencia de la selección (activa vs. inactiva).
      * @param newFocusOwner El componente que acaba de recibir el foco.
      */
     public void actualizarResaltadoDeFoco(Component newFocusOwner) {
         if (focusablePanels == null) return; // Si aún no se ha inicializado, no hacemos nada.
         
+        JComponent focusedPanel = null;
+
+        // --- PRIMERA PASADA: Identificar el panel que GANA el foco ---
         for (JComponent panel : focusablePanels) {
-            // Comprobamos si el nuevo componente con foco es el panel MISMO
-            // o si es un HIJO de ese panel (ej: la JList dentro del JScrollPane)
             if (newFocusOwner != null && (newFocusOwner == panel || SwingUtilities.isDescendingFrom(newFocusOwner, panel))) {
-                panel.setBorder(focusedBorder);
+                focusedPanel = panel;
+                break; // Encontramos el panel con foco, salimos del bucle.
+            }
+        }
+
+        // --- SEGUNDA PASADA: Aplicar los cambios ---
+        for (JComponent panel : focusablePanels) {
+            if (panel == focusedPanel) {
+                // Este es el panel que tiene (o contiene) el foco.
+                if (panel.getBorder() != focusedBorder) {
+                    panel.setBorder(focusedBorder);
+                    // Si el panel contiene una JList, la repintamos para activar su selección.
+                    repaintListInside(panel);
+                }
             } else {
-                panel.setBorder(unfocusedBorder);
+                // Este panel ha perdido el foco (o nunca lo tuvo).
+                if (panel.getBorder() != unfocusedBorder) {
+                    panel.setBorder(unfocusedBorder);
+                    // Si el panel contiene una JList, la repintamos para desactivar su selección.
+                    repaintListInside(panel);
+                }
             }
         }
     } // --- FIN del metodo actualizarResaltadoDeFoco ---
     
+    /**
+     * Método de ayuda que busca una JList dentro de un JComponent (típicamente un JScrollPane)
+     * y, si la encuentra, solicita que se repinte.
+     * @param container El componente contenedor (ej. un JScrollPane).
+     */
+    private void repaintListInside(JComponent container) {
+        if (container instanceof JScrollPane) {
+            Component view = ((JScrollPane) container).getViewport().getView();
+            if (view instanceof JList) {
+                view.repaint();
+            }
+        } else {
+            // Podríamos añadir lógica para buscar en JPanels si fuera necesario
+            for (Component child : container.getComponents()) {
+                if (child instanceof JList) {
+                    child.repaint();
+                    return; // Asumimos que solo hay una JList principal por panel de foco
+                }
+            }
+        }
+    } // ---FIN de metodo repaintListInside---
+    
+    
+//    /**
+//     * Actualiza el borde de los paneles monitorizados según el nuevo componente con foco.
+//     * Es llamado por GeneralController cada vez que el foco de la aplicación cambia.
+//     * @param newFocusOwner El componente que acaba de recibir el foco.
+//     */
+//    public void actualizarResaltadoDeFoco(Component newFocusOwner) {
+//        if (focusablePanels == null) return; // Si aún no se ha inicializado, no hacemos nada.
+//        
+//        for (JComponent panel : focusablePanels) {
+//            // Comprobamos si el nuevo componente con foco es el panel MISMO
+//            // o si es un HIJO de ese panel (ej: la JList dentro del JScrollPane)
+//            if (newFocusOwner != null && (newFocusOwner == panel || SwingUtilities.isDescendingFrom(newFocusOwner, panel))) {
+//                panel.setBorder(focusedBorder);
+//            } else {
+//                panel.setBorder(unfocusedBorder);
+//            }
+//        }
+//    } // --- FIN del metodo actualizarResaltadoDeFoco ---
+    
     
     private void updateFocusBorderColor() {
         if (themeManager != null) {
-
-        	//Color accentColor = themeManager.getTemaActual().colorBordeActivo(); //Color fijo
-            Color accentColor = UIManager.getColor("Visor.statusBarBackground"); //Color del fondo de las statusbar
+            // --- INICIO DE LA MODIFICACIÓN ---
+            // En lugar de usar el color de fondo de la barra de estado, que puede ser oscuro...
+            // Color accentColor = UIManager.getColor("Visor.statusBarBackground");
             
-            int thickness = 5; // Asegurarse de que el grosor sea consistente
+            // ...usamos el color de ACENTO principal del tema. Este color está diseñado
+            // para destacar y se usa en selecciones, barras de progreso, etc.
+            Color accentColor = UIManager.getColor("Component.accentColor");
+            
+            // Fallback por si acaso un tema no define el color de acento.
+            if (accentColor == null) {
+                accentColor = UIManager.getColor("Component.focusColor"); // Segunda opción
+                if (accentColor == null) {
+                    accentColor = Color.CYAN; // Último recurso
+                }
+            }
+            // --- FIN DE LA MODIFICACIÓN ---
+            
+            int thickness = 2; // Volvemos a un grosor de 2px, 5 es mucho.
             this.focusedBorder = BorderFactory.createLineBorder(accentColor, thickness);
+            
+            // El borde sin foco se queda igual (vacío)
+            this.unfocusedBorder = BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
         }
-    } // --- FIN del metodo updateFocusBorderColor ---
+    } // ---FIN de metodo [updateFocusBorderColor]---
+    
+    
+//    private void updateFocusBorderColor() {
+//        if (themeManager != null) {
+//
+//        	//Color accentColor = themeManager.getTemaActual().colorBordeActivo(); //Color fijo
+//            Color accentColor = UIManager.getColor("Visor.statusBarBackground"); //Color del fondo de las statusbar
+//            
+//            int thickness = 5; // Asegurarse de que el grosor sea consistente
+//            this.focusedBorder = BorderFactory.createLineBorder(accentColor, thickness);
+//        }
+//    } // --- FIN del metodo updateFocusBorderColor ---
     
     
     
