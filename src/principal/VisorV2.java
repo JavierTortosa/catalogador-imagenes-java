@@ -3,6 +3,7 @@ package principal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.UIManager;
 import controlador.VisorController; 
 
 /**
@@ -21,6 +22,8 @@ public class VisorV2 {
     	
         System.out.println("Iniciando Visor de Imágenes V2...");
 
+        UIManager.put("MenuBar.windowBindings", new Object[] {});
+        
         // La única responsabilidad del método main es programar la creación de la 
         // aplicación en el Event Dispatch Thread (EDT) de Swing.
         // Toda la lógica de inicialización, incluyendo la configuración del tema,
@@ -40,9 +43,7 @@ public class VisorV2 {
 	    //TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
 	    //TODO Pasar las imagenes rapido con la rueda del raton no debe mostrar las imagenes, 
 			//solo un placebo que parezca que estan pasando imagenes pero en realidad no se ve nada
-		//TODO añadir botones de agrandar o encoger las miniaturas y que se ajuste a la pantalla
 		//TODO buscar por nombre de archivo en la carpeta actual y si le doy la ruta que cambie la lista en funcion de esa nueva imagen (si existe)
-		//TODO hacer un boton que ponga en amarillo las imagenes que no tienen su correspondiente zip
 
 	// PROYECTO
 		//TODO hacer que el salto de pagina avance o retroceda los items que se estipulan en el config, ahora lo hace pero de la lista general, no en la lista
@@ -52,8 +53,6 @@ public class VisorV2 {
     	//TODO permitir la seleccion multiple en modo proyecto
 		//TODO permitir seleccionar varios archivos con el raton + shift por ej. para enviarlos a descartes o a exportar
 		//TODO ajustar opciones del menu para que se activen o desactiven las que son o no relevantes en modo proyecto
-		//TODO implementar la barra de multiproyectos
-		//TODO hacer un boton que ponga en amarillo las imagenes que no tienen su correspondiente zip
 		//TODO añadir la opcion de poder agregar al proyecto un archivo sin imagen (se puede crear una imagen que tenga el texto que le introduzca el usuario)
 		//TODO añadir una imagen al proyecto arrastrando desde la carpeta de windows
 		//TODO importar un txt que contenga ruta/nombre y poder añadir ese txt o crear nuevo proyecto con base a ese txt
@@ -61,7 +60,6 @@ public class VisorV2 {
 		//FIXME la lista de imagenes cargadas no oculta la ruta y solo copia al portapapeles los archivos con la ruta
     	//TODO Que pasa cuando 2 archivos con el mismo nombre se exportan a una carpeta?
     	//TODO poner un mensaje en la status bar cuando se guarda el proyecto
-    	//TODO añadir boton para Permitir cargar proyecto en modo visor 
 
 
 	//TOOLBAR
@@ -85,19 +83,11 @@ public class VisorV2 {
     // TODO CUANDO GUARDAMOS EL PROYECTO QUE SE GUARDE LAS CORRECCIONES QUE HEMOS HECHO A MANO
     // FIXME EL BOTON DE CAMBIAR DE CARPETA NO DEBERIA PODERSE UTILIZAR
     
-    // FIXME Al abrir el programa, si entramos en proyecto, que pregunte si queremos recuperar el ultimo proyecto, si no entramos en proyecto no
     // FIXME si no hay carpeta de destino no se puede activar el boton de exportar
     // TODO antes de exportar, que muestre una pantalla de confirmacion (se van a exportar estas imagenes con estos archivos asociados a esta carpeta
     // TODO no se como asignar varios archivos a una imagen (part1.zip, part2.zip) 
     // FIXME permitir buscar a mano una imagen que ha cambiado de nombre 
     // FIXME error entre imagen en carga y el icono de imagen erronea. si una imagen cambia de nombre no se puede cargar
-    // TODO: ATAJOS QUE FALTAN
-    //	EN MODO PROYECTO
-    //		-CTRL+S GUARDAR PROYECTO
-    // 		-CTRL+SHIFT+S GUARDAR PROYECTO COMO 
-    //		-CTRL+N NUEVO PROYECTO
-    //		-CTRL+O ABRIR PROYECTO
-    //		
     
     // FIXME IDEAS de como actuar entre sesiones con respecto a los proyectos (mayor robustez)
     //

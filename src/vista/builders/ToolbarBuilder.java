@@ -109,8 +109,6 @@ public class ToolbarBuilder {
             toolbar.setOpaque(false);
         }
         
-//        ButtonGroup currentGroup = null;
-        
         // La lista ahora es 'vista', 'zoom' y 'modo'
         List<String> groupToolbarKeys = List.of("vista", "zoom", "modo");
         
@@ -148,23 +146,30 @@ public class ToolbarBuilder {
                     toolbar.add(speedLabel);
                     logger.debug("    -> JLabel '" + labelDef.id() + "' añadido a la barra.");
 
-                } else if (compDef instanceof SeparatorDefinition) {
-                    // Si es un separador, añadimos uno
-                    toolbar.addSeparator();
-                    logger.debug("    -> Separador añadido a la barra.");
+                } else if (compDef instanceof SeparatorDefinition sepDef) {
+                    // Comprobamos si el separador es elástico
+                    if (sepDef.elastic()) {
+                        // Si es elástico, añadimos un "muelle" que ocupa el espacio sobrante
+                        toolbar.add(javax.swing.Box.createHorizontalGlue());
+                        logger.debug("    -> Separador elástico (Glue) añadido a la barra.");
+                    } else {
+                        // Si no, añadimos un separador visual normal
+                        toolbar.addSeparator();
+                        logger.debug("    -> Separador visual añadido a la barra.");
+                    }
                 
                 } else if (compDef instanceof TextFieldDefinition textFieldDef) {
-                    // Si es un campo de texto, lo creamos y lo añadimos
-                    javax.swing.JTextField textField = new javax.swing.JTextField(textFieldDef.textoPorDefecto(), 20); // 20 columnas de ancho
-                    textField.setToolTipText("Filtrar lista por nombre");
+                    // Usamos el número de columnas de la definición.
+                    javax.swing.JTextField textField = new javax.swing.JTextField(textFieldDef.textoPorDefecto(), textFieldDef.columns());
+                    textField.setToolTipText("Ruta de destino para la exportación");
                     
-                    // Lo registramos para poder acceder a él más tarde
+                    // LA CLAVE: Limitamos su tamaño máximo a su tamaño preferido.
+                    // Esto evita que "robe" todo el espacio horizontal.
+                    textField.setMaximumSize(textField.getPreferredSize());
+                    
                     registry.register(textFieldDef.comandoCanonico(), textField);
-                    
                     toolbar.add(textField);
                     logger.debug("    -> JTextField '" + textFieldDef.comandoCanonico() + "' añadido a la barra.");
-                // <<< FIN DEL CÓDIGO A AÑADIR >>>
-                
                 }
             }
         }

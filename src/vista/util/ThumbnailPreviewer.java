@@ -186,8 +186,6 @@ public class ThumbnailPreviewer {
                     // 3. Devolvemos la imagen YA CORREGIDA.
                     return imagenCorregida;
                 	
-//                    return ImageIO.read(imagePath.toFile());
-                    
                 }
                 return null;
             }

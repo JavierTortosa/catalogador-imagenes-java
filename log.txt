@@ -2,7 +2,7 @@ Iniciando Visor de Imágenes V2...
 [39mDEBUG controlador.VisorController - --- Iniciando VisorController (Constructor Simple) ---
 [0;39m[34mINFO  controlador.AppInitializer - --- Iniciando Proceso de Inicialización Global ---
 [0;39m[34mINFO  controlador.AppInitializer - --- [Fase 1/3] Instanciando todos los componentes...
-[0;39m[39mDEBUG servicios.ConfigurationManager - Mapa de configuración por defecto inicializado con 178 claves.
+[0;39m[39mDEBUG servicios.ConfigurationManager - Mapa de configuración por defecto inicializado con 185 claves.
 [0;39m[39mDEBUG servicios.ConfigurationManager - Mapa DEFAULT_GROUP_COMMENTS inicializado con 37 entradas.
 [0;39m[34mINFO  servicios.ConfigurationManager - Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 1: Ignorada (comentario/vacía)
@@ -43,8 +43,8 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 36: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 37: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 38: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = M:\Archivos 3D\Peanas] -> Clave: 'inicio.carpeta', Valor: 'M:\Archivos 3D\Peanas'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = Lost Colony- 100 scifi Bases.jpg] -> Clave: 'inicio.imagen', Valor: 'Lost Colony- 100 scifi Bases.jpg'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = C:\Users\ameri\Documents\Pruebas Visor] -> Clave: 'inicio.carpeta', Valor: 'C:\Users\ameri\Documents\Pruebas Visor'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = FOLDER 1/bam september.jpg] -> Clave: 'inicio.imagen', Valor: 'FOLDER 1/bam september.jpg'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 41: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 42: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 43: Ignorada (comentario/vacía)
@@ -248,8 +248,8 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 241: [ui.splitpane.main.dividerLocation = 0.25] -> Clave: 'ui.splitpane.main.dividerLocation', Valor: '0.25'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 242: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 243: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 244: [window.height = 500] -> Clave: 'window.height', Valor: '500'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 245: [window.maximized = true] -> Clave: 'window.maximized', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 244: [window.height = 414] -> Clave: 'window.height', Valor: '414'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 245: [window.maximized = false] -> Clave: 'window.maximized', Valor: 'false'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 246: [window.width = 1544] -> Clave: 'window.width', Valor: '1544'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 247: [window.x = -6] -> Clave: 'window.x', Valor: '-6'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 248: [window.y = 3] -> Clave: 'window.y', Valor: '3'
@@ -284,7 +284,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 277: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 278: [proyectos.estado.lista_activa = seleccion] -> Clave: 'proyectos.estado.lista_activa', Valor: 'seleccion'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 279: [proyectos.estado.ultima_descartes_key = ] -> Clave: 'proyectos.estado.ultima_descartes_key', Valor: ''
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 280: [proyectos.estado.ultima_seleccion_key = ] -> Clave: 'proyectos.estado.ultima_seleccion_key', Valor: ''
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 280: [proyectos.estado.ultima_seleccion_key = C:/Users/ameri/Documents/Pruebas Visor/Christmas Pine Tree - 6324616.jpg] -> Clave: 'proyectos.estado.ultima_seleccion_key', Valor: 'C:/Users/ameri/Documents/Pruebas Visor/Christmas Pine Tree - 6324616.jpg'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 281: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 282: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 283: [ui.background.custom.color.1 = 0,51,102] -> Clave: 'ui.background.custom.color.1', Valor: '0,51,102'
@@ -299,17 +299,33 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 292: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 293: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 294: [interfaz.boton.modo.config_custom_theme.visible = true] -> Clave: 'interfaz.boton.modo.config_custom_theme.visible', Valor: 'true'
-[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 209
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 295: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 296: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 297: [interfaz.boton.proyecto.export_assign_pannel.visible = true] -> Clave: 'interfaz.boton.proyecto.export_assign_pannel.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 298: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 299: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 300: [interfaz.boton.acciones_det_exportacion.export_add_associated_file.visible = true] -> Clave: 'interfaz.boton.acciones_det_exportacion.export_add_associated_file.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 301: [interfaz.boton.acciones_det_exportacion.export_del_associated_file.visible = true] -> Clave: 'interfaz.boton.acciones_det_exportacion.export_del_associated_file.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 302: [interfaz.boton.acciones_det_exportacion.export_locate_associated_file.visible = true] -> Clave: 'interfaz.boton.acciones_det_exportacion.export_locate_associated_file.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 303: [interfaz.boton.acciones_exportacion.export_detalles_seleccion.visible = true] -> Clave: 'interfaz.boton.acciones_exportacion.export_detalles_seleccion.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 304: [interfaz.herramientas.acciones_det_exportacion.visible = true] -> Clave: 'interfaz.herramientas.acciones_det_exportacion.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 305: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 306: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 307: [interfaz.boton.acciones_exportacion.todo_funcionalidad_pendiente.visible = true] -> Clave: 'interfaz.boton.acciones_exportacion.todo_funcionalidad_pendiente.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 308: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 309: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 310: [interfaz.boton.acciones_exportacion.export_refresh.visible = true] -> Clave: 'interfaz.boton.acciones_exportacion.export_refresh.visible', Valor: 'true'
+[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 217
 [0;39m[34mINFO  servicios.ConfigurationManager - --- DEBUG PRE-SINCRONIZACIÓN ---
-[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de DEFAULT_CONFIG: 178
-[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 209
+[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de DEFAULT_CONFIG: 185
+[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 217
 [0;39m[39mDEBUG servicios.ConfigurationManager - DEFAULT_CONFIG contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - loadedConfig contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - ---------------------------------
 [0;39m[34mINFO  servicios.ConfigurationManager - Sincronizando configuración cargada con mapa de defaults...
 [0;39m[39mDEBUG servicios.ConfigurationManager - La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 [0;39m[39mDEBUG servicios.ConfigurationManager - ConfigurationManager inicializado.
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 260068108
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1955634109
 [0;39m[39mDEBUG vista.theme.ThemeManager - Procesadas 4 propiedades personalizadas desde '/vista/theme/themes/FlatObsidianOrangeIJTheme.properties'
 [0;39m[39mDEBUG vista.theme.ThemeManager - LookAndFeel base 'Obsidian Orange' aplicado.
 [0;39m[34mINFO  vista.theme.ThemeManager - Tema inicial 'Obsidian Orange' establecido (sin notificar).
@@ -421,6 +437,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 8001-modo_visualizador_48x48.png
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 21005-iniciar_exportación.png
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 6001-selector_de_carpetas_48x48.png
+[0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 21005-iniciar_exportación.png
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 6002-menu_48x48.png
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 6003-botones_ocultos_48x48.png
 [0;39m[39mDEBUG controlador.factory.ActionFactory - [ActionFactory] cargando icono Tematizado: 50005-mostrar_estado_48x48.png
@@ -438,7 +455,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.modo.edicion
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.tree.open_folder
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.tree.drill_down_folder
-[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Actions principales inicializadas y mapeadas. Total: 163
+[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Actions principales inicializadas y mapeadas. Total: 169
 [0;39m[39mDEBUG controlador.AppInitializer -     -> Creando VisorView (JFrame)...
 [0;39m[39mDEBUG vista.builders.ViewBuilder -   [ViewBuilder] Iniciando la construcción del frame principal con estructura CardLayout...
 [0;39m[39mDEBUG vista.VisorView - [VisorView Constructor SIMPLIFICADO] Iniciando...
@@ -446,15 +463,15 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'barra_estado_controles' no está en caché. Construyéndola ahora...
 [0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Controles de Estado' ---
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Barra con alineamiento FREE detectada ('barra_estado_controles'). Aplicando transparencia.
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> JLabel 'label.control.zoomPorcentaje' añadido a la barra.
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'barra_estado_controles'
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'barra_estado_controles' registrada en ComponentRegistry con la clave: 'toolbar.barra_estado_controles'
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'botonesOrdenLista' no está en caché. Construyéndola ahora...
 [0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Orden de Lista' ---
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Barra con alineamiento FREE detectada ('botonesOrdenLista'). Aplicando transparencia.
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador añadido a la barra.
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> JTextField 'textfield.filtro.orden' añadido a la barra.
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'botonesOrdenLista'
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'botonesOrdenLista' registrada en ComponentRegistry con la clave: 'toolbar.botonesOrdenLista'
@@ -463,9 +480,9 @@ Iniciando Visor de Imágenes V2...
 [0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Herramientas de Filtro' ---
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Barra con alineamiento FREE detectada ('barra_filtros'). Aplicando transparencia.
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> JTextField 'textfield.filtro.texto' añadido a la barra.
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador añadido a la barra.
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador añadido a la barra.
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'barra_filtros'
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'barra_filtros' registrada en ComponentRegistry con la clave: 'toolbar.barra_filtros'
 [0;39m[39mDEBUG vista.panels.GridDisplayPanel - Creando un nuevo GridDisplayPannel
@@ -477,23 +494,22 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'controles_imagen_inferior'
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'controles_imagen_inferior' registrada en ComponentRegistry con la clave: 'toolbar.controles_imagen_inferior'
 [0;39m[34mINFO  vista.builders.ProjectBuilder -   [ProjectBuilder] Construyendo el panel del modo proyecto (Dashboard)...
-[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'acciones_exportacion' no está en caché. Construyéndola ahora...
-[0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Acciones de Exportación' ---
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Barra con alineamiento FREE detectada ('acciones_exportacion'). Aplicando transparencia.
-[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'acciones_exportacion'
-[0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'acciones_exportacion' registrada en ComponentRegistry con la clave: 'toolbar.acciones_exportacion'
-[0;39m[39mDEBUG vista.builders.ProjectBuilder -   -> Panel de exportación registrado con la clave 'panel.proyecto.exportacion' para el refresco del tema.
 [0;39m[39mDEBUG vista.panels.GridDisplayPanel - Creando un nuevo GridDisplayPannel
-[0;39m[39mDEBUG vista.builders.ProjectBuilder - [ProjectBuilder] Obteniendo 'barra_grid' desde ToolbarManager...
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'barra_grid' no está en caché. Construyéndola ahora...
 [0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Herramientas de Grid' ---
 [0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Barra con alineamiento FREE detectada ('barra_grid'). Aplicando transparencia.
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador añadido a la barra.
-[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'barra_grid'
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'barra_grid' registrada en ComponentRegistry con la clave: 'toolbar.barra_grid'
-[0;39m[34mINFO  vista.builders.ProjectBuilder - >>> ÉXITO: Toolbar 'barra_grid' obtenida. Inyectando en GridDisplayPanel. <<<
-[0;39m[39mDEBUG vista.builders.ProjectBuilder -  -> Toolbar 'barra_grid' inyectada en el GridDisplayPanel del proyecto.
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'acciones_exportacion' no está en caché. Construyéndola ahora...
+[0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Acciones de Exportación' ---
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Barra con alineamiento FREE detectada ('acciones_exportacion'). Aplicando transparencia.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> JTextField 'textfield.export.destino' añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'acciones_exportacion'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'acciones_exportacion' registrada en ComponentRegistry con la clave: 'toolbar.acciones_exportacion'
 [0;39m[34mINFO  vista.builders.ProjectBuilder -   [ProjectBuilder] Panel del modo proyecto (Dashboard) construido y ensamblado.
 [0;39m[39mDEBUG vista.builders.ViewBuilder -   [ViewBuilder] Frame principal construido y ensamblado.
 [0;39m[39mDEBUG controlador.AppInitializer -     -> Inyectando la instancia de 'view' en los componentes...
@@ -506,7 +522,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.rewind
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.carousel.fast_forward
 [0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Action registrada/actualizada para comando: cmd.config.custom_theme
-[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 175
+[0;39m[39mDEBUG controlador.factory.ActionFactory -   [ActionFactory] Actions dependientes de la vista inicializadas. Total de actions: 181
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -   [StatusBarManager] Configurando Listeners para controles de la barra de estado...
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -     -> MouseListener configurado para 'label.control.zoomPorcentaje'.
 [0;39m[39mDEBUG c.managers.InfobarStatusManager -     -> ActionListener configurado para el botón de Modo de Zoom.
@@ -514,12 +530,12 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.managers.DisplayModeManager -  -> Listener de selección añadido a 'list.grid.proyecto'.
 [0;39m[39mDEBUG controlador.AppInitializer -     -> Ensamblando UI: Menús, Toolbars, Listeners...
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - --- MenuBarBuilder: Iniciando construcción de JMenuBar ---
-[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] ActionMap recibido con 175 acciones.
+[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] ActionMap recibido con 181 acciones.
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] controllerGlobalActionListener: PRESENTE (VisorController)
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - [MenuBarBuilder] Construyendo menú dinámico con 36 temas en 4 categorías.
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 291
+[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 299
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] JMenuBar registrada en ComponentRegistry con la clave 'menubar.main'.
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - --- MenuBarBuilder: Construcción de JMenuBar completada. ---
 [0;39m[34mINFO  controlador.managers.ToolbarManager - --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
@@ -586,9 +602,9 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'barra_estado_controles': true
 [0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...
 [0;39m[39mDEBUG controlador.managers.ToolbarManager - --- [ToolbarManager] Reconstrucción de toolbars completada. ---
-[0;39m[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 0, Descartes: 0
+[0;39m[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto cargado desde D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt. Selección: 8, Descartes: 6
 [0;39m[39mDEBUG servicios.ProjectManager - [ProjectManager] Instancia inicializada. Selección actual desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.txt
-[0;39m[39mDEBUG servicios.ProjectManager -   -> Proyecto inicial cargado. Selección: 0, Descartes: 0
+[0;39m[39mDEBUG servicios.ProjectManager -   -> Proyecto inicial cargado. Selección: 8, Descartes: 6
 [0;39m[39mDEBUG controlador.VisorController -   [Controller] Configurando atajos de teclado globales...
 [0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: Ctrl+S -> cmd.proyecto.guardar
 [0;39m[39mDEBUG controlador.VisorController -   -> Atajo registrado: Ctrl+Shift+S -> cmd.proyecto.guardar_como
@@ -627,7 +643,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.miniaturas'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.grid'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.grid.proyecto'.
-[0;39m[39mDEBUG modelo.VisorModel -   [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: M:\Archivos 3D\Peanas
+[0;39m[39mDEBUG modelo.VisorModel -   [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: C:\Users\ameri\Documents\Pruebas Visor
 [0;39m[39mDEBUG controlador.AppInitializer -     -> Ventana principal visible. La aplicación está 'viva'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Sincronizando visibilidad inicial de paneles...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
@@ -688,11 +704,11 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.managers.ViewManager -   -> Panel de foco registrado: 'scroll.proyecto.descartes' (Lista de Descartes (Proyecto))
 [0;39m[39mDEBUG controlador.managers.ViewManager -   -> Panel de foco registrado: 'container.displaymodes.proyecto' (Grid/Imagen Principal (Proyecto))
 [0;39m[34mINFO  controlador.managers.ViewManager - [ViewManager] Sistema de bordes de foco inicializado para 6 paneles en total.
-[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: Lost Colony- 100 scifi Bases.jpg
+[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: FOLDER 1/bam september.jpg
 [0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Caché de miniaturas limpiado.
 [0;39m[34mINFO  controlador.AppInitializer - --- [Fase 3/3] Inicialización de UI completada. La aplicación está lista. ---
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en M:\Archivos 3D\Peanas con profundidad 2147483647
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 106
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en C:\Users\ameri\Documents\Pruebas Visor con profundidad 2147483647
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 20
 [0;39m[39mDEBUG vista.VisorView - [VisorView] Actualizando borde de sincronización a: false
 [0;39m[34mINFO  c.managers.BackgroundControlManager - --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
@@ -707,44 +723,286 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.worker.BuscadorArchivosWorker - [Worker EDT] Método done() alcanzado.
 [0;39m[39mDEBUG controlador.VisorController -     -> Restaurando visibilidad de paneles según la configuración del usuario.
 [0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: VISUALIZADOR
-[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@67532a9a: SelectedKey set to NULL (old key not found or was null).
-[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@67532a9a actualizado. Nuevo tamaño: 106
-[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 1 oyentes sobre el cambio de la lista maestra.
-[0;39m[39mDEBUG vista.VisorView - [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 106
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@20c27498: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@20c27498 actualizado. Nuevo tamaño: 20
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Modo no-proyecto detectado. Target grid: list.grid.visualizador
+[0;39mERROR controlador.GeneralController - ERROR [onMasterListChanged]: No se encontró el JList del grid para el modo VISUALIZADOR.
+[39mDEBUG vista.VisorView - [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 20
 [0;39m[31mWARN  vista.VisorView - WARN [setTituloPanelIzquierdo]: panelIzquierdo o su TitledBorder nulos.
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 60
-[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Lost Colony- 100 scifi Bases.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 10
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'FOLDER 1/bam september.jpg'
 [0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
 [0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 60.
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 10.
 [0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,invalid,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
+[0;39mERROR servicios.image.ThumbnailService - [ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: C:\Users\ameri\Documents\Pruebas Visor\FOLDER 1\no vale.jpg
+[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,379x282,invalid,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
 [0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
 [0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
 [0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
-[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
 [0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
+[0;39mERROR servicios.image.ThumbnailService - [ThumbnailService] ERROR: ImageIO.read devolvió null (formato no soportado, archivo corrupto o no es una imagen) para: C:\Users\ameri\Documents\Pruebas Visor\FOLDER 1\no vale.jpg
+[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,379x216,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
 [0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m
+
+DEBUG: Se ha pulsado GestionarProyectoAction!
+DEBUG: Llamando a generalController.solicitarEntrarEnModoProyecto()...
+[39mDEBUG controlador.GeneralController - [GeneralController] Solicitud para cambiar a modo proyecto...
+[0;39mDEBUG: cambiarModoDeTrabajo llamado para: PROYECTO
+[39mDEBUG controlador.GeneralController - --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Saliendo del modo: VISUALIZADOR
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Entrando en modo: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController -   -> El modo de visualización para PROYECTO es: SINGLE_IMAGE
+[0;39m[39mDEBUG controlador.GeneralController - --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
+
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-1] Cambiando tarjeta del CardLayout a: PROYECTO
+[0;39m[39mDEBUG controlador.managers.ViewManager - [ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_PROYECTOS
 [0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JRootPane[,7,7,1536x816,invalid,layout=com.formdev.flatlaf.ui.FlatRootPaneUI$FlatRootLayout,alignmentX=0.0,alignmentY=0.0,border=javax.swing.border.EmptyBorder@2e38e67,flags=16777673,maximumSize=,minimumSize=,preferredSize=]
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-2] Restaurando y sincronizando UI para: PROYECTO
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Activando la UI de la vista de proyecto...
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Caché de los renderers de listas de proyecto limpiado.
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Preparando datos para el modo proyecto...
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@70167142: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@70167142 actualizado. Nuevo tamaño: 14
+[0;39m[39mDEBUG controlador.ProjectController -     -> Datos del proyecto preparados. Total imágenes: 14
+[0;39m[39mDEBUG controlador.ProjectController -    -> Hay imágenes en el proyecto. Poblando la vista...
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Lista de descartes actualizada en la UI. Total: 6
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Contadores de títulos de paneles actualizados.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Clave determinada para la selección inicial: C:/Users/ameri/Documents/Pruebas Visor/Chibi Santa - 6313818.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: C:/Users/ameri/Documents/Pruebas Visor/Chibi Santa - 6313818.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'C:/Users/ameri/Documents/Pruebas Visor/Chibi Santa - 6313818.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Layout del panel derecho reseteado a oculto.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Estado del botón de toggle del panel de exportación reseteado.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Menú contextual configurado para la tabla de exportación.
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController -   [DEBUG-SYNC] Modo: PROYECTO, Valor de isMostrarSoloCarpetaActual() en modelo: false
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.toggle.subcarpetas ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.toggle.subcarpetas ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.toggle.mantener_proporciones ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.toggle.mantener_proporciones ---
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Estado de la UI actualizado.
+[0;39m[34mINFO  controlador.managers.ToolbarManager - --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: PROYECTO ---
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'zoom': true
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'proyecto' no está en caché. Construyéndola ahora...
+[0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Acciones de Proyecto' ---
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'proyecto' registrada en ComponentRegistry con la clave: 'toolbar.proyecto'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'acciones_det_exportacion' no está en caché. Construyéndola ahora...
+[0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Detalles de Exportación' ---
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Barra con alineamiento FREE detectada ('acciones_det_exportacion'). Aplicando transparencia.
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'acciones_det_exportacion'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'acciones_det_exportacion' registrada en ComponentRegistry con la clave: 'toolbar.acciones_det_exportacion'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'barra_estado_controles': true
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...
+[0;39m[39mDEBUG controlador.managers.ToolbarManager - --- [ToolbarManager] Reconstrucción de toolbars completada. ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.vista.switch_to_visualizador ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.vista.switch_to_visualizador ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.gestionar ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.gestionar ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: DATOS ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para DATOS ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: EDICION ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para EDICION ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: CARROUSEL ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para CARROUSEL ---
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-2] Restauración de UI para PROYECTO completada.
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] UI de la vista de proyecto activada y apariencia actualizada.
+[0;39m[34mINFO  c.managers.BackgroundControlManager - --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
+[0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
+[0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - Alternando vista de exportación. Nuevo estado visible: true
+[0;39m[34mINFO  c.managers.DisplayModeManager - Cambiando a DisplayMode: GRID
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Cambiando DisplayMode para contexto PROYECTO a: GRID
+[0;39m[39mDEBUG c.managers.DisplayModeManager -   -> Actuando sobre el contenedor CardLayout: container.displaymodes.proyecto
+[0;39m[39mDEBUG c.managers.DisplayModeManager - Parrilla del modo PROYECTO poblada con un modelo de 14 elementos.
+[0;39m[34mINFO  controlador.ProjectController - Solicitando cambio de estado de la vista del proyecto a: VIEW_EXPORT
+[0;39m[39mDEBUG controlador.ProjectController - Fuente de datos para masterList: Selección (8 elementos)
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: PROYECTO
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@70167142: Restored old selectedKey: 'C:/Users/ameri/Documents/Pruebas Visor/Chibi Santa - 6313818.jpg'
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@70167142 actualizado. Nuevo tamaño: 8
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Modo Proyecto detectado. Target grid: list.grid.proyecto
+[0;39m[39mDEBUG c.managers.ExportQueueManager - [ExportQueueManager] Preparando cola para 8 imágenes.
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Chibi Santa - 6313818
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Christmas Pine Tree - 6324616
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Christmas Present_Mimic - 6346014
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Skeleton Knight (Black Knight) - 6571644
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 2 archivos asociados para UGNI - 2023-10 - Wood Elfs
+[0;39m[39mDEBUG c.managers.ExportQueueManager - [ExportQueueManager] Preparación de cola finalizada.
+[0;39m[39mDEBUG controlador.ProjectController - Mapa de items de exportación actualizado. Total: 8 items.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Modelo de tabla de exportación actualizado.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid actualizado con 8 elementos.
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JList[list.proyecto.nombres,0,0,324x144,alignmentX=0.0,alignmentY=0.0,border=com.formdev.flatlaf.ui.FlatEmptyBorder@27144e50,flags=33554728,maximumSize=,minimumSize=,preferredSize=,fixedCellHeight=-1,fixedCellWidth=-1,horizontalScrollIncrement=-1,selectionBackground=javax.swing.plaf.ColorUIResource[r=65,g=72,b=104],selectionForeground=javax.swing.plaf.ColorUIResource[r=169,g=177,b=214],visibleRowCount=8,layoutOrientation=0]
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
 [0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTable[,0,0,1151x160,alignmentX=0.0,alignmentY=0.0,border=,flags=234881352,maximumSize=,minimumSize=,preferredSize=,autoCreateColumnsFromModel=true,autoResizeMode=AUTO_RESIZE_SUBSEQUENT_COLUMNS,cellSelectionEnabled=false,editingColumn=-1,editingRow=-1,gridColor=java.awt.Color[r=65,g=72,b=104],preferredViewportSize=java.awt.Dimension[width=450,height=400],rowHeight=20,rowMargin=0,rowSelectionAllowed=true,selectionBackground=javax.swing.plaf.ColorUIResource[r=70,g=70,b=70],selectionForeground=javax.swing.plaf.ColorUIResource[r=221,g=221,b=221],showHorizontalLines=true,showVerticalLines=true]
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Solicitud para mostrar imagen de exportación: C:\Users\ameri\Documents\Pruebas Visor\FOLDER 1\FOLDER2\arbitro Enano Greebo.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/FOLDER2/arbitro Enano Greebo.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/FOLDER2/arbitro Enano Greebo.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Solicitud para mostrar imagen de exportación: C:\Users\ameri\Documents\Pruebas Visor\FOLDER 1\Land of The Frost.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/Land of The Frost.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/Land of The Frost.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController -   [navegarTablaExportacionConRueda] Selector movido a la fila: 4
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
 [0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton[OptionPane.button,569,12,78x26,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@249a3d55,flags=288,maximumSize=,minimumSize=,preferredSize=,defaultIcon=,disabledIcon=,disabledSelectedIcon=,margin=javax.swing.plaf.InsetsUIResource[top=2,left=14,bottom=2,right=14],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=Aceptar,defaultCapable=true]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JRootPane[,7,0,1530x503,layout=com.formdev.flatlaf.ui.FlatRootPaneUI$FlatRootLayout,alignmentX=0.0,alignmentY=0.0,border=javax.swing.border.EmptyBorder@5476e897,flags=16777673,maximumSize=,minimumSize=,preferredSize=]
 [0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
-[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTabbedPane[,0,0,381x625,layout=com.formdev.flatlaf.ui.FlatTabbedPaneUI$FlatTabbedPaneLayout,alignmentX=0.0,alignmentY=0.0,border=,flags=201326944,maximumSize=,minimumSize=,preferredSize=,haveRegistered=false,tabPlacement=TOP]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTable[,0,0,1151x144,alignmentX=0.0,alignmentY=0.0,border=,flags=234881352,maximumSize=,minimumSize=,preferredSize=,autoCreateColumnsFromModel=true,autoResizeMode=AUTO_RESIZE_SUBSEQUENT_COLUMNS,cellSelectionEnabled=false,editingColumn=-1,editingRow=-1,gridColor=java.awt.Color[r=65,g=72,b=104],preferredViewportSize=java.awt.Dimension[width=450,height=400],rowHeight=20,rowMargin=0,rowSelectionAllowed=true,selectionBackground=java.awt.Color[r=214,g=104,b=37],selectionForeground=java.awt.Color[r=255,g=255,b=255],showHorizontalLines=true,showVerticalLines=true]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.plaf.metal.MetalFileChooserUI$3[,116,0,368x26,layout=javax.swing.plaf.basic.BasicTextUI$UpdateHandler,alignmentX=0.0,alignmentY=0.0,border=com.formdev.flatlaf.ui.FlatTextBorder@1a754cc5,flags=288,maximumSize=,minimumSize=,preferredSize=,caretColor=javax.swing.plaf.ColorUIResource[r=221,g=221,b=221],disabledTextColor=javax.swing.plaf.ColorUIResource[r=154,g=154,b=154],editable=true,margin=javax.swing.plaf.InsetsUIResource[top=2,left=6,bottom=2,right=6],selectedTextColor=javax.swing.plaf.ColorUIResource[r=255,g=255,b=255],selectionColor=javax.swing.plaf.ColorUIResource[r=61,g=100,b=144],columns=35,columnWidth=10,command=,horizontalAlignment=LEADING]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: sun.swing.FilePane$4[,0,0,478x172,alignmentX=0.0,alignmentY=0.0,border=com.formdev.flatlaf.ui.FlatEmptyBorder@27144e50,flags=41943336,maximumSize=,minimumSize=,preferredSize=,fixedCellHeight=-1,fixedCellWidth=-1,horizontalScrollIncrement=-1,selectionBackground=javax.swing.plaf.ColorUIResource[r=65,g=72,b=104],selectionForeground=javax.swing.plaf.ColorUIResource[r=169,g=177,b=214],visibleRowCount=0,layoutOrientation=1]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,319,17,80x26,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=288,maximumSize=,minimumSize=,preferredSize=,defaultIcon=,disabledIcon=,disabledSelectedIcon=,margin=javax.swing.plaf.InsetsUIResource[top=2,left=14,bottom=2,right=14],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=Abrir,defaultCapable=true]
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTable[,0,0,1151x144,alignmentX=0.0,alignmentY=0.0,border=,flags=234881352,maximumSize=,minimumSize=,preferredSize=,autoCreateColumnsFromModel=true,autoResizeMode=AUTO_RESIZE_SUBSEQUENT_COLUMNS,cellSelectionEnabled=false,editingColumn=-1,editingRow=-1,gridColor=java.awt.Color[r=65,g=72,b=104],preferredViewportSize=java.awt.Dimension[width=450,height=400],rowHeight=20,rowMargin=0,rowSelectionAllowed=true,selectionBackground=javax.swing.plaf.ColorUIResource[r=70,g=70,b=70],selectionForeground=javax.swing.plaf.ColorUIResource[r=221,g=221,b=221],showHorizontalLines=true,showVerticalLines=true]
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Solicitud para mostrar imagen de exportación: C:\Users\ameri\Documents\Pruebas Visor\FOLDER 1\bam september.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/bam september.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/bam september.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController -   [navegarTablaExportacionConRueda] Selector movido a la fila: 5
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Solicitud para mostrar imagen de exportación: C:\Users\ameri\Documents\Pruebas Visor\FOLDER 1\Land of The Frost.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/Land of The Frost.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/Land of The Frost.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController -   [navegarTablaExportacionConRueda] Selector movido a la fila: 4
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Solicitud para mostrar imagen de exportación: C:\Users\ameri\Documents\Pruebas Visor\FOLDER 1\bam september.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/bam september.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/bam september.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JRootPane[,7,0,1530x503,layout=com.formdev.flatlaf.ui.FlatRootPaneUI$FlatRootLayout,alignmentX=0.0,alignmentY=0.0,border=javax.swing.border.EmptyBorder@5476e897,flags=16777673,maximumSize=,minimumSize=,preferredSize=]
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JTable[,0,-15,1151x144,alignmentX=0.0,alignmentY=0.0,border=,flags=234881352,maximumSize=,minimumSize=,preferredSize=,autoCreateColumnsFromModel=true,autoResizeMode=AUTO_RESIZE_SUBSEQUENT_COLUMNS,cellSelectionEnabled=false,editingColumn=-1,editingRow=-1,gridColor=java.awt.Color[r=65,g=72,b=104],preferredViewportSize=java.awt.Dimension[width=450,height=400],rowHeight=20,rowMargin=0,rowSelectionAllowed=true,selectionBackground=java.awt.Color[r=214,g=104,b=37],selectionForeground=java.awt.Color[r=255,g=255,b=255],showHorizontalLines=true,showVerticalLines=true]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,344,0,34x34,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=16777512,maximumSize=,minimumSize=,preferredSize=,defaultIcon=javax.swing.ImageIcon@4005b9d5,disabledIcon=,disabledSelectedIcon=,margin=java.awt.Insets[top=2,left=2,bottom=2,right=2],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=null,defaultCapable=false]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.plaf.metal.MetalFileChooserUI$3[,117,0,368x26,layout=javax.swing.plaf.basic.BasicTextUI$UpdateHandler,alignmentX=0.0,alignmentY=0.0,border=com.formdev.flatlaf.ui.FlatTextBorder@1a754cc5,flags=288,maximumSize=,minimumSize=,preferredSize=,caretColor=javax.swing.plaf.ColorUIResource[r=221,g=221,b=221],disabledTextColor=javax.swing.plaf.ColorUIResource[r=154,g=154,b=154],editable=true,margin=javax.swing.plaf.InsetsUIResource[top=2,left=6,bottom=2,right=6],selectedTextColor=javax.swing.plaf.ColorUIResource[r=255,g=255,b=255],selectionColor=javax.swing.plaf.ColorUIResource[r=61,g=100,b=144],columns=35,columnWidth=10,command=,horizontalAlignment=LEADING]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: sun.swing.FilePane$4[,0,0,856x160,alignmentX=0.0,alignmentY=0.0,border=com.formdev.flatlaf.ui.FlatEmptyBorder@27144e50,flags=41943336,maximumSize=,minimumSize=,preferredSize=,fixedCellHeight=-1,fixedCellWidth=-1,horizontalScrollIncrement=-1,selectionBackground=javax.swing.plaf.ColorUIResource[r=65,g=72,b=104],selectionForeground=javax.swing.plaf.ColorUIResource[r=169,g=177,b=214],visibleRowCount=0,layoutOrientation=1]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,320,17,80x26,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=288,maximumSize=,minimumSize=,preferredSize=,defaultIcon=,disabledIcon=,disabledSelectedIcon=,margin=javax.swing.plaf.InsetsUIResource[top=2,left=14,bottom=2,right=14],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=Abrir,defaultCapable=true]
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Carpeta de destino seleccionada: C:\Users\ameri\Documents\Pruebas Visor\Destino
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: 7 de 8 archivos listos para exportar.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: true. Mensaje: '7 de 8 archivos listos para exportar.'
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,358,0,34x34,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=16777512,maximumSize=,minimumSize=,preferredSize=,defaultIcon=javax.swing.ImageIcon@4005b9d5,disabledIcon=,disabledSelectedIcon=,margin=java.awt.Insets[top=2,left=2,bottom=2,right=2],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=null,defaultCapable=false]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,655,0,34x34,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=16777512,maximumSize=,minimumSize=,preferredSize=,defaultIcon=javax.swing.ImageIcon@2e9a022d,disabledIcon=com.formdev.flatlaf.FlatLaf$ImageIconUIResource@41c5f5ce,disabledSelectedIcon=,margin=java.awt.Insets[top=2,left=2,bottom=2,right=2],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=null,defaultCapable=false]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,15,82,80x26,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=288,maximumSize=,minimumSize=,preferredSize=,defaultIcon=,disabledIcon=,disabledSelectedIcon=,margin=javax.swing.plaf.InsetsUIResource[top=2,left=14,bottom=2,right=14],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=Cancelar,defaultCapable=true]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[OptionPane.button,14,12,166x26,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=288,maximumSize=,minimumSize=,preferredSize=,defaultIcon=,disabledIcon=,disabledSelectedIcon=,margin=javax.swing.plaf.InsetsUIResource[top=2,left=14,bottom=2,right=14],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=Aceptar,defaultCapable=true]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[OptionPane.button,184,12,166x26,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=288,maximumSize=,minimumSize=,preferredSize=,defaultIcon=,disabledIcon=,disabledSelectedIcon=,margin=javax.swing.plaf.InsetsUIResource[top=2,left=14,bottom=2,right=14],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=Abrir Carpeta de Destino,defaultCapable=true]
+[0;39m[39mDEBUG controlador.worker.ExportWorker - [ExportWorker] El usuario ha elegido abrir la carpeta de destino: C:\Users\ameri\Documents\Pruebas Visor\Destino
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,655,0,34x34,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=16777512,maximumSize=,minimumSize=,preferredSize=,defaultIcon=javax.swing.ImageIcon@2e9a022d,disabledIcon=com.formdev.flatlaf.FlatLaf$ImageIconUIResource@41c5f5ce,disabledSelectedIcon=,margin=java.awt.Insets[top=2,left=2,bottom=2,right=2],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=null,defaultCapable=false]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,655,0,34x34,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=16777512,maximumSize=,minimumSize=,preferredSize=,defaultIcon=javax.swing.ImageIcon@2e9a022d,disabledIcon=com.formdev.flatlaf.FlatLaf$ImageIconUIResource@41c5f5ce,disabledSelectedIcon=,margin=java.awt.Insets[top=2,left=2,bottom=2,right=2],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=null,defaultCapable=false]
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: null
+[0;39m[39mDEBUG controlador.GeneralController - --- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: javax.swing.JButton[,565,0,34x34,alignmentX=0.0,alignmentY=0.5,border=com.formdev.flatlaf.ui.FlatButtonBorder@689af048,flags=16777512,maximumSize=,minimumSize=,preferredSize=,defaultIcon=javax.swing.ImageIcon@66f65557,disabledIcon=,disabledSelectedIcon=,margin=java.awt.Insets[top=2,left=2,bottom=2,right=2],paintBorder=true,paintFocus=true,pressedIcon=,rolloverEnabled=true,rolloverIcon=,rolloverSelectedIcon=,selectedIcon=,text=null,defaultCapable=false]
+[0;39m[39mDEBUG c.managers.ExportQueueManager - [ExportQueueManager] Preparando cola para 8 imágenes.
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Chibi Santa - 6313818
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Christmas Pine Tree - 6324616
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Christmas Present_Mimic - 6346014
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Skeleton Knight (Black Knight) - 6571644
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 2 archivos asociados para UGNI - 2023-10 - Wood Elfs
+[0;39m[39mDEBUG c.managers.ExportQueueManager - [ExportQueueManager] Preparación de cola finalizada.
+[0;39m[39mDEBUG controlador.ProjectController - Mapa de items de exportación actualizado. Total: 8 items.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Solicitud para mostrar imagen de exportación: null
+[0;39m[31mWARN  controlador.ProjectController - WARN [mostrarImagenDeExportacion]: Ruta de imagen nula. Limpiando visor principal.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Modelo de tabla de exportación actualizado.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Revisar archivos con error.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Revisar archivos con error.'
 [0;39m[39mDEBUG controlador.VisorController - --- [Controller] Iniciando apagado de la aplicación ---
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Guardando estado final de todos los contextos...
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=Lost Colony- 100 scifi Bases.jpg, UltimaCarpeta=M:\Archivos 3D\Peanas
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=null
+[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=FOLDER 1/bam september.jpg, UltimaCarpeta=C:\Users\ameri\Documents\Pruebas Visor
+[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Proyecto: Foco=seleccion, SelKey=C:/Users/ameri/Documents/Pruebas Visor/FOLDER 1/bam september.jpg, DescKey=null
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Carrusel/Sync: Sync=false, UltimaCarpeta=null
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 260068108
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1955634109
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'obsidian_orange'
@@ -752,7 +1010,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 [0;39m[39mDEBUG servicios.ConfigurationManager - ------------------------------------------
 [0;39m[39mDEBUG servicios.ConfigurationManager - Guardando configuración (preservando estructura) en config.cfg
-[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 209
+[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 217
 [0;39m[39mDEBUG servicios.ConfigurationManager - Archivo de configuración actualizado exitosamente.
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Configuración guardada exitosamente.
 [0;39m[39mDEBUG controlador.VisorController -   -> Apagando ExecutorService...

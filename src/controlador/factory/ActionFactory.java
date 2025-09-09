@@ -57,6 +57,9 @@ import controlador.actions.orden.CycleSortAction;
 // Importaciones para PanAction y Direction
 import controlador.actions.pan.PanAction;
 import controlador.actions.projects.AbrirProyectoAction;
+import controlador.actions.projects.AddAssociatedFileAction;
+import controlador.actions.projects.DeleteAssociatedFileAction;
+import controlador.actions.projects.LocateAssociatedFileAction;
 import controlador.actions.projects.EliminarProyectoAction;
 import controlador.actions.projects.GestionarProyectoAction;
 import controlador.actions.projects.GuardarProyectoAction;
@@ -64,8 +67,12 @@ import controlador.actions.projects.GuardarProyectoComoAction;
 import controlador.actions.projects.MoveToDiscardsAction;
 import controlador.actions.projects.NuevoProyectoAction;
 import controlador.actions.projects.RelocateImageAction;
+import controlador.actions.projects.RemoveFromExportQueueAction;
 import controlador.actions.projects.RestoreFromDiscardsAction;
+import controlador.actions.projects.ToggleExportDetailsAction;
+import controlador.actions.projects.ToggleExportViewAction;
 import controlador.actions.projects.ToggleGridStateAction;
+import controlador.actions.projects.ToggleIgnoreCompressedAction;
 import controlador.actions.projects.ToggleMarkImageAction;
 import controlador.actions.tema.ToggleThemeAction;
 import controlador.actions.toggle.ToggleLiveFilterAction;
@@ -423,6 +430,14 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_PROYECTO_VACIAR_DESCARTES, createVaciarDescartesAction());
         actionMap.put(AppActionCommands.CMD_INICIAR_EXPORTACION, createIniciarExportacionAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, createSeleccionarCarpetaAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_REFRESH, createRefreshExportQueueAction());
+        
+        actionMap.put(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL, createToggleExportViewAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION, createToggleExportDetailsAction());
+        
+        actionMap.put(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE, createAddAssociatedFileAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE, createDeleteAssociatedFileAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_LOCATE_ASSOCIATED_FILE, createLocateAssociatedFileAction());
         
         // --- CAMBIO ---: Actions especiales movidas de vuelta a la primera fase.
         // 3.10. Crear y registrar Actions Especiales
@@ -1038,24 +1053,19 @@ public class ActionFactory {
 
     
     private Action createRemoveFromQueueAction() {
-        return new AbstractAction("Quitar de la cola") {
-        	private static final long serialVersionUID = 1L;
-			@Override public void actionPerformed(ActionEvent e) {
-                generalController.getProjectController().solicitarQuitarDeLaCola();
-            }
-        };
+        // Usamos la nueva clase dedicada en lugar de la anónima.
+        return new RemoveFromExportQueueAction(generalController.getProjectController());
     } // --- Fin del método createRemoveFromQueueAction ---
     
     
     private Action createToggleIgnoreCompressedAction() {
-        // Esta acción será un JCheckBoxMenuItem en el menú, así que no necesita icono.
-        return new AbstractAction("Ignorar archivo comprimido") {
-			private static final long serialVersionUID = 1L;
-			@Override public void actionPerformed(ActionEvent e) {
-                generalController.getProjectController().solicitarAlternarIgnorarComprimido();
-            }
-        };
+        // Ahora usamos nuestra nueva clase dedicada, que es sensible al contexto
+        ToggleIgnoreCompressedAction action = new ToggleIgnoreCompressedAction(generalController.getProjectController());
+        this.contextSensitiveActions.add(action); // ¡Muy importante registrarla!
+        return action;
     } // --- Fin del método createToggleIgnoreCompressedAction ---
+    
+   
 
     
     /**
@@ -1122,6 +1132,32 @@ public class ActionFactory {
             }
         };
     } // --- Fin del método createSeleccionarCarpetaAction ---
+    
+    private Action createRefreshExportQueueAction() {
+        return new controlador.actions.projects.RefreshExportQueueAction(this.projectControllerRef);
+    } // ---FIN de metodo [createRefreshExportQueueAction]---
+    
+    private Action createAddAssociatedFileAction() {
+        return new AddAssociatedFileAction(this.projectControllerRef);
+    }// --- Fin del método createAddAssociatedFileAction
+    
+    private Action createDeleteAssociatedFileAction() {
+        return new DeleteAssociatedFileAction(this.projectControllerRef);
+    } // --- Fin del método createDeleteAssociatedFileAction
+
+    private Action createLocateAssociatedFileAction() {
+        return new LocateAssociatedFileAction(this.projectControllerRef);
+    } // --- Fin del método createLocateAssociatedFileAction
+    
+    private Action createToggleExportViewAction() {
+    	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL);
+        return new ToggleExportViewAction(this.projectControllerRef);
+    } // ---FIN de metodo [createToggleExportViewAction]---
+    
+    private Action createToggleExportDetailsAction() {
+        // Solo creamos la acción con su lógica.
+        return new ToggleExportDetailsAction(this.projectControllerRef);
+    } // ---FIN de metodo [createToggleExportDetailsAction]---
     
     
     // --- 4.11. Métodos Create para Actions Especiales ---

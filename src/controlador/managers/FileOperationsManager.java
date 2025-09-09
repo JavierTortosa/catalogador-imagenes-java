@@ -15,27 +15,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.VisorController;
-import controlador.managers.interfaces.IFileOperationsManager; // <-- AÑADIR IMPORT
+import controlador.managers.interfaces.IFileOperationsManager; 
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 
-public class FileOperationsManager implements IFileOperationsManager { // <-- IMPLEMENTAR INTERFAZ
+public class FileOperationsManager implements IFileOperationsManager { 
 
 	private static final Logger logger = LoggerFactory.getLogger(FileOperationsManager.class);
 	
-    // --- INICIO DE LA MODIFICACIÓN: Campos para dependencias ---
+    // --- Campos para dependencias ---
     private VisorModel model;
     private VisorController controller;
     private ConfigurationManager configuration;
     private Consumer<Path> onNuevaCarpetaSeleccionadaCallback;
-    // --- FIN DE LA MODIFICACIÓN ---
 
-    // --- INICIO DE LA MODIFICACIÓN: Constructor vacío ---
+    
+    // --- Constructor vacío ---
     public FileOperationsManager() {
         // Constructor vacío.
     }
-    // --- FIN DE LA MODIFICACIÓN ---
 
+    
     @Override
     public void solicitarSeleccionNuevaCarpeta() {
         if (controller == null || model == null || configuration == null || onNuevaCarpetaSeleccionadaCallback == null) {
@@ -138,7 +138,7 @@ public class FileOperationsManager implements IFileOperationsManager { // <-- IM
         }
     } // --- Fin del método borrarArchivoSeleccionado ---
 
-    // --- INICIO DE LA MODIFICACIÓN: Setters para inyección de dependencias ---
+    // --- Setters para inyección de dependencias ---
     public void setModel(VisorModel model) {
         this.model = Objects.requireNonNull(model);
     }
@@ -154,6 +154,5 @@ public class FileOperationsManager implements IFileOperationsManager { // <-- IM
     public void setOnNuevaCarpetaSeleccionadaCallback(Consumer<Path> callback) {
         this.onNuevaCarpetaSeleccionadaCallback = Objects.requireNonNull(callback);
     }
-    // --- FIN DE LA MODIFICACIÓN ---
 
 } // --- FIN de la clase FileOperationsManager ---

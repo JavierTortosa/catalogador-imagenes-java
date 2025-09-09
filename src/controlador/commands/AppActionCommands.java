@@ -148,8 +148,16 @@ public interface AppActionCommands {
 	    public static final String CMD_EXPORT_QUITAR_DE_COLA 		= "cmd.export.quitar_de_cola";
 	    public static final String CMD_EXPORT_IGNORAR_COMPRIMIDO 	= "cmd.export.ignorar_comprimido";
 	    public static final String CMD_EXPORT_RELOCALIZAR_IMAGEN 	= "cmd.export.relocalizar_imagen";
+	    public static final String CMD_EXPORT_REFRESH				= "cmd.export.refresh";
 	    public static final String CMD_INICIAR_EXPORTACION 			= "cmd.export.iniciar"; 
 	    public static final String CMD_EXPORT_SELECCIONAR_CARPETA 	= "cmd.export.seleccionar.carpeta";
+	    public static final String CMD_EXPORT_ASSIGN_PANNEL			= "cmd.export.assign_pannel";
+	    
+	    public static final String CMD_EXPORT_DETALLES_SELECCION	= "cmd.export.detalles_seleccion";
+	    
+	    public static final String CMD_EXPORT_ADD_ASSOCIATED_FILE	= "cmd.export.add_associated_file";
+	    public static final String CMD_EXPORT_DEL_ASSOCIATED_FILE	= "cmd.export.del_associated_file";
+	    public static final String CMD_EXPORT_LOCATE_ASSOCIATED_FILE= "cmd.export.locate_associated_file";
 	    
 	 // Gestor de proyectos - POPUP MENU
 	    public static final String CMD_PROYECTO_MOVER_A_DESCARTES 	= "cmd.proyecto.mover_a_descartes";

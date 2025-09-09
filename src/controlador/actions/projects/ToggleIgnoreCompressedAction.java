@@ -5,26 +5,26 @@ import javax.swing.AbstractAction;
 import javax.swing.JTable;
 
 import controlador.ProjectController;
-import controlador.interfaces.ContextSensitiveAction; // <-- AÑADIR IMPORT
-import modelo.VisorModel; // <-- AÑADIR IMPORT
+import controlador.interfaces.ContextSensitiveAction;
+import modelo.VisorModel;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
 import vista.panels.export.ExportTableModel;
 
-public class RelocateImageAction extends AbstractAction implements ContextSensitiveAction {
+public class ToggleIgnoreCompressedAction extends AbstractAction implements ContextSensitiveAction {
 
     private static final long serialVersionUID = 1L;
     private final ProjectController projectController;
 
-    public RelocateImageAction(ProjectController controller) {
-        super("Relocalizar Imagen...");
+    public ToggleIgnoreCompressedAction(ProjectController controller) {
+        super("Ignorar archivo comprimido");
         this.projectController = controller;
-    } // ---FIN de metodo [RelocateImageAction]---
+    }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        projectController.solicitarRelocalizacionImagen();
-    } // ---FIN de metodo [actionPerformed]---
+        projectController.solicitarAlternarIgnorarComprimido();
+    }
 
     @Override
     public void updateEnabledState(VisorModel model) {
@@ -34,11 +34,11 @@ public class RelocateImageAction extends AbstractAction implements ContextSensit
             ExportTableModel tableModel = (ExportTableModel) tablaExportacion.getModel();
             ExportItem selectedItem = tableModel.getItemAt(tablaExportacion.getSelectedRow());
             if (selectedItem != null) {
-                // Habilitar solo si la imagen original no se encontró
-                shouldBeEnabled = (selectedItem.getEstadoArchivoComprimido() == ExportStatus.IMAGEN_NO_ENCONTRADA);
+                ExportStatus status = selectedItem.getEstadoArchivoComprimido();
+                // Habilitar si el estado es NO_ENCONTRADO o si YA ESTÁ IGNORADO (para poder revertirlo)
+                shouldBeEnabled = (status == ExportStatus.NO_ENCONTRADO || status == ExportStatus.IGNORAR_COMPRIMIDO);
             }
         }
         setEnabled(shouldBeEnabled);
-    } // ---FIN de metodo [updateEnabledState]---
-
-} // --- FIN de clase [RelocateImageAction]---
+    }
+} // --- FIN de clase [ToggleIgnoreCompressedAction]---

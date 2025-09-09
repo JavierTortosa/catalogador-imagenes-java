@@ -1437,3 +1437,61 @@ CLASES INVOLUCRADAS EN EL SISTEMA DE LA BARRA DE MINIATURAS
 
 
 
+
+
+
+================================================================================
+FICHA DE TAREA: Refactorización del Sistema de Estados del "Modo Proyecto"
+FECHA: [Fecha Actual]
+================================================================================
+
+1. - OBJETIVO PRINCIPAL:
+-----------------------
+Corregir las inconsistencias y fallos de sincronización en el "Modo Proyecto" para lograr un comportamiento robusto y predecible. La interacción entre las vistas de "Selección", "Descartes" y "Exportar", y su reflejo en el Grid central, debe ser atómica y coherente.
+
+
+2. - ANÁLISIS DEL PROBLEMA (DIAGNÓSTICO):
+------------------------------------------
+La implementación sufre de una gestión de estado frágil y descentralizada, lo que provoca los siguientes errores reportados:
+
+- Error de Sincronización del Grid: Al transicionar entre las vistas (ej. de "Descartes" a "Exportar"), el Grid no se actualiza con la fuente de datos correcta (sigue mostrando los datos de "Descartes" en lugar de los de "Selección").
+
+- Pérdida Inesperada del DisplayMode: Al interactuar con las listas, el DisplayMode cambia de GRID a SINGLE_IMAGE de forma no deseada, rompiendo la expectativa del usuario de que el modo GRID sea "pegajoso" dentro del proyecto.
+
+- Interferencia entre Controladores: Se ha identificado que el `DisplayModeManager` y el `ProjectListCoordinator` contienen lógicas (diseñadas para el "Modo Visualizador") que interfieren con las decisiones del `ProjectController`, provocando cambios de estado no autorizados.
+
+- Causa Raíz: El uso de múltiples variables booleanas (`enModoVistaExportacion`, etc.) y la ausencia de un orquestador central han creado un sistema propenso a condiciones de carrera y estados inconsistentes.
+
+
+3. - LA SOLUCIÓN PROPUESTA (ARQUITECTURA ACORDADA):
+---------------------------------------------------
+Se ha acordado refactorizar el sistema para que siga un modelo de Máquina de Estados explícita y centralizada dentro del `ProjectController`.
+
+3.1. Máquina de Estados:
+    - Se introduce un `enum ProjectViewState` con tres estados únicos: `VIEW_SELECTION`, `VIEW_DISCARDS`, `VIEW_EXPORT`.
+    - Se elimina todo el código antiguo basado en flags booleanos.
+
+3.2. Orquestador Centralizado (`setProjectViewState`):
+    - Se crea un único método, `setProjectViewState(newState)`, que actúa como el "cerebro" del Modo Proyecto.
+    - Es el único punto de entrada para cualquier cambio de estado.
+    - Sus responsabilidades son:
+        1. Determinar la fuente de datos correcta ("Selección" o "Descartes") y actualizar la `masterList` del `VisorModel`.
+        2. Gestionar el `DisplayMode` con la lógica de "Grid pegajoso": si se entra en `VIEW_EXPORT`, se fuerza el `GRID`, y a partir de ahí, no se vuelve a `SINGLE_IMAGE` automáticamente.
+        3. Controlar la visibilidad de los marcos de estado en el Grid mediante la reutilización de la `Action` existente `CMD_GRID_SHOW_STATE`.
+        4. Sincronizar y repintar de forma segura toda la UI al final del proceso, usando `SwingUtilities.invokeLater`.
+
+3.3. Neutralización de Interferencias:
+    - Se modifica el `DisplayModeManager` para que no actúe cuando la aplicación está en `WorkMode.PROYECTO`.
+    - Se modifica el `ProjectListCoordinator` para que llame a un método de carga de imagen "seguro" (`cargarImagenSinCambiarModo`) que no interfiera con el `DisplayMode`.
+
+
+4. - ESTADO ACTUAL DE LA TAREA:
+------------------------------
+Se ha implementado la refactorización descrita. Sin embargo, el último comportamiento reportado ("ahora es al revés... en cuanto entro en descartes no se actualiza y solo muestra las imágenes de seleccion") indica que todavía existe un error sutil en la implementación dentro de `ProjectController`. La máquina de estados no está transicionando correctamente en todos los casos.
+
+
+5. - SIGUIENTE PASO INMEDIATO:
+-----------------------------
+Realizar una revisión exhaustiva del archivo `ProjectController.java` completo proporcionado por el usuario. El objetivo es encontrar la discrepancia o el cabo suelto en la implementación de la máquina de estados que está causando el fallo de actualización de datos en el Grid al pasar de un estado a otro (específicamente, al entrar en `VIEW_DISCARDS`). Se debe asegurar que la lógica es 100% atómica y coherente.
+
+================================================================================

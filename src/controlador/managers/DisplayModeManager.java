@@ -219,6 +219,14 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     
     @Override
     public void onMasterListChanged(DefaultListModel<String> newMasterList, Object source) {
+        // --- INICIO DE LA CORRECCIÓN ---
+        if (model != null && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
+            // El ProjectController es responsable de poblar el grid del proyecto.
+            // Este manager no debe interferir.
+            return;
+        }
+        // --- FIN DE LA CORRECCIÓN ---
+
         if (model.getCurrentDisplayMode() == DisplayMode.GRID) {
             logger.debug("[DisplayModeManager] Notificado de cambio en lista maestra. Repoblando la parrilla...");
             poblarGridConModelo(newMasterList);
@@ -228,6 +236,16 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     
     @Override
     public void onMasterSelectionChanged(int newMasterIndex, Object source) {
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Si estamos en modo Proyecto, este manager NO TIENE AUTORIDAD
+        // para cambiar nada basándose en la selección. El ProjectController manda.
+        if (model != null && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
+            // Sincronizamos el grid del proyecto, pero NADA MÁS.
+            sincronizarSeleccionGrid();
+            return; 
+        }
+        // --- FIN DE LA CORRECCIÓN ---
+
         if (source != this && model.getCurrentDisplayMode() == DisplayMode.GRID) {
             logger.debug("[DisplayModeManager] Notificado de cambio de selección maestra (desde {}). Sincronizando grid...", source != null ? source.getClass().getSimpleName() : "null");
             sincronizarSeleccionGrid();

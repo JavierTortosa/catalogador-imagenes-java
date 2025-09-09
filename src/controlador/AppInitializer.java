@@ -277,6 +277,7 @@ public class AppInitializer {
         displayModeManager.setListCoordinator(this.listCoordinator);
         displayModeManager.setProjectListCoordinator(this.projectListCoordinator);
         projectListCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
+        projectListCoordinator.setProjectController(this.projectController);
 
         generalController.setModel(this.model);
         generalController.setViewManager(this.viewManager);
@@ -303,6 +304,7 @@ public class AppInitializer {
         toolbarManager.setBackgroundControlManager(this.backgroundControlManager);
         actionFactory.setCarouselManager(carouselManager);
         actionFactory.setDisplayModeManager(this.displayModeManager);
+        this.model.addMasterListChangeListener(this.generalController);
         
         logger.debug(" -> Cableado de dependencias completado.");
     } // ---FIN de metodo wireDependencies---

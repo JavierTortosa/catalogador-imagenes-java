@@ -811,10 +811,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             this.servicioMiniaturas.limpiarCache();
         }
         
-        
-//        limpiarUI(); 
-        
-        
         final TaskProgressDialog dialogo = new TaskProgressDialog(view, "Cargando Imágenes", "Escaneando carpeta de imágenes...");
         final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
             pathDeInicioWalk,
@@ -2124,97 +2120,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 
 	    logger.debug("  -> Atajos de teclado globales configurados.");
 	} // --- Fin del método configurarAtajosTecladoGlobales ---
-     
-     
-//     void configurarAtajosTecladoGlobales() {
-//    	 
-//         if (view == null || actionMap == null) {
-//             logger.warn("WARN [configurarAtajosTecladoGlobales]: Vista o ActionMap nulos.");
-//             return;
-//         }
-//         logger.debug("  [Controller] Configurando atajos de teclado globales...");
-//
-//         javax.swing.JRootPane rootPane = view.getRootPane();
-//         javax.swing.InputMap inputMap = rootPane.getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW);
-//         javax.swing.ActionMap actionMapGlobal = rootPane.getActionMap();
-//
-//         // --- Mapeo de Teclas Numéricas a Modos de Zoom ---
-//
-//         // 1: Ajustar a Pantalla
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR));
-//         
-//         // 2: Tamaño Original (100%)
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AUTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AUTO));
-//
-//         // 3: Ajustar a Ancho
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ANCHO));
-//
-//         // 4: Ajustar a Alto
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ALTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ALTO));
-//
-//         // 5: Rellenar
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR));
-//
-//         // 6: Zoom Fijo (Mantener Actual)
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_FIJO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_FIJO));
-//         
-//         // 7: Zoom Especificado (%)
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
-//
-//         // 8: Activar/Desactivar Modo Paneo (Zoom Manual)
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE));
-//         
-//         // 9: Resetear Zoom
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("9"), AppActionCommands.CMD_ZOOM_RESET);
-//         inputMap.put(javax.swing.KeyStroke.getKeyStroke("NUMPAD9"), AppActionCommands.CMD_ZOOM_RESET); // <-- Teclado numérico
-//         actionMapGlobal.put(AppActionCommands.CMD_ZOOM_RESET, actionMap.get(AppActionCommands.CMD_ZOOM_RESET));
-//
-//         // F5 para Refrescar
-//         KeyStroke f5Key = KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0);
-//         String f5Command = AppActionCommands.CMD_ESPECIAL_REFRESCAR;
-//         inputMap.put(f5Key, f5Command);
-//         actionMapGlobal.put(f5Command, actionMap.get(f5Command));
-//         logger.debug("  -> Atajo registrado: F5 -> " + f5Command);
-//
-//         // F11 para Pantalla Completa
-//         KeyStroke f11Key = KeyStroke.getKeyStroke(KeyEvent.VK_F11, 0);
-//         String f11Command = AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA;
-//         inputMap.put(f11Key, f11Command);
-//         actionMapGlobal.put(f11Command, actionMap.get(f11Command));
-//         logger.debug("  -> Atajo registrado: F11 -> " + f11Command);
-//         
-//
-//         // --- Ctrl+L para Localizar Archivo ---
-//         KeyStroke ctrlLKey = KeyStroke.getKeyStroke(KeyEvent.VK_L, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx());
-//         String ctrlLCommand = AppActionCommands.CMD_IMAGEN_LOCALIZAR;
-//         
-//         // 1. Añadimos el atajo al InputMap del panel raíz.
-//         inputMap.put(ctrlLKey, ctrlLCommand);
-//         
-//         // 2. Asociamos el comando con la Action correspondiente que ya tenemos en nuestro actionMap.
-//         actionMapGlobal.put(ctrlLCommand, actionMap.get(ctrlLCommand));
-//         
-//         logger.debug("  -> Atajo registrado: Ctrl+L -> " + ctrlLCommand);
-//
-//         
-//         logger.debug("  -> Atajos de teclado globales configurados para teclado estándar y numérico.");
-//     } // --- Fin del método configurarAtajosTecladoGlobales ---
+
 
 // *************************************************************************************************************** FIN DE ZOOM     
 // ***************************************************************************************************************************
@@ -3676,7 +3582,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             speedMenu.add(new javax.swing.JMenuItem(setSpeedAction));
         }
 
-        // ----- INICIO DE LA MODIFICACIÓN -----
         speedMenu.addSeparator(); // Un separador para distinguir la opción especial
 
         Action setReverseSpeedAction = new controlador.actions.carousel.SetCarouselSpeedAction(
@@ -3686,7 +3591,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             -5000 // <-- Le pasamos un valor negativo
         );
         speedMenu.add(new javax.swing.JMenuItem(setReverseSpeedAction));
-        // ----- FIN DE LA MODIFICACIÓN -----
 
         speedMenu.show(invoker, 0, -speedMenu.getPreferredSize().height);
     } // --- Fin del método showCarouselSpeedMenu ---
@@ -3927,11 +3831,9 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 	            SwingUtilities.updateComponentTreeUI(this.view);
 	        }
 
-	        // --- INICIO DE LA CORRECCIÓN ---
 	        // 3. AHORA, DESPUÉS del reseteo de Swing, aplicamos nuestros colores personalizados.
 	        //    Esto sobreescribe los colores por defecto de la UI solo donde queremos.
 	        sincronizarColoresDePanelesPorTema(nuevoTema);
-	        // --- FIN DE LA CORRECCIÓN ---
 
 	        // 4. Sincronizar el estado lógico (botones seleccionados, etc.)
 	        logger.debug("  [EDT] Sincronizando estado de controles...");
@@ -4002,75 +3904,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 
 	} // --- Fin del método sincronizarColoresDePanelesPorTema ---
 	
-	
-	
-//	public void sincronizarColoresDePanelesPorTema(Tema temaAFlejar) {
-//	    if (registry == null || temaAFlejar == null) {
-//	        logger.warn("WARN [sincronizarColoresDePanelesPorTema]: Dependencias nulas (registry o tema nulo).");
-//	        return;
-//	    }
-//	    
-//	    logger.debug("  [Sync Colors] Sincronizando colores de paneles para el tema: {}", temaAFlejar.nombreDisplay());
-//
-//	    // Pintado de paneles con colores personalizados (los que FlatLaf no conoce)
-//	    JPanel panelEstadoInferior = registry.get("panel.estado.inferior");
-//	    if (panelEstadoInferior != null) {
-//	        Color backgroundColor = temaAFlejar.colorBarraEstadoFondo();
-//	        Color foregroundColor = temaAFlejar.colorBarraEstadoTexto();
-//
-//	        // LÓGICA DE FALLBACK: Si el tema NO define un color, usamos los del LaF actual.
-//	        if (backgroundColor == null) backgroundColor = UIManager.getColor("Panel.background"); 
-//	        if (foregroundColor == null) foregroundColor = UIManager.getColor("Label.foreground");
-//
-//	        panelEstadoInferior.setBackground(backgroundColor);
-//	        actualizarColoresDeTextoRecursivamente(panelEstadoInferior, foregroundColor);
-//	    }
-//	    
-//	    JPanel panelInfoSuperior = registry.get("panel.info.superior");
-//	    if (panelInfoSuperior != null) {
-//	        Color backgroundColor = temaAFlejar.colorBarraEstadoFondo();
-//	        Color foregroundColor = temaAFlejar.colorBarraEstadoTexto();
-//	        
-//	        if (backgroundColor == null) backgroundColor = UIManager.getColor("Panel.background");
-//	        if (foregroundColor == null) foregroundColor = UIManager.getColor("Label.foreground");
-//
-//	        panelInfoSuperior.setBackground(backgroundColor);
-//	        actualizarColoresDeTextoRecursivamente(panelInfoSuperior, foregroundColor);
-//	        
-//	        
-////	        // La JToolBar de la barra de estado también necesita ser coloreada manualmente
-////	        // después de ser reconstruida.
-////	        JToolBar statusBarToolbar = registry.get("toolbar.barra_estado_controles");
-////	        if (statusBarToolbar != null) {
-////	            statusBarToolbar.setBackground(backgroundColor);
-////	            statusBarToolbar.setOpaque(true); // Aseguramos que pinte su fondo
-////	            statusBarToolbar.setBorder(null);   // Le quitamos el borde para una integración limpia
-////	            actualizarColoresDeTextoRecursivamente(statusBarToolbar, foregroundColor); // Aplicamos color de texto a sus hijos
-////	            logger.debug("    -> Colores personalizados aplicados a 'toolbar.barra_estado_controles'.");
-////	        }
-//	        
-//	        
-//	     // Panel de estado inferior (StatusBar de la aplicación)
-//	        JPanel panelEstadoInferior = registry.get("panel.estado.inferior");
-//	        if (panelEstadoInferior != null) {
-//	            panelEstadoInferior.setBackground(backgroundColor);
-//	            // Usamos el método recursivo para asegurar que todos los JLabels y otros componentes
-//	            // dentro de este panel (incluso si están anidados) reciban el color de texto correcto.
-//	            actualizarColoresDeTextoRecursivamente(panelEstadoInferior, foregroundColor);
-//	            logger.debug("    -> Colores personalizados aplicados a 'panel.estado.inferior'.");
-//	        }
-//	        
-//	        // Panel de información superior (StatusBar de la imagen)
-//	        JPanel panelInfoSuperior = registry.get("panel.info.superior");
-//	        if (panelInfoSuperior != null) {
-//	            panelInfoSuperior.setBackground(backgroundColor);
-//	            // Hacemos lo mismo para la barra superior.
-//	            actualizarColoresDeTextoRecursivamente(panelInfoSuperior, foregroundColor);
-//	            logger.debug("    -> Colores personalizados aplicados a 'panel.info.superior'.");
-//	        }
-//	        
-//	    }
-//	} // --- Fin del método sincronizarColoresDePanelesPorTema ---
 	
 	/**
 	 * Sincroniza los colores de los paneles usando el tema actualmente activo en el ThemeManager.

@@ -7,7 +7,8 @@ import java.util.Objects;
  */
 public record TextFieldDefinition(
     String comandoCanonico, // Identificador único para el registro y acciones
-    String textoPorDefecto   // Texto que aparecerá inicialmente
+    String textoPorDefecto,   // Texto que aparecerá inicialmente
+    int columns
 ) implements ToolbarComponentDefinition {
 
     // Constructor canónico para validar

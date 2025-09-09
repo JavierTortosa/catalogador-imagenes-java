@@ -286,11 +286,14 @@ public class UIDefinitionService {
                     MenuItemType.ITEM, "Guardar Proyecto Como...", null),
             new MenuItemDefinition(null, 
                     MenuItemType.SEPARATOR, null, null),
+            new MenuItemDefinition(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL,
+            		MenuItemType.ITEM, "Panel de Control de Asignaciones", null),
+            new MenuItemDefinition(null, 
+                    MenuItemType.SEPARATOR, null, null),
             new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_ELIMINAR, 
                     MenuItemType.ITEM, "Eliminar Proyecto...", null),
             new MenuItemDefinition(null, 
                     MenuItemType.SEPARATOR, null, null),
-            
             new MenuItemDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 
             		MenuItemType.CHECKBOX_ITEM, "Marcar para Proyecto", null),
             new MenuItemDefinition(null,//AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE,
@@ -680,12 +683,17 @@ public class UIDefinitionService {
              ,new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_RESET, 				"3008-reset_48x48.png", "Resetear Zoom", "proyecto_vista")
         );
 		
-		List<ToolbarButtonDefinition> botonesProyectoEnProyecto = List.of(
+//		List<ToolbarButtonDefinition> botonesProyectoEnProyecto = List.of(
+		List<ToolbarComponentDefinition> botonesProyectoEnProyecto = List.of(
 			 new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA, 		"7101-marcar_imagen_48x48.png", "Cambia la iamgen de Seleccion a Descartes", "proyecto", ButtonType.TOGGLE)
+			,new SeparatorDefinition()
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_NUEVO, 				"7102-nuevo_proyecto_48x48.png", "Nuevo Proyecto", "proyecto")//, ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ABRIR, 				"7103-abrir_proyecto_48x48.png", "Abrir Proyecto", "proyecto")//, ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR, 			"7104-guardar_proyecto_48x48.png", "Guardar Proyecto", "proyecto")//, ButtonType.TOGGLE)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO, 		"7105-guardar_proyecto_como_48x48.png", "Guardar Proyecto Como", "proyecto")//, ButtonType.TOGGLE)
+			,new SeparatorDefinition()
+            ,new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL,		"21005-iniciar_exportación.png", "Panel de Control de Asignaciones", "proyecto", ButtonType.TOGGLE)
+			,new SeparatorDefinition()
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_PROYECTO_ELIMINAR,		 	"7106-eliminar_proyecto_48x48.png", "Eliminar Proyecto", "proyecto")//, ButtonType.TOGGLE)
             
 		);    
@@ -743,7 +751,7 @@ public class UIDefinitionService {
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_ORDEN_CICLO, 				"30004-orden_ascendente.png", "Orden de Archivos", "orden_lista")
 			
 			,new SeparatorDefinition()
-			,new TextFieldDefinition("textfield.filtro.orden", "")		
+			,new TextFieldDefinition("textfield.filtro.orden", "", 30)		
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER, 	"40001-filter_48x48.png", "Activar/Desactivar Filtro en Vivo","orden_lista", ButtonType.TOGGLE)
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ACTIVO,				"40011-cambio de filtro_48x48.png","Añadir Filtro Positivo (+)","orden_lista",ButtonType.TOGGLE)
 		);
@@ -756,7 +764,7 @@ public class UIDefinitionService {
             // Por ahora, solo el campo de texto y los botones.
 			
 //		 	 new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ACTIVO,				"40011-cambio de filtro_48x48.png","Cambia el filtro activo","barra_filtros",ButtonType.TOGGLE)
-            new TextFieldDefinition("textfield.filtro.texto", "")
+            new TextFieldDefinition("textfield.filtro.texto", "",30)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ADD_POSITIVE,			"40002-filter_positive_48x48.png","Añadir Filtro Positivo (+)","barra_filtros",ButtonType.NORMAL)
             ,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_ADD_NEGATIVE,			"40003-filter_negative_48x48.png","Añadir Filtro Negativo (-)","barra_filtros",ButtonType.NORMAL)
 
@@ -829,14 +837,38 @@ public class UIDefinitionService {
         );
 
         // Toolbar de Exportar
-        List<ToolbarButtonDefinition> botonesExportacion = List.of(	
-       		new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, 	"6001-selector_de_carpetas_48x48.png", "Seleccionar Carpeta de Destino", "acciones_exportacion"		),	//,ButtonType.STATUS_BAR_BUTTON*/),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, 		"21001-quitar_de_cola.png", "Quitar de la cola", "acciones_exportacion" 							),	//,ButtonType.STATUS_BAR_BUTTON*/),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO,		"21002-asignar_archivo.png","Asignar archivo manualmente", "acciones_exportacion" 					),	//,ButtonType.STATUS_BAR_BUTTON*/),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, 	"21003-ignorar_comprimido.png", "Ignorar archivo comprimido", "acciones_exportacion" 				),	//,ButtonType.STATUS_BAR_BUTTON*/),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN, 	"21004-relocalizar_imagen.png", "Relocalizar Imagen", "acciones_exportacion" 						),	//,ButtonType.STATUS_BAR_BUTTON*/),
-            new ToolbarButtonDefinition(AppActionCommands.CMD_INICIAR_EXPORTACION, 			"21005-iniciar_exportación.png","Iniciar Exportación", "acciones_exportacion" 						)	//,ButtonType.STATUS_BAR_BUTTON*/)
-        );
+        List<ToolbarComponentDefinition> componentesExportacion = List.of(
+                // Campo de texto con un tamaño de 30 columnas.
+        		
+                new TextFieldDefinition("textfield.export.destino", "Seleccione una carpeta de destino...", 30),
+                
+                // Botón para abrir el selector de carpetas
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA, 	"6001-selector_de_carpetas_48x48.png", "Seleccionar Carpeta de Destino", "acciones_exportacion"),
+                new SeparatorDefinition(),
+
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION, 	"21006-items_exportar_48x48.png", "Detalles de Archivos", "acciones_exportacion", ButtonType.TOGGLE),
+//                new SeparatorDefinition(),
+                
+                // Botones de acciones sobre la tabla
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO, 		"21002-asignar_archivo.png", "Asignar archivo manualmente", "acciones_exportacion"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, 	"21003-ignorar_comprimido.png", "Ignorar archivo comprimido", "acciones_exportacion"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN, 	"21004-relocalizar_imagen.png", "Relocalizar Imagen", "acciones_exportacion"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_REFRESH, 				"21010-estado_exportación.png", "Repasar ", "acciones_exportacion"),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_QUITAR_DE_COLA, 		"21001-quitar_de_cola.png", "Quitar de la cola", "acciones_exportacion"),
+                
+                new SeparatorDefinition(),
+
+                // Botón final para iniciar la exportación
+                new ToolbarButtonDefinition(AppActionCommands.CMD_INICIAR_EXPORTACION, 			"21005-iniciar_exportación.png", "Iniciar Exportación", "acciones_exportacion")
+            );
+        
+        
+        List<ToolbarComponentDefinition> componentesDetallesExportacion = List.of(
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE, 	"21007-add_items_exportar_48x48.png", "Añadir Archivos", "acciones_det_exportacion"),
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE, 	"21008-del_item_exportar.png", "Borrar Archivos", "acciones_det_exportacion"),
+        		new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_LOCATE_ASSOCIATED_FILE,"21009-locate_item_exportar.png", "Localizar Archivos", "acciones_det_exportacion")
+		);
+        
         
         // Toolbar de Statusbar
         List<ToolbarComponentDefinition> componentesBarraEstado = List.of(
@@ -880,8 +912,11 @@ public class UIDefinitionService {
         	    new ToolbarDefinition("velocidad_carrousel", "Velocidad", 	120, EnumSet.of(WorkMode.CARROUSEL), botonesVelocidadCarrousel, ToolbarAlignment.CENTER),
         	    
         	    // Barras especiales
-        	    new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 	500, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesExportacion), ToolbarAlignment.FREE),
-        	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	510, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.FREE),
+        	    new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 	500, EnumSet.of(WorkMode.PROYECTO), componentesExportacion, ToolbarAlignment.FREE),
+        	    
+        	    new ToolbarDefinition("acciones_det_exportacion", "Detalles de Exportación",520, EnumSet.of(WorkMode.PROYECTO), componentesDetallesExportacion, ToolbarAlignment.FREE),
+        	    
+        	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	550, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.FREE),
         	    new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 		600, EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE),
         	    new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 				700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, ToolbarAlignment.FREE),
         	    new ToolbarDefinition("barra_filtros", "Herramientas de Filtro",			800, EnumSet.allOf(WorkMode.class), componentesFiltro, ToolbarAlignment.FREE),

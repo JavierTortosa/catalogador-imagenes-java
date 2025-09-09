@@ -1,12 +1,11 @@
 package controlador.actions.filtro;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ImageIcon;
 
 import controlador.GeneralController;
-import controlador.managers.filter.FilterCriterion;
 import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
 

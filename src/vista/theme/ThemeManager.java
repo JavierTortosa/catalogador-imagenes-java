@@ -73,7 +73,6 @@ public class ThemeManager {
     private final List<ThemeChangeListener> listeners = new java.util.concurrent.CopyOnWriteArrayList<>();
     private ConfigApplicationManager configAppManager;
 
-//    private static final Map<String, ThemeInfo> TEMAS_DISPONIBLES = Map.ofEntries(
     private static final Map<String, ThemeInfo> TEMAS_DISPONIBLES = new java.util.HashMap<>(Map.ofEntries(
     	    // -- TEMAS CLAROS --
     	    Map.entry("arc_light", 					new ThemeInfo("Arc", FlatArcIJTheme::new, null, ThemeCategory.LIGHT)),

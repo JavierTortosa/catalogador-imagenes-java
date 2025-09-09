@@ -91,27 +91,3 @@ public class FlatObsidianOrangeIJTheme extends FlatMacDarkLaf {
 
 
 
-//package vista.theme.themes;
-//
-//import com.formdev.flatlaf.FlatDarkLaf;
-//// Eliminamos los imports de List y Collections que ya no son necesarios
-//
-//public class FlatObsidianOrangeIJTheme extends FlatDarkLaf {
-//
-//    private static final long serialVersionUID = 1L;
-//	public static final String NAME = "Obsidian Orange";
-//
-//    public static boolean setup() {
-//        return setup( new FlatObsidianOrangeIJTheme() );
-//    } // ---FIN de metodo [setup]---
-//
-//    @Override
-//    public String getName() {
-//        return NAME;
-//    } // ---FIN de metodo [getName]---
-//
-//    // ELIMINADO: El método getAdditionalDefaultsSources() ya no existe en FlatLaf 3.x
-//    // FlatLaf ahora encuentra automáticamente el archivo .properties que tiene el
-//    // mismo nombre que esta clase y está en el mismo paquete dentro de los recursos.
-//
-//} // --- FIN de clase [FlatObsidianOrangeIJTheme]---

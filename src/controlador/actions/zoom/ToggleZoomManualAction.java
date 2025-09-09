@@ -49,7 +49,6 @@ public class ToggleZoomManualAction extends AbstractAction {
         // (O un nombre similar si lo cambiaste).
         visorController.solicitarTogglePaneo(); 
         
-        // ¡¡ELIMINAMOS TODO LO DEMÁS!!
         // La lógica de leer el modelo, calcular el nuevo estado, actualizar el modelo
         // y actualizar el SELECTED_KEY se traslada al método del controlador.
     } // --- FIN del metodo actionPerformed ---

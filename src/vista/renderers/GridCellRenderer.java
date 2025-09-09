@@ -35,6 +35,7 @@ public class GridCellRenderer implements ListCellRenderer<String> {
 	
 	private static final Logger logger = LoggerFactory.getLogger(GridCellRenderer.class); 
 
+	
     private final ThumbnailService gridThumbnailService;
     private final VisorModel modeloVisor;
     private final CustomGridCellPanel cellPanel;
@@ -146,26 +147,24 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         Color backgroundColor = list.getBackground();
         boolean desaturar = false;
 
-//        if (this.projectController != null) {
+        // La única condición ahora es si el modelo dice que hay que mostrar el estado.
+        // Ya no nos importa si estamos en modo exportación aquí.
         if (this.projectController != null && modeloVisor.isGridMuestraEstado()) {
+            
             ExportItem item = this.projectController.getExportItem(value);
 
             if (item != null) {
-            	
                 switch (item.getEstadoArchivoComprimido()) {
                     case ENCONTRADO_OK:
                         backgroundColor = COLOR_OK;
-//                    	backgroundColor = Color.GREEN.darker();
                         break;
                     case ASIGNADO_MANUAL:
                     case IGNORAR_COMPRIMIDO:
                         backgroundColor = COLOR_WARNING;
-//                    	backgroundColor = Color.YELLOW.darker();
                         break;
                     case NO_ENCONTRADO:
                     case IMAGEN_NO_ENCONTRADA:
                         backgroundColor = COLOR_ERROR;
-//                    	backgroundColor = Color.RED.darker();
                         break;
                     default:
                         break;

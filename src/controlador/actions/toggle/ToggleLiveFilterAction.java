@@ -1,9 +1,10 @@
 package controlador.actions.toggle;
 
 import java.awt.event.ActionEvent;
+
 import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.ImageIcon;
+
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
 import modelo.VisorModel;
@@ -14,7 +15,11 @@ import modelo.VisorModel;
  */
 public class ToggleLiveFilterAction extends AbstractAction {
 
-    private final VisorModel model;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final VisorModel model;
     private final GeneralController generalController;
 
     public ToggleLiveFilterAction(VisorModel model, GeneralController generalController, String name, ImageIcon icon) {

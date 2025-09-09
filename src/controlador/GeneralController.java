@@ -48,21 +48,21 @@ import controlador.managers.DisplayModeManager;
 import controlador.managers.FilterManager;
 import controlador.managers.FolderNavigationManager;
 import controlador.managers.InfobarStatusManager;
-import controlador.managers.ToolbarManager; // <-- Importación necesaria
+import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.filter.FilterCriterion;
 import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
 import controlador.managers.tree.FolderTreeManager;
-import controlador.utils.ComponentRegistry; // <-- NUEVO: Importación para ComponentRegistry
+import controlador.utils.ComponentRegistry;
 import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
-import modelo.VisorModel.WorkMode; // <-- Importación necesaria
+import modelo.VisorModel.WorkMode; 
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
-import vista.components.Direction; // <-- NUEVO: Importación para Direction
-import vista.panels.ImageDisplayPanel; // <-- NUEVO: Importación para ImageDisplayPanel
+import vista.components.Direction; 
+import vista.panels.ImageDisplayPanel; 
 
 /**
  * Controlador de aplicación de alto nivel.
@@ -70,7 +70,7 @@ import vista.panels.ImageDisplayPanel; // <-- NUEVO: Importación para ImageDisp
  * y gestiona el estado global de la aplicación, como el modo de trabajo actual y la
  * habilitación/deshabilitación de la UI correspondiente.
  */
-public class GeneralController implements IModoController, KeyEventDispatcher, PropertyChangeListener{
+public class GeneralController implements IModoController, KeyEventDispatcher, PropertyChangeListener, modelo.MasterListChangeListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(GeneralController.class);
 	
@@ -281,20 +281,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
         // --- FIN LÓGICA DE SEGURIDAD ---
 
-//        if (modoDestino == VisorModel.WorkMode.PROYECTO) {
-//        	
-//        	System.out.println("DEBUG: Llamando a projectController.prepararDatosProyecto()...");
-//        	
-//            if (!this.projectController.prepararDatosProyecto()) {
-//            	
-//            	System.out.println("DEBUG: prepararDatosProyecto() devolvió FALSE. Transición cancelada."); 
-//            	
-//                sincronizarEstadoBotonesDeModo();
-//                logger.debug("--- [GeneralController] TRANSICIÓN CANCELADA: El modo proyecto no está listo. ---");
-//                return;
-//            }
-//        }
-        
         salirModo(modoActual);
         this.model.setCurrentWorkMode(modoDestino);
         entrarModo(modoDestino);
@@ -399,6 +385,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                                 break;
                             case PROYECTO:
                                 projectController.activarVistaProyecto();
+                                projectController.configurarContextMenuTablaExportacion();
                                 break;
                             case CARROUSEL:
                                 ListContext contextoCarrusel = model.getCarouselListContext();
@@ -1088,7 +1075,18 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
         
         // --- MANEJO ESPECIAL Y SEGURO DE LA TECLA ALT (movido de VisorController) ---
+        
         if (e.getKeyCode() == KeyEvent.VK_ALT) {
+            // --- INICIO DE LA CORRECCIÓN ---
+            // Si el componente que originó el evento es un campo de texto,
+            // ignoramos por completo esta lógica para permitir que se escriban
+            // caracteres especiales como la barra invertida '\'.
+            Component source = e.getComponent();
+            if (source instanceof javax.swing.text.JTextComponent) {
+                return false; // No consumimos el evento, dejamos que el JTextField lo procese.
+            }
+            // --- FIN DE LA CORRECCIÓN ---
+
             // Necesita acceso a la vista, se obtiene a través de visorController.getView()
             if (visorController != null && visorController.getView() != null && visorController.getView().getJMenuBar() != null) {
                 JMenuBar menuBar = visorController.getView().getJMenuBar();
@@ -1111,6 +1109,30 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 return true;
             }
         }
+        
+//        if (e.getKeyCode() == KeyEvent.VK_ALT) {
+//            // Necesita acceso a la vista, se obtiene a través de visorController.getView()
+//            if (visorController != null && visorController.getView() != null && visorController.getView().getJMenuBar() != null) {
+//                JMenuBar menuBar = visorController.getView().getJMenuBar();
+//                if (menuBar.isSelected()) { // Comprueba si algún menú ya está abierto (seleccionado)
+//                    menuBar.getSelectionModel().clearSelection(); // Cierra la selección actual
+//                    logger.debug("--- [GeneralController Dispatcher] ALT: Menú ya activo. Cerrando selección.");
+//                } else {
+//                    if (menuBar.getMenuCount() > 0) { // Si no hay ningún menú activo, activamos el primero.
+//                        JMenu primerMenu = menuBar.getMenu(0);
+//                        if (primerMenu != null) {
+//                        	
+//                        	//LOG [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'
+//                            //logger.debug("--- [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
+//                        	
+//                            primerMenu.doClick(); // Simula un clic del ratón, abriendo el menú.
+//                        }
+//                    }
+//                }
+//                e.consume(); // Consumimos el evento ALT
+//                return true;
+//            }
+//        }
         
         
         
@@ -2391,6 +2413,47 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         // a nuestro método "router" más descriptivo.
         solicitarRefrescoDelModoActivo();
     }// FIN del metodo solicitarRefresco ---
+    
+    
+    /**
+     * Implementación de la interfaz MasterListChangeListener.
+     * Este método es el "cartero" central. Se ejecuta cada vez que VisorModel
+     * notifica un cambio en su lista maestra. Su única responsabilidad es
+     * tomar esa nueva lista y entregarla al grid del modo de trabajo activo.
+     * @param newMasterList El nuevo modelo de lista que se debe mostrar.
+     * @param source El objeto que originó el cambio, para evitar bucles.
+     */
+    @Override
+    public void onMasterListChanged(DefaultListModel<String> newMasterList, Object source) {
+        if (registry == null || model == null) {
+            logger.warn("WARN [onMasterListChanged]: Registry o Model nulos. No se puede actualizar el grid.");
+            return;
+        }
+
+        JList<String> gridTarget;
+        WorkMode currentMode = model.getCurrentWorkMode();
+
+        // 1. Determinar cuál es el grid de destino
+        if (currentMode == WorkMode.PROYECTO) {
+            gridTarget = registry.get("list.grid.proyecto");
+            logger.debug("[MasterListChangeListener] Modo Proyecto detectado. Target grid: list.grid.proyecto");
+        } else {
+            // Asumimos que cualquier otro modo (Visualizador, Carrusel) usa el grid del visualizador
+            gridTarget = registry.get("list.grid.visualizador");
+            logger.debug("[MasterListChangeListener] Modo no-proyecto detectado. Target grid: list.grid.visualizador");
+        }
+
+        // 2. Actualizar el modelo del grid de destino
+        if (gridTarget != null) {
+            SwingUtilities.invokeLater(() -> {
+                gridTarget.setModel(newMasterList);
+                // No es necesario repintar aquí, el cambio de modelo lo provoca.
+                logger.debug("[MasterListChangeListener] Grid actualizado con {} elementos.", newMasterList.getSize());
+            });
+        } else {
+            logger.error("ERROR [onMasterListChanged]: No se encontró el JList del grid para el modo {}.", currentMode);
+        }
+    } // --- Fin del método onMasterListChanged ---
     
     
 } // --- Fin de la clase GeneralController ---

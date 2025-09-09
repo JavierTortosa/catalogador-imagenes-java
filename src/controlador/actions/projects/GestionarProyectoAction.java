@@ -1,4 +1,3 @@
-// Contenido para GestionarProyectoAction.java
 package controlador.actions.projects;
 
 import java.awt.event.ActionEvent;
@@ -21,12 +20,6 @@ public class GestionarProyectoAction extends AbstractAction {
         putValue(Action.ACTION_COMMAND_KEY, AppActionCommands.CMD_PROYECTO_GESTIONAR);
     } // --- Fin del constructor ---
 
-//    @Override
-//    public void actionPerformed(ActionEvent e) {
-//    	
-//    	
-//        if (generalController == null) { return; }
-//        generalController.solicitarEntrarEnModoProyecto();
     
     @Override
     public void actionPerformed(ActionEvent e) {

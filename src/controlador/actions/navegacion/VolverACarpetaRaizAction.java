@@ -11,7 +11,11 @@ import modelo.VisorModel;
 
 public class VolverACarpetaRaizAction extends AbstractAction implements ContextSensitiveAction {
 
-    private final GeneralController generalController;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final GeneralController generalController;
 
     public VolverACarpetaRaizAction(GeneralController generalController, String text, ImageIcon icon) {
         super(text, icon);
