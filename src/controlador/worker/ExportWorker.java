@@ -29,45 +29,57 @@ public class ExportWorker extends SwingWorker<String, String> {
         this.dialogo = dialogo;
     } // --- Fin del método ExportWorker (constructor) ---
 
+    
     @Override
     protected String doInBackground() throws Exception {
-        // Calcular el número total de archivos a copiar de forma más precisa.
-        // Contamos una vez por cada imagen + una vez por cada archivo comprimido que NO se ignore.
-        long archivosComprimidosACopiar = cola.stream()
-                                           .filter(item -> item.getEstadoArchivoComprimido() != modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO)
-                                           .count();
-        int totalFilesToCopy = cola.size() + (int) archivosComprimidosACopiar;
+        // --- 1. CÁLCULO DE PROGRESO PRECISO ---
+        // Contamos cada imagen + CADA UNO de sus archivos asociados.
+        int totalFilesToCopy = 0;
+        for (ExportItem item : cola) {
+            totalFilesToCopy++; // Contamos la imagen en sí.
+            if (item.getEstadoArchivoComprimido() != modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO) {
+                if (item.getRutasArchivosAsociados() != null) {
+                    totalFilesToCopy += item.getRutasArchivosAsociados().size(); // Contamos TODOS los asociados.
+                }
+            }
+        }
+
         int filesCopied = 0;
         
+        // --- 2. BUCLE PRINCIPAL DE COPIA ---
         for (ExportItem item : cola) {
             if (isCancelled()) {
                 return "Cancelado por el usuario.";
             }
 
-            // --- Copiar archivo de imagen ---
+            // --- 2a. Copiar el archivo de imagen ---
             publish("Copiando imagen: " + item.getRutaImagen().getFileName());
             copyFile(item.getRutaImagen());
             filesCopied++;
             setProgress((int) ((double) filesCopied / totalFilesToCopy * 100));
 
-            // --- Copiar archivo comprimido SOLO si no se ha ignorado ---
+            // --- 2b. Copiar TODOS los archivos asociados (si procede) ---
             if (item.getEstadoArchivoComprimido() != modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO) {
-                // Verificar que la ruta del archivo comprimido no sea nula antes de intentar copiar
-                if (item.getRutaArchivoComprimido() != null) {
-                    publish("Copiando archivo: " + item.getRutaArchivoComprimido().getFileName());
-                    copyFile(item.getRutaArchivoComprimido());
-                    filesCopied++;
-                    setProgress((int) ((double) filesCopied / totalFilesToCopy * 100));
-                } else {
-                    // Esto es un caso de error, la lógica debería haber prevenido llegar aquí
-                    // con un estado ENCONTRADO_OK pero una ruta nula. Lo saltamos.
-                    logger.warn("WARN [ExportWorker]: Se intentó copiar un archivo comprimido nulo para la imagen " + item.getRutaImagen().getFileName());
+                
+                // Usamos el método correcto que devuelve la LISTA de archivos.
+                List<Path> archivosAsociados = item.getRutasArchivosAsociados();
+                
+                if (archivosAsociados != null && !archivosAsociados.isEmpty()) {
+                    // ¡EL BUCLE CLAVE! Iteramos sobre CADA archivo en la lista.
+                    for (Path archivoAExportar : archivosAsociados) {
+                        if (isCancelled()) return "Cancelado por el usuario.";
+                        
+                        publish("Copiando asociado: " + archivoAExportar.getFileName());
+                        copyFile(archivoAExportar);
+                        filesCopied++;
+                        setProgress((int) ((double) filesCopied / totalFilesToCopy * 100));
+                    }
                 }
             }
-            // --- FIN DE LA MODIFICACIÓN ---
         }
         return "Exportación completada con éxito. " + filesCopied + " archivos copiados.";
     } // --- Fin del método doInBackground ---
+    
     
     private void copyFile(Path source) throws IOException {
         Path destination = carpetaDestino.resolve(source.getFileName());

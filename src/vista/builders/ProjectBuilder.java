@@ -87,23 +87,55 @@ public class ProjectBuilder implements ThemeChangeListener {
         JPanel panelSeleccion = createSelectionPanel();
         JPanel panelDescartes = createDiscardsPanel();
         
+        
+        // 1. Le damos un tamaño mínimo al panel de descartes.
+        //    Esto le dice al SplitPane: "Por muy poco espacio que haya,
+        //    nunca me hagas más pequeño que esto". 100 píxeles suele ser suficiente.
+        panelDescartes.setMinimumSize(new java.awt.Dimension(100, 100));
+        
+        // 2. Le damos también un tamaño mínimo al panel de selección, para equilibrio.
+        panelSeleccion.setMinimumSize(new java.awt.Dimension(100, 150));
+        
         JSplitPane leftSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, panelSeleccion, panelDescartes);
-        leftSplit.setResizeWeight(0.6);
         leftSplit.setContinuousLayout(true);
         leftSplit.setBorder(null);
-        leftSplit.setDividerLocation(0.6);
+
+        leftSplit.setResizeWeight(0.85);
+        leftSplit.setDividerLocation(0.85);
+        
         registry.register("splitpane.proyecto.left", leftSplit);
         
         return leftSplit;
     } // --- FIN de metodo createLeftPanel ---
 
-    private JSplitPane createRightPanel() {
-        JPanel displayModesContainer = createDisplayModesContainer();
-        JPanel toolsPanel = createRightToolsPanel();
-
-        toolsPanel.setVisible(false);
+    
+    private JSplitPane createRightPanel() { // <-- CAMBIO: Volvemos a devolver JSplitPane
         
-        JSplitPane rightSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, displayModesContainer, toolsPanel);
+        // --- 1. Crear el panel de VISUALIZACIÓN con su propio marco ---
+        
+        // Obtenemos el CardLayout que contiene el visor de imagen y el grid.
+        JPanel displayModesContainer = createDisplayModesContainer();
+        
+        // ¡LA CLAVE! Envolvemos SÓLO este panel en un contenedor con el borde "Visor".
+        JPanel visorConBordePanel = new JPanel(new BorderLayout());
+        TitledBorder visorBorder = BorderFactory.createTitledBorder("Visor");
+        visorConBordePanel.setBorder(visorBorder);
+        visorConBordePanel.add(displayModesContainer, BorderLayout.CENTER);
+        
+        // Lo registramos para que el ThemeManager pueda actualizar el color del borde.
+        registry.register("panel.proyecto.visor.container", visorConBordePanel);
+
+        
+        // --- 2. Crear el panel de HERRAMIENTAS (Exportar/Etiquetar), que ya tiene sus propios marcos ---
+        JPanel toolsPanel = createRightToolsPanel();
+        toolsPanel.setVisible(false); // Lo ocultamos por defecto
+        
+        
+        // --- 3. Ensamblar ambos en el JSplitPane vertical ---
+        
+        // AHORA, el componente superior del SplitPane es nuestro nuevo panel con borde.
+        JSplitPane rightSplit = new JSplitPane(JSplitPane.VERTICAL_SPLIT, visorConBordePanel, toolsPanel);
+        
         rightSplit.setResizeWeight(0.7); 
         rightSplit.setContinuousLayout(true);
         rightSplit.setBorder(null);
@@ -111,12 +143,14 @@ public class ProjectBuilder implements ThemeChangeListener {
         rightSplit.setDividerSize(0);
         registry.register("splitpane.proyecto.right", rightSplit);
 
-        return rightSplit;
+        return rightSplit; // Devolvemos el JSplitPane completo
     } // --- FIN de metodo createRightPanel ---
+    
 
     private JPanel createSelectionPanel() {
         JPanel panelSeleccion = new JPanel(new BorderLayout());
         TitledBorder border = BorderFactory.createTitledBorder("Selección Actual: 0");
+        
         panelSeleccion.setBorder(border);
         registry.register("panel.proyecto.seleccion.container", panelSeleccion);
         
@@ -176,55 +210,89 @@ public class ProjectBuilder implements ThemeChangeListener {
         return panelDescartes;
     } // --- FIN de metodo createDiscardsPanel ---
     
+    
+    
     private JPanel createDisplayModesContainer() {
         JPanel displayModesContainer = new JPanel(new CardLayout());
         registry.register("container.displaymodes.proyecto", displayModesContainer); 
         displayModesContainer.setMinimumSize(new java.awt.Dimension(200, 200));
 
+        // --- Visor de Imagen Única ---
         ImageDisplayPanel singleImageViewPanel = new ImageDisplayPanel(this.themeManager, this.model);
         registry.register("panel.proyecto.display", singleImageViewPanel);
         registry.register("label.proyecto.imagen", singleImageViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
         singleImageViewPanel.setBorder(BorderFactory.createTitledBorder(""));
         
-        // Aquí estaba la lógica del menú contextual para el visor de imagen. Se mantiene por si es necesaria.
-        singleImageViewPanel.getInternalLabel().addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) { showProjectSingleImageMenu(e); } }
-            public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) { showProjectSingleImageMenu(e); } }
+        // Creamos el listener una sola vez para reutilizarlo
+        java.awt.event.MouseAdapter sharedContextMenuListener = new java.awt.event.MouseAdapter() {
+            public void mousePressed(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) showProjectContextMenu(e); }
+            public void mouseReleased(java.awt.event.MouseEvent e) { if (e.isPopupTrigger()) showProjectContextMenu(e); }
 
-            private void showProjectSingleImageMenu(java.awt.event.MouseEvent e) {
-                // Lógica del menú contextual... (La restauro de tu código original)
-                String currentImageKey = model.getSelectedImageKey();
-                if (currentImageKey == null || currentImageKey.isEmpty()) return;
-                
-                String listaActiva = model.getProyectoListContext().getNombreListaActiva();
-                JPopupMenu menu = new JPopupMenu();
-                // ... Añadir acciones al menú ...
-                if (menu.getComponentCount() > 0) menu.show(e.getComponent(), e.getX(), e.getY());
+            private void showProjectContextMenu(java.awt.event.MouseEvent e) {
+                // Si el clic es en una JList, seleccionamos el item bajo el cursor
+                if (e.getComponent() instanceof JList) {
+                    JList<?> list = (JList<?>) e.getComponent();
+                    int row = list.locationToIndex(e.getPoint());
+                    if (row != -1 && list.getSelectedIndex() != row) {
+                        list.setSelectedIndex(row);
+                    }
+                }
+
+                if (projectController != null) {
+                    JPopupMenu menu = projectController.crearMenuContextualVisorManualmente();
+                    if (menu != null && menu.getComponentCount() > 0) {
+                        menu.show(e.getComponent(), e.getX(), e.getY());
+                    }
+                }
             }
-        });
+        };
+        
+        singleImageViewPanel.getInternalLabel().addMouseListener(sharedContextMenuListener);
 
-
+        // --- Visor de Grid ---
         ThumbnailPreviewer projectGridPreviewer = new ThumbnailPreviewer(null, this.model, this.themeManager, null, this.registry);
-        GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, generalController.getVisorController().getServicioMiniaturas(), this.themeManager, generalController.getVisorController().getIconUtils(), projectGridPreviewer, projectController.getProjectManager(), this.projectController);
+        GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, generalController.getVisorController().getServicioMiniaturas(), this.themeManager, generalController.getVisorController().getIconUtils(), projectGridPreviewer, projectController.getProjectManager(), this.projectController, this.registry);
         
         if (this.toolbarManager != null) {
             JToolBar gridToolbar = this.toolbarManager.getToolbar("barra_grid");
             if (gridToolbar != null) gridViewPanel.setToolbar(gridToolbar);
         }
         registry.register("panel.display.grid.proyecto", gridViewPanel);
-        registry.register("list.grid.proyecto", gridViewPanel.getGridList(), "WHEEL_NAVIGABLE");
+        JList<String> gridList = gridViewPanel.getGridList(); // Obtenemos la JList interna
+        registry.register("list.grid.proyecto", gridList, "WHEEL_NAVIGABLE");
 
+        // --- LA CLAVE: AÑADIMOS EL MISMO LISTENER AL GRID ---
+        gridList.addMouseListener(sharedContextMenuListener);
+
+        // Ensamblaje final
         displayModesContainer.add(singleImageViewPanel, "VISTA_SINGLE_IMAGE");
         displayModesContainer.add(gridViewPanel, "VISTA_GRID");
 
         return displayModesContainer;
     } // --- FIN de metodo createDisplayModesContainer ---
-
+    
+    
     private JPanel createRightToolsPanel() {
         JPanel panelHerramientas = new JPanel(new BorderLayout());
         registry.register("panel.proyecto.herramientas.container", panelHerramientas);
         panelHerramientas.setMinimumSize(new java.awt.Dimension(200, 200));
-
+        
+	     // 1. Obtenemos el color de borde estándar del TEMA ACTUAL.
+         //         Esto garantiza que el color siempre sea visible y coherente con el Look & Feel.
+	     java.awt.Color borderColor = javax.swing.UIManager.getColor("Component.borderColor");
+	     if (borderColor == null) {
+	         borderColor = java.awt.Color.GRAY; // Un color de respaldo por si acaso
+	     }
+	
+	     // 2. Creamos un borde de línea con ese color.
+	     javax.swing.border.Border lineBorder = javax.swing.BorderFactory.createLineBorder(borderColor);
+	
+	     // 3. Creamos un borde de espacio (padding) para que la línea no esté pegada al contenido.
+	     javax.swing.border.Border emptyBorder = javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2); // 2 píxeles de espacio
+	
+	     // 4. Creamos un borde compuesto que une el espacio (exterior) y la línea (interior).
+	     panelHerramientas.setBorder(javax.swing.BorderFactory.createCompoundBorder(emptyBorder, lineBorder));
+	
         JTabbedPane herramientasTabbedPane = new JTabbedPane();
         registry.register("tabbedpane.proyecto.herramientas", herramientasTabbedPane);
 
@@ -316,4 +384,7 @@ public class ProjectBuilder implements ThemeChangeListener {
             }
         };
     } // --- FIN de metodo createContextMenuListener ---
+    
 } // --- FIN DE LA CLASE ProjectBuilder ---
+
+

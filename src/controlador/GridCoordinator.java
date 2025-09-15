@@ -28,13 +28,7 @@ import servicios.image.ThumbnailService;
  * Gestor especializado en la lógica de "ventana deslizante" para una JList
  * configurada como un grid. Reacciona a los cambios en la lista maestra.
  */
-// =========================================================================
-// === INICIO DE MODIFICACIÓN: IMPLEMENTAR INTERFAZ ===
-// =========================================================================
 public class GridCoordinator implements MasterListChangeListener {
-// =========================================================================
-// === FIN DE MODIFICACIÓN ===
-// =========================================================================
 
     private static final Logger logger = LoggerFactory.getLogger(GridCoordinator.class);
 
@@ -89,7 +83,7 @@ public class GridCoordinator implements MasterListChangeListener {
     } // --- Fin del constructor GridCoordinator ---
 
     // =========================================================================
-    // === INICIO DE MODIFICACIÓN: AÑADIR MÉTODO DE LA INTERFAZ ===
+    // === MÉTODO DE LA INTERFAZ ===
     // =========================================================================
     
     @Override
@@ -110,8 +104,6 @@ public class GridCoordinator implements MasterListChangeListener {
         }
     } // --- Fin del método onMasterListChanged ---
     
-    // =========================================================================
-    // === FIN DE MODIFICACIÓN ===
     // =========================================================================
 
     /**
@@ -141,7 +133,6 @@ public class GridCoordinator implements MasterListChangeListener {
     } // --- Fin del método setEnabled ---
 
     // El resto de la clase permanece igual por ahora
-    // ... (syncSelectionFromMaster, updateGridView, etc. sin cambios respecto a la última versión funcional)
     
     private void updateGridView() {
         if (!isCoordinatorEnabled || fullMasterModel == null || fullMasterModel.isEmpty() || gridList.getWidth() == 0) {
@@ -192,9 +183,6 @@ public class GridCoordinator implements MasterListChangeListener {
 
     } // --- Fin del método updateGridView ---
     
- // =========================================================================
-    // === INICIO DE LA MODIFICACIÓN QUIRÚRGICA ===
-    // =========================================================================
     /**
      * Sincroniza la vista del grid para mostrar y seleccionar un índice maestro.
      * Mantiene la lógica original de scroll por píxeles, pero asegura que la selección
@@ -246,9 +234,6 @@ public class GridCoordinator implements MasterListChangeListener {
             isExternalSelection = false;
         });
     } // --- Fin del método syncSelectionFromMaster ---
-    // =========================================================================
-    // === FIN DE LA MODIFICACIÓN QUIRÚRGICA ===
-    // =========================================================================
     
     private void precacheThumbnailsAsync(List<Path> paths) {
         if (gridThumbnailService == null || paths.isEmpty() || precacheExecutor == null || precacheExecutor.isShutdown()) return;

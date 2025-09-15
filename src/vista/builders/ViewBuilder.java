@@ -377,6 +377,7 @@ public class ViewBuilder{
     private JScrollPane createThumbnailScrollPane(String listRegistryKey, String scrollRegistryKey) {
         // Usa el modelo de miniaturas compartido que se le inyecta al builder
     	JList<String> thumbnailList = new JList<>();
+    	
     	registry.register(listRegistryKey, thumbnailList, "WHEEL_NAVIGABLE");
 
         MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
@@ -540,7 +541,7 @@ public class ViewBuilder{
         //    no necesita esta dependencia para la funcionalidad actual.
 		
 	    // 4. Crear una instancia del GridDisplayPanel, pasándole AHORA el previewer.
-	    GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, this.gridThumbnailService, this.themeManager, this.iconUtils, gridPreviewer);
+	    GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, this.gridThumbnailService, this.themeManager, this.iconUtils, gridPreviewer, this.registry);
 		
 	    // =========================================================================
 	    // === FIN DE LA MODIFICACIÓN ===

@@ -43,6 +43,7 @@ public class FolderTreeManager {
         
         treeModel = new FileSystemTreeModel();
         folderTree = new JTree(treeModel);
+        
         folderTree.setCellRenderer(new FileTreeCellRenderer());
         
         folderTree.addMouseListener(new TreeMouseListener());
@@ -52,6 +53,7 @@ public class FolderTreeManager {
         });
         
         JScrollPane scrollPane = new JScrollPane(folderTree);
+        this.generalController.getRegistry().register("scroll.arbol", scrollPane);
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(scrollPane, BorderLayout.CENTER);
         

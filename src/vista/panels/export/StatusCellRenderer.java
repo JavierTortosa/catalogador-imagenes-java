@@ -2,6 +2,7 @@ package vista.panels.export;
 
 import java.awt.Color;
 import java.awt.Component;
+import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
@@ -41,21 +42,34 @@ public class StatusCellRenderer extends DefaultTableCellRenderer {
         ExportStatus status = item.getEstadoArchivoComprimido();
         
         // 1. Establecer el texto de la celda
+        
         String textoCelda = "";
         switch (status) {
-            case ENCONTRADO_OK:
+//            case ENCONTRADO_OK:
+            	
+//                // Obtenemos la LISTA de archivos. Si no está vacía, mostramos el nombre del PRIMERO.
+//                List<java.nio.file.Path> archivosAsociados = item.getRutasArchivosAsociados();
+//                if (archivosAsociados != null && !archivosAsociados.isEmpty()) {
+//                    // Tomamos el nombre del primer archivo de la lista.
+//                    textoCelda = archivosAsociados.get(0).getFileName().toString();
+//                    
+//                    // Si hay más de un archivo, añadimos un indicador para que el usuario lo sepa.
+//                    if (archivosAsociados.size() > 1) {
+//                        textoCelda += " (+" + (archivosAsociados.size() - 1) + " más)";
+//                    }
+//                }
+//                break;
             case ASIGNADO_MANUAL:
-                // Si está OK, mostramos el nombre del archivo comprimido.
-                if (item.getRutaArchivoComprimido() != null) {
-                    textoCelda = item.getRutaArchivoComprimido().getFileName().toString();
-                }
+                // Para los asignados manualmente, mostramos un texto descriptivo.
+                textoCelda = "ASIGNADO MANUALMENTE";
                 break;
             default:
-                // Para los demás estados, usamos el nombre del enum.
+                // Para todos los demás estados, usamos el nombre del enum.
                 textoCelda = status.toString();
                 break;
         }
         setText(textoCelda);
+        
 
         // 2. Establecer el icono de la celda
         // Usamos el nombre del icono guardado en nuestro enum y lo cargamos con IconUtils.

@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,26 +40,40 @@ public class ExportQueueManager {
      * @param rutasSeleccionadas La lista de rutas absolutas de las imágenes seleccionadas.
      */
     public void prepararColaDesdeSeleccion(List<Path> rutasSeleccionadas) {
-        logger.debug("[ExportQueueManager] Preparando cola para " + rutasSeleccionadas.size() + " imágenes.");
-        limpiarCola();
+        logger.debug("[ExportQueueManager] Reconciliando cola para " + rutasSeleccionadas.size() + " imágenes.");
 
+        // Paso 1: Guardar el estado antiguo en un mapa para acceso rápido.
+        // La clave es la ruta de la imagen, el valor es el ExportItem completo con su estado.
+        Map<Path, ExportItem> estadoAntiguo = this.colaDeExportacion.stream()
+            .collect(Collectors.toMap(ExportItem::getRutaImagen, item -> item, (item1, item2) -> item1));
+
+        // Paso 2: Crear la nueva cola que vamos a construir.
+        List<ExportItem> nuevaCola = new ArrayList<>();
+
+        // Paso 3: Iterar sobre la NUEVA lista de imágenes seleccionadas.
         for (Path rutaImagen : rutasSeleccionadas) {
-            ExportItem item = new ExportItem(rutaImagen);
-
-            // --- LÓGICA DE VERIFICACIÓN DE EXISTENCIA ---
-            if (Files.exists(rutaImagen) && Files.isRegularFile(rutaImagen)) {
-                // Si la imagen existe, procedemos a buscar su archivo comprimido asociado.
-                buscarArchivoComprimidoAsociado(item);
+            // Comprobar si esta imagen ya existía en la cola anterior.
+            if (estadoAntiguo.containsKey(rutaImagen)) {
+                // ¡Sí existía! La recuperamos del mapa y la añadimos a la nueva cola.
+                // Esto preserva cualquier asignación manual o estado que tuviera.
+                nuevaCola.add(estadoAntiguo.get(rutaImagen));
             } else {
-                // Si la imagen NO existe, marcamos el item con el nuevo estado y no buscamos nada más.
-                logger.warn("WARN [ExportQueueManager]: La imagen original no se encontró en la ruta: " + rutaImagen);
-                item.setEstadoArchivoComprimido(ExportStatus.IMAGEN_NO_ENCONTRADA);
+                // No existía. Es una imagen recién marcada.
+                // Creamos un nuevo ExportItem, buscamos sus archivos y lo añadimos.
+                ExportItem itemNuevo = new ExportItem(rutaImagen);
+                if (Files.exists(rutaImagen) && Files.isRegularFile(rutaImagen)) {
+                    buscarArchivoComprimidoAsociado(itemNuevo);
+                } else {
+                    logger.warn("WARN [ExportQueueManager]: La imagen original no se encontró en la ruta: " + rutaImagen);
+                    itemNuevo.setEstadoArchivoComprimido(ExportStatus.IMAGEN_NO_ENCONTRADA);
+                }
+                nuevaCola.add(itemNuevo);
             }
-            // --- FIN DE LA LÓGICA DE VERIFICACIÓN ---
-
-            this.colaDeExportacion.add(item);
         }
-        logger.debug("[ExportQueueManager] Preparación de cola finalizada.");
+
+        // Paso 4: Reemplazar la cola antigua por la nueva, ya reconciliada.
+        this.colaDeExportacion = nuevaCola;
+        logger.debug("[ExportQueueManager] Reconciliación de cola finalizada. Nuevo tamaño: {}", this.colaDeExportacion.size());
     } // --- Fin del método prepararColaDesdeSeleccion ---
 
     
@@ -123,53 +138,6 @@ public class ExportQueueManager {
         return (puntoIndex == -1) ? nombreArchivo : nombreArchivo.substring(0, puntoIndex);
     } // ---FIN de metodo [obtenerNombreBase]---
     
-    
-//    /**
-//     * Lógica simple para buscar un archivo comprimido asociado a una imagen.
-//     * @param item El ExportItem que se está procesando.
-//     */
-//    public void buscarArchivoComprimidoAsociado(ExportItem item) {
-//        Path rutaImagen = item.getRutaImagen();
-//        Path directorio = rutaImagen.getParent();
-//        if (directorio == null || !Files.isDirectory(directorio)) {
-//            item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
-//            return;
-//        }
-//
-//        String nombreBase = obtenerNombreBase(rutaImagen.getFileName().toString());
-//
-//        try (Stream<Path> stream = Files.list(directorio)) {
-//            List<Path> candidatos = stream
-//                .filter(p -> Files.isRegularFile(p) && !p.equals(rutaImagen))
-//                .filter(p -> {
-//                    String nombreArchivoCandidato = p.getFileName().toString();
-//                    String nombreBaseArchivoCandidato = obtenerNombreBase(nombreArchivoCandidato);
-//                    // Comprobamos si el nombre base del candidato es igual al de la imagen
-//                    // y si la extensión es de un tipo comprimido conocido.
-//                    return nombreBase.equalsIgnoreCase(nombreBaseArchivoCandidato) && esExtensionComprimida(nombreArchivoCandidato);
-//                })
-//                .collect(Collectors.toList());
-//
-//            if (candidatos.size() == 1) {
-//                item.setRutaArchivoComprimido(candidatos.get(0));
-//                item.setEstadoArchivoComprimido(ExportStatus.ENCONTRADO_OK);
-//            } else if (candidatos.size() > 1) {
-//                item.setCandidatosArchivo(candidatos);
-//                item.setEstadoArchivoComprimido(ExportStatus.MULTIPLES_CANDIDATOS);
-//            } else {
-//                item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
-//            }
-//        } catch (IOException e) {
-//            logger.error("Error buscando archivo asociado para " + rutaImagen + ": " + e.getMessage());
-//            item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
-//        }
-//    } // --- Fin del método buscarArchivoComprimidoAsociado ---
-    
-    
-//    private String obtenerNombreBase(String nombreArchivo) {
-//        int puntoIndex = nombreArchivo.lastIndexOf('.');
-//        return (puntoIndex == -1) ? nombreArchivo : nombreArchivo.substring(0, puntoIndex);
-//    } // --- Fin del método obtenerNombreBase ---
     
     private boolean esExtensionComprimida(String nombreArchivo) {
         String nombreEnMinusculas = nombreArchivo.toLowerCase();

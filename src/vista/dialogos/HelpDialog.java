@@ -75,6 +75,7 @@ public class HelpDialog extends JDialog {
         DefaultMutableTreeNode proyectoFolder = new DefaultMutableTreeNode("Modo Proyecto");
         proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Introducción", "proyecto.html")));
         proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Controles y Pestañas", "proyecto_controles.html")));
+        proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("El Panel de Exportación", "proyecto_exportar.html")));
         top.add(proyectoFolder);
 
         DefaultMutableTreeNode carruselFolder = new DefaultMutableTreeNode("Modo Carrusel");

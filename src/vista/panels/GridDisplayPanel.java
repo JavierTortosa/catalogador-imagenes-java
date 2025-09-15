@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import controlador.ProjectController;
 import controlador.managers.interfaces.IProjectManager; // <<< AÑADIR IMPORT
+import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
@@ -30,7 +31,8 @@ public class GridDisplayPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private JList<String> gridList;
     private JPanel toolbarContainer;
-
+//    private ComponentRegistry registry;
+    
     /**
      * Constructor para el MODO VISUALIZADOR.
      * No necesita un IProjectManager.
@@ -40,10 +42,11 @@ public class GridDisplayPanel extends JPanel {
             ThumbnailService gridThumbnailService,
             ThemeManager themeManager,
             IconUtils iconUtils,
-            ThumbnailPreviewer gridPreviewer
+            ThumbnailPreviewer gridPreviewer,
+            ComponentRegistry registry
     ) {
         // Llama al constructor principal pasando 'null' para el projectManager.
-        this(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, null, null);
+        this(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, null, null, registry);
     } // ---FIN de metodo ---
 
     /**
@@ -57,7 +60,8 @@ public class GridDisplayPanel extends JPanel {
             IconUtils iconUtils,
             ThumbnailPreviewer gridPreviewer,
             IProjectManager projectManager,
-            ProjectController projectController
+            ProjectController projectController,
+            ComponentRegistry registry
     ) {
         super(new BorderLayout());
         logger.debug("Creando un nuevo GridDisplayPannel");
@@ -91,6 +95,14 @@ public class GridDisplayPanel extends JPanel {
         gridList.setFixedCellHeight(renderer.getCellSize().height);
 
         JScrollPane scrollPane = new JScrollPane(gridList);
+        
+        
+        if (projectManager == null) {
+            registry.register("scroll.grid.visualizador", scrollPane);
+        } else {
+            registry.register("scroll.grid.proyecto", scrollPane);
+        }
+        
         scrollPane.getVerticalScrollBar().setUnitIncrement(20);
         
         add(scrollPane, BorderLayout.CENTER);

@@ -1,9 +1,10 @@
 package vista.panels.export;
 
-import java.nio.file.Path; 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.swing.table.AbstractTableModel;
+
 import modelo.proyecto.ExportItem;
 
 public class ExportTableModel extends AbstractTableModel {
@@ -122,3 +123,4 @@ public class ExportTableModel extends AbstractTableModel {
     } // ---FIN de metodo [clear]---
 
 } // --- FIN de clase [ExportTableModel]---
+

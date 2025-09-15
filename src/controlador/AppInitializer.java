@@ -101,6 +101,8 @@ public class AppInitializer {
     private ToolbarBuilder toolbarBuilder;
     private MenuBarBuilder menuBuilder;
     
+    private vista.builders.PopupMenuBuilder popupMenuBuilder;
+    
     private List<ThumbnailPreviewer> activePreviewers;
     private VisorController controllerRefParaNotificacion;
 
@@ -169,6 +171,9 @@ public class AppInitializer {
         
         // UI Builders y Servicios de UI
         UIDefinitionService uiDefSvc = new UIDefinitionService();
+        
+        this.popupMenuBuilder = new vista.builders.PopupMenuBuilder(this.themeManager, this.configuration, this.controller);
+        
         this.toolbarBuilder = new ToolbarBuilder(this.themeManager, this.iconUtils, this.controller, configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24), this.registry);
         this.toolbarManager = new ToolbarManager(this.registry, this.configuration, this.toolbarBuilder, uiDefSvc, this.model);
         this.projectBuilder = new ProjectBuilder(this.registry, this.model, this.themeManager, this.generalController, this.toolbarManager, this.projectController); // <-- USAR EL CAMPO
@@ -271,6 +276,7 @@ public class AppInitializer {
         projectController.setModel(this.model);
         projectController.setController(this.controller);
         projectController.setListCoordinator(this.listCoordinator);
+        
         projectController.setProjectListCoordinator(this.projectListCoordinator);
         projectController.setDisplayModeManager(this.displayModeManager);
 
@@ -303,6 +309,9 @@ public class AppInitializer {
         configAppManager.setBackgroundControlManager(this.backgroundControlManager);
         toolbarManager.setBackgroundControlManager(this.backgroundControlManager);
         actionFactory.setCarouselManager(carouselManager);
+        
+        toolbarManager.setProjectController(this.projectController);
+        
         actionFactory.setDisplayModeManager(this.displayModeManager);
         this.model.addMasterListChangeListener(this.generalController);
         

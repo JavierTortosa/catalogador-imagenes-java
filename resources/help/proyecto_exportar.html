@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ayuda: Panel de Exportación</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>El Panel de Exportación</h1>
+    <p>
+        El Panel de Exportación es la herramienta principal para recopilar y organizar las imágenes de tu proyecto junto con sus <strong>archivos comprimidos asociados</strong> (como <code>.zip</code> o <code>.rar</code>) para su fácil distribución o respaldo.
+    </p>
+
+    <!-- SECCIÓN: ANATOMÍA DEL PANEL -->
+    <h2>Anatomía del Panel</h2>
+    <p>El panel se divide en tres áreas funcionales:</p>
+
+    <h3>1. La Tabla de Exportación</h3>
+    <p>Es el componente central donde se gestiona la lista de archivos. Cada columna tiene un propósito específico:</p>
+    
+    <table class="help-table">
+        <thead>
+            <tr>
+                <th>Columna</th>
+                <th>Descripción</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>✔ (Checkbox)</strong></td>
+                <td>Permite seleccionar o deseleccionar un ítem para incluirlo en la exportación. Puedes marcar/desmarcar todos haciendo clic en la cabecera de la columna.</td>
+            </tr>
+            <tr>
+                <td><strong>Imagen</strong></td>
+                <td>Muestra el nombre del archivo de la imagen. Puedes hacer clic en la cabecera para ordenar la lista alfabéticamente.</td>
+            </tr>
+            <tr>
+                <td><strong>Estado</strong></td>
+                <td>La columna más importante. Muestra con iconos y colores si se ha encontrado el archivo comprimido asociado. Consulta la sección de estados más abajo para una explicación detallada.</td>
+            </tr>
+            <tr>
+                <td><strong>Archivos Asignados</strong></td>
+                <td>Lista los nombres de los archivos comprimidos que se copiarán junto con la imagen. Si no se encontró ninguno, mostrará "Ninguno".</td>
+            </tr>
+        </tbody>
+    </table>
+    <p class="note">
+        <strong>Nota:</strong> Puedes hacer clic derecho sobre una fila de la tabla para acceder a un menú contextual con acciones rápidas.
+    </p>
+
+    <h3>2. El Panel de Detalles</h3>
+    <p>
+        Ubicado debajo de la tabla (puedes mostrarlo u ocultarlo), este panel muestra en detalle la lista de <strong>rutas completas</strong> de los archivos comprimidos asignados al ítem seleccionado. Cuenta con su propia barra de botones:
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21007-add_items_exportar_48x48.png"></td>
+            <td><strong>Añadir:</strong> Permite asignar manualmente uno o más archivos comprimidos a la imagen seleccionada.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21008-del_item_exportar.png"></td>
+            <td><strong>Quitar:</strong> Elimina un archivo asociado de la lista (no borra el archivo del disco).</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21009-locate_item_exportar.png"></td>
+            <td><strong>Localizar:</strong> Abre el explorador de archivos en la ubicación del archivo asociado seleccionado.</td>
+        </tr>
+    </table>
+    
+    <h3>3. La Barra de Acciones Inferior</h3>
+    <p>Contiene los controles finales para el proceso de exportación:</p>
+    <table class="controls-table">
+         <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_6001-selector_de_carpetas_48x48.png"></td>
+            <td><strong>Seleccionar Carpeta:</strong> Abre un diálogo para elegir la carpeta de destino obligatoria para la exportación.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21006-items_exportar_48x48.png"></td>
+            <td><strong>Mostrar/Ocultar Detalles:</strong> Alterna la visibilidad del panel de detalles inferior.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21002-asignar_archivo.png"></td>
+            <td><strong>Asignar Archivo:</strong> Permite localizar manualmente el archivo comprimido (.rar, .zip) si la aplicación no lo encontró automáticamente.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21003-ignorar_comprimido.png"></td>
+            <td><strong>Ignorar Comprimido:</strong> Marca un archivo como "listo" para exportar aunque no se haya encontrado su .rar/.zip asociado.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21004-relocalizar_imagen.png"></td>
+            <td><strong>Relocalizar Imagen:</strong> Si una imagen del proyecto fue movida de su ubicación original, esta opción permite encontrarla en su nueva ruta.</td>
+        </tr>
+         <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21010-estado_exportación.png"></td>
+            <td><strong>Refrescar Estado:</strong> Vuelve a escanear el disco para actualizar el estado de todos los archivos de la tabla. Útil si has hecho cambios fuera de la aplicación.</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21001-quitar_de_cola.png"></td>
+            <td><strong>Mover a Descartes:</strong> Quita la imagen seleccionada de la cola de exportación y la mueve a la lista de "Descartes".</td>
+        </tr>
+        <tr>
+            <td class="icon-cell"><img src="ICON_PLACEHOLDER_21005-iniciar_exportación.png"></td>
+            <td><strong>Iniciar Exportación:</strong> Comienza el proceso de copia. Este botón solo se activará cuando todos los ítems marcados estén listos y se haya seleccionado una carpeta de destino.</td>
+        </tr>
+    </table>
+
+    <!-- SECCIÓN: ESTADOS -->
+    <h2>Entendiendo la Columna 'Estado'</h2>
+    <p>El estado de cada ítem determina si puede ser exportado correctamente. Aquí tienes una guía de los posibles estados:</p>
+
+    <table class="help-table">
+        <thead>
+            <tr>
+                <th>Estado</th>
+                <th>Significado y Acción Requerida</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><span class="status-ok">✔ ENCONTRADO_OK</span></td>
+                <td>¡Perfecto! La aplicación ha encontrado automáticamente uno o más archivos comprimidos asociados. No se requiere ninguna acción.</td>
+            </tr>
+            <tr>
+                <td><span class="status-warn">⚠ NO_ENCONTRADO</span></td>
+                <td>La aplicación no encontró ningún archivo comprimido que coincida. Debes <strong>asignarlo manualmente</strong> o marcarlo para <strong>ignorar</strong>.</td>
+            </tr>
+            <tr>
+                <td><span class="status-manual">ℹ ASIGNADO_MANUAL</span></td>
+                <td>Has asignado manualmente un archivo a esta imagen. El ítem está listo para ser exportado.</td>
+            </tr>
+            <tr>
+                <td><span class="status-ignore">✔ IGNORAR_COMPRIMIDO</span></td>
+                <td>Has decidido exportar esta imagen sin ningún archivo comprimido asociado. El ítem está listo para ser exportado.</td>
+            </tr>
+            <tr>
+                <td><span class="status-error">❌ IMAGEN_NO_ENCONTRADA</span></td>
+                <td><strong>¡Error Crítico!</strong> El archivo de la imagen original no se encuentra en el disco. Debes usar la opción "Relocalizar Imagen" para buscar su nueva ubicación.</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>

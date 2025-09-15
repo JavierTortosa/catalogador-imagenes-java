@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -15,6 +16,7 @@ import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.border.TitledBorder;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 
@@ -24,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import controlador.ProjectController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.ToolbarManager;
+import controlador.utils.ComponentRegistry;
 import modelo.proyecto.ExportItem;
 
 public class ExportPanel extends JPanel {
@@ -42,6 +45,9 @@ public class ExportPanel extends JPanel {
     private ExportDetailPanel detailPanel;
     private JSplitPane splitPane;
     
+    private boolean highlightingListenerConfigured = false;
+    
+    
     private int lastDividerLocation = -1; // Para recordar la posición del divisor
     private boolean isDetailsPanelVisible = false; // Para saber el estado actual
     
@@ -58,6 +64,16 @@ public class ExportPanel extends JPanel {
         
         initComponents();
         
+        // LA LLAMADA A setupHighlightingListener() SE ELIMINA COMPLETAMENTE DE AQUÍ
+        
+        Component parent = tablaExportacion.getParent();
+        if (parent instanceof javax.swing.JViewport) {
+            Component grandparent = parent.getParent();
+            if (grandparent instanceof JScrollPane) {
+                projectController.getRegistry().register("scroll.tabla.exportacion", (JScrollPane) grandparent);
+            }
+        }
+        
         if (detailPanel != null && splitPane != null) {
             detailPanel.setVisible(false);
             splitPane.setDividerSize(0);
@@ -68,7 +84,23 @@ public class ExportPanel extends JPanel {
 
 
     private void initComponents() {
-        // --- Tabla de Exportación y Panel de Detalles (SIN CAMBIOS) ---
+        this.setLayout(new BorderLayout(5, 5));
+
+        ToolbarManager toolbarManager = projectController.getController().getToolbarManager();
+        if (toolbarManager != null) {
+            JToolBar exportActionsToolbar = toolbarManager.getToolbar("acciones_exportacion");
+            if (exportActionsToolbar != null) {
+                exportActionsToolbar.setOrientation(JToolBar.VERTICAL);
+                exportActionsToolbar.setFloatable(false);
+                this.add(exportActionsToolbar, BorderLayout.EAST);
+            }
+        }
+        
+        JPanel mainContentPanel = new JPanel(new BorderLayout(5, 5));
+        TitledBorder exportBorder = BorderFactory.createTitledBorder("Exportar");
+        mainContentPanel.setBorder(exportBorder);
+        projectController.getController().getGeneralController().getRegistry().register("panel.exportacion.container", mainContentPanel);
+
         tablaExportacion = new JTable(this.tableModel); 
         tablaExportacion.setFillsViewportHeight(true);
         tablaExportacion.setShowGrid(true);
@@ -80,9 +112,12 @@ public class ExportPanel extends JPanel {
         tablaExportacion.getTableHeader().getColumnModel().getColumn(0).setHeaderRenderer(new CheckHeaderRenderer());
         TableColumn statusColumn = tablaExportacion.getColumnModel().getColumn(2);
         statusColumn.setCellRenderer(new vista.panels.export.StatusCellRenderer(projectController.getController().getIconUtils()));
+        
         TableColumn assignedFilesColumn = tablaExportacion.getColumnModel().getColumn(3);
-        assignedFilesColumn.setCellRenderer(new MultiLineCellRenderer());
+        Action toggleDetailsAction = projectController.getController().getActionMap().get(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION);
+        assignedFilesColumn.setCellRenderer(new MultiLineCellRenderer(toggleDetailsAction));
         assignedFilesColumn.setPreferredWidth(300);
+        
         tablaExportacion.getTableHeader().addMouseListener(new HeaderMouseListener(tablaExportacion));
         
         tablaExportacion.getSelectionModel().addListSelectionListener(e -> {
@@ -99,69 +134,103 @@ public class ExportPanel extends JPanel {
         });
         
         JScrollPane scrollTabla = new JScrollPane(tablaExportacion);
-
+        
         detailPanel = new ExportDetailPanel();
+        
+        projectController.getRegistry().register("panel.exportacion.detalles", detailPanel);
+        
+        detailPanel.setPreferredSize(new java.awt.Dimension(0, 120));
+        detailPanel.setMinimumSize(new java.awt.Dimension(0, 120));
         
         Action addAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE);
         Action removeAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE);
         Action locateAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_LOCATE_ASSOCIATED_FILE);
         
         detailPanel.setActions(addAction, removeAction, locateAction);
-                
-        detailPanel.setPreferredSize(new java.awt.Dimension(0, 120));
-
+        
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, scrollTabla, detailPanel);
         splitPane.setBorder(null);
         splitPane.setResizeWeight(1.0);
+        
+        mainContentPanel.add(splitPane, BorderLayout.CENTER);
 
-        this.add(splitPane, BorderLayout.CENTER);
+        JPanel southPanel = new JPanel(new BorderLayout(10, 0));
+        southPanel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
+        
+        this.lblResumen = new JLabel("Cargue la selección para ver el estado.");
+        southPanel.add(this.lblResumen, BorderLayout.WEST);
 
-        // --- LÓGICA DEL PANEL SUR (CORREGIDA) ---
-        ToolbarManager toolbarManager = projectController.getController().getToolbarManager();
-        if (toolbarManager != null) {
-            // 1. Obtenemos la toolbar que ahora SÓLO contiene el JTextField y los botones.
-            JToolBar exportActionsToolbar = toolbarManager.getToolbar("acciones_exportacion");
-            
-            if (exportActionsToolbar != null) {
-                // 2. Obtenemos las referencias a los componentes que la toolbar SÍ crea.
-                this.txtCarpetaDestino = (JTextField) projectController.getController().getGeneralController().getRegistry().get("textfield.export.destino");
-                if (this.txtCarpetaDestino != null) {
-                    this.originalTextFieldBorder = this.txtCarpetaDestino.getBorder();
-                }
-                
-                // 3. Creamos un panel contenedor con BorderLayout para el layout manual.
-                JPanel southPanel = new JPanel(new BorderLayout(10, 0));
-                southPanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 5, 2, 5)); // Padding sutil
-                
-                // 4. Creamos nuestro JLabel manualmente.
-                this.lblResumen = new JLabel("Cargue la selección para ver el estado.");
-                
-                // 5. LO MÁS IMPORTANTE: Registramos el JLabel creado manualmente.
-                //projectController.getController().getGeneralController().getRegistry().register("label.export.resumen", this.lblResumen);
-                
-                // 6. Añadimos el JLabel a la IZQUIERDA del panel contenedor.
-                southPanel.add(this.lblResumen, BorderLayout.WEST);
-                
-                // 7. Creamos un JPanel normal para los controles, en lugar de usar la JToolBar directamente.
-                // FlowLayout alineado a la derecha, con 5px de espacio horizontal y vertical.
-                JPanel controlsPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 5, 0));
-                controlsPanel.setOpaque(false); // Para que herede el fondo del panel sur
-
-                // 8. Movemos los componentes DESDE la JToolBar a nuestro nuevo JPanel.
-                // Esto preserva las acciones y tooltips que el ToolbarBuilder ya configuró.
-                while (exportActionsToolbar.getComponentCount() > 0) {
-                    controlsPanel.add(exportActionsToolbar.getComponent(0));
-                }
-
-                // 9. Añadimos nuestro panel de controles a la DERECHA del panel sur.
-                southPanel.add(controlsPanel, BorderLayout.EAST);
-                
-                // 10. Añadimos el panel contenedor al sur del ExportPanel principal.
-                this.add(southPanel, BorderLayout.SOUTH);
-                
-            } 
+        this.txtCarpetaDestino = (JTextField) projectController.getController().getGeneralController().getRegistry().get("textfield.export.destino");
+        if (this.txtCarpetaDestino != null) {
+            this.originalTextFieldBorder = this.txtCarpetaDestino.getBorder();
+            southPanel.add(this.txtCarpetaDestino, BorderLayout.CENTER);
         }
+        
+        mainContentPanel.add(southPanel, BorderLayout.SOUTH);
+
+        this.add(mainContentPanel, BorderLayout.CENTER);
+        
     } // ---FIN de metodo [initComponents]---
+    
+    
+    public void setupHighlightingListener() {
+        // Si ya está configurado, no hacemos nada más.
+        if (highlightingListenerConfigured) {
+            return;
+        }
+        
+        ComponentRegistry registry = projectController.getController().getComponentRegistry();
+        final javax.swing.AbstractButton detailsButton = registry.get("interfaz.boton.acciones_exportacion.export_detalles_seleccion");
+        
+        if (detailsButton == null) {
+            logger.error("CRITICAL: El botón de detalles no se encontró en el registro. El resaltado no funcionará.");
+            return;
+        }
+
+        // 1. Guardamos el borde que el tema le ha puesto al botón.
+        final javax.swing.border.Border normalBorder = detailsButton.getBorder();
+        
+        // 2. Obtenemos el color de acento del tema. Es el color naranja/azul que usan los componentes con foco.
+        java.awt.Color accentColor = javax.swing.UIManager.getColor("Component.accentColor");
+        if (accentColor == null) {
+            // Si por alguna razón el tema no lo define, usamos un azul brillante como respaldo.
+            accentColor = new java.awt.Color(50, 150, 255); 
+        }
+        
+        // 3. Creamos nuestro borde de realce. 2 píxeles de grosor.
+        final javax.swing.border.Border highlightBorder = javax.swing.BorderFactory.createLineBorder(accentColor, 2);
+        
+        tablaExportacion.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = tablaExportacion.getSelectedRow();
+                ExportItem selectedItem = (selectedRow != -1) ? tableModel.getItemAt(selectedRow) : null;
+                
+                boolean shouldHighlight = (selectedItem != null 
+                                           && selectedItem.getRutasArchivosAsociados() != null 
+                                           && selectedItem.getRutasArchivosAsociados().size() > 1);
+                
+                // --- APLICACIÓN DEL PLAN B ---
+                // Simplemente cambiamos el objeto Border del botón.
+                detailsButton.setBorder(shouldHighlight ? highlightBorder : normalBorder);
+            }
+        });
+        
+        highlightingListenerConfigured = true;
+        logger.debug("[ExportPanel] Listener de resaltado (con setBorder) configurado CORRECTAMENTE.");
+    } // ---FIN de metodo [setupHighlightingListener]---
+    
+    
+    public void actualizarTituloExportacion(int seleccionados, int total) {
+        ComponentRegistry registry = projectController.getController().getGeneralController().getRegistry();
+        JPanel panelExportacion = registry.get("panel.exportacion.container");
+        
+        if (panelExportacion != null && panelExportacion.getBorder() instanceof TitledBorder) {
+            TitledBorder border = (TitledBorder) panelExportacion.getBorder();
+            String nuevoTitulo = String.format("Exportar (%d/%d)", seleccionados, total);
+            border.setTitle(nuevoTitulo);
+            panelExportacion.repaint();
+        }
+    } // FIN del metodo actualizarTituloExportacion
     
     
     /**
@@ -286,3 +355,6 @@ public class ExportPanel extends JPanel {
     } // ---FIN de metodo [getDetailPanel]---
 
 } // --- FIN de clase [ExportPanel]---
+
+
+

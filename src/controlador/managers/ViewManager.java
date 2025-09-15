@@ -11,7 +11,6 @@ import java.util.Map;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -22,7 +21,6 @@ import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
-import javax.swing.border.Border;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,12 +53,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     private VisorModel model;
     private DisplayModeManager displayModeManager;
     
-    private Border focusedBorder;
-    private Border unfocusedBorder;
-    private List<JComponent> focusablePanels;
-    
-    
-    
+
     /**
      * Constructor refactorizado de ViewManager.
      * Ahora es un constructor simple, sin parámetros. Las dependencias
@@ -340,34 +333,30 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     
     @Override
     public void onThemeChanged(Tema nuevoTema) {
-        logger.debug("[ViewManager] Notificación de cambio de tema recibida. Actualizando paneles de visualización y UI...");
-        
-        // Es crucial ejecutar las actualizaciones de UI en el Event Dispatch Thread (EDT)
+        logger.debug("[ViewManager] Notificación de cambio de tema recibida...");
         SwingUtilities.invokeLater(() -> {
             
-            // 1. Actualizar los paneles de visualización de imagen
-            //    Usamos las claves del registro para obtener cada panel y llamar a su método de actualización.
-            
-            ImageDisplayPanel panelVisor = registry.get("panel.display.imagen");
-            if (panelVisor != null) {
-                panelVisor.actualizarColorDeFondoPorTema(this.themeManager);
+            // --- INICIO DE LA CORRECCIÓN CON CASTING SEGURO ---
+            Component panelVisorComp = registry.get("panel.display.imagen");
+            if (panelVisorComp instanceof ImageDisplayPanel) {
+                ((ImageDisplayPanel) panelVisorComp).actualizarColorDeFondoPorTema(this.themeManager);
             }
 
-            ImageDisplayPanel panelProyecto = registry.get("panel.proyecto.display");
-            if (panelProyecto != null) {
-                panelProyecto.actualizarColorDeFondoPorTema(this.themeManager);
+            Component panelProyectoComp = registry.get("panel.proyecto.display");
+            if (panelProyectoComp instanceof ImageDisplayPanel) {
+                ((ImageDisplayPanel) panelProyectoComp).actualizarColorDeFondoPorTema(this.themeManager);
             }
 
-            ImageDisplayPanel panelCarrusel = registry.get("panel.display.carousel");
-            if (panelCarrusel != null) {
-                panelCarrusel.actualizarColorDeFondoPorTema(this.themeManager);
+            Component panelCarruselComp = registry.get("panel.display.carousel");
+            if (panelCarruselComp instanceof ImageDisplayPanel) {
+                ((ImageDisplayPanel) panelCarruselComp).actualizarColorDeFondoPorTema(this.themeManager);
             }
+            // --- FIN DE LA CORRECCIÓN ---
 
-            // 1. Actualizar el panel contenedor (esto ya lo hacías y está bien)
             refrescarColoresDeFondoUI();
             
-            // Lógica del marco de foco que ya hemos añadido (es importante que se quede)
-            updateFocusBorderColor();
+            // La lógica de bordes ya no está aquí, se ha movido.
+            // La llamada a actualizarResaltadoDeFoco se queda para repintar las JLists.
             actualizarResaltadoDeFoco(java.awt.KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner());
 
             logger.debug("[ViewManager] Actualización de paneles por cambio de tema completada.");
@@ -670,113 +659,27 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     } // --- FIN del metodo reconstruirPanelesEspecialesTrasTema  ---
     
     
-    /**
-     * Inicializa el sistema de resaltado de foco. Define los bordes y localiza
-     * los paneles de TODOS los modos de trabajo que participarán.
-     * Este método se llama una sola vez desde AppInitializer al arrancar.
-     */
     public void initializeFocusBorders() {
-        if (registry == null || themeManager == null) {
-            logger.error("[ViewManager] No se pueden inicializar los bordes de foco. Registry o ThemeManager son null.");
-            return;
-        }
-        
-        this.focusablePanels = new ArrayList<>();
-        
-        int thickness = 2;
-        this.unfocusedBorder = BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
-        this.focusedBorder = BorderFactory.createLineBorder(Color.CYAN, thickness);
-
-        logger.debug("[FOCUS_INIT] Buscando paneles de todos los modos para registrar...");
-
-        // --- CLAVES CORRECTAS VERIFICADAS ---
-        // registerFocusablePanel es un método helper que definimos antes, asegúrate de que siga ahí.
-
-        // Modo Visualizador
-        // Este funciona, lo dejamos. Es un JPanel que contiene el JScrollPane de la lista.
-        registerFocusablePanel("panel.izquierdo.listaArchivos", "Lista de Nombres (Visor)"); 
-
-        // Este es el JScrollPane de las miniaturas. La clave es correcta según tu ViewBuilder.
-        registerFocusablePanel("scroll.miniaturas", "Barra de Miniaturas (Visor)");
-
-        // Este es el JPanel que contiene el Grid O la Imagen Principal. Funciona, lo dejamos.
-        registerFocusablePanel("container.displaymodes", "Grid/Imagen Principal (Visor)");
-        
-        // Modo Proyecto
-        // Este es el JScrollPane para la lista de Selección. La clave es correcta según tu ProjectBuilder.
-        registerFocusablePanel("scroll.proyecto.nombres", "Lista de Selección (Proyecto)");
-
-        // Este es el JScrollPane para la lista de Descartes. La clave es correcta según tu ProjectBuilder.
-        registerFocusablePanel("scroll.proyecto.descartes", "Lista de Descartes (Proyecto)");
-
-        // Este es el JPanel que contiene el Grid O la Imagen del proyecto.
-        registerFocusablePanel("container.displaymodes.proyecto", "Grid/Imagen Principal (Proyecto)");
-
-        // Aplicamos el borde inicial sin foco a todos los paneles registrados
-        for (JComponent panel : focusablePanels) {
-            panel.setBorder(unfocusedBorder);
-        }
-        
-        logger.info("[ViewManager] Sistema de bordes de foco inicializado para {} paneles en total.", focusablePanels.size());
-        updateFocusBorderColor(); // Sincronizamos con el color del tema actual
-        
+        logger.info("[ViewManager] La gestión de bordes de foco ha sido transferida a GeneralController.");
+        // Este método se deja intencionadamente vacío.
     }// --- FIN del metodo initializeFocusBorders ---
     
-    /**
-     * Método de ayuda para buscar un JComponent en el registro y añadirlo
-     * a la lista de paneles que pueden recibir el foco visual.
-     * @param registryKey La clave del componente en el ComponentRegistry.
-     * @param description Una descripción para los logs.
-     */
-    private void registerFocusablePanel(String registryKey, String description) {
-        JComponent panel = registry.get(registryKey);
-        if (panel != null) {
-            focusablePanels.add(panel);
-            logger.debug("  -> Panel de foco registrado: '{}' ({})", registryKey, description);
-        } else {
-            logger.error("  -> ADVERTENCIA: No se encontró el panel de foco con la clave '{}' ({}) en el registro.", registryKey, description);
-        }
-    }// --- FIN del metodo registerFocusablePanel ---
     
-
     /**
-     * Actualiza el borde de los paneles monitorizados según el nuevo componente con foco.
-     * También fuerza un repintado de las JLists afectadas para que sus renderers puedan
-     * actualizar la apariencia de la selección (activa vs. inactiva).
-     * @param newFocusOwner El componente que acaba de recibir el foco.
+     * Ya no pinta bordes. Su única responsabilidad es forzar un repintado
+     * de las JLists para que el renderer actualice el color de selección.
      */
     public void actualizarResaltadoDeFoco(Component newFocusOwner) {
-        if (focusablePanels == null) return; // Si aún no se ha inicializado, no hacemos nada.
+        // La lógica de bordes se ha movido a GeneralController.
+        // Solo repintamos las listas para el feedback de selección activa/inactiva.
+        if (registry == null) return;
         
-        JComponent focusedPanel = null;
-
-        // --- PRIMERA PASADA: Identificar el panel que GANA el foco ---
-        for (JComponent panel : focusablePanels) {
-            if (newFocusOwner != null && (newFocusOwner == panel || SwingUtilities.isDescendingFrom(newFocusOwner, panel))) {
-                focusedPanel = panel;
-                break; // Encontramos el panel con foco, salimos del bucle.
-            }
-        }
-
-        // --- SEGUNDA PASADA: Aplicar los cambios ---
-        for (JComponent panel : focusablePanels) {
-            if (panel == focusedPanel) {
-                // Este es el panel que tiene (o contiene) el foco.
-                if (panel.getBorder() != focusedBorder) {
-                    panel.setBorder(focusedBorder);
-                    // Si el panel contiene una JList, la repintamos para activar su selección.
-                    repaintListInside(panel);
-                }
-            } else {
-                // Este panel ha perdido el foco (o nunca lo tuvo).
-                if (panel.getBorder() != unfocusedBorder) {
-                    panel.setBorder(unfocusedBorder);
-                    // Si el panel contiene una JList, la repintamos para desactivar su selección.
-                    repaintListInside(panel);
-                }
-            }
-        }
+        repaintListInside(registry.get("panel.izquierdo.listaArchivos"));
+        repaintListInside(registry.get("scroll.miniaturas"));
+        repaintListInside(registry.get("scroll.proyecto.nombres"));
+        repaintListInside(registry.get("scroll.proyecto.descartes"));
     } // --- FIN del metodo actualizarResaltadoDeFoco ---
+    
     
     /**
      * Método de ayuda que busca una JList dentro de un JComponent (típicamente un JScrollPane)
@@ -799,34 +702,6 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
             }
         }
     } // ---FIN de metodo repaintListInside---
-    
-    
-    private void updateFocusBorderColor() {
-        if (themeManager != null) {
-            // --- INICIO DE LA MODIFICACIÓN ---
-            // En lugar de usar el color de fondo de la barra de estado, que puede ser oscuro...
-            // Color accentColor = UIManager.getColor("Visor.statusBarBackground");
-            
-            // ...usamos el color de ACENTO principal del tema. Este color está diseñado
-            // para destacar y se usa en selecciones, barras de progreso, etc.
-            Color accentColor = UIManager.getColor("Component.accentColor");
-            
-            // Fallback por si acaso un tema no define el color de acento.
-            if (accentColor == null) {
-                accentColor = UIManager.getColor("Component.focusColor"); // Segunda opción
-                if (accentColor == null) {
-                    accentColor = Color.CYAN; // Último recurso
-                }
-            }
-            // --- FIN DE LA MODIFICACIÓN ---
-            
-            int thickness = 2; // Volvemos a un grosor de 2px, 5 es mucho.
-            this.focusedBorder = BorderFactory.createLineBorder(accentColor, thickness);
-            
-            // El borde sin foco se queda igual (vacío)
-            this.unfocusedBorder = BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
-        }
-    } // ---FIN de metodo [updateFocusBorderColor]---
     
     
     /**
@@ -948,5 +823,52 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     public void setDisplayModeManager(DisplayModeManager displayModeManager) { this.displayModeManager = displayModeManager;}
     public DisplayModeManager getDisplayModeManager() {return this.displayModeManager;}
     
+    
+// *********************************************************************************************************************************    
+// *********************************************************************************************************************************
+// *********************************************************************************************************************************
+    
+    /**
+     * Una clase de borde "inteligente" que no almacena un color, sino la clave de UIManager
+     * para buscar el color. Cada vez que se pinta, obtiene el color más reciente del tema,
+     * solucionando así problemas de timing durante la inicialización.
+     */
+    private static class DynamicAccentBorder extends javax.swing.border.AbstractBorder {
+        private static final long serialVersionUID = 1L;
+        private final int thickness;
+        private final String colorKey;
+
+        public DynamicAccentBorder(String colorKey, int thickness) {
+            this.colorKey = colorKey;
+            this.thickness = thickness;
+        }
+
+        @Override
+        public void paintBorder(Component c, java.awt.Graphics g, int x, int y, int width, int height) {
+            Color accentColor = UIManager.getColor(colorKey);
+            if (accentColor == null) {
+                accentColor = Color.MAGENTA; // Fallback de error visible
+            }
+            g.setColor(accentColor);
+            for (int i = 0; i < thickness; i++) {
+                g.drawRect(x + i, y + i, width - 1 - (i * 2), height - 1 - (i * 2));
+            }
+        }
+
+        @Override
+        public java.awt.Insets getBorderInsets(Component c, java.awt.Insets insets) {
+            insets.left = insets.top = insets.right = insets.bottom = thickness;
+            return insets;
+        }
+
+        @Override
+        public java.awt.Insets getBorderInsets(Component c) {
+            return new java.awt.Insets(thickness, thickness, thickness, thickness);
+        }
+    } // --- FIN de la clase DynamicAccentBorder ---
+    
 } // --- Fin de la clase ViewManager ---
+
+
+
 

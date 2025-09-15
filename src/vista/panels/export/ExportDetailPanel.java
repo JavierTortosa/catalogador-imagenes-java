@@ -1,21 +1,22 @@
 package vista.panels.export;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.nio.file.Path;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingConstants;
+import javax.swing.border.TitledBorder;
 
 import modelo.proyecto.ExportItem;
 
@@ -27,57 +28,63 @@ public class ExportDetailPanel extends JPanel {
     private JList<Path> associatedFilesList;
     private DefaultListModel<Path> associatedFilesModel;
     
+    // Las acciones siguen siendo necesarias para habilitar/deshabilitar
     private Action addAction;
     private Action removeAction;
     private Action locateAction;
 
+    // CAMBIO: Se añade una referencia a la barra de herramientas interna
+    private JToolBar actionsToolbar;
+
     public ExportDetailPanel() {
-        super(new BorderLayout(10, 10));
-        setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        super(new BorderLayout(5, 5));
+        
+     // Creamos un TitledBorder y se lo asignamos al panel
+        TitledBorder detailsBorder = BorderFactory.createTitledBorder("Detalles para:");
+        setBorder(detailsBorder);
+        
+        // Lo registramos para que el ThemeManager pueda cambiarle el color del texto
+        putClientProperty("borderTitleKey", "Detalles para:"); // Guardamos el título base
+        
         initComponents();
     } // ---FIN de metodo [ExportDetailPanel]---
 
     private void initComponents() {
-        // --- Título ---
         titleLabel = new JLabel("Detalles para: (ningún ítem seleccionado)");
         titleLabel.putClientProperty("FlatLaf.style", "font: bold");
         add(titleLabel, BorderLayout.NORTH);
 
-        // --- Panel Principal con GridBagLayout ---
-        JPanel mainContentPanel = new JPanel(new GridBagLayout());
+        JPanel centerPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
 
-        // --- Columna 0: Lista de archivos asociados ---
+        associatedFilesModel = new DefaultListModel<>();
+        associatedFilesList = new JList<>(associatedFilesModel);
+        associatedFilesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        
+        // --- INICIO DE LA MODIFICACIÓN ---
+        JScrollPane scrollAssociatedFiles = new JScrollPane(associatedFilesList);
+        // Le damos una identidad inequívoca al JScrollPane.
+        scrollAssociatedFiles.setName("scroll.detalles.exportacion"); 
+        // --- FIN DE LA MODIFICACIÓN ---
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 1.0;
         gbc.fill = GridBagConstraints.BOTH;
-        gbc.insets = new Insets(0, 0, 0, 10);
-
-        associatedFilesModel = new DefaultListModel<>();
-        associatedFilesList = new JList<>(associatedFilesModel);
-        associatedFilesList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        mainContentPanel.add(new JScrollPane(associatedFilesList), gbc);
-
-        // --- Columna 1: Barra de herramientas ---
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
-        gbc.weighty = 0;
-        gbc.fill = GridBagConstraints.NONE;
-        gbc.anchor = GridBagConstraints.NORTH;
-        gbc.insets = new Insets(0, 0, 0, 0);
-
-        JToolBar actionsToolbar = new JToolBar(JToolBar.VERTICAL);
+        centerPanel.add(scrollAssociatedFiles, gbc); // Añadimos el JScrollPane con nombre
+        
+        actionsToolbar = new JToolBar(JToolBar.VERTICAL);
         actionsToolbar.setFloatable(false);
-        // La registramos con una clave única para que el ProjectBuilder pueda encontrarla.
-        actionsToolbar.setName("toolbar.acciones_det_exportacion");
-        mainContentPanel.add(actionsToolbar, gbc);
+        actionsToolbar.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
 
-        add(mainContentPanel, BorderLayout.CENTER);
+        gbc.gridx = 1;
+        gbc.weightx = 0;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        centerPanel.add(actionsToolbar, gbc);
 
-        // --- Listeners para habilitar/deshabilitar botones ---
+        add(centerPanel, BorderLayout.CENTER);
+
         associatedFilesList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 boolean isSelected = associatedFilesList.getSelectedIndex() != -1;
@@ -114,33 +121,27 @@ public class ExportDetailPanel extends JPanel {
         this.removeAction = remove;
         this.locateAction = locate;
 
-        JToolBar toolbar = findToolbar();
-        if (toolbar != null) {
-            toolbar.removeAll(); // Limpiamos por si se llama varias veces
-            if (add != null) toolbar.add(add);
-            if (remove != null) toolbar.add(remove);
-            if (locate != null) toolbar.add(locate);
-        }
+        // CAMBIO: Poblar la barra de herramientas interna
+        actionsToolbar.removeAll();
+        if (add != null) actionsToolbar.add(createToolbarButton(add));
+        if (remove != null) actionsToolbar.add(createToolbarButton(remove));
+        if (locate != null) actionsToolbar.add(createToolbarButton(locate));
         
-        // Sincronizar estado inicial (deshabilitado)
         updateDetails(null); 
     } // ---FIN de metodo [setActions]---
+    
+    // CAMBIO: Pequeño método helper para configurar los botones
+    private JButton createToolbarButton(Action action) {
+        JButton button = new JButton(action);
+        button.setVerticalTextPosition(SwingConstants.BOTTOM);
+        button.setHorizontalTextPosition(SwingConstants.CENTER);
+        return button;
+    } // ---FIN de metodo [createToolbarButton]---
     
     public Path getArchivoAsociadoSeleccionado() {
         return associatedFilesList.getSelectedValue();
     } // ---FIN de metodo [getArchivoAsociadoSeleccionado]---
-    
-    private JToolBar findToolbar() {
-        // El mainContentPanel está en la posición 1 (CENTER) del BorderLayout del panel principal
-        Component mainContent = this.getComponent(1);
-        if (mainContent instanceof JPanel) {
-             for (Component comp : ((JPanel) mainContent).getComponents()) {
-                if (comp instanceof JToolBar) {
-                    return (JToolBar) comp;
-                }
-            }
-        }
-        return null;
-    } // ---FIN de metodo [findToolbar]---
 
 } // --- FIN de clase [ExportDetailPanel]---
+
+

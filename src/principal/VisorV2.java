@@ -76,11 +76,12 @@ public class VisorV2 {
     // FIXME cuando la carpeta que estamos viendo cambia, que no cambie donde tengo el selector.
     // FIXME al salir de una carpeta con el boton de subir un nivel, no se guarda la posicion que teniamos al cambiar de carpeta 
     // TODO AÑADIR UN MARCO ALREDEDOR DEL PANEL DEL DISPLAY (EN SINGLE) EN ALGUN COLOR QUE QUERE COHERENTE CON EL TEMA PERO QUE NOS INDIQUE QUE LA IMAGEN ESTA MARCADA
-
+    // TODO añadir un label que nos indique la ruta actual y que se pueda copiar y que podamos añadir a filtros (positivo o negativo)
     
     //PROYECTO
     
     // TODO CUANDO GUARDAMOS EL PROYECTO QUE SE GUARDE LAS CORRECCIONES QUE HEMOS HECHO A MANO
+    // FIXME mostrar un mensaje en pantalla cuando se ha guardado un proyecto y que desaparezca sin interferir en el programa
     // FIXME EL BOTON DE CAMBIAR DE CARPETA NO DEBERIA PODERSE UTILIZAR
     
     // FIXME si no hay carpeta de destino no se puede activar el boton de exportar

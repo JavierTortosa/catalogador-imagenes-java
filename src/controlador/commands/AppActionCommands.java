@@ -197,6 +197,9 @@ public interface AppActionCommands {
     public static final String CMD_TOGGLE_WRAP_AROUND 				= "cmd.toggle.wrap_around";           	// (Futuro?) Para 'Volver al inicio al llegar al final'
     
     // --- Tema ---
+    public static final String CMD_TEMA_PREFIX 						= "cmd.tema.";
+    
+    
 //    public static final String CMD_TEMA_CLEAR 						= "cmd.tema.clear";     				// Para ToggleThemeAction("clear",...)
 //    public static final String CMD_TEMA_DARK 						= "cmd.tema.dark";      				// Para ToggleThemeAction("dark",...)
 //    public static final String CMD_TEMA_BLUE 						= "cmd.tema.blue";      				// etc.

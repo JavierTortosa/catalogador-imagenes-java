@@ -8,7 +8,11 @@ import vista.theme.ThemeManager;
 
 public class OpenThemeCustomizerAction extends AbstractAction {
 
-    private final JFrame owner;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private final JFrame owner;
     private final ThemeManager themeManager;
 
     public OpenThemeCustomizerAction(String name, JFrame owner, ThemeManager themeManager) {

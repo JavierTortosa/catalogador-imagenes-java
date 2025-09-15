@@ -24,6 +24,8 @@ import java.util.Objects;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
@@ -58,10 +60,10 @@ import controlador.utils.ComponentRegistry;
 import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
-import modelo.VisorModel.WorkMode; 
+import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
-import vista.components.Direction; 
+import vista.components.Direction;
 import vista.panels.ImageDisplayPanel; 
 
 /**
@@ -120,6 +122,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private volatile boolean isChangingSubfolderMode = false;
     private java.beans.PropertyChangeListener listSelectionListener;
     
+    private javax.swing.border.Border focusedBorder;
+    private javax.swing.border.Border unfocusedBorder;
+    private List<javax.swing.JComponent> focusablePanels;
+    
     /**
      * Constructor de GeneralController.
      * Las dependencias se inyectarán a través de setters después de la creación.
@@ -129,12 +135,63 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- Fin del método GeneralController (constructor) ---
 
     
-    /**
-     * Inicializa el controlador después de que todas las dependencias hayan sido inyectadas.
-     * Este método se usa para configurar el estado inicial de la UI y los listeners.
-     */
+    
     public void initialize() {
         logger.debug("[GeneralController] Inicializado.");
+        
+        this.focusablePanels = new ArrayList<>();
+        int thickness = 2;
+        this.unfocusedBorder = javax.swing.BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
+        this.focusedBorder = javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 153, 51), thickness);
+
+        
+        // --- Paneles Globales y Contenedores Principales ---
+        registerFocusablePanel("tabbedpane.izquierdo");
+        registerFocusablePanel("scroll.miniaturas");
+        registerFocusablePanel("panel.derecho.visor"); // Contenedor del visor de imagen/grid
+
+        // --- Pestaña 'Lista' ---
+        // Registramos solo el JList. El foco va directamente a él.
+        registerFocusablePanel("panel.izquierdo.listaArchivos");
+        registerFocusablePanel("list.nombresArchivo"); 
+        
+        registerFocusablePanel("scroll.nombresArchivo");
+        
+        // --- Pestaña 'Carpetas' ---
+        // Registramos el JTree y su ScrollPane para capturar todo el foco del área.
+        registerFocusablePanel("scroll.arbol");
+        registerFocusablePanel("tree.carpetas");
+
+        // --- Pestaña 'Filtros' ---
+        // Registramos el JList y su ScrollPane.
+        registerFocusablePanel("panel.izquierdo.filtros");
+        registerFocusablePanel("list.filtrosActivos");
+        registerFocusablePanel("scroll.filtrosActivos");
+        
+        // --- Componentes del Visor (Lado Derecho) ---
+        // Registramos los JScrollPane que contienen los grids. El JList interno ya está cubierto por el foco del scroll.
+        registerFocusablePanel("panel.display.grid.proyecto");
+        
+        registerFocusablePanel("scroll.grid.visualizador");
+        registerFocusablePanel("scroll.grid.proyecto");
+
+        // --- Paneles del Modo Proyecto ---
+        registerFocusablePanel("tabbedpane.proyecto.herramientas");
+        registerFocusablePanel("scroll.proyecto.nombres");
+        registerFocusablePanel("scroll.proyecto.descartes");
+        
+        // Área de Exportación (jerárquico)
+        registerFocusablePanel("panel.proyecto.exportacion.completo"); 
+        registerFocusablePanel("scroll.tabla.exportacion");
+        registerFocusablePanel("panel.exportacion.detalles");
+        
+        // TextBox
+        registerFocusablePanel("textfield.filtro.orden");
+        registerFocusablePanel("textfield.export.destino");
+        registerFocusablePanel("textfield.filtro.texto");
+        
+        // boton del panel exportar/Mostrar detalles
+        registerFocusablePanel("interfaz.boton.acciones_exportacion.export_detalles_seleccion");
         
         sincronizarEstadoBotonesDeModo();
         
@@ -147,7 +204,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 return;
             }
 
-            // --- 1. Listener para el campo de texto (sigue igual) ---
             searchField.addActionListener(e -> { if (!model.isLiveFilterActive()) { buscarSiguienteCoincidencia(); } });
             searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
                 public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizarFiltro(); }
@@ -156,7 +212,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             });
             configurePlaceholderText(searchField);
 
-            // --- 2. Listener para la JList (Traductor de Índices, sigue igual) ---
             fileList.addListSelectionListener(e -> {
                 if (e.getValueIsAdjusting()) return;
                 
@@ -181,6 +236,25 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             });
             
             logger.debug("[GeneralController] Listeners de búsqueda/filtro configurados correctamente.");
+            
+            if(registry.get("panel.exportacion.detalles") instanceof JPanel) {
+                JPanel detailPanel = registry.get("panel.exportacion.detalles");
+                // Recorremos los componentes del detailPanel para encontrar el JScrollPane
+                for(Component comp : detailPanel.getComponents()) {
+                    // El JScrollPane está dentro de un 'centerPanel'
+                    if (comp instanceof JPanel) {
+                         for(Component innerComp : ((JPanel)comp).getComponents()){
+                            // Lo identificamos por el nombre que le pusimos
+                            if (innerComp instanceof JScrollPane && "scroll.detalles.exportacion".equals(innerComp.getName())) {
+                                focusablePanels.add((JScrollPane) innerComp);
+                                logger.info("[FOCUS_INIT] JScrollPane de detalles de exportación registrado para foco.");
+                                break; // Encontrado, salimos del bucle interno
+                            }
+                         }
+                    }
+                }
+            }
+            
         });
     } // --- Fin del método initialize ---
     
@@ -297,6 +371,16 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 	private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
         logger.debug("  [GeneralController] Saliendo del modo: " + modoQueSeAbandona);
         
+        // ***** AÑADIR ESTE BLOQUE DE CÓDIGO DEBAJO *****
+        if (modoQueSeAbandona == WorkMode.PROYECTO) {
+            if (projectController != null) {
+                // Le preguntamos al ProjectController si el panel es visible y lo guardamos en el modelo.
+                model.setProjectExportPanelVisible(projectController.isExportPanelVisible());
+                logger.debug("    -> Modo Proyecto: Guardando estado del panel de exportación: {}", model.isProjectExportPanelVisible());
+            }
+        }
+        // --- FIN DEL BLOQUE A AÑADIR ---
+        
         // Si salimos del modo Carrusel y la sincronización está DESACTIVADA,
         // guardamos su estado actual en el modelo para que pueda ser persistido al cerrar la app.
         if (modoQueSeAbandona == WorkMode.CARROUSEL && !model.isSyncVisualizadorCarrusel()) {
@@ -313,122 +397,90 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 carouselManager.onCarouselModeChanged(false); // Notificar salida
             }
         }
+        
+        
+        
     } // --- Fin del método salirModo ---
 
 	
-	/**
-	 * Realiza las tareas de "configuración" y "restauración" de la UI para un modo
-	 * en el que estamos entrando. Contiene la lógica de clonado condicional.
-	 * @param modoAlQueSeEntra El nuevo modo activo.
-	 */
 	private void entrarModo(WorkMode modoAlQueSeEntra) {
 	    logger.debug("  [GeneralController] Entrando en modo: " + modoAlQueSeEntra);
-	    
-	 // ANTES de hacer cualquier otra cosa, establecemos un DisplayMode por defecto
-	    // para el contexto al que vamos a entrar. Esto rompe el bucle.
 	    if (displayModeManager != null) {
-	        // Obtenemos el contexto que va a estar activo
-	        ListContext contextoDestino;
-	        switch (modoAlQueSeEntra) {
-	            case PROYECTO: contextoDestino = model.getProyectoListContext(); break;
-	            // Añade más casos si es necesario (ej. Carrusel)
-	            default: contextoDestino = model.getVisualizadorListContext(); break;
-	        }
-
-	        // Leemos el DisplayMode que ese contexto tenía guardado
+	        ListContext contextoDestino = model.getVisualizadorListContext();
+	        if(modoAlQueSeEntra == WorkMode.PROYECTO) contextoDestino = model.getProyectoListContext();
 	        DisplayMode modoGuardado = contextoDestino.getDisplayMode();
-	        logger.debug("  -> El modo de visualización para " + modoAlQueSeEntra + " es: " + modoGuardado);
-
-	        // Forzamos a la UI a cambiar a ese modo AHORA.
-	        // Esto asegura que el panel correcto (Grid o SingleImage) esté visible
-	        // ANTES de que cualquier lógica de carga de imagen intente usarlo.
 	        displayModeManager.switchToDisplayMode(modoGuardado);
 	    }
 	    
-	    
-        // ----> INICIO DE LA CORRECCIÓN DE SINTAXIS <----
-	    SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                // --- PRIMER BLOQUE DENTRO DEL EDT ---
-                logger.debug("    -> [EDT-1] Cambiando tarjeta del CardLayout a: " + modoAlQueSeEntra);
+	    SwingUtilities.invokeLater(() -> {
+            logger.debug("    -> [EDT-1] Cambiando tarjeta del CardLayout a: " + modoAlQueSeEntra);
 	        
-                switch (modoAlQueSeEntra) {
-                    case VISUALIZADOR:
-                        if (model.isSyncVisualizadorCarrusel()) {
-                            logger.debug("      -> Sincronización ON: Clonando contexto Carrusel -> Visualizador.");
-                            model.getVisualizadorListContext().clonarDesde(model.getCarouselListContext());
-                        }
-                        viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR");
-                        break;
-                    case PROYECTO: viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS"); break;
-                    case DATOS: viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS"); break;
-                    case EDICION: viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION"); break;
-                    case CARROUSEL: viewManager.cambiarAVista("container.workmodes", "VISTA_CARROUSEL_WORKMODE"); break;
-                }
-
-                JPanel workModesContainer = registry.get("container.workmodes");
-                if (workModesContainer != null) {
-                    workModesContainer.revalidate();
-                    workModesContainer.repaint();
-                }
-
-                // --- SEGUNDO INVOKELATER ANIDADO ---
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        logger.debug("    -> [EDT-2] Restaurando y sincronizando UI para: " + modoAlQueSeEntra);
-
-                        switch (modoAlQueSeEntra) {
-                            case VISUALIZADOR:
-                                visorController.restaurarUiVisualizador();
-                                break;
-                            case PROYECTO:
-                                projectController.activarVistaProyecto();
-                                projectController.configurarContextMenuTablaExportacion();
-                                break;
-                            case CARROUSEL:
-                                ListContext contextoCarrusel = model.getCarouselListContext();
-                                if (model.isSyncVisualizadorCarrusel()) {
-                                    logger.debug("      -> Sincronización ON: Clonando contexto Visualizador -> Carrusel.");
-                                    contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
-                                } else if (contextoCarrusel.getModeloLista() == null || contextoCarrusel.getModeloLista().isEmpty()) {
-                                    logger.debug("      -> Sincronización OFF y Carrusel vacío: Clonando desde Visualizador (primera vez).");
-                                    contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
-                                }
-                                visorController.restaurarUiCarrusel();
-                                
-                                CarouselManager carouselManager = visorController.getActionFactory().getCarouselManager();
-                                if (carouselManager != null) {
-                                    carouselManager.onCarouselModeChanged(true);
-                                }
-                                break;
-                            case DATOS: case EDICION: break;
-                        }
-
-                        actualizarEstadoUiParaModo(modoAlQueSeEntra);
-                        
-                        if (toolbarManager != null) {
-                            toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
-                        }
-                        
-                        if (modoAlQueSeEntra == WorkMode.CARROUSEL) {
-                            CarouselManager carouselManager = visorController.getActionFactory().getCarouselManager();
-                            if (carouselManager != null) {
-                                logger.debug("    -> [EDT-2] Conectando listeners de la UI del Carrusel...");
-                                carouselManager.findAndWireUpFastMoveButtons();
-                                carouselManager.wireUpEventListeners();
-                            }
-                        }
-                        
-                        sincronizarEstadoBotonesDeModo();
-                        
-                        logger.debug("    -> [EDT-2] Restauración de UI para " + modoAlQueSeEntra + " completada.");
+            switch (modoAlQueSeEntra) {
+                case VISUALIZADOR:
+                    // --- INICIO DE LA CORRECCIÓN DEL BUG ---
+                    // Nos aseguramos de que la barra de miniaturas esté visible si la configuración lo indica.
+                    boolean miniaturasVisibles = configuration.getBoolean("interfaz.menu.vista.imagenes_en_miniatura.seleccionado", true);
+                    if (registry.get("scroll.miniaturas") != null) {
+                        registry.get("scroll.miniaturas").setVisible(miniaturasVisibles);
                     }
-                }); // --- Fin del segundo Runnable ---
+                    // --- FIN DE LA CORRECCIÓN DEL BUG ---
+
+                    if (model.isSyncVisualizadorCarrusel()) {
+                        model.getVisualizadorListContext().clonarDesde(model.getCarouselListContext());
+                    }
+                    viewManager.cambiarAVista("container.workmodes", "VISTA_VISUALIZADOR");
+                    break;
+                case PROYECTO: viewManager.cambiarAVista("container.workmodes", "VISTA_PROYECTOS"); break;
+                case DATOS: viewManager.cambiarAVista("container.workmodes", "VISTA_DATOS"); break;
+                case EDICION: viewManager.cambiarAVista("container.workmodes", "VISTA_EDICION"); break;
+                case CARROUSEL: viewManager.cambiarAVista("container.workmodes", "VISTA_CARROUSEL_WORKMODE"); break;
             }
+
+            JPanel workModesContainer = registry.get("container.workmodes");
+            if (workModesContainer != null) {
+                workModesContainer.revalidate();
+                workModesContainer.repaint();
+            }
+
+            SwingUtilities.invokeLater(() -> {
+                logger.debug("    -> [EDT-2] Restaurando y sincronizando UI para: " + modoAlQueSeEntra);
+                switch (modoAlQueSeEntra) {
+                    case VISUALIZADOR: visorController.restaurarUiVisualizador(); break;
+                    case PROYECTO:
+                        projectController.activarVistaProyecto();
+                        projectController.configurarContextMenuTablaExportacion();
+                        
+                        if (model.isProjectExportPanelVisible()) {
+                            // Le decimos al controlador que muestre el panel, pero sin cambiar el estado lógico.
+                            projectController.setExportPanelVisible(true);
+                            
+                            // FORZAMOS LA ACTUALIZACIÓN de la cola de exportación
+                            projectController.solicitarPreparacionColaExportacion();
+                            
+                            // Sincronizamos la selección de la tabla con la selección principal.
+                            projectController.sincronizarSeleccionEnTablaExportacion();
+                        }
+                        
+                        break;
+                    case CARROUSEL:
+                        ListContext contextoCarrusel = model.getCarouselListContext();
+                        if (model.isSyncVisualizadorCarrusel()) contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
+                        else if (contextoCarrusel.getModeloLista() == null || contextoCarrusel.getModeloLista().isEmpty()) contextoCarrusel.clonarDesde(model.getVisualizadorListContext());
+                        visorController.restaurarUiCarrusel();
+                        if (visorController.getActionFactory().getCarouselManager() != null) visorController.getActionFactory().getCarouselManager().onCarouselModeChanged(true);
+                        break;
+                    case DATOS: case EDICION: break;
+                }
+                actualizarEstadoUiParaModo(modoAlQueSeEntra);
+                if (toolbarManager != null) toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
+                if (modoAlQueSeEntra == WorkMode.CARROUSEL && visorController.getActionFactory().getCarouselManager() != null) {
+                    visorController.getActionFactory().getCarouselManager().findAndWireUpFastMoveButtons();
+                    visorController.getActionFactory().getCarouselManager().wireUpEventListeners();
+                }
+                sincronizarEstadoBotonesDeModo();
+                logger.debug("    -> [EDT-2] Restauración de UI para " + modoAlQueSeEntra + " completada.");
+            });
         });
-	    
 	} // --- Fin del método entrarModo ---
 	
 	
@@ -502,19 +554,86 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     @Override
     public void propertyChange(java.beans.PropertyChangeEvent evt) {
         if ("focusOwner".equals(evt.getPropertyName())) {
-            // Obtenemos el nuevo componente con foco
-        	
-        	logger.debug("--- [FOCUS_CHANGE] Detectado cambio de foco. Nuevo propietario: " + evt.getNewValue());
-        	
             Component newFocusOwner = (Component) evt.getNewValue();
 
-            // Si tenemos un ViewManager, le delegamos TODA la responsabilidad.
-            // El GeneralController ya no sabe nada de bordes ni colores.
-            if (viewManager != null) {
-                viewManager.actualizarResaltadoDeFoco(newFocusOwner);
+            // --- INICIO DEL CÓDIGO DE DIAGNÓSTICO PROFUNDO ---
+            if (newFocusOwner != null) {
+                logger.debug("--- [DIAGNÓSTICO DE FOCO PROFUNDO] ---");
+                logger.debug("Componente con foco directo: {}", newFocusOwner.getClass().getName());
+
+                int level = 0;
+                for (Component c = newFocusOwner; c != null; c = c.getParent()) {
+                    String borderInfo = (c instanceof JComponent && ((JComponent) c).getBorder() != null)
+                                      ? ((JComponent) c).getBorder().getClass().getSimpleName()
+                                      : "sin borde";
+                    
+                    logger.debug("  -> Nivel {}: Clase: {} | Nombre: {} | Borde: {}",
+                                 level++,
+                                 c.getClass().getName(),
+                                 c.getName(),
+                                 borderInfo);
+
+                    // Si llegamos a la ventana principal, paramos.
+                    if (c instanceof JFrame) break;
+                }
+                logger.debug("--- [FIN DEL DIAGNÓSTICO] ---");
+            }
+            // --- FIN DEL CÓDIGO DE DIAGNÓSTICO PROFUNDO ---
+            
+            
+            
+            java.awt.Color accentColor = javax.swing.UIManager.getColor("Component.accentColor");
+            if (accentColor == null) accentColor = new java.awt.Color(255, 153, 51);
+            this.focusedBorder = javax.swing.BorderFactory.createLineBorder(accentColor, 2);
+
+            // Obtenemos los componentes clave una sola vez
+            JComponent exportPanel = registry.get("panel.proyecto.exportacion.completo");
+            JComponent tablaScroll = registry.get("scroll.tabla.exportacion");
+            JComponent detallesPanel = registry.get("panel.exportacion.detalles");
+
+            // Determinamos qué tiene el foco
+            boolean focoEnTabla = newFocusOwner != null && tablaScroll != null && SwingUtilities.isDescendingFrom(newFocusOwner, tablaScroll);
+            boolean focoEnDetalles = newFocusOwner != null && detallesPanel != null && SwingUtilities.isDescendingFrom(newFocusOwner, detallesPanel);
+
+            // Aplicamos la lógica jerárquica
+            for (javax.swing.JComponent panel : focusablePanels) {
+                boolean debeTenerFoco = false;
+                
+                // Regla general: si el foco está dentro del panel, debe tener borde
+                if (newFocusOwner != null && (panel == newFocusOwner || SwingUtilities.isDescendingFrom(newFocusOwner, panel))) {
+                    debeTenerFoco = true;
+                }
+                
+                // --- INICIO DE LA CORRECCIÓN ---
+                // Reglas especiales para la jerarquía de exportación
+                if (panel == exportPanel && (focoEnTabla || focoEnDetalles)) {
+                    debeTenerFoco = true; // El contenedor principal siempre se resalta si un hijo tiene foco
+                }
+                // Aseguramos que los hijos solo se resalten si tienen el foco real
+                if (panel == tablaScroll && !focoEnTabla) {
+                    debeTenerFoco = false;
+                }
+                if (panel == detallesPanel && !focoEnDetalles) {
+                    debeTenerFoco = false;
+                }
+                // --- FIN DE LA CORRECCIÓN ---
+
+                panel.setBorder(debeTenerFoco ? focusedBorder : unfocusedBorder);
+                
+                if (panel instanceof JScrollPane) {
+                    Component view = ((JScrollPane) panel).getViewport().getView();
+                    if (view instanceof JList) view.repaint();
+                } else if (panel instanceof JPanel) { // Añadido para el panel de detalles que contiene una JList
+                    for(Component child : panel.getComponents()) {
+                        if(child instanceof JScrollPane) {
+                            Component view = ((JScrollPane) child).getViewport().getView();
+                            if (view instanceof JList) view.repaint();
+                        }
+                    }
+                }
             }
         }
-    } // FIN del metodo propertyChange ---
+    } // --- FIN del metodo propertyChange ---
     
     
     /**
@@ -870,8 +989,38 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     
     public void solicitarEntrarEnModoProyecto() {
-        logger.debug("[GeneralController] Solicitud para cambiar a modo proyecto...");
-        cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+        logger.debug("[GeneralController] Solicitud para entrar en modo proyecto...");
+        
+        // --- INICIO DE LA MODIFICACIÓN ---
+        
+        // 1. Validar que tenemos las dependencias necesarias.
+        if (visorController == null || visorController.getProjectManager() == null || actionMap == null) {
+            logger.error("No se puede entrar en modo proyecto: Faltan ProjectManager o ActionMap.");
+            return;
+        }
+
+        // 2. Comprobar si hay imágenes marcadas.
+        boolean hayImagenesMarcadas = !visorController.getProjectManager().getImagenesMarcadas().isEmpty();
+
+        if (hayImagenesMarcadas) {
+            // --- CASO 1: Hay imágenes marcadas -> Entramos directamente con el proyecto temporal. ---
+            logger.debug(" -> Hay imágenes marcadas. Entrando directamente al modo proyecto.");
+            cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+        } else {
+            // --- CASO 2: No hay imágenes marcadas -> Lanzamos la acción de "Abrir Proyecto". ---
+            logger.debug(" -> No hay imágenes marcadas. Se solicitará al usuario abrir un proyecto existente.");
+            Action abrirProyectoAction = actionMap.get(AppActionCommands.CMD_PROYECTO_ABRIR);
+            if (abrirProyectoAction != null) {
+                // Simulamos un clic en el botón/menú de "Abrir Proyecto".
+                // Esta acción se encargará de mostrar el diálogo y, si tiene éxito, de llamar a cambiarModoDeTrabajo.
+                abrirProyectoAction.actionPerformed(
+                    new ActionEvent(this, ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_PROYECTO_ABRIR)
+                );
+            } else {
+                logger.error("No se encontró la acción 'CMD_PROYECTO_ABRIR' en el ActionMap.");
+            }
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
         
     } // --- Fin del método solicitarEntrarEnModoProyecto ---
     
@@ -1109,33 +1258,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 return true;
             }
         }
-        
-//        if (e.getKeyCode() == KeyEvent.VK_ALT) {
-//            // Necesita acceso a la vista, se obtiene a través de visorController.getView()
-//            if (visorController != null && visorController.getView() != null && visorController.getView().getJMenuBar() != null) {
-//                JMenuBar menuBar = visorController.getView().getJMenuBar();
-//                if (menuBar.isSelected()) { // Comprueba si algún menú ya está abierto (seleccionado)
-//                    menuBar.getSelectionModel().clearSelection(); // Cierra la selección actual
-//                    logger.debug("--- [GeneralController Dispatcher] ALT: Menú ya activo. Cerrando selección.");
-//                } else {
-//                    if (menuBar.getMenuCount() > 0) { // Si no hay ningún menú activo, activamos el primero.
-//                        JMenu primerMenu = menuBar.getMenu(0);
-//                        if (primerMenu != null) {
-//                        	
-//                        	//LOG [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'
-//                            //logger.debug("--- [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
-//                        	
-//                            primerMenu.doClick(); // Simula un clic del ratón, abriendo el menú.
-//                        }
-//                    }
-//                }
-//                e.consume(); // Consumimos el evento ALT
-//                return true;
-//            }
-//        }
-        
-        
-        
         
         // Continuación de la lógica de navegación por teclado (movido de VisorController)
         if (model == null || registry == null) { // Dependencias mínimas
@@ -2433,22 +2555,17 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         JList<String> gridTarget;
         WorkMode currentMode = model.getCurrentWorkMode();
 
-        // 1. Determinar cuál es el grid de destino
         if (currentMode == WorkMode.PROYECTO) {
             gridTarget = registry.get("list.grid.proyecto");
-            logger.debug("[MasterListChangeListener] Modo Proyecto detectado. Target grid: list.grid.proyecto");
         } else {
-            // Asumimos que cualquier otro modo (Visualizador, Carrusel) usa el grid del visualizador
-            gridTarget = registry.get("list.grid.visualizador");
-            logger.debug("[MasterListChangeListener] Modo no-proyecto detectado. Target grid: list.grid.visualizador");
+            // --- CORRECCIÓN: Usamos la clave correcta "list.grid" ---
+            gridTarget = registry.get("list.grid");
         }
 
-        // 2. Actualizar el modelo del grid de destino
         if (gridTarget != null) {
             SwingUtilities.invokeLater(() -> {
                 gridTarget.setModel(newMasterList);
-                // No es necesario repintar aquí, el cambio de modelo lo provoca.
-                logger.debug("[MasterListChangeListener] Grid actualizado con {} elementos.", newMasterList.getSize());
+                logger.debug("[MasterListChangeListener] Grid para modo {} actualizado con {} elementos.", currentMode, newMasterList.getSize());
             });
         } else {
             logger.error("ERROR [onMasterListChanged]: No se encontró el JList del grid para el modo {}.", currentMode);
@@ -2456,6 +2573,17 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- Fin del método onMasterListChanged ---
     
     
+    private void registerFocusablePanel(String registryKey) {
+        javax.swing.JComponent panel = registry.get(registryKey);
+        if (panel != null) {
+            focusablePanels.add(panel);
+        } else {
+            logger.warn("[FOCUS_INIT] No se pudo registrar el panel para foco: '{}'", registryKey);
+        }
+    } // --- FIN de metodo registerFocusablePanel ---
+    
+    
 } // --- Fin de la clase GeneralController ---
+
 
 

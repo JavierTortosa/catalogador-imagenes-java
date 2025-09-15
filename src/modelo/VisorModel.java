@@ -76,6 +76,8 @@ public class VisorModel {
     private boolean liveFilterActive = false;
     private boolean gridMuestraEstado = true;
     
+    private boolean isProjectExportPanelVisible = false;
+    
     private final List<MasterListChangeListener> masterListListeners = new ArrayList<>();
 
     
@@ -399,6 +401,8 @@ public class VisorModel {
     public void setLiveFilterActive(boolean liveFilterActive) {this.liveFilterActive = liveFilterActive;}
     public boolean isGridMuestraEstado() {return this.gridMuestraEstado;} 
     public void setGridMuestraEstado(boolean gridMuestraEstado) {this.gridMuestraEstado = gridMuestraEstado;}
+    public boolean isProjectExportPanelVisible() {return this.isProjectExportPanelVisible;}
+    public void setProjectExportPanelVisible(boolean isVisible) {this.isProjectExportPanelVisible = isVisible;}
     
     public SortDirection getSortDirection() {return sortDirection;}
     public void setSortDirection(SortDirection newSortDirection) {
@@ -408,4 +412,7 @@ public class VisorModel {
         // firePropertyChange("sortDirection", oldSortDirection, newSortDirection);
     } // --- FIN del metodo setSortDirection ---
     
+    
+    
 } // --- FIN DE LA CLASE VisorModel ---
+

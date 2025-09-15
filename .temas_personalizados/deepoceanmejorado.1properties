@@ -1,0 +1,21 @@
+#= Deep Ocean Mejorado
+# Basado en=com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDeepOceanIJTheme
+
+Label.foreground=#ffffff
+TabbedPane.focusColor=#ff9933
+ComboBox.focusColor=#ff9933
+Visor.statusBarForeground=#ff9933
+Component.accentColor=#ff9933
+RadioButton.foreground=#ffffff
+Table.focusCellHighlightBorder=#ff9933
+List.selectionBackground=#ff9933
+CheckBox.foreground=#ffffff
+Tree.selectionBackground=#ff9933
+Component.focusedBorderColor=#ff9933
+Component.focusColor=#ff9933
+List.focusCellHighlightBorder=#ff9933
+TitledBorder.titleColor=#ff9933
+Button.foreground=#666666
+Table.selectionBackground=#ff9933
+List.showCellFocusIndicator = false
+List.focusSelectionBackground = @List.selectionBackground

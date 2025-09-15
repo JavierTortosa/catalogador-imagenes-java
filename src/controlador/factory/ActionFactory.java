@@ -1155,8 +1155,12 @@ public class ActionFactory {
     } // ---FIN de metodo [createToggleExportViewAction]---
     
     private Action createToggleExportDetailsAction() {
-        // Solo creamos la acción con su lógica.
-        return new ToggleExportDetailsAction(this.projectControllerRef);
+        ImageIcon icon = getIconForCommand(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION);
+        ToggleExportDetailsAction action = new ToggleExportDetailsAction(this.projectControllerRef);
+        if (icon != null) {
+            action.putValue(Action.SMALL_ICON, icon);
+        }
+        return action;
     } // ---FIN de metodo [createToggleExportDetailsAction]---
     
     

@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -16,10 +17,13 @@ import java.util.stream.Collectors;
 
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JFileChooser;
 import javax.swing.JList;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
@@ -50,7 +54,6 @@ import vista.dialogos.TaskProgressDialog;
 import vista.panels.export.ExportDetailPanel;
 import vista.panels.export.ExportPanel;
 import vista.panels.export.ExportTableModel;
-import java.io.File;
 
 	
 public class ProjectController implements IModoController {
@@ -86,9 +89,7 @@ public class ProjectController implements IModoController {
     private Map<String, ExportItem> exportItemMap = new HashMap<>();
     private int lastRightDividerLocation = -1;
 
-//    private boolean isExportViewVisible = false;
-//    private VisorModel.DisplayMode displayModeBeforeExportToggle = null;
-    
+
     public ProjectController() {
         logger.debug("[ProjectController] Instancia creada.");
         this.exportQueueManager = new ExportQueueManager();
@@ -343,6 +344,9 @@ public class ProjectController implements IModoController {
             // La intención ahora es EXPORTAR
             setProjectViewState(ProjectViewState.VIEW_EXPORT);
             
+            // --- LLAMADA AL NUEVO MÉTODO ---
+            ensureExportPanelIsFullyInitialized();
+            
             SwingUtilities.invokeLater(() -> {
                 if (lastRightDividerLocation > 0) {
                     rightSplit.setDividerLocation(lastRightDividerLocation);
@@ -362,6 +366,20 @@ public class ProjectController implements IModoController {
             setProjectViewState(ProjectViewState.VIEW_SELECTION);
         }
     } // --- FIN del metodo toggleExportView ---
+
+    
+    /**
+     * Se llama DESPUÉS de que las barras de herramientas del modo Proyecto
+     * han sido construidas y registradas. Es el momento seguro para configurar
+     * listeners que dependen de componentes de la toolbar.
+     */
+    public void postToolbarInitialization() {
+        logger.debug("[ProjectController] Realizando inicialización post-toolbars...");
+        ensureExportPanelIsFullyInitialized();
+        configurarContextMenuTablaExportacion();
+        logger.debug("[ProjectController] Inicialización post-toolbars completada.");
+        
+    } // ---FIN de metodo [postToolbarInitialization]---
     
     
     /**
@@ -514,38 +532,43 @@ public class ProjectController implements IModoController {
             logger.error("ERROR [ProjectController.activarVistaProyecto]: Dependencias nulas.");
             return;
         }
-
+        
         boolean hayDatosParaMostrar = prepararDatosProyecto();
 
         if (hayDatosParaMostrar) {
             logger.debug("   -> Hay imágenes en el proyecto. Poblando la vista...");
 
-            // --- INICIO DE LA LÓGICA CORREGIDA ---
-            // 1. Preparamos los modelos de las listas UI
             poblarListasSeleccionYDescartes();
 
-            // 2. Establecemos el estado inicial (normalmente Selección)
             String focoGuardado = model.getProyectoListContext().getNombreListaActiva();
             cambiarFocoListaActiva(focoGuardado != null ? focoGuardado : "seleccion");
             
-            // 3. Forzamos la selección de una imagen inicial
-            // Esto asegura que el visor no se quede vacío al entrar.
             String claveInicial = determinarClaveASeleccionar(model.getProyectoListContext());
             if (claveInicial != null) {
                 projectListCoordinator.seleccionarImagenPorClave(claveInicial);
             } else {
-                projectListCoordinator.seleccionarImagenPorIndice(-1); // Limpiar si no hay nada que seleccionar
+                projectListCoordinator.seleccionarImagenPorIndice(-1);
             }
-            // --- FIN DE LA LÓGICA CORREGIDA ---
             
             ajustarLayoutProyectoUI();
             
         } else {
-            // ... (la lógica para proyecto vacío se queda igual)
+            logger.debug("   -> No hay imágenes en el proyecto. Limpiando la vista...");
+            limpiarVistaProyecto();
         }
         
         resetProjectViewLayout();
+
+        
     } // ---FIN de metodo activarVistaProyecto---
+    
+    
+    private void ensureExportPanelIsFullyInitialized() {
+        ExportPanel exportPanel = registry.get("panel.proyecto.exportacion.completo");
+        if (exportPanel != null) {
+            exportPanel.setupHighlightingListener();
+        }
+    } // ---FIN de metodo [ensureExportPanelIsFullyInitialized]---
     
     
     
@@ -753,13 +776,11 @@ public class ProjectController implements IModoController {
         Path rutaAbsoluta = model.getProyectoListContext().getRutaCompleta(claveSeleccionada);
         if (rutaAbsoluta != null) {
             projectManager.moverAdescartes(rutaAbsoluta);
-            refrescarListasDeProyecto();
             
-            // comprueba si el panel esta activo
-            if (isExportPanelVisible()) {
-                solicitarPreparacionColaExportacion();
-            }
-            
+            // --- INICIO DE LA CORRECCIÓN ---
+            // Llamamos al método de refresco que no resetea el layout.
+            refrescarVistaProyectoCompleta();
+            // --- FIN DE LA CORRECCIÓN ---
         }
     } // --- Fin del método moverSeleccionActualADescartes ---
 
@@ -860,8 +881,6 @@ public class ProjectController implements IModoController {
             return;
         }
 
-        // --- INICIO DE LA LÓGICA DE VALIDACIÓN MEJORADA ---
-
         // 1. Obtener los datos necesarios
         List<modelo.proyecto.ExportItem> colaCompleta = exportQueueManager.getColaDeExportacion();
         List<modelo.proyecto.ExportItem> itemsSeleccionadosParaExportar = colaCompleta.stream()
@@ -871,6 +890,8 @@ public class ProjectController implements IModoController {
         long totalItems = colaCompleta.size();
         long seleccionados = itemsSeleccionadosParaExportar.size();
         String rutaDestino = exportPanel.getRutaDestino();
+        
+        exportPanel.actualizarTituloExportacion((int) seleccionados, (int) totalItems);
 
         // 2. Evaluar las condiciones para poder exportar
         boolean carpetaOk = rutaDestino != null && !rutaDestino.isBlank() && !rutaDestino.equalsIgnoreCase("Seleccione una carpeta de destino...");
@@ -903,8 +924,6 @@ public class ProjectController implements IModoController {
         } else {
             mensajeResumen = "Cargue la selección para ver el estado."; // Fallback por defecto
         }
-
-        // --- FIN DE LA LÓGICA DE VALIDACIÓN ---
 
         // 6. Lógica de Tooltips (Hints)
         actualizarTooltipAccion(AppActionCommands.CMD_INICIAR_EXPORTACION, mensajeResumen);
@@ -1508,6 +1527,10 @@ public class ProjectController implements IModoController {
 
             
             private void showMenu(java.awt.event.MouseEvent e) {
+                // --- INICIO DE MODIFICACIÓN (LOG DE DIAGNÓSTICO) ---
+                logger.debug("[ContextMenuListener] Evento de popup detectado en el componente: {}", component.getClass().getSimpleName());
+                // --- FIN DE MODIFICACIÓN ---
+                
                 if (component instanceof JTable) {
                     JTable table = (JTable) component;
                     int row = table.rowAtPoint(e.getPoint());
@@ -1516,6 +1539,9 @@ public class ProjectController implements IModoController {
                             table.setRowSelectionInterval(row, row);
                         }
                     } else {
+                        // --- INICIO DE MODIFICACIÓN (LOG DE DIAGNÓSTICO) ---
+                        logger.debug("[ContextMenuListener] Clic en área vacía de la tabla. No se mostrará el menú.");
+                        // --- FIN DE MODIFICACIÓN ---
                         return;
                     }
                 }
@@ -1536,11 +1562,19 @@ public class ProjectController implements IModoController {
                 }
                 
                 if (menu.getComponentCount() > 0) {
+                    // --- INICIO DE MODIFICACIÓN (LOG DE DIAGNÓSTICO) ---
+                    logger.debug("[ContextMenuListener] Mostrando menú con {} componentes.", menu.getComponentCount());
+                    // --- FIN DE MODIFICACIÓN ---
                     menu.show(e.getComponent(), e.getX(), e.getY());
+                } else {
+                    // --- INICIO DE MODIFICACIÓN (LOG DE DIAGNÓSTICO) ---
+                    logger.debug("[ContextMenuListener] El menú no tiene componentes, no se mostrará.");
+                    // --- FIN DE MODIFICACIÓN ---
                 }
             }
         };
     } // ---FIN de metodo [createContextMenuListener]---
+    
     
     /**
      * Refresca el contenido de las listas de Selección/Descartes y sus contadores,
@@ -1553,6 +1587,60 @@ public class ProjectController implements IModoController {
         actualizarModeloPrincipalConListaDeProyectoActiva();
         logger.debug("[ProjectController] Contenido de las listas de proyecto refrescado.");
     } // ---FIN de metodo [refrescarContenidoListasProyecto]---
+    
+    
+    /**
+     * Construye y devuelve un JPopupMenu dinámico para el visor principal (Single o Grid)
+     * del modo proyecto. El contenido del menú depende del estado de vista actual y del modo de visualización.
+     * @return Un JPopupMenu configurado o null si no debe mostrarse.
+     */
+    public JPopupMenu crearMenuContextualVisorManualmente() {
+        // Regla 1: No mostrar menú si no hay imagen seleccionada.
+        if (model.getSelectedImageKey() == null || model.getSelectedImageKey().isEmpty()) {
+            logger.debug("[MenuContextualVisor] No se muestra el menú porque no hay imagen seleccionada.");
+            return null;
+        }
+
+        logger.debug("[MenuContextualVisor] Creando menú manualmente para el estado de vista: {} y modo display: {}", currentViewState, model.getCurrentDisplayMode());
+        
+        JPopupMenu menu = new JPopupMenu();
+        boolean isGridMode = (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID);
+
+        // Paso 1: Añadir acciones basadas en el contexto de la lista activa (esto es igual para Grid y Single).
+        switch (currentViewState) {
+            case VIEW_SELECTION:
+            case VIEW_EXPORT:
+                menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_MOVER_A_DESCARTES));
+                menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO));
+                break;
+            case VIEW_DISCARDS:
+                menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_RESTAURAR_DE_DESCARTES));
+                menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO));
+                menu.addSeparator();
+                menu.add(actionMap.get(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE));
+                break;
+        }
+        
+        menu.addSeparator();
+
+        // Paso 2: Añadir acciones de Paneo/Zoom, pero deshabilitarlas si estamos en modo Grid.
+        Action toggleZoomAction = actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
+        if (toggleZoomAction != null) {
+            JCheckBoxMenuItem toggleZoomItem = new JCheckBoxMenuItem(toggleZoomAction);
+            toggleZoomItem.setSelected(model.isZoomHabilitado());
+            toggleZoomItem.setEnabled(!isGridMode); // <-- LA CLAVE: Deshabilitado si es Grid
+            menu.add(toggleZoomItem);
+        }
+
+        Action resetZoomAction = actionMap.get(AppActionCommands.CMD_ZOOM_RESET);
+        if (resetZoomAction != null) {
+            JMenuItem resetZoomItem = new JMenuItem(resetZoomAction);
+            resetZoomItem.setEnabled(!isGridMode); // <-- LA CLAVE: Deshabilitado si es Grid
+            menu.add(resetZoomItem);
+        }
+        
+        return menu;
+    } // ---FIN de metodo [crearMenuContextualVisorManualmente]---
     
     
     /**
@@ -1586,9 +1674,17 @@ public class ProjectController implements IModoController {
      * Debe ser llamado una vez durante la inicialización de la UI del proyecto.
      */
     public void configurarContextMenuTablaExportacion() {
+        // --- INICIO DE MODIFICACIÓN (LOG DE DIAGNÓSTICO) ---
+        logger.debug("[DIAGNÓSTICO] Se ha llamado a configurarContextMenuTablaExportacion().");
+        // --- FIN DE MODIFICACIÓN ---
+
         JTable tablaExportacion = getTablaExportacionDesdeRegistro();
         if (tablaExportacion == null || actionMap == null) {
-            logger.error("[ProjectController] No se pudo configurar el menú contextual: tabla o actionMap nulos.");
+            // --- INICIO DE MODIFICACIÓN (LOG DE DIAGNÓSTICO) ---
+            logger.error("[DIAGNÓSTICO] No se puede configurar menú: tablaExportacion es {} y actionMap es {}.",
+                (tablaExportacion == null ? "NULL" : "OK"),
+                (actionMap == null ? "NULL" : "OK"));
+            // --- FIN DE MODIFICACIÓN ---
             return;
         }
 
@@ -1619,7 +1715,9 @@ public class ProjectController implements IModoController {
 
         // Asignamos el listener a la tabla
         tablaExportacion.addMouseListener(contextMenuListener);
-        logger.debug("[ProjectController] Menú contextual configurado para la tabla de exportación.");
+        // --- INICIO DE MODIFICACIÓN (LOG DE DIAGNÓSTICO) ---
+        logger.debug("[DIAGNÓSTICO] Menú contextual configurado y listener añadido a la tabla de exportación.");
+        // --- FIN DE MODIFICACIÓN ---
     } // ---FIN de metodo [configurarContextMenuTablaExportacion]---
     
     
@@ -1893,11 +1991,59 @@ public class ProjectController implements IModoController {
      * está actualmente visible para el usuario.
      * @return true si el panel es visible, false en caso contrario.
      */
-    private boolean isExportPanelVisible() {
+    public boolean isExportPanelVisible() {
         if (registry == null) return false;
         JPanel toolsPanel = registry.get("panel.proyecto.herramientas.container");
         return toolsPanel != null && toolsPanel.isVisible();
     } // ---FIN de metodo [isExportPanelVisible]---
+    
+    
+    /**
+     * Establece la visibilidad del panel de herramientas de exportación sin alterar el
+     * estado lógico de la vista (ProjectViewState). Este método es utilizado por
+     * GeneralController para restaurar la UI al volver al modo proyecto.
+     *
+     * @param visible true para mostrar el panel, false para ocultarlo.
+     */
+    public void setExportPanelVisible(boolean visible) {
+        if (registry == null) return;
+        JSplitPane rightSplit = registry.get("splitpane.proyecto.right");
+        JPanel toolsPanel = registry.get("panel.proyecto.herramientas.container");
+        if (rightSplit == null || toolsPanel == null) return;
+
+        if (visible) {
+            if (!toolsPanel.isVisible()) {
+                toolsPanel.setVisible(true);
+                rightSplit.setDividerSize(5);
+                
+                // --- LLAMADA AL NUEVO MÉTODO TAMBIÉN AQUÍ ---
+                ensureExportPanelIsFullyInitialized();
+                
+                SwingUtilities.invokeLater(() -> {
+                    if (lastRightDividerLocation > 0) {
+                        rightSplit.setDividerLocation(lastRightDividerLocation);
+                    } else {
+                        rightSplit.setDividerLocation(0.55);
+                    }
+                });
+                logger.debug("[ProjectController] Panel de exportación restaurado a visible.");
+            }
+        } else {
+            if (toolsPanel.isVisible()) {
+                lastRightDividerLocation = rightSplit.getDividerLocation();
+                toolsPanel.setVisible(false);
+                rightSplit.setDividerSize(0);
+                logger.debug("[ProjectController] Panel de exportación ocultado programáticamente.");
+            }
+        }
+        
+        // Sincronizar el estado del botón de toggle
+        Action toggleAction = actionMap.get(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL);
+        if (toggleAction != null) {
+            toggleAction.putValue(Action.SELECTED_KEY, visible);
+        }
+    } // ---FIN de metodo setExportPanelVisible---
+    
     
     public void setProjectListCoordinator(ProjectListCoordinator coordinator) {
         this.projectListCoordinator = coordinator;
@@ -1924,6 +2070,8 @@ public class ProjectController implements IModoController {
     public VisorView getView() { return this.view; }
     public ComponentRegistry getRegistry() { return this.registry; }
 
+    
+    
 } // --- FIN de la clase ProjectController ---
 
 

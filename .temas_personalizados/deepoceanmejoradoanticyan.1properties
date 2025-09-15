@@ -1,0 +1,34 @@
+#= Deep Ocean Naranja Definitivo
+# Basado en=com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDeepOceanIJTheme
+
+# --- FOCO Y SELECCIÓN (NARANJA) ---
+Component.focusColor = #ff9933
+Component.focusedBorderColor = #ff9933
+List.focusCellHighlightBorder = #ff9933
+Table.focusCellHighlightBorder = #ff9933
+Tree.focusCellHighlightBorder = #ff9933
+List.selectionBackground = #ff9933
+Table.selectionBackground = #ff9933
+List.selectionForeground = #000000
+Table.selectionForeground = #000000
+
+# --- DESACTIVAR INDICADORES POR DEFECTO DE FLATLAF ---
+List.showCellFocusIndicator = false
+Table.showCellFocusIndicator = false
+Tree.showCellFocusIndicator = false
+
+# --- CONSISTENCIA (Evita parpadeos) ¡AQUÍ ESTABA EL ERROR! ---
+List.focusSelectionBackground = @List.selectionBackground
+Table.focusSelectionBackground = @Table.selectionBackground
+Tree.focusSelectionBackground = @Tree.selectionBackground
+
+# --- OTROS COLORES DE TU TEMA ---
+Component.accentColor = #ff9933
+TabbedPane.focusColor = #ff9933
+ComboBox.focusColor = #ff9933
+TitledBorder.titleColor = #ff9933
+Visor.statusBarForeground = #ff9933
+Label.foreground = #ffffff
+RadioButton.foreground = #ffffff
+CheckBox.foreground = #ffffff
+Button.foreground = #ffffff

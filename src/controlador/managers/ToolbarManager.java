@@ -44,6 +44,7 @@ public class ToolbarManager implements ThemeChangeListener{
     private final Map<String, JToolBar> managedToolbars;
     
     private BackgroundControlManager backgroundControlManager;
+    private controlador.ProjectController projectController;
     
     /**
      * Constructor de ToolbarManager.
@@ -146,34 +147,24 @@ public class ToolbarManager implements ThemeChangeListener{
 
         List<ToolbarDefinition> todasLasBarras = uiDefService.generateModularToolbarStructure();
 
-        // Obtenemos el DisplayMode actual desde el modelo. Es la fuente de la verdad.
         DisplayMode displayModeActual = model.getCurrentDisplayMode();
         
         for (ToolbarDefinition def : todasLasBarras) {
             if (def.modosVisibles().contains(modoActual)) {
-                // Obtenemos la toolbar. Como la caché está vacía tras un cambio de tema,
-                // esto forzará la llamada a buildAndConfigureToolbar.
                 JToolBar toolbar = getToolbar(def.claveBarra()); 
 
                 if (toolbar != null) {
-                    	
-                	if (def.alignment() != ToolbarAlignment.FREE) {
-                		
+                    if (def.alignment() != ToolbarAlignment.FREE) {
                         String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra(), "visible");
                         boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
                         toolbar.setVisible(isVisibleInConfig);
                         toolbar.setOpaque(false);
                         
-                        // <<< INICIO DE LA LÓGICA DE VISIBILIDAD ADICIONAL >>>
-                        // Si la barra es la de "zoom", aplicamos una regla extra.
                         if ("zoom".equals(def.claveBarra())) {
-                            // La barra de zoom solo debe ser visible si estamos en un modo de imagen única
-                            // Y si la configuración general de la barra dice que debe ser visible.
                             boolean debeSerVisible = (displayModeActual != DisplayMode.GRID) && isVisibleInConfig;
                             toolbar.setVisible(debeSerVisible);
                             logger.debug("  -> Visibilidad condicional para 'zoom': " + debeSerVisible);
                         }
-                        // <<< FIN DE LA LÓGICA DE VISIBILIDAD ADICIONAL >>>
                         
                         switch (def.alignment()) {
                             case LEFT: leftPanel.add(toolbar); break;
@@ -186,15 +177,12 @@ public class ToolbarManager implements ThemeChangeListener{
             }
         }
         
-        // <<< INICIO DE LA LÓGICA PARA LA BARRA DE ESTADO >>>
-        // Gestionamos la barra de estado por separado al final, porque siempre existe.
         JToolBar barraEstadoControles = getToolbar("barra_estado_controles");
         if (barraEstadoControles != null) {
             boolean debeSerVisible = (displayModeActual != DisplayMode.GRID);
             barraEstadoControles.setVisible(debeSerVisible);
             logger.debug("  -> Visibilidad condicional para 'barra_estado_controles': " + debeSerVisible);
         }
-        // <<< FIN DE LA LÓGICA PARA LA BARRA DE ESTADO >>>
 
         leftPanel.revalidate();
         leftPanel.repaint();
@@ -203,23 +191,120 @@ public class ToolbarManager implements ThemeChangeListener{
         rightPanel.revalidate();
         rightPanel.repaint();
 
-	     // --- INICIO DE LA LÓGICA AÑADIDA ---
-	     // Después de que TODAS las toolbars han sido reconstruidas y puestas en su sitio,
-	     // le decimos explícitamente al BackgroundControlManager que es su turno de actuar.
 	     if (this.backgroundControlManager != null) {
 	         logger.debug("  [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...");
-	         // Lo hacemos en un invokeLater para asegurar que se ejecuta después de que
-	         // el contenedor de toolbars se haya revalidado visualmente.
 	         SwingUtilities.invokeLater(() -> {
 	             backgroundControlManager.initializeAndLinkControls();
 	             backgroundControlManager.sincronizarSeleccionConEstadoActual();
 	         });
 	     }
-	     // --- FIN DE LA LÓGICA AÑADIDA ---
 	     
-        
+	    // --- INICIO DE LA MODIFICACIÓN CRUCIAL ---
+        // Si acabamos de reconstruir las barras para el modo proyecto y tenemos una
+        // referencia al controlador de proyecto, le notificamos que ya puede
+        // configurar los listeners que dependen de los botones de la toolbar.
+        if (modoActual == WorkMode.PROYECTO && this.projectController != null) {
+            logger.debug("  [ToolbarManager] Notificando a ProjectController para la inicialización post-toolbars...");
+            SwingUtilities.invokeLater(() -> projectController.postToolbarInitialization());
+        }
+        // --- FIN DE LA MODIFICACIÓN CRUCIAL ---
+	     
         logger.debug("--- [ToolbarManager] Reconstrucción de toolbars completada. ---");
     } // --- Fin del método reconstruirContenedorDeToolbars ---
+    
+    
+//    public void reconstruirContenedorDeToolbars(WorkMode modoActual) {
+//        logger.info("--- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: " + modoActual + " ---");
+//
+//        final JPanel leftPanel = registry.get("container.toolbars.left");
+//        final JPanel centerPanel = registry.get("container.toolbars.center");
+//        final JPanel rightPanel = registry.get("container.toolbars.right");
+//
+//        if (leftPanel == null || centerPanel == null || rightPanel == null) {
+//            logger.error("  ERROR [ToolbarManager]: Uno o más paneles de alineamiento no se encontraron. Abortando.");
+//            return;
+//        }
+//
+//        leftPanel.removeAll();
+//        centerPanel.removeAll();
+//        rightPanel.removeAll();
+//
+//        List<ToolbarDefinition> todasLasBarras = uiDefService.generateModularToolbarStructure();
+//
+//        // Obtenemos el DisplayMode actual desde el modelo. Es la fuente de la verdad.
+//        DisplayMode displayModeActual = model.getCurrentDisplayMode();
+//        
+//        for (ToolbarDefinition def : todasLasBarras) {
+//            if (def.modosVisibles().contains(modoActual)) {
+//                // Obtenemos la toolbar. Como la caché está vacía tras un cambio de tema,
+//                // esto forzará la llamada a buildAndConfigureToolbar.
+//                JToolBar toolbar = getToolbar(def.claveBarra()); 
+//
+//                if (toolbar != null) {
+//                    	
+//                	if (def.alignment() != ToolbarAlignment.FREE) {
+//                		
+//                        String configKeyVisibilidad = ConfigKeys.buildKey("interfaz.herramientas", def.claveBarra(), "visible");
+//                        boolean isVisibleInConfig = configuration.getBoolean(configKeyVisibilidad, true);
+//                        toolbar.setVisible(isVisibleInConfig);
+//                        toolbar.setOpaque(false);
+//                        
+//                        // <<< INICIO DE LA LÓGICA DE VISIBILIDAD ADICIONAL >>>
+//                        // Si la barra es la de "zoom", aplicamos una regla extra.
+//                        if ("zoom".equals(def.claveBarra())) {
+//                            // La barra de zoom solo debe ser visible si estamos en un modo de imagen única
+//                            // Y si la configuración general de la barra dice que debe ser visible.
+//                            boolean debeSerVisible = (displayModeActual != DisplayMode.GRID) && isVisibleInConfig;
+//                            toolbar.setVisible(debeSerVisible);
+//                            logger.debug("  -> Visibilidad condicional para 'zoom': " + debeSerVisible);
+//                        }
+//                        // <<< FIN DE LA LÓGICA DE VISIBILIDAD ADICIONAL >>>
+//                        
+//                        switch (def.alignment()) {
+//                            case LEFT: leftPanel.add(toolbar); break;
+//                            case CENTER: centerPanel.add(toolbar); break;
+//                            case RIGHT: rightPanel.add(toolbar); break;
+//                            default: leftPanel.add(toolbar); break;
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//        
+//        // <<< INICIO DE LA LÓGICA PARA LA BARRA DE ESTADO >>>
+//        // Gestionamos la barra de estado por separado al final, porque siempre existe.
+//        JToolBar barraEstadoControles = getToolbar("barra_estado_controles");
+//        if (barraEstadoControles != null) {
+//            boolean debeSerVisible = (displayModeActual != DisplayMode.GRID);
+//            barraEstadoControles.setVisible(debeSerVisible);
+//            logger.debug("  -> Visibilidad condicional para 'barra_estado_controles': " + debeSerVisible);
+//        }
+//        // <<< FIN DE LA LÓGICA PARA LA BARRA DE ESTADO >>>
+//
+//        leftPanel.revalidate();
+//        leftPanel.repaint();
+//        centerPanel.revalidate();
+//        centerPanel.repaint();
+//        rightPanel.revalidate();
+//        rightPanel.repaint();
+//
+//	     // --- INICIO DE LA LÓGICA AÑADIDA ---
+//	     // Después de que TODAS las toolbars han sido reconstruidas y puestas en su sitio,
+//	     // le decimos explícitamente al BackgroundControlManager que es su turno de actuar.
+//	     if (this.backgroundControlManager != null) {
+//	         logger.debug("  [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...");
+//	         // Lo hacemos en un invokeLater para asegurar que se ejecuta después de que
+//	         // el contenedor de toolbars se haya revalidado visualmente.
+//	         SwingUtilities.invokeLater(() -> {
+//	             backgroundControlManager.initializeAndLinkControls();
+//	             backgroundControlManager.sincronizarSeleccionConEstadoActual();
+//	         });
+//	     }
+//	     // --- FIN DE LA LÓGICA AÑADIDA ---
+//	     
+//        
+//        logger.debug("--- [ToolbarManager] Reconstrucción de toolbars completada. ---");
+//    } // --- Fin del método reconstruirContenedorDeToolbars ---
     
     
     /**
@@ -273,6 +358,10 @@ public class ToolbarManager implements ThemeChangeListener{
     public void setBackgroundControlManager(BackgroundControlManager backgroundControlManager) {
         this.backgroundControlManager = backgroundControlManager;
     } // --- Fin del método setBackgroundControlManager ---
+    
+    public void setProjectController(controlador.ProjectController projectController) {
+        this.projectController = projectController;
+    } // --- Fin del método setProjectController ---
 
 } // --- FIN de la clase ToolbarManager ---
 

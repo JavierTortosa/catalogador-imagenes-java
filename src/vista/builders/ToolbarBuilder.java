@@ -293,6 +293,7 @@ public class ToolbarBuilder {
 
             String nombreBotonParaClave = ConfigKeys.keyPartFromCommand(definition.comandoCanonico());
             String claveBaseBoton = ConfigKeys.buildKey("interfaz.boton", definition.categoriaLayout(), nombreBotonParaClave);
+            
             this.registry.register(claveBaseBoton, abstractButtonComponent);
             
             abstractButtonComponent.putClientProperty("buttonType", definition.tipoBoton());

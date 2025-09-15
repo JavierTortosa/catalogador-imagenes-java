@@ -2861,6 +2861,25 @@ public class VisorController implements IModoController, ActionListener, Clipboa
         //    con un comando de ese tipo pero SIN una Action directa del actionMap.
         logger.debug("[VC.actionPerformed General Switch] Procesando comando fallback/directo: '" + command + "'");
 
+        // Manejo genérico para todos los comandos de cambio de tema.
+        if (command.startsWith(AppActionCommands.CMD_TEMA_PREFIX)) {
+            // Extraemos el ID del tema del comando.
+            // Ej: "cmd.tema.custom_deepoceanmejorado" -> "custom_deepoceanmejorado"
+            String themeId = command.substring(AppActionCommands.CMD_TEMA_PREFIX.length());
+            
+            logger.debug("    -> Acción: Cambiar Tema. ID extraído: '{}'", themeId);
+            
+            // Llamamos al ThemeManager para que aplique el tema.
+            // El 'true' es para que se repinte la UI y se notifique a los listeners.
+            if (this.themeManager != null) {
+                this.themeManager.setTemaActual(themeId, true);
+            } else {
+                logger.error("ERROR: ThemeManager es nulo. No se puede cambiar el tema.");
+            }
+            // No necesitamos un 'break' porque este if está fuera del switch.
+            return; // Hemos manejado la acción, podemos salir del método.
+        }
+        
         switch (command) {
             // 4.1. --- Configuración ---
             case AppActionCommands.CMD_CONFIG_GUARDAR:
@@ -3443,23 +3462,62 @@ public class VisorController implements IModoController, ActionListener, Clipboa
  	} // --- Fin del método actualizarEstadoVisualBotonMarcarYBarraEstado ---
      
 	
-	/**
-	 * Orquesta la operación de alternar el estado de marca de la imagen actual.
-	 * Este es el punto de entrada llamado por la Action correspondiente.
-	 */
-	public void solicitudAlternarMarcaDeImagenActual() {
-	    logger.debug("[Controller] Solicitud para alternar marca de imagen actual...");
-	    if (model == null || projectManager == null) { return; }
-	    
-	    String claveActual = model.getSelectedImageKey();
-	    if (claveActual == null || claveActual.isEmpty()) { return; }
+ 	/**
+ 	 * Orquesta la operación de alternar el estado de marca de la imagen actual.
+ 	 * Incluye una comprobación de seguridad para evitar desmarcar accidentalmente
+ 	 * una imagen que está en la cola de exportación activa.
+ 	 */
+ 	public void solicitudAlternarMarcaDeImagenActual() {
+ 	    logger.debug("[Controller] Solicitud para alternar marca de imagen actual...");
+ 	    if (model == null || projectManager == null || view == null) { return; }
+ 	    
+ 	    String claveActual = model.getSelectedImageKey();
+ 	    if (claveActual == null || claveActual.isEmpty()) { return; }
 
-	    Path rutaAbsoluta = model.getRutaCompleta(claveActual);
-	    if (rutaAbsoluta == null) { return; }
+ 	    Path rutaAbsoluta = model.getRutaCompleta(claveActual);
+ 	    if (rutaAbsoluta == null) { return; }
 
-	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
-	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
-	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
+ 	    // --- INICIO DE LA MODIFICACIÓN: LÓGICA DE CONFIRMACIÓN ---
+
+ 	    // Paso 1: Comprobar el estado de la imagen ANTES de cambiarlo.
+ 	    boolean estaMarcadaActualmente = projectManager.estaMarcada(rutaAbsoluta);
+
+ 	    // Paso 2: Si la imagen está marcada (lo que significa que la acción la va a DESMARCAR)
+ 	    // y además sabemos por el modelo que el panel de exportación del modo proyecto está visible...
+ 	    if (estaMarcadaActualmente && model.isProjectExportPanelVisible()) {
+ 	        
+ 	        // Paso 3: ...mostramos un diálogo pidiendo confirmación al usuario.
+ 	        String titulo = "Confirmar Desmarcar Imagen";
+ 	        String mensaje = "<html>Esta imagen está actualmente en la cola de exportación del modo Proyecto.<br><br><b>¿Estás seguro de que quieres desmarcarla?</b></html>";
+ 	        
+ 	        int respuesta = JOptionPane.showConfirmDialog(
+ 	            view, // El componente padre para centrar el diálogo
+ 	            mensaje,
+ 	            titulo,
+ 	            JOptionPane.YES_NO_OPTION,
+ 	            JOptionPane.WARNING_MESSAGE
+ 	        );
+ 	        
+ 	        // Paso 4: Si el usuario presiona "No" o cierra la ventana, abortamos la operación.
+ 	        if (respuesta != JOptionPane.YES_OPTION) {
+ 	            logger.debug("  -> El usuario ha cancelado la operación de desmarcar la imagen de la cola de exportación.");
+ 	            return; // Salimos del método sin hacer nada más.
+ 	        }
+ 	    }
+ 	    // --- FIN DE LA MODIFICACIÓN ---
+
+ 	    // Si llegamos aquí, o bien la imagen no estaba marcada, o el panel de exportar no estaba visible,
+ 	    // o el usuario ha confirmado explícitamente que quiere desmarcarla.
+ 	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
+ 	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
+ 	    
+ 	    // Adicional: Si acabamos de desmarcar una imagen, es buena idea refrescar la cola de exportación
+ 	    // para que el cambio se refleje inmediatamente si el usuario vuelve al modo proyecto.
+ 	    if (!estaAhoraMarcada && projectController != null) {
+ 	        projectController.solicitarPreparacionColaExportacion();
+ 	    }
+ 	    
+ 	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
 	
 	
 	/**

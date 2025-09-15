@@ -15,7 +15,7 @@ public class FlatPurpuraMisteriosoIJTheme extends FlatDarkPurpleIJTheme {
     public static boolean setup() {
         return setup(new FlatPurpuraMisteriosoIJTheme());
     } // ---FIN de metodo [setup]---
-
+    
     @Override
     public String getName() {
         return NAME;
