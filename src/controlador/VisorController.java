@@ -598,6 +598,30 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     public void shutdownApplication() {
         logger.debug("--- [Controller] Iniciando apagado de la aplicación ---");
         
+     // --- INICIO DE LA MODIFICACIÓN ---
+        if (projectManager != null && projectManager.hayCambiosSinGuardar()) {
+            int respuesta = JOptionPane.showConfirmDialog(
+                view,
+                "El proyecto actual tiene cambios sin guardar.\n¿Deseas guardarlos antes de salir?",
+                "Cambios sin Guardar",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.WARNING_MESSAGE
+            );
+            
+            if (respuesta == JOptionPane.YES_OPTION) {
+                projectController.solicitarGuardarProyecto(); // Guardar
+                // Si el guardado fue un "Guardar Como" y el usuario canceló,
+                // hay que volver a comprobar si sigue habiendo cambios.
+                if (projectManager.hayCambiosSinGuardar()) {
+                    return; // Abortar el cierre si el usuario canceló el "Guardar Como".
+                }
+            } else if (respuesta == JOptionPane.CANCEL_OPTION || respuesta == JOptionPane.CLOSED_OPTION) {
+                return; // Cancelar completamente el cierre de la aplicación
+            }
+            // Si es NO, no hacemos nada y continuamos el cierre.
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+        
         // --- 1. Guardar la configuración ---
         // Guardar el estado de la ventana (tamaño, posición)
         if (view != null && configuration != null) {
@@ -615,6 +639,11 @@ public class VisorController implements IModoController, ActionListener, Clipboa
         
         // Guardar el resto de la configuración (última imagen, etc.)
         guardarConfiguracionActual();
+        
+        // Justo antes de apagar el executor, archivamos el proyecto temporal.
+        if (projectManager != null) {
+            projectManager.archivarTemporalAlCerrar();
+        }
 
         // --- 2. Apagar el ExecutorService de forma ordenada ---
         if (executorService != null && !executorService.isShutdown()) {
@@ -704,6 +733,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     private void apagarExecutorServiceOrdenadamente() {
         // 1. Indicar inicio del apagado.
         logger.debug("  [Hook - Executor] Apagando ExecutorService...");
+        
         // 2. Comprobar si el ExecutorService existe y no está ya apagado.
         if (executorService != null && !executorService.isShutdown()) {
            // 2.1. Iniciar el apagado "suave": no acepta nuevas tareas,
@@ -1319,14 +1349,21 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             return;
         }
         
-        String tituloBase = "Visor de Imágenes 3D"; // Puedes externalizar esto a un archivo de config si quieres
+        String tituloBase = "ModelTag - Your visual STL manager"; // Tu título
         String tituloFinal;
+        String prefijoDirty = "";
+
+        if (projectManager.hayCambiosSinGuardar()) {
+            prefijoDirty = "*";
+        }
 
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             String nombreProyecto = projectManager.getNombreProyectoActivo();
-            tituloFinal = tituloBase + " - [Proyecto: " + nombreProyecto + "]";
+            tituloFinal = prefijoDirty + tituloBase + " - [Proyecto: " + nombreProyecto + "]";
         } else {
-            tituloFinal = tituloBase;
+            // Decidimos si en modo Visualizador también mostramos el asterisco
+            // si el proyecto temporal tiene cambios. ¡Sí!
+            tituloFinal = prefijoDirty + tituloBase;
         }
         
         view.setTitle(tituloFinal);
@@ -3509,6 +3546,10 @@ public class VisorController implements IModoController, ActionListener, Clipboa
  	    // Si llegamos aquí, o bien la imagen no estaba marcada, o el panel de exportar no estaba visible,
  	    // o el usuario ha confirmado explícitamente que quiere desmarcarla.
  	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
+ 	    
+ 	   projectManager.notificarModificacion();
+       actualizarTituloVentana();
+ 	    
  	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
  	    
  	    // Adicional: Si acabamos de desmarcar una imagen, es buena idea refrescar la cola de exportación

@@ -140,4 +140,11 @@ public interface IProjectManager {
      */
     void setEtiqueta(Path rutaImagen, String etiqueta);
 
+    
+    public void limpiarArchivoTemporal();
+    void guardarAArchivo();
+    void notificarModificacion();
+    public boolean hayCambiosSinGuardar();
+    void archivarTemporalAlCerrar();
+
 } // --- FIN de la interfaz IProjectManager ---

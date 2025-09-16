@@ -7,23 +7,42 @@
 <body>
     <h2>Componentes del Modo Proyecto</h2>
     <p>
-        El <b>Modo Proyecto</b> es tu espacio de trabajo dedicado. Aquí puedes gestionar, refinar y exportar
-        las colecciones de imágenes que has marcado previamente.
+        La interfaz del <b>Modo Proyecto</b> está organizada en paneles especializados para facilitar la gestión de tu selección de imágenes.
+    </p>
+
+    <h3>1. Panel de Listas (Izquierda)</h3>
+    <p>
+        Este panel vertical a la izquierda contiene tus dos listas de trabajo principales. La lista que tiene el foco (con el fondo más claro) es la que está activa.
+    </p>
+    <ul>
+        <li><b>Selección Actual:</b> Es la lista principal de imágenes que has marcado. Las imágenes aquí son las candidatas para ser exportadas.</li>
+        <li><b>Descartes:</b> Funciona como una "papelera de reciclaje" interna del proyecto. Si una imagen de tu selección ya no te interesa, puedes moverla aquí. Desde Descartes, puedes restaurarla a la selección o eliminarla permanentemente del proyecto.</li>
+    </ul>
+    <p class="note">
+        <strong>Nota:</strong> Las imágenes que ya no existen en el disco se mostrarán tachadas y en rojo, dándote una indicación visual inmediata de que falta un archivo.
     </p>
     
-    <h3>Conceptos Clave</h3>
+    <h3>2. Área de Visualización (Centro/Derecha Superior)</h3>
+    <p>
+        Muestra las imágenes de la lista activa (ya sea Selección o Descartes). Puedes cambiar entre la vista de imagen única y la vista de cuadrícula (Grid) usando los botones de la barra de herramientas principal.
+    </p>
     <ul>
-        <li><b>Selección:</b> Es la lista principal de imágenes que has marcado porque te interesan. Esta es la lista que normalmente exportarás.</li>
-        <li><b>Descartes:</b> Es una lista temporal para imágenes que marcaste, pero que después de una revisión has decidido que no te sirven para este proyecto. Funciona como una "papelera de reciclaje" interna del proyecto.</li>
-        <li><b>Archivo de Proyecto (.prj):</b> Es el archivo físico en tu disco duro donde se guarda tu lista de Selección y Descartes. Te permite cerrar la aplicación y continuar tu trabajo más tarde.</li>
+        <li><b>Vista de Imagen Única:</b> Muestra la imagen seleccionada a tamaño completo. El zoom y el paneo funcionan igual que en el Modo Visualizador.</li>
+        <li><b>Vista de Cuadrícula (Grid):</b> Muestra miniaturas de todas las imágenes en la lista activa. Es ideal para tener una visión general y para gestionar etiquetas.</li>
     </ul>
 
-    <h3>La Interfaz</h3>
-    <p>El modo proyecto tiene una estructura diferente:</p>
+    <h3>3. Panel de Herramientas (Derecha Inferior)</h3>
+    <p>
+        Este panel, que se puede mostrar u ocultar, contiene las herramientas avanzadas del modo proyecto.
+    </p>
     <ul>
-        <li><b>Panel de Listas:</b> A la izquierda, verás la lista de <b>Selección</b>. Haciendo clic en la pestaña inferior, puedes cambiar a la vista de <b>Descartes</b>.</li>
-        <li><b>Área de Visualización:</b> A la derecha, puedes ver las imágenes de la lista activa (Selección o Descartes), ya sea una a una o en una vista de cuadrícula (Grid).</li>
-        <li><b>Panel de Herramientas:</b> Debajo de la lista de Selección, encontrarás herramientas avanzadas como el potente sistema de <b>Exportación</b>.</li>
+        <li><b>Pestaña Exportar:</b> La herramienta más potente. Contiene la tabla de exportación, el panel de detalles y todos los controles para preparar tus archivos para la copia final. Consulta la <a href="proyecto_exportar.html">Guía del Panel de Exportación</a> para más detalles.</li>
+        <li><b>Pestaña Etiquetar:</b> Funcionalidad en desarrollo para la gestión avanzada de metadatos.</li>
     </ul>
+
+    <h3>4. Archivo de Proyecto (.prj)</h3>
+    <p>
+        El archivo físico en tu disco duro (con extensión <code>.prj</code>) donde se guarda todo tu trabajo: la lista de Selección, la lista de Descartes y las etiquetas. Te permite cerrar la aplicación y continuar tu trabajo más tarde sin perder nada. Si no guardas tu trabajo, se almacena en un <strong>proyecto temporal</strong>.
+    </p>
 </body>
 </html>

@@ -40,6 +40,8 @@ public class ProjectManager implements IProjectManager {
 
     private Map<Path, String> seleccionActual;
     private Map<Path, String> seleccionDescartada;
+    
+    private boolean hayCambiosSinGuardar = false;
 
     public ProjectManager() {
     	this.seleccionActual = new LinkedHashMap<>();
@@ -157,7 +159,7 @@ public class ProjectManager implements IProjectManager {
     } // --- Fin del método cargarDesdeArchivo ---
     
     // --- MÉTODO MODIFICADO ---
-    private void guardarAArchivo() {
+    public void guardarAArchivo() {
         Path rutaGuardado = (this.archivoProyectoActivo != null) ? this.archivoProyectoActivo : this.archivoSeleccionTemporalPath;
         if (rutaGuardado == null) {
             logger.error("ERROR [PM guardar]: La ruta de guardado es null. No se puede guardar.");
@@ -194,6 +196,8 @@ public class ProjectManager implements IProjectManager {
             logger.debug("  [ProjectManager] Proyecto guardado en {} (Selección: {}, Descartes: {}).",
                          rutaGuardado, this.seleccionActual.size(), this.seleccionDescartada.size());
 
+            this.hayCambiosSinGuardar = false;
+            
         } catch (IOException e) {
             logger.error("ERROR [ProjectManager]: No se pudo guardar el archivo de proyecto: " + rutaGuardado, e);
         }
@@ -206,7 +210,11 @@ public class ProjectManager implements IProjectManager {
         this.seleccionActual.clear();
         this.seleccionDescartada.clear();
         this.archivoProyectoActivo = null;
+        
+        this.hayCambiosSinGuardar = false;
+        
         guardarAArchivo(); // Guarda el estado vacío en el archivo temporal.
+        
     } // ---FIN de metodo nuevoProyecto---
 
     
@@ -222,6 +230,9 @@ public class ProjectManager implements IProjectManager {
 
         // La lógica de cargarDesdeArchivo puede lanzar una IOException normal, así que ya está cubierta.
         cargarDesdeArchivo(rutaArchivo);
+        
+        this.hayCambiosSinGuardar = false;
+        
         this.archivoProyectoActivo = rutaArchivo;
         
     } // ---FIN de metodo abrirProyecto---
@@ -256,7 +267,10 @@ public class ProjectManager implements IProjectManager {
     } // ---FIN de metodo getEtiqueta ---
 
     public void setEtiqueta(Path rutaImagen, String etiqueta) {
-        if (rutaImagen == null) return;
+    	
+    	this.hayCambiosSinGuardar = true;
+        
+    	if (rutaImagen == null) return;
         if (seleccionActual.containsKey(rutaImagen)) {
             seleccionActual.put(rutaImagen, etiqueta);
             guardarAArchivo();
@@ -282,6 +296,9 @@ public class ProjectManager implements IProjectManager {
     
     @Override
     public void marcarImagenInterno(Path rutaAbsoluta) {
+    	
+    	this.hayCambiosSinGuardar = true;
+    	
         if (rutaAbsoluta == null) return;
         if (this.seleccionActual.putIfAbsent(rutaAbsoluta, null) == null) {
             guardarAArchivo();
@@ -290,6 +307,9 @@ public class ProjectManager implements IProjectManager {
 
     @Override
     public void desmarcarImagenInterno(Path rutaAbsoluta) {
+    	
+    	this.hayCambiosSinGuardar = true;
+    	
         if (rutaAbsoluta == null) return;
         if (this.seleccionActual.remove(rutaAbsoluta) != null) {
             guardarAArchivo();
@@ -304,6 +324,9 @@ public class ProjectManager implements IProjectManager {
 
     @Override
     public boolean alternarMarcaImagen(Path rutaAbsolutaImagen) {
+    	
+    	this.hayCambiosSinGuardar = true;
+    	
         if (estaMarcada(rutaAbsolutaImagen)) {
             desmarcarImagenInterno(rutaAbsolutaImagen);
             return false;
@@ -312,8 +335,28 @@ public class ProjectManager implements IProjectManager {
             return true;
         }
     } // --- Fin del método alternarMarcaImagen ---
+    
+    @Override
+    public boolean hayCambiosSinGuardar() {
+        return this.hayCambiosSinGuardar;
+    }
+
+    @Override
+    public void notificarModificacion() {
+        if (!this.hayCambiosSinGuardar) {
+            this.hayCambiosSinGuardar = true;
+            // Aquí podrías notificar a un listener si tuvieras esa arquitectura,
+            // pero por ahora, el cambio de título lo hará el controller.
+        }
+    }
+    
+    
+    
 
     public void vaciarDescartes() {
+    	
+    	this.hayCambiosSinGuardar = true;
+    	
         if (this.seleccionDescartada.isEmpty()) {
             return;
         }
@@ -327,15 +370,24 @@ public class ProjectManager implements IProjectManager {
     } // --- Fin del método getImagenesDescartadas ---
 
     public void moverAdescartes(Path rutaAbsolutaImagen) {
+    	
+    	this.hayCambiosSinGuardar = true;
+    	
         if (rutaAbsolutaImagen == null) return;
         if (this.seleccionActual.containsKey(rutaAbsolutaImagen)) {
             this.seleccionActual.remove(rutaAbsolutaImagen);
             this.seleccionDescartada.put(rutaAbsolutaImagen, null);
+            
+            notificarModificacion();
+            
             guardarAArchivo();
         }
     } // --- Fin del método moverAdescartes ---
 
     public void restaurarDeDescartes(Path rutaAbsolutaImagen) {
+    	
+    	this.hayCambiosSinGuardar = true;
+    	
         if (rutaAbsolutaImagen == null) return;
         if (this.seleccionDescartada.containsKey(rutaAbsolutaImagen)) {
             this.seleccionDescartada.remove(rutaAbsolutaImagen);
@@ -350,6 +402,9 @@ public class ProjectManager implements IProjectManager {
     } // --- Fin del método estaEnDescartes ---
     
     public void eliminarDeProyecto(Path rutaAbsolutaImagen) {
+    	
+    	this.hayCambiosSinGuardar = true;
+    	
         if (rutaAbsolutaImagen == null) return;
         boolean removidoDeSeleccion = this.seleccionActual.remove(rutaAbsolutaImagen) != null;
         boolean removidoDeDescartes = this.seleccionDescartada.remove(rutaAbsolutaImagen) != null;
@@ -362,6 +417,70 @@ public class ProjectManager implements IProjectManager {
         this.configManager = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser null en ProjectManager");
     } // --- Fin del método setConfigManager ---
 
+    /**
+     * Vacía el contenido del archivo de selección temporal.
+     * Este método se debe llamar después de que el usuario guarde el proyecto
+     * con un nombre específico ("Guardar Como..."), para evitar tener datos
+     * duplicados y potencialmente conflictivos.
+     */
+    public void limpiarArchivoTemporal() {
+        if (archivoSeleccionTemporalPath == null) {
+            logger.warn("WARN [limpiarArchivoTemporal]: La ruta del archivo temporal es nula. No se puede limpiar.");
+            return;
+        }
+
+        // Si el archivo temporal no existe, no hay nada que hacer.
+        if (!Files.exists(archivoSeleccionTemporalPath)) {
+            return;
+        }
+
+        try (BufferedWriter writer = Files.newBufferedWriter(archivoSeleccionTemporalPath,
+                                                            StandardOpenOption.CREATE,
+                                                            StandardOpenOption.TRUNCATE_EXISTING)) {
+            writer.write("# Archivo temporal de proyecto. Vaciado después de 'Guardar Como...'.");
+            writer.newLine();
+            logger.info("El archivo de proyecto temporal ({}) ha sido vaciado.", archivoSeleccionTemporalPath.getFileName());
+        } catch (IOException e) {
+            logger.error("ERROR [limpiarArchivoTemporal]: No se pudo vaciar el archivo de proyecto temporal: " + archivoSeleccionTemporalPath, e);
+        }
+    } // ---FIN de metodo limpiarArchivoTemporal---
+    
+    
+    /**
+     * Renombra el archivo de selección temporal a un archivo de respaldo con fecha y hora.
+     * Se debe llamar al cerrar la aplicación para asegurar un arranque limpio la próxima vez.
+     * Si el archivo temporal está vacío o no existe, simplemente lo elimina.
+     */
+    @Override
+    public void archivarTemporalAlCerrar() {
+        if (archivoSeleccionTemporalPath == null || !Files.exists(archivoSeleccionTemporalPath)) {
+            return; // No hay nada que archivar
+        }
+
+        try {
+            // Si el archivo está vacío (o tiene un tamaño muy pequeño, como solo el header), lo borramos.
+            if (Files.size(archivoSeleccionTemporalPath) < 50) {
+                Files.delete(archivoSeleccionTemporalPath);
+                logger.info("Archivo temporal vacío o casi vacío eliminado en el cierre.");
+                return;
+            }
+            
+            // Creamos un nombre de archivo para el respaldo con timestamp
+            String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+            String nombreBase = archivoSeleccionTemporalPath.getFileName().toString().replace(".txt", "");
+            Path rutaRespaldo = archivoSeleccionTemporalPath.resolveSibling(nombreBase + "_backup_" + timestamp + ".txt");
+
+            // Renombramos el archivo
+            Files.move(archivoSeleccionTemporalPath, rutaRespaldo);
+            logger.info("Proyecto temporal archivado como: {}", rutaRespaldo.getFileName());
+
+        } catch (IOException e) {
+            logger.error("ERROR [archivarTemporalAlCerrar]: No se pudo archivar el archivo de proyecto temporal.", e);
+        }
+    } // ---FIN de metodo archivarTemporalAlCerrar---
+    
+    
+    
 } // --- FIN de la clase ProjectManager ---
 
 

@@ -776,6 +776,8 @@ public class ProjectController implements IModoController {
         Path rutaAbsoluta = model.getProyectoListContext().getRutaCompleta(claveSeleccionada);
         if (rutaAbsoluta != null) {
             projectManager.moverAdescartes(rutaAbsoluta);
+            projectManager.notificarModificacion();
+            controllerRef.actualizarTituloVentana();
             
             // --- INICIO DE LA CORRECCIÓN ---
             // Llamamos al método de refresco que no resetea el layout.
@@ -796,6 +798,9 @@ public class ProjectController implements IModoController {
         }
         Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
         projectManager.restaurarDeDescartes(rutaAbsoluta);
+        
+        projectManager.notificarModificacion();
+        controllerRef.actualizarTituloVentana();
         
         // --- LA CORRECCIÓN CLAVE ---
         // En lugar de llamar al refresco antiguo, llamamos al nuevo y robusto.
@@ -1262,6 +1267,11 @@ public class ProjectController implements IModoController {
         } else {
             logger.warn("WARN [solicitudAlternarMarcaImagen]: Lista activa desconocida ('" + listaActiva + "'). No se realiza ninguna acción.");
         }
+        
+        // Después de mover la imagen, notificamos el cambio y actualizamos el título.
+        projectManager.notificarModificacion();
+        controllerRef.actualizarTituloVentana();
+        
     } // --- Fin del método solicitudAlternarMarcaImagen ---
     
     
@@ -1337,6 +1347,8 @@ public class ProjectController implements IModoController {
                 controllerRef.getGeneralController().cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
             }
 
+            controllerRef.actualizarTituloVentana();
+            
         } catch (java.io.IOException e) {
             logger.error("Falló la carga del proyecto: {}", e.getMessage());
             Component parentWindow = (view != null) ? view : null;
@@ -1362,12 +1374,22 @@ public class ProjectController implements IModoController {
             // Si es un proyecto temporal, la acción "Guardar" debe comportarse como "Guardar Como".
             solicitarGuardarProyectoComo(null); // Pasamos null para que la lógica interna muestre el JFileChooser
         } else {
-            // Si ya tiene un archivo, simplemente guardamos los cambios.
-            // (Actualmente, se guarda en cada acción, pero este método es útil para un botón explícito de "Guardar")
-            // projectManager.guardarAArchivo(); // Esta línea es redundante si guardamos en cada cambio, pero la dejamos por claridad.
+            // Llamamos explícitamente a guardar el archivo.
+            projectManager.guardarAArchivo();
+            
+            controllerRef.actualizarTituloVentana();
+
             logger.info("Proyecto {} guardado.", projectManager.getNombreProyectoActivo());
-            // Opcional: Mostrar un mensaje en la barra de estado.
+            
+            String nombreArchivo = projectManager.getNombreProyectoActivo();
+            JOptionPane.showMessageDialog(
+                view, 
+                "El proyecto '" + nombreArchivo + "' se ha guardado correctamente.", 
+                "Proyecto Guardado", 
+                JOptionPane.INFORMATION_MESSAGE
+            );
         }
+        
     } // ---FIN de metodo solicitarGuardarProyecto---
 
     
@@ -1420,6 +1442,18 @@ public class ProjectController implements IModoController {
         projectManager.guardarProyectoComo(archivoDestino);
         controllerRef.actualizarTituloVentana();
         logger.info("Proyecto guardado como {} y UI actualizada.", archivoDestino.getFileName());
+        
+        projectManager.limpiarArchivoTemporal();
+        
+        // Mostramos un diálogo de confirmación después de guardar.
+        String nombreArchivo = archivoDestino.getFileName().toString();
+        JOptionPane.showMessageDialog(
+            view, 
+            "El proyecto se ha guardado correctamente como '" + nombreArchivo + "'.", 
+            "Proyecto Guardado", 
+            JOptionPane.INFORMATION_MESSAGE
+        );
+        
     } // ---FIN de metodo solicitarGuardarProyectoComo---
     
     
@@ -1481,6 +1515,10 @@ public class ProjectController implements IModoController {
         if (confirm == JOptionPane.YES_OPTION) {
             Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
             projectManager.eliminarDeProyecto(rutaAbsoluta);
+            
+            projectManager.notificarModificacion();
+            controllerRef.actualizarTituloVentana();
+            
             refrescarListasDeProyecto();
         }
     } // --- Fin del método solicitarEliminacionPermanente ---
@@ -1768,6 +1806,9 @@ public class ProjectController implements IModoController {
             // Paso 1: Ordenar el cambio en la fuente de verdad de datos.
             projectManager.moverAdescartes(selectedItem.getRutaImagen());
             
+            projectManager.notificarModificacion();
+            controllerRef.actualizarTituloVentana();
+            
             // Paso 2: Ordenar un refresco completo y sincronizado de toda la UI.
             refrescarVistaProyectoCompleta();
         }
@@ -1863,6 +1904,10 @@ public class ProjectController implements IModoController {
 
         if (confirm == JOptionPane.YES_OPTION) {
             projectManager.vaciarDescartes();
+            
+            projectManager.notificarModificacion();
+            controllerRef.actualizarTituloVentana();
+            
             refrescarListasDeProyecto();
         }
     } // --- Fin del nuevo método solicitarVaciarDescartes ---
@@ -1892,6 +1937,10 @@ public class ProjectController implements IModoController {
 
         if (nuevaEtiqueta != null) {
             projectManager.setEtiqueta(ruta, nuevaEtiqueta);
+            
+            projectManager.notificarModificacion();
+            controllerRef.actualizarTituloVentana();
+            
             refrescarGridProyecto();
         }
     } // ---FIN de metodo solicitarEtiquetaParaImagenSeleccionada---
@@ -1906,6 +1955,10 @@ public class ProjectController implements IModoController {
         Path ruta = model.getRutaCompleta(claveSeleccionada);
         if (ruta != null) {
             projectManager.setEtiqueta(ruta, null);
+            
+            projectManager.notificarModificacion();
+            controllerRef.actualizarTituloVentana();
+            
             refrescarGridProyecto();
         }
     } // ---FIN de metodo solicitarBorradoEtiquetaParaImagenSeleccionada---
