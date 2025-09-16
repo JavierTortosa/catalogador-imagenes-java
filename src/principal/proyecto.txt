@@ -718,6 +718,184 @@ Resumen
 -------------------------------------------------------------------------
 
 
+-------------------------------------------------------------------------
+--- HOJA DE RUTA REVISADA PARA IMPLEMENTAR EL MODO DATOS (v2.1) ---
+-------------------------------------------------------------------------
+
+Basado en un enfoque pragmático y por fases para obtener valor rápidamente
+y construir hacia una solución robusta y anti-frágil.
+
+=========================================================================
+--- FASE 1: NÚCLEO DE BÚSQUEDA Y FILTRADO INICIAL ---
+=========================================================================
+OBJETIVO: Tener una base de datos funcional que permita el filtrado básico
+por tags en el Modo Visualizador. Esto proporciona el 80% del valor
+buscado con el mínimo de complejidad inicial.
+
+1.  DISEÑO INICIAL DE BASE DE DATOS (Simplificado y Temporal):
+    - Se usará SQLite como motor de base de datos.
+    - Se utilizará la RUTA COMPLETA del archivo como identificador único
+      temporalmente. Somos conscientes de su fragilidad, pero permite un
+      arranque rápido.
+
+    - TABLA `images`:
+        - id (INTEGER, PK, Autoincremental)
+        - path (TEXT, UNIQUE): Ruta completa y absoluta al archivo.
+        - filename (TEXT)
+        - date_added (INTEGER): Timestamp de cuándo se añadió.
+
+    - TABLA `tags`:
+        - id (INTEGER, PK, Autoincremental)
+        - name (TEXT, UNIQUE): El nombre de la etiqueta (ej: "skaven").
+
+    - TABLA `image_tags` (Tabla de Unión):
+        - image_id (INTEGER, FK a images.id)
+        - tag_id (INTEGER, FK a tags.id)
+        - PRIMARY KEY (image_id, tag_id)
+
+
+2.  CREAR LA INFRAESTRUCTURA DE ACCESO A DATOS (DAO):
+    - Clase `DatabaseManager.java` (en `servicios`):
+        - Implementará el patrón Singleton.
+        - Se encargará de la conexión con el archivo de la BBDD SQLite.
+        - La ruta al archivo .db se definirá en `config.cfg`.
+        - **Creación Automática:** Al arrancar, si el archivo .db no existe,
+          el `DatabaseManager` lo creará automáticamente.
+        - Método `init()`: Conecta y llama a la creación de tablas.
+        - Método `createTablesIfNotExists()`: Ejecutará el SQL para crear
+          las 3 tablas de la Fase 1 usando la sintaxis
+          `CREATE TABLE IF NOT EXISTS ...`. Esto asegura que en un
+          ordenador nuevo la BBDD se genere sola, y en uno existente no
+          se produzcan errores.
+    - Clase `DataAccessObject.java` (o similar, en `servicios.db`):
+        - Utilizará JDBI para abstraer las consultas SQL.
+        - Tendrá métodos como `addImage(path)`, `addTag(name)`,
+          `linkTagToImage(imageId, tagId)`, `findImagesByTags([...])`.
+
+3.  CREAR EL SERVICIO DE ESCANEO E INDEXACIÓN:
+    - Clase `ScannerService.java` (en `servicios`):
+        - Método `scanAndIndexFolder(Path rootFolder)`:
+            - Recorrerá recursivamente la carpeta especificada.
+            - Para cada imagen encontrada:
+                1. La añadirá a la tabla `images` si su `path` no existe.
+                2. Implementará el "Etiquetado Automático por Carpeta":
+                   - Extraerá los nombres de las carpetas de la ruta
+                     (ej: de "F:/figuras/juegos/bloodbowl", extraerá
+                     "figuras", "juegos", "bloodbowl").
+                   - Añadirá cada nombre de carpeta como un tag en la tabla
+                     `tags` si no existe.
+                   - Vinculará estos tags a la imagen en la tabla `image_tags`.
+
+4.  INTEGRAR LA BÚSQUEDA EN LA LÓGICA DE LA APLICACIÓN:
+    - Modificar `FilterManager.java`:
+        - Añadir un nuevo tipo de filtro: `FilterType.DATABASE_TAGS`.
+        - Cuando se aplique este filtro, en lugar de operar sobre la
+          lista en memoria, llamará al `DataAccessObject` para obtener
+          la lista de rutas de imágenes que coincidan con los tags.
+    - Modificar `VisorController.java` y `GeneralController.java`:
+        - El resultado de la búsqueda en la BBDD (la lista de rutas) se
+          cargará en el `VisorModel` como la nueva "lista maestra" a visualizar.
+
+---
+RESULTADO ESPERADO DE LA FASE 1: El usuario puede indexar una carpeta.
+Después, puede usar un campo de búsqueda en la UI para filtrar las
+26,000 imágenes por los tags generados automáticamente, viendo los
+resultados al instante en el visualizador. La aplicación es portable a
+un nuevo PC, donde creará la BBDD vacía al primer arranque.
+
+=========================================================================
+--- FASE 2: ETIQUETADO MANUAL Y SINCRONIZACIÓN ---
+=========================================================================
+OBJETIVO: Dar al usuario el poder de curar y enriquecer los datos de la
+base de datos, y mantenerla actualizada con los cambios en el disco.
+
+1.  IMPLEMENTAR LA INTERFAZ DE ETIQUETADO:
+    - En la UI del Modo Visualizador/Datos, añadir:
+        - Un área para mostrar los tags de la imagen seleccionada.
+        - Un campo de texto para añadir nuevos tags.
+        - Un botón para eliminar tags existentes de una imagen.
+    - Implementar el "Etiquetado en Bloque" desde el Modo Proyecto:
+        - Añadir una acción/botón en el Modo Proyecto.
+        - Al pulsarlo, un diálogo permitirá introducir uno o más tags que
+          se aplicarán a TODAS las imágenes actualmente en la lista de
+          selección del proyecto.
+
+2.  IMPLEMENTAR UN GESTOR DE TAGS CENTRALIZADO (Modo Datos):
+    - Crear una nueva vista/panel para la gestión global de tags.
+    - Funcionalidades:
+        - Ver todas las etiquetas existentes en la BBDD.
+        - Renombrar un tag (se actualizará en todas las imágenes).
+        - Eliminar un tag (se desvinculará de todas las imágenes).
+        - Fusionar tags (ej: "skavens" y "skaven" en uno solo).
+
+3.  CREAR UN SERVICIO DE SINCRONIZACIÓN BÁSICO:
+    - Añadir una acción "Sincronizar Discos" en el menú.
+    - Al ejecutarla, el `ScannerService` volverá a recorrer las carpetas
+      raíz configuradas.
+    - Lógica:
+        - Detectará archivos nuevos y los añadirá a la BBDD.
+        - Detectará archivos que estaban en la BBDD pero ya no están en
+          el disco, marcándolos como "huérfanos" (con un flag en la
+          tabla `images`).
+
+---
+RESULTADO ESPERADO DE LA FASE 2: El usuario puede corregir y ampliar
+el etiquetado automático, mejorando drásticamente la calidad de los
+resultados de búsqueda. La base de datos se mantiene razonablemente
+actualizada con el sistema de archivos.
+
+=========================================================================
+--- FASE 3: MIGRACIÓN AL SISTEMA ANTI-FRÁGIL (HASHES) ---
+=========================================================================
+OBJETIVO: Hacer que la base de datos sea resiliente a movimientos,
+renombres de archivos y cambios en la estructura de carpetas, y manejar
+correctamente las complejas asociaciones entre imágenes y archivos de modelo.
+
+1.  MIGRACIÓN DEL ESQUEMA DE LA BASE DE DATOS:
+    - Añadir las nuevas tablas al `DatabaseManager`: `resources`, `locations`,
+      y `resource_associations`.
+    - Crear un script de migración (un método en `DatabaseManager`) que:
+        - Lea todos los datos de la antigua tabla `images`.
+        - Para cada imagen, calcule su HASH.
+        - Cree una entrada en la tabla `resources` con el hash.
+        - Cree una entrada en la tabla `locations` con la ruta.
+        - Migre las relaciones de tags a la nueva tabla `resource_tags`.
+        - Finalmente, eliminar la antigua tabla `images`.
+
+2.  REFACTORIZAR LA LÓGICA DE LA APLICACIÓN:
+    - El `ScannerService` ahora calculará hashes y poblará las tablas
+      `resources` y `locations`. Su lógica de "sincronización" será más
+      compleja: detectará archivos movidos (mismo hash, nueva location).
+    - Todas las consultas del `DataAccessObject` y del `FilterManager`
+      ahora se basarán en los `resource_id` en lugar de en los `path`.
+      El `path` se obtendrá de la tabla `locations` solo al final, para
+      mostrar la imagen.
+
+3.  IMPLEMENTAR LA ASOCIACIÓN IMAGEN-ARCHIVO:
+    - Añadir lógica en el `ScannerService` para identificar no solo
+      imágenes, sino también archivos (`.zip`, `.rar`, `.stl`...).
+    - Estos también se añadirán como entradas en la tabla `resources`.
+    - Lógica de asociación (heurística inicial):
+        - Si una imagen (`img.png`) y un zip (`img.zip`) están en la
+          misma carpeta y comparten el mismo nombre base, crear una
+          entrada en `resource_associations`.
+    - Añadir una interfaz en el Modo Proyecto para que el usuario pueda
+      corregir o crear estas asociaciones manualmente.
+
+---
+RESULTADO ESPERADO DE LA FASE 3: La aplicación se vuelve extremadamente
+robusta. El usuario puede reorganizar sus discos duros sin miedo a
+perder todo el trabajo de etiquetado. La función "Búsqueda y Rescate"
+ahora funciona a la perfección, encontrando los zips/stls asociados a
+una imagen sin importar dónde estén.
+
+-------------------------------------------------------------------------
+--- FIN DE LA HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS 2.1 ---
+-------------------------------------------------------------------------
+
+
+***************************************************************************************************************************************************
+
 
 =========================================================
  HOJA DE RUTA - VISOR DE IMÁGENES V2
@@ -761,10 +939,10 @@ FASE 1: REFINAMIENTO DE NAVEGACIÓN Y UX FUNDAMENTALES
     - [ ] El `ListCoordinator` o `VisorController`, al detectar este cambio, debe forzar una recreación del `MiniaturaListCellRenderer` y un `revalidate/repaint` de la `JList` de miniaturas.
 
 [ ] 1.7: Vista de Árbol de Carpetas (Folder Tree)
-    - [ ] Crear una vista alternativa para el panel izquierdo que contenga un `JTree`.
-    - [ ] Implementar un `TreeModel` personalizado que cargue los directorios de forma perezosa (lazy loading) para un buen rendimiento.
-    - [ ] Añadir un `TreeSelectionListener` que actualice la carpeta raíz del `VisorModel` y recargue las imágenes cuando se selecciona una nueva carpeta.
-    - [ ] Añadir una Action para cambiar entre la vista de lista de archivos y la vista de árbol.
+    - [v] Crear una vista alternativa para el panel izquierdo que contenga un `JTree`.
+    - [v] Implementar un `TreeModel` personalizado que cargue los directorios de forma perezosa (lazy loading) para un buen rendimiento.
+    - [v] Añadir un `TreeSelectionListener` que actualice la carpeta raíz del `VisorModel` y recargue las imágenes cuando se selecciona una nueva carpeta.
+    - [v] Añadir una Action para cambiar entre la vista de lista de archivos y la vista de árbol.
 
 
 FASE 2: IMPLEMENTACIÓN DE NUEVOS MODOS DE VISUALIZACIÓN (DisplayMode)
@@ -776,12 +954,12 @@ FASE 2: IMPLEMENTACIÓN DE NUEVOS MODOS DE VISUALIZACIÓN (DisplayMode)
     - [v] Crear nuevas Actions `GridZoomInAction` y `GridZoomOutAction` que llamen a métodos en `GridDisplayPanel` para cambiar el número de columnas/tamaño de celda.
     - [ ] Añadir una barra de herramientas inferior al `GridDisplayPanel` para estos nuevos controles.
     - [ ] Habilitar la selección múltiple en la `JList` interna.
-    - [ ] Adaptar las acciones (ej. "Marcar") para que operen sobre todos los elementos seleccionados en el grid.
+    - [v] Adaptar las acciones (ej. "Marcar") para que operen sobre todos los elementos seleccionados en el grid.
 
 [ ] 2.2: Implementar DisplayMode.CAROUSEL (Carrusel/Filmstrip)
     - [v] Crear la clase `CarouselDisplayPanel.java`.
     - [v] El panel tendrá un `ImageDisplayPanel` grande en el centro y un `JScrollPane` horizontal (la tira) en la parte inferior.
-    - [ ] La tira de miniaturas puede ser una `JList` en modo `HORIZONTAL_WRAP` con una sola fila de alto (`setVisibleRowCount(1)`).
+    - [v] La tira de miniaturas puede ser una `JList` en modo `HORIZONTAL_WRAP` con una sola fila de alto (`setVisibleRowCount(1)`).
     - [v] Implementar la lógica de sincronización: al cambiar la imagen principal, la `JList` de la tira hace `ensureIndexIsVisible`. Al hacer clic en la tira, se cambia la imagen principal.
 
 [ ] 2.3: Implementar DisplayMode.POLAROID
@@ -803,6 +981,9 @@ FASE 3: AJUSTES DE COMPORTAMIENTO POR CONTEXTO (WorkMode)
     - [ ] Si es `VISUALIZADOR`, abre un `JFileChooser` para seleccionar directorios.
     - [ ] Si es `PROYECTO`, abre un `JFileChooser` para seleccionar archivos de proyecto (ej. `.visprj`).
     
+    
+    
+***************************************************************************************************************************************************    
     
     
     
@@ -953,6 +1134,10 @@ Cuando estés listo, puedes ir abordando cada fase. ¡No dudes en preguntar si a
 
 
 
+***************************************************************************************************************************************************
+
+
+
 HOJA DE RUTA: IMPLEMENTACIÓN DEL MODO DE VISUALIZACIÓN GRID
 
 Versión: 1.0
@@ -1050,6 +1235,11 @@ Implementar un modo de visualización "Grid" (cuadrícula) completamente funcion
 ======================================================================
 == FIN DEL INFORME
 ======================================================================
+
+
+
+***************************************************************************************************************************************************
+
 
 
 ============================================================

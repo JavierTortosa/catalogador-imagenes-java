@@ -792,7 +792,8 @@ public class UIDefinitionService {
 		
 		// --- BARRA DE BOTONES Grid Control ---
 		List<ToolbarComponentDefinition> botonesGrid = List.of(
-			 new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SET_TEXT,				"50001-add_texto_48x48.png", "Añadir/Modificar Etiqueta","barra_grid",ButtonType.NORMAL)
+			 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL, 		"21005-iniciar_exportación.png", "Iniciar Exportación", "barra_grid")
+			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SET_TEXT,				"50001-add_texto_48x48.png", "Añadir/Modificar Etiqueta","barra_grid",ButtonType.NORMAL)
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_REMOVE_TEXT, 			"50002-subst_texto_48x48.png", "Borrar Etiqueta","barra_grid",ButtonType.NORMAL)
 			,new SeparatorDefinition()
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA, 		"50003-agrandar_miniatura_48x48.png", "Agrandar Miniatura","barra_grid",ButtonType.NORMAL)
@@ -872,14 +873,14 @@ public class UIDefinitionService {
         
         // Toolbar de Statusbar
         List<ToolbarComponentDefinition> componentesBarraEstado = List.of(
-                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 		"3001-zoom_48x48.png", "Activar/Desactivar Zoom Manual", "barra_estado", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 		"7001-subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "barra_estado", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,"7002-mantener_proporciones_48x48.png", "Mantener Proporciones", "barra_estado", ButtonType.TOGGLE),
-                new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, "7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, 			"3001-zoom_48x48.png", "Activar/Desactivar Zoom Manual", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_SUBCARPETAS, 			"7001-subcarpetas_48x48.png", "Incluir/Excluir Subcarpetas", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES,	"7002-mantener_proporciones_48x48.png", "Mantener Proporciones", "barra_estado", ButtonType.TOGGLE),
+                new ToolbarButtonDefinition(AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP, 	"7004-siempre_encima_48x48.png", "Mantener Siempre Encima", "barra_estado", ButtonType.TOGGLE),
                 new SeparatorDefinition(),
                 new LabelDefinition("label.control.zoomPorcentaje", "Z: 100%"),
 //                new ToolbarButtonDefinition("cmd.control.modoZoom", "imagen.png", "Cambiar Modo de Zoom", "barra_estado") // Usamos un comando simple, no de AppActionCommands
-                new ToolbarButtonDefinition("cmd.control.modoZoom", "3005-escalar_para_ajustar_48x48.png", "Cambiar Modo de Zoom", "barra_estado", /*ButtonType.NORMAL)//*/ButtonType.STATUS_BAR_BUTTON)
+                new ToolbarButtonDefinition("cmd.control.modoZoom", 							"3005-escalar_para_ajustar_48x48.png", "Cambiar Modo de Zoom", "barra_estado", /*ButtonType.NORMAL)//*/ButtonType.STATUS_BAR_BUTTON)
                 
 		);
         

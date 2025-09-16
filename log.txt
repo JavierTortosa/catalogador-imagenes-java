@@ -2,7 +2,7 @@ Iniciando Visor de Imágenes V2...
 [39mDEBUG controlador.VisorController - --- Iniciando VisorController (Constructor Simple) ---
 [0;39m[34mINFO  controlador.AppInitializer - --- Iniciando Proceso de Inicialización Global ---
 [0;39m[34mINFO  controlador.AppInitializer - --- [Fase 1/3] Instanciando todos los componentes...
-[0;39m[39mDEBUG servicios.ConfigurationManager - Mapa de configuración por defecto inicializado con 185 claves.
+[0;39m[39mDEBUG servicios.ConfigurationManager - Mapa de configuración por defecto inicializado con 186 claves.
 [0;39m[39mDEBUG servicios.ConfigurationManager - Mapa DEFAULT_GROUP_COMMENTS inicializado con 37 entradas.
 [0;39m[34mINFO  servicios.ConfigurationManager - Leyendo configuración desde: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\config.cfg
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 1: Ignorada (comentario/vacía)
@@ -43,8 +43,8 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 36: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 37: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 38: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = F:\ARCHIVOS 3D\Chibi] -> Clave: 'inicio.carpeta', Valor: 'F:\ARCHIVOS 3D\Chibi'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = personajes varios/Aku_Aku.jpg] -> Clave: 'inicio.imagen', Valor: 'personajes varios/Aku_Aku.jpg'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = F:\ARCHIVOS 3D] -> Clave: 'inicio.carpeta', Valor: 'F:\ARCHIVOS 3D'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = Chibi/Heroes/Chibi+Captain+Eudora+_+Hearthstone+Fan+Art.png] -> Clave: 'inicio.imagen', Valor: 'Chibi/Heroes/Chibi+Captain+Eudora+_+Hearthstone+Fan+Art.png'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 41: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 42: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 43: Ignorada (comentario/vacía)
@@ -214,7 +214,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 207: [interfaz.menu.vista.fondo_a_cuadros.seleccionado = false] -> Clave: 'interfaz.menu.vista.fondo_a_cuadros.seleccionado', Valor: 'false'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 208: [interfaz.menu.vista.imagenes_en_miniatura.seleccionado = true] -> Clave: 'interfaz.menu.vista.imagenes_en_miniatura.seleccionado', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 209: [interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado = false] -> Clave: 'interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado', Valor: 'false'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 210: [interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado = true] -> Clave: 'interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 210: [interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado = false] -> Clave: 'interfaz.menu.vista.mostrar_nombres_en_miniaturas.seleccionado', Valor: 'false'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 211: [interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado = true] -> Clave: 'interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 212: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 213: Ignorada (comentario/vacía)
@@ -284,7 +284,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 277: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 278: [proyectos.estado.lista_activa = seleccion] -> Clave: 'proyectos.estado.lista_activa', Valor: 'seleccion'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 279: [proyectos.estado.ultima_descartes_key = ] -> Clave: 'proyectos.estado.ultima_descartes_key', Valor: ''
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 280: [proyectos.estado.ultima_seleccion_key = F:/ARCHIVOS 3D/Chibi/personajes varios/Aku_Aku.jpg] -> Clave: 'proyectos.estado.ultima_seleccion_key', Valor: 'F:/ARCHIVOS 3D/Chibi/personajes varios/Aku_Aku.jpg'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 280: [proyectos.estado.ultima_seleccion_key = ] -> Clave: 'proyectos.estado.ultima_seleccion_key', Valor: ''
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 281: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 282: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 283: [ui.background.custom.color.1 = 0,51,102] -> Clave: 'ui.background.custom.color.1', Valor: '0,51,102'
@@ -318,17 +318,23 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 311: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 312: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 313: [interfaz.boton.acciones_exportacion.detalles_seleccion.visible = true] -> Clave: 'interfaz.boton.acciones_exportacion.detalles_seleccion.visible', Valor: 'true'
-[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 218
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 314: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 315: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 316: [interfaz.boton.barra_grid.export_iniciar.visible = true] -> Clave: 'interfaz.boton.barra_grid.export_iniciar.visible', Valor: 'true'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 317: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 318: Ignorada (comentario/vacía)
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 319: [interfaz.boton.barra_grid.export_assign_pannel.visible = true] -> Clave: 'interfaz.boton.barra_grid.export_assign_pannel.visible', Valor: 'true'
+[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 220
 [0;39m[34mINFO  servicios.ConfigurationManager - --- DEBUG PRE-SINCRONIZACIÓN ---
-[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de DEFAULT_CONFIG: 185
-[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 218
+[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de DEFAULT_CONFIG: 186
+[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 220
 [0;39m[39mDEBUG servicios.ConfigurationManager - DEFAULT_CONFIG contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - loadedConfig contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - ---------------------------------
 [0;39m[34mINFO  servicios.ConfigurationManager - Sincronizando configuración cargada con mapa de defaults...
 [0;39m[39mDEBUG servicios.ConfigurationManager - La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 [0;39m[39mDEBUG servicios.ConfigurationManager - ConfigurationManager inicializado.
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1955634109
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 137084822
 [0;39m[34mINFO  vista.theme.ThemeManager - Tema personalizado cargado: 'DO New' (ID: custom_donew_-_copia) basado en 'com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDeepOceanIJTheme'
 [0;39m[34mINFO  vista.theme.ThemeManager - Tema personalizado cargado: 'DO New' (ID: custom_donew) basado en 'com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDeepOceanIJTheme'
 [0;39m[39mDEBUG vista.theme.ThemeManager -  -> GlobalExtraDefaults establecidos para el tema 'DO New'. Total: 22 propiedades.
@@ -540,7 +546,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Procesando elementos raíz de la estructura del menú...
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - [MenuBarBuilder] Construyendo menú dinámico con 38 temas en 5 categorías.
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - --- MenuBarBuilder: Construcción de JMenuBar completada. ---
-[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 300
+[0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] Total de JMenuItems mapeados por clave de configuración: 301
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder -   [MenuBarBuilder] JMenuBar registrada en ComponentRegistry con la clave 'menubar.main'.
 [0;39m[39mDEBUG vista.builders.MenuBarBuilder - --- MenuBarBuilder: Construcción de JMenuBar completada. ---
 [0;39m[34mINFO  controlador.managers.ToolbarManager - --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
@@ -648,7 +654,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.miniaturas'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.grid'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Previsualizador de doble clic instalado en 'list.grid.proyecto'.
-[0;39m[39mDEBUG modelo.VisorModel -   [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: F:\ARCHIVOS 3D\Chibi
+[0;39m[39mDEBUG modelo.VisorModel -   [VisorModel] Carpeta raíz INICIAL para contexto VISUALIZADOR establecida a: F:\ARCHIVOS 3D
 [0;39m[39mDEBUG controlador.AppInitializer -     -> Ventana principal visible. La aplicación está 'viva'.
 [0;39m[39mDEBUG controlador.AppInitializer -   -> Sincronizando visibilidad inicial de paneles...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigApplicationManager] Aplicando configuración globalmente... ---
@@ -704,12 +710,11 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
 [0;39m[34mINFO  controlador.managers.ViewManager - [ViewManager] La gestión de bordes de foco ha sido transferida a GeneralController.
-[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: personajes varios/Aku_Aku.jpg
+[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: Chibi/Heroes/Chibi+Captain+Eudora+_+Hearthstone+Fan+Art.png
 [0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Caché de miniaturas limpiado.
 [0;39m[34mINFO  controlador.AppInitializer - --- [Fase 3/3] Inicialización de UI completada. La aplicación está lista. ---
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en F:\ARCHIVOS 3D\Chibi con profundidad 2147483647
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en F:\ARCHIVOS 3D con profundidad 2147483647
 [0;39m[39mDEBUG vista.VisorView - [VisorView] Actualizando borde de sincronización a: false
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 1539
 [0;39m[34mINFO  c.managers.BackgroundControlManager - --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
@@ -721,21 +726,6 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -     -> Configuración básica de Vista aplicada.
-[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker - [Worker EDT] Método done() alcanzado.
-[0;39m[39mDEBUG controlador.VisorController -     -> Restaurando visibilidad de paneles según la configuración del usuario.
-[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: VISUALIZADOR
-[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@661c2082: SelectedKey set to NULL (old key not found or was null).
-[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@661c2082 actualizado. Nuevo tamaño: 1539
-[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
-[0;39m[39mDEBUG vista.VisorView - [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 1539
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 1285
-[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'personajes varios/Aku_Aku.jpg'
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
-[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
-[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
-[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 1285.
-[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
 [0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
 [0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
 [0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: sin borde
@@ -748,7 +738,34 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
 [0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
 [0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid para modo VISUALIZADOR actualizado con 1539 elementos.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JButton | Nombre: null | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: vista.dialogos.TaskProgressDialog | Nombre: dialog0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 12809
+[0;39m[39mDEBUG c.worker.BuscadorArchivosWorker - [Worker EDT] Método done() alcanzado.
+[0;39m[39mDEBUG controlador.VisorController -     -> Restaurando visibilidad de paneles según la configuración del usuario.
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: VISUALIZADOR
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@2a2253b1: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@2a2253b1 actualizado. Nuevo tamaño: 12809
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[39mDEBUG vista.VisorView - [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 12809
+[0;39m[31mWARN  vista.VisorView - WARN [setTituloPanelIzquierdo]: panelIzquierdo o su TitledBorder nulos.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 340
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Captain+Eudora+_+Hearthstone+Fan+Art.png'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 340.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid para modo VISUALIZADOR actualizado con 12809 elementos.
 [0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
 [0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
@@ -756,7 +773,6 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
 [0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
-[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
 [0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
 [0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
 [0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
@@ -770,134 +786,240 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
 [0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
 [0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JRootPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/main_welcome.html
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTree
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTree | Nombre: null | Borde: FlatEmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: FlatScrollPaneBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.dialogos.HelpDialog | Nombre: dialog0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/proyecto.html
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/proyecto.html
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JEditorPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JEditorPane | Nombre: null | Borde: FlatMarginBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: FlatScrollPaneBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.dialogos.HelpDialog | Nombre: dialog0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/proyecto_controles.html
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTree
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTree | Nombre: null | Borde: FlatEmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: FlatScrollPaneBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.dialogos.HelpDialog | Nombre: dialog0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/proyecto_exportar.html
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JRootPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/main_welcome.html
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTree
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTree | Nombre: null | Borde: FlatEmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: FlatScrollPaneBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.dialogos.HelpDialog | Nombre: dialog1 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/index.html
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/atajos.html
-[0;39m[39mDEBUG vista.dialogos.HelpDialog - Cargando página de ayuda: file:/D:/Programacion/Eclipse/Workspace%202024-12R/VisorImagenes/target/classes/help/atajos.html
-[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
-[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando iniciarPaneo a VISUALIZADOR
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarSiguiente para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 341
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Champion+Catchan.png'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 341.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarSiguiente para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 342
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Charlotte+_+Trials+of+Mana+(Seiken+Densetsu).png'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 342.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 341
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Champion+Catchan.png'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 341.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 340
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Captain+Eudora+_+Hearthstone+Fan+Art.png'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 340.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 339
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Black+Pearl+_+Legend+of+Mana.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 339.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 338
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Asuna.png'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 338.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 337
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Angela+_+Trials+of+Mana+(Seiken+Densetsu+3).jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 337.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarSiguiente para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 338
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Asuna.png'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 338.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 337
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Angela+_+Trials+of+Mana+(Seiken+Densetsu+3).jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 337.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 336
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi+Alchemist's+Cart.png'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 336.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 335
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi Wind Waker Link on the King of Red Lions.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 335.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 334
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi STL - Groot And Rocket.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 334.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 333
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi Plague Doctor - Darkest Dungeon.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 333.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarSiguiente para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 334
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi STL - Groot And Rocket.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 334.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Delegando navegarAnterior para modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 333
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Chibi/Heroes/Chibi Plague Doctor - Darkest Dungeon.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 8, Despues: 15
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 24 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 24 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 333.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
 [0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
 [0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
 [0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
@@ -912,10 +1034,10 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
 [0;39m[39mDEBUG controlador.VisorController - --- [Controller] Iniciando apagado de la aplicación ---
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Guardando estado final de todos los contextos...
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=personajes varios/Aku_Aku.jpg, UltimaCarpeta=F:\ARCHIVOS 3D\Chibi
+[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=Chibi/Heroes/Chibi Plague Doctor - Darkest Dungeon.jpg, UltimaCarpeta=F:\ARCHIVOS 3D
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=null
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Carrusel/Sync: Sync=false, UltimaCarpeta=null
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1955634109
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 137084822
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'custom_donew'
@@ -923,7 +1045,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 [0;39m[39mDEBUG servicios.ConfigurationManager - ------------------------------------------
 [0;39m[39mDEBUG servicios.ConfigurationManager - Guardando configuración (preservando estructura) en config.cfg
-[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 218
+[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 220
 [0;39m[39mDEBUG servicios.ConfigurationManager - Archivo de configuración actualizado exitosamente.
 [0;39m[39mDEBUG controlador.VisorController -   [Guardar] Configuración guardada exitosamente.
 [0;39m[39mDEBUG controlador.VisorController -   -> Apagando ExecutorService...

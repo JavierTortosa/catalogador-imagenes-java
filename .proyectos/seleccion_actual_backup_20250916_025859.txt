@@ -1,0 +1,6 @@
+# VisorImagenes - Archivo de Proyecto
+
+[SELECCION]
+F:/ARCHIVOS 3D/Chibi/personajes varios/3DXM_Usagi_Yojimbo_Chibi.jpg
+
+[DESCARTES]

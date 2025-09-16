@@ -1,4 +1,4 @@
-/**
+	/**
  * Módulo principal de la aplicación Visor de Imágenes.
  * Define las dependencias y la encapsulación de los paquetes.
  */
@@ -15,12 +15,14 @@ module VisorImagenes {
     requires com.formdev.flatlaf.intellijthemes;
     
     // El módulo necesita la API de logging SLF4J.
-    requires org.slf4j;
+    requires transitive org.slf4j;
     
     // El módulo necesita la implementación de Logback (tanto classic como core).
-    requires ch.qos.logback.classic;
+    requires transitive ch.qos.logback.classic;
     requires ch.qos.logback.core;
 	requires metadata.extractor;
+	requires com.github.benmanes.caffeine;
+	requires net.coobird.thumbnailator;
     // NO HAY NADA MÁS AQUÍ. SE ACABARON LOS REQUIRES.
 
     
