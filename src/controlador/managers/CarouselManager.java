@@ -41,6 +41,11 @@ public class CarouselManager {
     // Referencias a los botones de avance/retroceso
     private AbstractButton rewindButton;
     private AbstractButton fastForwardButton;
+    
+    private AbstractButton increaseSpeedButton;
+    private AbstractButton decreaseSpeedButton;
+    private AbstractButton resetSpeedButton;
+    
     private final IconUtils iconUtils;
     
     // --- Estado Interno ---
@@ -136,21 +141,10 @@ public class CarouselManager {
         if (isRunning || model.getCurrentWorkMode() != WorkMode.CARROUSEL) return;
         logger.debug("[CarouselManager] Iniciando carrusel...");
 
-        int delay = model.getCarouselDelay();
-        int absoluteDelay = Math.abs(delay);
-        
-        // --- INICIO DE LA CORRECCIÓN ---
-        // Hacemos la comprobación de seguridad aquí
-        if (absoluteDelay < 1000) {
-            absoluteDelay = 1000;
-        }
-        
-        // Creamos una nueva variable FINAL que la lambda pueda usar de forma segura.
-        final int finalDelay = absoluteDelay;
-        // --- FIN DE LA CORRECCIÓN ---
-
-        // El countdown inicial se establece aquí
-        this.countdown = finalDelay / 1000;
+        // Leemos el delay inicial para la primera cuenta atrás
+        int initialDelay = Math.abs(model.getCarouselDelay());
+        if (initialDelay < 1000) initialDelay = 1000;
+        this.countdown = initialDelay / 1000;
 
         // --- LÓGICA DEL TEMPORIZADOR ÚNICO ---
         countdownTimer = new Timer(1000, e -> {
@@ -162,17 +156,25 @@ public class CarouselManager {
             countdown--;
             
             if (countdown <= 0) {
+                // Navega a la siguiente imagen
                 if (model.isCarouselShuffleEnabled()) {
                     listCoordinator.seleccionarAleatorio();
                 } else {
-                    if (delay >= 0) { // <-- Sigue usando el 'delay' original con signo
+                    // Importante: leemos el signo del delay actual del modelo, no uno antiguo.
+                    if (model.getCarouselDelay() >= 0) {
                         listCoordinator.seleccionarSiguiente();
                     } else {
                         listCoordinator.seleccionarAnterior();
                     }
                 }
-                // Reinicia la cuenta usando la variable final
-                countdown = finalDelay / 1000;
+                
+                // --- INICIO DE LA CORRECCIÓN CLAVE ---
+                // Al reiniciar el contador, leemos el valor FRESCO desde el modelo.
+                // Esto hace que el cambio de velocidad se aplique en el siguiente ciclo.
+                int currentDelayFromModel = Math.abs(model.getCarouselDelay());
+                if (currentDelayFromModel < 1000) currentDelayFromModel = 1000; // Misma comprobación de seguridad
+                countdown = currentDelayFromModel / 1000;
+                // --- FIN DE LA CORRECCIÓN CLAVE ---
             }
 
             if (timerOverlayLabel != null) {
@@ -199,7 +201,7 @@ public class CarouselManager {
         }
         
         actualizarEstadoDeAcciones();
-    } // --- Fin del método play (corregido) ---
+    } // --- Fin del método play ---
     
     
     public void pause() {
@@ -233,96 +235,6 @@ public class CarouselManager {
     } // --- Fin del método stop (simplificado) ---
     
     
-//    public void play() {
-//        if (isRunning || model.getCurrentWorkMode() != WorkMode.CARROUSEL) return;
-//        logger.debug("[CarouselManager] Iniciando carrusel...");
-//        
-//        int delay = model.getCarouselDelay();
-//        int absoluteDelay = Math.abs(delay); // <-- Usaremos el valor absoluto para el timer
-//        
-//        this.countdown = absoluteDelay / 1000;
-//
-//        imageChangeTimer = new Timer(absoluteDelay, e -> { // <-- El timer usa el valor absoluto
-//            if (model.getCurrentWorkMode() == WorkMode.CARROUSEL) {
-//            	if (model.isCarouselShuffleEnabled()) {
-//                    // Si el modo aleatorio está activo, seleccionamos una al azar
-//                    listCoordinator.seleccionarAleatorio();
-//                } else {
-//                    // Si no, usamos la lógica secuencial (hacia adelante o atrás)
-//                    if (model.getCarouselDelay() >= 0) {
-//                        listCoordinator.seleccionarSiguiente();
-//                    } else {
-//                        listCoordinator.seleccionarAnterior();
-//                    }
-//                }
-//            }
-//        });
-//        imageChangeTimer.setInitialDelay(absoluteDelay);
-//
-//        countdownTimer = new Timer(1000, e -> {
-//            countdown--;
-//            if (countdown < 0) countdown = (absoluteDelay / 1000);
-//            if (timerOverlayLabel != null) {
-//                int minutos = Math.max(0, countdown) / 60;
-//                int segundos = Math.max(0, countdown) % 60;
-//                timerOverlayLabel.setText(String.format("%02d:%02d", minutos, segundos));
-//            }
-//        });
-//
-//        if (timerOverlayLabel != null) {
-//            int minutos = Math.max(0, countdown) / 60;
-//            int segundos = Math.max(0, countdown) % 60;
-//            timerOverlayLabel.setText(String.format("%02d:%02d", minutos, segundos));
-//            timerOverlayLabel.setVisible(true);
-//        }
-//        
-//        imageChangeTimer.start();
-//        countdownTimer.start();
-//        isRunning = true;
-//        if (carouselThumbnails != null) carouselThumbnails.setVisible(false);
-//        
-//        if (statusIndicatorLabel != null) {
-//            statusIndicatorLabel.setIcon(playIcon);
-//            statusIndicatorLabel.setVisible(true);
-//        }
-//        
-//        actualizarEstadoDeAcciones();
-//    } // --- Fin del método play ---
-//    
-//    
-//    public void pause() {
-//        if (!isRunning) return;
-//        logger.debug("[CarouselManager] Pausando carrusel.");
-//        if (imageChangeTimer != null) imageChangeTimer.stop();
-//        if (countdownTimer != null) countdownTimer.stop();
-//        isRunning = false;
-//        if (carouselThumbnails != null) carouselThumbnails.setVisible(true);
-//        
-//        if (statusIndicatorLabel != null) {
-//            statusIndicatorLabel.setIcon(pauseIcon);
-//            statusIndicatorLabel.setVisible(true); // Se queda visible en pausa
-//        }
-//        
-//        actualizarEstadoDeAcciones();
-//    } // --- Fin del método pause ---
-//
-//    public void stop() {
-//        logger.debug("[CarouselManager] Deteniendo carrusel.");
-//        if (imageChangeTimer != null) { imageChangeTimer.stop(); imageChangeTimer = null; }
-//        if (countdownTimer != null) { countdownTimer.stop(); countdownTimer = null; }
-//        isRunning = false;
-//        if (timerOverlayLabel != null) timerOverlayLabel.setVisible(false);
-//        if (carouselThumbnails != null) carouselThumbnails.setVisible(true);
-//        
-//        if (statusIndicatorLabel != null) {
-//            statusIndicatorLabel.setVisible(false); // Se oculta al parar
-//        }
-//        
-//        actualizarEstadoDeAcciones();
-//    } // --- Fin del método stop ---
-
-    // --- NUEVOS MÉTODOS PARA AVANCE/RETROCESO RÁPIDO ---
-
     public void startFastForward() {
         logger.debug("[CarouselManager] Iniciando Avance Rápido.");
         this.wasRunningBeforeFastMove = isRunning;
@@ -352,25 +264,74 @@ public class CarouselManager {
         }
     } // --- Fin del método stopFastMove ---
     
+    
+    /**
+     * Busca y configura los botones de control de velocidad del carrusel.
+     * Debe ser llamado DESPUÉS de que la UI del carrusel se haya construido.
+     */
+    public void findAndWireUpSpeedButtons() {
+        logger.debug("[CarouselManager] Buscando y configurando botones de velocidad...");
+        
+        String increaseKey = ConfigKeys.buildKey("interfaz.boton", "velocidad_carrousel", ConfigKeys.keyPartFromCommand(AppActionCommands.CMD_CAROUSEL_SPEED_INCREASE));
+        this.increaseSpeedButton = registry.get(increaseKey);
+        
+        String decreaseKey = ConfigKeys.buildKey("interfaz.boton", "velocidad_carrousel", ConfigKeys.keyPartFromCommand(AppActionCommands.CMD_CAROUSEL_SPEED_DECREASE));
+        this.decreaseSpeedButton = registry.get(decreaseKey);
+        
+        String resetKey = ConfigKeys.buildKey("interfaz.boton", "velocidad_carrousel", ConfigKeys.keyPartFromCommand(AppActionCommands.CMD_CAROUSEL_SPEED_RESET));
+        this.resetSpeedButton = registry.get(resetKey);
+
+        if (increaseSpeedButton != null) {
+            logger.debug("  -> Botón Increase Speed encontrado.");
+        } else {
+            logger.warn("  -> WARN: Botón Increase Speed no encontrado con clave: " + increaseKey);
+        }
+
+        if (decreaseSpeedButton != null) {
+            logger.debug("  -> Botón Decrease Speed encontrado.");
+        } else {
+            logger.warn("  -> WARN: Botón Decrease Speed no encontrado con clave: " + decreaseKey);
+        }
+
+        if (resetSpeedButton != null) {
+            logger.debug("  -> Botón Reset Speed encontrado.");
+        } else {
+            logger.warn("  -> WARN: Botón Reset Speed no encontrado con clave: " + resetKey);
+        }
+    } // --- Fin del método findAndWireUpSpeedButtons ---
+    
+    
     private void actualizarEstadoDeAcciones() {
         if (controller.getActionMap() != null) {
             boolean hayImagenes = model.getCurrentListContext() != null && !model.getCurrentListContext().getModeloLista().isEmpty();
+            
+            // Estado de las acciones principales
             controller.getActionMap().get(AppActionCommands.CMD_CAROUSEL_PLAY).setEnabled(!isRunning && hayImagenes);
             controller.getActionMap().get(AppActionCommands.CMD_CAROUSEL_PAUSE).setEnabled(isRunning && hayImagenes);
             controller.getActionMap().get(AppActionCommands.CMD_CAROUSEL_STOP).setEnabled(isRunning && hayImagenes);
             
-            // Habilitamos o deshabilitamos los botones físicos también
+            // Estado de los botones de avance/retroceso rápido
             if (rewindButton != null) rewindButton.setEnabled(hayImagenes);
             if (fastForwardButton != null) fastForwardButton.setEnabled(hayImagenes);
+            
+            // --- INICIO DE LA MODIFICACIÓN ---
+            // Estado de los botones de velocidad: Solo activos si el carrusel está en PLAY.
+            boolean speedButtonsEnabled = isRunning && hayImagenes;
+            if (increaseSpeedButton != null) increaseSpeedButton.setEnabled(speedButtonsEnabled);
+            if (decreaseSpeedButton != null) decreaseSpeedButton.setEnabled(speedButtonsEnabled);
+            if (resetSpeedButton != null) resetSpeedButton.setEnabled(speedButtonsEnabled);
+            // --- FIN DE LA MODIFICACIÓN ---
         }
     } // --- Fin del método actualizarEstadoDeAcciones ---
 
     public void onCarouselModeChanged(boolean isEntering) {
-        if (isEntering) {
+    	if (isEntering) {
             logger.debug("[CarouselManager] Entrando en modo Carrusel...");
             initComponents();
+            // ¡AÑADIDO! Llama al nuevo método aquí.
+            findAndWireUpSpeedButtons(); 
             stop();
-            updateSpeedLabel(); // <-- AÑADE ESTA LÍNEA para mostrar el valor inicial
+            updateSpeedLabel();
         } else {
             logger.debug("[CarouselManager] Saliendo del modo Carrusel...");
             stop();

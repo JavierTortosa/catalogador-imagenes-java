@@ -60,10 +60,8 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
@@ -77,7 +75,6 @@ import controlador.actions.zoom.AplicarModoZoomAction;
 import controlador.commands.AppActionCommands;
 import controlador.factory.ActionFactory;
 import controlador.interfaces.IModoController;
-import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
@@ -137,9 +134,10 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     private ProjectController projectController;
     private ToolbarManager toolbarManager;
     private ActionFactory actionFactory;
-    private BackgroundControlManager backgroundControlManager;
     private controlador.managers.DisplayModeManager displayModeManager;
     private GeneralController generalController;
+    
+//    private BackgroundControlManager backgroundControlManager;
     
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
@@ -150,7 +148,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     // --- 2. Estado Interno del Controlador ---
     private Future<?> cargaImagenesFuture;
     private Future<?> cargaImagenPrincipalFuture;
-    private volatile boolean estaCargandoLista = false;
     
     private DefaultListModel<String> modeloMiniaturasVisualizador;
     private DefaultListModel<String> modeloMiniaturasCarrusel;
@@ -168,9 +165,8 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     
     private Map<String, JMenuItem> menuItemsPorNombre;
     
-    private volatile boolean cargaInicialEnCurso = false;	// Ayua a la carga de las listas de imagnes del disco duro
     private volatile boolean isRebuildingToolbars = false;	// Ayuda al cierre de las toolbar Flotantes
-    private volatile boolean estaReconstruyendoToolbars = false;
+//    private volatile boolean estaReconstruyendoToolbars = false;
     
     // --- Atributos para Menús Contextuales ---
     private JPopupMenu popupMenuImagenPrincipal;
@@ -219,113 +215,94 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 	 * Se llama desde AppInitializer (en el EDT) después de aplicar la config inicial a la vista.
 	 * Llama a `cargarListaImagenes` para iniciar la carga en segundo plano.
 	 */
-/*package-private*/ void cargarEstadoInicialInternal() {
-		
-	    // --- SECCIÓN 1: Log de Inicio y Verificación de Dependencias ---
-	    // 1.1. Imprimir log indicando el inicio de la carga del estado.
-	    logger.debug("  [Load Initial State Internal] Cargando estado inicial (carpeta/imagen)...");
-	    
-	    // 1.2. Verificar que las dependencias necesarias (configuration, model, view) existan.
-	    //      Son necesarias para determinar qué cargar y para limpiar la UI si falla.
-	    if (configuration == null || model == null || view == null) {
-	        logger.error("ERROR [cargarEstadoInicialInternal]: Config, Modelo o Vista nulos. No se puede cargar estado.");
-	        
-	        // 1.2.1. Intentar limpiar la UI si faltan componentes esenciales.
-	        SwingUtilities.invokeLater(this::limpiarUI); // Llama al método de limpieza general de forma segura.
-	        return; // Salir del método.
-	    }
-	
-	    // --- SECCIÓN 2: Determinar y Validar la Carpeta Inicial ---
-	    
-	    // 2.1. Obtener la ruta de la carpeta inicial desde ConfigurationManager.
-	    //      Se usa "" como valor por defecto si la clave "inicio.carpeta" no existe.
-	    String folderInit = configuration.getString("inicio.carpeta", "");
-	   
-	    // 2.2. Variable para almacenar el Path de la carpeta validada.
-	    Path folderPath = null;
-	    
-	    // 2.3. Flag para indicar si la carpeta encontrada es válida.
-	    boolean carpetaValida = false;
-	
-	    // 2.4. Comprobar si la ruta obtenida no está vacía.
-	    if (!folderInit.isEmpty()) {
-	    
-	    	// 2.4.1. Intentar convertir la cadena de ruta en un objeto Path.
-	        try {
-	            folderPath = Paths.get(folderInit);
-	        
-	            // 2.4.2. Verificar si el Path resultante es realmente un directorio existente.
-	            if (Files.isDirectory(folderPath)) {
-	            
-	            	// 2.4.2.1. Si es un directorio válido, marcar como válida y actualizar
-	                //          la variable de instancia `carpetaRaizActual` del controlador.
-	                carpetaValida = true;
-	                
-	                this.model.setCarpetaRaizActual(folderPath);// <<< CAMBIO AQUÍ
-	                
-	                logger.debug("    -> Carpeta inicial válida encontrada: " + folderPath);
-	            } else {
-	                // 2.4.2.2. Log si la ruta existe pero no es un directorio.
-	                 logger.warn("WARN [cargarEstadoInicialInternal]: Carpeta inicial en config no es un directorio válido: " + folderInit);
-	                 
-	                 this.model.setCarpetaRaizActual(null);// <<< CAMBIO AQUÍ
-	                 
-	            }
-	        // 2.4.3. Capturar cualquier excepción durante la conversión/verificación de la ruta.
-	        } catch (Exception e) {
-	            logger.warn("WARN [cargarEstadoInicialInternal]: Ruta de carpeta inicial inválida en config: " + folderInit + " - " + e.getMessage());
-	            
-	            this.model.setCarpetaRaizActual(null);// <<< CAMBIO AQUÍ
-	            
-	        }
-	    } else {
-	        // 2.5. Log si la clave "inicio.carpeta" no estaba definida en la configuración.
-	        logger.debug("    -> No hay definida una carpeta inicial en la configuración.");
-	        
-	        this.model.setCarpetaRaizActual(null); // <<< CAMBIO AQUÍ
-	    }
-	
-	    // --- SECCIÓN 3: Cargar Lista de Imágenes o Limpiar UI ---
-	    // 3.1. Proceder a cargar la lista SOLO si se encontró una carpeta inicial válida.
-	    
-	    if (carpetaValida && this.model.getCarpetaRaizActual() != null) { // <<< CAMBIO AQUÍ
-	
-	    	
-	        // 3.1.1. Log indicando que se procederá a la carga.
-	        
-	    	logger.debug("    -> Cargando lista para carpeta inicial (desde MODELO): " + this.model.getCarpetaRaizActual()); // <<< CAMBIO AQUÍ
-	        
-	    	// 3.1.2. Obtener la clave de la imagen inicial desde la configuración.
-	        //        Puede ser null si no hay una imagen específica guardada.
-	        String imagenInicialKey = configuration.getString("inicio.imagen", null);
-	        logger.debug("    -> Clave de imagen inicial a intentar seleccionar: " + imagenInicialKey);
-	
-	        // 3.1.3. Llamar al método `cargarListaImagenes`. Este método se encargará de:
-	        //        - Ejecutar la búsqueda de archivos en segundo plano (SwingWorker).
-	        //        - Mostrar un diálogo de progreso.
-	        //        - Actualizar el modelo y la vista cuando termine.
-	        //        - Seleccionar la `imagenInicialKey` si se proporciona y se encuentra,
-	        //          o seleccionar el primer elemento (índice 0) si no.
-	        cargarListaImagenes(imagenInicialKey, null);
-	
-	    // 3.2. Si NO se encontró una carpeta inicial válida.
-	    } else {
-	        // 3.2.1. Log indicando que no se cargará nada y se limpiará la UI.
-	        logger.debug("    -> No hay carpeta inicial válida configurada o accesible. Programando limpieza de UI en EDT.");
+    void cargarEstadoInicialInternal() {
+        logger.debug("  [Load Initial State Internal] Cargando estado inicial...");
+
+        // --- SECCIÓN 1: LÓGICA DE RECUPERACIÓN DE PROYECTO ---
+        String ultimoProyecto = configuration.getString(ConfigKeys.PROYECTOS_ULTIMO_PROYECTO_ABIERTO, "");
+        boolean debeCargarProyecto = false;
+        Path rutaProyectoACargar = null;
+
+        if (!ultimoProyecto.isEmpty()) {
+            String nombreProyectoParaDialogo = "el proyecto temporal";
+            if (!"TEMPORAL".equalsIgnoreCase(ultimoProyecto)) {
+                try {
+                    // Comprobamos si el archivo del proyecto con nombre realmente existe.
+                    Path proyectoPath = Paths.get(ultimoProyecto);
+                    if (Files.exists(proyectoPath)) {
+                        nombreProyectoParaDialogo = "'" + proyectoPath.getFileName().toString() + "'";
+                        rutaProyectoACargar = proyectoPath;
+                    } else {
+                        logger.warn("El último proyecto guardado ({}) ya no existe. Se ignorará.", ultimoProyecto);
+                        ultimoProyecto = ""; // Reseteamos para que no se intente cargar.
+                    }
+                } catch (Exception e) {
+                    logger.error("La ruta del último proyecto guardado es inválida: {}. Se ignorará.", ultimoProyecto, e);
+                    ultimoProyecto = ""; // Reseteamos.
+                }
+            }
             
-            // --- INICIO DE LA CORRECCIÓN ---
-            // En lugar de llamar a limpiarUI() directamente, lo encolamos en el EDT.
-            // Esto asegura que se ejecute DESPUÉS de que la ventana principal se haya
-            // pintado por primera vez y sus componentes tengan un tamaño válido.
-	        SwingUtilities.invokeLater(this::limpiarUI);
-            // --- FIN DE LA CORRECCIÓN ---
-	    }
-	
-	    // --- SECCIÓN 4: Log Final ---
-	    // 4.1. Indicar que el proceso de carga del estado inicial ha finalizado (o se ha iniciado la carga en background).
-	    logger.debug("  [Load Initial State Internal] Finalizado.");
-	
-	} // ---FIN de metodo cargarEstadoInicialInternal]---
+            // Solo mostramos el diálogo si, después de las comprobaciones, todavía tenemos un proyecto válido.
+            if (!ultimoProyecto.isEmpty()) {
+                int respuesta = JOptionPane.showConfirmDialog(
+                    null, 
+                    "Se ha encontrado " + nombreProyectoParaDialogo + " de la sesión anterior.\n¿Deseas continuar trabajando en él?",
+                    "Recuperar Proyecto Anterior",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
+        
+                if (respuesta == JOptionPane.YES_OPTION) {
+                    debeCargarProyecto = true;
+                } else {
+                    // El usuario dijo NO, así que limpiamos el proyecto temporal para empezar de cero.
+                    projectManager.nuevoProyecto();
+                }
+            }
+        }
+
+        // --- SECCIÓN 2: EJECUCIÓN DE LA CARGA ---
+        
+        
+        
+        if (debeCargarProyecto) {
+            try {
+                // Determina qué archivo cargar: el proyecto con nombre o el de recuperación temporal.
+                Path archivoARecuperar;
+                if (rutaProyectoACargar != null) {
+                    archivoARecuperar = rutaProyectoACargar;
+                } else {
+                    // Si no había un proyecto con nombre, significa que debemos recuperar el temporal.
+                    archivoARecuperar = projectManager.getRutaArchivoRecuperacion();
+                }
+
+                // Usamos el nuevo método específico para recuperar, que NO resetea el flag de cambios.
+                projectManager.cargarDesdeRecuperacion(archivoARecuperar);
+
+                // Si el proyecto que cargamos tiene contenido, cambiamos al modo proyecto.
+                if (!projectManager.getImagenesMarcadas().isEmpty() || !projectManager.getImagenesDescartadas().isEmpty()) {
+
+                	SwingUtilities.invokeLater(() -> {
+        
+                        // Actualizamos el título inmediatamente para reflejar el proyecto cargado.
+                        actualizarTituloVentana();
+                        // Cambiamos al modo proyecto para empezar a trabajar.
+                        generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+                    });
+                } else {
+                     // Si el proyecto estaba vacío (o era el temporal y estaba vacío), cargamos el visor normal.
+                     cargarVisorNormal();
+                }
+            } catch (Exception e) {
+                logger.error("Error al intentar cargar el proyecto anterior: {}", e.getMessage());
+                JOptionPane.showMessageDialog(null, "No se pudo cargar el proyecto anterior.", "Error de Carga", JOptionPane.ERROR_MESSAGE);
+                cargarVisorNormal(); // Fallback a la carga normal del visor.
+            }
+        } else {
+            // Carga normal del visor (si no había proyecto o el usuario dijo NO).
+            cargarVisorNormal();
+        }
+    } // ---FIN de metodo cargarEstadoInicialInternal---
     
     
 	/**
@@ -398,6 +375,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 	        }
 
 	        // a) Obtenemos la JList que originó el evento. Puede ser la del visor o la del carrusel.
+	        @SuppressWarnings("unchecked")
 	        JList<String> sourceList = (JList<String>) e.getSource();
 	        String claveSeleccionada = sourceList.getSelectedValue();
 	        
@@ -596,84 +574,63 @@ public class VisorController implements IModoController, ActionListener, Clipboa
      * Es llamado cuando el usuario cierra la ventana principal.
      */
     public void shutdownApplication() {
-        logger.debug("--- [Controller] Iniciando apagado de la aplicación ---");
-        
-     // --- INICIO DE LA MODIFICACIÓN ---
+        logger.info("--- [Controller] Solicitud de cierre de aplicación recibida ---");
+        boolean cierreCancelado = false;
+
+        // La única condición para mostrar el diálogo es que haya cambios sin guardar.
+        // Se ignora el estado de 'isSesionRecuperadaNoModificada'.
         if (projectManager != null && projectManager.hayCambiosSinGuardar()) {
-            int respuesta = JOptionPane.showConfirmDialog(
-                view,
-                "El proyecto actual tiene cambios sin guardar.\n¿Deseas guardarlos antes de salir?",
-                "Cambios sin Guardar",
-                JOptionPane.YES_NO_CANCEL_OPTION,
-                JOptionPane.WARNING_MESSAGE
+            
+            String nombreProyecto = projectManager.getNombreProyectoActivo();
+            String mensaje = "El proyecto '" + nombreProyecto + "' tiene cambios sin guardar.\n\n¿Deseas guardarlos antes de salir?";
+            
+            int respuesta = JOptionPane.showOptionDialog(
+                view, mensaje, "Confirmar Cierre", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
+                new String[]{"Guardar y Salir", "Salir sin Guardar", "Cancelar"}, "Guardar y Salir"
             );
-            
-            if (respuesta == JOptionPane.YES_OPTION) {
-                projectController.solicitarGuardarProyecto(); // Guardar
-                // Si el guardado fue un "Guardar Como" y el usuario canceló,
-                // hay que volver a comprobar si sigue habiendo cambios.
-                if (projectManager.hayCambiosSinGuardar()) {
-                    return; // Abortar el cierre si el usuario canceló el "Guardar Como".
-                }
-            } else if (respuesta == JOptionPane.CANCEL_OPTION || respuesta == JOptionPane.CLOSED_OPTION) {
-                return; // Cancelar completamente el cierre de la aplicación
+
+            switch (respuesta) {
+                case JOptionPane.YES_OPTION:
+                    projectController.sincronizarModeloConUI();
+                    projectController.solicitarGuardarProyecto();
+                    // Si el usuario canceló el diálogo de "Guardar Como", hayCambiosSinGuardar seguirá siendo true.
+                    if (projectManager.hayCambiosSinGuardar()) {
+                        cierreCancelado = true;
+                    }
+                    break;
+                case JOptionPane.NO_OPTION:
+                    // El usuario elige no guardar, así que creamos la sesión de recuperación.
+                    Path rutaRecuperacion = projectManager.guardarSesionDeRecuperacion();
+                    if (rutaRecuperacion != null) {
+                        setRutaProyectoRecuperacion(rutaRecuperacion.toAbsolutePath().toString());
+                    }
+                    break;
+                default: // Esto cubre CANCEL y el cierre del diálogo.
+                    cierreCancelado = true;
+                    break;
             }
-            // Si es NO, no hacemos nada y continuamos el cierre.
-        }
-        // --- FIN DE LA MODIFICACIÓN ---
-        
-        // --- 1. Guardar la configuración ---
-        // Guardar el estado de la ventana (tamaño, posición)
-        if (view != null && configuration != null) {
-            boolean isMaximized = (view.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
-            configuration.setString(ConfigKeys.WINDOW_MAXIMIZED, String.valueOf(isMaximized));
             
-            java.awt.Rectangle normalBounds = view.getLastNormalBounds();
-            if (normalBounds != null) {
-                configuration.setString(ConfigKeys.WINDOW_X, String.valueOf(normalBounds.x));
-                configuration.setString(ConfigKeys.WINDOW_Y, String.valueOf(normalBounds.y));
-                configuration.setString(ConfigKeys.WINDOW_WIDTH, String.valueOf(normalBounds.width));
-                configuration.setString(ConfigKeys.WINDOW_HEIGHT, String.valueOf(normalBounds.height));
-            }
+        } else {
+            // Si no hay cambios, nos aseguramos de que no quede ninguna sesión de recuperación pendiente en config.
+            setRutaProyectoRecuperacion(null);
         }
-        
-        // Guardar el resto de la configuración (última imagen, etc.)
-        guardarConfiguracionActual();
-        
-        // Justo antes de apagar el executor, archivamos el proyecto temporal.
+
+        if (cierreCancelado) {
+            logger.info("  -> Cierre de la aplicación cancelado por el usuario.");
+            return;
+        }
+
+        logger.debug("  -> Procediendo con el apagado final de la aplicación...");
+
         if (projectManager != null) {
             projectManager.archivarTemporalAlCerrar();
         }
-
-        // --- 2. Apagar el ExecutorService de forma ordenada ---
-        if (executorService != null && !executorService.isShutdown()) {
-           logger.debug("  -> Apagando ExecutorService...");
-           executorService.shutdown(); // No acepta nuevas tareas, intenta terminar las actuales.
-           try {
-               // Espera un máximo de 2 segundos a que las tareas en curso terminen.
-               if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) {
-                   logger.warn("  -> ExecutorService no terminó a tiempo, forzando apagado con shutdownNow()...");
-                   executorService.shutdownNow(); // Intenta cancelar las tareas en ejecución.
-               } else {
-                   logger.debug("  -> ExecutorService terminado ordenadamente.");
-               }
-           } catch (InterruptedException ex) {
-               logger.warn("  -> Hilo principal interrumpido mientras esperaba al ExecutorService.");
-               executorService.shutdownNow();
-               Thread.currentThread().interrupt();
-           }
-        }
         
-        // --- 3. Forzar la salida de la JVM ---
-        // Esto asegura que la aplicación se cierre incluso si otro hilo no-demonio
-        // estuviera bloqueando la salida. Ahora que hemos limpiado todo, es seguro.
-        logger.debug("  -> Apagado limpio completado. Saliendo de la JVM con System.exit(0).");
+        guardarEstadoVentanaEnConfig();
+        guardarConfiguracionActual();
+        apagarExecutorServiceOrdenadamente();
         
-        logger.info		("PRUEBA DE INFO");
-    	logger.debug	("PRUEBA DE DEBUG");
-    	logger.warn		("PRUEBA DE WARN");
-    	logger.error	("PRUEBA DE ERROR");
-        
+        logger.info("--- Apagado limpio completado. Saliendo de la JVM con System.exit(0). ---");
         System.exit(0);
         
     } // --- FIN del metodo shutdownApplication ---
@@ -815,8 +772,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             return;
         }
 
-        this.estaCargandoLista = true;
-        this.cargaInicialEnCurso = true;
+//        this.estaCargandoLista = true;
         if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
             logger.debug("  -> Cancelando tarea de carga de lista anterior...");
             cargaImagenesFuture.cancel(true);
@@ -832,8 +788,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             if (statusBarManager != null) {
                 statusBarManager.mostrarMensaje("No hay una carpeta válida seleccionada. Usa 'Archivo -> Abrir Carpeta'.");
             }
-            this.estaCargandoLista = false;
-            this.cargaInicialEnCurso = false;
+//            this.estaCargandoLista = false;
             return;
         }
         
@@ -861,8 +816,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
                     if (statusBarManager != null) {
                         statusBarManager.mostrarMensaje("Carga cancelada por el usuario.");
                     }
-                    this.estaCargandoLista = false;
-                    this.cargaInicialEnCurso = false;
+//                    this.estaCargandoLista = false;
                     return;
                 }
 
@@ -961,8 +915,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
                         statusBarManager.mostrarMensaje("Error al leer la carpeta. Consulta los logs para más detalles.");
                     }
                 } finally {
-                    this.estaCargandoLista = false;
-                    this.cargaInicialEnCurso = false;
+//                    this.estaCargandoLista = false;
                     if (cargaImagenesFuture == worker) {
                         cargaImagenesFuture = null;
                     }
@@ -1192,6 +1145,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
         logger.debug("  [VisorController] Menús Contextuales configurados.");
     } // --- FIN del metodo configurarMenusContextuales ---
 
+    
     /**
      * Crea y devuelve un JPopupMenu con un conjunto estándar de acciones
      * para el modo VISUALIZADOR.
@@ -1199,9 +1153,15 @@ public class VisorController implements IModoController, ActionListener, Clipboa
      */
     private JPopupMenu crearMenuContextualStandard() {
         JPopupMenu menu = new JPopupMenu();
+        if (actionMap == null) return menu; // Seguridad
 
         // 1. Acciones de Proyecto/Marcado
-        menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA)));
+        // ¡CORRECCIÓN! Usamos la Action directamente, que ya sabe cómo manejar el estado.
+        Action marcarAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
+        if (marcarAction != null) {
+            JCheckBoxMenuItem marcarItem = new JCheckBoxMenuItem(marcarAction);
+            menu.add(marcarItem);
+        }
         
         menu.addSeparator();
 
@@ -1212,13 +1172,14 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 
         // 3. Acciones de Zoom/Vista (como JCheckBoxMenuItem para reflejar estado)
         menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE)));
-        menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_RESET)));
+        menu.add(new JMenuItem(actionMap.get(AppActionCommands.CMD_ZOOM_RESET))); // Reset no es un toggle
         menu.addSeparator();
         menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES)));
         menu.add(new JCheckBoxMenuItem(actionMap.get(AppActionCommands.CMD_TOGGLE_SUBCARPETAS)));
 
         return menu;
-    }
+    }// Fin del metodo crearMenuContextualStandard
+    
 
     /**
      * Clase interna para manejar la lógica de mostrar el JPopupMenu
@@ -1285,7 +1246,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
      * serán manejadas globalmente por el KeyEventDispatcher cuando el foco esté
      * en el área de miniaturas.
      */
-    @SuppressWarnings("serial")
+//    @SuppressWarnings("serial")
     /*package-private*/ void interceptarAccionesTecladoListas() {
         if (view == null || listCoordinator == null || registry == null) {
             logger.warn("WARN [interceptarAccionesTecladoListas]: Dependencias nulas.");
@@ -1318,6 +1279,17 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             actionMap.put(ACT_PREV, selectPreviousAction);
             actionMap.put(ACT_NEXT, selectNextAction);
             
+            
+            // =========================================================================
+            String actionName = "selectNextMatch";
+            for (int i = 0; i <= 9; i++) {
+                KeyStroke numberKeyStroke = KeyStroke.getKeyStroke(String.valueOf(i).charAt(0));
+                inputMap.put(numberKeyStroke, actionName);
+            }
+            logger.debug("    -> Re-vinculada la acción '{}' para las teclas numéricas 0-9 en la JList.", actionName);
+            // =========================================================================
+            
+            
             // UP y DOWN ya funcionan por defecto para cambiar la selección, lo que dispara nuestro
             // ListSelectionListener, así que no necesitamos sobreescribirlos aquí.
             // HOME, END, PAGE_UP/DOWN también tienen comportamiento por defecto que es aceptable para esta lista.
@@ -1349,28 +1321,32 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             return;
         }
         
-        String tituloBase = "ModelTag - Your visual STL manager"; // Tu título
+        String tituloBase = "ModelTag - Your visual STL manager";
         String tituloFinal;
-        String prefijoDirty = "";
+        String prefijoDirty = projectManager.hayCambiosSinGuardar() ? "*" : "";
 
-        if (projectManager.hayCambiosSinGuardar()) {
-            prefijoDirty = "*";
-        }
+        // --- LÓGICA DE TÍTULO MEJORADA ---
 
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
+        // CASO 1: Estamos en el MODO PROYECTO. El título SIEMPRE muestra el nombre del proyecto.
+        if (model.isEnModoProyecto()) {
             String nombreProyecto = projectManager.getNombreProyectoActivo();
             tituloFinal = prefijoDirty + tituloBase + " - [Proyecto: " + nombreProyecto + "]";
+        
+        // CASO 2: NO estamos en modo proyecto, pero hay imágenes marcadas (es un proyecto temporal implícito).
+        } else if (!projectManager.getImagenesMarcadas().isEmpty()) {
+            tituloFinal = prefijoDirty + tituloBase + " - [Proyecto: Proyecto Temporal]";
+        
+        // CASO 3: Modo visualizador puro, sin proyecto activo ni imágenes marcadas.
         } else {
-            // Decidimos si en modo Visualizador también mostramos el asterisco
-            // si el proyecto temporal tiene cambios. ¡Sí!
-            tituloFinal = prefijoDirty + tituloBase;
+            tituloFinal = tituloBase; // Ya no añadimos el asterisco si no hay proyecto
         }
         
         view.setTitle(tituloFinal);
         logger.debug("Título de la ventana actualizado a: {}", tituloFinal);
+        
     } // ---FIN de metodo actualizarTituloVentana---
-    
-    
+
+
     /**
      * Orquesta el refresco de la vista principal después de una operación de edición.
      * Este método es llamado por el EditionManager después de modificar la imagen en el modelo.
@@ -1633,7 +1609,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             final BufferedImage finalImagenCargada = imagenCorregida;
             
             final Path finalPath = rutaCompleta; // Capturar para el EDT
-            final String finalClave = claveImagen; // Capturar para el EDT
+//            final String finalClave = claveImagen; // Capturar para el EDT
 
             // Si la tarea fue cancelada, no hacer nada.
             if (Thread.currentThread().isInterrupted()) {
@@ -1827,7 +1803,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
          // 5. Extraer la extensión y convertir a minúsculas
          String extension = nombreArchivo.substring(lastDotIndex + 1).toLowerCase();
 
-         // FIXME preparar para cuando haya mas extensiones si procede 
          // 6. Comprobar si la extensión está en la lista de soportadas
          //    Usar un switch es legible para pocas extensiones
          switch (extension) {
@@ -2078,44 +2053,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 	    // Obtenemos el modificador de atajos estándar del sistema (Cmd en Mac, Ctrl en Win/Linux)
 	    final int shortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
-	    // --- Mapeo de Teclas Numéricas a Modos de Zoom (código existente) ---
-	    inputMap.put(KeyStroke.getKeyStroke("1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD1"), AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR));
-	    
-	    inputMap.put(KeyStroke.getKeyStroke("2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD2"), AppActionCommands.CMD_ZOOM_TIPO_AUTO);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_AUTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_AUTO));
-
-	    inputMap.put(KeyStroke.getKeyStroke("3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD3"), AppActionCommands.CMD_ZOOM_TIPO_ANCHO);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ANCHO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ANCHO));
-
-	    inputMap.put(KeyStroke.getKeyStroke("4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD4"), AppActionCommands.CMD_ZOOM_TIPO_ALTO);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ALTO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ALTO));
-
-	    inputMap.put(KeyStroke.getKeyStroke("5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD5"), AppActionCommands.CMD_ZOOM_TIPO_RELLENAR);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_RELLENAR));
-
-	    inputMap.put(KeyStroke.getKeyStroke("6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD6"), AppActionCommands.CMD_ZOOM_TIPO_FIJO);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_FIJO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_FIJO));
-	    
-	    inputMap.put(KeyStroke.getKeyStroke("7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD7"), AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO, actionMap.get(AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO));
-
-	    inputMap.put(KeyStroke.getKeyStroke("8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD8"), AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE, actionMap.get(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE));
-	    
-	    inputMap.put(KeyStroke.getKeyStroke("9"), AppActionCommands.CMD_ZOOM_RESET);
-	    inputMap.put(KeyStroke.getKeyStroke("NUMPAD9"), AppActionCommands.CMD_ZOOM_RESET);
-	    actionMapGlobal.put(AppActionCommands.CMD_ZOOM_RESET, actionMap.get(AppActionCommands.CMD_ZOOM_RESET));
-
-
 	    // --- Atajos Globales de Aplicación (código existente) ---
 	    inputMap.put(KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0), AppActionCommands.CMD_ESPECIAL_REFRESCAR);
 	    actionMapGlobal.put(AppActionCommands.CMD_ESPECIAL_REFRESCAR, actionMap.get(AppActionCommands.CMD_ESPECIAL_REFRESCAR));
@@ -2166,83 +2103,83 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 // ******************************************************************************************************************* ARCHIVO     
      
 
-    /**
-     * Asegura que los JRadioButtonMenuItem del menú correspondientes a la
-     * configuración de carga de subcarpetas reflejen visualmente el estado lógico
-     * proporcionado (marcando el correcto como seleccionado).
-     *
-     * Es seguro llamar a setSelected() en los radios aquí porque estos componentes
-     * específicos usan un ActionListener personalizado en lugar de setAction() para
-     * evitar bucles de eventos.
-     *
-     * @param mostrarSubcarpetas El estado lógico actual. Si es true, se seleccionará
-     *                           el radio "Mostrar Imágenes de Subcarpetas"; si es false,
-     *                           se seleccionará "Mostrar Solo Carpeta Actual".
-     */
-    private void restaurarSeleccionRadiosSubcarpetas(boolean mostrarSubcarpetas) {
-        // 1. Validar que la vista y el mapa de menús existan
-         if (view == null) {
-              logger.warn("WARN [restaurarSeleccionRadiosSubcarpetas]: Vista es nulo.");
-              return; // No se puede hacer nada si no hay menús
-         }
-         
-         if (this.menuItemsPorNombre == null) {
-             logger.warn("WARN [restaurarSeleccionRadiosSubcarpetas]: El mapa de menús en el controlador es nulo.");
-             return;
-         }
-         
-         Map<String, JMenuItem> menuItems = this.menuItemsPorNombre;
-
-         // 2. Log del estado deseado
-         logger.debug("  [Controller] Sincronizando estado visual de Radios Subcarpetas a: " + (mostrarSubcarpetas ? "Mostrar Subcarpetas" : "Mostrar Solo Carpeta"));
-
-         // 3. Obtener las referencias a los JRadioButtonMenuItems específicos
-         //    Usar las claves largas definidas en la configuración y usadas por MenuBarBuilder.
-         JMenuItem radioMostrarSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas");
-         JMenuItem radioMostrarSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual");
-
-         // 4. Aplicar el estado 'selected' al radio correcto
-         //    Se hace de forma segura llamando a setSelected directamente.
-
-         // 4.1. Configurar el radio "Mostrar Subcarpetas"
-         if (radioMostrarSub instanceof JRadioButtonMenuItem) {
-             JRadioButtonMenuItem radioSub = (JRadioButtonMenuItem) radioMostrarSub;
-             // Solo llamar a setSelected si el estado actual es diferente al deseado
-             // para evitar eventos innecesarios del ButtonGroup (aunque no debería causar problemas graves).
-             if (radioSub.isSelected() != mostrarSubcarpetas) {
-                  // logger.debug("    -> Estableciendo 'Mostrar Subcarpetas' a: " + mostrarSubcarpetas); // Log detallado opcional
-                  radioSub.setSelected(mostrarSubcarpetas);
-             }
-             // Asegurar que esté habilitado (podría haberse deshabilitado por error)
-             radioSub.setEnabled(true);
-         } else if (radioMostrarSub != null) {
-              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Imagenes_de_Subcarpetas' no es un JRadioButtonMenuItem.");
-         } else {
-              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Imagenes_de_Subcarpetas' no encontrado.");
-         }
-
-
-         // 4.2. Configurar el radio "Mostrar Solo Carpeta Actual" (estado inverso)
-         if (radioMostrarSolo instanceof JRadioButtonMenuItem) {
-             JRadioButtonMenuItem radioSolo = (JRadioButtonMenuItem) radioMostrarSolo;
-             // El estado seleccionado de este debe ser el opuesto a mostrarSubcarpetas
-             boolean estadoDeseadoSolo = !mostrarSubcarpetas;
-             if (radioSolo.isSelected() != estadoDeseadoSolo) {
-                  // logger.debug("    -> Estableciendo 'Mostrar Solo Carpeta' a: " + estadoDeseadoSolo); // Log detallado opcional
-                  radioSolo.setSelected(estadoDeseadoSolo);
-             }
-             // Asegurar que esté habilitado
-             radioSolo.setEnabled(true);
-         } else if (radioMostrarSolo != null) {
-              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Solo_Carpeta_Actual' no es un JRadioButtonMenuItem.");
-         } else {
-              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Solo_Carpeta_Actual' no encontrado.");
-         }
-
-         // 5. Log final
-         logger.debug("  [Controller] Estado visual de Radios Subcarpetas sincronizado.");
-
-    } // --- FIN restaurarSeleccionRadiosSubcarpetas ---
+//    /**
+//     * Asegura que los JRadioButtonMenuItem del menú correspondientes a la
+//     * configuración de carga de subcarpetas reflejen visualmente el estado lógico
+//     * proporcionado (marcando el correcto como seleccionado).
+//     *
+//     * Es seguro llamar a setSelected() en los radios aquí porque estos componentes
+//     * específicos usan un ActionListener personalizado en lugar de setAction() para
+//     * evitar bucles de eventos.
+//     *
+//     * @param mostrarSubcarpetas El estado lógico actual. Si es true, se seleccionará
+//     *                           el radio "Mostrar Imágenes de Subcarpetas"; si es false,
+//     *                           se seleccionará "Mostrar Solo Carpeta Actual".
+//     */
+//    private void restaurarSeleccionRadiosSubcarpetas(boolean mostrarSubcarpetas) {
+//        // 1. Validar que la vista y el mapa de menús existan
+//         if (view == null) {
+//              logger.warn("WARN [restaurarSeleccionRadiosSubcarpetas]: Vista es nulo.");
+//              return; // No se puede hacer nada si no hay menús
+//         }
+//         
+//         if (this.menuItemsPorNombre == null) {
+//             logger.warn("WARN [restaurarSeleccionRadiosSubcarpetas]: El mapa de menús en el controlador es nulo.");
+//             return;
+//         }
+//         
+//         Map<String, JMenuItem> menuItems = this.menuItemsPorNombre;
+//
+//         // 2. Log del estado deseado
+//         logger.debug("  [Controller] Sincronizando estado visual de Radios Subcarpetas a: " + (mostrarSubcarpetas ? "Mostrar Subcarpetas" : "Mostrar Solo Carpeta"));
+//
+//         // 3. Obtener las referencias a los JRadioButtonMenuItems específicos
+//         //    Usar las claves largas definidas en la configuración y usadas por MenuBarBuilder.
+//         JMenuItem radioMostrarSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas");
+//         JMenuItem radioMostrarSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual");
+//
+//         // 4. Aplicar el estado 'selected' al radio correcto
+//         //    Se hace de forma segura llamando a setSelected directamente.
+//
+//         // 4.1. Configurar el radio "Mostrar Subcarpetas"
+//         if (radioMostrarSub instanceof JRadioButtonMenuItem) {
+//             JRadioButtonMenuItem radioSub = (JRadioButtonMenuItem) radioMostrarSub;
+//             // Solo llamar a setSelected si el estado actual es diferente al deseado
+//             // para evitar eventos innecesarios del ButtonGroup (aunque no debería causar problemas graves).
+//             if (radioSub.isSelected() != mostrarSubcarpetas) {
+//                  // logger.debug("    -> Estableciendo 'Mostrar Subcarpetas' a: " + mostrarSubcarpetas); // Log detallado opcional
+//                  radioSub.setSelected(mostrarSubcarpetas);
+//             }
+//             // Asegurar que esté habilitado (podría haberse deshabilitado por error)
+//             radioSub.setEnabled(true);
+//         } else if (radioMostrarSub != null) {
+//              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Imagenes_de_Subcarpetas' no es un JRadioButtonMenuItem.");
+//         } else {
+//              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Imagenes_de_Subcarpetas' no encontrado.");
+//         }
+//
+//
+//         // 4.2. Configurar el radio "Mostrar Solo Carpeta Actual" (estado inverso)
+//         if (radioMostrarSolo instanceof JRadioButtonMenuItem) {
+//             JRadioButtonMenuItem radioSolo = (JRadioButtonMenuItem) radioMostrarSolo;
+//             // El estado seleccionado de este debe ser el opuesto a mostrarSubcarpetas
+//             boolean estadoDeseadoSolo = !mostrarSubcarpetas;
+//             if (radioSolo.isSelected() != estadoDeseadoSolo) {
+//                  // logger.debug("    -> Estableciendo 'Mostrar Solo Carpeta' a: " + estadoDeseadoSolo); // Log detallado opcional
+//                  radioSolo.setSelected(estadoDeseadoSolo);
+//             }
+//             // Asegurar que esté habilitado
+//             radioSolo.setEnabled(true);
+//         } else if (radioMostrarSolo != null) {
+//              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Solo_Carpeta_Actual' no es un JRadioButtonMenuItem.");
+//         } else {
+//              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Solo_Carpeta_Actual' no encontrado.");
+//         }
+//
+//         // 5. Log final
+//         logger.debug("  [Controller] Estado visual de Radios Subcarpetas sincronizado.");
+//
+//    } // --- FIN restaurarSeleccionRadiosSubcarpetas ---
 
     
 	
@@ -2621,10 +2558,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
           
         	  // Llama al método helper que copia el contenido del modelo del diálogo
               copiarListaAlPortapapeles(modeloListaDialogo);
-              
-              // Opcional: Mostrar un feedback breve
-              // FIXME mostrar un JOptionPane o un mensaje en una barra de informacion....
-              //JOptionPane.showMessageDialog(dialogoLista, "Lista copiada al portapapeles.", "Copiado", JOptionPane.INFORMATION_MESSAGE);
           });
 
           // 7. Cargar el contenido inicial de la lista en el diálogo
@@ -2876,7 +2809,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        // 1. --- LOG INICIAL DETALLADO ---
+        // 1. --- LOGG INICIAL DETALLADO ---
         //     Ayuda a depurar qué componente y comando dispararon el evento.
         logActionInfo(e);
 
@@ -3004,6 +2937,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
                 }
                 break;
         } // Fin del switch general
+        
     } // --- FIN actionPerformed ---
 	
 
@@ -3317,56 +3251,114 @@ public class VisorController implements IModoController, ActionListener, Clipboa
   	} // --- FIN parseColor ---
   
   
-	private void guardarConfiguracionActual() {
-	   if (configuration == null || model == null) {
-	       logger.error("ERROR [guardarConfiguracionActual]: Configuración o Modelo nulos.");
-	       return;
-	   }
-	   logger.debug("  [Guardar] Guardando estado final de todos los contextos...");
-	
-	   // --- Guardar estado del MODO VISUALIZADOR (Nuestra "sesión principal") ---
-	   ListContext visualizadorContext = model.getVisualizadorListContext();
-	   String visualizadorKey = visualizadorContext.getSelectedImageKey();
-	   Path ultimaCarpetaVisor = model.getCarpetaRaizDelVisualizador(); // Usamos el nuevo getter
-	   
-	   configuration.setString(ConfigKeys.INICIO_IMAGEN, visualizadorKey != null ? visualizadorKey : "");
-	   configuration.setString(ConfigKeys.INICIO_CARPETA, (ultimaCarpetaVisor != null) ? ultimaCarpetaVisor.toString() : "");
-	   logger.debug("  [Guardar] Estado Visualizador: UltimaKey=" + visualizadorKey + ", UltimaCarpeta=" + ultimaCarpetaVisor);
-	
-	   // --- Guardar estado del MODO PROYECTO (sin cambios) ---
-	   ListContext proyectoContext = model.getProyectoListContext();
-	   String focoActivo = proyectoContext.getNombreListaActiva();
-	   configuration.setString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, focoActivo != null ? focoActivo : "seleccion");
-	   String seleccionKey = proyectoContext.getSeleccionListKey();
-	   configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, seleccionKey != null ? seleccionKey : "");
-	   String descartesKey = proyectoContext.getDescartesListKey();
-	   configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, descartesKey != null ? descartesKey : "");
-	   logger.debug("  [Guardar] Estado Proyecto: Foco=" + focoActivo + ", SelKey=" + seleccionKey + ", DescKey=" + descartesKey);
-	   
-	   // --- Guardar otros estados globales (sin cambios) ---
-	   configuration.setString(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, String.valueOf(model.isModoPantallaCompletaActivado()));
-	
-	   // --- Guardar estado de Sincronización y del Carrusel ---
-       configuration.setString(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, String.valueOf(model.isSyncVisualizadorCarrusel()));
-    
-       Path ultimaCarpetaCarrusel = model.getUltimaCarpetaCarrusel();
-       configuration.setString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_CARPETA, (ultimaCarpetaCarrusel != null) ? ultimaCarpetaCarrusel.toString() : "");
+  private void guardarConfiguracionActual() {
+      if (configuration == null || model == null) {
+          logger.error("ERROR [guardarConfiguracionActual]: Configuración o Modelo nulos.");
+          return;
+      }
+      logger.debug("  [Guardar] Guardando estado de contextos (sin estado de recuperación)...");
 
-       String ultimaImagenCarrusel = model.getUltimaImagenKeyCarrusel();
-       configuration.setString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, (ultimaImagenCarrusel != null) ? ultimaImagenCarrusel : "");
-    
-       logger.debug("  [Guardar] Estado Carrusel/Sync: Sync=" + model.isSyncVisualizadorCarrusel() + ", UltimaCarpeta=" + ultimaCarpetaCarrusel);
-       // --- Fin del bloque de guardado de Sincronización ---
-	   
-       
-	   // --- Guardar el archivo físico ---
-	   try {
-	       configuration.guardarConfiguracion(configuration.getConfig());
-	       logger.debug("  [Guardar] Configuración guardada exitosamente.");
-	   } catch (IOException e) {
-	       logger.error("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
-	   }
-	} // --- FIN del metodo guardarConfiguracionActual ---
+      // --- Guardar estado del MODO VISUALIZADOR ---
+      ListContext visualizadorContext = model.getVisualizadorListContext();
+      String visualizadorKey = visualizadorContext.getSelectedImageKey();
+      Path ultimaCarpetaVisor = model.getCarpetaRaizDelVisualizador();
+      
+      configuration.setString(ConfigKeys.INICIO_IMAGEN, visualizadorKey != null ? visualizadorKey : "");
+      configuration.setString(ConfigKeys.INICIO_CARPETA, (ultimaCarpetaVisor != null) ? ultimaCarpetaVisor.toString() : "");
+      logger.debug("  [Guardar] Estado Visualizador: UltimaKey=" + visualizadorKey + ", UltimaCarpeta=" + ultimaCarpetaVisor);
+
+      // --- LÓGICA DE PROYECTO ELIMINADA ---
+      // La clave PROYECTOS_ULTIMO_PROYECTO_ABIERTO ahora se gestiona
+      // exclusivamente en la lógica de cierre (shutdownApplication) y arranque.
+      // Esto elimina el conflicto y la duplicidad de responsabilidades.
+      
+      // --- Guardar estado del MODO PROYECTO ---
+      ListContext proyectoContext = model.getProyectoListContext();
+      String focoActivo = proyectoContext.getNombreListaActiva();
+      configuration.setString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, focoActivo != null ? focoActivo : "seleccion");
+      String seleccionKey = proyectoContext.getSeleccionListKey();
+      configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, seleccionKey != null ? seleccionKey : "");
+      String descartesKey = proyectoContext.getDescartesListKey();
+      configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, descartesKey != null ? descartesKey : "");
+      logger.debug("  [Guardar] Estado Proyecto: Foco=" + focoActivo + ", SelKey=" + seleccionKey + ", DescKey=" + descartesKey);
+      
+      // --- Guardar otros estados globales ---
+      configuration.setString(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, String.valueOf(model.isModoPantallaCompletaActivado()));
+      configuration.setString(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, String.valueOf(model.isSyncVisualizadorCarrusel()));
+      Path ultimaCarpetaCarrusel = model.getUltimaCarpetaCarrusel();
+      configuration.setString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_CARPETA, (ultimaCarpetaCarrusel != null) ? ultimaCarpetaCarrusel.toString() : "");
+      String ultimaImagenCarrusel = model.getUltimaImagenKeyCarrusel();
+      configuration.setString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, (ultimaImagenCarrusel != null) ? ultimaImagenCarrusel : "");
+      logger.debug("  [Guardar] Estado Carrusel/Sync: Sync=" + model.isSyncVisualizadorCarrusel() + ", UltimaCarpeta=" + ultimaCarpetaCarrusel);
+      
+      // --- Guardar el archivo físico ---
+      try {
+          configuration.guardarConfiguracion(configuration.getConfig());
+          logger.debug("  [Guardar] Configuración guardada exitosamente.");
+      } catch (IOException e) {
+          logger.error("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
+      }
+  } // --- FIN del metodo guardarConfiguracionActual ---
+  
+  
+  private void cargarVisorNormal() {
+	    String folderInit = configuration.getString("inicio.carpeta", "");
+	    Path folderPath = null;
+	    boolean carpetaValida = false;
+
+	    if (!folderInit.isEmpty()) {
+	        try {
+	            folderPath = Paths.get(folderInit);
+	            if (Files.isDirectory(folderPath)) {
+	                carpetaValida = true;
+	                this.model.setCarpetaRaizActual(folderPath);
+	            }
+	        } catch (Exception e) {
+	            logger.warn("Ruta de carpeta inicial inválida: {}", folderInit);
+	        }
+	    }
+
+	    if (carpetaValida) {
+	        String imagenInicialKey = configuration.getString("inicio.imagen", null);
+	        cargarListaImagenes(imagenInicialKey, null);
+	    } else {
+	        SwingUtilities.invokeLater(this::limpiarUI);
+	    }
+	} // ---FIN de metodo cargarVisorNormal---
+  
+  
+	/**
+	 * Obtiene la ruta del archivo de proyecto de recuperación guardada en la configuración.
+	 * Esta ruta indica que la última sesión se cerró sin guardar.
+	 *
+	 * @return La ruta como un String, o null si no hay ninguna sesión para recuperar.
+	 */
+	public String getRutaProyectoRecuperacion() {
+	    if (configuration == null) return null;
+	    String ruta = configuration.getString(ConfigKeys.PROYECTOS_ULTIMO_PROYECTO_ABIERTO, null);
+	    // Devolvemos null si la cadena está vacía o es nula, para simplificar las comprobaciones.
+	    return (ruta != null && !ruta.isBlank()) ? ruta : null;
+	} // ---FIN de metodo getRutaProyectoRecuperacion---
+	
+	/**
+	 * Establece o limpia la ruta del archivo de proyecto de recuperación en la configuración.
+	 * Guardar una ruta aquí marca la sesión como "no guardada".
+	 * Pasar null o una cadena vacía la marca como "limpia".
+	 *
+	 * @param ruta La ruta completa al archivo de recuperación, o null para limpiar la clave.
+	 */
+	public void setRutaProyectoRecuperacion(String ruta) {
+	    if (configuration == null) return;
+	    // Si la ruta es nula, guardamos una cadena vacía para limpiar la clave.
+	    configuration.setString(ConfigKeys.PROYECTOS_ULTIMO_PROYECTO_ABIERTO, (ruta == null ? "" : ruta));
+	    // Forzamos el guardado inmediato para asegurar que el cambio se persiste
+	    // incluso si la aplicación se cierra de forma abrupta.
+	    try {
+	        configuration.guardarConfiguracion(configuration.getConfig());
+	    } catch (IOException e) {
+	        logger.error("Error al guardar la configuración tras actualizar la ruta de recuperación.", e);
+	    }
+	} // ---FIN de metodo setRutaProyectoRecuperacion---
      
      
 	/**
@@ -3469,97 +3461,67 @@ public class VisorController implements IModoController, ActionListener, Clipboa
      
      
 	/**
-	 * Actualiza el estado visual de los componentes relacionados con la marca de proyecto.
-	 * Este método se asegura de que el estado de la Action, el botón de la toolbar
-	 * y la barra de estado reflejen si la imagen actual está marcada o no.
+	 * Actualiza el estado visual de los componentes relacionados con la marca de
+	 * proyecto. Este método se asegura de que el estado de la Action, el botón de
+	 * la toolbar y la barra de estado reflejen si la imagen actual está marcada o
+	 * no.
 	 *
-	 * @param estaMarcada true si la imagen está marcada, false en caso contrario.
-	 * @param rutaParaBarraEstado La ruta de la imagen, para mostrar en la barra de estado (puede ser null).
+	 * @param estaMarcada         true si la imagen está marcada, false en caso
+	 *                            contrario.
+	 * @param rutaParaBarraEstado La ruta de la imagen, para mostrar en la barra de
+	 *                            estado (puede ser null).
 	 */
-     public void actualizarEstadoVisualBotonMarcarYBarraEstado(boolean estaMarcada, Path rutaParaBarraEstado) {
- 	    if (actionMap == null) return;
+	public void actualizarEstadoVisualBotonMarcarYBarraEstado(boolean estaMarcada, Path rutaParaBarraEstado)
+	{
+		if (actionMap == null)
+			return;
 
- 	    // --- 1. Sincronizar la Action ---
- 	    Action toggleMarkImageAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
- 	    if (toggleMarkImageAction != null) {
- 	        toggleMarkImageAction.putValue(Action.SELECTED_KEY, estaMarcada);
- 	        
- 	        // --- 2. Lógica de pintado correcta y directa ---
- 	        if (configAppManager != null) {
- 	            configAppManager.actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);
- 	        }
- 	    }
- 	    
- 	    // --- 3. Actualizar la Barra de Estado ---
- 	    if (statusBarManager != null) {
- 	        statusBarManager.actualizar();
- 	    }
+		// --- 1. Sincronizar la Action ---
+		Action toggleMarkImageAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
 
- 	    logger.debug("  [Controller] Estado visual de 'Marcar' actualizado. Marcada: " + estaMarcada);
- 	} // --- Fin del método actualizarEstadoVisualBotonMarcarYBarraEstado ---
+		if (toggleMarkImageAction != null)
+		{
+			toggleMarkImageAction.putValue(Action.SELECTED_KEY, estaMarcada);
+
+			// --- 2. Lógica de pintado correcta y directa ---
+			if (configAppManager != null)
+			{
+				configAppManager.actualizarAspectoBotonToggle(toggleMarkImageAction, estaMarcada);
+			}
+		}
+
+		// --- 3. Actualizar la Barra de Estado ---
+		if (statusBarManager != null)
+		{
+			statusBarManager.actualizar();
+		}
+
+		logger.debug("  [Controller] Estado visual de 'Marcar' actualizado. Marcada: " + estaMarcada);
+	} // --- Fin del método actualizarEstadoVisualBotonMarcarYBarraEstado ---
      
 	
- 	/**
- 	 * Orquesta la operación de alternar el estado de marca de la imagen actual.
- 	 * Incluye una comprobación de seguridad para evitar desmarcar accidentalmente
- 	 * una imagen que está en la cola de exportación activa.
- 	 */
- 	public void solicitudAlternarMarcaDeImagenActual() {
- 	    logger.debug("[Controller] Solicitud para alternar marca de imagen actual...");
- 	    if (model == null || projectManager == null || view == null) { return; }
- 	    
- 	    String claveActual = model.getSelectedImageKey();
- 	    if (claveActual == null || claveActual.isEmpty()) { return; }
+	public void solicitudAlternarMarcaDeImagenActual() {
+	    logger.debug("[Controller] Solicitud para alternar marca de imagen actual...");
+	    if (model == null || projectManager == null || view == null) { return; }
+	    
+	    String claveActual = model.getSelectedImageKey();
+	    if (claveActual == null || claveActual.isEmpty()) { return; }
 
- 	    Path rutaAbsoluta = model.getRutaCompleta(claveActual);
- 	    if (rutaAbsoluta == null) { return; }
+	    Path rutaAbsoluta = model.getRutaCompleta(claveActual);
+	    if (rutaAbsoluta == null) { return; }
 
- 	    // --- INICIO DE LA MODIFICACIÓN: LÓGICA DE CONFIRMACIÓN ---
+	    // 1. Modificar el modelo en memoria
+	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
+	    
+	    // 2. FORZAR EL GUARDADO DEL ARCHIVO TEMPORAL
+	    projectManager.guardarAArchivo();
 
- 	    // Paso 1: Comprobar el estado de la imagen ANTES de cambiarlo.
- 	    boolean estaMarcadaActualmente = projectManager.estaMarcada(rutaAbsoluta);
-
- 	    // Paso 2: Si la imagen está marcada (lo que significa que la acción la va a DESMARCAR)
- 	    // y además sabemos por el modelo que el panel de exportación del modo proyecto está visible...
- 	    if (estaMarcadaActualmente && model.isProjectExportPanelVisible()) {
- 	        
- 	        // Paso 3: ...mostramos un diálogo pidiendo confirmación al usuario.
- 	        String titulo = "Confirmar Desmarcar Imagen";
- 	        String mensaje = "<html>Esta imagen está actualmente en la cola de exportación del modo Proyecto.<br><br><b>¿Estás seguro de que quieres desmarcarla?</b></html>";
- 	        
- 	        int respuesta = JOptionPane.showConfirmDialog(
- 	            view, // El componente padre para centrar el diálogo
- 	            mensaje,
- 	            titulo,
- 	            JOptionPane.YES_NO_OPTION,
- 	            JOptionPane.WARNING_MESSAGE
- 	        );
- 	        
- 	        // Paso 4: Si el usuario presiona "No" o cierra la ventana, abortamos la operación.
- 	        if (respuesta != JOptionPane.YES_OPTION) {
- 	            logger.debug("  -> El usuario ha cancelado la operación de desmarcar la imagen de la cola de exportación.");
- 	            return; // Salimos del método sin hacer nada más.
- 	        }
- 	    }
- 	    // --- FIN DE LA MODIFICACIÓN ---
-
- 	    // Si llegamos aquí, o bien la imagen no estaba marcada, o el panel de exportar no estaba visible,
- 	    // o el usuario ha confirmado explícitamente que quiere desmarcarla.
- 	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
- 	    
- 	   projectManager.notificarModificacion();
-       actualizarTituloVentana();
- 	    
- 	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
- 	    
- 	    // Adicional: Si acabamos de desmarcar una imagen, es buena idea refrescar la cola de exportación
- 	    // para que el cambio se refleje inmediatamente si el usuario vuelve al modo proyecto.
- 	    if (!estaAhoraMarcada && projectController != null) {
- 	        projectController.solicitarPreparacionColaExportacion();
- 	    }
- 	    
+	    // 3. Notificar y actualizar UI (esto ya lo hacías bien)
+	    projectManager.notificarModificacion();
+	    actualizarTituloVentana();
+	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
  	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
-	
+     
 	
 	/**
      * Restaura toda la UI específica del modo VISUALIZADOR, leyendo el estado
@@ -3694,48 +3656,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
         speedMenu.show(invoker, 0, -speedMenu.getPreferredSize().height);
     } // --- Fin del método showCarouselSpeedMenu ---
     
-	
-	public void toggleMarcaImagenActual (boolean marcarDeseado)
-	{
-	    Action toggleMarkImageAction = (this.actionMap != null) ? this.actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA) : null;
-		if (model == null || projectManager == null || toggleMarkImageAction == null)
-		{
-			logger.error("ERROR [toggleMarcaImagenActual]: Modelo, ProjectManager o Action nulos.");
-			return;
-		}
-		String claveActualVisor = model.getSelectedImageKey();
-
-		if (claveActualVisor == null || claveActualVisor.isEmpty())
-		{
-			logger.debug("[Controller toggleMarca] No hay imagen seleccionada.");
-			actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
-			return;
-		}
-
-		Path rutaAbsolutaImagen = model.getRutaCompleta(claveActualVisor);
-
-		if (rutaAbsolutaImagen == null)
-		{
-			logger.error("ERROR [toggleMarcaImagenActual]: No se pudo obtener ruta absoluta para " + claveActualVisor);
-			actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
-			return;
-		}
-
-		if (marcarDeseado)
-		{
-			projectManager.marcarImagenInterno(rutaAbsolutaImagen);
-		} else
-		{
-			projectManager.desmarcarImagenInterno(rutaAbsolutaImagen);
-		}
-	    
-	    // La actualización de la UI ahora la maneja el método que llama a este helper.
-	    // actualizarEstadoVisualBotonMarcarYBarraEstado(marcarDeseado, rutaAbsolutaImagen);
-		logger.debug("  [Controller] Estado de marca procesado para: " + rutaAbsolutaImagen + ". Marcada: " + marcarDeseado);
-
-	} // --- Fin del método toggleMarcaImagenActual ---
-
-	
 	
 // ************************************************************************************************** FIN GESTION DE PROYECTOS
 // ***************************************************************************************************************************
@@ -4019,77 +3939,77 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 	} // ---FIN de metodo [sincronizarColoresDePanelesPorTema]---
 	
 	
-	private void sincronizarColoresDesdeObjetoTema() {
-		final Tema temaActual = themeManager.getTemaActual();
-		view.getContentPane().setBackground(temaActual.colorFondoPrincipal());
-		// ... podrías replicar la lógica de arriba usando temaActual.color...()
-		view.repaint();
-	}// --- Fin del método sincronizarColoresDesdeObjetoTema ---
-	
-	
-	
-	/**
-	 * Fuerza la actualización del color de fondo de los paneles estructurales clave
-	 * que a menudo no se actualizan correctamente con un cambio de tema.
-	 */
-	private void refrescarColoresManualmentePorTema() {
-	    logger.debug("    -> Refrescando colores de paneles manualmente...");
-	    if (registry == null || themeManager == null) {
-	        logger.warn("      WARN: No se puede refrescar colores (registry o themeManager nulo).");
-	        return;
-	    }
-
-	    // Obtenemos los colores del nuevo tema.
-	    final Color colorFondoPrincipal = themeManager.getTemaActual().colorFondoPrincipal();
-	    
-	    // Lista de las claves de registro de los paneles problemáticos.
-	    final String[] clavesDePaneles = {
-	        "panel.info.superior",
-	        "panel.estado.inferior",
-	        "container.toolbars.left", // A veces los contenedores de toolbars también necesitan un empujón
-	        "container.toolbars.center",
-	        "container.toolbars.right"
-	    };
-
-	    for (String clave : clavesDePaneles) {
-	        Component comp = registry.get(clave);
-	        if (comp instanceof JPanel) {
-	            JPanel panel = (JPanel) comp;
-	            panel.setBackground(colorFondoPrincipal);
-	        }
-	    }
-	} // --- FIN del método refrescarColoresManualmentePorTema ---
-	
-	
-	/**
-	 * Recorre todas las toolbars gestionadas y fuerza la re-asignación del icono
-	 * en cada botón. Esto actúa como un "refuerzo" para asegurar que los cambios
-	 * de icono se reflejen visualmente tras un cambio de tema.
-	 */
-	private void forzarRefrescoIconosToolbars() {
-	    logger.debug("    -> [Refuerzo] Forzando refresco de iconos en todas las toolbars...");
-	    if (toolbarManager == null || actionMap == null) {
-	        return;
-	    }
-
-	    for (JToolBar toolbar : toolbarManager.getManagedToolbars().values()) {
-	        for (Component comp : toolbar.getComponents()) {
-	            if (comp instanceof AbstractButton) {
-	                AbstractButton button = (AbstractButton) comp;
-	                Action action = button.getAction();
-
-	                if (action != null) {
-	                    // Cogemos el icono que la Action TIENE AHORA (ya actualizado)
-	                    // y se lo volvemos a poner explícitamente al botón.
-	                    Icon iconActualizado = (Icon) action.getValue(Action.SMALL_ICON);
-	                    if (iconActualizado != null) {
-	                        button.setIcon(iconActualizado);
-	                    }
-	                }
-	            }
-	        }
-	    }
-	} // --- FIN del método forzarRefrescoIconosToolbars ---
+//	private void sincronizarColoresDesdeObjetoTema() {
+//		final Tema temaActual = themeManager.getTemaActual();
+//		view.getContentPane().setBackground(temaActual.colorFondoPrincipal());
+//		// ... podrías replicar la lógica de arriba usando temaActual.color...()
+//		view.repaint();
+//	}// --- Fin del método sincronizarColoresDesdeObjetoTema ---
+//	
+//	
+//	
+//	/**
+//	 * Fuerza la actualización del color de fondo de los paneles estructurales clave
+//	 * que a menudo no se actualizan correctamente con un cambio de tema.
+//	 */
+//	private void refrescarColoresManualmentePorTema() {
+//	    logger.debug("    -> Refrescando colores de paneles manualmente...");
+//	    if (registry == null || themeManager == null) {
+//	        logger.warn("      WARN: No se puede refrescar colores (registry o themeManager nulo).");
+//	        return;
+//	    }
+//
+//	    // Obtenemos los colores del nuevo tema.
+//	    final Color colorFondoPrincipal = themeManager.getTemaActual().colorFondoPrincipal();
+//	    
+//	    // Lista de las claves de registro de los paneles problemáticos.
+//	    final String[] clavesDePaneles = {
+//	        "panel.info.superior",
+//	        "panel.estado.inferior",
+//	        "container.toolbars.left", // A veces los contenedores de toolbars también necesitan un empujón
+//	        "container.toolbars.center",
+//	        "container.toolbars.right"
+//	    };
+//
+//	    for (String clave : clavesDePaneles) {
+//	        Component comp = registry.get(clave);
+//	        if (comp instanceof JPanel) {
+//	            JPanel panel = (JPanel) comp;
+//	            panel.setBackground(colorFondoPrincipal);
+//	        }
+//	    }
+//	} // --- FIN del método refrescarColoresManualmentePorTema ---
+//	
+//	
+//	/**
+//	 * Recorre todas las toolbars gestionadas y fuerza la re-asignación del icono
+//	 * en cada botón. Esto actúa como un "refuerzo" para asegurar que los cambios
+//	 * de icono se reflejen visualmente tras un cambio de tema.
+//	 */
+//	private void forzarRefrescoIconosToolbars() {
+//	    logger.debug("    -> [Refuerzo] Forzando refresco de iconos en todas las toolbars...");
+//	    if (toolbarManager == null || actionMap == null) {
+//	        return;
+//	    }
+//
+//	    for (JToolBar toolbar : toolbarManager.getManagedToolbars().values()) {
+//	        for (Component comp : toolbar.getComponents()) {
+//	            if (comp instanceof AbstractButton) {
+//	                AbstractButton button = (AbstractButton) comp;
+//	                Action action = button.getAction();
+//
+//	                if (action != null) {
+//	                    // Cogemos el icono que la Action TIENE AHORA (ya actualizado)
+//	                    // y se lo volvemos a poner explícitamente al botón.
+//	                    Icon iconActualizado = (Icon) action.getValue(Action.SMALL_ICON);
+//	                    if (iconActualizado != null) {
+//	                        button.setIcon(iconActualizado);
+//	                    }
+//	                }
+//	            }
+//	        }
+//	    }
+//	} // --- FIN del método forzarRefrescoIconosToolbars ---
 	
 	
     /**
@@ -4338,9 +4258,11 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     public void setViewManager				(ViewManager viewManager) {this.viewManager = viewManager;}
     public void setProjectController		(ProjectController projectController) {this.projectController = Objects.requireNonNull(projectController);}
     public void setConfigApplicationManager	(ConfigApplicationManager manager) { this.configAppManager = manager; }
-    public void setBackgroundControlManager	(BackgroundControlManager manager) {this.backgroundControlManager = manager;}
     public void setDisplayModeManager		(controlador.managers.DisplayModeManager displayModeManager) {this.displayModeManager = displayModeManager;}
     public void setGeneralController		(GeneralController generalController) {this.generalController = generalController;}
+    
+//    public void setBackgroundControlManager	(BackgroundControlManager manager) {this.backgroundControlManager = manager;}
+    
     
     
 // ***************************************************************************************************** FIN GETTERS Y SETTERS

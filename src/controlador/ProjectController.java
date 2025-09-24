@@ -49,6 +49,7 @@ import modelo.ListContext;
 import modelo.VisorModel;
 import modelo.proyecto.ExportItem;
 import modelo.proyecto.ExportStatus;
+import modelo.proyecto.ProjectModel;
 import vista.VisorView;
 import vista.dialogos.TaskProgressDialog;
 import vista.panels.export.ExportDetailPanel;
@@ -490,6 +491,11 @@ public class ProjectController implements IModoController {
         logger.debug("  [ProjectController] Preparando datos para el modo proyecto...");
         if (projectManager == null || model == null) { return false; }
 
+        // --- LOG DE VERIFICACIÓN ---
+        int size = projectManager.getCurrentProject().getSelectedImages().size();
+        logger.info(">>>>>>>>>> [PROYECTO - INICIO] Al preparar datos, ProjectModel en memoria tiene {} imágenes seleccionadas.", size);
+        // --- FIN LOG ---
+        
         List<Path> imagenesMarcadas = projectManager.getImagenesMarcadas();
         List<Path> imagenesDescartadas = projectManager.getImagenesDescartadas();
         List<Path> todasLasImagenes = new java.util.ArrayList<>();
@@ -764,50 +770,108 @@ public class ProjectController implements IModoController {
         }
         
     } // --- Fin del método poblarListaDescartes ---
-    
+  
     
     public void moverSeleccionActualADescartes() {
-        if (model == null || projectManager == null) return;
-        String claveSeleccionada = model.getSelectedImageKey();
-        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
-            logger.debug("  [ProjectController] No hay imagen seleccionada para mover a descartes.");
-            return;
+        if (model == null || projectManager == null || registry == null) return;
+        
+        // 1. Obtener la lista y el índice ANTES de cualquier cambio.
+        JList<String> listaSeleccionUI = registry.get("list.proyecto.nombres");
+        if (listaSeleccionUI == null) return;
+        int indiceOriginal = listaSeleccionUI.getSelectedIndex();
+        if (indiceOriginal == -1) {
+             logger.debug("No hay imagen seleccionada para mover a descartes.");
+             return;
         }
+
+        // 2. Obtener la clave de la imagen a mover.
+        String claveSeleccionada = listaSeleccionUI.getSelectedValue();
         Path rutaAbsoluta = model.getProyectoListContext().getRutaCompleta(claveSeleccionada);
-        if (rutaAbsoluta != null) {
-            projectManager.moverAdescartes(rutaAbsoluta);
-            projectManager.notificarModificacion();
-            controllerRef.actualizarTituloVentana();
+        if (rutaAbsoluta == null) return;
+
+        // 3. Realizar la operación en el modelo de datos y guardar.
+        projectManager.moverAdescartes(rutaAbsoluta);
+        projectManager.notificarModificacion();
+        controllerRef.actualizarTituloVentana();
+        projectManager.guardarAArchivo();
+
+        // 4. Refrescar TODA la UI del proyecto. Esto reconstruirá los modelos de las JList.
+        refrescarVistaProyectoCompleta();
+
+        // 5. Calcular y aplicar la nueva selección de forma inteligente.
+        SwingUtilities.invokeLater(() -> {
+            // Volvemos a obtener la JList y su modelo, ya que han sido actualizados.
+            JList<String> listaActualizada = registry.get("list.proyecto.nombres");
+            if (listaActualizada == null) return;
+            int nuevoTamanio = listaActualizada.getModel().getSize();
             
-            // --- INICIO DE LA CORRECCIÓN ---
-            // Llamamos al método de refresco que no resetea el layout.
-            refrescarVistaProyectoCompleta();
-            // --- FIN DE LA CORRECCIÓN ---
-        }
+            if (nuevoTamanio > 0) {
+                int nuevoIndiceASeleccionar = indiceOriginal;
+                // Si el índice original ya no existe (porque era el último), seleccionamos el nuevo último.
+                if (nuevoIndiceASeleccionar >= nuevoTamanio) {
+                    nuevoIndiceASeleccionar = nuevoTamanio - 1;
+                }
+                
+                // Usamos el coordinador para que la selección se propague a toda la UI
+                projectListCoordinator.seleccionarImagenPorIndice(nuevoIndiceASeleccionar);
+            } else {
+                // Si la lista quedó vacía, deseleccionamos todo.
+                projectListCoordinator.seleccionarImagenPorIndice(-1);
+            }
+        });
     } // --- Fin del método moverSeleccionActualADescartes ---
 
     
     public void restaurarDesdeDescartes() {
         if (registry == null || projectManager == null) return;
+
+        // 1. Obtener la lista y el índice ANTES del cambio.
         JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
         if (listaDescartesUI == null) return;
-        String claveSeleccionada = listaDescartesUI.getSelectedValue();
-        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
-            logger.debug("  [ProjectController] No hay imagen seleccionada en descartes para restaurar.");
+        int indiceOriginal = listaDescartesUI.getSelectedIndex();
+        if (indiceOriginal == -1) {
+            logger.debug("No hay imagen seleccionada en descartes para restaurar.");
             return;
         }
-        Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
-        projectManager.restaurarDeDescartes(rutaAbsoluta);
         
+        String claveSeleccionada = listaDescartesUI.getSelectedValue();
+        Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
+        
+        // 2. Realizar la operación en el modelo de datos y guardar.
+        projectManager.restaurarDeDescartes(rutaAbsoluta);
         projectManager.notificarModificacion();
         controllerRef.actualizarTituloVentana();
+        projectManager.guardarAArchivo();
         
-        // --- LA CORRECCIÓN CLAVE ---
-        // En lugar de llamar al refresco antiguo, llamamos al nuevo y robusto.
+        // 3. Refrescar TODA la UI del proyecto.
         refrescarVistaProyectoCompleta();
-    } // --- Fin del método restaurarDesdeDescartes ---
 
-    
+        // 4. Calcular y aplicar la nueva selección en la lista de DESCARTES.
+        SwingUtilities.invokeLater(() -> {
+            // Volvemos a obtener la JList y su modelo, ya que han sido actualizados.
+            JList<String> listaActualizada = registry.get("list.proyecto.descartes");
+            if (listaActualizada == null) return;
+            int nuevoTamanio = listaActualizada.getModel().getSize();
+
+            // Nos aseguramos de que el foco lógico esté en la lista de descartes
+            setProjectViewState(ProjectViewState.VIEW_DISCARDS);
+
+            if (nuevoTamanio > 0) {
+                int nuevoIndiceASeleccionar = indiceOriginal;
+                if (nuevoIndiceASeleccionar >= nuevoTamanio) {
+                    nuevoIndiceASeleccionar = nuevoTamanio - 1;
+                }
+                projectListCoordinator.seleccionarImagenPorIndice(nuevoIndiceASeleccionar);
+            } else {
+                // Si la lista de descartes quedó vacía, movemos el foco a la de selección
+                setProjectViewState(ProjectViewState.VIEW_SELECTION);
+                projectListCoordinator.seleccionarImagenPorIndice(0); // Seleccionamos el primero de la otra lista
+            }
+        });
+        
+	} // --- Fin del método restaurarDesdeDescartes ---
+
+
     private void refrescarListasDeProyecto() {
         logger.debug("  [ProjectController] Refrescando ambas listas del proyecto...");
         prepararDatosProyecto(); 
@@ -1316,12 +1380,6 @@ public class ProjectController implements IModoController {
     } // ---FIN de metodo solicitarNuevoProyecto---
     
     
-    /**
-     * Orquesta la apertura de un proyecto existente desde un archivo.
-     * Carga los datos y se asegura de que la UI se actualice, ya sea
-     * refrescando la vista actual o cambiando al modo proyecto.
-     * @param rutaArchivo El Path del archivo .prj a abrir.
-     */
     public void solicitarAbrirProyecto(Path rutaArchivo) {
         if (projectManager == null || controllerRef == null || model == null) {
             logger.error("ERROR [solicitarAbrirProyecto]: Dependencias nulas.");
@@ -1329,27 +1387,21 @@ public class ProjectController implements IModoController {
         }
 
         try {
-            // 1. Cargar los datos del proyecto en el backend (ProjectManager).
+            // 1. Cargar los datos del proyecto en el backend. Su única responsabilidad.
             projectManager.abrirProyecto(rutaArchivo);
-
-            // 2. Comprobar en qué modo estamos AHORA.
-            if (model.isEnModoProyecto()) {
-                // --- CASO 1: Ya estamos en modo proyecto ---
-                // No necesitamos un cambio de modo completo. Solo necesitamos que la vista se refresque
-                // con los nuevos datos que acabamos de cargar.
-                logger.info("Ya se está en modo proyecto. Refrescando la vista con el nuevo proyecto cargado...");
-                activarVistaProyecto(); // Este método ya contiene toda la lógica de refresco.
-            } else {
-                // --- CASO 2: Estamos en otro modo (ej. Visualizador) ---
-                // Iniciamos la transición de modo completa. El GeneralController se encargará
-                // de llamar a activarVistaProyecto en el momento adecuado.
-                logger.info("Cambiando al modo proyecto para mostrar el proyecto recién cargado...");
-                controllerRef.getGeneralController().cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
-            }
-
-            controllerRef.actualizarTituloVentana();
             
-        } catch (java.io.IOException e) {
+            // 2. Actualizar el título de la ventana inmediatamente.
+            controllerRef.actualizarTituloVentana();
+
+            // 3. Si YA ESTAMOS en modo proyecto, refrescamos la vista para mostrar los nuevos datos.
+            //    Si NO estamos en modo proyecto, no hacemos nada. La responsabilidad de cambiar
+            //    de modo recae en el GeneralController que nos llamó.
+            if (model.isEnModoProyecto()) {
+                logger.info("Ya se está en modo proyecto. Refrescando la vista con el nuevo proyecto cargado...");
+                activarVistaProyecto();
+            }
+            
+        } catch (java.io.IOException e) { // La firma de projectManager.abrirProyecto puede que ya no lance IOException, pero ProyectoIOException sí.
             logger.error("Falló la carga del proyecto: {}", e.getMessage());
             Component parentWindow = (view != null) ? view : null;
             JOptionPane.showMessageDialog(
@@ -1360,76 +1412,60 @@ public class ProjectController implements IModoController {
             );
         }
     } // ---FIN de metodo solicitarAbrirProyecto---
-
     
-    /**
-     * Orquesta el guardado del proyecto actual.
-     * Si el proyecto es temporal (no tiene un archivo .prj asociado),
-     * delega a `solicitarGuardarProyectoComo`.
-     */
+    
     public void solicitarGuardarProyecto() {
         if (projectManager == null) return;
 
         if (projectManager.getArchivoProyectoActivo() == null) {
-            // Si es un proyecto temporal, la acción "Guardar" debe comportarse como "Guardar Como".
-            solicitarGuardarProyectoComo(null); // Pasamos null para que la lógica interna muestre el JFileChooser
+            // Si el proyecto es temporal, la acción "Guardar" debe comportarse como "Guardar Como".
+            Action guardarComoAction = actionMap.get(AppActionCommands.CMD_PROYECTO_GUARDAR_COMO);
+            if (guardarComoAction != null) {
+                guardarComoAction.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+            }
         } else {
-            // Llamamos explícitamente a guardar el archivo.
+            // Si ya tiene nombre, simplemente guarda. El archivo ya está actualizado por las acciones.
             projectManager.guardarAArchivo();
-            
             controllerRef.actualizarTituloVentana();
-
             logger.info("Proyecto {} guardado.", projectManager.getNombreProyectoActivo());
-            
-            String nombreArchivo = projectManager.getNombreProyectoActivo();
-            JOptionPane.showMessageDialog(
-                view, 
-                "El proyecto '" + nombreArchivo + "' se ha guardado correctamente.", 
-                "Proyecto Guardado", 
-                JOptionPane.INFORMATION_MESSAGE
-            );
         }
-        
     } // ---FIN de metodo solicitarGuardarProyecto---
 
     
     /**
      * Orquesta el guardado del proyecto actual en una nueva ubicación.
-     * Muestra un JFileChooser si no se proporciona una ruta.
-     * @param rutaArchivo La ruta donde guardar el archivo, o null para que el usuario elija.
+     * Muestra un JFileChooser y, si tiene éxito, guarda el proyecto.
+     * Confía en que el ProjectModel en memoria es la fuente de la verdad.
      */
-    public void solicitarGuardarProyectoComo(Path rutaArchivo) {
+    public void solicitarGuardarProyectoComo() {
         if (projectManager == null || controllerRef == null || view == null) {
             logger.error("ERROR [solicitarGuardarProyectoComo]: Dependencias nulas.");
             return;
         }
+        
+        // --- LOG DE VERIFICACIÓN ---
+        int size = projectManager.getCurrentProject().getSelectedImages().size();
+        logger.info(">>>>>>>>>> [GUARDADO] Al solicitar 'Guardar Como...', ProjectModel en memoria tiene {} imágenes seleccionadas.", size);
+        // --- FIN LOG ---
 
-        Path archivoDestino = rutaArchivo;
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Guardar Proyecto Como...");
+        fileChooser.setCurrentDirectory(projectManager.getCarpetaBaseProyectos().toFile());
+        javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos de Proyecto (*.prj)", "prj");
+        fileChooser.setFileFilter(filter);
+        fileChooser.setSelectedFile(new java.io.File("MiProyecto.prj"));
 
-        if (archivoDestino == null) {
-            // Esta lógica es un duplicado de la Action, se puede refactorizar en el futuro,
-            // pero es útil tenerla aquí por si se llama a guardar un proyecto temporal.
-            JFileChooser fileChooser = new JFileChooser();
-            fileChooser.setDialogTitle("Guardar Proyecto Como...");
-            fileChooser.setCurrentDirectory(projectManager.getCarpetaBaseProyectos().toFile());
-            javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos de Proyecto (*.prj)", "prj");
-            fileChooser.setFileFilter(filter);
-            fileChooser.setSelectedFile(new java.io.File("MiProyecto.prj"));
-
-            int result = fileChooser.showSaveDialog(view);
-            if (result != JFileChooser.APPROVE_OPTION) {
-                return; // El usuario canceló
-            }
-            archivoDestino = fileChooser.getSelectedFile().toPath();
+        int result = fileChooser.showSaveDialog(view);
+        if (result != JFileChooser.APPROVE_OPTION) {
+            return; // El usuario canceló
         }
 
-        // Asegurar la extensión .prj
+        Path archivoDestino = fileChooser.getSelectedFile().toPath();
         if (!archivoDestino.toString().toLowerCase().endsWith(".prj")) {
             archivoDestino = archivoDestino.resolveSibling(archivoDestino.getFileName().toString() + ".prj");
         }
 
-        // Verificar sobrescritura (solo si la ruta no vino de la Action que ya lo verificó)
-        if (rutaArchivo == null && java.nio.file.Files.exists(archivoDestino)) {
+        if (java.nio.file.Files.exists(archivoDestino)) {
             int overwriteConfirm = JOptionPane.showConfirmDialog(
                 view, "El archivo ya existe. ¿Deseas sobrescribirlo?", "Confirmar Sobrescribir",
                 JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE
@@ -1439,22 +1475,69 @@ public class ProjectController implements IModoController {
             }
         }
         
+        // Simplemente le pide al manager que guarde su estado actual en la nueva ruta.
         projectManager.guardarProyectoComo(archivoDestino);
         controllerRef.actualizarTituloVentana();
-        logger.info("Proyecto guardado como {} y UI actualizada.", archivoDestino.getFileName());
-        
         projectManager.limpiarArchivoTemporal();
         
-        // Mostramos un diálogo de confirmación después de guardar.
-        String nombreArchivo = archivoDestino.getFileName().toString();
+        // Restaura el feedback vital para el usuario.
         JOptionPane.showMessageDialog(
             view, 
-            "El proyecto se ha guardado correctamente como '" + nombreArchivo + "'.", 
+            "El proyecto se ha guardado correctamente como '" + archivoDestino.getFileName().toString() + "'.", 
             "Proyecto Guardado", 
             JOptionPane.INFORMATION_MESSAGE
         );
-        
     } // ---FIN de metodo solicitarGuardarProyectoComo---
+    
+    
+    /**
+     * Sincroniza el 'ProjectModel' en el ProjectManager con el estado actual
+     * de las JLists de la interfaz de usuario (selección y descartes).
+     * Este método es el puente que restaura la robustez del sistema, asegurando
+     * que el estado visual actual se consolide en el modelo de datos antes de
+     * cualquier operación de persistencia.
+     */
+    public void sincronizarModeloConUI() {
+        if (projectManager == null || registry == null) {
+            logger.warn("WARN [sincronizarModeloConUI]: ProjectManager o Registry son nulos. Sincronización abortada.");
+            return;
+        }
+
+        logger.debug("[ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...");
+
+        ProjectModel modeloActual = projectManager.getCurrentProject();
+        if (modeloActual == null) {
+            logger.error("ERROR CRÍTICO [sincronizarModeloConUI]: El ProjectModel en ProjectManager es nulo.");
+            return;
+        }
+        
+        // Preservamos el mapa de etiquetas existente para no perderlo al reconstruir la lista de selección.
+        Map<String, String> etiquetasExistentes = new HashMap<>(modeloActual.getSelectedImages());
+
+        // 1. Sincronizar la lista de SELECCIÓN desde la UI al Modelo
+        JList<String> listaSeleccionUI = registry.get("list.proyecto.nombres");
+        if (listaSeleccionUI != null && listaSeleccionUI.getModel() != null) {
+            modeloActual.getSelectedImages().clear();
+            javax.swing.ListModel<String> modeloUI = listaSeleccionUI.getModel();
+            for (int i = 0; i < modeloUI.getSize(); i++) {
+                String clave = modeloUI.getElementAt(i);
+                String etiqueta = etiquetasExistentes.get(clave); // Recuperar etiqueta si existía
+                modeloActual.getSelectedImages().put(clave, etiqueta);
+            }
+        }
+
+        // 2. Sincronizar la lista de DESCARTES desde la UI al Modelo
+        JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
+        if (listaDescartesUI != null && listaDescartesUI.getModel() != null) {
+            modeloActual.getDiscardedImages().clear();
+            javax.swing.ListModel<String> modeloUI = listaDescartesUI.getModel();
+            for (int i = 0; i < modeloUI.getSize(); i++) {
+                modeloActual.getDiscardedImages().add(modeloUI.getElementAt(i));
+            }
+        }
+
+        logger.info("[ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.");
+    } // ---FIN de metodo sincronizarModeloConUI---
     
     
     /**
@@ -1495,30 +1578,25 @@ public class ProjectController implements IModoController {
 // ********************************************************************************************
     
     
-    
     public void solicitarEliminacionPermanente() {
-        if (registry == null || projectManager == null || view == null) {
-            logger.warn("WARN [solicitarEliminacionPermanente]: Dependencias nulas.");
-            return;
-        }
+        if (registry == null || projectManager == null || view == null) return;
         JList<String> listaDescartesUI = registry.get("list.proyecto.descartes");
-        if (listaDescartesUI == null) {
-            logger.warn("WARN [solicitarEliminacionPermanente]: JList 'list.proyecto.descartes' no encontrada.");
-            return;
-        }
+        if (listaDescartesUI == null) return;
         String claveSeleccionada = listaDescartesUI.getSelectedValue();
-        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) {
-            logger.debug("  [ProjectController] No hay imagen seleccionada en descartes para eliminar.");
-            return;
-        }
+        if (claveSeleccionada == null || claveSeleccionada.isEmpty()) return;
+
         int confirm = JOptionPane.showConfirmDialog(view, "¿Seguro que quieres eliminar esta imagen del proyecto?\n(No se borrará el archivo del disco)", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
         if (confirm == JOptionPane.YES_OPTION) {
             Path rutaAbsoluta = java.nio.file.Paths.get(claveSeleccionada);
+            // 1. Modifica el modelo en memoria
             projectManager.eliminarDeProyecto(rutaAbsoluta);
-            
             projectManager.notificarModificacion();
             controllerRef.actualizarTituloVentana();
             
+            // 2. Guarda el estado actual y correcto INMEDIATAMENTE
+            projectManager.guardarAArchivo();
+            
+            // 3. Refresca la UI (en este caso, refrescar las listas es suficiente)
             refrescarListasDeProyecto();
         }
     } // --- Fin del método solicitarEliminacionPermanente ---

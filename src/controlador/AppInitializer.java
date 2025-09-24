@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -143,19 +144,18 @@ public class AppInitializer {
         this.model = new VisorModel();
         this.configuration = ConfigurationManager.getInstance();
         this.themeManager = new ThemeManager(this.configuration);
-        
-        // <<< CORRECCIÓN: Instalamos el tema aquí mismo, para que esté disponible
-        // para los constructores de otros componentes que lo necesiten.
         this.themeManager.install();
-        
         this.iconUtils = new IconUtils(this.themeManager);
         this.thumbnailServiceGlobal = new ThumbnailService();
         this.gridThumbnailService = new ThumbnailService();
         this.projectManagerService = new ProjectManager();
         this.registry = new ComponentRegistry();
 
-        // Controladores, Coordinadores y Managers
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Controladores, Coordinadores y Managers (en orden de dependencia)
         this.generalController = new GeneralController();
+        this.projectController = new ProjectController(); // Crear la ÚNICA instancia aquí
+        
         this.filterManager = new FilterManager(this.model);
         this.folderNavManager = new FolderNavigationManager(this.model, this.generalController);
         this.folderTreeManager = new FolderTreeManager(this.model, this.generalController);
@@ -165,7 +165,6 @@ public class AppInitializer {
         this.listCoordinator = new ListCoordinator();
         this.displayModeManager = new DisplayModeManager();
         this.fileOperationsManager = new FileOperationsManager();
-        this.projectController = new ProjectController();
         this.projectListCoordinator = new ProjectListCoordinator(this.model, this.controller, this.registry);
         this.carouselManager = new CarouselManager(listCoordinator, this.controller, this.registry, this.model, this.iconUtils);
         
@@ -176,14 +175,18 @@ public class AppInitializer {
         
         this.toolbarBuilder = new ToolbarBuilder(this.themeManager, this.iconUtils, this.controller, configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24), this.registry);
         this.toolbarManager = new ToolbarManager(this.registry, this.configuration, this.toolbarBuilder, uiDefSvc, this.model);
-        this.projectBuilder = new ProjectBuilder(this.registry, this.model, this.themeManager, this.generalController, this.toolbarManager, this.projectController); // <-- USAR EL CAMPO
-        this.viewBuilder = new ViewBuilder(this.registry, this.model, this.themeManager, this.configuration, this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService, this.projectBuilder); // <-- PASAR EL CAMPO
-        ProjectBuilder projectBuilder = new ProjectBuilder(this.registry, this.model, this.themeManager, this.generalController, this.toolbarManager, this.projectController);
-        this.viewBuilder = new ViewBuilder(this.registry, this.model, this.themeManager, this.configuration, this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService, projectBuilder);
-        this.menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager, this.registry, this.themeManager);
         
+        // Usar la ÚNICA instancia de projectController
+        this.projectBuilder = new ProjectBuilder(this.registry, this.model, this.themeManager, this.generalController, this.toolbarManager, this.projectController);
+        
+        // Usar el projectBuilder del campo de la clase (this.projectBuilder) para el ViewBuilder
+        this.viewBuilder = new ViewBuilder(this.registry, this.model, this.themeManager, this.configuration, this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService, this.projectBuilder);
+        
+        this.menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager, this.registry, this.themeManager);
+
         // Managers dependientes de UI
         this.configAppManager = new ConfigApplicationManager(this.model, this.configuration, this.themeManager, this.registry);
+        
         this.infobarImageManager = new InfobarImageManager(this.model, this.registry, this.configuration);
         this.backgroundControlManager = new BackgroundControlManager(registry, this.themeManager, this.viewManager, this.configuration, this.iconUtils, BorderFactory.createLineBorder(Color.GRAY), BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.CYAN, 2), BorderFactory.createLineBorder(Color.BLACK)));
 
@@ -196,11 +199,14 @@ public class AppInitializer {
                 }
             }
         });
+        
+        // Pasar la ÚNICA instancia de projectController a la ActionFactory
         this.actionFactory = new ActionFactory(this.model, null, this.zoomManager, this.fileOperationsManager, this.editionManager, this.listCoordinator, this.iconUtils, this.configuration, this.projectManagerService, iconMap, this.viewManager, this.themeManager, this.registry, this.generalController, this.projectController);
         
         logger.debug(" -> Instanciación de componentes completada.");
     } // ---FIN de metodo instantiateComponents---
-
+    
+    
     /**
      * FASE 2: CABLEADO DE DEPENDENCIAS.
      * Conecta los objetos instanciados en la Fase 1 usando sus métodos `set...` y `add...Listener`.
@@ -221,7 +227,7 @@ public class AppInitializer {
         this.controller.setProjectManager(this.projectManagerService);
         this.controller.setToolbarManager(this.toolbarManager);
         this.controller.setActionFactory(this.actionFactory);
-        this.controller.setBackgroundControlManager(this.backgroundControlManager);
+//        this.controller.setBackgroundControlManager(this.backgroundControlManager);
         this.controller.setGeneralController(this.generalController);
         this.controller.setDisplayModeManager(this.displayModeManager);
         this.controller.setZoomManager(this.zoomManager);
@@ -259,6 +265,7 @@ public class AppInitializer {
 
         if (this.projectManagerService != null) {
             this.projectManagerService.setConfigManager(this.configuration);
+            this.projectManagerService.setProjectController(this.projectController);
         }
         editionManager.setModel(this.model);
         editionManager.setController(this.controller);
@@ -435,8 +442,13 @@ public class AppInitializer {
                 this.backgroundControlManager.sincronizarSeleccionConEstadoActual();
                 if (this.viewManager != null) this.viewManager.initializeFocusBorders();
                 
-                cargarDatosIniciales();
-
+                
+	             	// 1. Prepara la acción que se ejecutará DESPUÉS de la carga inicial.
+	                Runnable accionPostCarga = this::comprobarYRestaurarSesion;
+	                
+	                // 2. Llama a la carga de datos iniciales, pasándole la acción de recuperación como callback.
+	                cargarDatosIniciales(accionPostCarga);
+	                
                 logger.info("--- [Fase 3/3] Inicialización de UI completada. La aplicación está lista. ---");
 
             } catch (Exception e) {
@@ -517,13 +529,23 @@ public class AppInitializer {
         }
     } // ---FIN de metodo instalarPreviewers---
     
+    
     private void configurarCierreVentana() {
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Establecemos la operación de cierre por defecto a NO HACER NADA.
+        // Esto nos da el control total sobre el proceso de cierre.
+        this.view.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        // --- FIN DE LA MODIFICACIÓN ---
+
         this.view.addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
             public void windowClosing(java.awt.event.WindowEvent e) {
+                // Delegamos toda la lógica de cierre al método orquestador del controlador.
                 controller.shutdownApplication();
             }
         });
     } // ---FIN de metodo configurarCierreVentana---
+    
 
     private void sincronizarVisibilidadInicialUI() {
         logger.debug("  -> Sincronizando visibilidad inicial de paneles...");
@@ -538,10 +560,15 @@ public class AppInitializer {
         }
     } // ---FIN de metodo sincronizarVisibilidadInicialUI---
     
+
     private void cargarDatosIniciales() {
+        cargarDatosIniciales(null);
+    } // ---FIN de metodo cargarDatosIniciales (convenience)---
+    
+    private void cargarDatosIniciales(Runnable onComplete) {
         String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
         if (this.model.getCarpetaRaizActual() != null) {
-            this.controller.cargarListaImagenes(imagenInicialKey, null);
+            this.controller.cargarListaImagenes(imagenInicialKey, onComplete); // <<< PASAMOS EL RUNNABLE
         } else {
             logger.debug("  -> No hay carpeta inicial válida. Se mostrará el estado de bienvenida.");
             this.controller.limpiarUI();
@@ -549,8 +576,78 @@ public class AppInitializer {
             if (this.controller.getStatusBarManager() != null) {
                 this.controller.getStatusBarManager().mostrarMensaje("Abre una carpeta para empezar (Archivo -> Abrir Carpeta)");
             }
+            // Si no hay carga, ejecutamos el callback inmediatamente
+            if (onComplete != null) {
+                onComplete.run();
+            }
         }
     } // ---FIN de metodo cargarDatosIniciales---
+    
+    
+    /**
+     * Comprueba si existe una sesión de recuperación pendiente y, de ser así,
+     * pregunta al usuario si desea restaurarla. Esta lógica se ejecuta
+     * después de que la UI principal se ha inicializado.
+     * CRUCIAL: Limpia la clave de recuperación de la configuración después de leerla
+     * para evitar que vuelva a preguntar en el siguiente inicio.
+     */
+    private void comprobarYRestaurarSesion() {
+        logger.debug("--- [AppInitializer] Comprobando si hay una sesión para restaurar... ---");
+        
+        String valorRecuperacion = this.controller.getRutaProyectoRecuperacion();
+        
+        if (valorRecuperacion != null) {
+            // Limpiamos la clave INMEDIATAMENTE después de leerla.
+            logger.debug("    -> Clave de recuperación encontrada. Limpiándola de la configuración para el próximo arranque.");
+            this.controller.setRutaProyectoRecuperacion(null);
+
+            logger.info("  -> Se ha detectado una sesión de recuperación pendiente. Valor: {}", valorRecuperacion);
+            
+            int respuesta = JOptionPane.showConfirmDialog(
+                this.view,
+                "La sesión anterior no se guardó correctamente.\n¿Deseas restaurar el trabajo no guardado?",
+                "Restaurar Sesión Anterior",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
+            
+            if (respuesta == JOptionPane.YES_OPTION) {
+                logger.debug("    -> Usuario ha elegido restaurar la sesión.");
+                try {
+                    Path rutaRecuperacion;
+                    if ("TEMPORAL".equalsIgnoreCase(valorRecuperacion)) {
+                        rutaRecuperacion = this.projectManagerService.getRutaArchivoRecuperacion();
+                    } else {
+                        rutaRecuperacion = Paths.get(valorRecuperacion);
+                    }
+                    
+                    this.projectManagerService.cargarDesdeRecuperacion(rutaRecuperacion);
+                    this.controller.actualizarTituloVentana();
+                    this.generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+                    
+                    logger.info("  -> Sesión restaurada con éxito.");
+
+                } catch (Exception e) {
+                    logger.error("Error al intentar restaurar la sesión.", e);
+                    JOptionPane.showMessageDialog(
+                        this.view, 
+                        "No se pudo restaurar la sesión anterior. Puede que el archivo esté corrupto.", 
+                        "Error de Recuperación", 
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            } else {
+                // Si el usuario dice NO, la clave ya fue limpiada.
+                logger.debug("    -> Usuario eligió no restaurar.");
+                // --- INICIO DE LA MODIFICACIÓN ---
+                // Adicionalmente, reseteamos el estado del ProjectManager en memoria para que
+                // no crea que todavía hay un proyecto temporal con imágenes marcadas.
+                this.projectManagerService.nuevoProyecto();
+                // --- FIN DE LA MODIFICACIÓN ---
+            }
+        }
+    } // ---FIN de metodo comprobarYRestaurarSesion---
+    
     
     private void manejarErrorFatalInicializacion(String message, Throwable cause) {
         logger.error("### ERROR FATAL DE INICIALIZACIÓN ###");

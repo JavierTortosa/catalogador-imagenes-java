@@ -141,10 +141,12 @@ public final class ConfigKeys {
     // --- SECCIÓN: INICIO Y PROYECTOS ---
     public static final String PROYECTOS_CARPETA_BASE 							= "proyectos.carpeta_base";
     public static final String PROYECTOS_ARCHIVO_TEMPORAL 						= "proyectos.archivo_temporal_nombre";
+    public static final String PROYECTOS_ARCHIVO_RECUPERACION 					= "proyectos.archivo.recuperacion";
     
     public static final String PROYECTOS_LISTA_ACTIVA 							= "proyectos.estado.lista_activa";
     public static final String PROYECTOS_ULTIMA_SELECCION_KEY 					= "proyectos.estado.ultima_seleccion_key";
     public static final String PROYECTOS_ULTIMA_DESCARTES_KEY 					= "proyectos.estado.ultima_descartes_key";
+    public static final String PROYECTOS_ULTIMO_PROYECTO_ABIERTO 				= "proyectos.estado.ultimo_proyecto_abierto";
     
     // Para el futuro:
     // public static final String KEY_PROYECTOS_ULTIMO_ABIERTO 					= "proyectos.ultimo_abierto_ruta_completa";

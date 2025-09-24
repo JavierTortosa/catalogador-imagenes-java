@@ -1,9 +1,5 @@
 package controlador;
 
-import java.util.Collections;
-import java.util.List;
-
-import controlador.interfaces.ContextSensitiveAction;
 import controlador.managers.interfaces.IListCoordinator;
 import modelo.MasterSelectionChangeListener;
 

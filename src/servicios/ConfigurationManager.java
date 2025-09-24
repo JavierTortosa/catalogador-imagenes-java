@@ -476,7 +476,9 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.INICIO_IMAGEN, "");
 
 	    defaults.put(ConfigKeys.PROYECTOS_CARPETA_BASE, inicioCarpetaDefault + "\\.proyectos");
-	    defaults.put(ConfigKeys.PROYECTOS_ARCHIVO_TEMPORAL, "seleccion_actual.txt");
+	    defaults.put(ConfigKeys.PROYECTOS_ARCHIVO_TEMPORAL, "seleccion_actual.prj");
+//	    defaults.put(ConfigKeys.PROYECTOS_ARCHIVO_RECUPERACION, "");
+//	    defaults.put(ConfigKeys.PROYECTOS_ULTIMO_PROYECTO_ABIERTO, "");
 	    
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_MANUAL_INICIAL, "true");
 	    defaults.put(ConfigKeys.COMPORTAMIENTO_ZOOM_MODO_INICIAL, "FIT_TO_SCREEN");
@@ -503,8 +505,8 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.WINDOW_MAXIMIZED, "true"); // INICIO DE LA APLICACION MAXIMIZADA
 
 	    defaults.put(ConfigKeys.TEMA_NOMBRE, "purpura_misterioso");// clear"); TEMA DE INICIO POR DEFECTO
-	    defaults.put("iconos.ancho", "24");
-	    defaults.put("iconos.alto", "24");
+	    defaults.put("iconos.ancho", "18");
+	    defaults.put("iconos.alto", "18");
 	    
 	    defaults.put("ui.splitpane.main.dividerLocation", "0.25");
 	    
@@ -514,12 +516,12 @@ public class ConfigurationManager
         defaults.put(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, ""); // Sin imagen guardada por defecto
 
 	    // --- 2. CONFIGURACIÓN DE MINIATURAS ---
-	    defaults.put(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, "8");
-	    defaults.put(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES, "15");
-	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ANCHO, "60");
-	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO, "60");
-	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, "40");
-	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, "40");
+	    defaults.put(ConfigKeys.MINIATURAS_CANTIDAD_ANTES, "9");
+	    defaults.put(ConfigKeys.MINIATURAS_CANTIDAD_DESPUES, "9");
+	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ANCHO, "80");
+	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_SEL_ALTO, "80");
+	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, "70");
+	    defaults.put(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, "70");
 	    defaults.put(ConfigKeys.MINIATURAS_CACHE_MAX_SIZE, "200");
 	    
 	    // --- 3. ESTADOS DE MENÚS (CHECKBOXES Y RADIOS) ---

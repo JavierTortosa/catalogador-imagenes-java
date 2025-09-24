@@ -27,6 +27,7 @@ public class ChangeCarouselSpeedAction extends AbstractAction {
     private final CarouselManager carouselManager;
     private final ConfigurationManager configuration;
     private final SpeedChangeType changeType;
+    
     private static final int STEP_MS = 500;
     private static final int DEFAULT_DELAY_MS = 5000;
 

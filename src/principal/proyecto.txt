@@ -32,7 +32,6 @@ https://www.formdev.com/flatlaf/properties-files/
 2. - CONTEXTO GENERAL DE LA APLICACIÓN:
 
 1. OBJETIVO DEL PROYECTO:
-
 Aplicación de escritorio para visualizar, catalogar y gestionar una gran colección (~26,000+) de imágenes asociadas a modelos 3D. El objetivo principal es agilizar la búsqueda y organización de estos recursos.
 2. ARQUITECTURA Y PRINCIPIOS DE DISEÑO:
 Tecnología: Java, Swing (UI), Maven (Gestión de proyecto).
@@ -304,10 +303,11 @@ https://www.streamlinehq.com/icons/core-duo-color/interface-essential
 ======================================================================
 librerias externas para implementas
 ======================================================================
-TwelveMonkeys ImageIO: Soporte extendido para formatos de imagen: PSD, TIFF, BMP, etc.
-FlatLaf: el estándar de oro para Look and Feels modernos en Swing
-Thumbnailator: para crear miniaturas fácilmente.
-Caffeine: Caché en memoria ultra rápida (mejor que HashMap + LRU manual).
+TwelveMonkeys ImageIO: Soporte extendido para formatos de imagen: PSD, TIFF, BMP, etc.		IMPLEMENTADA
+FlatLaf: el estándar de oro para Look and Feels modernos en Swing							IMPLEMENTADA
+Thumbnailator: para crear miniaturas fácilmente.											IMPLEMENTADA
+Caffeine: Caché en memoria ultra rápida (mejor que HashMap + LRU manual).					IMPLEMENTADA
+
 SQLite-JDBC: Base de Datos
 JDBI o jOOQ: Para Interactuar con la Base de Datos
 
@@ -1280,9 +1280,131 @@ CLASES INVOLUCRADAS EN EL SISTEMA DE LA BARRA DE MINIATURAS
    
 ***********************************************************************************************************************************************   
 
+													* * * * * * 
+
+***********************************************************************************************************************************************
+											FASES PREVIAS AL MODO DATOS
+***********************************************************************************************************************************************
 
 
+-------------------------------------------------------------------------
+--- HOJA DE RUTA: EVOLUCIÓN DEL MODO PROYECTO Y FUTURO MODO DATOS ---
+-------------------------------------------------------------------------
 
+== OBJETIVO GENERAL ==
+Evolucionar la aplicación desde un sistema de proyectos basado en archivos de texto
+hacia un sistema robusto, con persistencia de datos estructurada, para finalmente
+implementar un potente catalogador de imágenes basado en una base de datos.
+
+
+=========================================================================
+--- TRACK A: FORTALECER EL MODO PROYECTO (PRIORIDAD ACTUAL) ---
+=========================================================================
+Objetivo: Transformar el Modo Proyecto en una herramienta de curación y
+exportación profesional, donde el trabajo del usuario (selección de imágenes,
+asignación de archivos asociados) se guarde de forma persistente.
+
+---
+--- FASE A.1: ESTRUCTURAR DATOS DEL PROYECTO (Modelo y Persistencia) ---
+---
+   - ESTADO: [COMPLETADO]
+
+   - TAREAS REALIZADAS:
+     1. [HECHO] Creación del `ProjectModel.java`: Se ha creado un objeto Java
+        (POJO) que representa la estructura completa de un proyecto (nombre,
+        fechas, listas de selección y descartes, y un campo para futuros
+        archivos asociados).
+
+     2. [HECHO] Transición de TXT a JSON: Se ha refactorizado el `ProjectManager`
+        para utilizar la librería GSON. Ahora los proyectos se guardan y
+        cargan en formato JSON, que es estructurado, robusto y extensible.
+
+     3. [HECHO] Migración Automática: Se ha implementado una lógica en el
+        `ProjectManager` que detecta proyectos en el formato antiguo (.txt)
+        y los convierte automáticamente al nuevo formato JSON (.prj) la
+        primera vez que se abren. Esto garantiza la retrocompatibilidad.
+
+     4. [HECHO] Corrección de Bugs de Flujo: Se han solucionado los problemas
+        que surgieron durante la refactorización, como el fallo al cambiar
+        de modo y, crucialmente, el bug que provocaba que los archivos de
+        proyecto se guardaran vacíos. Ahora el estado de la UI se sincroniza
+        con el modelo de datos antes de guardar.
+
+---
+--- FASE A.2: PERSISTIR EL TRABAJO DE EXPORTACIÓN (PRÓXIMO PASO) ---
+---
+   - ESTADO: [PENDIENTE]
+
+   - OBJETIVO: Guardar en el archivo del proyecto (.prj) las asociaciones
+     que el usuario realiza en el panel de exportación entre una imagen y
+     sus archivos relacionados (.stl, .zip, etc.). Esto evita tener que
+     reasignar estos archivos cada vez que se abre el proyecto.
+
+   - TAREAS A REALIZAR:
+     1. [ ] Extender `ProjectController`: Añadir lógica para que, cuando
+        se asigna/desasigna un archivo en el `ExportDetailPanel`, el cambio
+        se comunique al `ProjectManager`.
+
+     2. [ ] Modificar `ProjectManager`: Implementar métodos para añadir/eliminar
+        entradas en el mapa `associatedFiles` del `ProjectModel` y guardar
+        los cambios en el archivo JSON.
+
+     3. [ ] Integrar con `ExportQueueManager`: Al preparar la cola de
+        exportación, se deberá leer el `ProjectModel` para pre-cargar las
+        asociaciones de archivos ya guardadas en cada `ExportItem`.
+
+---
+--- FASE A.3: MEJORAR LA UI Y LA EXPORTACIÓN ---
+---
+   - ESTADO: [FUTURO]
+
+   - OBJETIVO: Añadir funcionalidades a la interfaz del Modo Proyecto y
+     mejorar el proceso de exportación.
+
+   - TAREAS POSIBLES:
+     1. [ ] Añadir campos para metadatos del proyecto (nombre, descripción)
+        en la UI del Modo Proyecto para que el usuario pueda editarlos.
+     2. [ ] Implementar la lógica final de exportación en el `ExportWorker`
+        para que copie las imágenes y sus archivos asociados a la carpeta
+        de destino.
+     3. [ ] (Opcional) Añadir funciones de arrastrar y soltar (Drag and Drop)
+        para añadir archivos asociados más rápidamente.
+
+
+=========================================================================
+--- TRACK B: CONSTRUIR EL MODO DATOS (OBJETIVO A LARGO PLAZO) ---
+=========================================================================
+Objetivo: Implementar la funcionalidad principal de la aplicación: un sistema
+de catalogación global basado en una base de datos embebida (SQLite) que
+permita búsquedas rápidas por etiquetas (tags), superando las limitaciones
+de la estructura de carpetas.
+
+---
+--- FASE B.1: NÚCLEO DE LA BASE DE DATOS Y ESCANEO INICIAL ---
+---
+   - ESTADO: [NO INICIADO]
+
+   - TAREAS PREVISTAS (basado en 'Hoja de Ruta v2.1'):
+     1. [ ] Diseño e implementación del esquema de la BBDD (SQLite).
+     2. [ ] Creación de la capa de acceso a datos (DAO/`DatabaseManager`).
+     3. [ ] Implementación de un `ScannerService` para indexar carpetas y
+        generar tags automáticos basados en los nombres de las carpetas.
+     4. [ ] Integración de la búsqueda por tags en el `FilterManager`.
+
+---
+--- FASES POSTERIORES (B.2, B.3, etc.) ---
+---
+   - ESTADO: [NO INICIADO]
+
+   - OBJETIVOS FUTUROS:
+     - Implementar la interfaz de etiquetado manual y en bloque.
+     - Crear un servicio de sincronización para mantener la BBDD actualizada.
+     - Migrar de rutas de archivo a un sistema anti-frágil basado en hashes.
+     - Implementar la asociación imagen-archivo a nivel de base de datos.
+
+-------------------------------------------------------------------------
+--- FIN DE LA HOJA DE RUTA ---
+-------------------------------------------------------------------------
 
 
 

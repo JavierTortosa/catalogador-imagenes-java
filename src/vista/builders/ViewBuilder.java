@@ -125,11 +125,9 @@ public class ViewBuilder{
             this.iconUtils
         );
         registry.register("frame.main", mainFrame);
-        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
-        // =========================================================================
         // === ESTABLECER ICONO Y TÍTULO ===
-        // =========================================================================
         mainFrame.setTitle("ModelTag - Your visual STL manager");
         
         // Asumimos que has llamado a tu archivo de icono "modeltag-icon.png"
@@ -140,10 +138,6 @@ public class ViewBuilder{
         } else {
             logger.warn("[ViewBuilder] No se pudo cargar el icono de la aplicación.");
         }
-        // =========================================================================
-        // === FIN DE ESTABLECER ICONO Y TÍTULO ===
-        // =========================================================================
-        
         
         mainFrame.setLayout(new BorderLayout());
 
@@ -166,8 +160,9 @@ public class ViewBuilder{
         registry.register("container.workmodes", workModesContainer);
         
         // Panel para el WorkMode VISUALIZADOR
-        JPanel visualizerWorkModePanel = createVisualizerWorkModePanel(); 
+        JPanel visualizerWorkModePanel = createVisualizerWorkModePanel(mainFrame); 
         workModesContainer.add(visualizerWorkModePanel, "VISTA_VISUALIZADOR");
+        
         registry.register("panel.workmode.visualizador", visualizerWorkModePanel);
         
         // Panel para el WorkMode PROYECTO
@@ -302,11 +297,11 @@ public class ViewBuilder{
      * Este panel contendrá su propio CardLayout para los diferentes DisplayModes (SINGLE_IMAGE, GRID, POLAROID).
      * @return El JPanel configurado para el WorkMode Visualizador.
      */
-    private JPanel createVisualizerWorkModePanel() {
+    private JPanel createVisualizerWorkModePanel(VisorView mainFrame) {
         JPanel visualizerPanel = new JPanel(new BorderLayout()); // Panel para contener toda la UI del visualizador.
 
         // --- SplitPane para la lista de archivos y el área de visualización ---
-        JSplitPane mainSplitPane = createMainSplitPane(); // Este ya contiene panel.izquierdo.listaArchivos y panel.derecho.visor
+        JSplitPane mainSplitPane = createMainSplitPane(mainFrame); // Este ya contiene panel.izquierdo.listaArchivos y panel.derecho.visor
         visualizerPanel.add(mainSplitPane, BorderLayout.CENTER); // Añadir el split pane al centro del visualizerPanel.
 
         // --- Panel de miniaturas inferior ---
@@ -407,8 +402,9 @@ public class ViewBuilder{
     } // --- Fin del método createThumbnailScrollPane (con parámetros) ---
     
     
-    private JSplitPane createMainSplitPane() {
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createLeftSplitComponent(), createRightSplitComponent());
+    private JSplitPane createMainSplitPane(VisorView mainFrame) {
+        // AQUÍ ESTÁ EL CAMBIO: Pasamos 'mainFrame' al método que crea el panel izquierdo
+        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, createLeftSplitComponent(mainFrame), createRightSplitComponent());
         splitPane.setResizeWeight(0.25);
         splitPane.setContinuousLayout(true);
         splitPane.setBorder(null);
@@ -418,18 +414,26 @@ public class ViewBuilder{
     } // --- Fin del método createMainSplitPane ---
     
     
-    private JPanel createLeftSplitComponent() {
+    private JPanel createLeftSplitComponent(VisorView mainFrame) { // <-- Acepta el frame
     	
         JPanel panelListaArchivos = new JPanel(new BorderLayout());
         TitledBorder borderLista = BorderFactory.createTitledBorder("Archivos: 0");
         panelListaArchivos.setBorder(borderLista);
         registry.register("panel.izquierdo.listaArchivos", panelListaArchivos);
 
+        // =========================================================================
+        // === AQUÍ ESTÁ LA LÓGICA CLAVE ===
+        // Usamos los setters de VisorView para darle las referencias directas.
+        mainFrame.setPanelListaArchivos(panelListaArchivos);
+        mainFrame.setBorderListaArchivos(borderLista);
+        // =========================================================================
+        
         JList<String> fileList = new JList<>(model.getModeloLista());
         fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
         registry.register("list.nombresArchivo", fileList, "WHEEL_NAVIGABLE");
         
+        // ... (el resto del método se queda exactamente igual)
         JScrollPane scrollPaneLista = new JScrollPane(fileList);
         registry.register("scroll.nombresArchivo", scrollPaneLista);
         panelListaArchivos.add(scrollPaneLista, BorderLayout.CENTER);
@@ -448,10 +452,8 @@ public class ViewBuilder{
         
         if (this.folderTreeManager != null) {
             JPanel panelArbol = this.folderTreeManager.crearPanelDelArbol();
-            
             registry.register("panel.izquierdo.arbol", panelArbol);
-            registry.register("tree.carpetas", this.folderTreeManager.getTree()); // Asumo que tienes un getter para el JTree
-            
+            registry.register("tree.carpetas", this.folderTreeManager.getTree());
             tabbedPaneIzquierdo.addTab("Carpetas", panelArbol);
         } else {
             logger.error("[ViewBuilder] FolderTreeManager es nulo. No se puede construir la pestaña de carpetas.");
@@ -460,53 +462,29 @@ public class ViewBuilder{
             tabbedPaneIzquierdo.addTab("Carpetas", panelError);
         }
         
-        
-        
-     // --- INICIO DE LA MODIFICACIÓN ---
-
-        // --- Pestaña 3: Filtros (RECONSTRUIDO PARA COHERENCIA) ---
-        // Se crea el panel principal para la pestaña de filtros.
         JPanel panelFiltros = new JPanel(new BorderLayout());
         TitledBorder borderFiltros = BorderFactory.createTitledBorder("Filtros Activos");
         panelFiltros.setBorder(borderFiltros);
         registry.register("panel.izquierdo.filtros", panelFiltros);
-        		
-        // NO registramos este panel todavía, registramos el componente final.
-
-        // Se crea la JList para mostrar los criterios de filtro.
         JList<controlador.managers.filter.FilterCriterion> filterList = new JList<>();
         filterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         registry.register("list.filtrosActivos", filterList, "WHEEL_NAVIGABLE");
-
-        // Se añade la JList a su JScrollPane.
         JScrollPane scrollPaneFiltros = new JScrollPane(filterList);
         registry.register("scroll.filtrosActivos", scrollPaneFiltros);
-        panelFiltros.add(scrollPaneFiltros, BorderLayout.CENTER); // La lista va en el centro.
-        
-        
-        // Se obtiene y configura la barra de herramientas de filtros.
+        panelFiltros.add(scrollPaneFiltros, BorderLayout.CENTER);
         JToolBar filterToolbar = toolbarManager.getToolbar("barra_filtros");
         if (filterToolbar != null) {
             filterToolbar.setFloatable(false);
             filterToolbar.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
-            // Se añade la barra de herramientas ARRIBA, igual que en la pestaña de la lista.
             panelFiltros.add(filterToolbar, BorderLayout.NORTH); 
         }
-        
-        // Se añade el panel de filtros completo como una pestaña.
         tabbedPaneIzquierdo.addTab("Filtros", panelFiltros);
         
-        // --- FIN DE LA MODIFICACIÓN ---
-        
-        
-     // --- Contenedor final ---
         JPanel panelIzquierdoContenedor = new JPanel(new BorderLayout());
         panelIzquierdoContenedor.add(tabbedPaneIzquierdo, BorderLayout.CENTER);
-
         registry.register("panel.izquierdo.contenedorPrincipal", panelIzquierdoContenedor);
         
         return panelIzquierdoContenedor;
-        
     } // --- Fin del método createLeftSplitComponent ---
     
 
@@ -815,9 +793,6 @@ public class ViewBuilder{
         
         return panel;
     } // --- Fin del método createTopInfoPanel ---
-    
-    
-    
     
     
     public void setActionMap(Map<String, Action> actionMap) {

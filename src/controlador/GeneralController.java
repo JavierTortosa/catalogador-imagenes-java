@@ -16,12 +16,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.Action;
+import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
@@ -36,6 +36,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.border.TitledBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,23 +93,24 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private FilterManager filterManager;
     
     //Variables de filtros
-    private DefaultListModel<String> contextoRealGuardado_modelo;
-    private Map<String, Path> contextoRealGuardado_mapaRutas;
-    private String contextoRealGuardado_punteroKey;
-    private boolean filtroPersistenteActivo = false;
+//    private DefaultListModel<String> contextoRealGuardado_modelo;
+//    private Map<String, Path> contextoRealGuardado_mapaRutas;
+//    private String contextoRealGuardado_punteroKey;
+//    private boolean filtroPersistenteActivo = false;
     
     
  // Checkpoint para el FILTRO PERSISTENTE ---
     // Guardará la lista original cargada desde el disco, nuestra fuente de verdad.
     private DefaultListModel<String> persistente_listaMaestraOriginal;
-    private Map<String, Path> persistente_mapaRutasOriginal;
     private String persistente_punteroOriginalKey;
     private boolean persistente_activo = false;
     private FilterSource filtroActivoSource = FilterSource.FILENAME;
     
+//    private Map<String, Path> persistente_mapaRutasOriginal;
+    
     // --- Checkpoint para el TORNADO (se mantiene igual) ---
     private DefaultListModel<String> masterModelSinFiltro;
-    private Map<String, Path> masterMapSinFiltro;
+//    private Map<String, Path> masterMapSinFiltro;
     private int indiceSeleccionadoAntesDeFiltrar = -1;
     
     
@@ -120,11 +122,12 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private int lastMouseX, lastMouseY;
     
     private volatile boolean isChangingSubfolderMode = false;
-    private java.beans.PropertyChangeListener listSelectionListener;
+//    private java.beans.PropertyChangeListener listSelectionListener;
     
     private javax.swing.border.Border focusedBorder;
     private javax.swing.border.Border unfocusedBorder;
     private List<javax.swing.JComponent> focusablePanels;
+    private TitledBorder borderListaArchivosOriginal;
     
     /**
      * Constructor de GeneralController.
@@ -192,6 +195,18 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         
         // boton del panel exportar/Mostrar detalles
         registerFocusablePanel("interfaz.boton.acciones_exportacion.export_detalles_seleccion");
+        
+        
+        SwingUtilities.invokeLater(() -> {
+            JPanel panelLista = registry.get("panel.izquierdo.listaArchivos");
+            if (panelLista != null && panelLista.getBorder() instanceof TitledBorder) {
+                this.borderListaArchivosOriginal = (TitledBorder) panelLista.getBorder();
+                logger.debug("[FOCUS_INIT] TitledBorder original de la lista de archivos capturado con éxito.");
+            } else {
+                logger.warn("[FOCUS_INIT] No se pudo capturar el TitledBorder para 'panel.izquierdo.listaArchivos'.");
+            }
+        });
+        
         
         sincronizarEstadoBotonesDeModo();
         
@@ -327,16 +342,34 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      * @param modoDestino El modo al que se desea cambiar (VISUALIZADOR o PROYECTO).
      */
     public void cambiarModoDeTrabajo(VisorModel.WorkMode modoDestino) {
-    	System.out.println("DEBUG: cambiarModoDeTrabajo llamado para: " + modoDestino);
         WorkMode modoActual = this.model.getCurrentWorkMode();
         if (modoActual == modoDestino) {
-            logger.debug("[GeneralController] Intento de cambiar al modo que ya está activo: " + modoDestino + ". No se hace nada.");
+            logger.trace("[GeneralController] Intento de cambiar al modo que ya está activo: {}. No se hace nada.", modoDestino);
             return;
         }
 
-        logger.debug("--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: " + modoActual + " -> " + modoDestino + " ---");
+        // --- PRE-VALIDACIÓN ESPECIAL PARA MODO PROYECTO ---
+        if (modoDestino == WorkMode.PROYECTO) {
+            boolean hayImagenesEnProyecto = !visorController.getProjectManager().getImagenesMarcadas().isEmpty();
+            
+            if (!hayImagenesEnProyecto) {
+                // El proyecto está vacío. Llamamos al helper que maneja la selección de archivo.
+                // Si el helper devuelve 'false', significa que el usuario canceló,
+                // por lo tanto, debemos abortar la transición.
+                if (!manejarAperturaDeProyectoVacio()) {
+                    sincronizarEstadoBotonesDeModo(); // Revertir el estado visual del botón
+                    return; // Abortar la transición
+                }
+                // Si el helper devuelve 'true', significa que un proyecto fue cargado exitosamente.
+                // El flujo de este método continuará para completar la transición al modo proyecto.
+            }
+        }
+        // --- FIN DE LA PRE-VALIDACIÓN ---
 
-        // --- LÓGICA DE SEGURIDAD Y CONFIRMACIÓN PARA SINCRONIZACIÓN ---
+
+        logger.debug("--- [GeneralController] INICIANDO TRANSICIÓN DE MODO: {} -> {} ---", modoActual, modoDestino);
+
+        // --- LÓGICA DE SEGURIDAD Y CONFIRMACIÓN PARA SINCRONIZACIÓN (Se mantiene igual) ---
         boolean esTransicionSincronizable = (modoActual == WorkMode.VISUALIZADOR && modoDestino == WorkMode.CARROUSEL) ||
                                            (modoActual == WorkMode.CARROUSEL && modoDestino == WorkMode.VISUALIZADOR);
 
@@ -349,7 +382,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             int respuesta = javax.swing.JOptionPane.showConfirmDialog(null, mensaje, titulo, javax.swing.JOptionPane.YES_NO_OPTION, javax.swing.JOptionPane.INFORMATION_MESSAGE);
             if (respuesta != javax.swing.JOptionPane.YES_OPTION) {
                 logger.debug("--- [GeneralController] TRANSICIÓN CANCELADA por el usuario. ---");
-                sincronizarEstadoBotonesDeModo(); // Revertir visualmente el botón
+                sincronizarEstadoBotonesDeModo();
                 return;
             }
         }
@@ -359,30 +392,88 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         this.model.setCurrentWorkMode(modoDestino);
         entrarModo(modoDestino);
 
-        logger.debug("--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a " + modoDestino + " ---\n");
+        logger.debug("--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a {} ---\n", modoDestino);
     } // --- Fin del método cambiarModoDeTrabajo ---
 
     
     /**
+     * Método helper que gestiona el flujo cuando se intenta entrar en modo proyecto
+     * sin un proyecto cargado. Muestra un diálogo para abrir un archivo.
+     * @return {@code true} si un proyecto fue seleccionado y cargado exitosamente, 
+     *         {@code false} si el usuario canceló la operación.
+     */
+    private boolean manejarAperturaDeProyectoVacio() {
+        logger.debug("[GeneralController] Manejando apertura de proyecto vacío...");
+        
+        // Obtenemos una referencia a la ventana principal para centrar el diálogo
+        Component parent = (visorController != null && visorController.getView() != null) ? visorController.getView() : null;
+
+        // Mostramos el JFileChooser
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setDialogTitle("Abrir Proyecto");
+        fileChooser.setCurrentDirectory(projectController.getProjectManager().getCarpetaBaseProyectos().toFile());
+        javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos de Proyecto (*.prj)", "prj");
+        fileChooser.setFileFilter(filter);
+        
+        int result = fileChooser.showOpenDialog(parent);
+
+        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
+            // El usuario seleccionó un archivo.
+            Path selectedFile = fileChooser.getSelectedFile().toPath();
+            logger.debug(" -> Usuario seleccionó el archivo: {}", selectedFile);
+            
+            // Delegamos la carga de datos al ProjectController.
+            projectController.solicitarAbrirProyecto(selectedFile);
+            
+            // Verificamos si la carga fue exitosa (ahora hay imágenes en el proyecto)
+            if (!visorController.getProjectManager().getImagenesMarcadas().isEmpty()) {
+                logger.debug(" -> Proyecto cargado exitosamente. Se procederá con el cambio de modo.");
+                return true; // Éxito
+            } else {
+                logger.warn(" -> El proyecto seleccionado ({}) está vacío o no se pudo cargar.", selectedFile.getFileName());
+                // Opcional: Mostrar un mensaje al usuario
+                javax.swing.JOptionPane.showMessageDialog(parent, "El proyecto seleccionado está vacío o no es válido.", "Proyecto Vacío", javax.swing.JOptionPane.WARNING_MESSAGE);
+                return false; // Fracaso
+            }
+        } else {
+            // El usuario canceló el diálogo.
+            logger.debug(" -> El usuario canceló la apertura del proyecto.");
+            return false; // Cancelado
+        }
+    } // ---FIN de metodo manejarAperturaDeProyectoVacio---
+    
+    
+    /**
      * Realiza las tareas de "limpieza" o guardado de estado de un modo antes de abandonarlo.
-     * Contiene lógica clave para el modo Carrusel independiente.
      * @param modoQueSeAbandona El modo que estamos dejando.
      */
-	private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
+    private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
         logger.debug("  [GeneralController] Saliendo del modo: " + modoQueSeAbandona);
         
-        // ***** AÑADIR ESTE BLOQUE DE CÓDIGO DEBAJO *****
         if (modoQueSeAbandona == WorkMode.PROYECTO) {
             if (projectController != null) {
-                // Le preguntamos al ProjectController si el panel es visible y lo guardamos en el modelo.
+                // ANTES de hacer cualquier otra cosa, forzamos que el modelo de datos
+                // se actualice con el estado actual y visible de las listas de la UI.
+                projectController.sincronizarModeloConUI();
+                
+                // Ahora que el modelo es 100% fiable, lo guardamos en el disco.
+                visorController.getProjectManager().guardarAArchivo();
+
+                // Guardamos el estado del panel de exportación.
                 model.setProjectExportPanelVisible(projectController.isExportPanelVisible());
-                logger.debug("    -> Modo Proyecto: Guardando estado del panel de exportación: {}", model.isProjectExportPanelVisible());
+                logger.debug("    -> Modo Proyecto: Estado sincronizado, guardado y estado del panel de exportación memorizado: {}", model.isProjectExportPanelVisible());
             }
         }
-        // --- FIN DEL BLOQUE A AÑADIR ---
         
-        // Si salimos del modo Carrusel y la sincronización está DESACTIVADA,
-        // guardamos su estado actual en el modelo para que pueda ser persistido al cerrar la app.
+        if (modoQueSeAbandona == WorkMode.VISUALIZADOR) {
+            // Si salimos del modo visualizador CON cambios pendientes (el usuario marcó algo),
+            // guardamos el estado en el archivo temporal.
+            if (visorController != null && visorController.getProjectManager() != null && visorController.getProjectManager().hayCambiosSinGuardar()) {
+                 logger.info("Saliendo del modo VISUALIZADOR con cambios pendientes. Guardando estado del proyecto temporal...");
+                 visorController.getProjectManager().guardarAArchivo();
+            }
+        }
+        
         if (modoQueSeAbandona == WorkMode.CARROUSEL && !model.isSyncVisualizadorCarrusel()) {
             ListContext carruselCtx = model.getCarouselListContext();
             model.setUltimaCarpetaCarrusel(carruselCtx.getCarpetaRaizContexto());
@@ -390,15 +481,12 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             logger.debug("    -> Modo Carrusel Independiente: Guardando estado en el modelo.");
         }
         
-        // Si salimos del modo carrusel, notificamos a su manager
         if (modoQueSeAbandona == WorkMode.CARROUSEL) {
             CarouselManager carouselManager = visorController.getActionFactory().getCarouselManager();
             if (carouselManager != null) {
                 carouselManager.onCarouselModeChanged(false); // Notificar salida
             }
         }
-        
-        
         
     } // --- Fin del método salirModo ---
 
@@ -417,13 +505,11 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 	        
             switch (modoAlQueSeEntra) {
                 case VISUALIZADOR:
-                    // --- INICIO DE LA CORRECCIÓN DEL BUG ---
                     // Nos aseguramos de que la barra de miniaturas esté visible si la configuración lo indica.
                     boolean miniaturasVisibles = configuration.getBoolean("interfaz.menu.vista.imagenes_en_miniatura.seleccionado", true);
                     if (registry.get("scroll.miniaturas") != null) {
                         registry.get("scroll.miniaturas").setVisible(miniaturasVisibles);
                     }
-                    // --- FIN DE LA CORRECCIÓN DEL BUG ---
 
                     if (model.isSyncVisualizadorCarrusel()) {
                         model.getVisualizadorListContext().clonarDesde(model.getCarouselListContext());
@@ -475,6 +561,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 if (toolbarManager != null) toolbarManager.reconstruirContenedorDeToolbars(modoAlQueSeEntra);
                 if (modoAlQueSeEntra == WorkMode.CARROUSEL && visorController.getActionFactory().getCarouselManager() != null) {
                     visorController.getActionFactory().getCarouselManager().findAndWireUpFastMoveButtons();
+                    visorController.getActionFactory().getCarouselManager().findAndWireUpSpeedButtons();
                     visorController.getActionFactory().getCarouselManager().wireUpEventListeners();
                 }
                 sincronizarEstadoBotonesDeModo();
@@ -556,80 +643,63 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         if ("focusOwner".equals(evt.getPropertyName())) {
             Component newFocusOwner = (Component) evt.getNewValue();
 
-            // --- INICIO DEL CÓDIGO DE DIAGNÓSTICO PROFUNDO ---
-            if (newFocusOwner != null) {
-                logger.debug("--- [DIAGNÓSTICO DE FOCO PROFUNDO] ---");
-                logger.debug("Componente con foco directo: {}", newFocusOwner.getClass().getName());
+          // --- INICIO DEL CÓDIGO DE DIAGNÓSTICO PROFUNDO ---
+          if (newFocusOwner != null) {
+              logger.debug("--- [DIAGNÓSTICO DE FOCO PROFUNDO] ---");
+              logger.debug("Componente con foco directo: {}", newFocusOwner.getClass().getName());
 
-                int level = 0;
-                for (Component c = newFocusOwner; c != null; c = c.getParent()) {
-                    String borderInfo = (c instanceof JComponent && ((JComponent) c).getBorder() != null)
-                                      ? ((JComponent) c).getBorder().getClass().getSimpleName()
-                                      : "sin borde";
-                    
-                    logger.debug("  -> Nivel {}: Clase: {} | Nombre: {} | Borde: {}",
-                                 level++,
-                                 c.getClass().getName(),
-                                 c.getName(),
-                                 borderInfo);
+              int level = 0;
+              for (Component c = newFocusOwner; c != null; c = c.getParent()) {
+                  String borderInfo = (c instanceof JComponent && ((JComponent) c).getBorder() != null)
+                                    ? ((JComponent) c).getBorder().getClass().getSimpleName()
+                                    : "sin borde";
+                  
+                  logger.debug("  -> Nivel {}: Clase: {} | Nombre: {} | Borde: {}",
+                               level++,
+                               c.getClass().getName(),
+                               c.getName(),
+                               borderInfo);
 
-                    // Si llegamos a la ventana principal, paramos.
-                    if (c instanceof JFrame) break;
-                }
-                logger.debug("--- [FIN DEL DIAGNÓSTICO] ---");
-            }
-            // --- FIN DEL CÓDIGO DE DIAGNÓSTICO PROFUNDO ---
-            
-            
-            
+                  // Si llegamos a la ventana principal, paramos.
+                  if (c instanceof JFrame) break;
+              }
+              logger.debug("--- [FIN DEL DIAGNÓSTICO] ---");
+          }
+          // --- FIN DEL CÓDIGO DE DIAGNÓSTICO PROFUNDO ---
+
             java.awt.Color accentColor = javax.swing.UIManager.getColor("Component.accentColor");
             if (accentColor == null) accentColor = new java.awt.Color(255, 153, 51);
             this.focusedBorder = javax.swing.BorderFactory.createLineBorder(accentColor, 2);
 
-            // Obtenemos los componentes clave una sola vez
-            JComponent exportPanel = registry.get("panel.proyecto.exportacion.completo");
-            JComponent tablaScroll = registry.get("scroll.tabla.exportacion");
-            JComponent detallesPanel = registry.get("panel.exportacion.detalles");
+            // Obtenemos el panel de la lista de archivos para tratarlo de forma especial
+            JPanel panelListaArchivos = registry.get("panel.izquierdo.listaArchivos");
 
-            // Determinamos qué tiene el foco
-            boolean focoEnTabla = newFocusOwner != null && tablaScroll != null && SwingUtilities.isDescendingFrom(newFocusOwner, tablaScroll);
-            boolean focoEnDetalles = newFocusOwner != null && detallesPanel != null && SwingUtilities.isDescendingFrom(newFocusOwner, detallesPanel);
-
-            // Aplicamos la lógica jerárquica
             for (javax.swing.JComponent panel : focusablePanels) {
-                boolean debeTenerFoco = false;
-                
-                // Regla general: si el foco está dentro del panel, debe tener borde
-                if (newFocusOwner != null && (panel == newFocusOwner || SwingUtilities.isDescendingFrom(newFocusOwner, panel))) {
-                    debeTenerFoco = true;
-                }
-                
-                // --- INICIO DE LA CORRECCIÓN ---
-                // Reglas especiales para la jerarquía de exportación
-                if (panel == exportPanel && (focoEnTabla || focoEnDetalles)) {
-                    debeTenerFoco = true; // El contenedor principal siempre se resalta si un hijo tiene foco
-                }
-                // Aseguramos que los hijos solo se resalten si tienen el foco real
-                if (panel == tablaScroll && !focoEnTabla) {
-                    debeTenerFoco = false;
-                }
-                if (panel == detallesPanel && !focoEnDetalles) {
-                    debeTenerFoco = false;
-                }
-                // --- FIN DE LA CORRECCIÓN ---
+                boolean debeTenerFoco = (newFocusOwner != null && (panel == newFocusOwner || SwingUtilities.isDescendingFrom(newFocusOwner, panel)));
 
-                panel.setBorder(debeTenerFoco ? focusedBorder : unfocusedBorder);
+                // === INICIO DE LA MODIFICACIÓN 3 (LÓGICA PRINCIPAL) ===
                 
-                if (panel instanceof JScrollPane) {
-                    Component view = ((JScrollPane) panel).getViewport().getView();
-                    if (view instanceof JList) view.repaint();
-                } else if (panel instanceof JPanel) { // Añadido para el panel de detalles que contiene una JList
-                    for(Component child : panel.getComponents()) {
-                        if(child instanceof JScrollPane) {
-                            Component view = ((JScrollPane) child).getViewport().getView();
-                            if (view instanceof JList) view.repaint();
-                        }
+                // Si estamos procesando el panel de la lista Y tenemos su TitledBorder original...
+                if (panel == panelListaArchivos && this.borderListaArchivosOriginal != null) {
+                    
+                    if (debeTenerFoco) {
+                        // Creamos un borde compuesto: el foco por fuera, el título por dentro.
+                        panel.setBorder(BorderFactory.createCompoundBorder(focusedBorder, this.borderListaArchivosOriginal));
+                    } else {
+                        // Creamos un borde compuesto con el borde "vacío" por fuera.
+                        panel.setBorder(BorderFactory.createCompoundBorder(unfocusedBorder, this.borderListaArchivosOriginal));
                     }
+
+                } else {
+                    // Para todos los demás paneles, usamos la lógica original de reemplazar el borde.
+                    panel.setBorder(debeTenerFoco ? focusedBorder : unfocusedBorder);
+                }
+
+                // === FIN DE LA MODIFICACIÓN 3 ===
+
+                // ... (tu lógica de repaint se queda igual)
+                if (panel instanceof JScrollPane) {
+                    //...
                 }
             }
         }
@@ -989,40 +1059,12 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     
     public void solicitarEntrarEnModoProyecto() {
-        logger.debug("[GeneralController] Solicitud para entrar en modo proyecto...");
-        
-        // --- INICIO DE LA MODIFICACIÓN ---
-        
-        // 1. Validar que tenemos las dependencias necesarias.
-        if (visorController == null || visorController.getProjectManager() == null || actionMap == null) {
-            logger.error("No se puede entrar en modo proyecto: Faltan ProjectManager o ActionMap.");
-            return;
-        }
-
-        // 2. Comprobar si hay imágenes marcadas.
-        boolean hayImagenesMarcadas = !visorController.getProjectManager().getImagenesMarcadas().isEmpty();
-
-        if (hayImagenesMarcadas) {
-            // --- CASO 1: Hay imágenes marcadas -> Entramos directamente con el proyecto temporal. ---
-            logger.debug(" -> Hay imágenes marcadas. Entrando directamente al modo proyecto.");
-            cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
-        } else {
-            // --- CASO 2: No hay imágenes marcadas -> Lanzamos la acción de "Abrir Proyecto". ---
-            logger.debug(" -> No hay imágenes marcadas. Se solicitará al usuario abrir un proyecto existente.");
-            Action abrirProyectoAction = actionMap.get(AppActionCommands.CMD_PROYECTO_ABRIR);
-            if (abrirProyectoAction != null) {
-                // Simulamos un clic en el botón/menú de "Abrir Proyecto".
-                // Esta acción se encargará de mostrar el diálogo y, si tiene éxito, de llamar a cambiarModoDeTrabajo.
-                abrirProyectoAction.actionPerformed(
-                    new ActionEvent(this, ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_PROYECTO_ABRIR)
-                );
-            } else {
-                logger.error("No se encontró la acción 'CMD_PROYECTO_ABRIR' en el ActionMap.");
-            }
-        }
-        // --- FIN DE LA MODIFICACIÓN ---
-        
+        logger.debug("[GeneralController] Solicitud para entrar en modo proyecto. Delegando a cambiarModoDeTrabajo...");
+        // Toda la lógica compleja (comprobar si hay imágenes, pedir abrir archivo, etc.)
+        // ahora reside directamente en el método cambiarModoDeTrabajo.
+        cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
     } // --- Fin del método solicitarEntrarEnModoProyecto ---
+    
     
     
 //  ************************************************************************************** IMPLEMENTACION INTERFAZ IModoController
@@ -1160,111 +1202,107 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     /**
      * Implementación del método de la interfaz KeyEventDispatcher.
-     * Intercepta eventos de teclado globales, movida desde VisorController.
+     * [VERSIÓN DEFINITIVA] Intercepta los atajos del NUMPAD aquí para tener control total
+     * y evitar conflictos con el InputMap global.
+     *
      * @param e El KeyEvent a procesar.
      * @return true si el evento fue consumido, false para continuar.
      */
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ KeyEventDispatcher
+    @Override
     public boolean dispatchKeyEvent(KeyEvent e) {
         if (e.getID() != KeyEvent.KEY_PRESSED) {
             return false;
         }
 
+        // =========================================================================
+        // === INICIO DE LA SOLUCIÓN DEFINITIVA: MANEJO DE ATAJOS NUMPAD ===
+        // Esta es ahora la ÚNICA fuente de verdad para los atajos numéricos.
+        // =========================================================================
+        String command = null;
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_NUMPAD1: command = AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR; break;
+            case KeyEvent.VK_NUMPAD2: command = AppActionCommands.CMD_ZOOM_TIPO_AUTO; break;
+            case KeyEvent.VK_NUMPAD3: command = AppActionCommands.CMD_ZOOM_TIPO_ANCHO; break;
+            case KeyEvent.VK_NUMPAD4: command = AppActionCommands.CMD_ZOOM_TIPO_ALTO; break;
+            case KeyEvent.VK_NUMPAD5: command = AppActionCommands.CMD_ZOOM_TIPO_RELLENAR; break;
+            case KeyEvent.VK_NUMPAD6: command = AppActionCommands.CMD_ZOOM_TIPO_FIJO; break;
+            case KeyEvent.VK_NUMPAD7: command = AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO; break;
+            case KeyEvent.VK_NUMPAD8: command = AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE; break;
+            case KeyEvent.VK_NUMPAD9: command = AppActionCommands.CMD_ZOOM_RESET; break;
+        }
+        
+        // Si se encontró un comando asociado a una tecla del Numpad...
+        if (command != null) {
+            Action action = actionMap.get(command);
+            if (action != null && action.isEnabled()) {
+                // Ejecutamos la acción, consumimos el evento y terminamos.
+                action.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, command));
+                e.consume();
+                return true; // Muy importante: detenemos el procesamiento aquí.
+            }
+        }
+        // =========================================================================
+        // === FIN DE LA SOLUCIÓN DEFINITIVA ===
+        // Si no se pulsó una tecla del Numpad, el código continúa y procesa
+        // el resto de tus atajos y lógica de navegación.
+        // =========================================================================
+
+
         // Atajos que solo funcionan en Modo Proyecto y Vista Grid
         if (model.getCurrentWorkMode() == WorkMode.PROYECTO && model.getCurrentDisplayMode() == DisplayMode.GRID) {
             Action action = null;
-            // CTRL+T para Etiquetar (Text)
-            if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_T) {
-                action = actionMap.get(AppActionCommands.CMD_GRID_SET_TEXT);
-            }
-            // CTRL+SUPR para Borrar Etiqueta
-            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_DELETE) {
-                action = actionMap.get(AppActionCommands.CMD_GRID_REMOVE_TEXT);
-            }
-            // CTRL + '+' para Aumentar tamaño
-            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_ADD) {
-                action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);
-            }
-            // CTRL + '-' para Reducir tamaño
-            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_SUBTRACT) {
-                action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA);
-            }
+            if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_T) action = actionMap.get(AppActionCommands.CMD_GRID_SET_TEXT);
+            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_DELETE) action = actionMap.get(AppActionCommands.CMD_GRID_REMOVE_TEXT);
+            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_ADD) action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);
+            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_SUBTRACT) action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA);
             
             if (action != null) {
                 action.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, null));
-                e.consume(); // Consumimos el evento para que no se propague
-                return true; // Indicamos que hemos manejado el evento
+                e.consume();
+                return true;
             }
         }
         
         // PRIORIDAD 1: Manejar la BARRA ESPACIADORA de forma global.
         if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            
-            // Evitar que el atajo se dispare si estamos escribiendo en un campo de texto.
             Component focusOwner = e.getComponent();
-            // JTextComponent es la clase base para JTextField, JTextArea, etc.
             if (focusOwner instanceof javax.swing.text.JTextComponent) {
-                return false; // Dejar que el componente de texto maneje el espacio.
+                return false;
             }
-
-            logger.debug("[KeyEventDispatcher] Barra espaciadora detectada. Disparando acción de Marcar/Desmarcar.");
-
-            // Obtener la acción del mapa de acciones.
             Action toggleMarkAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-
             if (toggleMarkAction != null && toggleMarkAction.isEnabled()) {
-                // Ejecutar la acción.
-                toggleMarkAction.actionPerformed(
-                    new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA)
-                );
-
-                // Devolver 'true' para consumir el evento y evitar que se propague.
+                toggleMarkAction.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA));
                 return true; 
             }
         }
         
-        // --- MANEJO ESPECIAL Y SEGURO DE LA TECLA ALT (movido de VisorController) ---
-        
+        // --- MANEJO ESPECIAL Y SEGURO DE LA TECLA ALT ---
         if (e.getKeyCode() == KeyEvent.VK_ALT) {
-            // --- INICIO DE LA CORRECCIÓN ---
-            // Si el componente que originó el evento es un campo de texto,
-            // ignoramos por completo esta lógica para permitir que se escriban
-            // caracteres especiales como la barra invertida '\'.
             Component source = e.getComponent();
             if (source instanceof javax.swing.text.JTextComponent) {
-                return false; // No consumimos el evento, dejamos que el JTextField lo procese.
+                return false;
             }
-            // --- FIN DE LA CORRECCIÓN ---
-
-            // Necesita acceso a la vista, se obtiene a través de visorController.getView()
             if (visorController != null && visorController.getView() != null && visorController.getView().getJMenuBar() != null) {
                 JMenuBar menuBar = visorController.getView().getJMenuBar();
-                if (menuBar.isSelected()) { // Comprueba si algún menú ya está abierto (seleccionado)
-                    menuBar.getSelectionModel().clearSelection(); // Cierra la selección actual
-                    logger.debug("--- [GeneralController Dispatcher] ALT: Menú ya activo. Cerrando selección.");
+                if (menuBar.isSelected()) {
+                    menuBar.getSelectionModel().clearSelection();
                 } else {
-                    if (menuBar.getMenuCount() > 0) { // Si no hay ningún menú activo, activamos el primero.
+                    if (menuBar.getMenuCount() > 0) {
                         JMenu primerMenu = menuBar.getMenu(0);
-                        if (primerMenu != null) {
-                        	
-                        	//LOG [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'
-                            //logger.debug("--- [GeneralController Dispatcher] ALT: Simulando clic en el menú 'Archivo'...");
-                        	
-                            primerMenu.doClick(); // Simula un clic del ratón, abriendo el menú.
-                        }
+                        if (primerMenu != null) primerMenu.doClick();
                     }
                 }
-                e.consume(); // Consumimos el evento ALT
+                e.consume();
                 return true;
             }
         }
         
         // Continuación de la lógica de navegación por teclado (movido de VisorController)
-        if (model == null || registry == null) { // Dependencias mínimas
+        if (model == null || registry == null) {
             return false;
         }
 
-        java.awt.Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
+        Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
         if (focusOwner == null) {
             return false;
         }
@@ -1279,27 +1317,27 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             boolean consumed = false;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_UP: case KeyEvent.VK_LEFT:
-                    this.navegarAnterior(); // Delega a los métodos IModoController de GeneralController
+                    this.navegarAnterior();
                     consumed = true;
                     break;
                 case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT:
-                    this.navegarSiguiente(); // Delega a los métodos IModoController de GeneralController
+                    this.navegarSiguiente();
                     consumed = true;
                     break;
                 case KeyEvent.VK_HOME:
-                    this.navegarPrimero(); // Delega a los métodos IModoController de GeneralController
+                    this.navegarPrimero();
                     consumed = true;
                     break;
                 case KeyEvent.VK_END:
-                    this.navegarUltimo(); // Delega a los métodos IModoController de GeneralController
+                    this.navegarUltimo();
                     consumed = true;
                     break;
                 case KeyEvent.VK_PAGE_UP:
-                    this.navegarBloqueAnterior(); // Delega a los métodos IModoController de GeneralController
+                    this.navegarBloqueAnterior();
                     consumed = true;
                     break;
                 case KeyEvent.VK_PAGE_DOWN:
-                    this.navegarBloqueSiguiente(); // Delega a los métodos IModoController de GeneralController
+                    this.navegarBloqueSiguiente();
                     consumed = true;
                     break;
             }
@@ -1311,6 +1349,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         
         return false;
     }// --- Fin del método dispatchKeyEvent ---
+    
+    
 
 // *************************************************************************************************************************
 // *************************************************************************   IMPLEMENTACIÓN DE LA INTERFAZ IModoController
@@ -1481,22 +1521,22 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     }// --- FIN del metodo continuarPaneo ---
     
     
-    private boolean isComponentTagged(Component component, String tag) {
-        // Itera hacia arriba en la jerarquía de componentes
-        for (Component c = component; c != null; c = c.getParent()) {
-            // Comprueba si el ComponentRegistry tiene alguna etiqueta para este componente
-            // (Necesitaríamos un método en ComponentRegistry para buscar por componente,
-            // pero por ahora, vamos a simplificar asumiendo que el componente principal está etiquetado)
-            
-            // La forma más simple es comprobar si el componente es uno de los que etiquetamos.
-            if (c == registry.get("label.imagenPrincipal") ||
-                c == registry.get("label.proyecto.imagen") ||
-                c == registry.get("label.carousel.imagen")) {
-                return true;
-            }
-        }
-        return false;
-    } // --- Fin del método isComponentTagged ---
+//    private boolean isComponentTagged(Component component, String tag) {
+//        // Itera hacia arriba en la jerarquía de componentes
+//        for (Component c = component; c != null; c = c.getParent()) {
+//            // Comprueba si el ComponentRegistry tiene alguna etiqueta para este componente
+//            // (Necesitaríamos un método en ComponentRegistry para buscar por componente,
+//            // pero por ahora, vamos a simplificar asumiendo que el componente principal está etiquetado)
+//            
+//            // La forma más simple es comprobar si el componente es uno de los que etiquetamos.
+//            if (c == registry.get("label.imagenPrincipal") ||
+//                c == registry.get("label.proyecto.imagen") ||
+//                c == registry.get("label.carousel.imagen")) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    } // --- Fin del método isComponentTagged ---
     
     
     /**
@@ -1669,11 +1709,11 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             
             if (model != null && model.getModeloLista() != null) {
                 this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
-                this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
+//                this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
                 logger.info("[GC] Contexto Maestro Inmutable capturado. Tamaño: " + this.persistente_listaMaestraOriginal.getSize());
             } else {
                 this.persistente_listaMaestraOriginal = null;
-                this.persistente_mapaRutasOriginal = null;
+//                this.persistente_mapaRutasOriginal = null;
             }
             
             this.sincronizarTodaLaUIConElModelo();
@@ -1983,25 +2023,25 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
     } // --- Fin del método configurePlaceholderText ---
 
-    /**
-     * Se activa cuando el botón de filtro en vivo (huracán) es pulsado.
-     * Actualiza el estado en el modelo y aplica o limpia el filtro.
-     */
-    private void onToggleLiveFilter(boolean isSelected) {
-        model.setLiveFilterActive(isSelected);
-        logger.debug("[GeneralController] Modo Filtro en Vivo cambiado a: {}", isSelected);
-        
-        if (isSelected) {
-            actualizarFiltro(); // Aplicar filtro con el texto actual
-        } else {
-            limpiarFiltro(); // Volver a la lista maestra
-        }
-        
-        // Sincroniza la apariencia visual del botón
-        Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
-        configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
-
-    } // --- Fin del método onToggleLiveFilter ---
+//    /**
+//     * Se activa cuando el botón de filtro en vivo (huracán) es pulsado.
+//     * Actualiza el estado en el modelo y aplica o limpia el filtro.
+//     */
+//    private void onToggleLiveFilter(boolean isSelected) {
+//        model.setLiveFilterActive(isSelected);
+//        logger.debug("[GeneralController] Modo Filtro en Vivo cambiado a: {}", isSelected);
+//        
+//        if (isSelected) {
+//            actualizarFiltro(); // Aplicar filtro con el texto actual
+//        } else {
+//            limpiarFiltro(); // Volver a la lista maestra
+//        }
+//        
+//        // Sincroniza la apariencia visual del botón
+//        Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
+//        configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
+//
+//    } // --- Fin del método onToggleLiveFilter ---
 
     
     /**
@@ -2161,7 +2201,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             // Si el modo persistente no está activo, lo activamos y guardamos el checkpoint.
             if (!persistente_activo) {
                 this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
-                this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
+//                this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
                 this.persistente_punteroOriginalKey = model.getSelectedImageKey();
                 this.persistente_activo = true;
             }
@@ -2182,7 +2222,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 
                 // Reseteamos el estado del checkpoint
                 this.persistente_listaMaestraOriginal = null;
-                this.persistente_mapaRutasOriginal = null;
+//                this.persistente_mapaRutasOriginal = null;
                 this.persistente_punteroOriginalKey = null;
                 this.persistente_activo = false;
             }
@@ -2232,7 +2272,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             if (resetearCheckpoint) {
                 logger.info("[GC] Reseteando estado del checkpoint persistente...");
                 this.persistente_listaMaestraOriginal = null;
-                this.persistente_mapaRutasOriginal = null;
+//                this.persistente_mapaRutasOriginal = null;
                 this.persistente_punteroOriginalKey = null;
                 this.persistente_activo = false;
             }
@@ -2240,42 +2280,42 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- Fin del método actualizarListaVisibleConResultado ---
     
     
-    /**
-     * NUEVO MÉTODO HELPER.
-     * Actualiza la JList principal de la vista (la lista de nombres de archivo)
-     * con el modelo de datos que está actualmente activo en el VisorModel.
-     * También actualiza el título del panel que la contiene.
-     */
-    private void actualizarListaPrincipalDeLaVista() {
-        if (visorController == null || visorController.getView() == null || model == null) return;
-
-        // El modelo de la vista debe ser el que está activo en el modelo de datos
-        DefaultListModel<String> modeloActual = model.getModeloLista();
-        
-        // El método setListaImagenesModel ya está en tu VisorView y hace lo correcto
-        visorController.getView().setListaImagenesModel(modeloActual);
-        
-        // Actualizamos el título del panel
-        String titulo = filterManager.isFilterActive() ? "Archivos (Filtro): " : "Archivos: ";
-        visorController.getView().setTituloPanelIzquierdo(titulo + modeloActual.getSize());
-
-        logger.debug("[GeneralController] La JList principal de la vista ha sido actualizada. Tamaño: {}", modeloActual.getSize());
-        
-    } // --- Fin del método actualizarListaPrincipalDeLaVista ---
+//    /**
+//     * NUEVO MÉTODO HELPER.
+//     * Actualiza la JList principal de la vista (la lista de nombres de archivo)
+//     * con el modelo de datos que está actualmente activo en el VisorModel.
+//     * También actualiza el título del panel que la contiene.
+//     */
+//    private void actualizarListaPrincipalDeLaVista() {
+//        if (visorController == null || visorController.getView() == null || model == null) return;
+//
+//        // El modelo de la vista debe ser el que está activo en el modelo de datos
+//        DefaultListModel<String> modeloActual = model.getModeloLista();
+//        
+//        // El método setListaImagenesModel ya está en tu VisorView y hace lo correcto
+//        visorController.getView().setListaImagenesModel(modeloActual);
+//        
+//        // Actualizamos el título del panel
+//        String titulo = filterManager.isFilterActive() ? "Archivos (Filtro): " : "Archivos: ";
+//        visorController.getView().setTituloPanelIzquierdo(titulo + modeloActual.getSize());
+//
+//        logger.debug("[GeneralController] La JList principal de la vista ha sido actualizada. Tamaño: {}", modeloActual.getSize());
+//        
+//    } // --- Fin del método actualizarListaPrincipalDeLaVista ---
 
     
-    /**
-     * Helper para construir un mapa de rutas a partir de una lista filtrada.
-     */
-    private Map<String, Path> construirMapaDesdeLista(DefaultListModel<String> lista, Map<String, Path> mapaOriginal) {
-        Map<String, Path> nuevoMapa = new HashMap<>();
-        for (int i = 0; i < lista.getSize(); i++) {
-            String key = lista.getElementAt(i);
-            nuevoMapa.put(key, mapaOriginal.get(key));
-        }
-        return nuevoMapa;
-        
-    } // --- Fin del método construirMapaDesdeLista ---
+//    /**
+//     * Helper para construir un mapa de rutas a partir de una lista filtrada.
+//     */
+//    private Map<String, Path> construirMapaDesdeLista(DefaultListModel<String> lista, Map<String, Path> mapaOriginal) {
+//        Map<String, Path> nuevoMapa = new HashMap<>();
+//        for (int i = 0; i < lista.getSize(); i++) {
+//            String key = lista.getElementAt(i);
+//            nuevoMapa.put(key, mapaOriginal.get(key));
+//        }
+//        return nuevoMapa;
+//        
+//    } // --- Fin del método construirMapaDesdeLista ---
     
     
     /**
@@ -2316,77 +2356,77 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- Fin del método solicitarPersistenciaDeFiltroRapido ---
     
     
-    /**
-     * Método central para actualizar la UI después de cualquier cambio en los filtros.
-     * Refresca tanto la lista de filtros activos como la lista de archivos filtrada.
-     */
-    private void refrescarVistasDeFiltros() {
-        // 1. Actualizar la JList de la pestaña "Filtros" (esto es solo visual y no cambia)
-        JList<FilterCriterion> filterListUI = registry.get("list.filtrosActivos");
-        if (filterListUI != null) {
-            DefaultListModel<FilterCriterion> filterListModel = new DefaultListModel<>();
-            filterListModel.addAll(filterManager.getActiveFilters());
-            filterListUI.setModel(filterListModel);
-        }
-
-        // 2. Comprobar si hay filtros persistentes para aplicar
-        if (!filterManager.getActiveFilters().isEmpty()) {
-            // --- ACTIVAR MODO FILTRO PERSISTENTE ---
-            logger.debug("[Filtro Persistente] Activando modo. Hay {} filtros.", filterManager.getActiveFilters().size());
-            
-            // 2a. Guardar checkpoint del contexto real, SI NO LO HEMOS HECHO YA
-            if (!filtroPersistenteActivo) {
-                logger.info("[Filtro Persistente] Creando checkpoint del contexto real.");
-                ListContext contextoReal = model.getCurrentListContext();
-                
-                // Clonar el modelo de lista para no tener referencias cruzadas
-                contextoRealGuardado_modelo = new DefaultListModel<>();
-                DefaultListModel<String> modeloOriginal = contextoReal.getModeloLista();
-                if(modeloOriginal != null) {
-                    for(int i=0; i < modeloOriginal.getSize(); i++) {
-                        contextoRealGuardado_modelo.addElement(modeloOriginal.getElementAt(i));
-                    }
-                }
-
-                contextoRealGuardado_mapaRutas = new HashMap<>(contextoReal.getRutaCompletaMap());
-                contextoRealGuardado_punteroKey = contextoReal.getSelectedImageKey();
-                filtroPersistenteActivo = true;
-            }
-            
-            // 2b. Crear la "carpeta virtual" filtrando desde el checkpoint
-            DefaultListModel<String> listaVirtual = filterManager.applyFilters(contextoRealGuardado_modelo);
-            Map<String, Path> mapaVirtual = new HashMap<>();
-            for (String key : Collections.list(listaVirtual.elements())) {
-                mapaVirtual.put(key, contextoRealGuardado_mapaRutas.get(key));
-            }
-
-            // 2c. ¡EL GRAN INTERCAMBIO! Simulamos la carga de una nueva carpeta
-            visorController.cargarListaDesdeFiltro(new FilterManager.FilterResult(listaVirtual, mapaVirtual), null);
-
-        } else {
-            // --- DESACTIVAR MODO FILTRO PERSISTENTE ---
-            if (filtroPersistenteActivo) {
-                logger.info("[Filtro Persistente] Desactivando modo. Restaurando checkpoint.");
-                
-                // 2d. Restaurar el checkpoint
-                visorController.cargarListaDesdeFiltro(new FilterManager.FilterResult(contextoRealGuardado_modelo, contextoRealGuardado_mapaRutas), () -> {
-                    // Callback que se ejecuta DESPUÉS de la carga: restaurar el puntero
-                    if (visorController != null && visorController.getListCoordinator() != null && contextoRealGuardado_punteroKey != null) {
-                        int indiceOriginal = contextoRealGuardado_modelo.indexOf(contextoRealGuardado_punteroKey);
-                        if(indiceOriginal != -1) {
-                             visorController.getListCoordinator().seleccionarImagenPorIndice(indiceOriginal);
-                        }
-                    }
-                });
-
-                // 2e. Limpiar el estado
-                contextoRealGuardado_modelo = null;
-                contextoRealGuardado_mapaRutas = null;
-                contextoRealGuardado_punteroKey = null;
-                filtroPersistenteActivo = false;
-            }
-        }
-    } // --- Fin del método refrescarVistasDeFiltros ---
+//    /**
+//     * Método central para actualizar la UI después de cualquier cambio en los filtros.
+//     * Refresca tanto la lista de filtros activos como la lista de archivos filtrada.
+//     */
+//    private void refrescarVistasDeFiltros() {
+//        // 1. Actualizar la JList de la pestaña "Filtros" (esto es solo visual y no cambia)
+//        JList<FilterCriterion> filterListUI = registry.get("list.filtrosActivos");
+//        if (filterListUI != null) {
+//            DefaultListModel<FilterCriterion> filterListModel = new DefaultListModel<>();
+//            filterListModel.addAll(filterManager.getActiveFilters());
+//            filterListUI.setModel(filterListModel);
+//        }
+//
+//        // 2. Comprobar si hay filtros persistentes para aplicar
+//        if (!filterManager.getActiveFilters().isEmpty()) {
+//            // --- ACTIVAR MODO FILTRO PERSISTENTE ---
+//            logger.debug("[Filtro Persistente] Activando modo. Hay {} filtros.", filterManager.getActiveFilters().size());
+//            
+//            // 2a. Guardar checkpoint del contexto real, SI NO LO HEMOS HECHO YA
+//            if (!filtroPersistenteActivo) {
+//                logger.info("[Filtro Persistente] Creando checkpoint del contexto real.");
+//                ListContext contextoReal = model.getCurrentListContext();
+//                
+//                // Clonar el modelo de lista para no tener referencias cruzadas
+//                contextoRealGuardado_modelo = new DefaultListModel<>();
+//                DefaultListModel<String> modeloOriginal = contextoReal.getModeloLista();
+//                if(modeloOriginal != null) {
+//                    for(int i=0; i < modeloOriginal.getSize(); i++) {
+//                        contextoRealGuardado_modelo.addElement(modeloOriginal.getElementAt(i));
+//                    }
+//                }
+//
+//                contextoRealGuardado_mapaRutas = new HashMap<>(contextoReal.getRutaCompletaMap());
+//                contextoRealGuardado_punteroKey = contextoReal.getSelectedImageKey();
+//                filtroPersistenteActivo = true;
+//            }
+//            
+//            // 2b. Crear la "carpeta virtual" filtrando desde el checkpoint
+//            DefaultListModel<String> listaVirtual = filterManager.applyFilters(contextoRealGuardado_modelo);
+//            Map<String, Path> mapaVirtual = new HashMap<>();
+//            for (String key : Collections.list(listaVirtual.elements())) {
+//                mapaVirtual.put(key, contextoRealGuardado_mapaRutas.get(key));
+//            }
+//
+//            // 2c. ¡EL GRAN INTERCAMBIO! Simulamos la carga de una nueva carpeta
+//            visorController.cargarListaDesdeFiltro(new FilterManager.FilterResult(listaVirtual, mapaVirtual), null);
+//
+//        } else {
+//            // --- DESACTIVAR MODO FILTRO PERSISTENTE ---
+//            if (filtroPersistenteActivo) {
+//                logger.info("[Filtro Persistente] Desactivando modo. Restaurando checkpoint.");
+//                
+//                // 2d. Restaurar el checkpoint
+//                visorController.cargarListaDesdeFiltro(new FilterManager.FilterResult(contextoRealGuardado_modelo, contextoRealGuardado_mapaRutas), () -> {
+//                    // Callback que se ejecuta DESPUÉS de la carga: restaurar el puntero
+//                    if (visorController != null && visorController.getListCoordinator() != null && contextoRealGuardado_punteroKey != null) {
+//                        int indiceOriginal = contextoRealGuardado_modelo.indexOf(contextoRealGuardado_punteroKey);
+//                        if(indiceOriginal != -1) {
+//                             visorController.getListCoordinator().seleccionarImagenPorIndice(indiceOriginal);
+//                        }
+//                    }
+//                });
+//
+//                // 2e. Limpiar el estado
+//                contextoRealGuardado_modelo = null;
+//                contextoRealGuardado_mapaRutas = null;
+//                contextoRealGuardado_punteroKey = null;
+//                filtroPersistenteActivo = false;
+//            }
+//        }
+//    } // --- Fin del método refrescarVistasDeFiltros ---
     
     
     /**

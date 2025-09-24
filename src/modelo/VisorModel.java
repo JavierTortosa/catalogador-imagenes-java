@@ -77,6 +77,7 @@ public class VisorModel {
     private boolean gridMuestraEstado = true;
     
     private boolean isProjectExportPanelVisible = false;
+    private Path rutaProyectoActivoConNombre;
     
     private final List<MasterListChangeListener> masterListListeners = new ArrayList<>();
 
@@ -403,6 +404,8 @@ public class VisorModel {
     public void setGridMuestraEstado(boolean gridMuestraEstado) {this.gridMuestraEstado = gridMuestraEstado;}
     public boolean isProjectExportPanelVisible() {return this.isProjectExportPanelVisible;}
     public void setProjectExportPanelVisible(boolean isVisible) {this.isProjectExportPanelVisible = isVisible;}
+    public Path getRutaProyectoActivoConNombre() {return rutaProyectoActivoConNombre;}
+    public void setRutaProyectoActivoConNombre(Path rutaProyectoActivoConNombre) {this.rutaProyectoActivoConNombre = rutaProyectoActivoConNombre;}
     
     public SortDirection getSortDirection() {return sortDirection;}
     public void setSortDirection(SortDirection newSortDirection) {

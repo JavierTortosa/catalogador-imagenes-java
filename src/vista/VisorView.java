@@ -72,6 +72,8 @@ public class VisorView extends JFrame {
     
     private final ComponentRegistry registry;
     private JLabel etiquetaImagen; 
+    private TitledBorder borderListaArchivos;
+    private JPanel panelListaArchivos;
     
     private DefaultListModel<String> modeloListaMiniaturas;
     
@@ -173,8 +175,6 @@ public class VisorView extends JFrame {
     } // --- FIN del constructor VisorView ---
     
     
-
-    
      /**
       * Devuelve los últimos bounds conocidos de la ventana cuando estaba en estado normal (no maximizada).
       * Si la ventana está actualmente en estado normal, devuelve sus bounds actuales.
@@ -189,7 +189,8 @@ public class VisorView extends JFrame {
          // Si está maximizada o minimizada, debemos devolver el valor que guardamos
          // la última vez que SÍ estuvo en estado normal.
          return this.lastNormalBounds; 
-     }
+         
+     }  // --- FIN del metodo getLastNormalBounds
      
 
      public void setListaImagenesModel(DefaultListModel<String> nuevoModelo) {
@@ -225,22 +226,30 @@ public class VisorView extends JFrame {
         this.etiquetaImagen.setIcon(null);
 
         this.etiquetaImagen.repaint(); // paintComponent dibujará el fondo
-    }
+        
+    } // Fin del metodo limpiarImagenMostrada 
 
 
-    public void setTituloPanelIzquierdo(String titulo) {
-    	
-    	JPanel panelIzquierdo = registry.get("panel.izquierdo.listaArchivos");
-    	
-        if (panelIzquierdo == null || !(panelIzquierdo.getBorder() instanceof TitledBorder)) {
-            logger.warn("WARN [setTituloPanelIzquierdo]: panelIzquierdo o su TitledBorder nulos.");
-            return;
+    /**
+     * [VERSIÓN DEFINITIVA Y ROBUSTA]
+     * Actualiza el título del panel de la lista de archivos usando referencias directas.
+     */
+    public void setTituloPanelIzquierdo(String nuevoTitulo) {
+        // Ahora usamos los campos de la clase, que son 100% fiables.
+        if (this.borderListaArchivos != null) {
+            this.borderListaArchivos.setTitle(nuevoTitulo);
+            
+            // Si también tenemos el panel, le pedimos que se repinte para que el cambio sea visible.
+            if (this.panelListaArchivos != null) {
+                this.panelListaArchivos.repaint();
+            }
+        } else {
+            // Este log es más preciso. Si sale, es porque el ViewBuilder no llamó al setter.
+            logger.warn("WARN [setTituloPanelIzquierdo]: La referencia al TitledBorder (borderListaArchivos) es nula.");
         }
-        TitledBorder borde = (TitledBorder) panelIzquierdo.getBorder();
-        borde.setTitle(titulo != null ? titulo : "");
-        panelIzquierdo.repaint();
-    }
-
+    } // Fin del metodo setTituloPanelIzquierdo
+    
+    
     public void setJMenuBarVisible(boolean visible) {
         JMenuBar mb = getJMenuBar();
         if (mb != null && mb.isVisible() != visible) {
@@ -255,7 +264,7 @@ public class VisorView extends JFrame {
             // El padre de panelDeBotones es el contentPane del JFrame.
              SwingUtilities.invokeLater(this::revalidateFrame);
         }
-    }
+    } // Fin del metodo setToolBarVisible
 
     
     public void setFileListVisible(boolean visible) {
@@ -301,13 +310,14 @@ public class VisorView extends JFrame {
         } else {
             logger.debug("  [VisorView setFileListVisible] El panel izquierdo ya está en el estado de visibilidad deseado: " + visible);
         }
-    }
+        
+    } // Fin del metodo setFileListVisible
 
     
     private void revalidateFrame() {
         this.revalidate();
         this.repaint();
-    }
+    } // Fin del metodo revalidateFrame
 
     public void setCheckeredBackgroundEnabled(boolean activado) {
         if (this.fondoACuadrosActivado != activado) {
@@ -318,8 +328,7 @@ public class VisorView extends JFrame {
                 etiquetaImagen.repaint();
             }
         }
-    }
-
+    } // Fin del metodo setCheckeredBackgroundEnabled
     
 
     public void setEstadoMenuActivarZoomManual(boolean seleccionado) {
@@ -330,10 +339,8 @@ public class VisorView extends JFrame {
             JCheckBoxMenuItem cbItem = (JCheckBoxMenuItem) zoomMenuItem;
             if (cbItem.isSelected() != seleccionado) cbItem.setSelected(seleccionado);
         }
-    }// --- FIN del metodo
+    } // --- FIN del metodo setEstadoMenuActivarZoomManual
 
-    
-    
     
     /**
      * Muestra un indicador de "Cargando..." en el área principal de la imagen.
@@ -389,7 +396,10 @@ public class VisorView extends JFrame {
     // Métodos para actualizar los mapas y barras (recibidos de AppInitializer)
     public void setActualJMenuBar(JMenuBar menuBar) {
         if (menuBar != null) this.setJMenuBar(menuBar);
-    }
+        
+    }// --- FIN del metodo setActualJMenuBar
+    
+    
     public void setActualToolbarPanel(JPanel toolbarPanel) {
         if (toolbarPanel != null) {
             if (this.panelDeBotones != null) remove(this.panelDeBotones); // Quitar el placeholder si existe
@@ -397,12 +407,14 @@ public class VisorView extends JFrame {
             add(this.panelDeBotones, BorderLayout.NORTH); // Añadir el real
             revalidateFrame();
         }
-    }
+        
+    }// --- FIN del metodo setActualToolbarPanel
+    
+    
     public void setActualMenuItemsMap(Map<String, JMenuItem> menuItems) {
         this.menuItemsPorNombre = (menuItems != null) ? menuItems : new HashMap<>();
-    }
-    
-    
+        
+    } // --- FIN del metodo setActualMenuItemsMap
     
     
     /**
@@ -461,14 +473,14 @@ public class VisorView extends JFrame {
         if (listaNombres != null) {
             listaNombres.addListSelectionListener(listener);
         }
-    }
+    } // --- FIN del metodo addListaNombresSelectionListener
 
     public void addListaMiniaturasSelectionListener(javax.swing.event.ListSelectionListener listener) {
         JList<String> listaMiniaturas = registry.get("list.miniaturas");
         if (listaMiniaturas != null) {
             listaMiniaturas.addListSelectionListener(listener);
         }
-    }
+    } // --- FIN del metodo addListaMiniaturasSelectionListener
 
     public void addEtiquetaImagenMouseWheelListener(java.awt.event.MouseWheelListener listener) {
         // etiquetaImagen SÍ es un campo de VisorView, por lo que este método puede quedar igual.
@@ -477,25 +489,25 @@ public class VisorView extends JFrame {
         if (etiquetaImagen != null) {
             etiquetaImagen.addMouseWheelListener(listener);
         }
-    }
+    } // --- FIN del metodo addEtiquetaImagenMouseWheelListener
 
     public void addEtiquetaImagenMouseListener(java.awt.event.MouseListener listener) {
         JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
         if (etiquetaImagen != null) {
             etiquetaImagen.addMouseListener(listener);
         }
-    }
+    } // --- FIN del metodo addEtiquetaImagenMouseListener
 
     public void addEtiquetaImagenMouseMotionListener(java.awt.event.MouseMotionListener listener) {
         JLabel etiquetaImagen = registry.get("label.imagenPrincipal");
         if (etiquetaImagen != null) {
             etiquetaImagen.addMouseMotionListener(listener);
         }
-    }
+    } // --- FIN del metodo addEtiquetaImagenMouseMotionListener
     
     public Image getImagenReescaladaView() {
         return this.imagenReescaladaView;
-    }
+    } // --- FIN del metodo getImagenReescaladaView
 
    
     // Getters para la barra de botones
@@ -503,6 +515,7 @@ public class VisorView extends JFrame {
     public Map<String, JToolBar> getToolbars() {return this.barrasDeHerramientas;}
     public boolean isFondoACuadrosActivado() {return this.fondoACuadrosActivado;}
 	public DefaultListModel<String> getModeloListaMiniaturas(){ return this.modeloListaMiniaturas; }
-    
+	public void setBorderListaArchivos(TitledBorder border) {this.borderListaArchivos = border;}
+    public void setPanelListaArchivos(JPanel panel) {this.panelListaArchivos = panel;}
     
 } // Fin clase VisorView

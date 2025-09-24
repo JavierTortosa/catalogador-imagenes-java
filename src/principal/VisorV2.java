@@ -60,12 +60,14 @@ public class VisorV2 {
 
 
 	//TOOLBAR
-		
+		//FIXME hacer los iconos mas pequeños
+    	//FIXME mejorar claridad entre toolbars
+    
 	
 	// ZOOM
 		
-//29/08/2025
     // GENERAL
+    
     
 	//VISUALIZADOR 
     // TODO AÑADIR UN MARCO ALREDEDOR DEL PANEL DEL DISPLAY (EN SINGLE) EN ALGUN COLOR QUE QUERE COHERENTE CON EL TEMA PERO QUE NOS INDIQUE QUE LA IMAGEN ESTA MARCADA
@@ -77,7 +79,13 @@ public class VisorV2 {
     
     // TODO antes de exportar, que muestre una pantalla de confirmacion (se van a exportar estas imagenes con estos archivos asociados a esta carpeta
     // FIXME permitir buscar a mano una imagen que ha cambiado de nombre 
+
+    // FIXME al intentar cerrar el programa sin haber guardado el proyecto falla. cuando te pregunta para cerrar, si dices si, debe guardar y salir, si dices no, salir y si dices cancelar ni guarda ni sale
+    // FIXME cuando llevas un rato trabajando, se va relentizando el renderizado de las imagenes
     
+    // CARROUSEL
+    
+    // FIXME los botones de cambio de velocidad en el modo carrousel deben actuar cuando estamos en play
 
     
 }    

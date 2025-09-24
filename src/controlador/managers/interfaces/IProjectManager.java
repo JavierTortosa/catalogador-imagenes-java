@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.nio.file.Path;
 import java.util.List;
 
+import modelo.proyecto.ProjectModel;
 import servicios.ProyectoIOException;
 
 /**
@@ -146,5 +147,12 @@ public interface IProjectManager {
     void notificarModificacion();
     public boolean hayCambiosSinGuardar();
     void archivarTemporalAlCerrar();
+
+    /**
+     * Devuelve la instancia actual del modelo de proyecto.
+     * Es utilizado por el controlador para la sincronización directa UI -> Modelo.
+     * @return El ProjectModel activo.
+     */
+	ProjectModel getCurrentProject();
 
 } // --- FIN de la interfaz IProjectManager ---

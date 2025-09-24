@@ -17,6 +17,9 @@ module VisorImagenes {
     // El módulo necesita la API de logging SLF4J.
     requires transitive org.slf4j;
     
+    // El módulo de manejo de JSON
+    requires com.google.gson;
+    
     // El módulo necesita la implementación de Logback (tanto classic como core).
     requires transitive ch.qos.logback.classic;
     requires ch.qos.logback.core;
@@ -39,7 +42,7 @@ module VisorImagenes {
     
     // Paquetes de Modelo de Datos
     opens modelo to com.formdev.flatlaf, ch.qos.logback.core;
-    opens modelo.proyecto to com.formdev.flatlaf, ch.qos.logback.core;
+    opens modelo.proyecto to com.formdev.flatlaf, ch.qos.logback.core, com.google.gson;
     
     // Paquetes de Configuración de la Vista (muy probable que FlatLaf los necesite)
     opens vista.config to com.formdev.flatlaf;
