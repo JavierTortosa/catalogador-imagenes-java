@@ -8,7 +8,6 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
-import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.ClipboardOwner;
@@ -32,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -88,7 +86,7 @@ import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.BuscadorArchivosWorker;
-import modelo.ListContext;
+
 // --- Imports de Modelo, Servicios y Vista ---
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
@@ -137,8 +135,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     private controlador.managers.DisplayModeManager displayModeManager;
     private GeneralController generalController;
     
-//    private BackgroundControlManager backgroundControlManager;
-    
     // --- Comunicación con AppInitializer ---
     private ViewUIConfig uiConfigForView;			// Necesario para el renderer (para colores y config de thumbWidth/Height)
     private int calculatedMiniaturePanelHeight;		//
@@ -166,7 +162,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     private Map<String, JMenuItem> menuItemsPorNombre;
     
     private volatile boolean isRebuildingToolbars = false;	// Ayuda al cierre de las toolbar Flotantes
-//    private volatile boolean estaReconstruyendoToolbars = false;
     
     // --- Atributos para Menús Contextuales ---
     private JPopupMenu popupMenuImagenPrincipal;
@@ -512,228 +507,68 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     
 
     /**
-     * Configura un 'Shutdown Hook', que es un hilo que la JVM intentará ejecutar
-     * cuando la aplicación está a punto de cerrarse (ya sea normalmente o por
-     * una señal externa como Ctrl+C, pero no necesariamente en caso de crash).
-     *
-     * El propósito principal de este hook es llamar a `guardarConfiguracionActual()`
-     * para persistir el estado de la aplicación (tamaño/posición de ventana,
-     * última carpeta/imagen, configuraciones UI) y apagar ordenadamente el
-     * ExecutorService.
-     *
-     * Se llama desde AppInitializer como uno de los últimos pasos de la inicialización.
-     */
-    /*package-private*/ void configurarShutdownHookInternal() {
-        // --- SECCIÓN 1: Log de Inicio ---
-        // 1.1. Indicar que se está configurando el hook.
-        logger.info("    [Internal] Configurando Shutdown Hook...");
-
-        // --- SECCIÓN 2: Crear el Hilo del Hook ---
-        // 2.1. Crear una nueva instancia de Thread.
-        // 2.2. Pasar una expresión lambda como el Runnable que define la tarea a ejecutar al cerrar.
-        // 2.3. Darle un nombre descriptivo al hilo (útil para depuración y perfiles).
-        Thread shutdownThread = new Thread(() -> { // Inicio de la lambda para el hilo del hook
-            // --- TAREA EJECUTADA AL CIERRE DE LA JVM ---
-
-            // 2.3.1. Log indicando que el hook se ha activado.
-            logger.debug("--- Hook de Cierre Ejecutándose ---");
-
-            // 2.3.2. GUARDAR ESTADO DE LA VENTANA (si es posible)
-            //        Llama a un método helper para encapsular esta lógica.
-            guardarEstadoVentanaEnConfig();
-
-            // 2.3.3. GUARDAR CONFIGURACIÓN GENERAL
-            //        Llama al método que recopila todo el estado relevante y lo guarda en el archivo.
-            logger.debug("  -> Llamando a guardarConfiguracionActual() desde hook...");
-            guardarConfiguracionActual(); // Llama al método privado existente
-
-            // 2.3.4. APAGAR ExecutorService de forma ordenada.
-            //        Llama a un método helper para encapsular esta lógica.
-            apagarExecutorServiceOrdenadamente();
-
-            // 2.3.5. Log indicando que el hook ha terminado su trabajo.
-            logger.debug("--- Hook de Cierre Terminado ---");
-
-        }, "VisorShutdownHookThread"); // Nombre del hilo
-
-        // --- SECCIÓN 3: Registrar el Hook en la JVM ---
-        // 3.1. Obtener la instancia del Runtime de la JVM.
-        Runtime runtime = Runtime.getRuntime();
-        // 3.2. Añadir el hilo creado como un hook de cierre. La JVM lo llamará al salir.
-        runtime.addShutdownHook(shutdownThread);
-
-        // --- SECCIÓN 4: Log Final ---
-        // 4.1. Confirmar que el hook ha sido registrado.
-        logger.debug("    [Internal] Shutdown Hook registrado en la JVM.");
-
-    } // --- FIN configurarShutdownHookInternal ---
-
-
-    /**
      * Orquesta el proceso de apagado limpio de la aplicación.
      * Es llamado cuando el usuario cierra la ventana principal.
      */
     public void shutdownApplication() {
-        logger.info("--- [Controller] Solicitud de cierre de aplicación recibida ---");
-        boolean cierreCancelado = false;
-
-        // La única condición para mostrar el diálogo es que haya cambios sin guardar.
-        // Se ignora el estado de 'isSesionRecuperadaNoModificada'.
-        if (projectManager != null && projectManager.hayCambiosSinGuardar()) {
-            
-            String nombreProyecto = projectManager.getNombreProyectoActivo();
-            String mensaje = "El proyecto '" + nombreProyecto + "' tiene cambios sin guardar.\n\n¿Deseas guardarlos antes de salir?";
-            
-            int respuesta = JOptionPane.showOptionDialog(
-                view, mensaje, "Confirmar Cierre", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE, null,
-                new String[]{"Guardar y Salir", "Salir sin Guardar", "Cancelar"}, "Guardar y Salir"
-            );
-
-            switch (respuesta) {
-                case JOptionPane.YES_OPTION:
-                    projectController.sincronizarModeloConUI();
-                    projectController.solicitarGuardarProyecto();
-                    // Si el usuario canceló el diálogo de "Guardar Como", hayCambiosSinGuardar seguirá siendo true.
-                    if (projectManager.hayCambiosSinGuardar()) {
-                        cierreCancelado = true;
-                    }
-                    break;
-                case JOptionPane.NO_OPTION:
-                    // El usuario elige no guardar, así que creamos la sesión de recuperación.
-                    Path rutaRecuperacion = projectManager.guardarSesionDeRecuperacion();
-                    if (rutaRecuperacion != null) {
-                        setRutaProyectoRecuperacion(rutaRecuperacion.toAbsolutePath().toString());
-                    }
-                    break;
-                default: // Esto cubre CANCEL y el cierre del diálogo.
-                    cierreCancelado = true;
-                    break;
-            }
-            
+        logger.info("--- [VisorController] Solicitud de cierre de aplicación recibida, delegando a GeneralController ---");
+        if (generalController != null) {
+            generalController.handleApplicationShutdown();
         } else {
-            // Si no hay cambios, nos aseguramos de que no quede ninguna sesión de recuperación pendiente en config.
-            setRutaProyectoRecuperacion(null);
+            // Fallback muy básico si GeneralController no está disponible
+            logger.error("GeneralController es nulo. Realizando cierre de emergencia.");
+            System.exit(0);
         }
-
-        if (cierreCancelado) {
-            logger.info("  -> Cierre de la aplicación cancelado por el usuario.");
-            return;
-        }
-
-        logger.debug("  -> Procediendo con el apagado final de la aplicación...");
-
-        if (projectManager != null) {
-            projectManager.archivarTemporalAlCerrar();
-        }
-        
-        guardarEstadoVentanaEnConfig();
-        guardarConfiguracionActual();
-        apagarExecutorServiceOrdenadamente();
-        
-        logger.info("--- Apagado limpio completado. Saliendo de la JVM con System.exit(0). ---");
-        System.exit(0);
-        
     } // --- FIN del metodo shutdownApplication ---
     
     
     /**
-     * Método helper PRIVADO para guardar el estado actual de la ventana (posición,
-     * tamaño, estado maximizado) en el ConfigurationManager en memoria.
-     * Se llama desde el Shutdown Hook.
+     * Guarda el estado actual de la ventana (posición, tamaño, etc.) en el
+     * ConfigurationManager. Este método es llamado por el GeneralController durante
+     * el proceso de cierre.
      */
-    private void guardarEstadoVentanaEnConfig() {
-        // 1. Validar que la Vista y la Configuración existan.
+    public void guardarEstadoVentanaEnConfig() {
         if (view == null || configuration == null) {
-            logger.debug("  [Hook - Ventana] No se pudo guardar estado (Vista=" + (view == null ? "null" : "existe") + 
-                               ", Config=" + (configuration == null ? "null" : "existe") + ").");
+            logger.warn("WARN [guardarEstadoVentanaEnConfig]: Vista o Configuración nulas. No se puede guardar estado.");
             return;
         }
-        logger.debug("  [Hook - Ventana] Guardando estado de la ventana en config...");
-
+        
         try {
-            // 2.1. Comprobar si la ventana está maximizada.
             boolean isMaximized = (view.getExtendedState() & JFrame.MAXIMIZED_BOTH) == JFrame.MAXIMIZED_BOTH;
-            // 2.2. Guardar el estado de maximización en ConfigurationManager.
             configuration.setString(ConfigKeys.WINDOW_MAXIMIZED, String.valueOf(isMaximized));
-            logger.debug("    -> Estado Maximized guardado en config: " + isMaximized);
-
-            // 2.3. Obtener y guardar SIEMPRE los "últimos bounds normales"
-            //      Estos bounds son los que tenía la ventana la última vez que estuvo en estado NORMAL.
-            Rectangle normalBoundsToSave = view.getLastNormalBounds(); 
             
-            if (normalBoundsToSave != null) {
-                configuration.setString(ConfigKeys.WINDOW_X, String.valueOf(normalBoundsToSave.x));
-                configuration.setString(ConfigKeys.WINDOW_Y, String.valueOf(normalBoundsToSave.y));
-                configuration.setString(ConfigKeys.WINDOW_WIDTH, String.valueOf(normalBoundsToSave.width));
-                configuration.setString(ConfigKeys.WINDOW_HEIGHT, String.valueOf(normalBoundsToSave.height));
-                logger.debug("    -> Últimos Bounds Normales guardados en config: " + normalBoundsToSave);
-            } else {
-                // Esto sería inesperado si lastNormalBounds se inicializa bien en VisorView
-                // y la vista existe.
-                logger.warn("  WARN [Hook - Ventana]: view.getLastNormalBounds() devolvió null. No se pudieron guardar bounds normales detallados.");
-                // Considera si quieres guardar valores por defecto aquí o dejar las claves como están en config.
-                // Si las dejas, ConfigurationManager usará sus defaults al leer si las claves no existen.
+            java.awt.Rectangle normalBounds = view.getLastNormalBounds(); 
+            if (normalBounds != null) {
+                configuration.setString(ConfigKeys.WINDOW_X, String.valueOf(normalBounds.x));
+                configuration.setString(ConfigKeys.WINDOW_Y, String.valueOf(normalBounds.y));
+                configuration.setString(ConfigKeys.WINDOW_WIDTH, String.valueOf(normalBounds.width));
+                configuration.setString(ConfigKeys.WINDOW_HEIGHT, String.valueOf(normalBounds.height));
             }
-
         } catch (Exception e) {
-            logger.error("  [Hook - Ventana] ERROR al guardar estado de la ventana: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("ERROR al guardar el estado de la ventana: " + e.getMessage(), e);
         }
-    } // --- FIN guardarEstadoVentanaEnConfig ---
+    } // ---FIN de metodo guardarEstadoVentanaEnConfig---
 
 
     /**
-     * Método helper PRIVADO para apagar el ExecutorService de forma ordenada,
-     * esperando un tiempo prudencial para que las tareas finalicen.
-     * Se llama desde el Shutdown Hook.
+     * Apaga el ExecutorService de forma ordenada. Este método es llamado por el
+     * GeneralController durante el proceso de cierre.
      */
-    private void apagarExecutorServiceOrdenadamente() {
-        // 1. Indicar inicio del apagado.
-        logger.debug("  [Hook - Executor] Apagando ExecutorService...");
-        
-        // 2. Comprobar si el ExecutorService existe y no está ya apagado.
+    public void apagarExecutorServiceOrdenadamente() {
         if (executorService != null && !executorService.isShutdown()) {
-           // 2.1. Iniciar el apagado "suave": no acepta nuevas tareas,
-           //      pero permite que las tareas en ejecución terminen.
            executorService.shutdown();
-           // 2.2. Bloque try-catch para manejar InterruptedException durante la espera.
            try {
-               // 2.2.1. Esperar un máximo de 5 segundos para que terminen las tareas.
-               if (!executorService.awaitTermination(5, TimeUnit.SECONDS)) {
-                   // 2.2.1.1. Si no terminaron a tiempo, forzar el apagado inmediato.
-                   logger.warn("    -> ExecutorService no terminó en 5s. Forzando shutdownNow()...");
-                   // shutdownNow() intenta interrumpir las tareas en ejecución.
-                   List<Runnable> tareasPendientes = executorService.shutdownNow();
-                   logger.warn("    -> Tareas que no llegaron a ejecutarse: " + tareasPendientes.size());
-                   // 2.2.1.2. Esperar un poco más después de forzar.
-                   if (!executorService.awaitTermination(2, TimeUnit.SECONDS)) { // Espera más corta
-                        logger.warn("    -> ExecutorService AÚN no terminó después de shutdownNow().");
-                   } else {
-                        logger.debug("    -> ExecutorService finalmente terminado después de shutdownNow().");
-                   }
-               } else {
-                    // 2.2.1.3. Si terminaron a tiempo.
-                    logger.debug("    -> ExecutorService terminado ordenadamente.");
+               if (!executorService.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                   logger.warn("ExecutorService no terminó a tiempo. Forzando cierre...");
+                   executorService.shutdownNow();
                }
-           // 2.2.2. Capturar si el hilo del hook es interrumpido mientras espera.
            } catch (InterruptedException ie) {
-               logger.warn("    -> Hilo ShutdownHook interrumpido mientras esperaba apagado de ExecutorService.");
-               // Forzar apagado inmediato si el hook es interrumpido.
+               logger.warn("Interrumpido mientras se esperaba el cierre del ExecutorService.");
                executorService.shutdownNow();
-               // Re-establecer el estado de interrupción del hilo actual.
                Thread.currentThread().interrupt();
-           // 2.2.3. Capturar otras excepciones inesperadas.
-           } catch (Exception e) {
-                logger.error("    -> ERROR inesperado durante apagado de ExecutorService: " + e.getMessage());
-                e.printStackTrace();
            }
-        // 2.3. Casos donde el ExecutorService no necesita apagado.
-        } else if (executorService == null){
-             logger.debug("    -> ExecutorService es null. No se requiere apagado.");
-        } else { // Ya estaba shutdown
-             logger.debug("    -> ExecutorService ya estaba apagado.");
         }
-    } // --- FIN apagarExecutorServiceOrdenadamente ---   
+    } // ---FIN de metodo apagarExecutorServiceOrdenadamente---
 
     
 // ******************************************************************************************* FIN configurarShutdownHookInternal    
@@ -772,7 +607,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             return;
         }
 
-//        this.estaCargandoLista = true;
         if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
             logger.debug("  -> Cancelando tarea de carga de lista anterior...");
             cargaImagenesFuture.cancel(true);
@@ -788,7 +622,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             if (statusBarManager != null) {
                 statusBarManager.mostrarMensaje("No hay una carpeta válida seleccionada. Usa 'Archivo -> Abrir Carpeta'.");
             }
-//            this.estaCargandoLista = false;
             return;
         }
         
@@ -816,7 +649,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
                     if (statusBarManager != null) {
                         statusBarManager.mostrarMensaje("Carga cancelada por el usuario.");
                     }
-//                    this.estaCargandoLista = false;
                     return;
                 }
 
@@ -915,7 +747,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
                         statusBarManager.mostrarMensaje("Error al leer la carpeta. Consulta los logs para más detalles.");
                     }
                 } finally {
-//                    this.estaCargandoLista = false;
                     if (cargaImagenesFuture == worker) {
                         cargaImagenesFuture = null;
                     }
@@ -1325,20 +1156,22 @@ public class VisorController implements IModoController, ActionListener, Clipboa
         String tituloFinal;
         String prefijoDirty = projectManager.hayCambiosSinGuardar() ? "*" : "";
 
-        // --- LÓGICA DE TÍTULO MEJORADA ---
+        // Obtiene el nombre del proyecto desde el ProjectManager. Esta es la fuente principal.
+        String nombreProyecto = projectManager.getNombreProyectoActivo();
+        
+        // Comprobación de seguridad: Si el PM dice "Proyecto Temporal", pero el modelo
+        // tiene una ruta con nombre (porque acabamos de guardar), usamos la del modelo.
+        // Esto cierra la brecha de sincronización después de "Guardar Como".
+        if ("Proyecto Temporal".equals(nombreProyecto) && model.getRutaProyectoActivoConNombre() != null) {
+            nombreProyecto = model.getRutaProyectoActivoConNombre().getFileName().toString();
+        }
 
-        // CASO 1: Estamos en el MODO PROYECTO. El título SIEMPRE muestra el nombre del proyecto.
-        if (model.isEnModoProyecto()) {
-            String nombreProyecto = projectManager.getNombreProyectoActivo();
+        // Ahora construimos el título con el nombre correcto.
+        if (!"Proyecto Temporal".equals(nombreProyecto) || !projectManager.getImagenesMarcadas().isEmpty()) {
             tituloFinal = prefijoDirty + tituloBase + " - [Proyecto: " + nombreProyecto + "]";
-        
-        // CASO 2: NO estamos en modo proyecto, pero hay imágenes marcadas (es un proyecto temporal implícito).
-        } else if (!projectManager.getImagenesMarcadas().isEmpty()) {
-            tituloFinal = prefijoDirty + tituloBase + " - [Proyecto: Proyecto Temporal]";
-        
-        // CASO 3: Modo visualizador puro, sin proyecto activo ni imágenes marcadas.
         } else {
-            tituloFinal = tituloBase; // Ya no añadimos el asterisco si no hay proyecto
+            // Modo visualizador puro, sin proyecto activo ni imágenes marcadas.
+            tituloFinal = tituloBase;
         }
         
         view.setTitle(tituloFinal);
@@ -1609,7 +1442,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
             final BufferedImage finalImagenCargada = imagenCorregida;
             
             final Path finalPath = rutaCompleta; // Capturar para el EDT
-//            final String finalClave = claveImagen; // Capturar para el EDT
 
             // Si la tarea fue cancelada, no hacer nada.
             if (Thread.currentThread().isInterrupted()) {
@@ -2103,83 +1935,7 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 // ******************************************************************************************************************* ARCHIVO     
      
 
-//    /**
-//     * Asegura que los JRadioButtonMenuItem del menú correspondientes a la
-//     * configuración de carga de subcarpetas reflejen visualmente el estado lógico
-//     * proporcionado (marcando el correcto como seleccionado).
-//     *
-//     * Es seguro llamar a setSelected() en los radios aquí porque estos componentes
-//     * específicos usan un ActionListener personalizado en lugar de setAction() para
-//     * evitar bucles de eventos.
-//     *
-//     * @param mostrarSubcarpetas El estado lógico actual. Si es true, se seleccionará
-//     *                           el radio "Mostrar Imágenes de Subcarpetas"; si es false,
-//     *                           se seleccionará "Mostrar Solo Carpeta Actual".
-//     */
-//    private void restaurarSeleccionRadiosSubcarpetas(boolean mostrarSubcarpetas) {
-//        // 1. Validar que la vista y el mapa de menús existan
-//         if (view == null) {
-//              logger.warn("WARN [restaurarSeleccionRadiosSubcarpetas]: Vista es nulo.");
-//              return; // No se puede hacer nada si no hay menús
-//         }
-//         
-//         if (this.menuItemsPorNombre == null) {
-//             logger.warn("WARN [restaurarSeleccionRadiosSubcarpetas]: El mapa de menús en el controlador es nulo.");
-//             return;
-//         }
-//         
-//         Map<String, JMenuItem> menuItems = this.menuItemsPorNombre;
-//
-//         // 2. Log del estado deseado
-//         logger.debug("  [Controller] Sincronizando estado visual de Radios Subcarpetas a: " + (mostrarSubcarpetas ? "Mostrar Subcarpetas" : "Mostrar Solo Carpeta"));
-//
-//         // 3. Obtener las referencias a los JRadioButtonMenuItems específicos
-//         //    Usar las claves largas definidas en la configuración y usadas por MenuBarBuilder.
-//         JMenuItem radioMostrarSub = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_imagenes_de_subcarpetas");
-//         JMenuItem radioMostrarSolo = menuItems.get("interfaz.menu.configuracion.carga_de_imagenes.mostrar_solo_carpeta_actual");
-//
-//         // 4. Aplicar el estado 'selected' al radio correcto
-//         //    Se hace de forma segura llamando a setSelected directamente.
-//
-//         // 4.1. Configurar el radio "Mostrar Subcarpetas"
-//         if (radioMostrarSub instanceof JRadioButtonMenuItem) {
-//             JRadioButtonMenuItem radioSub = (JRadioButtonMenuItem) radioMostrarSub;
-//             // Solo llamar a setSelected si el estado actual es diferente al deseado
-//             // para evitar eventos innecesarios del ButtonGroup (aunque no debería causar problemas graves).
-//             if (radioSub.isSelected() != mostrarSubcarpetas) {
-//                  // logger.debug("    -> Estableciendo 'Mostrar Subcarpetas' a: " + mostrarSubcarpetas); // Log detallado opcional
-//                  radioSub.setSelected(mostrarSubcarpetas);
-//             }
-//             // Asegurar que esté habilitado (podría haberse deshabilitado por error)
-//             radioSub.setEnabled(true);
-//         } else if (radioMostrarSub != null) {
-//              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Imagenes_de_Subcarpetas' no es un JRadioButtonMenuItem.");
-//         } else {
-//              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Imagenes_de_Subcarpetas' no encontrado.");
-//         }
-//
-//
-//         // 4.2. Configurar el radio "Mostrar Solo Carpeta Actual" (estado inverso)
-//         if (radioMostrarSolo instanceof JRadioButtonMenuItem) {
-//             JRadioButtonMenuItem radioSolo = (JRadioButtonMenuItem) radioMostrarSolo;
-//             // El estado seleccionado de este debe ser el opuesto a mostrarSubcarpetas
-//             boolean estadoDeseadoSolo = !mostrarSubcarpetas;
-//             if (radioSolo.isSelected() != estadoDeseadoSolo) {
-//                  // logger.debug("    -> Estableciendo 'Mostrar Solo Carpeta' a: " + estadoDeseadoSolo); // Log detallado opcional
-//                  radioSolo.setSelected(estadoDeseadoSolo);
-//             }
-//             // Asegurar que esté habilitado
-//             radioSolo.setEnabled(true);
-//         } else if (radioMostrarSolo != null) {
-//              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Solo_Carpeta_Actual' no es un JRadioButtonMenuItem.");
-//         } else {
-//              logger.warn("WARN [restaurarSeleccionRadios]: Item 'Mostrar_Solo_Carpeta_Actual' no encontrado.");
-//         }
-//
-//         // 5. Log final
-//         logger.debug("  [Controller] Estado visual de Radios Subcarpetas sincronizado.");
-//
-//    } // --- FIN restaurarSeleccionRadiosSubcarpetas ---
+
 
     
 	
@@ -2852,10 +2608,14 @@ public class VisorController implements IModoController, ActionListener, Clipboa
         
         switch (command) {
             // 4.1. --- Configuración ---
-            case AppActionCommands.CMD_CONFIG_GUARDAR:
-                logger.debug("    -> Acción: Guardar Configuración Actual");
-                guardarConfiguracionActual();
-                break;
+	        case AppActionCommands.CMD_CONFIG_GUARDAR:
+	            logger.debug("    -> Acción: Guardar Configuración Actual");
+	            // ¡OJO! Este método ahora solo guarda la configuración, no el estado del proyecto.
+	            if (generalController != null) {
+	                // Creamos un nuevo método en GeneralController para esto
+	                generalController.handleSaveConfiguration(); 
+	            }
+	            break;
             case AppActionCommands.CMD_CONFIG_CARGAR_INICIAL:
             	
             	logger.debug("    -> Acción: Restaurar Configuración por Defecto");
@@ -3251,56 +3011,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
   	} // --- FIN parseColor ---
   
   
-  private void guardarConfiguracionActual() {
-      if (configuration == null || model == null) {
-          logger.error("ERROR [guardarConfiguracionActual]: Configuración o Modelo nulos.");
-          return;
-      }
-      logger.debug("  [Guardar] Guardando estado de contextos (sin estado de recuperación)...");
-
-      // --- Guardar estado del MODO VISUALIZADOR ---
-      ListContext visualizadorContext = model.getVisualizadorListContext();
-      String visualizadorKey = visualizadorContext.getSelectedImageKey();
-      Path ultimaCarpetaVisor = model.getCarpetaRaizDelVisualizador();
-      
-      configuration.setString(ConfigKeys.INICIO_IMAGEN, visualizadorKey != null ? visualizadorKey : "");
-      configuration.setString(ConfigKeys.INICIO_CARPETA, (ultimaCarpetaVisor != null) ? ultimaCarpetaVisor.toString() : "");
-      logger.debug("  [Guardar] Estado Visualizador: UltimaKey=" + visualizadorKey + ", UltimaCarpeta=" + ultimaCarpetaVisor);
-
-      // --- LÓGICA DE PROYECTO ELIMINADA ---
-      // La clave PROYECTOS_ULTIMO_PROYECTO_ABIERTO ahora se gestiona
-      // exclusivamente en la lógica de cierre (shutdownApplication) y arranque.
-      // Esto elimina el conflicto y la duplicidad de responsabilidades.
-      
-      // --- Guardar estado del MODO PROYECTO ---
-      ListContext proyectoContext = model.getProyectoListContext();
-      String focoActivo = proyectoContext.getNombreListaActiva();
-      configuration.setString(ConfigKeys.PROYECTOS_LISTA_ACTIVA, focoActivo != null ? focoActivo : "seleccion");
-      String seleccionKey = proyectoContext.getSeleccionListKey();
-      configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_SELECCION_KEY, seleccionKey != null ? seleccionKey : "");
-      String descartesKey = proyectoContext.getDescartesListKey();
-      configuration.setString(ConfigKeys.PROYECTOS_ULTIMA_DESCARTES_KEY, descartesKey != null ? descartesKey : "");
-      logger.debug("  [Guardar] Estado Proyecto: Foco=" + focoActivo + ", SelKey=" + seleccionKey + ", DescKey=" + descartesKey);
-      
-      // --- Guardar otros estados globales ---
-      configuration.setString(ConfigKeys.COMPORTAMIENTO_PANTALLA_COMPLETA, String.valueOf(model.isModoPantallaCompletaActivado()));
-      configuration.setString(ConfigKeys.COMPORTAMIENTO_SYNC_VISOR_CARRUSEL, String.valueOf(model.isSyncVisualizadorCarrusel()));
-      Path ultimaCarpetaCarrusel = model.getUltimaCarpetaCarrusel();
-      configuration.setString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_CARPETA, (ultimaCarpetaCarrusel != null) ? ultimaCarpetaCarrusel.toString() : "");
-      String ultimaImagenCarrusel = model.getUltimaImagenKeyCarrusel();
-      configuration.setString(ConfigKeys.CARRUSEL_ESTADO_ULTIMA_IMAGEN, (ultimaImagenCarrusel != null) ? ultimaImagenCarrusel : "");
-      logger.debug("  [Guardar] Estado Carrusel/Sync: Sync=" + model.isSyncVisualizadorCarrusel() + ", UltimaCarpeta=" + ultimaCarpetaCarrusel);
-      
-      // --- Guardar el archivo físico ---
-      try {
-          configuration.guardarConfiguracion(configuration.getConfig());
-          logger.debug("  [Guardar] Configuración guardada exitosamente.");
-      } catch (IOException e) {
-          logger.error("### ERROR FATAL AL GUARDAR CONFIGURACIÓN: " + e.getMessage());
-      }
-  } // --- FIN del metodo guardarConfiguracionActual ---
-  
-  
   private void cargarVisorNormal() {
 	    String folderInit = configuration.getString("inicio.carpeta", "");
 	    Path folderPath = null;
@@ -3327,40 +3037,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 	} // ---FIN de metodo cargarVisorNormal---
   
   
-	/**
-	 * Obtiene la ruta del archivo de proyecto de recuperación guardada en la configuración.
-	 * Esta ruta indica que la última sesión se cerró sin guardar.
-	 *
-	 * @return La ruta como un String, o null si no hay ninguna sesión para recuperar.
-	 */
-	public String getRutaProyectoRecuperacion() {
-	    if (configuration == null) return null;
-	    String ruta = configuration.getString(ConfigKeys.PROYECTOS_ULTIMO_PROYECTO_ABIERTO, null);
-	    // Devolvemos null si la cadena está vacía o es nula, para simplificar las comprobaciones.
-	    return (ruta != null && !ruta.isBlank()) ? ruta : null;
-	} // ---FIN de metodo getRutaProyectoRecuperacion---
-	
-	/**
-	 * Establece o limpia la ruta del archivo de proyecto de recuperación en la configuración.
-	 * Guardar una ruta aquí marca la sesión como "no guardada".
-	 * Pasar null o una cadena vacía la marca como "limpia".
-	 *
-	 * @param ruta La ruta completa al archivo de recuperación, o null para limpiar la clave.
-	 */
-	public void setRutaProyectoRecuperacion(String ruta) {
-	    if (configuration == null) return;
-	    // Si la ruta es nula, guardamos una cadena vacía para limpiar la clave.
-	    configuration.setString(ConfigKeys.PROYECTOS_ULTIMO_PROYECTO_ABIERTO, (ruta == null ? "" : ruta));
-	    // Forzamos el guardado inmediato para asegurar que el cambio se persiste
-	    // incluso si la aplicación se cierra de forma abrupta.
-	    try {
-	        configuration.guardarConfiguracion(configuration.getConfig());
-	    } catch (IOException e) {
-	        logger.error("Error al guardar la configuración tras actualizar la ruta de recuperación.", e);
-	    }
-	} // ---FIN de metodo setRutaProyectoRecuperacion---
-     
-     
 	/**
 	 * Calcula dinámicamente el número de miniaturas a mostrar antes y después de la
 	 * miniatura central, basándose en el ancho disponible del viewport del
@@ -3513,14 +3189,12 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 	    // 1. Modificar el modelo en memoria
 	    boolean estaAhoraMarcada = projectManager.alternarMarcaImagen(rutaAbsoluta);
 	    
-	    // 2. FORZAR EL GUARDADO DEL ARCHIVO TEMPORAL
-	    projectManager.guardarAArchivo();
-
-	    // 3. Notificar y actualizar UI (esto ya lo hacías bien)
+	    // 2. Notificar que ha habido un cambio. Esto hará que aparezca el *.
 	    projectManager.notificarModificacion();
-	    actualizarTituloVentana();
+
+	    // 3. Actualizar la UI (botón y barra de estado)
 	    actualizarEstadoVisualBotonMarcarYBarraEstado(estaAhoraMarcada, rutaAbsoluta);
- 	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
+	} // --- Fin del método solicitudAlternarMarcaDeImagenActual ---
      
 	
 	/**
@@ -3939,79 +3613,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
 	} // ---FIN de metodo [sincronizarColoresDePanelesPorTema]---
 	
 	
-//	private void sincronizarColoresDesdeObjetoTema() {
-//		final Tema temaActual = themeManager.getTemaActual();
-//		view.getContentPane().setBackground(temaActual.colorFondoPrincipal());
-//		// ... podrías replicar la lógica de arriba usando temaActual.color...()
-//		view.repaint();
-//	}// --- Fin del método sincronizarColoresDesdeObjetoTema ---
-//	
-//	
-//	
-//	/**
-//	 * Fuerza la actualización del color de fondo de los paneles estructurales clave
-//	 * que a menudo no se actualizan correctamente con un cambio de tema.
-//	 */
-//	private void refrescarColoresManualmentePorTema() {
-//	    logger.debug("    -> Refrescando colores de paneles manualmente...");
-//	    if (registry == null || themeManager == null) {
-//	        logger.warn("      WARN: No se puede refrescar colores (registry o themeManager nulo).");
-//	        return;
-//	    }
-//
-//	    // Obtenemos los colores del nuevo tema.
-//	    final Color colorFondoPrincipal = themeManager.getTemaActual().colorFondoPrincipal();
-//	    
-//	    // Lista de las claves de registro de los paneles problemáticos.
-//	    final String[] clavesDePaneles = {
-//	        "panel.info.superior",
-//	        "panel.estado.inferior",
-//	        "container.toolbars.left", // A veces los contenedores de toolbars también necesitan un empujón
-//	        "container.toolbars.center",
-//	        "container.toolbars.right"
-//	    };
-//
-//	    for (String clave : clavesDePaneles) {
-//	        Component comp = registry.get(clave);
-//	        if (comp instanceof JPanel) {
-//	            JPanel panel = (JPanel) comp;
-//	            panel.setBackground(colorFondoPrincipal);
-//	        }
-//	    }
-//	} // --- FIN del método refrescarColoresManualmentePorTema ---
-//	
-//	
-//	/**
-//	 * Recorre todas las toolbars gestionadas y fuerza la re-asignación del icono
-//	 * en cada botón. Esto actúa como un "refuerzo" para asegurar que los cambios
-//	 * de icono se reflejen visualmente tras un cambio de tema.
-//	 */
-//	private void forzarRefrescoIconosToolbars() {
-//	    logger.debug("    -> [Refuerzo] Forzando refresco de iconos en todas las toolbars...");
-//	    if (toolbarManager == null || actionMap == null) {
-//	        return;
-//	    }
-//
-//	    for (JToolBar toolbar : toolbarManager.getManagedToolbars().values()) {
-//	        for (Component comp : toolbar.getComponents()) {
-//	            if (comp instanceof AbstractButton) {
-//	                AbstractButton button = (AbstractButton) comp;
-//	                Action action = button.getAction();
-//
-//	                if (action != null) {
-//	                    // Cogemos el icono que la Action TIENE AHORA (ya actualizado)
-//	                    // y se lo volvemos a poner explícitamente al botón.
-//	                    Icon iconActualizado = (Icon) action.getValue(Action.SMALL_ICON);
-//	                    if (iconActualizado != null) {
-//	                        button.setIcon(iconActualizado);
-//	                    }
-//	                }
-//	            }
-//	        }
-//	    }
-//	} // --- FIN del método forzarRefrescoIconosToolbars ---
-	
-	
     /**
      * Devuelve el número actual de elementos (imágenes) en el modelo de la lista principal.
      * Es un método seguro que comprueba la existencia del modelo y su lista interna.
@@ -4260,8 +3861,6 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     public void setConfigApplicationManager	(ConfigApplicationManager manager) { this.configAppManager = manager; }
     public void setDisplayModeManager		(controlador.managers.DisplayModeManager displayModeManager) {this.displayModeManager = displayModeManager;}
     public void setGeneralController		(GeneralController generalController) {this.generalController = generalController;}
-    
-//    public void setBackgroundControlManager	(BackgroundControlManager manager) {this.backgroundControlManager = manager;}
     
     
     

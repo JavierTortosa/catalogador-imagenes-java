@@ -28,7 +28,7 @@ public class ProjectModel {
     // --- Datos para la Exportación (Persistencia de trabajo) ---
     // Mapea una ruta de imagen a la lista de archivos asociados (ej. .stl, .zip)
     // que el usuario ha asignado manualmente en el panel de exportación.
-    private Map<String, List<String>> associatedFiles;
+    private Map<String, ExportConfig> exportConfigs;
     
     // --- Metadatos de Recuperación ---
     // Guarda la ruta del archivo de proyecto original cuando este modelo se guarda
@@ -40,7 +40,7 @@ public class ProjectModel {
     public ProjectModel() {
         this.selectedImages = new LinkedHashMap<>();
         this.discardedImages = new ArrayList<>();
-        this.associatedFiles = new LinkedHashMap<>();
+        this.exportConfigs = new LinkedHashMap<>();
         this.creationDate = System.currentTimeMillis();
         this.lastModifiedDate = this.creationDate;
     } // --- Fin del método ProjectModel (constructor) ---
@@ -103,17 +103,17 @@ public class ProjectModel {
         this.discardedImages = discardedImages;
     } // --- FIN de metodo setDiscardedImages ---
 
-    public Map<String, List<String>> getAssociatedFiles() {
+    public Map<String, ExportConfig> getExportConfigs() {
         // Asegurarse de que nunca sea nulo
-        if (associatedFiles == null) {
-            associatedFiles = new LinkedHashMap<>();
+        if (exportConfigs == null) {
+            exportConfigs = new LinkedHashMap<>();
         }
-        return associatedFiles;
-    } // --- FIN de metodo getAssociatedFiles ---
+        return exportConfigs;
+    } // --- FIN de metodo getExportConfigs ---
 
-    public void setAssociatedFiles(Map<String, List<String>> associatedFiles) {
-        this.associatedFiles = associatedFiles;
-    } // --- FIN de metodo setAssociatedFiles ---
+    public void setExportConfigs(Map<String, ExportConfig> exportConfigs) {
+        this.exportConfigs = exportConfigs;
+    } // --- FIN de metodo setExportConfigs ---
     
     public String getOriginalProjectPath() {
         return originalProjectPath;

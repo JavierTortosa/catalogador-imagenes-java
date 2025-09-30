@@ -73,20 +73,20 @@ public class ProjectController implements IModoController {
 
 	private ProjectViewState currentViewState = ProjectViewState.VIEW_SELECTION; // Estado inicial
 	
-    private IProjectManager projectManager;
     private ComponentRegistry registry;
-    private IZoomManager zoomManager;
     private VisorView view;
     private VisorModel model;
-    private VisorController controllerRef;
     private ExportQueueManager exportQueueManager;
     private ProjectListCoordinator projectListCoordinator;
     private DisplayModeManager displayModeManager;
+    private GeneralController generalController;
     
+    private IProjectManager projectManager;
+    private IZoomManager zoomManager;
     private IViewManager viewManager;
     private IListCoordinator listCoordinator; 
-    private Map<String, Action> actionMap;
     
+    private Map<String, Action> actionMap;
     private Map<String, ExportItem> exportItemMap = new HashMap<>();
     private int lastRightDividerLocation = -1;
 
@@ -344,8 +344,8 @@ public class ProjectController implements IModoController {
             
             // La intención ahora es EXPORTAR
             setProjectViewState(ProjectViewState.VIEW_EXPORT);
+            actualizarPanelDePropiedadesEnUI();
             
-            // --- LLAMADA AL NUEVO MÉTODO ---
             ensureExportPanelIsFullyInitialized();
             
             SwingUtilities.invokeLater(() -> {
@@ -378,9 +378,54 @@ public class ProjectController implements IModoController {
         logger.debug("[ProjectController] Realizando inicialización post-toolbars...");
         ensureExportPanelIsFullyInitialized();
         configurarContextMenuTablaExportacion();
+        configurarListenersMetadatos();
         logger.debug("[ProjectController] Inicialización post-toolbars completada.");
         
     } // ---FIN de metodo [postToolbarInitialization]---
+    
+    /**
+     * Añade un DocumentListener al área de descripción para que cualquier
+     * cambio notifique al sistema que hay modificaciones sin guardar.
+     */
+    private void configurarListenersMetadatos() {
+        vista.panels.export.ProjectMetadataPanel propsPanel = registry.get("panel.proyecto.propiedades");
+        if (propsPanel == null || projectManager == null) return;
+
+        javax.swing.event.DocumentListener listener = new javax.swing.event.DocumentListener() {
+            private void notificar() {
+                projectManager.notificarModificacion();
+            }
+            @Override public void insertUpdate(javax.swing.event.DocumentEvent e) { notificar(); }
+            @Override public void removeUpdate(javax.swing.event.DocumentEvent e) { notificar(); }
+            @Override public void changedUpdate(javax.swing.event.DocumentEvent e) { notificar(); }
+        };
+
+        propsPanel.getProjectDescriptionArea().getDocument().addDocumentListener(listener);
+        logger.debug("DocumentListener añadido al área de descripción del proyecto.");
+    } // ---FIN de metodo configurarListenersMetadatos---
+    
+    
+    /**
+     * Es llamado por la UI (a través de un callback en el ExportTableModel) cada vez
+     * que el usuario modifica un dato en la tabla de exportación (ej. un checkbox).
+     * Su única responsabilidad es notificar al sistema que hay cambios sin guardar.
+     */
+    public void notificarCambioEnProyecto() {
+    	
+    	logger.info("--- PASO 3: notificarCambioEnColaExportacion en ProjectController EJECUTADO ---");
+    	
+        if (projectManager != null && generalController != null) {
+            // NOTA: ProjectManager ahora llama a fireProjectStateChanged()
+            // cuando el flag *cambia*. Si el flag ya estaba en 'true', no lo notifica.
+            // Aquí solo le pedimos al Manager que haga su comprobación interna.
+            projectManager.notificarModificacion(); 
+
+            // Ya no necesitamos actualizar el título aquí directamente; 
+            // el listener en GeneralController se encargará de ello si notificarModificacion() disparó un cambio.
+            
+            logger.debug("[ProjectController] Cambio detectado. Dirty flag activado.");
+        }
+    } // ---FIN de metodo notificarCambioEnColaExportacion---
     
     
     /**
@@ -534,7 +579,7 @@ public class ProjectController implements IModoController {
         
         limpiarCacheRenderersProyecto();
         
-        if (registry == null || model == null || projectManager == null || projectListCoordinator == null || controllerRef == null) {
+        if (registry == null || model == null || projectManager == null || projectListCoordinator == null || generalController == null) {
             logger.error("ERROR [ProjectController.activarVistaProyecto]: Dependencias nulas.");
             return;
         }
@@ -695,12 +740,12 @@ public class ProjectController implements IModoController {
     
     @Override
     public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
-        if (zoomManager != null) {
-            zoomManager.aplicarZoomConRueda(e);
-            if (controllerRef != null) {
-                controllerRef.sincronizarEstadoVisualBotonesYRadiosZoom();
-            }
-        }
+    	if (zoomManager != null) {
+    	    zoomManager.aplicarZoomConRueda(e);
+    	    if (generalController != null && generalController.getVisorController() != null) {
+    	        generalController.getVisorController().sincronizarEstadoVisualBotonesYRadiosZoom();
+    	    }
+    	}
     } // --- Fin del método aplicarZoomConRueda ---
 
     
@@ -792,8 +837,6 @@ public class ProjectController implements IModoController {
         // 3. Realizar la operación en el modelo de datos y guardar.
         projectManager.moverAdescartes(rutaAbsoluta);
         projectManager.notificarModificacion();
-        controllerRef.actualizarTituloVentana();
-        projectManager.guardarAArchivo();
 
         // 4. Refrescar TODA la UI del proyecto. Esto reconstruirá los modelos de las JList.
         refrescarVistaProyectoCompleta();
@@ -840,8 +883,6 @@ public class ProjectController implements IModoController {
         // 2. Realizar la operación en el modelo de datos y guardar.
         projectManager.restaurarDeDescartes(rutaAbsoluta);
         projectManager.notificarModificacion();
-        controllerRef.actualizarTituloVentana();
-        projectManager.guardarAArchivo();
         
         // 3. Refrescar TODA la UI del proyecto.
         refrescarVistaProyectoCompleta();
@@ -885,7 +926,10 @@ public class ProjectController implements IModoController {
             return;
         }
         List<Path> seleccionActual = projectManager.getImagenesMarcadas();
-        exportQueueManager.prepararColaDesdeSeleccion(seleccionActual);
+        // --- INICIO DEL CAMBIO ---
+        Map<String, modelo.proyecto.ExportConfig> exportConfigs = projectManager.getCurrentProject().getExportConfigs();
+        exportQueueManager.prepararColaDesdeSeleccion(seleccionActual, exportConfigs);
+        // --- FIN DEL CAMBIO ---
         
         actualizarMapaDeItemsExportacion(exportQueueManager.getColaDeExportacion());
         
@@ -1065,6 +1109,7 @@ public class ProjectController implements IModoController {
             
             for (File file : selectedFiles) {
                 selectedItem.addRutaArchivoAsociado(file.toPath());
+                projectManager.addAssociatedFile(selectedItem.getRutaImagen(), file.toPath());
             }
             
             selectedItem.setEstadoArchivoComprimido(ExportStatus.ASIGNADO_MANUAL);
@@ -1072,6 +1117,8 @@ public class ProjectController implements IModoController {
             // Notificar a toda la UI para que se refresque
             tableModel.fireTableRowsUpdated(selectedRow, selectedRow);
             actualizarEstadoExportacionUI();
+            
+            notificarCambioEnProyecto();
             
             ExportPanel exportPanel = getRegistry().get("panel.proyecto.exportacion.completo");
             if (exportPanel != null && exportPanel.getDetailPanel() != null) {
@@ -1112,6 +1159,7 @@ public class ProjectController implements IModoController {
 
         if (selectedItem != null) {
             selectedItem.getRutasArchivosAsociados().remove(archivoSeleccionado);
+            projectManager.removeAssociatedFile(selectedItem.getRutaImagen(), archivoSeleccionado);
             
             // Si ya no quedan archivos asignados manualmente, pero el buscador automático sí encontró candidatos,
             // volvemos al estado de "encontrado ok". Si no, a "no encontrado".
@@ -1122,6 +1170,8 @@ public class ProjectController implements IModoController {
                 } else {
                     selectedItem.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
                 }
+                
+                notificarCambioEnProyecto();
             }
             
             model.fireTableRowsUpdated(selectedRow, selectedRow);
@@ -1162,12 +1212,6 @@ public class ProjectController implements IModoController {
     } // ---FIN de metodo [solicitarLocalizarArchivoAsociado]---
     
     
-    /**
-     * Sincroniza la selección de la JTable de exportación para que coincida con la imagen
-     * actualmente seleccionada en el modelo principal del visor.
-     * Este método es crucial para mantener la consistencia de la UI cuando se navega
-     * por las imágenes con los controles principales mientras el panel de exportación está visible.
-     */
     /**
      * Sincroniza la selección de la JTable de exportación para que coincida con la imagen
      * actualmente seleccionada en el modelo principal del visor.
@@ -1287,6 +1331,9 @@ public class ProjectController implements IModoController {
                 item.setEstadoArchivoComprimido(modelo.proyecto.ExportStatus.NO_ENCONTRADO);
             }
             modelTabla.fireTableRowsUpdated(filaSeleccionada, filaSeleccionada);
+            
+            notificarCambioEnProyecto();
+            
             actualizarEstadoExportacionUI();
         }
     } // --- Fin del método solicitarAlternarIgnorarComprimido ---
@@ -1334,7 +1381,6 @@ public class ProjectController implements IModoController {
         
         // Después de mover la imagen, notificamos el cambio y actualizamos el título.
         projectManager.notificarModificacion();
-        controllerRef.actualizarTituloVentana();
         
     } // --- Fin del método solicitudAlternarMarcaImagen ---
     
@@ -1351,37 +1397,32 @@ public class ProjectController implements IModoController {
      * Limpia el estado del proyecto y devuelve al usuario al modo Visualizador.
      */
     public void solicitarNuevoProyecto() {
-        if (projectManager == null || controllerRef == null || controllerRef.getGeneralController() == null) {
+        if (projectManager == null || generalController == null) {
             logger.error("ERROR [solicitarNuevoProyecto]: Dependencias nulas.");
             return;
         }
         
-        // 1. Limpiar el estado del proyecto en el backend.
         projectManager.nuevoProyecto();
         
         logger.info("Nuevo proyecto creado en el backend (ProjectManager).");
         
         limpiarCacheRenderersProyecto();
         
-        // --- AÑADIDO: Limpieza explícita de la UI de exportación ---
         JTable tabla = getTablaExportacionDesdeRegistro();
         if (tabla != null && tabla.getModel() instanceof ExportTableModel) {
             ((ExportTableModel) tabla.getModel()).clear();
             logger.debug("[ProjectController] Tabla de exportación limpiada para nuevo proyecto.");
         }
         
-        
-        // 2. Devolver al modo Visualizador.
         logger.info("Volviendo al modo Visualizador después de crear nuevo proyecto...");
-        controllerRef.getGeneralController().cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
+        generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
         
-        // 3. Actualizar el título de la ventana para que refleje el nuevo estado (ej. "Proyecto Temporal").
-        controllerRef.actualizarTituloVentana();
+        generalController.actualizarTituloVentana();
     } // ---FIN de metodo solicitarNuevoProyecto---
     
     
     public void solicitarAbrirProyecto(Path rutaArchivo) {
-        if (projectManager == null || controllerRef == null || model == null) {
+    	if (projectManager == null || generalController == null || model == null) {
             logger.error("ERROR [solicitarAbrirProyecto]: Dependencias nulas.");
             return;
         }
@@ -1389,9 +1430,10 @@ public class ProjectController implements IModoController {
         try {
             // 1. Cargar los datos del proyecto en el backend. Su única responsabilidad.
             projectManager.abrirProyecto(rutaArchivo);
+            projectManager.markProjectAsSaved();
             
             // 2. Actualizar el título de la ventana inmediatamente.
-            controllerRef.actualizarTituloVentana();
+            generalController.actualizarTituloVentana();
 
             // 3. Si YA ESTAMOS en modo proyecto, refrescamos la vista para mostrar los nuevos datos.
             //    Si NO estamos en modo proyecto, no hacemos nada. La responsabilidad de cambiar
@@ -1425,10 +1467,21 @@ public class ProjectController implements IModoController {
             }
         } else {
             // Si ya tiene nombre, simplemente guarda. El archivo ya está actualizado por las acciones.
+        	sincronizarModeloConUI();
+            sincronizarArchivosAsociadosConModelo();
+            sincronizarDescripcionDesdeUI();
+            sincronizarMetadatosParaGuardado();
+            
             projectManager.guardarAArchivo();
-            controllerRef.actualizarTituloVentana();
+            projectManager.markProjectAsSaved(); // Marcamos como "limpio" tras guardar.
+            generalController.actualizarTituloVentana();
+            
+            
             logger.info("Proyecto {} guardado.", projectManager.getNombreProyectoActivo());
         }
+        
+        projectManager.markProjectAsSaved();
+        
     } // ---FIN de metodo solicitarGuardarProyecto---
 
     
@@ -1438,7 +1491,8 @@ public class ProjectController implements IModoController {
      * Confía en que el ProjectModel en memoria es la fuente de la verdad.
      */
     public void solicitarGuardarProyectoComo() {
-        if (projectManager == null || controllerRef == null || view == null) {
+    	
+    	if (projectManager == null || generalController == null || view == null) {
             logger.error("ERROR [solicitarGuardarProyectoComo]: Dependencias nulas.");
             return;
         }
@@ -1476,9 +1530,15 @@ public class ProjectController implements IModoController {
         }
         
         // Simplemente le pide al manager que guarde su estado actual en la nueva ruta.
+        sincronizarModeloConUI();
+        sincronizarArchivosAsociadosConModelo();
+        sincronizarDescripcionDesdeUI();
+        sincronizarMetadatosParaGuardado();
+        
         projectManager.guardarProyectoComo(archivoDestino);
-        controllerRef.actualizarTituloVentana();
         projectManager.limpiarArchivoTemporal();
+        projectManager.markProjectAsSaved();
+        generalController.actualizarTituloVentana();
         
         // Restaura el feedback vital para el usuario.
         JOptionPane.showMessageDialog(
@@ -1488,6 +1548,34 @@ public class ProjectController implements IModoController {
             JOptionPane.INFORMATION_MESSAGE
         );
     } // ---FIN de metodo solicitarGuardarProyectoComo---
+    
+    
+    /**
+     * Actualiza los metadatos del ProjectModel (nombre, fecha de modificación)
+     * justo antes de una operación de guardado.
+     * El nombre del proyecto se deriva del nombre del archivo activo.
+     */
+    private void sincronizarMetadatosParaGuardado() {
+        if (projectManager == null) return;
+        
+        ProjectModel currentProject = projectManager.getCurrentProject();
+        if (currentProject == null) return;
+        
+        Path archivoActivo = projectManager.getArchivoProyectoActivo();
+
+        if (archivoActivo != null) {
+            String fileName = archivoActivo.getFileName().toString();
+            if (fileName.toLowerCase().endsWith(".prj")) {
+                fileName = fileName.substring(0, fileName.lastIndexOf('.'));
+            }
+            currentProject.setProjectName(fileName);
+        } else {
+            currentProject.setProjectName("Proyecto Temporal");
+        }
+        
+        currentProject.setLastModifiedDate(System.currentTimeMillis());
+        logger.debug("Metadatos del proyecto (nombre y fecha) sincronizados para guardado.");
+    } // ---FIN de metodo sincronizarMetadatosParaGuardado---
     
     
     /**
@@ -1541,15 +1629,115 @@ public class ProjectController implements IModoController {
     
     
     /**
+     * Sincroniza el mapa de 'associatedFiles' en el ProjectModel con el estado
+     * actual de la cola de exportación (ExportQueueManager).
+     * ESTA ES LA FUENTE DE VERDAD PARA LA PERSISTENCIA DE ASOCIACIONES.
+     * 1. Fuerza la actualización de la cola de exportación desde la selección actual.
+     * 2. Limpia el mapa 'associatedFiles' en el modelo.
+     * 3. Reconstruye el mapa 'associatedFiles' a partir de la cola actualizada.
+     */
+    public void sincronizarArchivosAsociadosConModelo() {
+        if (projectManager == null || exportQueueManager == null) {
+            logger.warn("[sincronizarArchivosAsociados] Sincronización abortada (dependencias nulas).");
+            return;
+        }
+        
+        logger.info("[ProjectController] Iniciando sincronización de Cola de Exportación -> Modelo de Proyecto...");
+        
+        ProjectModel modeloActual = projectManager.getCurrentProject();
+        if (modeloActual == null) {
+            logger.error("ERROR CRÍTICO [sincronizarArchivosAsociados]: El ProjectModel en ProjectManager es nulo.");
+            return;
+        }
+
+        // 1. Obtener el mapa de configuraciones del modelo y limpiarlo.
+        Map<String, modelo.proyecto.ExportConfig> exportConfigsMap = modeloActual.getExportConfigs();
+        exportConfigsMap.clear();
+
+        // 2. Obtener el estado actual de la cola de exportación.
+        List<ExportItem> colaActual = exportQueueManager.getColaDeExportacion();
+        int contador = 0;
+
+        // 3. Iterar sobre la cola y construir un objeto ExportConfig para cada item.
+        for (ExportItem item : colaActual) {
+            // Creamos un nuevo objeto de configuración.
+            modelo.proyecto.ExportConfig config = new modelo.proyecto.ExportConfig();
+
+            // Guardamos el estado del checkbox.
+            config.setExportEnabled(item.isSeleccionadoParaExportar());
+            
+            // Guardamos el estado de "ignorar".
+            config.setIgnoreCompressed(item.getEstadoArchivoComprimido() == modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO);
+            
+            // Guardamos la lista de archivos asociados.
+            if (item.getRutasArchivosAsociados() != null && !item.getRutasArchivosAsociados().isEmpty()) {
+                List<String> rutasComoString = item.getRutasArchivosAsociados().stream()
+                    .map(path -> path.toString().replace("\\", "/"))
+                    .collect(Collectors.toList());
+                config.setAssociatedFiles(rutasComoString);
+            }
+            
+            // 4. Guardar el objeto de configuración completo en el mapa del modelo.
+            String claveImagen = item.getRutaImagen().toString().replace("\\", "/");
+            exportConfigsMap.put(claveImagen, config);
+            contador++;
+        }
+
+        logger.info("[ProjectController] Sincronización de configuración de exportación completada. Se persistirán {} entradas.", contador);
+    } // ---FIN de metodo sincronizarArchivosAsociadosConModelo---
+    
+    
+    /**
+     * Carga los metadatos (nombre, descripción) desde el ProjectModel
+     * al panel de propiedades en la UI.
+     */
+    private void actualizarPanelDePropiedadesEnUI() {
+        if (projectManager == null || registry == null) return;
+        
+        vista.panels.export.ProjectMetadataPanel propsPanel = registry.get("panel.proyecto.propiedades");
+        ProjectModel currentProject = projectManager.getCurrentProject();
+
+        if (propsPanel != null && currentProject != null) {
+            String name = projectManager.getNombreProyectoActivo(); // Usamos el método que ya es inteligente
+            if (name.toLowerCase().endsWith(".prj")) {
+                name = name.substring(0, name.lastIndexOf('.'));
+            }
+            
+            String description = currentProject.getProjectDescription() != null ? currentProject.getProjectDescription() : "";
+
+            propsPanel.getProjectNameLabel().setText(name);
+            propsPanel.getProjectDescriptionArea().setText(description);
+            logger.debug("Panel de propiedades en la UI actualizado con los datos del modelo.");
+        }
+    } // ---FIN de metodo [actualizarPanelDePropiedadesEnUI]---
+
+    /**
+     * Sincroniza la descripción del proyecto desde el campo de texto de la UI
+     * hacia el ProjectModel en memoria.
+     */
+    void sincronizarDescripcionDesdeUI() {
+        if (projectManager == null || registry == null) return;
+        
+        vista.panels.export.ProjectMetadataPanel propsPanel = registry.get("panel.proyecto.propiedades");
+        ProjectModel currentProject = projectManager.getCurrentProject();
+
+        if (propsPanel != null && currentProject != null) {
+            currentProject.setProjectDescription(propsPanel.getProjectDescriptionArea().getText());
+            logger.debug("Descripción del ProjectModel sincronizada desde la UI.");
+        }
+    } // ---FIN de metodo [sincronizarDescripcionDesdeUI]---
+    
+    
+    /**
      * Actualiza los títulos de los paneles "Selección Actual" y "Descartes"
      * con el número correcto de elementos de sus respectivas listas.
      */
     public void actualizarContadoresDeTitulos() {
-        if (registry == null || controllerRef == null || controllerRef.getThemeManager() == null) return;
+        if (registry == null || generalController == null || generalController.getVisorController() == null || generalController.getVisorController().getThemeManager() == null) return;
         
         JPanel panelSeleccion = registry.get("panel.proyecto.seleccion.container");
         JPanel panelDescartes = registry.get("panel.proyecto.descartes.container");
-        java.awt.Color titleColor = controllerRef.getThemeManager().getTemaActual().colorBordeTitulo();
+        java.awt.Color titleColor = generalController.getVisorController().getThemeManager().getTemaActual().colorBordeTitulo();
 
         // Actualizar título para "Selección Actual"
         if (panelSeleccion != null && panelSeleccion.getBorder() instanceof javax.swing.border.TitledBorder) {
@@ -1591,7 +1779,6 @@ public class ProjectController implements IModoController {
             // 1. Modifica el modelo en memoria
             projectManager.eliminarDeProyecto(rutaAbsoluta);
             projectManager.notificarModificacion();
-            controllerRef.actualizarTituloVentana();
             
             // 2. Guarda el estado actual y correcto INMEDIATAMENTE
             projectManager.guardarAArchivo();
@@ -1603,12 +1790,12 @@ public class ProjectController implements IModoController {
     
         
     private void actualizarAparienciaListasPorFoco() {
-        if (registry == null || model == null || controllerRef.getThemeManager() == null) return;
+    	if (registry == null || model == null || generalController == null || generalController.getVisorController() == null || generalController.getVisorController().getThemeManager() == null) return;
         JList<String> projectList = registry.get("list.proyecto.nombres");
         JList<String> descartesList = registry.get("list.proyecto.descartes");
         if (projectList == null || descartesList == null) return;
         String focoActivo = model.getProyectoListContext().getNombreListaActiva();
-        vista.theme.Tema tema = controllerRef.getThemeManager().getTemaActual();
+        vista.theme.Tema tema = generalController.getVisorController().getThemeManager().getTemaActual();
         java.awt.Color colorFondoActivo = tema.colorFondoSecundario();
         java.awt.Color colorFondoInactivo = tema.colorBorde(); 
         java.awt.Color colorTextoActivo = tema.colorTextoPrimario();
@@ -1885,7 +2072,6 @@ public class ProjectController implements IModoController {
             projectManager.moverAdescartes(selectedItem.getRutaImagen());
             
             projectManager.notificarModificacion();
-            controllerRef.actualizarTituloVentana();
             
             // Paso 2: Ordenar un refresco completo y sincronizado de toda la UI.
             refrescarVistaProyectoCompleta();
@@ -1929,20 +2115,18 @@ public class ProjectController implements IModoController {
     public void mostrarImagenDeExportacion(Path rutaImagen) {
         logger.debug("[ProjectController] Solicitud para mostrar imagen de exportación: " + rutaImagen);
         
-        if (model == null || controllerRef == null) {
-            logger.error("ERROR [mostrarImagenDeExportacion]: Modelo o VisorController de referencia nulos.");
+        if (model == null || projectListCoordinator == null) {
+            logger.error("ERROR [mostrarImagenDeExportacion]: Modelo o ProjectListCoordinator nulos.");
             return;
         }
         if (rutaImagen == null) {
             logger.warn("WARN [mostrarImagenDeExportacion]: Ruta de imagen nula. Limpiando visor principal.");
-            controllerRef.actualizarImagenPrincipal(-1); 
+            projectListCoordinator.seleccionarImagenPorIndice(-1); 
             return;
         }
         
         String claveImagen = rutaImagen.toString().replace("\\", "/");
         
-        // SIN IMPORTAR EL MODO, le decimos al ProjectListCoordinator que esta es la nueva clave seleccionada.
-        // Él se encargará de buscarla en la lista que sea relevante y sincronizar las vistas.
         projectListCoordinator.seleccionarImagenPorClave(claveImagen);
 
     } // --- Fin del nuevo método mostrarImagenDeExportacion ---
@@ -1981,10 +2165,9 @@ public class ProjectController implements IModoController {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            projectManager.vaciarDescartes();
-            
-            projectManager.notificarModificacion();
-            controllerRef.actualizarTituloVentana();
+        	
+        	projectManager.vaciarDescartes();
+        	projectManager.notificarModificacion();
             
             refrescarListasDeProyecto();
         }
@@ -2017,7 +2200,6 @@ public class ProjectController implements IModoController {
             projectManager.setEtiqueta(ruta, nuevaEtiqueta);
             
             projectManager.notificarModificacion();
-            controllerRef.actualizarTituloVentana();
             
             refrescarGridProyecto();
         }
@@ -2035,7 +2217,6 @@ public class ProjectController implements IModoController {
             projectManager.setEtiqueta(ruta, null);
             
             projectManager.notificarModificacion();
-            controllerRef.actualizarTituloVentana();
             
             refrescarGridProyecto();
         }
@@ -2183,6 +2364,10 @@ public class ProjectController implements IModoController {
         }
     }
     
+    public void setGeneralController(GeneralController generalController) {
+    	this.generalController = Objects.requireNonNull(generalController, "GeneralController no puede ser null en ProjectController");
+    }
+    
     public void setViewManager(IViewManager viewManager) { this.viewManager = Objects.requireNonNull(viewManager); }
     public void setProjectManager(IProjectManager projectManager) {this.projectManager = Objects.requireNonNull(projectManager);}
     public void setRegistry(ComponentRegistry registry) { this.registry = Objects.requireNonNull(registry); }
@@ -2191,17 +2376,16 @@ public class ProjectController implements IModoController {
     public void setView(VisorView view) { this.view = Objects.requireNonNull(view); }
     public void setActionMap(Map<String, Action> actionMap) { this.actionMap = Objects.requireNonNull(actionMap); }
     public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model); }
-    public void setController(VisorController controller) { this.controllerRef = Objects.requireNonNull(controller); }
     
     public void setDisplayModeManager(DisplayModeManager displayModeManager) {this.displayModeManager = displayModeManager;}
     
     public IProjectManager getProjectManager() {return this.projectManager;    }
     public ProjectListCoordinator getProjectListCoordinator() {return this.projectListCoordinator;}
-    public VisorController getController() {return this.controllerRef;}
     public VisorView getView() { return this.view; }
     public ComponentRegistry getRegistry() { return this.registry; }
 
-    
+    public GeneralController getGeneralController() {return this.generalController;}
+    public Map<String, Action> getActionMap() {return this.actionMap;}
     
 } // --- FIN de la clase ProjectController ---
 

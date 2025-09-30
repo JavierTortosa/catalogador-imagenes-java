@@ -28,7 +28,7 @@ public class ToggleExportDetailsAction extends AbstractAction {
         logger.debug("Acción ToggleExportDetailsAction ejecutada.");
         
         // Obtenemos el panel de exportación a través del registro de componentes
-        ExportPanel exportPanel = projectController.getController().getGeneralController().getRegistry()
+        ExportPanel exportPanel = projectController.getRegistry()
                 .get("panel.proyecto.exportacion.completo");
 
         if (exportPanel != null) {

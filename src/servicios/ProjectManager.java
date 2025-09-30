@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -43,20 +44,28 @@ public class ProjectManager implements IProjectManager {
     
     // --- ESTADO CENTRALIZADO ---
     private ProjectModel currentProject;
+    private ProjectModel lastSavedProjectState;
     private ProjectController projectControllerRef;
     private VisorModel modelRef;
     private Gson gson;
     
+    private final List<ProjectStateListener> stateListeners = new ArrayList<>();
+    
     private boolean hayCambiosSinGuardar = false;
 
+
     public ProjectManager() {
-    	this.currentProject = new ProjectModel();
-        // 'setPrettyPrinting' hace que el archivo JSON sea legible para humanos
+        // 1. Crear la herramienta GSON PRIMERO.
         this.gson = new GsonBuilder()
                       .setPrettyPrinting()
                       .disableHtmlEscaping() // Para evitar que las barras '\' se conviertan en \u005c
-//                      .serializeNulls()
+//                    .serializeNulls()
                       .create();
+                      
+        // 2. Ahora que GSON existe, podemos inicializar los modelos de proyecto.
+        this.currentProject = new ProjectModel();
+        this.lastSavedProjectState = deepCopyProjectModel(this.currentProject);
+
     } // --- Fin del método ProjectManager (constructor) ---
 
 
@@ -101,6 +110,49 @@ public class ProjectManager implements IProjectManager {
         this.archivoSeleccionTemporalPath = this.carpetaBaseProyectos.resolve(nombreArchivoTemporal);
     } // --- Fin del método inicializarRutaArchivoSeleccion ---
     
+    
+    /**
+     * Compara el estado actual del proyecto (currentProject) con el último estado
+     * guardado (lastSavedProjectState) para determinar si hay cambios.
+     * @return true si hay diferencias, false si son idénticos.
+     */
+    private boolean isProjectDirty() {
+        // Si por alguna razón el estado guardado es nulo, consideramos que hay cambios.
+        if (this.lastSavedProjectState == null) {
+            return true;
+        }
+
+        // Comparamos los mapas de imágenes seleccionadas (rutas y etiquetas).
+        // El método .equals() para Maps es exhaustivo: compara tamaño, claves y valores.
+        if (!Objects.equals(this.currentProject.getSelectedImages(), this.lastSavedProjectState.getSelectedImages())) {
+            logger.debug("[Dirty Check] Diferencia detectada en: selectedImages");
+            return true;
+        }
+
+        // Comparamos las listas de imágenes descartadas.
+        if (!Objects.equals(this.currentProject.getDiscardedImages(), this.lastSavedProjectState.getDiscardedImages())) {
+            logger.debug("[Dirty Check] Diferencia detectada en: discardedImages");
+            return true;
+        }
+
+        // Comparamos las configuraciones de exportación.
+        // Esto es crucial para detectar cambios en la tabla de exportación.
+        // Nota: Esto requiere que la clase ExportConfig tenga un método .equals() bien implementado.
+        if (!Objects.equals(this.currentProject.getExportConfigs(), this.lastSavedProjectState.getExportConfigs())) {
+             logger.debug("[Dirty Check] Diferencia detectada en: exportConfigs");
+            return true;
+        }
+        
+        // Comparamos la descripción del proyecto
+        if (!Objects.equals(this.currentProject.getProjectDescription(), this.lastSavedProjectState.getProjectDescription())) {
+            logger.debug("[Dirty Check] Diferencia detectada en: projectDescription");
+            return true;
+        }
+
+        // Si hemos llegado hasta aquí, no hay diferencias.
+        return false;
+    } // ---FIN de metodo isProjectDirty---
+    
 
     private void cargarProyectoActivo() {
         // Lógica para determinar qué proyecto cargar al inicio.
@@ -108,6 +160,23 @@ public class ProjectManager implements IProjectManager {
         this.archivoProyectoActivo = null; // Empezamos en modo temporal.
         cargarDesdeArchivo(this.archivoSeleccionTemporalPath);
     } // --- Fin del método cargarProyectoActivo ---
+    
+    
+    /**
+     * Realiza una copia profunda (deep copy) de un objeto ProjectModel.
+     * La forma más sencilla y robusta de hacer esto es serializarlo a JSON y
+     * deserializarlo de nuevo en un nuevo objeto. Esto asegura que no queden
+     * referencias compartidas.
+     * @param original El objeto ProjectModel a copiar.
+     * @return Una instancia completamente nueva e independiente de ProjectModel.
+     */
+    private ProjectModel deepCopyProjectModel(ProjectModel original) {
+        if (original == null) {
+            return null;
+        }
+        String jsonString = gson.toJson(original);
+        return gson.fromJson(jsonString, ProjectModel.class);
+    } // ---FIN de metodo deepCopyProjectModel---
     
     
     private void cargarDesdeArchivo(Path rutaArchivo) {
@@ -210,28 +279,18 @@ public class ProjectManager implements IProjectManager {
     
 
     public void guardarAArchivo() {
-    	
-    	if (modelRef != null && modelRef.isEnModoProyecto()) {
-            // Para hacer esto, necesitamos acceso al ProjectController, que sí tiene acceso a la UI.
-            // Pero ProjectManager no debe conocer a ProjectController.
-            // La responsabilidad de sincronizar la tiene quien inicia el guardado.
-            
-            // ¡Este método NO debe llamar a sincronizar! La sincronización debe ocurrir ANTES de llamar a guardar.
-        }
-    	
         Path rutaGuardado = (this.archivoProyectoActivo != null) ? this.archivoProyectoActivo : this.archivoSeleccionTemporalPath;
         boolean esGuardadoDefinitivo = (this.archivoProyectoActivo != null);
-        
-        // --- INICIO DE LA MODIFICACIÓN DE DEPURACIÓN ---
-        
+
         logger.info("--- INICIANDO GUARDADO DE PROYECTO ---");
         logger.debug("Ruta de destino: {}", rutaGuardado.toAbsolutePath());
-        
+
         if (this.currentProject == null) {
             logger.error("!!! CRÍTICO: currentProject es NULO. No se puede guardar nada. !!!");
             return;
         }
-
+        
+        // La lógica de depuración que tenías se mantiene, es útil.
         Map<String, String> imagenesParaGuardar = this.currentProject.getSelectedImages();
         logger.debug(">>> CONTENIDO DE 'selectedImages' A PUNTO DE SER GUARDADO (Total: {} elementos):", imagenesParaGuardar.size());
         
@@ -248,43 +307,28 @@ public class ProjectManager implements IProjectManager {
             }
         }
         
-        // --- FIN DE LA MODIFICACIÓN DE DEPURACIÓN ---
-
-
-        // Actualizamos metadatos antes de guardar
-        if (this.archivoProyectoActivo != null) {
-            String fileName = this.archivoProyectoActivo.getFileName().toString();
-            if (fileName.toLowerCase().endsWith(".prj")) {
-                fileName = fileName.substring(0, fileName.lastIndexOf('.'));
-            }
-            this.currentProject.setProjectName(fileName);
-            logger.warn(fileName);
-        } else {
-            this.currentProject.setProjectName("Proyecto Temporal");
-        }
-        
-        this.currentProject.setLastModifiedDate(System.currentTimeMillis());
-
         try (FileWriter writer = new FileWriter(rutaGuardado.toFile())) {
-        	
             gson.toJson(this.currentProject, writer);
-        
             System.out.println(this.currentProject.toString());
-            
             logger.debug("  [ProjectManager] Proyecto JSON guardado en {}. Selección: {}, Descartes: {}.",
                          rutaGuardado.getFileName(), 
                          this.currentProject.getSelectedImages().size(), 
                          this.currentProject.getDiscardedImages().size());
-            
-            // ¡LÓGICA CORREGIDA! Solo reseteamos el flag si es un guardado definitivo (con nombre).
-            if (esGuardadoDefinitivo) {
-                this.hayCambiosSinGuardar = false;
-            }
-
         } catch (IOException e) {
             logger.error("ERROR [ProjectManager]: No se pudo guardar el archivo de proyecto JSON: " + rutaGuardado, e);
         }
         
+        if (esGuardadoDefinitivo) {
+            this.lastSavedProjectState = deepCopyProjectModel(this.currentProject);
+            logger.debug("   -> Estado 'lastSavedProjectState' actualizado tras guardado definitivo.");
+            
+            // Si el estado "sucio" cambia, lo actualizamos y notificamos.
+            if (this.hayCambiosSinGuardar) {
+                this.hayCambiosSinGuardar = false;
+                fireProjectStateChanged();
+                logger.debug("   -> [FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.");
+            }
+        }
     } // --- Fin del método guardarAArchivo ---
     
     
@@ -302,7 +346,8 @@ public class ProjectManager implements IProjectManager {
             modelRef.setRutaProyectoActivoConNombre(null);
         }
         
-        guardarAArchivo();
+        this.lastSavedProjectState = deepCopyProjectModel(this.currentProject);
+        
     } // ---FIN de metodo nuevoProyecto---
 
     
@@ -315,7 +360,7 @@ public class ProjectManager implements IProjectManager {
         }
 
         cargarDesdeArchivo(rutaArchivo);
-        this.hayCambiosSinGuardar = false;
+        this.lastSavedProjectState = deepCopyProjectModel(this.currentProject); 
         this.archivoProyectoActivo = rutaArchivo;
         
         // --- NUEVA LÍNEA ---
@@ -329,12 +374,15 @@ public class ProjectManager implements IProjectManager {
         logger.info("[ProjectManager] Guardando proyecto como: {}", rutaArchivo);
         this.archivoProyectoActivo = rutaArchivo;
         
-        // --- NUEVA LÍNEA ---
+        // --- LÍNEA MODIFICADA ---
         if (modelRef != null) {
+            // Pasamos el nuevo Path al modelo para que el título se pueda actualizar correctamente.
             modelRef.setRutaProyectoActivoConNombre(rutaArchivo);
         }
 
-        guardarAArchivo(); // Guarda el contenido actual en la nueva ruta.
+        // Esta llamada se encarga de guardar el contenido en la nueva ruta y de
+        // resetear el estado de "cambios sin guardar".
+        guardarAArchivo(); 
     } // ---FIN de metodo guardarProyectoComo---
     
     
@@ -438,6 +486,8 @@ public class ProjectManager implements IProjectManager {
         // 3. ¡LA LÍNEA CLAVE! Marcar que hay cambios sin guardar.
         // A diferencia de abrirProyecto(), aquí FORZAMOS el estado "sucio".
         this.hayCambiosSinGuardar = true;
+        
+        logger.info("   -> [FLAG] 'hayCambiosSinGuardar' FORZADO a 'true' tras cargar desde recuperación.");
 
     } // ---FIN de metodo cargarDesdeRecuperacion---
     
@@ -449,9 +499,27 @@ public class ProjectManager implements IProjectManager {
     
     public String getNombreProyectoActivo() {
         if (this.archivoProyectoActivo != null) {
-            return this.archivoProyectoActivo.getFileName().toString();
+            String fileName = this.archivoProyectoActivo.getFileName().toString();
+            if (fileName.toLowerCase().endsWith(".prj")) {
+                return fileName;
+            }
+            return fileName + ".prj"; // Aseguramos que tenga la extensión por consistencia
         }
+        
+        // --- INICIO DE LA MODIFICACIÓN (FALLBACK INTELIGENTE) ---
+        // Si archivoProyectoActivo es nulo, pero el modelo cargado SÍ tiene un nombre
+        // (porque viene de un archivo de recuperación), usamos ese nombre.
+        if (this.currentProject != null && this.currentProject.getProjectName() != null && !this.currentProject.getProjectName().equals("Proyecto Temporal")) {
+            String projectNameFromModel = this.currentProject.getProjectName();
+            if (!projectNameFromModel.toLowerCase().endsWith(".prj")) {
+                return projectNameFromModel + ".prj";
+            }
+            return projectNameFromModel;
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+
         return "Proyecto Temporal";
+        
     } // ---FIN de metodo getNombreProyectoActivo---
     
     
@@ -497,12 +565,85 @@ public class ProjectManager implements IProjectManager {
 
             this.currentProject.getSelectedImages().put(clave, etiquetaAGuardar); // <--- CAMBIO
             notificarModificacion(); 
-            guardarAArchivo();
             logger.debug("Etiqueta '{}' asignada a: {}", etiquetaAGuardar, rutaImagen.getFileName());
         } else {
             logger.warn("Intento de etiquetar una imagen que no está en la selección actual: {}", rutaImagen.getFileName());
         }
     } // ---FIN de metodo setEtiqueta ---
+    
+    
+    /**
+     * Añade una asociación entre una imagen y un archivo relacionado en el modelo del proyecto.
+     * Guarda los cambios en el archivo de proyecto.
+     *
+     * @param rutaImagen La imagen principal a la que se asocia el archivo.
+     * @param rutaArchivoAsociado El archivo (.stl, .zip, etc.) que se va a asociar.
+     */
+    public void addAssociatedFile(Path rutaImagen, Path rutaArchivoAsociado) {
+        if (rutaImagen == null || rutaArchivoAsociado == null) {
+            logger.warn("WARN [addAssociatedFile]: Se intentó añadir una asociación con rutas nulas.");
+            return;
+        }
+
+        String claveImagen = rutaImagen.toString().replace("\\", "/");
+        String rutaAsociadoStr = rutaArchivoAsociado.toString().replace("\\", "/");
+
+        // 1. Obtener el mapa de configuraciones de exportación.
+        Map<String, modelo.proyecto.ExportConfig> exportConfigsMap = this.currentProject.getExportConfigs();
+
+        // 2. Obtener (o crear si no existe) el objeto ExportConfig para esta imagen.
+        modelo.proyecto.ExportConfig config = exportConfigsMap.computeIfAbsent(claveImagen, k -> new modelo.proyecto.ExportConfig());
+
+        // 3. Obtener la lista de archivos asociados DENTRO del objeto de configuración.
+        List<String> files = config.getAssociatedFiles();
+
+        // 4. La lógica de añadir y guardar permanece igual.
+        if (!files.contains(rutaAsociadoStr)) {
+            files.add(rutaAsociadoStr);
+            notificarModificacion();
+            logger.debug("Archivo asociado '{}' añadido para la imagen '{}' y proyecto guardado.", rutaArchivoAsociado.getFileName(), rutaImagen.getFileName());
+        }
+    } // ---FIN de metodo addAssociatedFile---
+
+    /**
+     * Elimina una asociación entre una imagen y un archivo relacionado en el modelo del proyecto.
+     * Si la lista de archivos asociados para una imagen queda vacía, se elimina la entrada del mapa.
+     * Guarda los cambios en el archivo de proyecto.
+     *
+     * @param rutaImagen La imagen principal de la que se desasocia el archivo.
+     * @param rutaArchivoAsociado El archivo que se va a desasociar.
+     */
+    public void removeAssociatedFile(Path rutaImagen, Path rutaArchivoAsociado) {
+        if (rutaImagen == null || rutaArchivoAsociado == null) {
+            logger.warn("WARN [removeAssociatedFile]: Se intentó quitar una asociación con rutas nulas.");
+            return;
+        }
+
+        String claveImagen = rutaImagen.toString().replace("\\", "/");
+        String rutaAsociadoStr = rutaArchivoAsociado.toString().replace("\\", "/");
+
+        // 1. Obtener el mapa de configuraciones de exportación.
+        Map<String, modelo.proyecto.ExportConfig> exportConfigsMap = this.currentProject.getExportConfigs();
+
+        // 2. Obtener el objeto ExportConfig para esta imagen. Si no existe, no hay nada que hacer.
+        modelo.proyecto.ExportConfig config = exportConfigsMap.get(claveImagen);
+
+        if (config != null) {
+            // 3. Obtener la lista de archivos de DENTRO del objeto de configuración.
+            List<String> files = config.getAssociatedFiles();
+            boolean removed = files.remove(rutaAsociadoStr);
+
+            if (removed) {
+                // 4. Si la lista de archivos queda vacía Y los otros flags están en su estado por defecto,
+                //    podemos eliminar toda la entrada de ExportConfig para mantener el JSON limpio.
+                if (files.isEmpty() && config.isExportEnabled() && !config.isIgnoreCompressed()) {
+                    exportConfigsMap.remove(claveImagen);
+                }
+                notificarModificacion();
+                logger.debug("Archivo asociado '{}' eliminado para la imagen '{}' y proyecto guardado.", rutaArchivoAsociado.getFileName(), rutaImagen.getFileName());
+            }
+        }
+    } // ---FIN de metodo removeAssociatedFile---
 
 
     @Override
@@ -563,6 +704,22 @@ public class ProjectManager implements IProjectManager {
     } // --- Fin del método alternarMarcaImagen ---
     
     
+    /**
+     * Establece explícitamente el estado del proyecto como "guardado",
+     * reseteando el flag de cambios pendientes y notificando a los listeners.
+     * Este método es llamado por el controlador DESPUÉS de una operación
+     * de guardado, apertura o nuevo proyecto exitosa.
+     */
+    public void markProjectAsSaved() {
+        this.lastSavedProjectState = deepCopyProjectModel(this.currentProject);
+        if (this.hayCambiosSinGuardar) {
+            this.hayCambiosSinGuardar = false;
+            logger.debug("[FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.");
+            fireProjectStateChanged(); // Notificar que ya no hay cambios
+        }
+    } // ---FIN de metodo markProjectAsSaved---
+    
+    
     @Override
     public boolean hayCambiosSinGuardar() {
         return this.hayCambiosSinGuardar;
@@ -571,11 +728,25 @@ public class ProjectManager implements IProjectManager {
     
     @Override
     public void notificarModificacion() {
-        if (!this.hayCambiosSinGuardar) {
+        logger.info("--- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---");
+
+        // Comprobamos si el estado "sucio" va a cambiar.
+        boolean estabaSucio = this.hayCambiosSinGuardar;
+        boolean estaSucioAhora = isProjectDirty();
+
+        if (estaSucioAhora && !estabaSucio) {
+            // El proyecto estaba limpio y ahora tiene cambios.
             this.hayCambiosSinGuardar = true;
+            logger.debug("   -> [FLAG] El proyecto ha sido marcado como MODIFICADO. 'hayCambiosSinGuardar' es ahora 'true'.");
+            fireProjectStateChanged(); // Notificamos a los oyentes del cambio.
+        } else if (!estaSucioAhora && estabaSucio) {
+            // Esto podría ocurrir si el usuario deshace un cambio y vuelve al estado guardado.
+            this.hayCambiosSinGuardar = false;
+            logger.debug("   -> [FLAG] El proyecto ha vuelto a un estado sin modificar. 'hayCambiosSinGuardar' es ahora 'false'.");
+            fireProjectStateChanged(); // Notificamos también.
         }
-        
-    }// Fin del metodo notificarModificacion
+        // Si el estado no cambia (ya estaba sucio y sigue sucio), no hacemos nada.
+    }// ---FIN de metodo notificarModificacion---
     
     
     public void vaciarDescartes() {
@@ -584,7 +755,6 @@ public class ProjectManager implements IProjectManager {
         }
         notificarModificacion();
         this.currentProject.getDiscardedImages().clear();
-        guardarAArchivo();
         logger.debug("[ProjectManager] Lista de descartes vaciada.");
     } // --- Fin del método vaciarDescartes ---
     
@@ -685,6 +855,35 @@ public class ProjectManager implements IProjectManager {
             }
         }
     } // ---FIN de metodo archivarTemporalAlCerrar---
+    
+    
+    /**
+     * Añade un oyente para ser notificado de los cambios de estado del proyecto.
+     * @param listener El oyente a añadir.
+     */
+    public void addProjectStateListener(ProjectStateListener listener) {
+        if (listener != null && !stateListeners.contains(listener)) {
+            stateListeners.add(listener);
+        }
+    } // ---FIN de metodo addProjectStateListener---
+
+    /**
+     * Elimina un oyente de la lista de notificaciones.
+     * @param listener El oyente a eliminar.
+     */
+    public void removeProjectStateListener(ProjectStateListener listener) {
+        stateListeners.remove(listener);
+    } // ---FIN de metodo removeProjectStateListener---
+
+    /**
+     * Notifica a todos los oyentes registrados sobre un cambio en el estado
+     * de "cambios sin guardar".
+     */
+    private void fireProjectStateChanged() {
+        for (ProjectStateListener listener : stateListeners) {
+            listener.onProjectStateChanged(this.hayCambiosSinGuardar);
+        }
+    } // ---FIN de metodo fireProjectStateChanged---
     
     
     /**

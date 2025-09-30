@@ -73,7 +73,7 @@ import vista.panels.ImageDisplayPanel;
  * y gestiona el estado global de la aplicación, como el modo de trabajo actual y la
  * habilitación/deshabilitación de la UI correspondiente.
  */
-public class GeneralController implements IModoController, KeyEventDispatcher, PropertyChangeListener, modelo.MasterListChangeListener {
+public class GeneralController implements IModoController, KeyEventDispatcher, PropertyChangeListener, modelo.MasterListChangeListener, servicios.ProjectStateListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(GeneralController.class);
 	
@@ -270,6 +270,10 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 }
             }
             
+            if (projectController != null && projectController.getProjectManager() != null) {
+                projectController.getProjectManager().addProjectStateListener(this);
+                logger.debug("[GeneralController] Registrado como oyente de estado del proyecto.");
+            }
         });
     } // --- Fin del método initialize ---
     
@@ -334,6 +338,241 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
     } // ---FIN de metodo actualizarTituloVentana---
     
+    
+    /**
+     * Orquesta la acción de "Nuevo Proyecto".
+     * Comprueba si hay cambios sin guardar antes de proceder.
+     */
+    public void handleNewProject() {
+        if (promptToSaveChangesIfNecessary() == UserChoice.CANCEL) {
+            return; // El usuario canceló, no hacer nada.
+        }
+        
+        projectController.solicitarNuevoProyecto();
+        // solicitarNuevoProyecto ya se encarga de cambiar de modo y actualizar título.
+    } // ---FIN de metodo handleNewProject---
+
+    /**
+     * Orquesta la acción de "Abrir Proyecto".
+     * Comprueba si hay cambios sin guardar y luego muestra el diálogo para abrir un archivo.
+     */
+    public void handleOpenProject() {
+        if (promptToSaveChangesIfNecessary() == UserChoice.CANCEL) {
+            return; // El usuario canceló.
+        }
+        
+        // La lógica del JFileChooser ahora reside aquí, en el orquestador.
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setDialogTitle("Abrir Proyecto");
+        fileChooser.setCurrentDirectory(projectController.getProjectManager().getCarpetaBaseProyectos().toFile());
+        javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos de Proyecto (*.prj)", "prj");
+        fileChooser.setFileFilter(filter);
+        
+        int result = fileChooser.showOpenDialog(visorController.getView());
+        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
+            Path selectedFile = fileChooser.getSelectedFile().toPath();
+            projectController.solicitarAbrirProyecto(selectedFile);
+        }
+    } // ---FIN de metodo handleOpenProject---
+
+    /**
+     * Orquesta la acción de "Guardar Proyecto".
+     * Si el proyecto es nuevo (temporal), delega a "Guardar Como".
+     */
+    public void handleSaveProject() {
+        if (projectController.getProjectManager().getArchivoProyectoActivo() == null) {
+            handleSaveProjectAs(); // Es un proyecto temporal, necesita un nombre.
+        } else {
+            projectController.solicitarGuardarProyecto();
+            // solicitarGuardarProyecto ya actualiza el título a través del listener
+        }
+    } // ---FIN de metodo handleSaveProject---
+
+    /**
+     * Orquesta la acción de "Guardar Proyecto Como".
+     * Siempre muestra el diálogo para elegir una nueva ubicación.
+     */
+    public void handleSaveProjectAs() {
+        projectController.solicitarGuardarProyectoComo();
+    } // ---FIN de metodo handleSaveProjectAs---
+    
+    /**
+     * Orquesta la acción de "Eliminar Proyecto".
+     * Muestra los diálogos y delega la lógica de borrado.
+     */
+    public void handleDeleteProject() {
+        // La lógica que estaba en EliminarProyectoAction se mueve aquí.
+        javax.swing.JFileChooser fileChooser = new javax.swing.JFileChooser();
+        fileChooser.setDialogTitle("Seleccionar Proyecto a Eliminar");
+        
+        controlador.managers.interfaces.IProjectManager pm = projectController.getProjectManager();
+        Path dirInicial = pm.getCarpetaBaseProyectos();
+        if (dirInicial != null) {
+            fileChooser.setCurrentDirectory(dirInicial.toFile());
+        }
+
+        javax.swing.filechooser.FileNameExtensionFilter filter = new javax.swing.filechooser.FileNameExtensionFilter("Archivos de Proyecto (*.prj)", "prj");
+        fileChooser.setFileFilter(filter);
+
+        int result = fileChooser.showDialog(visorController.getView(), "Eliminar Seleccionado");
+
+        if (result == javax.swing.JFileChooser.APPROVE_OPTION) {
+            Path archivoAEliminar = fileChooser.getSelectedFile().toPath();
+            
+            int confirm = javax.swing.JOptionPane.showConfirmDialog(
+                visorController.getView(),
+                "¿Estás ABSOLUTAMENTE SEGURO de que quieres eliminar el proyecto '" + archivoAEliminar.getFileName() + "'?\n" +
+                "Esta acción es irreversible y borrará el archivo del disco.",
+                "Confirmar Eliminación Permanente",
+                javax.swing.JOptionPane.YES_NO_OPTION,
+                javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+
+            if (confirm == javax.swing.JOptionPane.YES_OPTION) {
+                try {
+                    Files.delete(archivoAEliminar);
+                    logger.info("Proyecto eliminado exitosamente: {}", archivoAEliminar);
+                    javax.swing.JOptionPane.showMessageDialog(visorController.getView(), "El proyecto ha sido eliminado.", "Eliminación Completada", javax.swing.JOptionPane.INFORMATION_MESSAGE);
+
+                    // Comprobar si el proyecto eliminado era el activo
+                    if (Objects.equals(pm.getArchivoProyectoActivo(), archivoAEliminar)) {
+                        pm.nuevoProyecto(); 
+                        cambiarModoDeTrabajo(VisorModel.WorkMode.VISUALIZADOR);
+                    }
+                    
+                } catch (java.io.IOException ex) {
+                    logger.error("Error al intentar eliminar el archivo de proyecto: " + archivoAEliminar, ex);
+                    javax.swing.JOptionPane.showMessageDialog(visorController.getView(), "No se pudo eliminar el archivo del proyecto.\nError: " + ex.getMessage(), "Error de Eliminación", javax.swing.JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        }
+    } // ---FIN de metodo handleDeleteProject---
+
+    /**
+     * Orquesta el proceso de apagado limpio de la aplicación.
+     * Es llamado desde el WindowListener de la vista principal.
+     */
+    public void handleApplicationShutdown() {
+        logger.info("--- [GeneralController] Gestionando el cierre de la aplicación ---");
+
+        UserChoice choice = promptToSaveChangesIfNecessary();
+
+        if (choice == UserChoice.CANCEL) {
+            logger.info("  -> Cierre de la aplicación CANCELADO por el usuario.");
+            return; // Abortar el cierre.
+        }
+        
+        controlador.managers.interfaces.IProjectManager pm = projectController.getProjectManager();
+
+        if (choice == UserChoice.DONT_SAVE && pm.hayCambiosSinGuardar()) {
+            logger.info("  -> Usuario eligió no guardar. Creando sesión de recuperación...");
+            Path recoveryPath = pm.guardarSesionDeRecuperacion();
+            if (recoveryPath != null) {
+                // Usamos la nueva clave específica para la recuperación.
+                configuration.setString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE, recoveryPath.toAbsolutePath().toString());
+            }
+        } else {
+            // Si no hay recuperación pendiente, nos aseguramos de que la clave esté vacía.
+            configuration.setString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE, "");
+        }
+        
+        // --- GUARDADO FINAL DE CONFIGURACIÓN ---
+        logger.debug("  -> Guardando estado final de la ventana y configuración...");
+        visorController.guardarEstadoVentanaEnConfig(); // Le pedimos al VisorController que guarde el estado de su ventana
+        
+        try {
+            configuration.guardarConfiguracion(configuration.getConfig());
+        } catch (java.io.IOException e) {
+            logger.error("### ERROR FATAL AL GUARDAR CONFIGURACIÓN DURANTE EL CIERRE: " + e.getMessage());
+        }
+        
+        // --- APAGADO DE SERVICIOS ---
+        visorController.apagarExecutorServiceOrdenadamente();
+        
+        logger.info("--- Apagado limpio completado. Saliendo de la JVM. ---");
+        System.exit(0);
+    } // ---FIN de metodo handleApplicationShutdown---
+    
+    
+    /**
+     * Orquesta el guardado explícito del archivo de configuración.
+     * Esto NO guarda el proyecto, solo las preferencias de la aplicación.
+     */
+    public void handleSaveConfiguration() {
+        if (configuration == null) {
+            logger.error("ERROR [handleSaveConfiguration]: ConfigurationManager es nulo.");
+            return;
+        }
+
+        logger.debug("  -> Guardando estado de la ventana y configuración a petición del usuario...");
+        
+        // Guardamos el estado de la ventana por si ha cambiado
+        if (visorController != null) {
+            visorController.guardarEstadoVentanaEnConfig();
+        }
+
+        try {
+            configuration.guardarConfiguracion(configuration.getConfig());
+            logger.info("Configuración guardada exitosamente en el archivo.");
+            if (statusBarManager != null) {
+                statusBarManager.mostrarMensajeTemporal("Configuración guardada.", 2000);
+            }
+        } catch (java.io.IOException e) {
+            logger.error("### ERROR AL GUARDAR CONFIGURACIÓN MANUALMENTE: " + e.getMessage());
+            if (statusBarManager != null) {
+                statusBarManager.mostrarMensajeTemporal("Error al guardar configuración.", 3000);
+            }
+        }
+    } // ---FIN de metodo handleSaveConfiguration---
+    
+    
+    /**
+     * Representa las posibles elecciones del usuario en el diálogo de "guardar cambios".
+     */
+    private enum UserChoice {
+        SAVE, DONT_SAVE, CANCEL
+    }
+
+    /**
+     * MÉTODO CLAVE REUTILIZABLE. Comprueba si hay cambios sin guardar y, si los hay,
+     * pregunta al usuario qué hacer.
+     * @return La elección del usuario (SAVE, DONT_SAVE, CANCEL). Si no había cambios,
+     *         devuelve DONT_SAVE (indicando que se puede proceder sin guardar).
+     */
+    private UserChoice promptToSaveChangesIfNecessary() {
+    	controlador.managers.interfaces.IProjectManager pm = projectController.getProjectManager();
+        if (pm == null || !pm.hayCambiosSinGuardar()) {
+            return UserChoice.DONT_SAVE; // No hay cambios, se puede proceder.
+        }
+
+        // Sincronizar la UI al modelo antes de preguntar, para asegurar que se guarde el estado más reciente.
+        projectController.sincronizarModeloConUI();
+        projectController.sincronizarArchivosAsociadosConModelo();
+        projectController.sincronizarDescripcionDesdeUI();
+        
+        String[] options = {"Guardar", "No Guardar", "Cancelar"};
+        int result = javax.swing.JOptionPane.showOptionDialog(
+            visorController.getView(),
+            "El proyecto '" + pm.getNombreProyectoActivo() + "' tiene cambios sin guardar. ¿Qué deseas hacer?",
+            "Cambios sin Guardar",
+            javax.swing.JOptionPane.YES_NO_CANCEL_OPTION,
+            javax.swing.JOptionPane.WARNING_MESSAGE,
+            null,
+            options,
+            options[0]
+        );
+
+        switch (result) {
+            case javax.swing.JOptionPane.YES_OPTION: // Guardar
+                handleSaveProject();
+                // Si el usuario canceló el diálogo "Guardar Como", el proyecto seguirá "sucio".
+                return pm.hayCambiosSinGuardar() ? UserChoice.CANCEL : UserChoice.SAVE;
+            case javax.swing.JOptionPane.NO_OPTION: // No Guardar
+                return UserChoice.DONT_SAVE;
+            default: // Cancelar o cerrar el diálogo
+                return UserChoice.CANCEL;
+        }
+    } // ---FIN de metodo promptToSaveChangesIfNecessary---
     
     /**
      * Orquesta la transición entre los diferentes modos de trabajo de la aplicación.
@@ -450,30 +689,34 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private void salirModo(VisorModel.WorkMode modoQueSeAbandona) {
         logger.debug("  [GeneralController] Saliendo del modo: " + modoQueSeAbandona);
         
+        // --- LÓGICA DE GUARDADO AL SALIR DEL MODO PROYECTO ---
         if (modoQueSeAbandona == WorkMode.PROYECTO) {
             if (projectController != null) {
-                // ANTES de hacer cualquier otra cosa, forzamos que el modelo de datos
-                // se actualice con el estado actual y visible de las listas de la UI.
+                // Sincronizamos el estado de la UI (listas, descripción, etc.) al modelo en memoria.
+                // ESTO NO GUARDA EN DISCO, solo asegura que el ProjectModel esté actualizado.
                 projectController.sincronizarModeloConUI();
                 
-                // Ahora que el modelo es 100% fiable, lo guardamos en el disco.
-                visorController.getProjectManager().guardarAArchivo();
-
                 // Guardamos el estado del panel de exportación.
                 model.setProjectExportPanelVisible(projectController.isExportPanelVisible());
-                logger.debug("    -> Modo Proyecto: Estado sincronizado, guardado y estado del panel de exportación memorizado: {}", model.isProjectExportPanelVisible());
+                logger.debug("    -> Modo Proyecto: Estado de UI sincronizado con el modelo en memoria.");
             }
         }
         
+        // --- LÓGICA DE GUARDADO AL SALIR DEL MODO VISUALIZADOR ---
         if (modoQueSeAbandona == WorkMode.VISUALIZADOR) {
-            // Si salimos del modo visualizador CON cambios pendientes (el usuario marcó algo),
-            // guardamos el estado en el archivo temporal.
+            // Si salimos del modo visualizador Y hay cambios pendientes (el usuario marcó algo),
+            // guardamos el estado en el archivo TEMPORAL. Esto preserva el "proyecto sin nombre".
             if (visorController != null && visorController.getProjectManager() != null && visorController.getProjectManager().hayCambiosSinGuardar()) {
-                 logger.info("Saliendo del modo VISUALIZADOR con cambios pendientes. Guardando estado del proyecto temporal...");
-                 visorController.getProjectManager().guardarAArchivo();
+                 // Solo guardamos si no tenemos un proyecto con nombre. Si lo tenemos, los cambios se quedan en memoria
+                 // esperando un guardado explícito.
+                 if (visorController.getProjectManager().getArchivoProyectoActivo() == null) {
+                     logger.info("Saliendo del modo VISUALIZADOR con cambios en proyecto temporal. Guardando en archivo temporal...");
+                     visorController.getProjectManager().guardarAArchivo(); // Esto guardará en "seleccion_temporal.prj"
+                 }
             }
         }
         
+        // --- LÓGICA DEL CARRUSEL (se mantiene igual) ---
         if (modoQueSeAbandona == WorkMode.CARROUSEL && !model.isSyncVisualizadorCarrusel()) {
             ListContext carruselCtx = model.getCarouselListContext();
             model.setUltimaCarpetaCarrusel(carruselCtx.getCarpetaRaizContexto());
@@ -636,6 +879,15 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         
         logger.debug("  [GeneralController] Estado de la UI actualizado.");
     } // --- Fin del método actualizarEstadoUiParaModo ---
+    
+    
+    @Override
+    public void onProjectStateChanged(boolean hasUnsavedChanges) {
+        // Este método es llamado por ProjectManager cuando el estado de "sucio" cambia.
+        // Su única responsabilidad es actualizar el título de la ventana.
+        logger.debug("[GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.");
+        actualizarTituloVentana();
+    } // ---FIN de metodo onProjectStateChanged---
     
     
     @Override

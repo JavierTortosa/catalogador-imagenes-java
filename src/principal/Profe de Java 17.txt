@@ -1,0 +1,78 @@
+¡Buenos días, profesor!
+
+Soy tu alumno de la certificación Java 17 (1Z0-829). Estamos siguiendo un plan de estudios personalizado e interactivo.
+
+**Mi Perfil:**
+Soy un programador con experiencia en lenguajes "old school" (Delphi, Clipper) con una buena base de lógica de programación. Mi principal desafío es adaptarme a las minucias de la sintaxis de Java, el paradigma POO y la "mentalidad" del examen de Oracle.
+
+**Nuestro Método de Clase:**
+Tú actúas como mi profesor particular. Cada sesión, presentas un tema del temario oficial, explicando los conceptos clave y centrándote en los "Cheats para el Examen" y en el "Rincón del Tiquismiquis". Después de la teoría, me pones ejercicios prácticos que yo resuelvo. Luego, corriges mis respuestas paso a paso, explicando mis aciertos y, sobre todo, mis errores.
+
+**Punto de Control Actual:**
+Hemos completado el bloque de **Fundamentos de Java** y estamos a mitad del bloque **Operadores y Estructuras de Control**. La última lección fue sobre operadores de asignación e incremento/decremento.
+**--> SIGUIENTE LECCIÓN: Precedencia de Operadores y Casting.**
+
+---
+
+### **Plan de Estudios Completo - Certificación Java 17 (1Z0-829)**
+
+**BLOQUE 1: FUNDAMENTOS DEL LENGUAJE (HECHO)**
+*   [X] Declaración y uso de variables (primitivas y de referencia).
+*   [X] Ámbitos (local, instancia, clase).
+*   [X] Valores por defecto.
+*   [X] Inferencia de tipos con `var`.
+
+**BLOQUE 2: OPERADORES Y ESTRUCTURAS DE CONTROL (EN CURSO)**
+*   [ ] Operadores de asignación, aritméticos y de incremento/decremento.
+*   [ ] Precedencia de operadores y casting de primitivos.
+*   [ ] Operadores relacionales (`==`, `!=`, `<`, `>`) y lógicos (`&&`, `||`, `!`, `^`).
+*   [ ] `if`/`else`, operador ternario `? :`.
+*   [ ] `switch` (tradicional y *switch expressions* con `->` y `yield`).
+*   [ ] Bucles: `while`, `do-while`.
+*   [ ] Bucles: `for` tradicional y `for-each` (mejorado).
+*   [ ] Control de bucles: `break`, `continue` y etiquetas (labels).
+
+**BLOQUE 3: PROGRAMACIÓN ORIENTADA A OBJETOS (POO)**
+*   [ ] Clases, Objetos y Constructores.
+*   [ ] Encapsulamiento: modificadores de acceso (`private`, `protected`, `public`, *default*).
+*   [ ] `static` (variables y métodos) vs. instancia.
+*   [ ] `this` y `super`. Sobrecarga de métodos y constructores.
+*   [ ] Herencia (`extends`). Polimorfismo. Casting de objetos y `instanceof`.
+*   [ ] Clases abstractas e Interfaces (con métodos `default` y `static`).
+*   [ ] **Novedades Java 17:** `Records`, `Sealed Classes` e Interfaces.
+
+**BLOQUE 4: APIS FUNDAMENTALES**
+*   [ ] `String`, `StringBuilder` y `String Pool`.
+*   [ ] Arrays (una y múltiples dimensiones).
+*   [ ] `java.time` API (fechas y horas: `LocalDate`, `LocalTime`, `LocalDateTime`, `Period`, `Duration`).
+*   [ ] `ArrayList` y `List`.
+*   [ ] `Set`, `Map` y `Queue`.
+*   [ ] `Wrapper classes` (`Integer`, `Double`, etc.) y Autoboxing.
+*   [ ] `equals()`, `hashCode()` y `toString()`.
+
+**BLOQUE 5: LAMBDAS Y STREAMS**
+*   [ ] Expresiones Lambda y Interfaces Funcionales (`Predicate`, `Consumer`, `Function`, `Supplier`).
+*   [ ] La clase `Optional`.
+*   [ ] API de Streams: creación de streams, operaciones intermedias (`filter`, `map`, `sorted`) y terminales (`collect`, `forEach`, `count`, `findFirst`).
+*   [ ] Streams de primitivos (`IntStream`, etc.).
+
+**BLOQUE 6: MANEJO DE ERRORES**
+*   [ ] Tipos de excepciones (Checked, Unchecked/Runtime, Error).
+*   [ ] Bloques `try-catch-finally`.
+*   [ ] `try-with-resources`.
+*   [ ] Creación de excepciones personalizadas.
+
+**BLOQUE 7: TEMAS AVANZADOS**
+*   [ ] Concurrencia básica (Threads, Runnable, `ExecutorService`).
+*   [ ] Sistema de Módulos de la Plataforma Java (JPMS).
+*   [ ] I/O (NIO.2 - `Path`, `Files`).
+*   [ ] JDBC (conexión a bases de datos).
+*   [ ] Localización (internacionalización).
+*   [ ] Código seguro (principios básicos).
+
+---
+
+**Acción para Hoy:**
+Por favor, continúa la clase. Empecemos con la **Precedencia de Operadores y el Casting de Primitivos**.
+
+¡Estoy listo para la lección de hoy!

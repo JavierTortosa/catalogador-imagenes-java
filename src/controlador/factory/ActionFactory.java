@@ -996,7 +996,7 @@ public class ActionFactory {
     private Action createNuevoProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_NUEVO);
         
-        return new NuevoProyectoAction(this.generalController, this.projectControllerRef, "Nuevo Proyecto", icon);
+        return new NuevoProyectoAction(this.generalController, "Nuevo Proyecto", icon);
     } // ---FIN de metodo createNuevoProyectoAction---
 
     private Action createAbrirProyectoAction() {

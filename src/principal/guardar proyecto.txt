@@ -1,0 +1,102 @@
+estoy por borrar todo el sistema y hacerlo desde cero.... tenemos una mezcla de quien hace que y como que flipas.... al final esta todo el mundo haciendo lo que les da la gana....
+visorController es el controlador del modo visor, no tiene nada que ver con el modo proyecto
+GeneralController es el que debe gestionar al VisorController y al ProjectController y a todos los controllers de todos los modos
+
+
+abrir proyecto
+tiene que comprobar si tenemos un proyecto abierto y tiene cambios sin guardar y actuar en consecuencia
+una vez resuelto tiene que abrir el proyecto, acualizar ls listas del proyecto y el titulo de la aplicacion
+guardar proyecto
+tiene que comprobar si tenemos un proyecto abierto y tiene cambios sin guardar y actuar en consecuencia
+una vez resuelto tiene que abrir el proyecto y acualizar el titulo de la aplicacion
+nuevo proyecto (vaciar proyecto)
+tiene que comprobar si tenemos un proyecto abierto y tiene cambios sin guardar y actuar en consecuencia
+una vez resuelto tiene que borrar el proyecto actual y acualizar el titulo de la aplicacion
+cambio a modo proyecto:
+si tenemos un proyecto abierto, cambia a modo proyecto, sin mas
+si no tenemos un proyecto abierto, debe abrir el selector de proyectos para poder abrir un proyecto, si no aberimos proyecto, no podemos entrar en modo proyecto.
+apertura de la aplicacion:
+comprueba en el config (que esta en VisorModel) si tiene referencia a un cierre sin guardar anterior
+si hay la referencia tenemos que poder cargar el proyecto anterior, si se pregunra y decimos que si, abrimos el archivo temporal de seguridad y si decimos que no, no hacemos nada
+para abrir el proyecto, podemos usar el metodo de abrir proyecto que ya tenemos
+como el proyecto estaba sin guardar, ahora tenemos que marcar el proyecto como "*" y actualizar el titulo
+tanto si cargamos el proyecto de cierre anterior como si no, la referencia del config se borra.
+cierre de la aplicacion
+antes de cerrar comprobar si hay cambios sin guardar
+si hay cambios, preguntar si se quieren guardar, si decimos que si se guarda y punto
+si decimos cancelar, ni se guarda ni se cierra la aplicacion
+si decimos que no,
+se debe guardar el proyecto actual en el archivo de seguridad
+se debe poner el proyecto en el config
+y luego se cierra la aplicacion
+Cambios de estado "*" (cambios pendientes):
+quitar el "*"
+si guardamos o vaciamos el proeycto... no hay mas
+poner el "*"
+
+en modo Visor
+si marcamos o desmarcamos una imagen creamos un proyecto temporal (sin nombre propio)
+se actualiza el titulo con el nombre del proyecto "[Proyecto: Proyecto Temporal]"
+ya esta....
+en modo proyecto
+cambios de listas primarias (cualquier cambio de seleccion o de descartes)
+cambio del panel de exportar:
+si se exporta o no (el checkbox de cada imagen)
+estado de la imagen (doble check, check, warn, error)
+archivos asociados a una imagen (panel de detalles)
+metodos:
+segun lo veo yo tenemos que tener:
+abrir <- abre un proyecto
+guardar <- guarda el proyecto
+nuevo <- borra de memoria el proyecto actual
+borrar <- borra un proyecto del disco
+actualizarTitulo <- cambia el titulo al nombre del proyecto
+actualizarEstado <- pone o quita el "*" segun comprobarEstado()
+abrirPorCierre <- usa abrir para abrir el proyecto de seguridad
+cerrarPorCierre <- usa guardar para guardar una copia del proyecto actual en seguridad y añade el nombre del proyecto real
+comprobarEstado <- compara si actualmente el proyecto esta igual que la ultima vez que estaba sin "*" y devuelve un boolean
+quien hace que:
+GeneralContoller
+<- determina el modo en que estamos
+VisorController
+<- (de momento) hace que se muestre el titulo y el estado actualizado en el titulo de la aplicacion
+<- Controla las marcas de las imagenes
+ProjectController
+
+
+
+
+abrir proyecto
+tiene que comprobar si tenemos un proyecto abierto y tiene cambios sin guardar y actuar en consecuencia
+una vez resuelto tiene que abrir el proyecto, acualizar ls listas del proyecto y el titulo de la aplicacion
+guardar proyecto
+tiene que comprobar si tenemos un proyecto abierto y tiene cambios sin guardar y actuar en consecuencia
+una vez resuelto tiene que abrir el proyecto y acualizar el titulo de la aplicacion
+nuevo proyecto (vaciar proyecto)
+tiene que comprobar si tenemos un proyecto abierto y tiene cambios sin guardar y actuar en consecuencia
+una vez resuelto tiene que borrar el proyecto actual y acualizar el titulo de la aplicacion
+cambio a modo proyecto:
+si tenemos un proyecto abierto, cambia a modo proyecto, sin mas
+si no tenemos un proyecto abierto, debe abrir el selector de proyectos para poder abrir un proyecto, si no aberimos proyecto, no podemos entrar en modo proyecto.
+apertura de la aplicacion:
+comprueba en el config (que esta en VisorModel) si tiene referencia a un cierre sin guardar anterior
+si hay la referencia tenemos que poder cargar el proyecto anterior, si se pregunra y decimos que si, abrimos el archivo temporal de seguridad y si decimos que no, no hacemos nada
+para abrir el proyecto, podemos usar el metodo de abrir proyecto que ya tenemos
+como el proyecto estaba sin guardar, ahora tenemos que marcar el proyecto como "*" y actualizar el titulo
+tanto si cargamos el proyecto de cierre anterior como si no, la referencia del config se borra.
+cierre de la aplicacion
+antes de cerrar comprobar si hay cambios sin guardar
+si hay cambios, preguntar si se quieren guardar, si decimos que si se guarda y punto
+si decimos cancelar, ni se guarda ni se cierra la aplicacion
+si decimos que no,
+se debe guardar el proyecto actual en el archivo de seguridad
+se debe poner el proyecto en el config
+y luego se cierra la aplicacion
+Cambios de estado "*" (cambios pendientes):
+quitar el "*"
+si guardamos o vaciamos el proeycto... no hay mas
+poner el "*"
+"
+Y también tu último mensaje:
+"no. no estoy de acuerdo....
+GeneralController le dice a VisorController que actualice el titulo.... punto....."

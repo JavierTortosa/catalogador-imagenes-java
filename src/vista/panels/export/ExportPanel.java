@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
@@ -51,16 +52,14 @@ public class ExportPanel extends JPanel {
     private int lastDividerLocation = -1; // Para recordar la posición del divisor
     private boolean isDetailsPanelVisible = false; // Para saber el estado actual
     
+    private JTextField txtProjectName;
+    private JTextArea areaProjectDescription;
+    
     public ExportPanel(ProjectController controller, java.util.function.Consumer<javax.swing.event.TableModelEvent> tableChangedCallback) {
         super(new BorderLayout(5, 5));
         this.projectController = controller;
         
-        this.tableModel = new ExportTableModel(e -> {
-        	if (tableChangedCallback != null) {
-                tableChangedCallback.accept(e);
-            }
-            adjustRowHeights();
-        });
+        this.tableModel = new ExportTableModel(tableChangedCallback);
         
         initComponents();
         
@@ -86,7 +85,8 @@ public class ExportPanel extends JPanel {
     private void initComponents() {
         this.setLayout(new BorderLayout(5, 5));
 
-        ToolbarManager toolbarManager = projectController.getController().getToolbarManager();
+        // --- LÍNEA CORREGIDA ---
+        ToolbarManager toolbarManager = projectController.getGeneralController().getToolbarManager(); 
         if (toolbarManager != null) {
             JToolBar exportActionsToolbar = toolbarManager.getToolbar("acciones_exportacion");
             if (exportActionsToolbar != null) {
@@ -99,7 +99,8 @@ public class ExportPanel extends JPanel {
         JPanel mainContentPanel = new JPanel(new BorderLayout(5, 5));
         TitledBorder exportBorder = BorderFactory.createTitledBorder("Exportar");
         mainContentPanel.setBorder(exportBorder);
-        projectController.getController().getGeneralController().getRegistry().register("panel.exportacion.container", mainContentPanel);
+        // --- LÍNEA CORREGIDA ---
+        projectController.getGeneralController().getRegistry().register("panel.exportacion.container", mainContentPanel);
 
         tablaExportacion = new JTable(this.tableModel); 
         tablaExportacion.setFillsViewportHeight(true);
@@ -111,10 +112,13 @@ public class ExportPanel extends JPanel {
         checkColumn.setMaxWidth(30);
         tablaExportacion.getTableHeader().getColumnModel().getColumn(0).setHeaderRenderer(new CheckHeaderRenderer());
         TableColumn statusColumn = tablaExportacion.getColumnModel().getColumn(2);
-        statusColumn.setCellRenderer(new vista.panels.export.StatusCellRenderer(projectController.getController().getIconUtils()));
+        
+        // --- LÍNEA CORREGIDA --- (Asumiendo que getVisorController() está en GeneralController)
+        statusColumn.setCellRenderer(new vista.panels.export.StatusCellRenderer(projectController.getGeneralController().getVisorController().getIconUtils()));
         
         TableColumn assignedFilesColumn = tablaExportacion.getColumnModel().getColumn(3);
-        Action toggleDetailsAction = projectController.getController().getActionMap().get(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION);
+        // --- LÍNEA CORREGIDA ---
+        Action toggleDetailsAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION);
         assignedFilesColumn.setCellRenderer(new MultiLineCellRenderer(toggleDetailsAction));
         assignedFilesColumn.setPreferredWidth(300);
         
@@ -142,9 +146,10 @@ public class ExportPanel extends JPanel {
         detailPanel.setPreferredSize(new java.awt.Dimension(0, 120));
         detailPanel.setMinimumSize(new java.awt.Dimension(0, 120));
         
-        Action addAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE);
-        Action removeAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE);
-        Action locateAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_EXPORT_LOCATE_ASSOCIATED_FILE);
+        // --- BLOQUE CORREGIDO ---
+        Action addAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE);
+        Action removeAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE);
+        Action locateAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_LOCATE_ASSOCIATED_FILE);
         
         detailPanel.setActions(addAction, removeAction, locateAction);
         
@@ -160,7 +165,8 @@ public class ExportPanel extends JPanel {
         this.lblResumen = new JLabel("Cargue la selección para ver el estado.");
         southPanel.add(this.lblResumen, BorderLayout.WEST);
 
-        this.txtCarpetaDestino = (JTextField) projectController.getController().getGeneralController().getRegistry().get("textfield.export.destino");
+        // --- LÍNEA CORREGIDA ---
+        this.txtCarpetaDestino = (JTextField) projectController.getGeneralController().getRegistry().get("textfield.export.destino");
         if (this.txtCarpetaDestino != null) {
             this.originalTextFieldBorder = this.txtCarpetaDestino.getBorder();
             southPanel.add(this.txtCarpetaDestino, BorderLayout.CENTER);
@@ -179,7 +185,7 @@ public class ExportPanel extends JPanel {
             return;
         }
         
-        ComponentRegistry registry = projectController.getController().getComponentRegistry();
+        ComponentRegistry registry = projectController.getRegistry();
         final javax.swing.AbstractButton detailsButton = registry.get("interfaz.boton.acciones_exportacion.export_detalles_seleccion");
         
         if (detailsButton == null) {
@@ -221,7 +227,7 @@ public class ExportPanel extends JPanel {
     
     
     public void actualizarTituloExportacion(int seleccionados, int total) {
-        ComponentRegistry registry = projectController.getController().getGeneralController().getRegistry();
+    	ComponentRegistry registry = projectController.getGeneralController().getRegistry();
         JPanel panelExportacion = registry.get("panel.exportacion.container");
         
         if (panelExportacion != null && panelExportacion.getBorder() instanceof TitledBorder) {
@@ -279,7 +285,7 @@ public class ExportPanel extends JPanel {
             lblResumen.setText("  " + mensajeResumen);
             lblResumen.setForeground(puedeExportar ? UIManager.getColor("Label.foreground") : Color.ORANGE);
         }
-        Action iniciarExportAction = projectController.getController().getActionFactory().getActionMap().get(AppActionCommands.CMD_INICIAR_EXPORTACION);
+        Action iniciarExportAction = projectController.getActionMap().get(AppActionCommands.CMD_INICIAR_EXPORTACION);
         if (iniciarExportAction != null) {
             iniciarExportAction.setEnabled(puedeExportar);
         }

@@ -5,13 +5,19 @@ import java.util.List;
 
 import javax.swing.table.AbstractTableModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import modelo.proyecto.ExportItem;
 
 public class ExportTableModel extends AbstractTableModel {
 
+	private static final Logger logger = LoggerFactory.getLogger(ExportTableModel.class); 
+	
     private static final long serialVersionUID = 1L;
     private final java.util.function.Consumer<javax.swing.event.TableModelEvent> onDataChangedCallback;
     private List<ExportItem> cola;
+    private boolean notifyListeners = true;
     
     private final String[] nombresColumnas = {"", "Imagen", "Estado", "Archivos Asignados"};
 
@@ -21,8 +27,10 @@ public class ExportTableModel extends AbstractTableModel {
     } // ---FIN de metodo [ExportTableModel]---
 
     public void setCola(List<ExportItem> nuevaCola) {
+        this.notifyListeners = false; // <-- DESACTIVAR NOTIFICACIONES
         this.cola = new ArrayList<>(nuevaCola);
         fireTableDataChanged();
+        this.notifyListeners = true; // <-- REACTIVAR NOTIFICACIONES
     } // ---FIN de metodo [setCola]---
 
     public ExportItem getItemAt(int rowIndex) {
@@ -81,14 +89,20 @@ public class ExportTableModel extends AbstractTableModel {
 
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
+    	
+    	logger.info ("--- PASO 1: setValueAt en TableModel EJECUTADO ---");
+    	
         if (columnIndex == 0 && aValue instanceof Boolean) {
             cola.get(rowIndex).setSeleccionadoParaExportar((Boolean) aValue);
             fireTableCellUpdated(rowIndex, columnIndex);
-            if (onDataChangedCallback != null) {
+            
+            // --- INICIO DEL CAMBIO ---
+            if (onDataChangedCallback != null && notifyListeners) {
                 onDataChangedCallback.accept(new javax.swing.event.TableModelEvent(this, rowIndex, rowIndex, columnIndex));
             }
+            // --- FIN DEL CAMBIO ---
         }
-    } // ---FIN de metodo [setValueAt]---
+    } // ---FIN de metodo setValueAt---
     
     /**
      * Busca el índice de la fila que corresponde a una ruta de imagen específica.

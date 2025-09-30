@@ -1,15 +1,11 @@
 package controlador.actions.projects;
 
 import java.awt.event.ActionEvent;
-import java.nio.file.Path;
 import java.util.Objects;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
-import javax.swing.filechooser.FileNameExtensionFilter;
 
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
@@ -29,7 +25,8 @@ public class GuardarProyectoComoAction extends AbstractAction {
     
     @Override
     public void actionPerformed(ActionEvent e) {
-        generalController.getProjectController().solicitarGuardarProyectoComo();
+        generalController.handleSaveProjectAs();
+        
     } // --- FIN del método actionPerformed ---
     
 

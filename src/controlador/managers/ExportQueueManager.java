@@ -35,43 +35,68 @@ public class ExportQueueManager {
     
     /**
      * Prepara la cola de exportación basándose en la selección actual del proyecto.
-     * Limpia la cola anterior y la repuebla.
-     * MODIFICADO: Ahora comprueba la existencia de la imagen antes de procesarla.
-     * @param rutasSeleccionadas La lista de rutas absolutas de las imágenes seleccionadas.
+     * Limpia la cola anterior y la repuebla con una lógica de prioridad:
+     * 1. Preserva el estado en memoria de los items que ya estaban en la cola.
+     * 2. Para items nuevos, carga las asociaciones guardadas en el archivo de proyecto.
+     * 3. Si no hay asociaciones guardadas, escanea el disco en busca de archivos.
+     *
+     * @param rutasSeleccionadas La lista de rutas de las imágenes seleccionadas.
+     * @param associatedFilesFromProject El mapa de archivos asociados cargado del ProjectModel.
      */
-    public void prepararColaDesdeSeleccion(List<Path> rutasSeleccionadas) {
+    public void prepararColaDesdeSeleccion(List<Path> rutasSeleccionadas, Map<String, modelo.proyecto.ExportConfig> exportConfigsFromProject) {
         logger.debug("[ExportQueueManager] Reconciliando cola para " + rutasSeleccionadas.size() + " imágenes.");
 
-        // Paso 1: Guardar el estado antiguo en un mapa para acceso rápido.
-        // La clave es la ruta de la imagen, el valor es el ExportItem completo con su estado.
         Map<Path, ExportItem> estadoAntiguo = this.colaDeExportacion.stream()
             .collect(Collectors.toMap(ExportItem::getRutaImagen, item -> item, (item1, item2) -> item1));
 
-        // Paso 2: Crear la nueva cola que vamos a construir.
         List<ExportItem> nuevaCola = new ArrayList<>();
 
-        // Paso 3: Iterar sobre la NUEVA lista de imágenes seleccionadas.
         for (Path rutaImagen : rutasSeleccionadas) {
-            // Comprobar si esta imagen ya existía en la cola anterior.
             if (estadoAntiguo.containsKey(rutaImagen)) {
-                // ¡Sí existía! La recuperamos del mapa y la añadimos a la nueva cola.
-                // Esto preserva cualquier asignación manual o estado que tuviera.
+                // Si el item ya estaba en memoria (ej. el usuario ya interactuó con él), lo preservamos.
                 nuevaCola.add(estadoAntiguo.get(rutaImagen));
             } else {
-                // No existía. Es una imagen recién marcada.
-                // Creamos un nuevo ExportItem, buscamos sus archivos y lo añadimos.
+                // Si es un item nuevo (ej. al cargar el proyecto), lo construimos desde cero.
                 ExportItem itemNuevo = new ExportItem(rutaImagen);
-                if (Files.exists(rutaImagen) && Files.isRegularFile(rutaImagen)) {
-                    buscarArchivoComprimidoAsociado(itemNuevo);
+                String claveImagen = rutaImagen.toString().replace("\\", "/");
+
+                // --- INICIO DE LA LÓGICA DE CARGA MEJORADA ---
+                modelo.proyecto.ExportConfig config = (exportConfigsFromProject != null) ? exportConfigsFromProject.get(claveImagen) : null;
+
+                if (config != null) {
+                    // --- Prioridad 1: Hay configuración guardada para esta imagen ---
+                    itemNuevo.setSeleccionadoParaExportar(config.isExportEnabled());
+                    
+                    List<String> rutasGuardadasStr = config.getAssociatedFiles();
+                    if (rutasGuardadasStr != null && !rutasGuardadasStr.isEmpty()) {
+                        List<Path> pathsGuardados = rutasGuardadasStr.stream()
+                                                                     .map(java.nio.file.Paths::get)
+                                                                     .collect(Collectors.toList());
+                        itemNuevo.setRutasArchivosAsociados(pathsGuardados);
+                        itemNuevo.setEstadoArchivoComprimido(ExportStatus.ASIGNADO_MANUAL);
+                    } else if (config.isIgnoreCompressed()) {
+                        itemNuevo.setEstadoArchivoComprimido(ExportStatus.IGNORAR_COMPRIMIDO);
+                    } else {
+                        // Hay config, pero sin archivos y sin ignorar. Se busca en disco.
+                        buscarArchivoComprimidoAsociado(itemNuevo);
+                    }
+                     logger.debug(" -> Configuración de exportación cargada desde el proyecto para {}", rutaImagen.getFileName());
+
                 } else {
-                    logger.warn("WARN [ExportQueueManager]: La imagen original no se encontró en la ruta: " + rutaImagen);
-                    itemNuevo.setEstadoArchivoComprimido(ExportStatus.IMAGEN_NO_ENCONTRADA);
+                    // --- Prioridad 2: No hay configuración guardada, escanear el disco ---
+                    if (Files.exists(rutaImagen) && Files.isRegularFile(rutaImagen)) {
+                        buscarArchivoComprimidoAsociado(itemNuevo);
+                    } else {
+                        logger.warn("WARN [ExportQueueManager]: La imagen original no se encontró en la ruta: " + rutaImagen);
+                        itemNuevo.setEstadoArchivoComprimido(ExportStatus.IMAGEN_NO_ENCONTRADA);
+                    }
                 }
+                // --- FIN DE LA LÓGICA DE CARGA MEJORADA ---
+                
                 nuevaCola.add(itemNuevo);
             }
         }
 
-        // Paso 4: Reemplazar la cola antigua por la nueva, ya reconciliada.
         this.colaDeExportacion = nuevaCola;
         logger.debug("[ExportQueueManager] Reconciliación de cola finalizada. Nuevo tamaño: {}", this.colaDeExportacion.size());
     } // --- Fin del método prepararColaDesdeSeleccion ---

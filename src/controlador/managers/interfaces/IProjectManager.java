@@ -155,4 +155,46 @@ public interface IProjectManager {
      */
 	ProjectModel getCurrentProject();
 
+	/**
+     * Añade una asociación persistente entre una imagen y un archivo relacionado.
+     * @param rutaImagen La imagen principal a la que se asocia el archivo.
+     * @param rutaArchivoAsociado El archivo (.stl, .zip, etc.) que se va a asociar.
+     */
+    void addAssociatedFile(Path rutaImagen, Path rutaArchivoAsociado);
+
+    /**
+     * Elimina una asociación persistente entre una imagen y un archivo relacionado.
+     * @param rutaImagen La imagen principal de la que se desasocia el archivo.
+     * @param rutaArchivoAsociado El archivo que se va a desasociar.
+     */
+    void removeAssociatedFile(Path rutaImagen, Path rutaArchivoAsociado);
+
+	/**
+     * Establece explícitamente el estado del proyecto como "guardado",
+     * reseteando el flag de cambios pendientes.
+     * Este método debe ser llamado por el controlador DESPUÉS de una operación
+     * de guardado o apertura exitosa.
+     */
+    void markProjectAsSaved();
+    
+    /**
+     * Añade un oyente para ser notificado de los cambios de estado del proyecto.
+     * @param listener El oyente a añadir.
+     */
+    void addProjectStateListener(servicios.ProjectStateListener listener);
+
+    /**
+     * Elimina un oyente de la lista de notificaciones.
+     * @param listener El oyente a eliminar.
+     */
+    void removeProjectStateListener(servicios.ProjectStateListener listener);
+
+    /**
+     * Guarda el estado actual del proyecto en un archivo de recuperación.
+     * Almacena la ruta del proyecto original dentro del archivo de recuperación.
+     *
+     * @return La ruta del archivo de recuperación creado.
+     */
+    Path guardarSesionDeRecuperacion();
+    
 } // --- FIN de la interfaz IProjectManager ---

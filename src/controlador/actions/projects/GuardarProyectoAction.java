@@ -24,9 +24,7 @@ public class GuardarProyectoAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        // La lógica inteligente está en el controlador. Si el proyecto es temporal,
-        // se comportará como "Guardar Como". Si ya tiene nombre, simplemente guardará.
-        generalController.getProjectController().solicitarGuardarProyecto();
+        generalController.handleSaveProject();
     } // --- FIN del método actionPerformed ---
 
 } // --- FIN de la clase GuardarProyectoAction ---

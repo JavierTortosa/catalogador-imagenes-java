@@ -1,0 +1,68 @@
+{
+  "projectName": "MiProyectoFINAL-JSON",
+  "projectDescription": "",
+  "creationDate": 1759224618552,
+  "lastModifiedDate": 1759224701615,
+  "selectedImages": {
+    "F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg": "",
+    "F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg": "",
+    "F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg": "",
+    "F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg": "",
+    "F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg": "",
+    "F:/ARCHIVOS 3D/Chibi/Batman.jpg": ""
+  },
+  "discardedImages": [
+    "F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg",
+    "F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg"
+  ],
+  "exportConfigs": {
+    "F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.rar"
+      ]
+    },
+    "F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg": {
+      "exportEnabled": false,
+      "ignoreCompressed": false,
+      "associatedFiles": []
+    },
+    "F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.zip"
+      ]
+    },
+    "F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.rar"
+      ]
+    },
+    "F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.rar"
+      ]
+    },
+    "F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.zip"
+      ]
+    },
+    "F:/ARCHIVOS 3D/Chibi/Batman.jpg": {
+      "exportEnabled": true,
+      "ignoreCompressed": false,
+      "associatedFiles": [
+        "F:/ARCHIVOS 3D/Chibi/Batman Pattinson.zip",
+        "F:/ARCHIVOS 3D/Chibi/Batman.zip"
+      ]
+    }
+  }
+}

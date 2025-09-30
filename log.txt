@@ -44,7 +44,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 37: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 38: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 39: [inicio.carpeta = F:\ARCHIVOS 3D\Chibi] -> Clave: 'inicio.carpeta', Valor: 'F:\ARCHIVOS 3D\Chibi'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = Ahsoka_@hehestl.jpg] -> Clave: 'inicio.imagen', Valor: 'Ahsoka_@hehestl.jpg'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 40: [inicio.imagen = ] -> Clave: 'inicio.imagen', Valor: ''
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 41: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 42: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 43: Ignorada (comentario/vacía)
@@ -258,7 +258,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 251: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 252: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 253: [window.height = 500] -> Clave: 'window.height', Valor: '500'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 254: [window.maximized = false] -> Clave: 'window.maximized', Valor: 'false'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 254: [window.maximized = true] -> Clave: 'window.maximized', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 255: [window.width = 1544] -> Clave: 'window.width', Valor: '1544'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 256: [window.x = -6] -> Clave: 'window.x', Valor: '-6'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 257: [window.y = 3] -> Clave: 'window.y', Valor: '3'
@@ -289,27 +289,24 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 282: [interfaz.menu.vista.barra_de_menu.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.barra_de_menu.seleccionado.visible', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 283: [interfaz.menu.vista.imagenes_en_miniatura.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.imagenes_en_miniatura.seleccionado.visible', Valor: 'true'
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 284: [interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado.visible = true] -> Clave: 'interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado.visible', Valor: 'true'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 285: [proyectos.estado.ultimo_proyecto_abierto = ] -> Clave: 'proyectos.estado.ultimo_proyecto_abierto', Valor: ''
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 286: [ui.background.custom.color.1 = 97,99,101] -> Clave: 'ui.background.custom.color.1', Valor: '97,99,101'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 287: [ui.background.custom.color.2 = 26,23,33] -> Clave: 'ui.background.custom.color.2', Valor: '26,23,33'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 288: [ui.background.custom.color.3 = 26,23,33] -> Clave: 'ui.background.custom.color.3', Valor: '26,23,33'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 289: [ui.background.custom.color.4 = 26,23,33] -> Clave: 'ui.background.custom.color.4', Valor: '26,23,33'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 285: [ui.background.custom.color.1 = 26,23,33] -> Clave: 'ui.background.custom.color.1', Valor: '26,23,33'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 286: [ui.background.custom.color.2 = 26,23,33] -> Clave: 'ui.background.custom.color.2', Valor: '26,23,33'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 287: [ui.background.custom.color.3 = 26,23,33] -> Clave: 'ui.background.custom.color.3', Valor: '26,23,33'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 288: [ui.background.custom.color.4 = 26,23,33] -> Clave: 'ui.background.custom.color.4', Valor: '26,23,33'
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 289: Ignorada (comentario/vacía)
 [0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 290: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 291: Ignorada (comentario/vacía)
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 292: [proyectos.estado.lista_activa = seleccion] -> Clave: 'proyectos.estado.lista_activa', Valor: 'seleccion'
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 293: [proyectos.estado.ultima_descartes_key = ] -> Clave: 'proyectos.estado.ultima_descartes_key', Valor: ''
-[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 294: [proyectos.estado.ultima_seleccion_key = ] -> Clave: 'proyectos.estado.ultima_seleccion_key', Valor: ''
-[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 217
+[0;39m[39mDEBUG servicios.ConfigurationManager -   Línea 291: [proyectos.estado.recuperacion_pendiente = D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\session_recovery.prj] -> Clave: 'proyectos.estado.recuperacion_pendiente', Valor: 'D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\session_recovery.prj'
+[0;39m[34mINFO  servicios.ConfigurationManager - Configuración leída. Total claves: 214
 [0;39m[34mINFO  servicios.ConfigurationManager - --- DEBUG PRE-SINCRONIZACIÓN ---
 [0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de DEFAULT_CONFIG: 186
-[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 217
+[0;39m[39mDEBUG servicios.ConfigurationManager - Tamaño de loadedConfig (del archivo): 214
 [0;39m[39mDEBUG servicios.ConfigurationManager - DEFAULT_CONFIG contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - loadedConfig contiene 'salto_bloque'?: true
 [0;39m[39mDEBUG servicios.ConfigurationManager - ---------------------------------
 [0;39m[34mINFO  servicios.ConfigurationManager - Sincronizando configuración cargada con mapa de defaults...
 [0;39m[39mDEBUG servicios.ConfigurationManager - La configuración cargada ya contenía todas las claves por defecto. No se añadieron nuevas.
 [0;39m[39mDEBUG servicios.ConfigurationManager - ConfigurationManager inicializado.
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 1228408860
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: 669971621
 [0;39m[34mINFO  vista.theme.ThemeManager - Tema personalizado cargado: 'DO New' (ID: custom_donew_-_copia) basado en 'com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDeepOceanIJTheme'
 [0;39m[34mINFO  vista.theme.ThemeManager - Tema personalizado cargado: 'DO New' (ID: custom_donew) basado en 'com.formdev.flatlaf.intellijthemes.materialthemeuilite.FlatMaterialDeepOceanIJTheme'
 [0;39m[39mDEBUG vista.theme.ThemeManager -  -> GlobalExtraDefaults establecidos para el tema 'Púrpura Misterioso'. Total: 2 propiedades.
@@ -682,7 +679,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
 [0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
 [0;39m[34mINFO  controlador.managers.ViewManager - [ViewManager] La gestión de bordes de foco ha sido transferida a GeneralController.
-[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: Ahsoka_@hehestl.jpg
+[0;39m[39mDEBUG controlador.VisorController - -->>> INICIO cargarListaImagenes | Mantener Clave: 
 [0;39m[39mDEBUG servicios.image.ThumbnailService - [ThumbnailService] Caché de miniaturas limpiado.
 [0;39m[34mINFO  controlador.AppInitializer - --- [Fase 3/3] Inicialización de UI completada. La aplicación está lista. ---
 [0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Iniciando búsqueda en F:\ARCHIVOS 3D\Chibi con profundidad 2147483647
@@ -693,6 +690,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.GeneralController - [FOCUS_INIT] TitledBorder original de la lista de archivos capturado con éxito.
 [0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Listeners de búsqueda/filtro configurados correctamente.
 [0;39m[34mINFO  controlador.GeneralController - [FOCUS_INIT] JScrollPane de detalles de exportación registrado para foco.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Registrado como oyente de estado del proyecto.
 [0;39m[39mDEBUG c.worker.BuscadorArchivosWorker -   [Worker BG] Files.walk terminado. Archivos encontrados: 1539
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -   [ConfigAppManager] Aplicando configuración a la Vista (usando Registry)...
 [0;39m[39mDEBUG c.managers.ConfigApplicationManager -     -> Aplicando estado inicial de fondo a cuadros desde config: false
@@ -703,19 +701,30 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG c.worker.BuscadorArchivosWorker - [Worker EDT] Método done() alcanzado.
 [0;39m[39mDEBUG controlador.VisorController -     -> Restaurando visibilidad de paneles según la configuración del usuario.
 [0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: VISUALIZADOR
-[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@bc43647: SelectedKey set to NULL (old key not found or was null).
-[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@bc43647 actualizado. Nuevo tamaño: 1539
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@15f17eb7: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@15f17eb7 actualizado. Nuevo tamaño: 1539
 [0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
 [0;39m[39mDEBUG vista.VisorView - [VisorView] Modelo asignado a 'list.nombresArchivo'. Tamaño: 1539
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 8
-[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Ahsoka_@hehestl.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 0
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: '3DXM - Armoured Mon-Star Chibi.jpg'
 [0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
-[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 8
-[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 17 miniaturas...
-[0;39m[39mDEBUG controlador.VisorController - [Controller] 17 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
-[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 8.
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 9
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 10 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 10 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 0.
 [0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
 [0;39m[39mDEBUG controlador.AppInitializer - --- [AppInitializer] Comprobando si hay una sesión para restaurar... ---
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 669971621
+[0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
+[0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
+[0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'purpura_misterioso'
+[0;39m[39mDEBUG servicios.ConfigurationManager - --- DEBUG: Contenido del mapa a guardar ---
+[0;39m[39mDEBUG servicios.ConfigurationManager -   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
+[0;39m[39mDEBUG servicios.ConfigurationManager - ------------------------------------------
+[0;39m[39mDEBUG servicios.ConfigurationManager - Guardando configuración (preservando estructura) en config.cfg
+[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 214
+[0;39m[39mDEBUG servicios.ConfigurationManager - Archivo de configuración actualizado exitosamente.
+[0;39m[34mINFO  controlador.AppInitializer -   -> Se ha detectado un archivo de sesión de recuperación pendiente en: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\session_recovery.prj
 [0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
 [0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
 [0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: sin borde
@@ -736,21 +745,1246 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
 [0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
 [0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
 [0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
-[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTabbedPane
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
-[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton | Nombre: OptionPane.button | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: OptionPane.buttonArea | Borde: NonUIResourceBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JOptionPane | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JDialog | Nombre: dialog0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.SwingUtilities$SharedOwnerFrame | Nombre: frame1 | Borde: sin borde
 [0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
 [0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
-[0;39m[34mINFO  controlador.VisorController - --- [Controller] Solicitud de cierre de aplicación recibida ---
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1228408860
+[0;39m[39mDEBUG controlador.AppInitializer -     -> Usuario ha elegido restaurar la sesión.
+[0;39m[34mINFO  servicios.ProjectManager - [ProjectManager] Iniciando carga desde archivo de recuperación: session_recovery.prj
+[0;39m[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto JSON cargado. Selección: 1, Descartes: 1
+[0;39m[39mDEBUG servicios.ProjectManager -    -> Archivo de recuperación contiene referencia al proyecto original: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\test3.prj
+[0;39m[34mINFO  servicios.ProjectManager -    -> Proyecto activo restaurado a: test3.prj
+[0;39m[34mINFO  servicios.ProjectManager -    -> [FLAG] 'hayCambiosSinGuardar' FORZADO a 'true' tras cargar desde recuperación.
+[0;39m[39mDEBUG controlador.GeneralController - --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Saliendo del modo: VISUALIZADOR
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Entrando en modo: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController - --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
+
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: *ModelTag - Your visual STL manager - [Proyecto: test3.prj]
+[0;39m[34mINFO  controlador.AppInitializer -   -> Sesión restaurada con éxito.
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-1] Cambiando tarjeta del CardLayout a: PROYECTO
+[0;39m[39mDEBUG controlador.managers.ViewManager - [ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_PROYECTOS
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-2] Restaurando y sincronizando UI para: PROYECTO
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Activando la UI de la vista de proyecto...
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Caché de los renderers de listas de proyecto limpiado.
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Preparando datos para el modo proyecto...
+[0;39m[34mINFO  controlador.ProjectController - >>>>>>>>>> [PROYECTO - INICIO] Al preparar datos, ProjectModel en memoria tiene 1 imágenes seleccionadas.
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39 actualizado. Nuevo tamaño: 2
+[0;39m[39mDEBUG controlador.ProjectController -     -> Datos del proyecto preparados. Total imágenes: 2
+[0;39m[39mDEBUG controlador.ProjectController -    -> Hay imágenes en el proyecto. Poblando la vista...
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Lista de descartes actualizada en la UI. Total: 1
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Contadores de títulos de paneles actualizados.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Clave determinada para la selección inicial: F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Layout del panel derecho reseteado a oculto.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Estado del botón de toggle del panel de exportación reseteado.
+[0;39m[39mDEBUG controlador.ProjectController - [DIAGNÓSTICO] Se ha llamado a configurarContextMenuTablaExportacion().
+[0;39m[39mDEBUG controlador.ProjectController - [DIAGNÓSTICO] Menú contextual configurado y listener añadido a la tabla de exportación.
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController -   [DEBUG-SYNC] Modo: PROYECTO, Valor de isMostrarSoloCarpetaActual() en modelo: false
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.toggle.subcarpetas ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.toggle.subcarpetas ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.toggle.mantener_proporciones ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.toggle.mantener_proporciones ---
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Estado de la UI actualizado.
+[0;39m[34mINFO  controlador.managers.ToolbarManager - --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: PROYECTO ---
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'zoom': true
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'proyecto' no está en caché. Construyéndola ahora...
+[0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Acciones de Proyecto' ---
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Separador visual añadido a la barra.
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'proyecto'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'proyecto' registrada en ComponentRegistry con la clave: 'toolbar.proyecto'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager getToolbar] La barra 'acciones_det_exportacion' no está en caché. Construyéndola ahora...
+[0;39m[34mINFO  vista.builders.ToolbarBuilder - --- [ToolbarBuilder] Construyendo barra: 'Detalles de Exportación' ---
+[0;39m[39mDEBUG vista.builders.ToolbarBuilder -     -> Barra con alineamiento FREE detectada ('acciones_det_exportacion'). Aplicando transparencia.
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [DEBUG ToolbarManager] Añadiendo AncestorListener a la barra: 'acciones_det_exportacion'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -     -> Barra 'acciones_det_exportacion' registrada en ComponentRegistry con la clave: 'toolbar.acciones_det_exportacion'
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'barra_estado_controles': true
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager] Notificando a ProjectController para la inicialización post-toolbars...
+[0;39m[39mDEBUG controlador.managers.ToolbarManager - --- [ToolbarManager] Reconstrucción de toolbars completada. ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.vista.switch_to_visualizador ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.vista.switch_to_visualizador ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.gestionar ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.gestionar ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: DATOS ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para DATOS ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: EDICION ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para EDICION ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: CARROUSEL ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para CARROUSEL ---
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-2] Restauración de UI para PROYECTO completada.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] UI de la vista de proyecto activada y apariencia actualizada.
+[0;39m[34mINFO  c.managers.BackgroundControlManager - --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
+[0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
+[0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Realizando inicialización post-toolbars...
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - [ExportPanel] Listener de resaltado (con setBorder) configurado CORRECTAMENTE.
+[0;39m[39mDEBUG controlador.ProjectController - [DIAGNÓSTICO] Se ha llamado a configurarContextMenuTablaExportacion().
+[0;39m[39mDEBUG controlador.ProjectController - [DIAGNÓSTICO] Menú contextual configurado y listener añadido a la tabla de exportación.
+[0;39m[39mDEBUG controlador.ProjectController - DocumentListener añadido al área de descripción del proyecto.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Inicialización post-toolbars completada.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JRootPane
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JRootPane
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JRootPane
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[34mINFO  controlador.ProjectController - >>>>>>>>>> [GUARDADO] Al solicitar 'Guardar Como...', ProjectModel en memoria tiene 1 imágenes seleccionadas.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.plaf.metal.MetalFileChooserUI$3
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.plaf.metal.MetalFileChooserUI$3 | Nombre: null | Borde: FlatTextBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JFileChooser | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JDialog | Nombre: dialog1 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: sun.swing.FilePane$4
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: sun.swing.FilePane$4 | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: FlatScrollPaneBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: sun.swing.FilePane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JFileChooser | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JDialog | Nombre: dialog1 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JButton | Nombre: null | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JFileChooser | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JDialog | Nombre: dialog1 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton | Nombre: OptionPane.button | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: OptionPane.buttonArea | Borde: NonUIResourceBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JOptionPane | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JDialog | Nombre: dialog2 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando sincronización de Cola de Exportación -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de configuración de exportación completada. Se persistirán 0 entradas.
+[0;39m[39mDEBUG controlador.ProjectController - Descripción del ProjectModel sincronizada desde la UI.
+[0;39m[39mDEBUG controlador.ProjectController - Metadatos del proyecto (nombre y fecha) sincronizados para guardado.
+[0;39m[34mINFO  servicios.ProjectManager - [ProjectManager] Guardando proyecto como: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\test3.prj
+[0;39m[34mINFO  servicios.ProjectManager - --- INICIANDO GUARDADO DE PROYECTO ---
+[0;39m[39mDEBUG servicios.ProjectManager - Ruta de destino: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\test3.prj
+[0;39m[39mDEBUG servicios.ProjectManager - >>> CONTENIDO DE 'selectedImages' A PUNTO DE SER GUARDADO (Total: 1 elementos):
+[0;39m------------------------------------------------------------------ IMAGENES PARA GUARDAR
+{F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg=}
+------------------------------------------------------------------
+[39mDEBUG servicios.ProjectManager -     1. F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+[0;39m--- Contenido de ProjectModel ---
+  Nombre: test3
+  Fecha Modificación: 1759224589995
+  Imágenes Seleccionadas (1):
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+  Imágenes Descartadas (1):
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+---------------------------------
+[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto JSON guardado en test3.prj. Selección: 1, Descartes: 1.
+[0;39m[39mDEBUG servicios.ProjectManager -    -> Estado 'lastSavedProjectState' actualizado tras guardado definitivo.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: test3.prj]
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.
+[0;39m[34mINFO  servicios.ProjectManager - El archivo de proyecto temporal (seleccion_actual.prj) ha sido vaciado.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: test3.prj]
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton | Nombre: OptionPane.button | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: OptionPane.buttonArea | Borde: NonUIResourceBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JOptionPane | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JDialog | Nombre: dialog3 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JRootPane
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m
+
+ [MOUSELISTENER] HEMOS ENTRADO EN VIEW_SELECTION 
+
+
+[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JList
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JList | Nombre: list.proyecto.nombres | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: PROYECTO
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Solicitud para alternar marca. Lista activa: 'seleccion'
+[0;39m[39mDEBUG controlador.ProjectController -     -> Foco en 'seleccion'. Moviendo a descartes...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como MODIFICADO. 'hayCambiosSinGuardar' es ahora 'true'.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: *ModelTag - Your visual STL manager - [Proyecto: test3.prj]
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando refresco completo de la vista del proyecto...
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Deseleccionando todo en Proyecto.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Lista de descartes actualizada en la UI. Total: 2
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Contadores de títulos de paneles actualizados.
+[0;39m[39mDEBUG controlador.ProjectController - Fuente de datos para masterList: Selección (0 elementos)
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: PROYECTO
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39 actualizado. Nuevo tamaño: 0
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Refresco completo de la vista del proyecto finalizado.
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid para modo PROYECTO actualizado con 0 elementos.
+[0;39m
+
+ [MOUSELISTENER] HEMOS ENTRADO EN VIEW_DISCARDS 
+
+
+[34mINFO  controlador.ProjectController - Solicitando cambio de estado de la vista del proyecto a: VIEW_DISCARDS
+[0;39m[39mDEBUG controlador.ProjectController - Fuente de datos para masterList: Descartes (2 elementos)
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: PROYECTO
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39 actualizado. Nuevo tamaño: 2
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JList
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JList | Nombre: list.proyecto.descartes | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid para modo PROYECTO actualizado con 2 elementos.
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: PROYECTO
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Solicitud para alternar marca. Lista activa: 'descartes'
+[0;39m[39mDEBUG controlador.ProjectController -     -> Foco en 'descartes'. Restaurando a selección...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando refresco completo de la vista del proyecto...
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Deseleccionando todo en Proyecto.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Lista de descartes actualizada en la UI. Total: 1
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Contadores de títulos de paneles actualizados.
+[0;39m[39mDEBUG controlador.ProjectController - Fuente de datos para masterList: Descartes (1 elementos)
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: PROYECTO
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39 actualizado. Nuevo tamaño: 1
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Refresco completo de la vista del proyecto finalizado.
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid para modo PROYECTO actualizado con 1 elementos.
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando sincronización de Cola de Exportación -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de configuración de exportación completada. Se persistirán 0 entradas.
+[0;39m[39mDEBUG controlador.ProjectController - Descripción del ProjectModel sincronizada desde la UI.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JButton | Nombre: OptionPane.button | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: OptionPane.buttonArea | Borde: NonUIResourceBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JOptionPane | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JDialog | Nombre: dialog4 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JButton | Nombre: OptionPane.button | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: OptionPane.buttonArea | Borde: NonUIResourceBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JOptionPane | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JDialog | Nombre: dialog4 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[34mINFO  servicios.ProjectManager - [ProjectManager] Creando nuevo proyecto.
+[0;39m[34mINFO  controlador.ProjectController - Nuevo proyecto creado en el backend (ProjectManager).
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Caché de los renderers de listas de proyecto limpiado.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Tabla de exportación limpiada para nuevo proyecto.
+[0;39m[34mINFO  controlador.ProjectController - Volviendo al modo Visualizador después de crear nuevo proyecto...
+[0;39m[39mDEBUG controlador.GeneralController - --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: PROYECTO -> VISUALIZADOR ---
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Saliendo del modo: PROYECTO
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.
+[0;39m[39mDEBUG controlador.GeneralController -     -> Modo Proyecto: Estado de UI sincronizado con el modelo en memoria.
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Cambiando modo de trabajo de PROYECTO a: VISUALIZADOR
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Entrando en modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.GeneralController - --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a VISUALIZADOR ---
+
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: Proyecto Temporal]
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-1] Cambiando tarjeta del CardLayout a: VISUALIZADOR
+[0;39m[39mDEBUG controlador.managers.ViewManager - [ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_VISUALIZADOR
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-2] Restaurando y sincronizando UI para: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController -     -> Restaurando UI para el modo VISUALIZADOR...
+[0;39m[39mDEBUG controlador.VisorController -       -> Modelo de lista del visualizador restaurado en la JList. Tamaño: 1539
+[0;39m[39mDEBUG controlador.VisorController - ### DEBUG: Restaurando selección. Clave guardada en contexto VISUALIZADOR: '3DXM - Armoured Mon-Star Chibi.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 0
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: '3DXM - Armoured Mon-Star Chibi.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 9
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 10 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 10 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 0.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Actualizando estado de la UI para el modo: VISUALIZADOR
+[0;39m[39mDEBUG controlador.GeneralController -   [DEBUG-SYNC] Modo: VISUALIZADOR, Valor de isMostrarSoloCarpetaActual() en modelo: false
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.toggle.subcarpetas ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.toggle.subcarpetas ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.toggle.mantener_proporciones ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.toggle.mantener_proporciones ---
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Estado de la UI actualizado.
+[0;39m[34mINFO  controlador.managers.ToolbarManager - --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: VISUALIZADOR ---
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'zoom': true
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'barra_estado_controles': true
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...
+[0;39m[39mDEBUG controlador.managers.ToolbarManager - --- [ToolbarManager] Reconstrucción de toolbars completada. ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.vista.switch_to_visualizador ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.vista.switch_to_visualizador ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.gestionar ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.gestionar ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: DATOS ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para DATOS ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: EDICION ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para EDICION ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: CARROUSEL ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para CARROUSEL ---
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Sincronizados botones de modo. Activo: cmd.vista.switch_to_visualizador
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-2] Restauración de UI para VISUALIZADOR completada.
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[34mINFO  c.managers.BackgroundControlManager - --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
+[0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
+[0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como MODIFICADO. 'hayCambiosSinGuardar' es ahora 'true'.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: *ModelTag - Your visual STL manager - [Proyecto: Proyecto Temporal]
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JList
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JList | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: CompoundBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 12: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 4
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: '3DXM - Chameleon Chibi.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 9
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 14 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 14 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 4.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 8
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Ahsoka_@hehestl.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 9
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 18 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 18 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 8.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 11
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Arale/Arale chibi.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 9
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 11.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 15
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Atlantes/CobraMode 15 - Sommos Pyraja.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 9
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 15.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 17
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Atlantes/CobraMode 15 May 2021 Patreon.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 9
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 17.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: 25
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'Batman.jpg'
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Iniciando ActualizarTiraDeMiniaturas
+[0;39m[39mDEBUG controlador.VisorController -   [CalcularMiniaturas] Rango dinámico calculado -> Antes: 9, Despues: 9
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Iniciando pre-calentamiento de caché para 19 miniaturas...
+[0;39m[39mDEBUG controlador.VisorController - [Controller] 19 tareas de pre-calentamiento de caché lanzadas al ExecutorService.
+[0;39m[39mDEBUG controlador.ListCoordinator - [ListCoordinator] Notificando a 1 listeners del cambio de selección al índice 25.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.VisorController -   -> Solicitando repintado inicial de listaMiniaturas.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: true
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: VISUALIZADOR
+[0;39m[39mDEBUG controlador.VisorController - [Controller] Solicitud para alternar marca de imagen actual...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m
+
+DEBUG: Se ha pulsado GestionarProyectoAction!
+DEBUG: Llamando a generalController.solicitarEntrarEnModoProyecto()...
+[39mDEBUG controlador.GeneralController - [GeneralController] Solicitud para entrar en modo proyecto. Delegando a cambiarModoDeTrabajo...
+[0;39m[39mDEBUG controlador.GeneralController - --- [GeneralController] INICIANDO TRANSICIÓN DE MODO: VISUALIZADOR -> PROYECTO ---
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Saliendo del modo: VISUALIZADOR
+[0;39m[34mINFO  controlador.GeneralController - Saliendo del modo VISUALIZADOR con cambios en proyecto temporal. Guardando en archivo temporal...
+[0;39m[34mINFO  servicios.ProjectManager - --- INICIANDO GUARDADO DE PROYECTO ---
+[0;39m[39mDEBUG servicios.ProjectManager - Ruta de destino: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\seleccion_actual.prj
+[0;39m[39mDEBUG servicios.ProjectManager - >>> CONTENIDO DE 'selectedImages' A PUNTO DE SER GUARDADO (Total: 8 elementos):
+[0;39m------------------------------------------------------------------ IMAGENES PARA GUARDAR
+{F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg=null, F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg=, F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg=, F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg=, F:/ARCHIVOS 3D/Chibi/Batman.jpg=}
+------------------------------------------------------------------
+[39mDEBUG servicios.ProjectManager -     1. F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     2. F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     3. F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     4. F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     5. F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     6. F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     7. F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     8. F:/ARCHIVOS 3D/Chibi/Batman.jpg
+[0;39m--- Contenido de ProjectModel ---
+  Nombre: null
+  Fecha Modificación: 1759224618552
+  Imágenes Seleccionadas (8):
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+    - F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+    - F:/ARCHIVOS 3D/Chibi/Batman.jpg
+  Imágenes Descartadas (1):
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+---------------------------------
+[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto JSON guardado en seleccion_actual.prj. Selección: 8, Descartes: 1.
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Cambiando modo de trabajo de VISUALIZADOR a: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Entrando en modo: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController - --- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a PROYECTO ---
+
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-1] Cambiando tarjeta del CardLayout a: PROYECTO
+[0;39m[39mDEBUG controlador.managers.ViewManager - [ViewManager] Vista cambiada en 'container.workmodes' a: VISTA_PROYECTOS
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-2] Restaurando y sincronizando UI para: PROYECTO
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Activando la UI de la vista de proyecto...
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Caché de los renderers de listas de proyecto limpiado.
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Preparando datos para el modo proyecto...
+[0;39m[34mINFO  controlador.ProjectController - >>>>>>>>>> [PROYECTO - INICIO] Al preparar datos, ProjectModel en memoria tiene 8 imágenes seleccionadas.
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39: Restored old selectedKey: 'F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg'
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39 actualizado. Nuevo tamaño: 9
+[0;39m[39mDEBUG controlador.ProjectController -     -> Datos del proyecto preparados. Total imágenes: 9
+[0;39m[39mDEBUG controlador.ProjectController -    -> Hay imágenes en el proyecto. Poblando la vista...
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Deseleccionando todo en Proyecto.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Lista de descartes actualizada en la UI. Total: 1
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Contadores de títulos de paneles actualizados.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Clave determinada para la selección inicial: F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Layout del panel derecho reseteado a oculto.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Estado del botón de toggle del panel de exportación reseteado.
+[0;39m[39mDEBUG controlador.ProjectController - [DIAGNÓSTICO] Se ha llamado a configurarContextMenuTablaExportacion().
+[0;39m[39mDEBUG controlador.ProjectController - [DIAGNÓSTICO] Menú contextual configurado y listener añadido a la tabla de exportación.
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Actualizando estado de la UI para el modo: PROYECTO
+[0;39m[39mDEBUG controlador.GeneralController -   [DEBUG-SYNC] Modo: PROYECTO, Valor de isMostrarSoloCarpetaActual() en modelo: false
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.toggle.subcarpetas ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.toggle.subcarpetas ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.toggle.mantener_proporciones ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.toggle.mantener_proporciones ---
+[0;39m[39mDEBUG controlador.GeneralController -   [GeneralController] Estado de la UI actualizado.
+[0;39m[34mINFO  controlador.managers.ToolbarManager - --- [ToolbarManager] Iniciando reconstrucción del contenedor de toolbars para el modo: PROYECTO ---
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'zoom': true
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   -> Visibilidad condicional para 'barra_estado_controles': true
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager] Notificando a BackgroundControlManager para que se re-inicialice...
+[0;39m[39mDEBUG controlador.managers.ToolbarManager -   [ToolbarManager] Notificando a ProjectController para la inicialización post-toolbars...
+[0;39m[39mDEBUG controlador.managers.ToolbarManager - --- [ToolbarManager] Reconstrucción de toolbars completada. ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.vista.switch_to_visualizador ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.vista.switch_to_visualizador ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.gestionar ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.gestionar ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: DATOS ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para DATOS ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: EDICION ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para EDICION ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: CARROUSEL ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para CARROUSEL ---
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Sincronizados botones de modo. Activo: cmd.proyecto.gestionar
+[0;39m[39mDEBUG controlador.GeneralController -     -> [EDT-2] Restauración de UI para PROYECTO completada.
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] UI de la vista de proyecto activada y apariencia actualizada.
+[0;39m[34mINFO  c.managers.BackgroundControlManager - --- [BackgroundControlManager] Iniciando y enlazando controles de fondo ---
+[0;39m[39mDEBUG c.managers.BackgroundControlManager - --- [BackgroundControlManager] Enlace de controles completado. 6 botones de fondo gestionados. ---
+[0;39m[39mDEBUG c.managers.BackgroundControlManager - [BackgroundControlManager] Sincronizando selección de botón de color...
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Realizando inicialización post-toolbars...
+[0;39m[39mDEBUG controlador.ProjectController - [DIAGNÓSTICO] Se ha llamado a configurarContextMenuTablaExportacion().
+[0;39m[39mDEBUG controlador.ProjectController - [DIAGNÓSTICO] Menú contextual configurado y listener añadido a la tabla de exportación.
+[0;39m[39mDEBUG controlador.ProjectController - DocumentListener añadido al área de descripción del proyecto.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Inicialización post-toolbars completada.
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: false
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[34mINFO  controlador.ProjectController - >>>>>>>>>> [GUARDADO] Al solicitar 'Guardar Como...', ProjectModel en memoria tiene 8 imágenes seleccionadas.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.plaf.metal.MetalFileChooserUI$3
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.plaf.metal.MetalFileChooserUI$3 | Nombre: null | Borde: FlatTextBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JFileChooser | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JDialog | Nombre: dialog5 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: sun.swing.FilePane$4
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: sun.swing.FilePane$4 | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: FlatScrollPaneBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: sun.swing.FilePane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JFileChooser | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JDialog | Nombre: dialog5 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JButton | Nombre: null | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JFileChooser | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JDialog | Nombre: dialog5 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton | Nombre: OptionPane.button | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: OptionPane.buttonArea | Borde: NonUIResourceBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JOptionPane | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JDialog | Nombre: dialog6 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando sincronización de Cola de Exportación -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de configuración de exportación completada. Se persistirán 0 entradas.
+[0;39m[39mDEBUG controlador.ProjectController - Descripción del ProjectModel sincronizada desde la UI.
+[0;39m[39mDEBUG controlador.ProjectController - Metadatos del proyecto (nombre y fecha) sincronizados para guardado.
+[0;39m[34mINFO  servicios.ProjectManager - [ProjectManager] Guardando proyecto como: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\MiProyectoFINAL-JSON.prj
+[0;39m[34mINFO  servicios.ProjectManager - --- INICIANDO GUARDADO DE PROYECTO ---
+[0;39m[39mDEBUG servicios.ProjectManager - Ruta de destino: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\MiProyectoFINAL-JSON.prj
+[0;39m[39mDEBUG servicios.ProjectManager - >>> CONTENIDO DE 'selectedImages' A PUNTO DE SER GUARDADO (Total: 8 elementos):
+[0;39m------------------------------------------------------------------ IMAGENES PARA GUARDAR
+{F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg=null, F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg=, F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg=, F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg=, F:/ARCHIVOS 3D/Chibi/Batman.jpg=}
+------------------------------------------------------------------
+[39mDEBUG servicios.ProjectManager -     1. F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     2. F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     3. F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     4. F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     5. F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     6. F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     7. F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     8. F:/ARCHIVOS 3D/Chibi/Batman.jpg
+[0;39m--- Contenido de ProjectModel ---
+  Nombre: Proyecto Temporal
+  Fecha Modificación: 1759224652781
+  Imágenes Seleccionadas (8):
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+    - F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+    - F:/ARCHIVOS 3D/Chibi/Batman.jpg
+  Imágenes Descartadas (1):
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+---------------------------------
+[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto JSON guardado en MiProyectoFINAL-JSON.prj. Selección: 8, Descartes: 1.
+[0;39m[39mDEBUG servicios.ProjectManager -    -> Estado 'lastSavedProjectState' actualizado tras guardado definitivo.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.
+[0;39m[34mINFO  servicios.ProjectManager - El archivo de proyecto temporal (seleccion_actual.prj) ha sido vaciado.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.plaf.basic.BasicOptionPaneUI$ButtonFactory$ConstrainedButton | Nombre: OptionPane.button | Borde: FlatButtonBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JPanel | Nombre: OptionPane.buttonArea | Borde: NonUIResourceBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JOptionPane | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JRootPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JDialog | Nombre: dialog7 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JList
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JList | Nombre: list.proyecto.nombres | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m
+
+ [MOUSELISTENER] HEMOS ENTRADO EN VIEW_SELECTION 
+
+
+[34mINFO  controlador.ProjectController - Solicitando cambio de estado de la vista del proyecto a: VIEW_SELECTION
+[0;39m[39mDEBUG controlador.ProjectController - Fuente de datos para masterList: Selección (8 elementos)
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: PROYECTO
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39 actualizado. Nuevo tamaño: 8
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid para modo PROYECTO actualizado con 8 elementos.
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Recibida solicitud para alternar marca. Modo actual: PROYECTO
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Solicitud para alternar marca. Lista activa: 'seleccion'
+[0;39m[39mDEBUG controlador.ProjectController -     -> Foco en 'seleccion'. Moviendo a descartes...
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como MODIFICADO. 'hayCambiosSinGuardar' es ahora 'true'.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: *ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando refresco completo de la vista del proyecto...
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Deseleccionando todo en Proyecto.
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController -   [ProjectController] Lista de descartes actualizada en la UI. Total: 2
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Contadores de títulos de paneles actualizados.
+[0;39m[39mDEBUG controlador.ProjectController - Fuente de datos para masterList: Selección (7 elementos)
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: PROYECTO
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39: SelectedKey set to NULL (old key not found or was null).
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39 actualizado. Nuevo tamaño: 7
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Refresco completo de la vista del proyecto finalizado.
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid para modo PROYECTO actualizado con 7 elementos.
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando sincronización de Cola de Exportación -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de configuración de exportación completada. Se persistirán 0 entradas.
+[0;39m[39mDEBUG controlador.ProjectController - Descripción del ProjectModel sincronizada desde la UI.
+[0;39m[39mDEBUG controlador.ProjectController - Metadatos del proyecto (nombre y fecha) sincronizados para guardado.
+[0;39m[34mINFO  servicios.ProjectManager - --- INICIANDO GUARDADO DE PROYECTO ---
+[0;39m[39mDEBUG servicios.ProjectManager - Ruta de destino: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\MiProyectoFINAL-JSON.prj
+[0;39m[39mDEBUG servicios.ProjectManager - >>> CONTENIDO DE 'selectedImages' A PUNTO DE SER GUARDADO (Total: 7 elementos):
+[0;39m------------------------------------------------------------------ IMAGENES PARA GUARDAR
+{F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg=null, F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg=, F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg=, F:/ARCHIVOS 3D/Chibi/Batman.jpg=}
+------------------------------------------------------------------
+[39mDEBUG servicios.ProjectManager -     1. F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     2. F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     3. F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     4. F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     5. F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     6. F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     7. F:/ARCHIVOS 3D/Chibi/Batman.jpg
+[0;39m--- Contenido de ProjectModel ---
+  Nombre: MiProyectoFINAL-JSON
+  Fecha Modificación: 1759224669928
+  Imágenes Seleccionadas (7):
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+    - F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+    - F:/ARCHIVOS 3D/Chibi/Batman.jpg
+  Imágenes Descartadas (2):
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
+---------------------------------
+[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto JSON guardado en MiProyectoFINAL-JSON.prj. Selección: 7, Descartes: 2.
+[0;39m[39mDEBUG servicios.ProjectManager -    -> Estado 'lastSavedProjectState' actualizado tras guardado definitivo.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[34mINFO  controlador.ProjectController - Proyecto MiProyectoFINAL-JSON.prj guardado.
+[0;39m[39mDEBUG controlador.ProjectController - Alternando vista de exportación. Nuevo estado visible: true
+[0;39m[34mINFO  c.managers.DisplayModeManager - Cambiando a DisplayMode: GRID
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Cambiando DisplayMode para contexto PROYECTO a: GRID
+[0;39m[39mDEBUG c.managers.DisplayModeManager -   -> Actuando sobre el contenedor CardLayout: container.displaymodes.proyecto
+[0;39m[39mDEBUG c.managers.DisplayModeManager - Parrilla del modo PROYECTO poblada con un modelo de 7 elementos.
+[0;39m[34mINFO  controlador.ProjectController - Solicitando cambio de estado de la vista del proyecto a: VIEW_EXPORT
+[0;39m[39mDEBUG controlador.ProjectController - Fuente de datos para masterList: Selección (7 elementos)
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Estableciendo nueva lista maestra para el modo: PROYECTO
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39: Restored old selectedKey: 'F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg'
+[0;39m[39mDEBUG modelo.ListContext - ### DEBUG CONTEXT: ListContext@7f03cc39 actualizado. Nuevo tamaño: 7
+[0;39m[39mDEBUG modelo.VisorModel - [Model] Notificando a 2 oyentes sobre el cambio de la lista maestra.
+[0;39m[39mDEBUG c.managers.ExportQueueManager - [ExportQueueManager] Reconciliando cola para 7 imágenes.
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para 3DXM - Scooby Doo Chibi
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para 3DXM - Armoured Mon-Star Chibi
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para 3DXM - Chameleon Chibi
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Ahsoka_@hehestl
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para Arale chibi
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 1 archivos asociados para CobraMode 15 May 2021 Patreon
+[0;39m[39mDEBUG c.managers.ExportQueueManager -  -> Encontrados 2 archivos asociados para Batman
+[0;39m[39mDEBUG c.managers.ExportQueueManager - [ExportQueueManager] Reconciliación de cola finalizada. Nuevo tamaño: 7
+[0;39m[39mDEBUG controlador.ProjectController - Mapa de items de exportación actualizado. Total: 7 items.
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Modelo de tabla de exportación actualizado.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG controlador.ProjectController - Panel de propiedades en la UI actualizado con los datos del modelo.
+[0;39m[39mDEBUG controlador.GeneralController - [MasterListChangeListener] Grid para modo PROYECTO actualizado con 7 elementos.
+[0;39m[39mDEBUG controlador.VisorController -  -> [Resize Timer] Disparando re-aplicación de zoom.
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTable
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTable | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: vista.panels.export.ExportPanel | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: CompoundBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 12: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 13: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 14: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 15: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[34mINFO  v.panels.export.ExportTableModel - --- PASO 1: setValueAt en TableModel EJECUTADO ---
+[0;39m[34mINFO  vista.builders.ProjectBuilder - --- PASO 2: Callback en ProjectBuilder EJECUTADO ---
+[0;39m[34mINFO  controlador.ProjectController - --- PASO 3: notificarCambioEnColaExportacion en ProjectController EJECUTADO ---
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como MODIFICADO. 'hayCambiosSinGuardar' es ahora 'true'.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: *ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Cambio detectado. Dirty flag activado.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Solicitud para mostrar imagen de exportación: F:\ARCHIVOS 3D\Chibi\3DXM - Armoured Mon-Star Chibi.jpg
+[0;39m[39mDEBUG controlador.ProjectListCoordinator - [ProjectListCoordinator] Nueva selección en Proyecto. Clave: F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+[0;39m[39mDEBUG controlador.VisorController - --> [actualizarImagenPrincipal] Iniciando carga para clave: 'F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg'
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[39mDEBUG controlador.VisorController -   [actualizarImagenPrincipal] Aplicando modo de zoom actual...
+[0;39m[39mDEBUG controlador.managers.ZoomManager - [ZoomManager] La operación de zoom de imagen principal no es aplicable en modo GRID. Operación omitida.
+[0;39m[39mDEBUG c.managers.InfobarStatusManager - [InfobarStatusManager] Actualizando UI de zoom para modo no compatible (Grid).
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- [ConfigAppManager] Sincronizando estado lógico para Action: cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG c.managers.ConfigApplicationManager - --- Fin sincronización lógica para cmd.proyecto.toggle_marca ---
+[0;39m[39mDEBUG controlador.VisorController -   [Controller] Estado visual de 'Marcar' actualizado. Marcada: true
+[0;39m[39mDEBUG c.managers.InfobarImageManager - ### DEBUG: InfobarImageManager.actualizarPorcentajeZoom() - INICIO
+[0;39m[39mDEBUG c.a.vista.SwitchToVisualizadorAction -   [SwitchToVisualizadorAction] Sincronizada acción 'Modo Visualizador'. Seleccionado: false
+[0;39m[34mINFO  v.panels.export.ExportTableModel - --- PASO 1: setValueAt en TableModel EJECUTADO ---
+[0;39m[34mINFO  vista.builders.ProjectBuilder - --- PASO 2: Callback en ProjectBuilder EJECUTADO ---
+[0;39m[34mINFO  controlador.ProjectController - --- PASO 3: notificarCambioEnColaExportacion en ProjectController EJECUTADO ---
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Cambio detectado. Dirty flag activado.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[34mINFO  v.panels.export.ExportTableModel - --- PASO 1: setValueAt en TableModel EJECUTADO ---
+[0;39m[34mINFO  vista.builders.ProjectBuilder - --- PASO 2: Callback en ProjectBuilder EJECUTADO ---
+[0;39m[34mINFO  controlador.ProjectController - --- PASO 3: notificarCambioEnColaExportacion en ProjectController EJECUTADO ---
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Cambio detectado. Dirty flag activado.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando sincronización de Cola de Exportación -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de configuración de exportación completada. Se persistirán 7 entradas.
+[0;39m[39mDEBUG controlador.ProjectController - Descripción del ProjectModel sincronizada desde la UI.
+[0;39m[39mDEBUG controlador.ProjectController - Metadatos del proyecto (nombre y fecha) sincronizados para guardado.
+[0;39m[34mINFO  servicios.ProjectManager - --- INICIANDO GUARDADO DE PROYECTO ---
+[0;39m[39mDEBUG servicios.ProjectManager - Ruta de destino: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\MiProyectoFINAL-JSON.prj
+[0;39m[39mDEBUG servicios.ProjectManager - >>> CONTENIDO DE 'selectedImages' A PUNTO DE SER GUARDADO (Total: 7 elementos):
+[0;39m------------------------------------------------------------------ IMAGENES PARA GUARDAR
+{F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg=null, F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg=, F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg=, F:/ARCHIVOS 3D/Chibi/Batman.jpg=}
+------------------------------------------------------------------
+[39mDEBUG servicios.ProjectManager -     1. F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     2. F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     3. F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     4. F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     5. F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     6. F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     7. F:/ARCHIVOS 3D/Chibi/Batman.jpg
+[0;39m--- Contenido de ProjectModel ---
+  Nombre: MiProyectoFINAL-JSON
+  Fecha Modificación: 1759224682940
+  Imágenes Seleccionadas (7):
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+    - F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+    - F:/ARCHIVOS 3D/Chibi/Batman.jpg
+  Imágenes Descartadas (2):
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
+---------------------------------
+[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto JSON guardado en MiProyectoFINAL-JSON.prj. Selección: 7, Descartes: 2.
+[0;39m[39mDEBUG servicios.ProjectManager -    -> Estado 'lastSavedProjectState' actualizado tras guardado definitivo.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[34mINFO  controlador.ProjectController - Proyecto MiProyectoFINAL-JSON.prj guardado.
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Evento de popup detectado en el componente: JTable
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Mostrando menú con 7 componentes.
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Evento de popup detectado en el componente: JTable
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Mostrando menú con 7 componentes.
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Evento de popup detectado en el componente: JTable
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Mostrando menú con 7 componentes.
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Evento de popup detectado en el componente: JTable
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Mostrando menú con 7 componentes.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JRootPane
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTable
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTable | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: vista.panels.export.ExportPanel | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: CompoundBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 12: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 13: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 14: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 15: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG c.a.p.ToggleExportDetailsAction - Acción ToggleExportDetailsAction ejecutada.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Mostrando el panel de detalles de exportación.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JList
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JList | Nombre: null | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: scroll.detalles.exportacion | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: vista.panels.export.ExportDetailPanel | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: vista.panels.export.ExportPanel | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JPanel | Nombre: null | Borde: CompoundBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 12: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 13: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 14: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 15: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 16: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 17: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como MODIFICADO. 'hayCambiosSinGuardar' es ahora 'true'.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: *ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[39mDEBUG servicios.ProjectManager - Archivo asociado '3DXM - Armoured Mon-Star Chibi.7z' eliminado para la imagen '3DXM - Armoured Mon-Star Chibi.jpg' y proyecto guardado.
+[0;39m[34mINFO  controlador.ProjectController - --- PASO 3: notificarCambioEnColaExportacion en ProjectController EJECUTADO ---
+[0;39m[34mINFO  servicios.ProjectManager - --- PASO 4: notificarModificacion en ProjectManager EJECUTADO ---
+[0;39m[39mDEBUG servicios.ProjectManager - [Dirty Check] Diferencia detectada en: selectedImages
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Cambio detectado. Dirty flag activado.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG c.a.p.ToggleExportDetailsAction - Acción ToggleExportDetailsAction ejecutada.
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Ocultando el panel de detalles de exportación.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JList
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JList | Nombre: list.proyecto.nombres | Borde: FlatEmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.ProjectController - [ProjectController] Iniciando sincronización de UI -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de UI -> Modelo completada. El modelo está listo para guardarse.
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Iniciando sincronización de Cola de Exportación -> Modelo de Proyecto...
+[0;39m[34mINFO  controlador.ProjectController - [ProjectController] Sincronización de configuración de exportación completada. Se persistirán 7 entradas.
+[0;39m[39mDEBUG controlador.ProjectController - Descripción del ProjectModel sincronizada desde la UI.
+[0;39m[39mDEBUG controlador.ProjectController - Metadatos del proyecto (nombre y fecha) sincronizados para guardado.
+[0;39m[34mINFO  servicios.ProjectManager - --- INICIANDO GUARDADO DE PROYECTO ---
+[0;39m[39mDEBUG servicios.ProjectManager - Ruta de destino: D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes\.proyectos\MiProyectoFINAL-JSON.prj
+[0;39m[39mDEBUG servicios.ProjectManager - >>> CONTENIDO DE 'selectedImages' A PUNTO DE SER GUARDADO (Total: 7 elementos):
+[0;39m------------------------------------------------------------------ IMAGENES PARA GUARDAR
+{F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg=null, F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg=, F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg=, F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg=, F:/ARCHIVOS 3D/Chibi/Batman.jpg=}
+------------------------------------------------------------------
+[39mDEBUG servicios.ProjectManager -     1. F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     2. F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     3. F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     4. F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     5. F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     6. F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+[0;39m[39mDEBUG servicios.ProjectManager -     7. F:/ARCHIVOS 3D/Chibi/Batman.jpg
+[0;39m--- Contenido de ProjectModel ---
+  Nombre: MiProyectoFINAL-JSON
+  Fecha Modificación: 1759224701615
+  Imágenes Seleccionadas (7):
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Scooby Doo Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Armoured Mon-Star Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/3DXM - Chameleon Chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Ahsoka_@hehestl.jpg
+    - F:/ARCHIVOS 3D/Chibi/Arale/Arale chibi.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 May 2021 Patreon.jpg
+    - F:/ARCHIVOS 3D/Chibi/Batman.jpg
+  Imágenes Descartadas (2):
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Calongo.jpg
+    - F:/ARCHIVOS 3D/Chibi/Atlantes/CobraMode 15 - Sommos Pyraja.jpg
+---------------------------------
+[39mDEBUG servicios.ProjectManager -   [ProjectManager] Proyecto JSON guardado en MiProyectoFINAL-JSON.prj. Selección: 7, Descartes: 2.
+[0;39m[39mDEBUG servicios.ProjectManager -    -> Estado 'lastSavedProjectState' actualizado tras guardado definitivo.
+[0;39m[39mDEBUG controlador.GeneralController - [GeneralController] Notificación recibida: el estado del proyecto ha cambiado. Actualizando título.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[39mDEBUG servicios.ProjectManager -    -> [FLAG] El proyecto ha sido marcado como GUARDADO. 'hayCambiosSinGuardar' es ahora 'false'.
+[0;39m[39mDEBUG controlador.VisorController - Título de la ventana actualizado a: ModelTag - Your visual STL manager - [Proyecto: MiProyectoFINAL-JSON.prj]
+[0;39m[34mINFO  controlador.ProjectController - Proyecto MiProyectoFINAL-JSON.prj guardado.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTable
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTable | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: vista.panels.export.ExportPanel | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: CompoundBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 12: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 13: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 14: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 15: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Evento de popup detectado en el componente: JTable
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Mostrando menú con 7 componentes.
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Evento de popup detectado en el componente: JTable
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Mostrando menú con 7 componentes.
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Evento de popup detectado en el componente: JTable
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Mostrando menú con 7 componentes.
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Evento de popup detectado en el componente: JTable
+[0;39m[39mDEBUG controlador.ProjectController - [ContextMenuListener] Mostrando menú con 7 componentes.
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JRootPane
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[39mDEBUG vista.panels.export.ExportPanel - Actualizando controles de exportación con mensaje: Falta carpeta destino.
+[0;39m[39mDEBUG controlador.ProjectController - Estado de exportación UI actualizado. Puede exportar: false. Mensaje: 'Falta carpeta destino.'
+[0;39m[39mDEBUG controlador.GeneralController - --- [DIAGNÓSTICO DE FOCO PROFUNDO] ---
+[0;39m[39mDEBUG controlador.GeneralController - Componente con foco directo: javax.swing.JTable
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 0: Clase: javax.swing.JTable | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 1: Clase: javax.swing.JViewport | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 2: Clase: javax.swing.JScrollPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 3: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 4: Clase: javax.swing.JPanel | Nombre: null | Borde: TitledBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 5: Clase: vista.panels.export.ExportPanel | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 6: Clase: javax.swing.JTabbedPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 7: Clase: javax.swing.JPanel | Nombre: null | Borde: CompoundBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 8: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 9: Clase: javax.swing.JSplitPane | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 10: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 11: Clase: javax.swing.JPanel | Nombre: null | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 12: Clase: javax.swing.JPanel | Nombre: null.contentPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 13: Clase: javax.swing.JLayeredPane | Nombre: null.layeredPane | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 14: Clase: javax.swing.JRootPane | Nombre: null | Borde: EmptyBorder
+[0;39m[39mDEBUG controlador.GeneralController -   -> Nivel 15: Clase: vista.VisorView | Nombre: frame0 | Borde: sin borde
+[0;39m[39mDEBUG controlador.GeneralController - --- [FIN DEL DIAGNÓSTICO] ---
+[0;39m[34mINFO  controlador.VisorController - --- [VisorController] Solicitud de cierre de aplicación recibida, delegando a GeneralController ---
+[0;39m[34mINFO  controlador.GeneralController - --- [GeneralController] Gestionando el cierre de la aplicación ---
+[0;39m[39mDEBUG controlador.GeneralController -   -> Guardando estado final de la ventana y configuración...
+[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 669971621
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
 [0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'purpura_misterioso'
@@ -758,28 +1992,7 @@ Iniciando Visor de Imágenes V2...
 [0;39m[39mDEBUG servicios.ConfigurationManager -   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
 [0;39m[39mDEBUG servicios.ConfigurationManager - ------------------------------------------
 [0;39m[39mDEBUG servicios.ConfigurationManager - Guardando configuración (preservando estructura) en config.cfg
-[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 217
+[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 214
 [0;39m[39mDEBUG servicios.ConfigurationManager - Archivo de configuración actualizado exitosamente.
-[0;39m[39mDEBUG controlador.VisorController -   -> Procediendo con el apagado final de la aplicación...
-[0;39m[39mDEBUG controlador.VisorController -   [Hook - Ventana] Guardando estado de la ventana en config...
-[0;39m[39mDEBUG controlador.VisorController -     -> Estado Maximized guardado en config: false
-[0;39m[39mDEBUG controlador.VisorController -     -> Últimos Bounds Normales guardados en config: java.awt.Rectangle[x=-6,y=3,width=1544,height=500]
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Guardando estado de contextos (sin estado de recuperación)...
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Visualizador: UltimaKey=Ahsoka_@hehestl.jpg, UltimaCarpeta=F:\ARCHIVOS 3D\Chibi
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Proyecto: Foco=seleccion, SelKey=null, DescKey=null
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Estado Carrusel/Sync: Sync=false, UltimaCarpeta=null
-[0;39m[39mDEBUG servicios.ConfigurationManager - !!! DEBUG: Guardando mapa. HashCode del mapa recibido: 1228408860
-[0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===
-[0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Intentando guardar en: config.cfg
-[0;39m[39mDEBUG servicios.ConfigurationManager - [ConfigurationManager guardarConfiguracion] Valor de 'tema.nombre' que se intentará guardar: 'purpura_misterioso'
-[0;39m[39mDEBUG servicios.ConfigurationManager - --- DEBUG: Contenido del mapa a guardar ---
-[0;39m[39mDEBUG servicios.ConfigurationManager -   -> ¡ENCONTRADO! comportamiento.navegacion.tamano_salto_bloque = 10
-[0;39m[39mDEBUG servicios.ConfigurationManager - ------------------------------------------
-[0;39m[39mDEBUG servicios.ConfigurationManager - Guardando configuración (preservando estructura) en config.cfg
-[0;39m[39mDEBUG servicios.ConfigurationManager - Claves a guardar/actualizar: 217
-[0;39m[39mDEBUG servicios.ConfigurationManager - Archivo de configuración actualizado exitosamente.
-[0;39m[39mDEBUG controlador.VisorController -   [Guardar] Configuración guardada exitosamente.
-[0;39m[39mDEBUG controlador.VisorController -   [Hook - Executor] Apagando ExecutorService...
-[0;39m[39mDEBUG controlador.VisorController -     -> ExecutorService terminado ordenadamente.
-[0;39m[34mINFO  controlador.VisorController - --- Apagado limpio completado. Saliendo de la JVM con System.exit(0). ---
+[0;39m[34mINFO  controlador.GeneralController - --- Apagado limpio completado. Saliendo de la JVM. ---
 [0;39m

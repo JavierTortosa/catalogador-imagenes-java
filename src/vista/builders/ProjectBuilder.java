@@ -32,6 +32,7 @@ import modelo.VisorModel;
 import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
 import vista.panels.export.ExportPanel;
+import vista.panels.export.ProjectMetadataPanel;
 import vista.renderers.ProjectListCellRenderer;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
@@ -277,51 +278,46 @@ public class ProjectBuilder implements ThemeChangeListener {
         registry.register("panel.proyecto.herramientas.container", panelHerramientas);
         panelHerramientas.setMinimumSize(new java.awt.Dimension(200, 200));
         
-	     // 1. Obtenemos el color de borde estándar del TEMA ACTUAL.
-         //         Esto garantiza que el color siempre sea visible y coherente con el Look & Feel.
-	     java.awt.Color borderColor = javax.swing.UIManager.getColor("Component.borderColor");
-	     if (borderColor == null) {
-	         borderColor = java.awt.Color.GRAY; // Un color de respaldo por si acaso
-	     }
-	
-	     // 2. Creamos un borde de línea con ese color.
-	     javax.swing.border.Border lineBorder = javax.swing.BorderFactory.createLineBorder(borderColor);
-	
-	     // 3. Creamos un borde de espacio (padding) para que la línea no esté pegada al contenido.
-	     javax.swing.border.Border emptyBorder = javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2); // 2 píxeles de espacio
-	
-	     // 4. Creamos un borde compuesto que une el espacio (exterior) y la línea (interior).
-	     panelHerramientas.setBorder(javax.swing.BorderFactory.createCompoundBorder(emptyBorder, lineBorder));
+	    java.awt.Color borderColor = javax.swing.UIManager.getColor("Component.borderColor");
+	    if (borderColor == null) borderColor = java.awt.Color.GRAY;
+	    javax.swing.border.Border lineBorder = javax.swing.BorderFactory.createLineBorder(borderColor);
+	    javax.swing.border.Border emptyBorder = javax.swing.BorderFactory.createEmptyBorder(2, 2, 2, 2);
+	    panelHerramientas.setBorder(javax.swing.BorderFactory.createCompoundBorder(emptyBorder, lineBorder));
 	
         JTabbedPane herramientasTabbedPane = new JTabbedPane();
         registry.register("tabbedpane.proyecto.herramientas", herramientasTabbedPane);
 
+        // --- Pestaña 1: Propiedades (NUEVA) ---
+        ProjectMetadataPanel panelPropiedades = new ProjectMetadataPanel();
+        registry.register("panel.proyecto.propiedades", panelPropiedades);
+
+        // --- Pestaña 2: Exportar (EXISTENTE) ---
         ExportPanel panelExportar = new ExportPanel(this.projectController,
-                (e) -> this.projectController.actualizarEstadoExportacionUI());
+                (e) -> {
+                	logger.info ("--- PASO 2: Callback en ProjectBuilder EJECUTADO ---");
+                	
+                    this.projectController.notificarCambioEnProyecto();
+                    this.projectController.actualizarEstadoExportacionUI();
+                });
         registry.register("panel.proyecto.exportacion.completo", panelExportar);
         registry.register("tabla.exportacion", panelExportar.getTablaExportacion(), "WHEEL_NAVIGABLE");
         
-        // --- INICIO DE LA CONEXIÓN ---
         if (panelExportar.getDetailPanel() != null) {
-            // Obtenemos las acciones que hemos creado
             Action addAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE);
             Action removeAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE);
             Action locateAction = generalController.getVisorController().getActionMap().get(AppActionCommands.CMD_EXPORT_LOCATE_ASSOCIATED_FILE);
-
-            // Se las pasamos al panel de detalles para que las use
             panelExportar.getDetailPanel().setActions(addAction, removeAction, locateAction);
-            
-            // Registramos el panel de detalles para que otros puedan encontrarlo si es necesario
             registry.register("panel.proyecto.exportacion.detalles", panelExportar.getDetailPanel());
         }
-        // --- FIN DE LA CONEXIÓN ---
         
         herramientasTabbedPane.addTab("Exportar", panelExportar);
+        herramientasTabbedPane.addTab("Propiedades", panelPropiedades);
 
+        // --- Pestaña 3: Etiquetar (FUTURA) ---
         JPanel panelEtiquetar = new JPanel();
         panelEtiquetar.add(new JLabel("Funcionalidad de etiquetado en desarrollo."));
         herramientasTabbedPane.addTab("Etiquetar", panelEtiquetar);
-        herramientasTabbedPane.setEnabledAt(1, false);
+        herramientasTabbedPane.setEnabledAt(2, false); // Ahora es el índice 2
 
         panelHerramientas.add(herramientasTabbedPane, BorderLayout.CENTER);
         return panelHerramientas;

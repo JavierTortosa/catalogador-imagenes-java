@@ -148,6 +148,7 @@ public final class ConfigKeys {
     public static final String PROYECTOS_ULTIMA_DESCARTES_KEY 					= "proyectos.estado.ultima_descartes_key";
     public static final String PROYECTOS_ULTIMO_PROYECTO_ABIERTO 				= "proyectos.estado.ultimo_proyecto_abierto";
     
+    public static final String PROYECTO_RECUPERACION_PENDIENTE 					= "proyectos.estado.recuperacion_pendiente";
     // Para el futuro:
     // public static final String KEY_PROYECTOS_ULTIMO_ABIERTO 					= "proyectos.ultimo_abierto_ruta_completa";
     // public static final String KEY_PROYECTOS_INICIO_ACCION 					= "proyectos.inicio.accion"; // ej. "cargar_ultimo", "nuevo_temporal"

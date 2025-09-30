@@ -155,6 +155,7 @@ public class AppInitializer {
         // Controladores, Coordinadores y Managers (en orden de dependencia)
         this.generalController = new GeneralController();
         this.projectController = new ProjectController(); // Crear la ÚNICA instancia aquí
+        this.projectController.setGeneralController(this.generalController);
         
         this.filterManager = new FilterManager(this.model);
         this.folderNavManager = new FolderNavigationManager(this.model, this.generalController);
@@ -227,12 +228,12 @@ public class AppInitializer {
         this.controller.setProjectManager(this.projectManagerService);
         this.controller.setToolbarManager(this.toolbarManager);
         this.controller.setActionFactory(this.actionFactory);
-//        this.controller.setBackgroundControlManager(this.backgroundControlManager);
         this.controller.setGeneralController(this.generalController);
         this.controller.setDisplayModeManager(this.displayModeManager);
         this.controller.setZoomManager(this.zoomManager);
         this.controller.setListCoordinator(this.listCoordinator);
         this.controller.setConfigApplicationManager(this.configAppManager);
+        this.controller.setProjectController(this.projectController);
         this.controller.setInfobarImageManager(this.infobarImageManager);
         
         // Suscripciones a eventos de cambio de tema
@@ -281,7 +282,6 @@ public class AppInitializer {
         projectController.setRegistry(this.registry);
         projectController.setZoomManager(this.zoomManager);
         projectController.setModel(this.model);
-        projectController.setController(this.controller);
         projectController.setListCoordinator(this.listCoordinator);
         
         projectController.setProjectListCoordinator(this.projectListCoordinator);
@@ -594,57 +594,58 @@ public class AppInitializer {
     private void comprobarYRestaurarSesion() {
         logger.debug("--- [AppInitializer] Comprobando si hay una sesión para restaurar... ---");
         
-        String valorRecuperacion = this.controller.getRutaProyectoRecuperacion();
+        // Obtenemos la ruta DEL ARCHIVO DE RECUPERACIÓN guardada en el config.
+        String rutaRecuperacionStr = this.configuration.getString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE, null); // Usaremos una nueva clave
         
-        if (valorRecuperacion != null) {
-            // Limpiamos la clave INMEDIATAMENTE después de leerla.
-            logger.debug("    -> Clave de recuperación encontrada. Limpiándola de la configuración para el próximo arranque.");
-            this.controller.setRutaProyectoRecuperacion(null);
+        // Limpiamos la clave INMEDIATAMENTE después de leerla.
+        if (rutaRecuperacionStr != null) {
+            this.configuration.setString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE, "");
+            try {
+                this.configuration.guardarConfiguracion(this.configuration.getConfig());
+            } catch (java.io.IOException e) {
+                logger.error("Error al limpiar la clave de recuperación en la configuración.", e);
+            }
+        }
 
-            logger.info("  -> Se ha detectado una sesión de recuperación pendiente. Valor: {}", valorRecuperacion);
+        if (rutaRecuperacionStr != null && !rutaRecuperacionStr.isBlank()) {
+            Path rutaRecuperacion = Paths.get(rutaRecuperacionStr);
+
+            if (Files.exists(rutaRecuperacion)) {
+                logger.info("  -> Se ha detectado un archivo de sesión de recuperación pendiente en: {}", rutaRecuperacion);
             
-            int respuesta = JOptionPane.showConfirmDialog(
-                this.view,
-                "La sesión anterior no se guardó correctamente.\n¿Deseas restaurar el trabajo no guardado?",
-                "Restaurar Sesión Anterior",
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.QUESTION_MESSAGE
-            );
+                int respuesta = JOptionPane.showConfirmDialog(
+                    null,
+                    "La sesión anterior no se guardó correctamente.\n¿Deseas restaurar el trabajo no guardado?",
+                    "Restaurar Sesión Anterior",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE
+                );
             
-            if (respuesta == JOptionPane.YES_OPTION) {
-                logger.debug("    -> Usuario ha elegido restaurar la sesión.");
-                try {
-                    Path rutaRecuperacion;
-                    if ("TEMPORAL".equalsIgnoreCase(valorRecuperacion)) {
-                        rutaRecuperacion = this.projectManagerService.getRutaArchivoRecuperacion();
-                    } else {
-                        rutaRecuperacion = Paths.get(valorRecuperacion);
+                if (respuesta == JOptionPane.YES_OPTION) {
+                    logger.debug("    -> Usuario ha elegido restaurar la sesión.");
+                    try {
+                        this.projectManagerService.cargarDesdeRecuperacion(rutaRecuperacion);
+                        this.generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
+                        this.generalController.actualizarTituloVentana();
+                        logger.info("  -> Sesión restaurada con éxito.");
+                    } catch (Exception e) {
+                        logger.error("Error al intentar restaurar la sesión.", e);
+                        JOptionPane.showMessageDialog(null, "No se pudo restaurar la sesión anterior.", "Error de Recuperación", JOptionPane.ERROR_MESSAGE);
                     }
-                    
-                    this.projectManagerService.cargarDesdeRecuperacion(rutaRecuperacion);
-                    this.controller.actualizarTituloVentana();
-                    this.generalController.cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
-                    
-                    logger.info("  -> Sesión restaurada con éxito.");
-
-                } catch (Exception e) {
-                    logger.error("Error al intentar restaurar la sesión.", e);
-                    JOptionPane.showMessageDialog(
-                        this.view, 
-                        "No se pudo restaurar la sesión anterior. Puede que el archivo esté corrupto.", 
-                        "Error de Recuperación", 
-                        JOptionPane.ERROR_MESSAGE
-                    );
+                } else {
+                    logger.debug("    -> Usuario eligió no restaurar. Borrando archivo de recuperación.");
+                    try {
+                        Files.deleteIfExists(rutaRecuperacion);
+                    } catch (java.io.IOException e) {
+                        logger.warn("No se pudo eliminar el archivo de recuperación: {}", e.getMessage());
+                    }
+                    this.projectManagerService.nuevoProyecto();
                 }
             } else {
-                // Si el usuario dice NO, la clave ya fue limpiada.
-                logger.debug("    -> Usuario eligió no restaurar.");
-                // --- INICIO DE LA MODIFICACIÓN ---
-                // Adicionalmente, reseteamos el estado del ProjectManager en memoria para que
-                // no crea que todavía hay un proyecto temporal con imágenes marcadas.
-                this.projectManagerService.nuevoProyecto();
-                // --- FIN DE LA MODIFICACIÓN ---
+                logger.warn("  -> Archivo de recuperación no encontrado en la ruta guardada: {}. Inicio normal.", rutaRecuperacionStr);
             }
+        } else {
+             logger.debug("  -> No se encontró clave de recuperación. Inicio normal.");
         }
     } // ---FIN de metodo comprobarYRestaurarSesion---
     
