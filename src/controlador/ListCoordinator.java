@@ -33,7 +33,6 @@ public class ListCoordinator extends AbstractListCoordinator {
     private VisorModel model;
     private VisorController controller;
     private ComponentRegistry registry;
-    private GridCoordinator gridCoordinator;
     
     private List<ContextSensitiveAction> contextSensitiveActions = Collections.emptyList();
     
@@ -43,7 +42,8 @@ public class ListCoordinator extends AbstractListCoordinator {
     
     // --- Estado Interno ---
     
-//    private boolean isSyncingUI = false;
+    private boolean isSyncingUI = false;
+    private volatile Integer pendingSelectionIndex = null;
     
     private int pageScrollIncrement;
     private int officialSelectedIndex = -1;
@@ -75,65 +75,64 @@ public class ListCoordinator extends AbstractListCoordinator {
             listener.onMasterSelectionChanged(newIndex, this);
         }
     }
-    // --- FIN DE MODIFICACIÓN 2 ---
-    
-    
-    
     
     
     @Override
     public synchronized void seleccionarImagenPorIndice(int desiredIndex) {
-    	 ListContext currentContext = model.getCurrentListContext();
-         if (currentContext == null || currentContext.getModeloLista() == null) return;
+        // --- INICIO LÓGICA DEBOUNCE ---
+        if (isSincronizandoUI()) {
+            logger.trace("Sincronización en curso. Petición para índice {} encolada.", desiredIndex);
+            this.pendingSelectionIndex = desiredIndex; // Guarda la última petición
+            return;
+        }
+        // --- FIN LÓGICA DEBOUNCE ---
 
-         DefaultListModel<String> listModel = currentContext.getModeloLista();
+        ListContext currentContext = model.getCurrentListContext();
+        if (currentContext == null || currentContext.getModeloLista() == null) return;
 
-         // La comprobación de índice duplicado se hace AHORA en los listeners.
-         // Aquí solo validamos los límites.
-         if (desiredIndex < -1 || desiredIndex >= listModel.getSize()) {
-             return;
-         }
-         
-         // ¡Esta comprobación es redundante si los listeners ya la hacen, pero es una buena
-         // segunda línea de defensa para evitar trabajo innecesario!
-         if (desiredIndex == this.officialSelectedIndex) {
-             return;
-         }
+        DefaultListModel<String> listModel = currentContext.getModeloLista();
+        if (desiredIndex < -1 || desiredIndex >= listModel.getSize()) {
+            return;
+        }
+        
+        if (desiredIndex == this.officialSelectedIndex) {
+            return;
+        }
 
-         logger.debug("[ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: " + desiredIndex);
+        try {
+            setSincronizandoUI(true); // --- CERROJO ACTIVADO ---
 
-         // 1. Actualizar el Modelo (la única fuente de verdad)
-         this.officialSelectedIndex = desiredIndex;
-         String selectedKey = (desiredIndex != -1) ? listModel.getElementAt(desiredIndex) : null;
-         currentContext.setSelectedImageKey(selectedKey);
-         
-         // 2. Cargar la imagen principal
-         controller.actualizarImagenPrincipal(desiredIndex);
-         
-         // 3. Ordenar a TODAS las vistas que se sincronicen
-         sincronizarSeleccionJList(getMainJListForCurrentMode(), desiredIndex);
-         actualizarTiraDeMiniaturas(desiredIndex);
+            logger.debug("[ListCoordinator] ORDEN RECIBIDA: Sincronizar toda la app al índice maestro: " + desiredIndex);
 
-         // En lugar de llamar directamente al grid, notificamos a todos los que escuchan.
-         logger.debug("[ListCoordinator] Notificando a {} listeners del cambio de selección al índice {}.", selectionListeners.size(), desiredIndex);
-         fireMasterSelectionChanged(desiredIndex);
+            this.officialSelectedIndex = desiredIndex;
+            String selectedKey = (desiredIndex != -1) ? listModel.getElementAt(desiredIndex) : null;
+            currentContext.setSelectedImageKey(selectedKey);
+            
+            controller.actualizarImagenPrincipal(desiredIndex);
+            
+            sincronizarSeleccionJList(getMainJListForCurrentMode(), desiredIndex);
+            actualizarTiraDeMiniaturas(desiredIndex);
 
-         // 4. Actualizar estado de los botones
-         forzarActualizacionEstadoAcciones();
-     } // --- Fin del método seleccionarImagenPorIndice ---
+            logger.debug("[ListCoordinator] Notificando a {} listeners del cambio de selección al índice {}.", selectionListeners.size(), desiredIndex);
+            fireMasterSelectionChanged(desiredIndex);
 
-    /**
-     * Orquesta la actualización de la lista de nombres y la tira de miniaturas.
-     * @param selectedIndex El índice a seleccionar.
-     */
-    private void sincronizarVistasConMiniaturas(int selectedIndex) {
-        // Actualiza la JList de nombres de archivo (si existe para este modo)
-        JList<String> listaNombres = getMainJListForCurrentMode();
-        sincronizarSeleccionJList(listaNombres, selectedIndex);
+            forzarActualizacionEstadoAcciones();
 
-        // Actualiza la JList de la tira de miniaturas
-        actualizarTiraDeMiniaturas(selectedIndex);
-    } // --- Fin del método sincronizarVistasConMiniaturas ---
+        } finally {
+            setSincronizandoUI(false); // --- CERROJO LIBERADO ---
+            
+            // --- INICIO LÓGICA DEBOUNCE (PROCESAR PENDIENTES) ---
+            Integer pendingIndex = this.pendingSelectionIndex;
+            if (pendingIndex != null) {
+                this.pendingSelectionIndex = null; // Limpiar antes de la llamada recursiva
+                logger.debug("Procesando petición pendiente para el índice: {}", pendingIndex);
+                // Llamada recursiva para procesar la última petición guardada
+                seleccionarImagenPorIndice(pendingIndex);
+            }
+            // --- FIN LÓGICA DEBOUNCE ---
+        }
+    } // --- Fin del método seleccionarImagenPorIndice ---
+
 
     /**
      * Lógica CLAVE para actualizar el modelo de la tira de miniaturas y su selección.
@@ -211,13 +210,16 @@ public class ListCoordinator extends AbstractListCoordinator {
     // === MÉTODOS DE NAVEGACIÓN (Robustos gracias al estado interno) ===
     // =================================================================================
     
+    
     @Override
     public void seleccionarSiguiente() {
         DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
         if (listModel.isEmpty()) return;
         
         int total = listModel.getSize();
-        int nextIndex = (this.officialSelectedIndex == -1) ? 0 : this.officialSelectedIndex + 1;
+        // Usa el índice pendiente si existe, si no, el oficial
+        int baseIndex = (pendingSelectionIndex != null) ? pendingSelectionIndex : this.officialSelectedIndex;
+        int nextIndex = (baseIndex == -1) ? 0 : baseIndex + 1;
         
         if (model.isNavegacionCircularActivada() && nextIndex >= total) {
             nextIndex = 0;
@@ -233,17 +235,20 @@ public class ListCoordinator extends AbstractListCoordinator {
         if (listModel.isEmpty()) return;
 
         int total = listModel.getSize();
+        int baseIndex = (pendingSelectionIndex != null) ? pendingSelectionIndex : this.officialSelectedIndex;
         int prevIndex;
+        
         if (model.isNavegacionCircularActivada()) {
-            prevIndex = (this.officialSelectedIndex <= 0) ? total - 1 : this.officialSelectedIndex - 1;
+            prevIndex = (baseIndex <= 0) ? total - 1 : baseIndex - 1;
         } else {
-            prevIndex = Math.max(0, this.officialSelectedIndex - 1);
+            prevIndex = Math.max(0, baseIndex - 1);
         }
         seleccionarImagenPorIndice(prevIndex);
     } // --- Fin del método seleccionarAnterior ---
 
     @Override
     public void seleccionarPrimero() {
+
         if (!model.getCurrentListContext().getModeloLista().isEmpty()) {
             seleccionarImagenPorIndice(0);
         }
@@ -251,6 +256,7 @@ public class ListCoordinator extends AbstractListCoordinator {
 
     @Override
     public void seleccionarUltimo() {
+
         DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
         if (!listModel.isEmpty()) {
             seleccionarImagenPorIndice(listModel.getSize() - 1);
@@ -261,19 +267,26 @@ public class ListCoordinator extends AbstractListCoordinator {
     public void seleccionarBloqueSiguiente() {
         DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
         if (listModel.isEmpty()) return;
-        int next = Math.min(this.officialSelectedIndex + pageScrollIncrement, listModel.getSize() - 1);
+        int baseIndex = (pendingSelectionIndex != null) ? pendingSelectionIndex : this.officialSelectedIndex;
+        int next = Math.min(baseIndex + pageScrollIncrement, listModel.getSize() - 1);
         seleccionarImagenPorIndice(next);
-    } // --- Fin del método seleccionarBloqueSiguiente ---
+    }
 
     @Override
     public void seleccionarBloqueAnterior() {
-        if (model.getCurrentListContext().getModeloLista().isEmpty()) return;
-        int prev = Math.max(0, this.officialSelectedIndex - pageScrollIncrement);
+        DefaultListModel<String> listModel = model.getCurrentListContext().getModeloLista();
+        if (listModel.isEmpty()) return;
+        
+        // Usa el índice pendiente si existe, si no, el oficial
+        int baseIndex = (pendingSelectionIndex != null) ? pendingSelectionIndex : this.officialSelectedIndex;
+        
+        int prev = Math.max(0, baseIndex - pageScrollIncrement);
         seleccionarImagenPorIndice(prev);
     } // --- Fin del método seleccionarBloqueAnterior ---
-
+    
     @Override
     public void reiniciarYSeleccionarIndice(int desiredIndex) {
+
         // MÉTODO REFORZADO: Resetea el estado interno y limpia las vistas
         this.officialSelectedIndex = -1; 
         
@@ -302,6 +315,7 @@ public class ListCoordinator extends AbstractListCoordinator {
      * del contexto de trabajo actual.
      */
     public void seleccionarAleatorio() {
+
         DefaultListModel<String> modeloLista = model.getCurrentListContext().getModeloLista();
         if (modeloLista == null || modeloLista.isEmpty()) {
             return; // No hay nada que seleccionar
@@ -327,6 +341,8 @@ public class ListCoordinator extends AbstractListCoordinator {
 
     @Override
     public void navegarAIndice(int index) {
+
+    	
         ListContext ctx = model.getCurrentListContext();
         if (ctx != null && ctx.getModeloLista() != null && index >= 0 && index < ctx.getModeloLista().getSize()) {
             seleccionarImagenPorIndice(index);
@@ -366,8 +382,9 @@ public class ListCoordinator extends AbstractListCoordinator {
     } // --- Fin del método setController ---
     public void setRegistry(ComponentRegistry registry) { this.registry = registry; }
     public void setContextSensitiveActions(List<ContextSensitiveAction> actions) { this.contextSensitiveActions = actions; }
-    public synchronized boolean isSincronizandoUI() { return false;  }
-    public synchronized void setSincronizandoUI(boolean sincronizando) {  }
+    
+    public synchronized boolean isSincronizandoUI() { return this.isSyncingUI;  }
+    public synchronized void setSincronizandoUI(boolean sincronizando) { this.isSyncingUI = sincronizando; }
     
     public int getOfficialSelectedIndex() {return this.officialSelectedIndex;}
     

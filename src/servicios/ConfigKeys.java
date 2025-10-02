@@ -123,7 +123,6 @@ public final class ConfigKeys {
         //    Si todos los caracteres fueron eliminados, generar una clave fallback.
         if (cleanedText.isEmpty()) {
             // Generar algo basado en el hash del texto original (poco legible pero único).
-            // System.out.println("  [generateKeyPart] Texto original '" + text + "' resultó en clave vacía. Usando hash."); // Log opcional
             return "emptykey_" + Math.abs(text.hashCode()); // Usar Math.abs para evitar signo negativo.
         }
 

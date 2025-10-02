@@ -7,6 +7,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
+import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
 
@@ -30,22 +31,20 @@ public class CustomGridCellPanel extends JPanel {
     private final Color textBackgroundColor = new Color(0, 0, 0, 150);
     private final Font textFont = new Font("Arial", Font.BOLD, 14);
 
+    private static int GROSOR_BORDE = 6;
+    private static final int GROSOR_BORDE_SELECCION = 3;
     
     public CustomGridCellPanel() {
-        setOpaque(true); // El panel es opaco, él mismo gestiona su fondo.
-        
-        // --- INICIO DE LA PRUEBA DE DIAGNÓSTICO ---
-        addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                // Usamos System.out.println para que sea imposible que se pierda en los logs.
-                System.out.println(">>> CLIC DETECTADO DIRECTAMENTE EN CustomGridCellPanel (clicks: " + e.getClickCount() + ") <<<");
-                logger.debug(">>> CLIC DETECTADO DIRECTAMENTE EN CustomGridCellPanel (clicks: " + e.getClickCount() + ") <<<");
-            }
-        });
-        // --- FIN DE LA PRUEBA DE DIAGNÓSTICO ---
+        // --- LA CLAVE DE LA SEPARACIÓN ESTÁ AQUÍ ---
+        // 1. Creamos un borde transparente alrededor del panel. Este será el espacio de separación.
+        //    Cambia el número '5' para más o menos separación. 5px por cada lado = 10px de separación total.
+//        int separacion = 10; 
+//        setBorder(BorderFactory.createEmptyBorder(separacion, separacion, separacion, separacion));
 
-    } // ---FIN de metodo---
+        // 2. El panel es opaco, porque va a dibujar su propio fondo (el color de estado).
+        setOpaque(true);
+
+    } // ---FIN de metodo CustomGridCellPanel ---
     
 
     /**
@@ -56,85 +55,107 @@ public class CustomGridCellPanel extends JPanel {
         this.overlayText = overlayText;
         this.isSelected = isSelected;
         this.borderColor = borderColor;
-        setBackground(cellBackground);
-        // No llamamos a repaint() aquí, el renderer ya lo gestiona la JList.
-    } // ---FIN de metodo---
+        setBackground(cellBackground); // El fondo del área de la imagen
+
+        // --- DEFINICIÓN DE LA "TORRE" DE PANELES ---
+        int separacionExterna = 2; // Capa 1: Espacio entre celdas
+        int grosorBordeEstado = 4; // Capa 2: Grosor del borde verde/rojo
+        int paddingInterno = 6;    // Capa 3: Pequeño espacio entre el borde y la imagen
+
+        Color colorSeparador = javax.swing.UIManager.getColor("List.background");
+
+        if (borderColor != null) {
+            // --- CONSTRUIMOS LA TORRE DE 3 NIVELES ---
+            // Nivel 3 (El más interno): El padding entre el borde y la imagen.
+            javax.swing.border.Border bordePadding = BorderFactory.createEmptyBorder(
+                paddingInterno, paddingInterno, paddingInterno, paddingInterno);
+
+            // Nivel 2 (Intermedio): El borde de estado.
+            javax.swing.border.Border bordeEstado = BorderFactory.createLineBorder(
+                borderColor, grosorBordeEstado);
+            
+            // Combinamos Nivel 2 y 3: Borde de estado + Padding interior
+            javax.swing.border.Border bordeInteriorCompuesto = BorderFactory.createCompoundBorder(
+                bordeEstado, bordePadding);
+
+            // Nivel 1 (El más externo): La separación entre celdas.
+            javax.swing.border.Border bordeSeparacion = BorderFactory.createLineBorder(
+                colorSeparador, separacionExterna);
+            
+            // Combinamos Nivel 1 con el resto: Separación + (Borde de estado + Padding)
+            setBorder(BorderFactory.createCompoundBorder(bordeSeparacion, bordeInteriorCompuesto));
+
+        } else {
+            // --- SIN BORDE DE ESTADO ---
+            // Creamos un borde simple que simula el grosor total de la torre
+            // para que el contenido no se mueva de sitio.
+            int paddingTotal = separacionExterna + grosorBordeEstado + paddingInterno;
+            setBorder(BorderFactory.createEmptyBorder(
+                paddingTotal, paddingTotal, paddingTotal, paddingTotal));
+        }
+    } // --- FIN de metodo setData ---
 
     /**
      * El corazón del componente. Aquí dibujamos todo manualmente.
      */
     @Override
     protected void paintComponent(Graphics g) {
-        // 1. Pintar el fondo (MUY IMPORTANTE)
+        // 1. PINTAR FONDO Y LA TORRE DE BORDES
+        // Esta única línea pinta el color de fondo de la celda (el que está bajo la imagen)
+        // y luego dibuja nuestra torre de 3 bordes perfectamente encima.
         super.paintComponent(g);
 
+        // 2. PREPARAR PARA DIBUJAR EL CONTENIDO
         Graphics2D g2d = (Graphics2D) g.create();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // =========================================================================
-        // === INICIO DE MODIFICACIÓN: AÑADIR HINT PARA CALIDAD DE ESCALADO ===
-        // =========================================================================
         g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        // =========================================================================
-        // === FIN DE MODIFICACIÓN ===
-        // =========================================================================
 
-        if (isSelected) {
-        	 if (this.borderColor != null) {
-                 g2d.setColor(this.borderColor);
-             } else {
-                 g2d.setColor(new Color(0, 150, 255));
-             }
-            
-            int grosorBorde = 5;
-            g2d.setStroke(new java.awt.BasicStroke(grosorBorde));
-            g2d.drawRect(grosorBorde / 2, grosorBorde / 2, getWidth() - grosorBorde, getHeight() - grosorBorde);
-        }
-        
-        // 2. Dibujar la imagen (centrada y ESCALADA)
+        // 3. OBTENER EL ÁREA LIBRE DENTRO DE LA TORRE
+        // getInsets() nos da el espacio total ocupado por los 3 bordes.
+        java.awt.Insets insets = getInsets();
+        int x = insets.left;
+        int y = insets.top;
+        int width = getWidth() - insets.left - insets.right;
+        int height = getHeight() - insets.top - insets.bottom;
+
+        // 4. DIBUJAR LA IMAGEN DENTRO DEL ÁREA LIBRE
         if (image != null) {
-            // =========================================================================
-            // === INICIO DE MODIFICACIÓN: LÓGICA DE ESCALADO DE IMAGEN ===
-            // =========================================================================
-            int padding = 10; // Espacio entre la imagen y el borde de la celda
-            int panelWidth = getWidth() - padding;
-            int panelHeight = getHeight() - padding;
-            
             int imgWidth = image.getIconWidth();
             int imgHeight = image.getIconHeight();
-            
             double imgAspect = (double) imgWidth / imgHeight;
-            double panelAspect = (double) panelWidth / panelHeight;
+            double panelAspect = (double) width / height;
             
-            int newWidth;
-            int newHeight;
-            
+            int newWidth, newHeight;
             if (imgAspect > panelAspect) {
-                // La imagen es más ancha que el panel, ajustamos al ancho
-                newWidth = panelWidth;
+                newWidth = width;
                 newHeight = (int) (newWidth / imgAspect);
             } else {
-                // La imagen es más alta o igual en proporción, ajustamos al alto
-                newHeight = panelHeight;
+                newHeight = height;
                 newWidth = (int) (newHeight * imgAspect);
             }
 
-            int x = (getWidth() - newWidth) / 2;
-            int y = (getHeight() - newHeight) / 2;
-
-            // Usamos el método drawImage que permite escalar
-            g2d.drawImage(image.getImage(), x, y, newWidth, newHeight, this);
-            // =========================================================================
-            // === FIN DE MODIFICACIÓN ===
-            // =========================================================================
+            int imgX = x + (width - newWidth) / 2;
+            int imgY = y + (height - newHeight) / 2;
+            
+            g2d.drawImage(image.getImage(), imgX, imgY, newWidth, newHeight, this);
         }
         
-        // 3. Si está seleccionado, dibujar el overlay semitransparente encima
+        // 5. SI ESTÁ SELECCIONADO, DIBUJAR EL INDICADOR
         if (isSelected) {
             g2d.setColor(selectionColor);
-            g2d.fillRect(0, 0, getWidth(), getHeight());
+            g2d.fillRect(x, y, width, height);
+
+            g2d.setColor(new Color(0, 150, 255));
+            g2d.setStroke(new java.awt.BasicStroke(GROSOR_BORDE_SELECCION));
+            g2d.drawRect(
+                x + (GROSOR_BORDE_SELECCION / 2), 
+                y + (GROSOR_BORDE_SELECCION / 2), 
+                width - GROSOR_BORDE_SELECCION, 
+                height - GROSOR_BORDE_SELECCION
+            );
         }
 
-        // 4. Si hay texto, dibujar su fondo y luego el texto encima de todo
+        // 6. DIBUJAR TEXTO
         if (overlayText != null && !overlayText.isBlank()) {
             g2d.setFont(textFont);
             FontMetrics fm = g2d.getFontMetrics();
@@ -142,19 +163,17 @@ public class CustomGridCellPanel extends JPanel {
             int stringHeight = fm.getHeight();
             int padding = 5;
 
-            // Dibuja el fondo del texto
             g2d.setColor(textBackgroundColor);
-            g2d.fillRect(0, getHeight() - (stringHeight + padding), getWidth(), stringHeight + padding);
+            g2d.fillRect(x, y + height - (stringHeight + padding), width, stringHeight + padding);
             
-            // Dibuja el texto
             g2d.setColor(Color.WHITE);
-            int textX = (getWidth() - stringWidth) / 2;
-            int textY = getHeight() - fm.getDescent() - (padding / 2);
+            int textX = x + (width - stringWidth) / 2;
+            int textY = y + height - fm.getDescent() - (padding / 2);
             g2d.drawString(overlayText, textX, textY);
         }
         
         g2d.dispose();
-    } // ---FIN de metodo---
+    } // ---FIN de metodo paintComponent ---
 
 } // --- FIN de clase CustomGridCellPanel---
 

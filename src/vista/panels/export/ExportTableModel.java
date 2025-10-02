@@ -19,7 +19,8 @@ public class ExportTableModel extends AbstractTableModel {
     private List<ExportItem> cola;
     private boolean notifyListeners = true;
     
-    private final String[] nombresColumnas = {"", "Imagen", "Estado", "Archivos Asignados"};
+    private final String[] nombresColumnas = {"", "Imagen", "Estado", "Archivos Asignados", "Tamaño"};
+    
 
     public ExportTableModel(java.util.function.Consumer<javax.swing.event.TableModelEvent> callback) {
         this.cola = new ArrayList<>();
@@ -63,27 +64,30 @@ public class ExportTableModel extends AbstractTableModel {
         ExportItem item = cola.get(rowIndex);
         
         switch (columnIndex) {
-            case 0: return item.isSeleccionadoParaExportar();
-            case 1: return item.getRutaImagen().getFileName().toString();
-            case 2: return item; // Para el renderer de estado
-            case 3: return item.getRutasArchivosAsociados(); // Devolvemos la lista de Paths
-            default: return null;
+	        case 0: return item.isSeleccionadoParaExportar();
+	        case 1: return item.getRutaImagen().getFileName().toString();
+	        case 2: return item; // Para el renderer de estado
+	        case 3: return item.getRutasArchivosAsociados(); // Devolvemos la lista de Paths
+	        case 4: return utils.StringUtils.formatFileSize(item.getTotalSize());
+	        default: return null;
         }
     } // ---FIN de metodo [getValueAt]---
 
     @Override
     public Class<?> getColumnClass(int columnIndex) {
         switch (columnIndex) {
-            case 0: return Boolean.class;
-            case 1: return String.class;
-            case 2: return ExportItem.class;
-            case 3: return List.class; // La columna contiene una lista
-            default: return Object.class;
+	        case 0: return Boolean.class;
+	        case 1: return String.class;
+	        case 2: return ExportItem.class;
+	        case 3: return List.class; // La columna contiene una lista
+	        case 4: return String.class; // La columna Tamaño es un String
+	        default: return Object.class;
         }
     } // ---FIN de metodo [getColumnClass]---
 
     @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
+        // Solo la columna de checkboxes (índice 0) es editable.
         return columnIndex == 0;
     } // ---FIN de metodo [isCellEditable]---
 

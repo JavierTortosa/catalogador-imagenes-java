@@ -8,7 +8,6 @@ import javax.swing.Action;
 import javax.swing.ImageIcon;
 
 import controlador.GeneralController;
-import controlador.ProjectController;
 import controlador.commands.AppActionCommands;
 
 public class NuevoProyectoAction extends AbstractAction {

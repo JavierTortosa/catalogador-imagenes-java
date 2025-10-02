@@ -45,6 +45,7 @@ public class ExportPanel extends JPanel {
     
     private ExportDetailPanel detailPanel;
     private JSplitPane splitPane;
+    private JLabel lblTotalSize;
     
     private boolean highlightingListenerConfigured = false;
     
@@ -85,7 +86,6 @@ public class ExportPanel extends JPanel {
     private void initComponents() {
         this.setLayout(new BorderLayout(5, 5));
 
-        // --- LÍNEA CORREGIDA ---
         ToolbarManager toolbarManager = projectController.getGeneralController().getToolbarManager(); 
         if (toolbarManager != null) {
             JToolBar exportActionsToolbar = toolbarManager.getToolbar("acciones_exportacion");
@@ -99,7 +99,6 @@ public class ExportPanel extends JPanel {
         JPanel mainContentPanel = new JPanel(new BorderLayout(5, 5));
         TitledBorder exportBorder = BorderFactory.createTitledBorder("Exportar");
         mainContentPanel.setBorder(exportBorder);
-        // --- LÍNEA CORREGIDA ---
         projectController.getGeneralController().getRegistry().register("panel.exportacion.container", mainContentPanel);
 
         tablaExportacion = new JTable(this.tableModel); 
@@ -113,11 +112,9 @@ public class ExportPanel extends JPanel {
         tablaExportacion.getTableHeader().getColumnModel().getColumn(0).setHeaderRenderer(new CheckHeaderRenderer());
         TableColumn statusColumn = tablaExportacion.getColumnModel().getColumn(2);
         
-        // --- LÍNEA CORREGIDA --- (Asumiendo que getVisorController() está en GeneralController)
         statusColumn.setCellRenderer(new vista.panels.export.StatusCellRenderer(projectController.getGeneralController().getVisorController().getIconUtils()));
         
         TableColumn assignedFilesColumn = tablaExportacion.getColumnModel().getColumn(3);
-        // --- LÍNEA CORREGIDA ---
         Action toggleDetailsAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_DETALLES_SELECCION);
         assignedFilesColumn.setCellRenderer(new MultiLineCellRenderer(toggleDetailsAction));
         assignedFilesColumn.setPreferredWidth(300);
@@ -146,7 +143,6 @@ public class ExportPanel extends JPanel {
         detailPanel.setPreferredSize(new java.awt.Dimension(0, 120));
         detailPanel.setMinimumSize(new java.awt.Dimension(0, 120));
         
-        // --- BLOQUE CORREGIDO ---
         Action addAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_ADD_ASSOCIATED_FILE);
         Action removeAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_DEL_ASSOCIATED_FILE);
         Action locateAction = projectController.getActionMap().get(AppActionCommands.CMD_EXPORT_LOCATE_ASSOCIATED_FILE);
@@ -159,21 +155,47 @@ public class ExportPanel extends JPanel {
         
         mainContentPanel.add(splitPane, BorderLayout.CENTER);
 
+        
+        
+        
+        
+        
         JPanel southPanel = new JPanel(new BorderLayout(10, 0));
         southPanel.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
-        
-        this.lblResumen = new JLabel("Cargue la selección para ver el estado.");
-        southPanel.add(this.lblResumen, BorderLayout.WEST);
 
-        // --- LÍNEA CORREGIDA ---
+        // 1. Panel de Destino (irá en el centro)
+        JPanel destinationPanel = new JPanel(new BorderLayout(5, 0));
+        
+        // 1a. La nueva etiqueta para el campo de texto
+        JLabel lblCarpetaDestino = new JLabel("Carpeta de Destino:");
+        lblCarpetaDestino.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 5)); // Margen derecho
+        destinationPanel.add(lblCarpetaDestino, BorderLayout.WEST);
+
+        // 1b. El campo de texto en sí
         this.txtCarpetaDestino = (JTextField) projectController.getGeneralController().getRegistry().get("textfield.export.destino");
         if (this.txtCarpetaDestino != null) {
             this.originalTextFieldBorder = this.txtCarpetaDestino.getBorder();
-            southPanel.add(this.txtCarpetaDestino, BorderLayout.CENTER);
+            destinationPanel.add(this.txtCarpetaDestino, BorderLayout.CENTER);
         }
         
-        mainContentPanel.add(southPanel, BorderLayout.SOUTH);
+        southPanel.add(destinationPanel, BorderLayout.CENTER); // Añadimos el panel completo al centro
 
+        // 2. El label de resumen (ahora en el SUR)
+        // Al ponerlo en SOUTH, ocupará todo el ancho inferior sin afectar al panel central.
+        this.lblResumen = new JLabel("Cargue la selección para ver el estado.");
+        southPanel.add(this.lblResumen, BorderLayout.SOUTH);
+        
+        // 3. El panel del Este con el tamaño total (no cambia, pero lo muevo aquí por claridad)
+        JPanel eastPanel = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.RIGHT, 0, 0));
+        eastPanel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0));
+        lblTotalSize = new JLabel();
+        lblTotalSize.setHorizontalAlignment(JLabel.RIGHT);
+        actualizarTamañoTotalExportacion();
+        eastPanel.add(lblTotalSize);
+        southPanel.add(eastPanel, BorderLayout.EAST);
+
+        mainContentPanel.add(southPanel, BorderLayout.SOUTH);
+        
         this.add(mainContentPanel, BorderLayout.CENTER);
         
     } // ---FIN de metodo [initComponents]---
@@ -237,6 +259,27 @@ public class ExportPanel extends JPanel {
             panelExportacion.repaint();
         }
     } // FIN del metodo actualizarTituloExportacion
+    
+    
+    /**
+     * Calcula el tamaño total de todos los items seleccionados para exportar y
+     * actualiza el JLabel correspondiente.
+     */
+    public void actualizarTamañoTotalExportacion() {
+        if (tableModel == null || lblTotalSize == null) {
+            return;
+        }
+        
+        long totalSize = 0;
+        for (ExportItem item : tableModel.getCola()) {
+            if (item.isSeleccionadoParaExportar()) {
+                totalSize += item.getTotalSize();
+            }
+        }
+        
+        String formattedSize = utils.StringUtils.formatFileSize(totalSize);
+        lblTotalSize.setText(String.format("Tamaño total: %s", formattedSize));
+    } // ---FIN de metodo [actualizarTamañoTotalExportacion]---
     
     
     /**

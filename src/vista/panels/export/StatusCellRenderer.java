@@ -2,7 +2,6 @@ package vista.panels.export;
 
 import java.awt.Color;
 import java.awt.Component;
-import java.util.List;
 
 import javax.swing.ImageIcon;
 import javax.swing.JTable;
@@ -22,6 +21,9 @@ public class StatusCellRenderer extends DefaultTableCellRenderer {
     private static final long serialVersionUID = 1L;
     private IconUtils iconUtils;
 
+    private static final Color COLOR_DESACTIVADO = new Color(220, 220, 220); // Gris claro para fondo
+    private static final Color COLOR_TEXTO_DESACTIVADO = new Color(128, 128, 128); // Gris oscuro para texto
+    
     // Guardamos una referencia a IconUtils para poder cargar los iconos.
     public StatusCellRenderer(IconUtils iconUtils) {
         this.iconUtils = iconUtils;
@@ -32,84 +34,52 @@ public class StatusCellRenderer extends DefaultTableCellRenderer {
     public Component getTableCellRendererComponent(JTable table, Object value,
             boolean isSelected, boolean hasFocus, int row, int column) {
 
-        // El valor que llega desde el TableModel es el objeto ExportItem completo.
         if (!(value instanceof ExportItem)) {
-            // Si por alguna razón no es un ExportItem, usamos el comportamiento por defecto.
             return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
         }
 
         ExportItem item = (ExportItem) value;
-        ExportStatus status = item.getEstadoArchivoComprimido();
+        ExportStatus status = item.tieneConflictoDeNombre() ? ExportStatus.NOMBRE_DUPLICADO : item.getEstadoArchivoComprimido();
         
-        // 1. Establecer el texto de la celda
-        
-        String textoCelda = "";
-        switch (status) {
-//            case ENCONTRADO_OK:
-            	
-//                // Obtenemos la LISTA de archivos. Si no está vacía, mostramos el nombre del PRIMERO.
-//                List<java.nio.file.Path> archivosAsociados = item.getRutasArchivosAsociados();
-//                if (archivosAsociados != null && !archivosAsociados.isEmpty()) {
-//                    // Tomamos el nombre del primer archivo de la lista.
-//                    textoCelda = archivosAsociados.get(0).getFileName().toString();
-//                    
-//                    // Si hay más de un archivo, añadimos un indicador para que el usuario lo sepa.
-//                    if (archivosAsociados.size() > 1) {
-//                        textoCelda += " (+" + (archivosAsociados.size() - 1) + " más)";
-//                    }
-//                }
-//                break;
-            case ASIGNADO_MANUAL:
-                // Para los asignados manualmente, mostramos un texto descriptivo.
-                textoCelda = "ASIGNADO MANUALMENTE";
-                break;
-            default:
-                // Para todos los demás estados, usamos el nombre del enum.
-                textoCelda = status.toString();
-                break;
+        String textoCelda = status.toString();
+        if (status == ExportStatus.ASIGNADO_MANUAL) {
+             textoCelda = "ASIGNADO MANUALMENTE";
         }
         setText(textoCelda);
         
-
-        // 2. Establecer el icono de la celda
-        // Usamos el nombre del icono guardado en nuestro enum y lo cargamos con IconUtils.
-        // Escalamos a un tamaño pequeño y consistente, por ejemplo, 16x16.
         ImageIcon icon = iconUtils.getCommonIcon(status.getIconName());
         setIcon(iconUtils.scaleImageIcon(icon, 16, 16));
-
-        // 3. Establecer el ToolTipText de la celda
         setToolTipText(status.getTooltip());
 
-        // 4. Establecer los colores de fondo
-        // Si la fila está seleccionada, usamos los colores de selección de la tabla.
         if (isSelected) {
             setBackground(table.getSelectionBackground());
             setForeground(table.getSelectionForeground());
+        } else if (!item.isSeleccionadoParaExportar()) {
+            setBackground(COLOR_DESACTIVADO);
+            setForeground(COLOR_TEXTO_DESACTIVADO);
         } else {
-            // Si no está seleccionada, usamos nuestro sistema de colores.
-            setForeground(Color.BLACK); // Texto negro para mayor legibilidad sobre fondos de color.
-            switch (status) {
-                case ENCONTRADO_OK:
-                case ASIGNADO_MANUAL:
-                case COPIADO_OK:
-                    setBackground(new Color(180, 255, 180)); // Verde claro
-                    break;
-                case IMAGEN_NO_ENCONTRADA:
-                case NO_ENCONTRADO:
-                case ERROR_COPIA:
-                    setBackground(new Color(255, 180, 180)); // Rojo claro
-                    break;
-                case MULTIPLES_CANDIDATOS:
-                    setBackground(new Color(255, 255, 180)); // Amarillo claro
-                    break;
-                case IGNORAR_COMPRIMIDO:
-                    setBackground(new Color(210, 210, 210)); // Gris neutro
-                    break;
-                default: // PENDIENTE, COPIANDO, etc.
-                    setBackground(table.getBackground()); // Color de fondo normal de la tabla
-                    setForeground(table.getForeground());
-                    break;
+            Color statusColor = status.getColor();
+            if (statusColor != null) {
+                setBackground(statusColor);
+            } else {
+                setBackground(table.getBackground());
             }
+            
+            // --- INICIO DE LA MODIFICACIÓN FINAL ---
+            // Si el estado es de error, ponemos el texto en blanco. Para el resto, negro.
+            if (status == ExportStatus.IMAGEN_NO_ENCONTRADA ||
+                    status == ExportStatus.ERROR_COPIA ||
+                    status == ExportStatus.NOMBRE_DUPLICADO ||
+                    status == ExportStatus.ASIGNADO_DUPLICADO ||
+                    status == ExportStatus.ENCONTRADO_OK ||
+                    status == ExportStatus.ASIGNADO_MANUAL ||
+                    status == ExportStatus.COPIADO_OK)
+            {
+                setForeground(Color.WHITE);
+            } else {
+                setForeground(Color.BLACK);
+            }
+            // --- FIN DE LA MODIFICACIÓN FINAL ---
         }
         
         return this;

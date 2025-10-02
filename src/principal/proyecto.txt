@@ -1,4 +1,3 @@
-------------------------------------------------------------------------------------------------------------------------------------
 
 1. - OBJETIVO DE ESTA SESIÓN:
 [Aquí describes qué quieres lograr hoy. Ej: "Implementar la lógica para que el botón 'Exportar a PDF' genere un archivo con los datos de la tabla de clientes."]
@@ -50,7 +49,14 @@ Regla 5 Formato de Entrega: Formato estándar de "busca y reemplaza" o "añade d
 4. - ESTRUCTURA DEL PROYECTO (dir /b /s):
 
 
---------------------------------------------------------------------------------------------------------------------------------------
+
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
 
 
@@ -272,8 +278,15 @@ https://www.streamlinehq.com/icons/core-duo-color/interface-essential
 
 
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
-------------------------------------------------------------------------------------------------------------------------------------
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+
 
 ======================================================================
 librerias externas para implementas
@@ -327,13 +340,20 @@ FLATLAF
 web para buscar componentes para cambiar el color: 
 https://www.formdev.com/flatlaf/properties-files/
 
-------------------------------------------------------------------------------------------------------------------------------------
 
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
-***********************************************************************************************************************************
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
+------------------------------------------------------------------
 HOJA DE RUTA PARA IMPLEMENTAR LOS MODOS DE VISUALIZACIÓN DEL VISOR
+------------------------------------------------------------------
+
 
 OBJETIVO PRINCIPAL: Ofrecer al usuario diversas formas de explorar y interactuar con las imágenes, optimizadas para diferentes flujos de trabajo (revisión rápida, comparación, detallado, organización).
 
@@ -569,7 +589,13 @@ Estos son puntos clave que ya mencionaste y que son más específicos de la gest
 ---
 
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
 
 
@@ -719,8 +745,16 @@ Resumen
 --- FIN DE LA HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS ---
 -------------------------------------------------------------------------
 
-***************************************************************************************************************************************************
-***************************************************************************************************************************************************
+
+
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
 
 -------------------------------------------------------------------------
 --- HOJA DE RUTA REVISADA PARA IMPLEMENTAR EL MODO DATOS (v2.1) ---
@@ -898,7 +932,15 @@ una imagen sin importar dónde estén.
 -------------------------------------------------------------------------
 
 
-***************************************************************************************************************************************************
+
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
 
 
 =========================================================
@@ -987,14 +1029,21 @@ FASE 3: AJUSTES DE COMPORTAMIENTO POR CONTEXTO (WorkMode)
     
     
     
-***************************************************************************************************************************************************    
-    
+
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
     
     
 /*
-**********************************************************************************************************************
-*********************************************************************************** MEGACOMENTARIO PARAA CARGA Y ORDEN
-**********************************************************************************************************************
+************************************
+* MEGACOMENTARIO PARAA CARGA Y ORDEN
+************************************
+
 
 ¡Excelente decisión! La disciplina ahora te ahorrará dolores de cabeza después.
 
@@ -1138,8 +1187,14 @@ Cuando estés listo, puedes ir abordando cada fase. ¡No dudes en preguntar si a
 
 
 
-***************************************************************************************************************************************************
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
 
 HOJA DE RUTA: IMPLEMENTACIÓN DEL MODO DE VISUALIZACIÓN GRID
@@ -1241,8 +1296,13 @@ Implementar un modo de visualización "Grid" (cuadrícula) completamente funcion
 ======================================================================
 
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
-***************************************************************************************************************************************************
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
 
 
@@ -1282,13 +1342,17 @@ CLASES INVOLUCRADAS EN EL SISTEMA DE LA BARRA DE MINIATURAS
 7. servicios.cache.LruCache
    Funcion: Es el "gestor de memoria" del ThumbnailService. Implementa el caché que almacena las miniaturas, descartando automáticamente las más antiguas para evitar un consumo excesivo de memoria.
    
-***********************************************************************************************************************************************   
+**********************************************************************************************************************************************   
+**********************************************************************************************************************************************
 
-													* * * * * * 
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
-***********************************************************************************************************************************************
-											FASES PREVIAS AL MODO DATOS
-***********************************************************************************************************************************************
+**********************************************************************************************************************************************
+														FASES PREVIAS AL MODO DATOS
+**********************************************************************************************************************************************
 
 
 -------------------------------------------------------------------------
@@ -1337,7 +1401,7 @@ asignación de archivos asociados) se guarde de forma persistente.
 ---
 --- FASE A.2: PERSISTIR EL TRABAJO DE EXPORTACIÓN (PRÓXIMO PASO) ---
 ---
-   - ESTADO: [PENDIENTE]
+   - ESTADO: [COMPLETADO]
 
    - OBJETIVO: Guardar en el archivo del proyecto (.prj) las asociaciones
      que el usuario realiza en el panel de exportación entre una imagen y
@@ -1366,9 +1430,9 @@ asignación de archivos asociados) se guarde de forma persistente.
      mejorar el proceso de exportación.
 
    - TAREAS POSIBLES:
-     1. [ ] Añadir campos para metadatos del proyecto (nombre, descripción)
+     1. [x] Añadir campos para metadatos del proyecto (nombre, descripción)
         en la UI del Modo Proyecto para que el usuario pueda editarlos.
-     2. [ ] Implementar la lógica final de exportación en el `ExportWorker`
+     2. [x] Implementar la lógica final de exportación en el `ExportWorker`
         para que copie las imágenes y sus archivos asociados a la carpeta
         de destino.
      3. [ ] (Opcional) Añadir funciones de arrastrar y soltar (Drag and Drop)
@@ -1409,9 +1473,16 @@ de la estructura de carpetas.
 -------------------------------------------------------------------------
 --- FIN DE LA HOJA DE RUTA ---
 -------------------------------------------------------------------------
-==================================================================================================================================================================
 
-==================================================================================================================================================================
+
+*****************************************************************************************************************************************
+*****************************************************************************************************************************************
+ 																* * * * *
+* * * * *														* * * * *														* * * * * 
+ 																* * * * *
+*****************************************************************************************************************************************
+*****************************************************************************************************************************************
+
 ---------------------------------------------------------
 IMPLEMENTACION DEL CIERRE DE SEGURDIDAD DEL MODO PROYECTO
 ---------------------------------------------------------
@@ -1571,7 +1642,11 @@ Basado en el análisis del código, estos son los puntos que representan oportun
         *   Usar un `javax.swing.Timer` que se reinicia con cada pulsación de tecla.
         *   El filtro solo se aplica cuando el usuario deja de escribir durante un breve periodo (ej. 300ms), evitando trabajo innecesario durante la escritura rápida.
         
-==================================================================================================================================================================        
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
 
 
 
@@ -1586,16 +1661,21 @@ Basado en el análisis del código, estos son los puntos que representan oportun
 
 
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
 
-
-
-
-
-
-==================================================================================================================================================================
-																TAREAS TERMINADAS
-==================================================================================================================================================================
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+															TAREAS TERMINADAS
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
 
 -------------------------------------------------------------------------
@@ -1788,6 +1868,14 @@ Podrías permitir iconos cambiantes por estado (ej. presionado/no presionado) de
 --- FIN DEL PLAN DE IMPLEMENTACIÓN COMPONENTE D-PAD ---
 -------------------------------------------------------------------------
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
 
 -------------------------------------------------------------------------
 --- PLAN DE IMPLEMENTACIÓN SELECCIÓN DE PROYECTO ---
@@ -1966,9 +2054,119 @@ CONSIDERACIONES ADICIONALES (Futuras):
 --- FIN DEL PLAN DE IMPLEMENTACIÓN SELECCIÓN DE PROYECTO ---
 -------------------------------------------------------------------------
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
 
+----------------------------------------------------------------------
+HOJA DE RUTA DEL SISTEMA DE GUARDADO DE PROYECTOS (Versión Refactorizada)
+----------------------------------------------------------------------
+
+1. FILOSOFÍA Y PRINCIPIOS CLAVE
+===============================
+
+1.1. Guardado Explícito: 
+     El proyecto NUNCA se guarda automáticamente en el disco. Un cambio (marcar una imagen, modificar la exportación) solo se persiste cuando el usuario realiza una acción explícita: "Guardar", "Guardar Como", o al cambiar de modo si es un proyecto temporal.
+
+1.2. El Asterisco (*) es la Fuente de Verdad: 
+     El * en el título de la ventana indica de forma fiable que hay cambios en memoria que no se han guardado en el archivo .prj principal.
+
+1.3. Red de Seguridad Única: 
+     La única "red de seguridad" contra la pérdida de datos es el sistema de recuperación de sesión al cerrar. Si el usuario cierra la aplicación con cambios pendientes y elige "No Guardar", se crea una copia de seguridad (session_recovery.prj) para poder restaurarla en el próximo arranque.
+
+2. ARQUITECTURA: RESPONSABILIDADES (QUIÉN HACE QUÉ)
+===================================================
+
+* Action (Clases en actions/projects/): El Dedo del Usuario
+  - Su única responsabilidad es recibir el clic del usuario y llamar al método handle...() correspondiente en GeneralController.
+  - No contienen lógica de diálogos ni de negocio. Son simples "disparadores".
+
+* GeneralController: El Orquestador
+  - Es el cerebro del flujo de trabajo. Contiene los métodos handle...() que orquestan las operaciones complejas.
+  - ÚNICO responsable de mostrar diálogos al usuario (JFileChooser para abrir/guardar, JOptionPane para "Guardar cambios pendientes?").
+  - Contiene el método reutilizable promptToSaveChangesIfNecessary() para gestionar los cambios pendientes antes de cualquier acción destructiva (Nuevo, Abrir, Cerrar).
+  - Escucha los cambios de estado del ProjectManager y, en respuesta, llama a actualizarTituloVentana().
+  - Gestiona el flujo de cierre de la aplicación.
+
+* ProjectController: El Gerente del Modo Proyecto
+  - Recibe órdenes del GeneralController.
+  - Se encarga de la lógica específica del modo proyecto: refrescar las listas (activarVistaProyecto), sincronizar la UI con el modelo (sincronizarModeloConUI), etc.
+  - Le da las órdenes de negocio al ProjectManager (ej: "ahora guarda el proyecto actual").
+  - NO habla directamente con VisorController.
+
+* ProjectManager: El Motor de Datos
+  - Es la ÚNICA clase que lee y escribe archivos .prj.
+  - Gestiona el estado del proyecto en memoria: currentProject y lastSavedProjectState.
+  - Gestiona el flag hayCambiosSinGuardar comparando los dos estados anteriores con isProjectDirty().
+  - Notifica a sus listeners (principalmente GeneralController) a través de la interfaz ProjectStateListener cuando el estado de "cambios pendientes" cambia.
+  - NO tiene referencias a ningún controlador.
+
+* AppInitializer: El Arranque
+  - Es el responsable de comprobar, al iniciar la aplicación, si existe una sesión de recuperación pendiente y de orquestar el diálogo para restaurarla.
+
+3. FLUJOS DE TRABAJO DETALLADOS
+===============================
+
+A. Flujo de "Hacer un Cambio" (Aparición del *)
+-----------------------------------------------
+1. Acción del Usuario: Marca una imagen en el modo Visor.
+2. ToggleMarkImageAction -> GeneralController -> VisorController.solicitudAlternarMarcaDeImagenActual().
+3. VisorController llama a projectManager.alternarMarcaImagen().
+4. ProjectManager modifica su currentProject en memoria.
+5. ProjectManager llama a notificarModificacion(), que a su vez llama a isProjectDirty().
+6. isProjectDirty() compara currentProject con lastSavedProjectState, detecta una diferencia.
+7. notificarModificacion() establece hayCambiosSinGuardar = true y dispara el evento fireProjectStateChanged().
+8. GeneralController (que está escuchando) recibe el evento y llama a actualizarTituloVentana().
+9. El título de la ventana se actualiza y muestra el *. No se escribe nada en disco.
+
+B. Flujo de "Guardar Proyecto" (Desaparición del *)
+--------------------------------------------------
+1. Acción del Usuario: Menú -> Guardar Proyecto.
+2. GuardarProyectoAction -> GeneralController.handleSaveProject().
+3. handleSaveProject() comprueba que el proyecto ya tiene nombre y llama a projectController.solicitrarGuardarProyecto().
+4. solicitarGuardarProyecto() llama a projectController.sincronizarModeloConUI() para asegurar que el modelo en memoria refleja el estado de las listas de la UI.
+5. Luego llama a projectManager.guardarAArchivo().
+6. guardarAArchivo():
+   a. Escribe el currentProject en el archivo .prj correspondiente.
+   b. Hace una "foto" del estado actual: lastSavedProjectState = deepCopy(currentProject).
+   c. Establece hayCambiosSinGuardar = false.
+   d. Dispara el evento fireProjectStateChanged().
+7. GeneralController recibe el evento y actualiza el título, que ahora ya no tendrá el *.
+
+C. Flujo de "Cierre sin Guardar" (Red de Seguridad)
+---------------------------------------------------
+1. Acción del Usuario: Clic en la 'X' de la ventana.
+2. WindowListener llama a visorController.shutdownApplication(), que delega en generalController.handleApplicationShutdown().
+3. handleApplicationShutdown() llama a promptToSaveChangesIfNecessary().
+4. El usuario elige la opción "No Guardar".
+5. handleApplicationShutdown() detecta esta elección y llama a projectManager.guardarSesionDeRecuperacion().
+6. guardarSesionDeRecuperacion() guarda el currentProject actual en session_recovery.prj (incluyendo la ruta del proyecto original dentro del JSON).
+7. handleApplicationShutdown() escribe la ruta de session_recovery.prj en el config.cfg bajo la clave proyectos.estado.recuperacion_pendiente.
+8. La aplicación se cierra (System.exit(0)).
+
+4. ARCHIVOS FÍSICOS
+====================
+
+* *.prj (ej. test.prj): 
+  Archivos de proyecto guardados explícitamente por el usuario. Son la fuente de verdad persistente.
+
+* seleccion_actual.prj: 
+  Ya no se usa para el guardado automático constante. Ahora solo sirve como destino de guardado para un "Proyecto Temporal" (sin nombre) cuando se cambia del modo Visor a otro modo.
+
+* session_recovery.prj: 
+  El archivo de la red de seguridad. Solo se crea/sobrescribe cuando el usuario cierra la aplicación eligiendo "No Guardar" mientras hay cambios pendientes. Se lee y se borra en el siguiente arranque si el usuario acepta la recuperación.
 
 
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
 

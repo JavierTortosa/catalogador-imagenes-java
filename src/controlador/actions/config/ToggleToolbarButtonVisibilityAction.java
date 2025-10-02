@@ -71,9 +71,9 @@ public class ToggleToolbarButtonVisibilityAction extends AbstractAction {
         String fullMenuStateKey = this.menuConfigKeyBase + ".seleccionado";
         config.setString(fullMenuStateKey, String.valueOf(isSelected));
         
-        System.out.println("[ToggleToolbarButtonVisibilityAction] '" + getValue(Action.NAME) + "' toggled. Nuevo estado: " + isSelected);
-        System.out.println("  -> Config Guardada: '" + fullButtonVisibilityKey + "' = " + isSelected);
-        System.out.println("  -> Config Guardada: '" + fullMenuStateKey + "' = " + isSelected);
+        logger.debug("[ToggleToolbarButtonVisibilityAction] '" + getValue(Action.NAME) + "' toggled. Nuevo estado: " + isSelected);
+        logger.debug("  -> Config Guardada: '" + fullButtonVisibilityKey + "' = " + isSelected);
+        logger.debug("  -> Config Guardada: '" + fullMenuStateKey + "' = " + isSelected);
         
         // 3. Notificar al controller para que refresque la UI.
         //    Pasamos la clave COMPLETA del botón para que el controlador sepa qué componente específico cambió.

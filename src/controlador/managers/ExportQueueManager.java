@@ -99,6 +99,10 @@ public class ExportQueueManager {
 
         this.colaDeExportacion = nuevaCola;
         logger.debug("[ExportQueueManager] Reconciliación de cola finalizada. Nuevo tamaño: {}", this.colaDeExportacion.size());
+        
+        detectarColisionesDeNombres();
+        
+        
     } // --- Fin del método prepararColaDesdeSeleccion ---
 
     
@@ -170,5 +174,59 @@ public class ExportQueueManager {
                nombreEnMinusculas.endsWith(".rar") || 
                nombreEnMinusculas.endsWith(".7z");
     } // --- Fin del método esExtensionComprimida ---
+    
+    
+    /**
+     * Detecta colisiones de nombres de archivo dentro de la cola de exportación.
+     * Itera sobre todos los archivos que se van a exportar (imágenes y asociados)
+     * y marca los ExportItems correspondientes si encuentra nombres duplicados.
+     */
+    private void detectarColisionesDeNombres() {
+        logger.debug("[ExportQueueManager] Iniciando detección de colisiones de nombres...");
+        // Reseteamos el estado de conflicto de todos los items primero.
+        for (ExportItem item : colaDeExportacion) {
+            item.setTieneConflictoDeNombre(false);
+        }
+
+        // Mapa para rastrear nombres: Clave = nombre de archivo (lowercase), Valor = lista de items que lo contienen.
+        java.util.Map<String, java.util.List<ExportItem>> nameTracker = new java.util.HashMap<>();
+
+        // 1. Poblar el mapa con todos los archivos que se exportarán.
+        for (ExportItem item : colaDeExportacion) {
+            // Añadir la imagen principal
+            String imageName = item.getRutaImagen().getFileName().toString().toLowerCase();
+            nameTracker.computeIfAbsent(imageName, k -> new java.util.ArrayList<>()).add(item);
+
+            // Añadir todos los archivos asociados
+            if (item.getRutasArchivosAsociados() != null) {
+                for (java.nio.file.Path asociado : item.getRutasArchivosAsociados()) {
+                    String asociadoName = asociado.getFileName().toString().toLowerCase();
+                    nameTracker.computeIfAbsent(asociadoName, k -> new java.util.ArrayList<>()).add(item);
+                }
+            }
+        }
+
+        // 2. Identificar los conflictos y marcar los items.
+        int conflictosEncontrados = 0;
+        for (java.util.Map.Entry<String, java.util.List<ExportItem>> entry : nameTracker.entrySet()) {
+            if (entry.getValue().size() > 1) {
+                // ¡Conflicto detectado para el nombre de archivo!
+                String nombreEnConflicto = entry.getKey();
+                logger.warn("  -> Conflicto detectado para el nombre: '{}'", nombreEnConflicto);
+                conflictosEncontrados++;
+                
+                // Marcamos TODOS los items involucrados en este conflicto.
+                for (ExportItem itemEnConflicto : entry.getValue()) {
+                    itemEnConflicto.setTieneConflictoDeNombre(true);
+                }
+            }
+        }
+        
+        if (conflictosEncontrados > 0) {
+            logger.info("[ExportQueueManager] Detección finalizada. Se encontraron {} conflictos de nombre.", conflictosEncontrados);
+        } else {
+            logger.debug("[ExportQueueManager] Detección finalizada. No se encontraron conflictos de nombre.");
+        }
+    } // ---FIN de metodo [detectarColisionesDeNombres]---
 
 } // --- FIN de la clase ExportQueueManager ---

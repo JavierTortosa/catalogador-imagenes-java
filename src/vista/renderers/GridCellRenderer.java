@@ -23,6 +23,7 @@ import controlador.ProjectController;
 import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
 import modelo.proyecto.ExportItem;
+import modelo.proyecto.ExportStatus;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.image.ThumbnailService;
@@ -47,10 +48,10 @@ public class GridCellRenderer implements ListCellRenderer<String> {
     
     private final ProjectController projectController;
 
-    private static final Color COLOR_OK = new Color(34, 139, 34);
-    private static final Color COLOR_WARNING = new Color(255, 165, 0);
-    private static final Color COLOR_ERROR = Color.RED;//new Color(178, 34, 34);
+    private static final Color COLOR_DESACTIVADO = new Color(128, 128, 128); // Gris para el borde
     
+    private static int MARCO_ESTADO_HEIGHT = 20;
+    private static int MARCO_ESTADO_WIDTH = 20;
     
     public GridCellRenderer(
             ThumbnailService gridThumbnailService,
@@ -76,8 +77,12 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         this.showNamesDefault = configuration.getBoolean("grid.mostrar.nombres.state", true);
         
         this.cellPanel = new CustomGridCellPanel();
-        this.cellPanel.setPreferredSize(new java.awt.Dimension(anchoMiniatura + 12, altoMiniatura + 12));
         
+        // --- INICIO DE LA MODIFICACIÓN: AÑADIR SEPARACIÓN ---
+        int separacion = 10; // <<-- ¡AQUÍ CONTROLAS LA SEPARACIÓN ENTRE IMÁGENES!
+        this.cellPanel.setPreferredSize(new java.awt.Dimension(anchoMiniatura + separacion, altoMiniatura + separacion));
+        // --- FIN DE LA MODIFICACIÓN ---
+
         this.cellPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -94,7 +99,7 @@ public class GridCellRenderer implements ListCellRenderer<String> {
                 }
             }
         });
-    } // ---FIN de metodo ---
+    } // ---FIN de metodo constructor ---
     
     public java.awt.Dimension getCellSize() {
         return this.cellPanel.getPreferredSize();
@@ -105,8 +110,8 @@ public class GridCellRenderer implements ListCellRenderer<String> {
         
         Path rutaCompleta = (value != null) ? this.modeloVisor.getRutaCompleta(value) : null;
         
-        int anchoMiniatura = cellPanel.getPreferredSize().width - 12;
-        int altoMiniatura = cellPanel.getPreferredSize().height - 12;
+        int anchoMiniatura = cellPanel.getPreferredSize().width - MARCO_ESTADO_WIDTH;
+        int altoMiniatura = cellPanel.getPreferredSize().height - MARCO_ESTADO_HEIGHT;
         
         ImageIcon miniaturaIcono = null;
         if (rutaCompleta != null) {
@@ -140,45 +145,33 @@ public class GridCellRenderer implements ListCellRenderer<String> {
             }
         }
 
-        // =========================================================================
-        // === INICIO DE LA CORRECCIÓN ===
-        // =========================================================================
+        // --- INICIO DE LA LÓGICA DE COLOR Y ESTADO UNIFICADA ---
         
-        Color backgroundColor = list.getBackground();
+        Color statusBorderColor = null; // null significa sin borde de estado
         boolean desaturar = false;
 
-        // La única condición ahora es si el modelo dice que hay que mostrar el estado.
-        // Ya no nos importa si estamos en modo exportación aquí.
         if (this.projectController != null && modeloVisor.isGridMuestraEstado()) {
-            
             ExportItem item = this.projectController.getExportItem(value);
 
             if (item != null) {
-                switch (item.getEstadoArchivoComprimido()) {
-                    case ENCONTRADO_OK:
-                        backgroundColor = COLOR_OK;
-                        break;
-                    case ASIGNADO_MANUAL:
-                    case IGNORAR_COMPRIMIDO:
-                        backgroundColor = COLOR_WARNING;
-                        break;
-                    case NO_ENCONTRADO:
-                    case IMAGEN_NO_ENCONTRADA:
-                        backgroundColor = COLOR_ERROR;
-                        break;
-                    default:
-                        break;
-                }
-                
                 if (!item.isSeleccionadoParaExportar()) {
+                    // REGLA: Si el checkbox está desmarcado, borde gris e imagen desaturada.
+                    statusBorderColor = COLOR_DESACTIVADO;
                     desaturar = true;
+                } else {
+                    // REGLA: Usar la misma lógica de conflicto que la tabla.
+                    ExportStatus status = item.tieneConflictoDeNombre() 
+                                          ? ExportStatus.NOMBRE_DUPLICADO 
+                                          : item.getEstadoArchivoComprimido();
+                    
+                    // REGLA: Obtener el color directamente del enum.
+                    statusBorderColor = status.getColor();
                 }
             }
         }
         
         ImageIcon iconoFinal = miniaturaIcono;
         if (desaturar && miniaturaIcono != null && miniaturaIcono.getImage() != null) {
-        	// Convertimos Image a BufferedImage para poder desaturar
             BufferedImage bufferedImage = new BufferedImage(
                 miniaturaIcono.getIconWidth(),
                 miniaturaIcono.getIconHeight(),
@@ -188,17 +181,17 @@ public class GridCellRenderer implements ListCellRenderer<String> {
             g.drawImage(miniaturaIcono.getImage(), 0, 0, null);
             g.dispose();
             
-            // Usamos la clase IconUtils para la conversión
             iconoFinal = new ImageIcon(IconUtils.toGrayscale(bufferedImage));
         }
 
-        // AHORA llamamos a setData con el icono y color correctos
-        this.cellPanel.setData(iconoFinal, textoParaMostrar, isSelected, backgroundColor, this.selectionBorderColor);
-        // =========================================================================
-        // === FIN DE LA CORRECCIÓN ===
-        // =========================================================================
+        // Llamada corregida a setData:
+        // 1. cellBackground: Siempre el color de fondo de la lista.
+        // 2. borderColor: El color que acabamos de calcular (puede ser null).
+        this.cellPanel.setData(iconoFinal, textoParaMostrar, isSelected, list.getBackground(), statusBorderColor);
+        
+        // --- FIN DE LA LÓGICA DE COLOR Y ESTADO UNIFICADA ---
 
         return this.cellPanel;
-    } // ---FIN de metodo ---
+    } // ---FIN de metodo getListCellRendererComponent ---
     
 } // --- FIN de clase GridCellRenderer ---

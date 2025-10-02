@@ -3,6 +3,9 @@ package vista.theme;
 import java.awt.Color;
 import java.awt.Component;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -17,6 +20,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
+import controlador.ProjectController;
 import controlador.utils.ComponentRegistry; // ¡La dependencia clave!
 
 /**
@@ -25,6 +29,8 @@ import controlador.utils.ComponentRegistry; // ¡La dependencia clave!
  */
 public class ThemeApplier {
 
+	private static final Logger logger = LoggerFactory.getLogger(ThemeApplier.class);
+	
     private final ComponentRegistry registry;
 
     public ThemeApplier(ComponentRegistry registry) {
@@ -38,11 +44,11 @@ public class ThemeApplier {
      */
     public void applyTheme(Tema tema) {
         if (tema == null) {
-            System.err.println("ThemeApplier: Se intentó aplicar un tema nulo. Operación cancelada.");
+            logger.error("ThemeApplier: Se intentó aplicar un tema nulo. Operación cancelada.");
             return;
         }
 
-        System.out.println(">>> Aplicando tema: " + tema.nombreDisplay() + " <<<");
+        logger.info(">>> Aplicando tema: " + tema.nombreDisplay() + " <<<");
 
         // Paso 1: Notificar a Swing que debe actualizar sus componentes por defecto.
         // Esto es crucial para que los JComboBox, JScrollBar, etc., se actualicen.
@@ -63,7 +69,7 @@ public class ThemeApplier {
         // Aquí usamos los nombres canónicos que definimos en el registro.
         applySpecializedColors(tema);
 
-        System.out.println(">>> Aplicación del tema completada. <<<");
+        logger.info (">>> Aplicación del tema completada. <<<");
     } // ---FIN de metodo [applyTheme]---
 
     /**

@@ -56,6 +56,7 @@ import controlador.managers.ViewManager;
 import controlador.managers.filter.FilterCriterion;
 import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
+import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry;
 import modelo.ListContext;
@@ -92,13 +93,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private FolderTreeManager folderTreeManager;
     private FilterManager filterManager;
     
-    //Variables de filtros
-//    private DefaultListModel<String> contextoRealGuardado_modelo;
-//    private Map<String, Path> contextoRealGuardado_mapaRutas;
-//    private String contextoRealGuardado_punteroKey;
-//    private boolean filtroPersistenteActivo = false;
-    
-    
  // Checkpoint para el FILTRO PERSISTENTE ---
     // Guardará la lista original cargada desde el disco, nuestra fuente de verdad.
     private DefaultListModel<String> persistente_listaMaestraOriginal;
@@ -106,11 +100,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private boolean persistente_activo = false;
     private FilterSource filtroActivoSource = FilterSource.FILENAME;
     
-//    private Map<String, Path> persistente_mapaRutasOriginal;
     
     // --- Checkpoint para el TORNADO (se mantiene igual) ---
     private DefaultListModel<String> masterModelSinFiltro;
-//    private Map<String, Path> masterMapSinFiltro;
     private int indiceSeleccionadoAntesDeFiltrar = -1;
     
     
@@ -122,7 +114,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private int lastMouseX, lastMouseY;
     
     private volatile boolean isChangingSubfolderMode = false;
-//    private java.beans.PropertyChangeListener listSelectionListener;
     
     private javax.swing.border.Border focusedBorder;
     private javax.swing.border.Border unfocusedBorder;
@@ -665,7 +656,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             projectController.solicitarAbrirProyecto(selectedFile);
             
             // Verificamos si la carga fue exitosa (ahora hay imágenes en el proyecto)
-            if (!visorController.getProjectManager().getImagenesMarcadas().isEmpty()) {
+            IProjectManager pm = visorController.getProjectManager();
+            if (!pm.getImagenesMarcadas().isEmpty() || !pm.getImagenesDescartadas().isEmpty()) {
+            
                 logger.debug(" -> Proyecto cargado exitosamente. Se procederá con el cambio de modo.");
                 return true; // Éxito
             } else {
@@ -989,7 +982,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
     } // --- Fin del método solicitarToggleFullScreen ---
     
+    
 // *********************************************************************************************************************** INICIO SINCRONIZACION    
+    
     
     /**
 	 * Sincroniza el estado LÓGICO Y VISUAL de los botones de modo de trabajo.
@@ -1322,8 +1317,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 //  ************************************************************************************** IMPLEMENTACION INTERFAZ IModoController
     
     
- // REEMPLAZA ESTE MÉTODO COMPLETO EN GeneralController.java
-
     /**
      * Configura los listeners globales de teclado y ratón para la aplicación,
      * utilizando un sistema de etiquetado para desacoplar el controlador de la vista.
@@ -1773,24 +1766,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     }// --- FIN del metodo continuarPaneo ---
     
     
-//    private boolean isComponentTagged(Component component, String tag) {
-//        // Itera hacia arriba en la jerarquía de componentes
-//        for (Component c = component; c != null; c = c.getParent()) {
-//            // Comprueba si el ComponentRegistry tiene alguna etiqueta para este componente
-//            // (Necesitaríamos un método en ComponentRegistry para buscar por componente,
-//            // pero por ahora, vamos a simplificar asumiendo que el componente principal está etiquetado)
-//            
-//            // La forma más simple es comprobar si el componente es uno de los que etiquetamos.
-//            if (c == registry.get("label.imagenPrincipal") ||
-//                c == registry.get("label.proyecto.imagen") ||
-//                c == registry.get("label.carousel.imagen")) {
-//                return true;
-//            }
-//        }
-//        return false;
-//    } // --- Fin del método isComponentTagged ---
-    
-    
     /**
      * Notifica a todas las acciones sensibles al contexto para que actualicen su estado 'enabled'.
      * Este es el método central para llamar después de un cambio de estado global, como activar/desactivar la sincronización.
@@ -1961,11 +1936,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             
             if (model != null && model.getModeloLista() != null) {
                 this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
-//                this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
                 logger.info("[GC] Contexto Maestro Inmutable capturado. Tamaño: " + this.persistente_listaMaestraOriginal.getSize());
             } else {
                 this.persistente_listaMaestraOriginal = null;
-//                this.persistente_mapaRutasOriginal = null;
             }
             
             this.sincronizarTodaLaUIConElModelo();
@@ -2275,26 +2248,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
     } // --- Fin del método configurePlaceholderText ---
 
-//    /**
-//     * Se activa cuando el botón de filtro en vivo (huracán) es pulsado.
-//     * Actualiza el estado en el modelo y aplica o limpia el filtro.
-//     */
-//    private void onToggleLiveFilter(boolean isSelected) {
-//        model.setLiveFilterActive(isSelected);
-//        logger.debug("[GeneralController] Modo Filtro en Vivo cambiado a: {}", isSelected);
-//        
-//        if (isSelected) {
-//            actualizarFiltro(); // Aplicar filtro con el texto actual
-//        } else {
-//            limpiarFiltro(); // Volver a la lista maestra
-//        }
-//        
-//        // Sincroniza la apariencia visual del botón
-//        Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
-//        configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
-//
-//    } // --- Fin del método onToggleLiveFilter ---
-
     
     /**
      * Reacciona a los cambios en el campo de texto cuando el filtro en vivo está activo.
@@ -2410,7 +2363,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      * Cumple la "Regla del Reset Total": si el filtro rápido ("Tornado") está
      * activo, lo desactiva y limpia su JTextField asociado.
      */
-    private void limpiarEstadoFiltroRapidoSiActivo() {
+    public void limpiarEstadoFiltroRapidoSiActivo() {
         
     	javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
     	
@@ -2453,7 +2406,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             // Si el modo persistente no está activo, lo activamos y guardamos el checkpoint.
             if (!persistente_activo) {
                 this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
-//                this.persistente_mapaRutasOriginal = new HashMap<>(model.getRutaCompletaMap());
                 this.persistente_punteroOriginalKey = model.getSelectedImageKey();
                 this.persistente_activo = true;
             }
@@ -2474,7 +2426,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 
                 // Reseteamos el estado del checkpoint
                 this.persistente_listaMaestraOriginal = null;
-//                this.persistente_mapaRutasOriginal = null;
                 this.persistente_punteroOriginalKey = null;
                 this.persistente_activo = false;
             }
@@ -2524,50 +2475,11 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             if (resetearCheckpoint) {
                 logger.info("[GC] Reseteando estado del checkpoint persistente...");
                 this.persistente_listaMaestraOriginal = null;
-//                this.persistente_mapaRutasOriginal = null;
                 this.persistente_punteroOriginalKey = null;
                 this.persistente_activo = false;
             }
         });
     } // --- Fin del método actualizarListaVisibleConResultado ---
-    
-    
-//    /**
-//     * NUEVO MÉTODO HELPER.
-//     * Actualiza la JList principal de la vista (la lista de nombres de archivo)
-//     * con el modelo de datos que está actualmente activo en el VisorModel.
-//     * También actualiza el título del panel que la contiene.
-//     */
-//    private void actualizarListaPrincipalDeLaVista() {
-//        if (visorController == null || visorController.getView() == null || model == null) return;
-//
-//        // El modelo de la vista debe ser el que está activo en el modelo de datos
-//        DefaultListModel<String> modeloActual = model.getModeloLista();
-//        
-//        // El método setListaImagenesModel ya está en tu VisorView y hace lo correcto
-//        visorController.getView().setListaImagenesModel(modeloActual);
-//        
-//        // Actualizamos el título del panel
-//        String titulo = filterManager.isFilterActive() ? "Archivos (Filtro): " : "Archivos: ";
-//        visorController.getView().setTituloPanelIzquierdo(titulo + modeloActual.getSize());
-//
-//        logger.debug("[GeneralController] La JList principal de la vista ha sido actualizada. Tamaño: {}", modeloActual.getSize());
-//        
-//    } // --- Fin del método actualizarListaPrincipalDeLaVista ---
-
-    
-//    /**
-//     * Helper para construir un mapa de rutas a partir de una lista filtrada.
-//     */
-//    private Map<String, Path> construirMapaDesdeLista(DefaultListModel<String> lista, Map<String, Path> mapaOriginal) {
-//        Map<String, Path> nuevoMapa = new HashMap<>();
-//        for (int i = 0; i < lista.getSize(); i++) {
-//            String key = lista.getElementAt(i);
-//            nuevoMapa.put(key, mapaOriginal.get(key));
-//        }
-//        return nuevoMapa;
-//        
-//    } // --- Fin del método construirMapaDesdeLista ---
     
     
     /**
@@ -2606,79 +2518,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         refrescarConFiltrosPersistentes();
 
     } // --- Fin del método solicitarPersistenciaDeFiltroRapido ---
-    
-    
-//    /**
-//     * Método central para actualizar la UI después de cualquier cambio en los filtros.
-//     * Refresca tanto la lista de filtros activos como la lista de archivos filtrada.
-//     */
-//    private void refrescarVistasDeFiltros() {
-//        // 1. Actualizar la JList de la pestaña "Filtros" (esto es solo visual y no cambia)
-//        JList<FilterCriterion> filterListUI = registry.get("list.filtrosActivos");
-//        if (filterListUI != null) {
-//            DefaultListModel<FilterCriterion> filterListModel = new DefaultListModel<>();
-//            filterListModel.addAll(filterManager.getActiveFilters());
-//            filterListUI.setModel(filterListModel);
-//        }
-//
-//        // 2. Comprobar si hay filtros persistentes para aplicar
-//        if (!filterManager.getActiveFilters().isEmpty()) {
-//            // --- ACTIVAR MODO FILTRO PERSISTENTE ---
-//            logger.debug("[Filtro Persistente] Activando modo. Hay {} filtros.", filterManager.getActiveFilters().size());
-//            
-//            // 2a. Guardar checkpoint del contexto real, SI NO LO HEMOS HECHO YA
-//            if (!filtroPersistenteActivo) {
-//                logger.info("[Filtro Persistente] Creando checkpoint del contexto real.");
-//                ListContext contextoReal = model.getCurrentListContext();
-//                
-//                // Clonar el modelo de lista para no tener referencias cruzadas
-//                contextoRealGuardado_modelo = new DefaultListModel<>();
-//                DefaultListModel<String> modeloOriginal = contextoReal.getModeloLista();
-//                if(modeloOriginal != null) {
-//                    for(int i=0; i < modeloOriginal.getSize(); i++) {
-//                        contextoRealGuardado_modelo.addElement(modeloOriginal.getElementAt(i));
-//                    }
-//                }
-//
-//                contextoRealGuardado_mapaRutas = new HashMap<>(contextoReal.getRutaCompletaMap());
-//                contextoRealGuardado_punteroKey = contextoReal.getSelectedImageKey();
-//                filtroPersistenteActivo = true;
-//            }
-//            
-//            // 2b. Crear la "carpeta virtual" filtrando desde el checkpoint
-//            DefaultListModel<String> listaVirtual = filterManager.applyFilters(contextoRealGuardado_modelo);
-//            Map<String, Path> mapaVirtual = new HashMap<>();
-//            for (String key : Collections.list(listaVirtual.elements())) {
-//                mapaVirtual.put(key, contextoRealGuardado_mapaRutas.get(key));
-//            }
-//
-//            // 2c. ¡EL GRAN INTERCAMBIO! Simulamos la carga de una nueva carpeta
-//            visorController.cargarListaDesdeFiltro(new FilterManager.FilterResult(listaVirtual, mapaVirtual), null);
-//
-//        } else {
-//            // --- DESACTIVAR MODO FILTRO PERSISTENTE ---
-//            if (filtroPersistenteActivo) {
-//                logger.info("[Filtro Persistente] Desactivando modo. Restaurando checkpoint.");
-//                
-//                // 2d. Restaurar el checkpoint
-//                visorController.cargarListaDesdeFiltro(new FilterManager.FilterResult(contextoRealGuardado_modelo, contextoRealGuardado_mapaRutas), () -> {
-//                    // Callback que se ejecuta DESPUÉS de la carga: restaurar el puntero
-//                    if (visorController != null && visorController.getListCoordinator() != null && contextoRealGuardado_punteroKey != null) {
-//                        int indiceOriginal = contextoRealGuardado_modelo.indexOf(contextoRealGuardado_punteroKey);
-//                        if(indiceOriginal != -1) {
-//                             visorController.getListCoordinator().seleccionarImagenPorIndice(indiceOriginal);
-//                        }
-//                    }
-//                });
-//
-//                // 2e. Limpiar el estado
-//                contextoRealGuardado_modelo = null;
-//                contextoRealGuardado_mapaRutas = null;
-//                contextoRealGuardado_punteroKey = null;
-//                filtroPersistenteActivo = false;
-//            }
-//        }
-//    } // --- Fin del método refrescarVistasDeFiltros ---
     
     
     /**

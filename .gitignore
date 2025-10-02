@@ -119,5 +119,15 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+# Archivos de Log específicos de la aplicación
+log.txt
+
+# Archivo de configuración local del usuario (no versionar preferencias personales)
+config.cfg
+
+# Archivos de datos de proyecto generados por la aplicación.
+# Ignora todos los archivos que terminen en .prj en cualquier parte del proyecto.
+*.prj
+
 # End of https://www.toptal.com/developers/gitignore/api/eclipse,java,windows
 /target/

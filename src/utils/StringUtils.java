@@ -126,5 +126,24 @@ public final class StringUtils { // 'final' para evitar herencia
   //********************************************************************************** FIN dynamicLOG    
     
 
+    /**
+     * Formatea un tamaño de archivo en bytes a una cadena legible por humanos (B, KB, MB, GB, TB).
+     *
+     * @param size El tamaño en bytes.
+     * @return Una cadena de texto formateada, por ejemplo, "1.5 MB".
+     */
+    public static String formatFileSize(long size) {
+        if (size <= 0) {
+            return "0 B";
+        }
+        final String[] units = new String[]{"B", "KB", "MB", "GB", "TB"};
+        int digitGroups = (int) (Math.log10(size) / Math.log10(1024));
+        if (digitGroups == 0) {
+            return String.format("%d %s", size, units[digitGroups]);
+        }
+        return String.format("%.1f %s", size / Math.pow(1024, digitGroups), units[digitGroups]);
+    } // ---FIN de metodo [formatFileSize]---
+    
+    
 } //fin StringUtils
 

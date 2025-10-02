@@ -5,12 +5,19 @@ import java.awt.event.ActionEvent;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import controlador.ProjectController;
 import controlador.interfaces.InitializableVisibility;
 import controlador.managers.interfaces.IViewManager;
 import servicios.ConfigurationManager;
 
 public class ToggleUIElementVisibilityAction extends AbstractAction implements InitializableVisibility {
-    private static final long serialVersionUID = 1L;
+
+	private static final Logger logger = LoggerFactory.getLogger(ProjectController.class);
+	
+	private static final long serialVersionUID = 1L;
 
 //    private final VisorController controller;
     private final IViewManager viewManager;
@@ -78,7 +85,7 @@ public class ToggleUIElementVisibilityAction extends AbstractAction implements I
         // Usar la clave base (que ya es la clave de visibilidad completa) para guardar.
         configManager.setString(this.configKeyBase, String.valueOf(nuevoEstadoVisible));
 
-        System.out.println("[ToggleUIElementVisibilityAction] '" + getValue(Action.NAME) +
+        logger.debug ("[ToggleUIElementVisibilityAction] '" + getValue(Action.NAME) +
                            "' toggled. Nueva visibilidad: " + nuevoEstadoVisible +
                            ". Clave config actualizada: " + this.configKeyBase);
 

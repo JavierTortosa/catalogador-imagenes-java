@@ -1224,50 +1224,65 @@ public class VisorController implements IModoController, ActionListener, Clipboa
     
     
     /**
-     * Ejecuta un "soft reset" de la aplicación, realizando todas las tareas
-     * definidas para la acción de Refresco Completo.
+     * Ejecuta un refresco completo del modo VISUALIZADOR.
+     * Vuelve a leer el contenido de la carpeta raíz actual desde el disco y, si el filtro
+     * Tornado estaba activo, lo reaplica automáticamente.
      */
     public void ejecutarRefrescoCompleto() {
-        logger.debug("--- [VisorController] Ejecutando Refresco Completo ---");
+        logger.debug("--- [VisorController] Ejecutando Refresco Completo del Modo Visualizador (Versión Inteligente) ---");
 
-        if (model == null || zoomManager == null) {
-            logger.error("ERROR [ejecutarRefrescoCompleto]: Modelo o ZoomManager nulos.");
+        if (model == null || generalController == null || registry == null) {
+            logger.error("ERROR [ejecutarRefrescoCompleto]: Dependencias nulas.");
             return;
         }
 
-        // 1. Recordar el estado actual ANTES del refresco.
-        final String claveASeleccionar = model.getSelectedImageKey();
-        final servicios.zoom.ZoomModeEnum modoZoomARestaurar = model.getCurrentZoomMode();
-        logger.debug("  -> Estado a restaurar: Clave='" + claveASeleccionar + "', ModoZoom='" + modoZoomARestaurar + "'");
+        final Path carpetaActual = model.getCarpetaRaizActual();
+        if (carpetaActual == null) {
+            logger.warn("No hay carpeta raíz seleccionada. No se puede refrescar.");
+            return;
+        }
 
-        // 2. Definir la acción que se ejecutará DESPUÉS de que la lista se haya cargado.
-        Runnable accionAlFinalizar = () -> {
-            logger.debug("    -> [Callback post-refresco] Re-aplicando modo de zoom: " + modoZoomARestaurar);
-            // Re-aplicamos el modo de zoom que habíamos guardado.
-            zoomManager.aplicarModoDeZoom(modoZoomARestaurar);
+        // 1. Guardar el estado que queremos restaurar
+        final String claveASeleccionar = model.getSelectedImageKey();
+        
+        String textoFiltroAReaplicar = null;
+        if (model.isLiveFilterActive()) {
+            javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+            if (searchField != null && !searchField.getText().isBlank() && !searchField.getText().equals("Texto a buscar...")) {
+                textoFiltroAReaplicar = searchField.getText();
+                
+                // 2. ORDENAR AL GENERALCONTROLLER QUE LIMPIE SU ESTADO DE FILTRO INTERNO
+                //    Esta es la clave para que luego se pueda desactivar.
+                logger.debug("  -> Filtro Tornado activo. Limpiando estado en GeneralController antes de recargar.");
+                generalController.limpiarEstadoFiltroRapidoSiActivo();
+            }
+        }
+        
+        final String finalTextoFiltro = textoFiltroAReaplicar;
+
+        // 3. Definir el callback para REAPLICAR el filtro después de la carga
+        Runnable accionPostCarga = () -> {
+            logger.debug("    -> [Callback post-refresco] Sincronizando UI...");
+            generalController.sincronizarTodaLaUIConElModelo();
             
-            // También forzamos la actualización de las barras de info para asegurar consistencia.
-            if (infobarImageManager != null) infobarImageManager.actualizar();
-            if (statusBarManager != null) statusBarManager.actualizar();
+            if (finalTextoFiltro != null) {
+                logger.debug("    -> Reaplicando filtro Tornado con texto: '{}'", finalTextoFiltro);
+                javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+                if (searchField != null) {
+                    searchField.setText(finalTextoFiltro);
+                    // Vuelve a activar el filtro sobre la nueva lista de datos
+                    generalController.onLiveFilterStateChanged(true);
+                }
+            }
         };
 
-        // 3. Ejecutar las partes síncronas del refresco.
-        if (this.viewManager != null) {
-            this.viewManager.ejecutarRefrescoCompletoUI();
-        }
+        // 4. Iniciar la recarga de la lista, pasando nuestro callback especial.
+        logger.debug("  -> Recargando lista de imágenes para la carpeta: {}", carpetaActual);
+        cargarListaImagenes(claveASeleccionar, accionPostCarga);
         
-        if (this.viewManager != null) {
-            this.viewManager.refrescarFondoAlPorDefecto();
-        }
-        // TODO: Lógica para resaltar el punto de color.
-
-        // 4. Iniciar la recarga de la lista, pasando la acción de finalización.
-        logger.debug("  -> Recargando lista de imágenes y programando restauración de zoom...");
-        cargarListaImagenes(claveASeleccionar, accionAlFinalizar);
-        
-        logger.debug("--- [VisorController] Refresco Completo encolado/ejecutado. ---");
+        logger.debug("--- [VisorController] Refresco Inteligente encolado/ejecutado. ---");
     } // --- Fin del método ejecutarRefrescoCompleto ---
-
+    
 
     /**
      * Inicia el proceso de carga y visualización de la imagen principal.
@@ -1321,25 +1336,42 @@ public class VisorController implements IModoController, ActionListener, Clipboa
         cargaImagenPrincipalFuture = executorService.submit(() -> {
             BufferedImage imagenCargadaDesdeDisco = null;
             try {
+                // Comprobación temprana de interrupción
+                if (Thread.currentThread().isInterrupted()) {
+                    logger.trace("Tarea de carga para '{}' cancelada antes de empezar la lectura.", rutaCompleta.getFileName());
+                    return;
+                }
+
                 if (!Files.exists(rutaCompleta)) throw new IOException("El archivo no existe: " + rutaCompleta);
                 imagenCargadaDesdeDisco = ImageIO.read(rutaCompleta.toFile());
                 if (imagenCargadaDesdeDisco == null) throw new IOException("Formato no soportado o archivo inválido.");
+
             } catch (Exception ex) {
-                logger.error("Error al cargar la imagen: " + ex.getMessage());
+                // --- INICIO DE LA MODIFICACIÓN CLAVE ---
+                // Si el hilo ha sido interrumpido, no es un error real, es una cancelación.
+                if (Thread.currentThread().isInterrupted()) {
+                    logger.debug("La carga de la imagen '{}' fue interrumpida, lo cual es normal durante la navegación rápida.", rutaCompleta.getFileName());
+                } else {
+                    // Si no fue interrumpido, es un error genuino de lectura.
+                    logger.error("Error al cargar la imagen '{}': {}", rutaCompleta.getFileName(), ex.getMessage());
+                }
+                // En ambos casos (cancelación o error real), la imagen cargada será null.
+                imagenCargadaDesdeDisco = null; 
+                // --- FIN DE LA MODIFICACIÓN CLAVE ---
             }
             
-            // Si la carga fue exitosa, pasamos la imagen por nuestro corrector EXIF.
-            // Si la carga falló (imagenCargadaDesdeDisco es null), el corrector simplemente devolverá null.
+            // Si después de la lectura, el hilo fue interrumpido, salimos.
+            if (Thread.currentThread().isInterrupted()) {
+                 logger.trace("Tarea de carga para '{}' cancelada después de la lectura.", rutaCompleta.getFileName());
+                 return;
+            }
+
             final BufferedImage imagenCorregida = utils.ImageUtils.correctImageOrientation(imagenCargadaDesdeDisco, rutaCompleta);
             
             final BufferedImage finalImagenCargada = imagenCorregida;
-            
-            if (Thread.currentThread().isInterrupted()) {
-                return;
-            }
 
-            // --- 6. ACTUALIZAR LA UI EN EL EVENT DISPATCH THREAD (EDT) ---
             SwingUtilities.invokeLater(() -> {
+                // ... el resto del método SwingUtilities.invokeLater se queda exactamente igual ...
                 // Doble chequeo: solo actualizar si la imagen que hemos cargado sigue siendo la seleccionada.
                 if (!Objects.equals(archivoSeleccionadoKey, model.getSelectedImageKey())) {
                     logger.debug("  [actualizarImagenPrincipal EDT] Carga de '" + archivoSeleccionadoKey + "' descartada. La selección ha cambiado.");
@@ -1366,19 +1398,17 @@ public class VisorController implements IModoController, ActionListener, Clipboa
                     model.setCurrentImage(null);
                     if (iconUtils != null) {
                          ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
-                         
-                         // Usamos la variable 'rutaCompleta' que ya es final y está en el scope.
                          displayPanel.mostrarError("Error al cargar: \n" + rutaCompleta.getFileName().toString(), errorIcon);
                     }
                     actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
                 }
 
-                // --- 7. ACTUALIZACIÓN FINAL DE COMPONENTES ---
                 if (infobarImageManager != null) infobarImageManager.actualizar();
                 if (statusBarManager != null) statusBarManager.actualizar();
                 if (listCoordinator != null) listCoordinator.forzarActualizacionEstadoAcciones();
             });
         });
+        
     } // --- Fin del método actualizarImagenPrincipal ---
     
     
@@ -1430,27 +1460,37 @@ public class VisorController implements IModoController, ActionListener, Clipboa
         cargaImagenPrincipalFuture = executorService.submit(() -> {
             BufferedImage imagenCargadaDesdeDisco = null;
             try {
+                if (Thread.currentThread().isInterrupted()) {
+                    logger.trace("Tarea de carga por Path para '{}' cancelada antes de empezar.", rutaCompleta.getFileName());
+                    return;
+                }
+
                 if (!Files.exists(rutaCompleta)) throw new IOException("El archivo no existe: " + rutaCompleta);
                 imagenCargadaDesdeDisco = ImageIO.read(rutaCompleta.toFile());
                 if (imagenCargadaDesdeDisco == null) throw new IOException("Formato no soportado o archivo inválido.");
+
             } catch (Exception ex) {
-                logger.error("Error al cargar la imagen directamente por Path: " + ex.getMessage());
+                if (Thread.currentThread().isInterrupted()) {
+                    logger.debug("La carga por Path de la imagen '{}' fue interrumpida.", rutaCompleta.getFileName());
+                } else {
+                    logger.error("Error al cargar la imagen por Path '{}': {}", rutaCompleta.getFileName(), ex.getMessage());
+                }
+                imagenCargadaDesdeDisco = null;
+            }
+            
+            if (Thread.currentThread().isInterrupted()) {
+                logger.trace("Tarea de carga por Path para '{}' cancelada después de la lectura.", rutaCompleta.getFileName());
+                return;
             }
 
             final BufferedImage imagenCorregida = utils.ImageUtils.correctImageOrientation(imagenCargadaDesdeDisco, rutaCompleta);
             
             final BufferedImage finalImagenCargada = imagenCorregida;
             
-            final Path finalPath = rutaCompleta; // Capturar para el EDT
+            final Path finalPath = rutaCompleta;
 
-            // Si la tarea fue cancelada, no hacer nada.
-            if (Thread.currentThread().isInterrupted()) {
-                return;
-            }
-
-            // 7. ACTUALIZAR LA UI EN EL EVENT DISPATCH THREAD (EDT)
             SwingUtilities.invokeLater(() -> {
-                // ... (el resto del método no necesita cambios) ...
+                // El resto del método SwingUtilities.invokeLater se queda exactamente igual.
                 if (finalImagenCargada != null) {
                     model.setCurrentImage(finalImagenCargada);
                     displayPanel.limpiar();
