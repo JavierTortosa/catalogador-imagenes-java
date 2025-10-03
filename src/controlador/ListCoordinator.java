@@ -173,7 +173,7 @@ public class ListCoordinator extends AbstractListCoordinator {
             rutasParaCache.add(model.getCurrentListContext().getRutaCompleta(clave));
         }
         
-        controller.precalentarCacheMiniaturasAsync(rutasParaCache);
+        controller.getImageListManager().precalentarCacheMiniaturasAsync(rutasParaCache);
         
         modeloMiniaturas.clear();
         modeloMiniaturas.addAll(clavesParaMiniaturas);

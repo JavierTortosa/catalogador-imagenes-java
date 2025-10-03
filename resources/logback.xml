@@ -27,7 +27,7 @@
         </encoder>
     </appender>
 
-    <root level="DEBUG">
+    <root level="debug">
         <appender-ref ref="CONSOLE_OUT" /> <!-- Gestiona DEBUG, INFO, WARN -->
         <appender-ref ref="CONSOLE_ERR" /> <!-- Gestiona ERROR -->
     </root>

@@ -76,7 +76,6 @@ public class InfobarStatusManager implements ThemeChangeListener{
         
         configurarListenersControles();
         
-        
     }// --- Fin del constructor --- 
 
     
@@ -133,8 +132,6 @@ public class InfobarStatusManager implements ThemeChangeListener{
         mensajeTemporalTimer.start(); // Iniciar la cuenta atrás
     }// --- Fin del método mostrarMensajeTemporal ---
 
-    
-    
     
     /**
      * MÉTODO AÑADIDO: Actualiza la UI de zoom para un modo no compatible como GRID.
@@ -405,11 +402,9 @@ public class InfobarStatusManager implements ThemeChangeListener{
             }
         }
         
-        // <<-- INICIO DE LA CORRECCIÓN MÍNIMA -->>
         // Asignamos la variable (que puede haber cambiado en el bucle) a una nueva
         // variable 'final' para que el lambda pueda usarla.
         final JButton finalModoZoomBoton = modoZoomBoton; 
-        // <<-- FIN DE LA CORRECCIÓN MÍNIMA -->>
         
         if (finalModoZoomBoton != null) {
             // Quitamos los listeners antiguos
@@ -482,7 +477,7 @@ public class InfobarStatusManager implements ThemeChangeListener{
         logger.debug("[StatusBarManager] ---> Delegando al VisorController la solicitud de zoom: " + porcentaje + "%");
         
         if (this.visorController != null) {
-            this.visorController.solicitarZoomPersonalizado(porcentaje);
+        	this.visorController.getZoomManager().solicitarZoomPersonalizado(porcentaje);
         } else {
             logger.error("ERROR: visorController es nulo. No se puede delegar la acción.");
         }
@@ -652,57 +647,25 @@ public class InfobarStatusManager implements ThemeChangeListener{
             panel.setBackground(customBackgroundColor);
             panel.setBorder(new LineBorder(customBackgroundColor, 2));
 
-            // --- INICIO DE LA CORRECCIÓN ---
             if (customForegroundColor != null) {
                 actualizarColoresDeTextoRecursivamente(panel, customForegroundColor);
             }
-            // --- FIN DE LA CORRECCIÓN ---
 
         } else {
             // Si no, restauramos el estilo por defecto de FlatLaf.
             panel.setBackground(UIManager.getColor("Panel.background"));
             panel.setBorder(UIManager.getBorder("Panel.border"));
             
-            // --- INICIO DE LA CORRECCIÓN ---
             // También restauramos el color del texto al por defecto
             Color defaultForegroundColor = UIManager.getColor("Label.foreground");
             if (defaultForegroundColor != null) {
                 actualizarColoresDeTextoRecursivamente(panel, defaultForegroundColor);
             }
-            // --- FIN DE LA CORRECCIÓN ---
         }
         
         panel.revalidate();
         panel.repaint();
     } // ---FIN de metodo [applyCustomStatusBarStyle]---
-    
-    
-    
-//    /**
-//     * Aplica el estilo de fondo y borde a la barra de estado inferior.
-//     * Lee el color personalizado del UIManager y lo aplica. Si no existe,
-//     * restaura el estilo por defecto del tema actual.
-//     */
-//    private void applyCustomStatusBarStyle() {
-//        JPanel panel = registry.get("panel.estado.inferior");
-//        if (panel == null) return;
-//
-//        // Buscamos el color personalizado definido en los .properties
-//        Color customBackgroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
-//
-//        if (customBackgroundColor != null) {
-//            // Si el tema actual define este color, lo usamos.
-//            panel.setBackground(customBackgroundColor);
-//            panel.setBorder(new LineBorder(customBackgroundColor, 2));
-//        } else {
-//            // Si no, restauramos el estilo por defecto de FlatLaf.
-//            panel.setBackground(UIManager.getColor("Panel.background"));
-//            panel.setBorder(UIManager.getBorder("Panel.border"));
-//        }
-//        
-//        panel.revalidate();
-//        panel.repaint();
-//    } // ---FIN de metodo [applyCustomStatusBarStyle]---
     
     
     public void setController(VisorController controller) {this.visorController = Objects.requireNonNull(controller);}

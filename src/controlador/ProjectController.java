@@ -764,7 +764,8 @@ public void notificarCambioEnProyecto() {
     	if (zoomManager != null) {
     	    zoomManager.aplicarZoomConRueda(e);
     	    if (generalController != null && generalController.getVisorController() != null) {
-    	        generalController.getVisorController().sincronizarEstadoVisualBotonesYRadiosZoom();
+//    	        generalController.getVisorController().sincronizarEstadoVisualBotonesYRadiosZoom();
+    	    	zoomManager.sincronizarEstadoVisualBotonesYRadiosZoom();
     	    }
     	}
     } // --- Fin del método aplicarZoomConRueda ---

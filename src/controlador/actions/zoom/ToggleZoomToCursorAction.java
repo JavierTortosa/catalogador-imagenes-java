@@ -1,4 +1,3 @@
-// Contenido para ToggleZoomToCursorAction.java
 package controlador.actions.zoom;
 
 import java.awt.event.ActionEvent;
@@ -57,9 +56,9 @@ public class ToggleZoomToCursorAction extends AbstractAction implements ContextS
         // Sincronizar el estado visual de esta acción (SELECTED_KEY).
         sincronizarEstadoConModelo();
         
-        if (this.controller != null) {
-            // Notificar al controlador que el estado ha cambiado para que sincronice la UI global.
-            this.controller.sincronizarEstadoVisualBotonesYRadiosZoom();
+        if (this.controller != null && this.controller.getZoomManager() != null) {
+            // Notificar al ZoomManager que el estado ha cambiado para que sincronice la UI global.
+        	this.controller.getZoomManager().sincronizarEstadoVisualBotonesYRadiosZoom();
         }
         
         logger.debug("[ToggleZoomToCursorAction] Estado de 'Zoom al Cursor' cambiado a: " + nuevoEstado);

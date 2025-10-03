@@ -2,11 +2,11 @@ package controlador.actions.ayuda;
 
 import java.awt.event.ActionEvent;
 import java.util.Objects;
+
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import vista.VisorView;
 import vista.dialogos.HelpDialog;

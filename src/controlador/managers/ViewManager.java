@@ -4,17 +4,30 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.FlowLayout;
 import java.awt.GraphicsDevice;
-import java.util.ArrayList;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.ClipboardOwner;
+import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.Transferable;
+import java.awt.image.BufferedImage;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
+import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -38,7 +51,7 @@ import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
 import vista.theme.ThemeManager;
 
-public class ViewManager implements IViewManager, ThemeChangeListener {
+public class ViewManager implements IViewManager, ThemeChangeListener, ClipboardOwner {
 
 	private static final Logger logger = LoggerFactory.getLogger(ViewManager.class);
 	
@@ -52,6 +65,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     private ViewBuilder viewBuilder;
     private VisorModel model;
     private DisplayModeManager displayModeManager;
+    private InfobarStatusManager statusBarManager;
     
 
     /**
@@ -710,7 +724,7 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
      * @param clavePanelContenedor La clave del panel contenedor en el ComponentRegistry.
      * @param layoutConstraint La restricción del BorderLayout (e.g., BorderLayout.NORTH).
      */
-    private void reconstruirBarraLibre(String claveBarra, String clavePanelContenedor, String layoutConstraint) {
+    public void reconstruirBarraLibre(String claveBarra, String clavePanelContenedor, String layoutConstraint) {
         JPanel panelContenedor = registry.get(clavePanelContenedor);
         
         if (panelContenedor == null) {
@@ -762,6 +776,611 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
         
     }	// --- Fin del método reconstruirBarraLibre ---
     
+ // ***************************************************************************************************************************
+ // ******************************************************************************* GESTIÓN DEL DIÁLOGO DE LA LISTA DE IMÁGENES
+ // ***************************************************************************************************************************
+    
+    
+    /**
+     * Muestra un diálogo modal que contiene una lista de los archivos de imagen
+     * actualmente cargados en el modelo principal. Permite al usuario ver la lista
+     * completa y, opcionalmente, copiarla al portapapeles, mostrando nombres de archivo
+     * relativos o rutas completas.
+     */
+     public void mostrarDialogoListaImagenes() {
+         // 1. Validar dependencias (Vista y Modelo necesarios)
+         if (view == null || model == null) {
+             logger.error("ERROR [mostrarDialogoListaImagenes]: Vista o Modelo nulos. No se puede mostrar el diálogo.");
+             // Podríamos mostrar un JOptionPane de error aquí si fuera crítico
+             return;
+         }
+         logger.debug("[Controller] Abriendo diálogo de lista de imágenes...");
+
+         // 2. Crear el JDialog
+         //    - Lo hacemos modal (true) para que bloquee la ventana principal mientras está abierto.
+         //    - Usamos view.getFrame() como padre para que se centre correctamente.
+         final JDialog dialogoLista = new JDialog(view, "Lista de Imágenes Cargadas", true);
+         dialogoLista.setSize(600, 400); // Tamaño inicial razonable
+         dialogoLista.setLocationRelativeTo(view); // Centrar sobre la ventana principal
+         dialogoLista.setLayout(new BorderLayout(5, 5)); // Layout principal del diálogo
+
+         // 3. Crear componentes internos del diálogo
+         
+         // 3.1. Modelo para la JList del diálogo (será llenado dinámicamente)
+         final DefaultListModel<String> modeloListaDialogo = new DefaultListModel<>();
+         
+         // 3.2. JList que usará el modelo anterior
+         JList<String> listaImagenesDialogo = new JList<>(modeloListaDialogo);
+         
+         // 3.3. ScrollPane para la JList (indispensable si la lista es larga)
+         JScrollPane scrollPaneListaDialogo = new JScrollPane(listaImagenesDialogo);
+         
+         // 3.4. CheckBox para alternar entre nombres relativos y rutas completas
+         final JCheckBox checkBoxMostrarRutas = new JCheckBox("Mostrar Rutas Completas");
+         
+         // 3.5. Botón para copiar la lista visible al portapapeles
+         JButton botonCopiarLista = new JButton("Copiar Lista");
+
+         // 4. Configurar Panel Superior (Botón Copiar y CheckBox)
+         JPanel panelSuperiorDialog = new JPanel(new FlowLayout(FlowLayout.LEFT)); // Alineación izquierda
+         panelSuperiorDialog.add(botonCopiarLista);
+         panelSuperiorDialog.add(checkBoxMostrarRutas);
+
+         // 5. Añadir Componentes al Layout del Diálogo
+         dialogoLista.add(panelSuperiorDialog, BorderLayout.NORTH);  // Panel superior arriba
+         dialogoLista.add(scrollPaneListaDialogo, BorderLayout.CENTER); // Lista (en scroll) en el centro
+
+         // 6. Añadir ActionListeners a los controles interactivos
+         
+         // 6.1. Listener para el CheckBox (actualiza la lista cuando cambia su estado)
+         checkBoxMostrarRutas.addActionListener(e -> {
+             // Llama al método helper para refrescar el contenido de la lista del diálogo
+             // pasándole el modelo del diálogo y el estado actual del checkbox.
+             actualizarListaEnDialogo(modeloListaDialogo, checkBoxMostrarRutas.isSelected());
+         });
+
+         // 6.2. Listener para el Botón Copiar
+         botonCopiarLista.addActionListener(e -> {
+         
+       	  // Llama al método helper que copia el contenido del modelo del diálogo
+             copiarListaAlPortapapeles(modeloListaDialogo);
+         });
+
+         // 7. Cargar el contenido inicial de la lista en el diálogo
+         //    Se llama una vez antes de mostrar el diálogo, usando el estado inicial del checkbox (desmarcado).
+         logger.debug("  -> Actualizando contenido inicial del diálogo...");
+         actualizarListaEnDialogo(modeloListaDialogo, checkBoxMostrarRutas.isSelected());
+
+         // 8. Hacer visible el diálogo
+         //    Como es modal, la ejecución se detendrá aquí hasta que el usuario cierre el diálogo.
+         logger.debug("  -> Mostrando diálogo...");
+         dialogoLista.setVisible(true);
+
+         // 9. Código después de cerrar el diálogo (si es necesario)
+         //    Aquí podríamos hacer algo una vez el diálogo se cierra, pero usualmente no es necesario.
+         logger.debug("[Controller] Diálogo de lista de imágenes cerrado.");
+
+     } // --- FIN mostrarDialogoListaImagenes ---
+     
+     
+     /**
+      * Actualiza el contenido del DefaultListModel proporcionado (que pertenece
+      * al diálogo de la lista de imágenes) basándose en el modelo principal
+      * de la aplicación (model.getModeloLista()) y el mapa de rutas completas
+      * (model.getRutaCompletaMap()).
+      *
+      * Llena el modelo del diálogo con las claves relativas o las rutas absolutas
+      * de los archivos, según el valor del parámetro 'mostrarRutas'.
+      *
+      * @param modeloDialogo El DefaultListModel del JList que se encuentra en el diálogo.
+      *                      Este método modificará su contenido (lo limpia y lo vuelve a llenar).
+      * @param mostrarRutas  boolean que indica qué formato mostrar:
+      *                      - true: Muestra la ruta completa (absoluta) de cada archivo.
+      *                      - false: Muestra la clave única (ruta relativa) de cada archivo.
+      */
+     private void actualizarListaEnDialogo(DefaultListModel<String> modeloDialogo, boolean mostrarRutas) {
+         // 1. Validación de entradas
+         if (modeloDialogo == null) {
+             logger.error("ERROR [actualizarListaEnDialogo]: El modelo del diálogo es null.");
+             return;
+         }
+         if (model == null || model.getModeloLista() == null || model.getRutaCompletaMap() == null) {
+             logger.error("ERROR [actualizarListaEnDialogo]: El modelo principal o sus componentes internos son null.");
+             modeloDialogo.clear(); // Limpiar el diálogo si no hay datos fuente
+             modeloDialogo.addElement("Error: No se pudo acceder a los datos de la lista principal.");
+             return;
+         }
+
+         // 2. Referencias al modelo principal y al mapa de rutas
+         DefaultListModel<String> modeloPrincipal = model.getModeloLista();
+         Map<String, Path> mapaRutas = model.getRutaCompletaMap();
+
+         // 3. Log informativo
+         logger.debug("  [Dialogo Lista] Actualizando contenido. Mostrar Rutas: " + mostrarRutas + ". Elementos en modelo principal: " + modeloPrincipal.getSize());
+
+         // 4. Limpiar el modelo del diálogo antes de llenarlo
+         modeloDialogo.clear();
+
+         // 5. Iterar sobre el modelo principal y añadir elementos al modelo del diálogo
+         if (modeloPrincipal.isEmpty()) {
+             modeloDialogo.addElement("(La lista principal está vacía)");
+         } else {
+             for (int i = 0; i < modeloPrincipal.getSize(); i++) {
+                 // 5.1. Obtener la clave del modelo principal
+                 String claveArchivo = modeloPrincipal.getElementAt(i);
+                 if (claveArchivo == null) { // Seguridad extra
+                     claveArchivo = "(Clave nula en índice " + i + ")";
+                 }
+
+                 // 5.2. Determinar qué texto añadir al diálogo
+                 String textoAAgregar = claveArchivo; // Por defecto, la clave
+
+                 if (mostrarRutas) {
+                     // Si se deben mostrar rutas completas, obtenerla del mapa
+                     Path rutaCompleta = mapaRutas.get(claveArchivo);
+                     if (rutaCompleta != null) {
+                         // Usar la ruta completa si se encontró
+                         textoAAgregar = rutaCompleta.toString();
+                     } else {
+                         // Si no se encontró la ruta (inconsistencia en datos), indicarlo
+                         logger.warn("WARN [Dialogo Lista]: No se encontró ruta para la clave: " + claveArchivo);
+                         textoAAgregar = claveArchivo + " (¡Ruta no encontrada!)";
+                     }
+                 }
+                 // Si mostrarRutas es false, textoAAgregar simplemente mantiene la claveArchivo.
+
+                 // 5.3. Añadir el texto determinado al modelo del diálogo
+                 modeloDialogo.addElement(textoAAgregar);
+                 
+             } // Fin del bucle for
+         } // Fin else (modeloPrincipal no está vacío)
+
+         // 6. Log final (opcional)
+         logger.debug("  [Dialogo Lista] Contenido actualizado. Elementos añadidos al diálogo: " + modeloDialogo.getSize());
+
+         // Nota: No necesitamos repintar la JList del diálogo aquí.
+         // El DefaultListModel notifica automáticamente a la JList asociada
+         // sobre los cambios (clear y addElement disparan ListDataEvents).
+
+     } // --- FIN actualizarListaEnDialogo ---
+     
+     
+     /**
+      * Copia el contenido actual de un DefaultListModel (que se asume contiene
+      * Strings, una por línea) al portapapeles del sistema.
+      * Cada elemento del modelo se añade como una línea separada en el texto copiado.
+      *
+      * @param listModel El DefaultListModel<String> cuyo contenido se copiará.
+      *                  Típicamente, este será el modelo de la JList del diálogo
+      *                  (modeloListaDialogo).
+      */
+     public void copiarListaAlPortapapeles(DefaultListModel<String> listModel) {
+    	 
+	     // 1. Validación de entrada
+    	 if (listModel == null) {
+    		 logger.error("ERROR [copiarListaAlPortapapeles]: El listModel proporcionado es null.");
+    		 // Opcional: Mostrar mensaje al usuario si la vista está disponible
+	         
+	         if (view != null) {
+	        	 JOptionPane.showMessageDialog(
+	       	            view, // Usar 'view' directamente como el componente padre
+	       	            "Error interno al intentar copiar la lista.",
+	       	            "Error al Copiar",
+	       	            JOptionPane.WARNING_MESSAGE
+	       	            );
+	         }
+	         
+	         return;
+	     }
+	
+	     // 2. Construir el String a copiar
+	     StringBuilder sb = new StringBuilder();
+	     int numeroElementos = listModel.getSize();
+	
+	     logger.debug("[Portapapeles] Preparando para copiar " + numeroElementos + " elementos...");
+	
+	     // Iterar sobre todos los elementos del modelo
+	     for (int i = 0; i < numeroElementos; i++) {
+	    	 String elemento = listModel.getElementAt(i);
+	         if (elemento != null) { // Añadir solo si no es null
+	        	 sb.append(elemento); // Añadir el texto del elemento
+	             
+	             // Añadir un salto de línea después de cada elemento, excepto el último
+	             if (i < numeroElementos - 1) {
+	                 sb.append("\n"); // Usar salto de línea estándar del sistema
+	                 // Alternativa: sb.append(System.lineSeparator());
+	             }
+	         }
+	     }
+	
+	     // 3. Crear el objeto Transferable (StringSelection)
+	     //    StringSelection es una implementación de Transferable para texto plano.
+	     String textoCompleto = sb.toString();
+	     StringSelection stringSelection = new StringSelection(textoCompleto);
+	
+	     // 4. Obtener el Portapapeles del Sistema
+	     Clipboard clipboard = null;
+	     try {
+	         clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+	     } catch (Exception e) {
+	    	 logger.error("ERROR [copiarListaAlPortapapeles]: No se pudo acceder al portapapeles del sistema: " + e.getMessage());
+	         if (view != null) {
+	        	 JOptionPane.showMessageDialog(view,
+	                                       "Error al acceder al portapapeles del sistema.",
+	                                        "Error al Copiar", 
+	                                        JOptionPane.ERROR_MESSAGE);
+	         }
+	         return; // Salir si no podemos obtener el clipboard
+	     }
+	
+	
+	     // 5. Establecer el contenido en el Portapapeles
+	     try {
+	         // El segundo argumento 'this' indica que nuestra clase VisorController
+	         // actuará como "dueño" temporal del contenido (implementa ClipboardOwner).
+	         clipboard.setContents(stringSelection, this);
+	         logger.debug("[Portapapeles] Lista copiada exitosamente (" + numeroElementos + " líneas).");
+	         
+	         if (this.statusBarManager != null) {
+	        	 statusBarManager.mostrarMensajeTemporal("Lista copiada al portapapeles (" + numeroElementos + " ítems)", 3000); // Muestra por 3 segundos
+	         }
+	         
+	         // Opcional: Mostrar mensaje de éxito
+	         if (view != null) {
+	              // Podríamos usar un mensaje no modal o una etiqueta temporal
+	              // JOptionPane.showMessageDialog(view.getFrame(), "Lista copiada al portapapeles.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+	         }
+	 	 } catch (IllegalStateException ise) {
+	         // Puede ocurrir si el clipboard no está disponible o está siendo usado
+	         logger.error("ERROR [copiarListaAlPortapapeles]: No se pudo establecer el contenido en el portapapeles: " + ise.getMessage());
+	         if (view != null) {
+	        	 JOptionPane.showMessageDialog(view,
+	        			 		"No se pudo copiar la lista al portapapeles.\n" +
+	        					 "Puede que otra aplicación lo esté usando.",
+	        					 "Error al Copiar", JOptionPane.WARNING_MESSAGE);
+	         }
+	 	 } catch (Exception e) {
+	 		 // Capturar otros errores inesperados
+	 		 logger.error("ERROR INESPERADO [copiarListaAlPortapapeles]: " + e.getMessage());
+	 		 e.printStackTrace();
+	 		 if (view != null) {
+	 			 JOptionPane.showMessageDialog(view,
+	 					 "Ocurrió un error inesperado al copiar la lista.",
+	 					 "Error al Copiar", JOptionPane.ERROR_MESSAGE);
+	 		 }
+	 	 }
+	
+     } // --- FIN copiarListaAlPortapapeles ---
+     
+     
+     /**
+ 	 * Método requerido por la interfaz ClipboardOwner. Se llama cuando otra
+ 	 * aplicación toma posesión del contenido del portapapeles que esta aplicación
+ 	 * había puesto previamente.
+ 	 * 
+ 	 * En la mayoría de los casos, especialmente cuando solo copiamos texto simple,
+ 	 * no necesitamos realizar ninguna acción específica cuando perdemos la
+ 	 * posesión. Dejamos el método implementado pero vacío.
+ 	 *
+ 	 * @param clipboard El portapapeles que perdió la posesión.
+ 	 * @param contents  El contenido Transferable que estaba en el portapapeles.
+ 	 */
+ 	@Override
+ 	public void lostOwnership (Clipboard clipboard, Transferable contents)
+ 	{
+ 		// 1. Log (Opcional, útil para depuración o entender el flujo)
+ 		// logger.debug("[Clipboard] Se perdió la propiedad del contenido del
+ 		// portapapeles.");
+
+ 		// 2. Lógica Adicional (Normalmente no necesaria para copia de texto simple)
+ 		// - Si estuvieras manejando recursos más complejos o datos que necesitan
+ 		// liberarse cuando ya no están en el portapapeles, podrías hacerlo aquí.
+ 		// - Para StringSelection, no hay nada que liberar.
+
+ 		// -> Método intencionalmente vacío en este caso. <-
+
+ 	} // --- FIN lostOwnership ---     
+ 	
+ 	
+ 	public void limpiarUI() {
+        logger.debug("[ViewManager] Limpiando UI y Modelo a estado de bienvenida...");
+        
+        controlador.VisorController controller = (view != null) ? view.getController() : null;
+        if (controller == null) {
+            logger.error("ERROR [limpiarUI]: No se pudo obtener la referencia al VisorController desde la vista.");
+            return;
+        }
+        
+        controlador.managers.interfaces.IListCoordinator listCoordinator = controller.getListCoordinator();
+
+        if (listCoordinator != null) {
+            listCoordinator.setSincronizandoUI(true);
+        }
+
+        try {
+            // --- 1. LIMPIEZA DEL MODELO Y CACHÉ ---
+            if (model != null) {
+                model.setCurrentImage(null);
+                model.setSelectedImageKey(null);
+                model.resetZoomState();
+                
+                if (controller.getModeloMiniaturasVisualizador() != null) controller.getModeloMiniaturasVisualizador().clear();
+                if (controller.getModeloMiniaturasCarrusel() != null) controller.getModeloMiniaturasCarrusel().clear();
+                
+                logger.debug("  -> Estado de imagen, selección y modelos de lista en 'model' limpiados.");
+            }
+            
+            if (controller.getServicioMiniaturas() != null) {
+                controller.getServicioMiniaturas().limpiarCache();
+                logger.debug("  -> Caché de miniaturas limpiado.");
+            }
+            
+            // --- 2. ACTUALIZACIÓN VISUAL DE LA PANTALLA DE BIENVENIDA ---
+            if (view != null && controller.getIconUtils() != null) {
+                view.limpiarImagenMostrada();
+                
+                ImageDisplayPanel displayPanel = this.getActiveDisplayPanel();
+                if (displayPanel != null) {
+                    javax.swing.ImageIcon welcomeIcon = controller.getIconUtils().getWelcomeImage("modeltag-bienvenida-apaisado.png");
+                    if (welcomeIcon != null) {
+                        java.awt.image.BufferedImage welcomeImage = new java.awt.image.BufferedImage(
+                            welcomeIcon.getIconWidth(),
+                            welcomeIcon.getIconHeight(),
+                            java.awt.image.BufferedImage.TYPE_INT_ARGB);
+                        java.awt.Graphics2D g2d = welcomeImage.createGraphics();
+                        welcomeIcon.paintIcon(null, g2d, 0, 0);
+                        g2d.dispose();
+                        displayPanel.setWelcomeImage(welcomeImage);
+                        displayPanel.showWelcomeMessage();
+                    } else {
+                        displayPanel.limpiar();
+                    }
+                }
+            }
+            
+            // --- 3. OCULTAMIENTO DE PANELES POR ESTADO ---
+            if (registry != null) {
+                 logger.debug("  -> Ocultando paneles de lista y miniaturas por estado de bienvenida.");
+                
+                 JPanel panelIzquierdo = registry.get("panel.izquierdo.contenedorPrincipal");
+                 if (panelIzquierdo != null) panelIzquierdo.setVisible(false);
+
+                 JScrollPane scrollMiniaturasVisor = registry.get("scroll.miniaturas");
+                 if (scrollMiniaturasVisor != null) scrollMiniaturasVisor.setVisible(false);
+                 
+                 JScrollPane scrollMiniaturasCarousel = registry.get("scroll.miniaturas.carousel");
+                 if (scrollMiniaturasCarousel != null) scrollMiniaturasCarousel.setVisible(false);
+            }
+
+            // --- 4. PREVENCIÓN DEL NULLPOINTEREXCEPTION ---
+            if (controller.getInfobarImageManager() != null) {
+                 controller.getInfobarImageManager().actualizar();
+            }
+            if (statusBarManager != null) {
+                statusBarManager.actualizar();
+            }
+            
+            // --- 5. ACTUALIZACIÓN FINAL DE ACCIONES ---
+            if (listCoordinator != null) {
+                listCoordinator.forzarActualizacionEstadoAcciones();
+            }
+
+            if (view != null) {
+                logger.debug("  -> Forzando revalidate() y repaint() de la ventana principal para imponer el estado de bienvenida.");
+                view.revalidate();
+                view.repaint();
+            }
+            
+        } finally {
+            if (listCoordinator != null) {
+                SwingUtilities.invokeLater(() -> listCoordinator.setSincronizandoUI(false));
+            }
+        }
+        
+        logger.debug("[ViewManager] Limpieza de UI y Modelo completada.");
+        
+    } // Fin del metodo limpiarUI ---
+ 	
+ 	
+ 	public void actualizarTituloVentana() {
+ 	    controlador.VisorController controller = (view != null) ? view.getController() : null;
+ 	    if (controller == null || model == null) {
+ 	        return;
+ 	    }
+ 	    
+ 	    servicios.ProjectManager projectManager = controller.getProjectManager();
+ 	    if (projectManager == null) {
+ 	        return;
+ 	    }
+ 	    
+ 	    String tituloBase = "ModelTag - Your visual STL manager";
+ 	    String tituloFinal;
+ 	    String prefijoDirty = projectManager.hayCambiosSinGuardar() ? "*" : "";
+
+ 	    String nombreProyecto = projectManager.getNombreProyectoActivo();
+ 	    
+ 	    if ("Proyecto Temporal".equals(nombreProyecto) && model.getRutaProyectoActivoConNombre() != null) {
+ 	        nombreProyecto = model.getRutaProyectoActivoConNombre().getFileName().toString();
+ 	    }
+
+ 	    if (!"Proyecto Temporal".equals(nombreProyecto) || !projectManager.getImagenesMarcadas().isEmpty()) {
+ 	        tituloFinal = prefijoDirty + tituloBase + " - [Proyecto: " + nombreProyecto + "]";
+ 	    } else {
+ 	        tituloFinal = tituloBase;
+ 	    }
+ 	    
+ 	    view.setTitle(tituloFinal);
+ 	    logger.debug("Título de la ventana actualizado a: {}", tituloFinal);
+ 	    
+ 	} // ---FIN de metodo actualizarTituloVentana---
+    
+    
+ // ***************************************************************************************************************************
+ // ****************************************************************************FIN GESTIÓN DEL DIÁLOGO DE LA LISTA DE IMÁGENES
+ // ***************************************************************************************************************************
+    
+ // ***************************************************************************************************************************
+ // ******************************************************************************************************** GESTIÓN DE COLORES
+ // ***************************************************************************************************************************
+    
+    public void sincronizarColoresDePanelesPorTema(Tema temaAFlejar) {
+	    if (registry == null || temaAFlejar == null) {
+	        logger.warn("WARN [sincronizarColoresDePanelesPorTema]: Dependencias nulas (registry o tema nulo).");
+	        return;
+	    }
+	    
+	    logger.debug("  [Sync Colors] Sincronizando colores de paneles para el tema: {}", temaAFlejar.nombreDisplay());
+
+	    // Obtenemos los colores específicos para las barras de estado desde el objeto Tema.
+	    Color backgroundColor = temaAFlejar.colorBarraEstadoFondo();
+	    Color foregroundColor = temaAFlejar.colorBarraEstadoTexto();
+
+	    // LÓGICA DE FALLBACK: Si el tema actual NO define estos colores específicos, 
+	    // usamos los colores genéricos del LookAndFeel como alternativa segura.
+	    if (backgroundColor == null) {
+	        backgroundColor = UIManager.getColor("Panel.background"); 
+	        logger.debug("    -> Usando color de fondo de fallback (UIManager) para la barra de estado.");
+	    }
+	    if (foregroundColor == null) {
+	        foregroundColor = UIManager.getColor("Label.foreground");
+	        logger.debug("    -> Usando color de texto de fallback (UIManager) para la barra de estado.");
+	    }
+
+	    // --- APLICACIÓN A LOS PANELES DE STATUSBAR ---
+
+	    // 1. Panel de estado inferior (StatusBar de la aplicación)
+	    JPanel panelEstadoInferior = registry.get("panel.estado.inferior");
+	    if (panelEstadoInferior != null) {
+	        panelEstadoInferior.setBackground(backgroundColor);
+	        // Usamos el método recursivo para asegurar que todos los JLabels y otros componentes
+	        // dentro de este panel (incluso si están anidados) reciban el color de texto correcto.
+	        this.actualizarColoresDeTextoRecursivamente(panelEstadoInferior, foregroundColor);
+	        logger.debug("    -> Colores personalizados aplicados a 'panel.estado.inferior'.");
+	    }
+	    
+	    // 2. Panel de información superior (StatusBar de la imagen)
+	    JPanel panelInfoSuperior = registry.get("panel.info.superior");
+	    if (panelInfoSuperior != null) {
+	        panelInfoSuperior.setBackground(backgroundColor);
+	        // Hacemos lo mismo para la barra superior.
+	        this.actualizarColoresDeTextoRecursivamente(panelInfoSuperior, foregroundColor);
+	        logger.debug("    -> Colores personalizados aplicados a 'panel.info.superior'.");
+	    }
+
+	} // --- Fin del método sincronizarColoresDePanelesPorTema ---
+    
+    
+	/**
+	 * Sincroniza los colores de los paneles usando el tema actualmente activo en el ThemeManager.
+	 * Este es un método de conveniencia para la inicialización y otros refrescos generales
+	 * que no tienen un 'nuevoTema' a mano.
+	 */
+	public void sincronizarColoresDePanelesPorTema() {
+	    if (themeManager != null) {
+	        // Llama a la versión detallada pasando el tema que ya está activo.
+	        sincronizarColoresDePanelesPorTema(themeManager.getTemaActual());
+	    } else {
+	        logger.error("ERROR [sincronizarColoresDePanelesPorTema]: ThemeManager es nulo. No se puede sincronizar colores.");
+	    }
+	} // ---FIN de metodo [sincronizarColoresDePanelesPorTema]---
+	
+	
+	/**
+     * Recorre un componente contenedor y todos sus hijos (y los hijos de sus hijos, etc.)
+     * para aplicarles un color de texto (foreground) específico.
+     * Este método es crucial para asegurar que todos los elementos dentro de paneles
+     * con colores de fondo personalizados (como la barra de estado) hereden el color
+     * de texto correcto para mantener la legibilidad.
+     *
+     * @param container El componente raíz desde el que empezar a aplicar colores.
+     * @param color El color de texto a aplicar.
+     */
+    private void actualizarColoresDeTextoRecursivamente(java.awt.Container container, Color color) {
+        // Itera sobre todos los componentes directos del contenedor.
+        for (java.awt.Component component : container.getComponents()) {
+            // Aplica el color de texto al componente actual.
+            component.setForeground(color);
+            
+            // Si el componente es a su vez un contenedor (como un JToolBar o un JPanel anidado),
+            // se llama a este mismo método de forma recursiva para que actualice a sus hijos.
+            if (component instanceof java.awt.Container) {
+                actualizarColoresDeTextoRecursivamente((java.awt.Container) component, color);
+            }
+        }
+    } // --- fin del método actualizarColoresDeTextoRecursivamente ---     
+    
+    
+//  FIXME (Opcionalmente, podría estar en una clase de Utilidades si se usa en más sitios)
+
+	/**
+	* Convierte una cadena de texto que representa un color en formato "R, G, B"
+	* (donde R, G, B son números enteros entre 0 y 255) en un objeto java.awt.Color.
+	*
+	* Ignora espacios alrededor de los números y las comas.
+	* Valida que los componentes numéricos estén en el rango [0, 255].
+	*
+	* @param rgbString La cadena de texto a parsear (ej. "238, 238, 238", " 0, 0,0 ").
+	*                  Si es null, vacía o tiene un formato incorrecto, se devolverá
+	*                  un color por defecto (gris claro).
+	* @return El objeto Color correspondiente a la cadena RGB, o Color.LIGHT_GRAY
+	*         si la cadena no se pudo parsear correctamente.
+	*/
+    private Color parseColor(String rgbString) {
+    	// 1. Manejar entrada nula o vacía
+    	if (rgbString == null || rgbString.trim().isEmpty()) {
+    		logger.warn("WARN [parseColor]: Cadena RGB nula o vacía. Usando color por defecto (Gris Claro).");
+    		return Color.LIGHT_GRAY; // Color por defecto seguro
+    	}
+
+    	// 2. Separar la cadena por las comas
+    	String[] components = rgbString.split(",");
+
+    	// 3. Validar que tengamos exactamente 3 componentes
+    	if (components.length == 3) {
+    		try {
+    			// 3.1. Parsear cada componente a entero, quitando espacios (trim)
+    			int r = Integer.parseInt(components[0].trim());
+    			int g = Integer.parseInt(components[1].trim());
+    			int b = Integer.parseInt(components[2].trim());
+
+    			// 3.2. Validar el rango [0, 255] para cada componente
+    			//      Usamos Math.max/min para asegurar que el valor quede dentro del rango.
+    			r = Math.max(0, Math.min(255, r));
+    			g = Math.max(0, Math.min(255, g));
+    			b = Math.max(0, Math.min(255, b));
+
+    			// 3.3. Crear y devolver el objeto Color
+    			return new Color(r, g, b);
+
+    		} catch (NumberFormatException e) {
+    			// Error si alguno de los componentes no es un número entero válido
+    			logger.warn("WARN [parseColor]: Formato numérico inválido en '" + rgbString + "'. Usando color por defecto (Gris Claro). Error: " + e.getMessage());
+    			return Color.LIGHT_GRAY; // Devolver color por defecto
+    		} catch (Exception e) {
+    			// Capturar otros posibles errores inesperados durante el parseo
+    			logger.error("ERROR INESPERADO [parseColor] parseando '" + rgbString + "': " + e.getMessage());
+    			e.printStackTrace();
+    			return Color.LIGHT_GRAY; // Devolver color por defecto
+    		}
+    		
+    	} else {
+    		// Error si no se encontraron exactamente 3 componentes después de split(',')
+    		logger.warn("WARN [parseColor]: Formato de color debe ser R,G,B. Recibido: '" + rgbString + "'. Usando color por defecto (Gris Claro).");
+    		return Color.LIGHT_GRAY; // Devolver color por defecto
+     	}
+    	
+ 	} // --- FIN parseColor ---
+    
+    
+ // ***************************************************************************************************************************
+ // ************************************************************************************************* FIN DE GESTIÓN DE COLORES
+ // ***************************************************************************************************************************
+           
+    
+    
+ // ***************************************************************************************************************************  
+ // ********************************************************************************************************* GETTERS Y SETTERS    
+ // ***************************************************************************************************************************
     
     /**
      * Devuelve la instancia del ImageDisplayPanel que está actualmente activa y visible
@@ -822,7 +1441,10 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     
     public void setDisplayModeManager(DisplayModeManager displayModeManager) { this.displayModeManager = displayModeManager;}
     public DisplayModeManager getDisplayModeManager() {return this.displayModeManager;}
+    public void setStatusBarManager(InfobarStatusManager statusBarManager) {this.statusBarManager = statusBarManager;}
     
+// ***************************************************************************************************** FIN GETTERS Y SETTERS
+// ***************************************************************************************************************************      
     
 // *********************************************************************************************************************************    
 // *********************************************************************************************************************************
@@ -868,7 +1490,4 @@ public class ViewManager implements IViewManager, ThemeChangeListener {
     } // --- FIN de la clase DynamicAccentBorder ---
     
 } // --- Fin de la clase ViewManager ---
-
-
-
 

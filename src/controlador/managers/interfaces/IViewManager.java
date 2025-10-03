@@ -22,7 +22,6 @@ public interface IViewManager {
 
     // --- MÉTODOS DE LÓGICA DE LA VISTA ---
 
-//    void setComponentePrincipalVisible(String identificadorComponente, boolean nuevoEstadoVisible, String configKeyParaEstado);
     void setCheckeredBackgroundEnabled(boolean activar);
     void setSessionBackgroundColor(Color color);
     void setSessionCheckeredBackground();
@@ -37,7 +36,7 @@ public interface IViewManager {
     void setBotonMenuEspecialVisible(boolean visible);
     void refrescarColoresDeFondoUI();
     void reconstruirPanelesEspecialesTrasTema();
-    
+    void mostrarDialogoListaImagenes();
 
     // --- MÉTODOS DE INYECCIÓN (SETTERS) ---
 
@@ -107,4 +106,10 @@ public interface IViewManager {
      * @param viewName La clave de la vista a mostrar (el nombre de la "tarjeta" en el CardLayout).
      */
     void cambiarAVista(String containerRegistryKey, String viewName);
+    
+    
+    void limpiarUI();
+    
 } // --- FIN de la interfaz IViewManager ---
+
+

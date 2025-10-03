@@ -3,7 +3,6 @@ package controlador.managers;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
 
-import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import controlador.VisorController; // <-- NUEVO IMPORT

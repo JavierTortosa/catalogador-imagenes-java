@@ -13,14 +13,18 @@ public class VisorV2 {
 
 	private static final Logger logger = LoggerFactory.getLogger(VisorV2.class);
 	
+	private static String version;
+	
     /**
      * The main method. Crea e inicia el controlador de la aplicación.
      * 
      * @param args los argumentos de línea de comandos (actualmente no usados).
      */
-    public static void main(String[] args) {
+    public static final void main(String[] args) {
     	
-        System.out.println("Iniciando Visor de Imágenes V2...");
+    	version = "V2.4.21";
+    	
+        System.out.println("Iniciando Visor de Imágenes V."+ version);
 
         UIManager.put("MenuBar.windowBindings", new Object[] {});
         
@@ -29,7 +33,8 @@ public class VisorV2 {
         // Toda la lógica de inicialización, incluyendo la configuración del tema,
         // será manejada por AppInitializer y ThemeManager.
         javax.swing.SwingUtilities.invokeLater(() -> {
-            new VisorController();
+            new VisorController(version);
+            
             logger.debug("VisorController instanciado. La inicialización de la UI ha sido programada en el EDT.");
         });
         

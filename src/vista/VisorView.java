@@ -64,6 +64,7 @@ public class VisorView extends JFrame {
     private int imageOffsetYView = 0;
     private boolean fondoACuadrosActivado = false;
     
+    private controlador.VisorController controller;
     // --- Icono de Error de Imagen
     
     private Rectangle lastNormalBounds;
@@ -517,5 +518,8 @@ public class VisorView extends JFrame {
 	public DefaultListModel<String> getModeloListaMiniaturas(){ return this.modeloListaMiniaturas; }
 	public void setBorderListaArchivos(TitledBorder border) {this.borderListaArchivos = border;}
     public void setPanelListaArchivos(JPanel panel) {this.panelListaArchivos = panel;}
+    
+    public void setController(controlador.VisorController controller) { this.controller = controller; }
+    public controlador.VisorController getController() { return this.controller; }
     
 } // Fin clase VisorView

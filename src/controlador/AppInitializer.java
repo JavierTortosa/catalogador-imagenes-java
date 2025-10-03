@@ -30,6 +30,7 @@ import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager;
 import controlador.managers.FilterManager;
 import controlador.managers.FolderNavigationManager;
+import controlador.managers.ImageListManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
@@ -107,9 +108,12 @@ public class AppInitializer {
     private List<ThumbnailPreviewer> activePreviewers;
     private VisorController controllerRefParaNotificacion;
 
-    public AppInitializer(VisorController controller) {
+    private final String appVersion;
+    
+    public AppInitializer(VisorController controller, String version) {
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null en AppInitializer");
         this.activePreviewers = new ArrayList<>();
+        this.appVersion = version;
     } // ---FIN de metodo AppInitializer (constructor)---
 
     /**
@@ -139,7 +143,10 @@ public class AppInitializer {
      */
     private void instantiateComponents() {
         logger.info("--- [Fase 1/3] Instanciando todos los componentes...");
-
+        
+        // Aplicar la version de la aplicacion
+        controller.setVersion(this.appVersion);
+        
         // Componentes base y servicios
         this.model = new VisorModel();
         this.configuration = ConfigurationManager.getInstance();
@@ -233,8 +240,8 @@ public class AppInitializer {
         this.controller.setZoomManager(this.zoomManager);
         this.controller.setListCoordinator(this.listCoordinator);
         this.controller.setConfigApplicationManager(this.configAppManager);
-        this.controller.setProjectController(this.projectController);
         this.controller.setInfobarImageManager(this.infobarImageManager);
+        
         
         // Suscripciones a eventos de cambio de tema
         this.themeManager.addThemeChangeListener(this.toolbarManager);
@@ -263,7 +270,9 @@ public class AppInitializer {
         zoomManager.setConfiguration(this.configuration);
         zoomManager.setViewManager(this.viewManager);
         zoomManager.setListCoordinator(this.listCoordinator);
-
+        
+        zoomManager.setConfigApplicationManager(this.configAppManager);
+        
         if (this.projectManagerService != null) {
             this.projectManagerService.setConfigManager(this.configuration);
             this.projectManagerService.setProjectController(this.projectController);
@@ -342,6 +351,7 @@ public class AppInitializer {
                 // 3.2: Inicializar acciones y crear el mapa de acciones
                 this.actionFactory.initializeCoreActions();
                 this.actionMap = this.actionFactory.getActionMap();
+                this.zoomManager.setActionMap(this.actionMap);
                 this.toolbarBuilder.setActionMap(this.actionMap);
                 this.viewBuilder.setActionMap(this.actionMap);
                 this.configAppManager.setActionMap(this.actionMap);
@@ -353,6 +363,7 @@ public class AppInitializer {
                 // 3.3: ¡Paso clave! Crear la ventana principal (JFrame)
                 logger.debug("    -> Creando VisorView (JFrame)...");
                 this.view = viewBuilder.createMainFrame();
+                this.zoomManager.setView(this.view);
 
                 // 3.4: Inyectar la 'view' en los componentes que la necesitaban
                 logger.debug("    -> Inyectando la instancia de 'view' en los componentes...");
@@ -360,6 +371,7 @@ public class AppInitializer {
                 this.configAppManager.setView(this.view);
                 this.viewManager.setView(this.view);
                 this.controller.setView(this.view);
+                this.view.setController(this.controller);
                 this.projectController.setView(this.view);
                 
                 // 3.5: Inicializar acciones que dependen de la vista
@@ -387,6 +399,10 @@ public class AppInitializer {
                 
                 this.listCoordinator.addMasterSelectionChangeListener(this.displayModeManager);
                 this.projectListCoordinator.addMasterSelectionChangeListener(this.displayModeManager);
+                
+                ImageListManager imageListManager = new ImageListManager(this.controller);
+                this.controller.setImageListManager(imageListManager);
+                this.generalController.setImageListManager(imageListManager);
                 
                 // 3.7: Ensamblaje final de la UI
                 logger.debug("    -> Ensamblando UI: Menús, Toolbars, Listeners...");
@@ -431,12 +447,14 @@ public class AppInitializer {
                 }
 
                 this.view.setVisible(true);
+                this.zoomManager.configurarListenerRedimensionVentana();
+                
                 logger.debug("    -> Ventana principal visible. La aplicación está 'viva'.");
                 
                 sincronizarVisibilidadInicialUI();
                 
                 this.configAppManager.aplicarConfiguracionGlobalmente();
-                this.controller.sincronizarColoresDePanelesPorTema();
+                this.viewManager.sincronizarColoresDePanelesPorTema();
                 this.generalController.sincronizarTodaLaUIConElModelo();
                 this.backgroundControlManager.initializeAndLinkControls();
                 this.backgroundControlManager.sincronizarSeleccionConEstadoActual();
@@ -568,10 +586,10 @@ public class AppInitializer {
     private void cargarDatosIniciales(Runnable onComplete) {
         String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
         if (this.model.getCarpetaRaizActual() != null) {
-            this.controller.cargarListaImagenes(imagenInicialKey, onComplete); // <<< PASAMOS EL RUNNABLE
+        	this.controller.getImageListManager().cargarListaImagenes(imagenInicialKey, onComplete);
         } else {
             logger.debug("  -> No hay carpeta inicial válida. Se mostrará el estado de bienvenida.");
-            this.controller.limpiarUI();
+            this.viewManager.limpiarUI();
             this.generalController.sincronizarTodaLaUIConElModelo();
             if (this.controller.getStatusBarManager() != null) {
                 this.controller.getStatusBarManager().mostrarMensaje("Abre una carpeta para empezar (Archivo -> Abrir Carpeta)");

@@ -99,5 +99,12 @@ public interface IZoomManager {
     void setZoomMode(ZoomModeEnum nuevoModo, Runnable onComplete);
     
     void resetZoom();
+    void sincronizarEstadoVisualBotonesYRadiosZoom(); 
+    void solicitarZoomPersonalizado(double nuevoPorcentaje);
+    void notificarCambioEstadoZoomManual(); 
+    void configurarListenerRedimensionVentana();
+    
+
+    
     
 } // --- FIN de la interfaz IZoomManager ---

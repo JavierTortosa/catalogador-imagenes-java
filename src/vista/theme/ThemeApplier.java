@@ -3,9 +3,6 @@ package vista.theme;
 import java.awt.Color;
 import java.awt.Component;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
@@ -20,7 +17,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
 
-import controlador.ProjectController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import controlador.utils.ComponentRegistry; // ¡La dependencia clave!
 
 /**

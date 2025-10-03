@@ -50,6 +50,7 @@ import controlador.managers.ConfigApplicationManager;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.FilterManager;
 import controlador.managers.FolderNavigationManager;
+import controlador.managers.ImageListManager;
 import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
@@ -92,6 +93,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private FolderNavigationManager folderNavManager;
     private FolderTreeManager folderTreeManager;
     private FilterManager filterManager;
+    private ImageListManager imageListManager;
     
  // Checkpoint para el FILTRO PERSISTENTE ---
     // Guardará la lista original cargada desde el disco, nuestra fuente de verdad.
@@ -325,7 +327,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      */
     public void actualizarTituloVentana() {
         if (visorController != null) {
-            visorController.actualizarTituloVentana();
+            viewManager.actualizarTituloVentana();
         }
     } // ---FIN de metodo actualizarTituloVentana---
     
@@ -1856,7 +1858,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 
         // 6. Delegar la tarea de carga de bajo nivel al VisorController.
         logger.debug("  -> Delegando a VisorController la tarea de recargar la lista de imágenes...");
-        visorController.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
+        this.imageListManager.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
         
     } // --- FIN del metodo solicitarCambioModoCargaSubcarpetas ---
     
@@ -1955,7 +1957,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             // =========================================================================
         };
 
-        visorController.cargarListaImagenes(claveASeleccionar, accionPostCarga);
+        this.imageListManager.cargarListaImagenes(claveASeleccionar, accionPostCarga);
         
     } // --- Fin del método solicitarCargaDesdeNuevaRaiz (con preselección) ---
     
@@ -2029,7 +2031,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 }
             };
 
-            visorController.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
+            this.imageListManager.cargarListaImagenes(claveAntesDelCambio, accionPostCarga);
 
         } catch (Exception e) {
             logger.error("ERROR INESPERADO en solicitarToggleModoCargaSubcarpetas: " + e.getMessage());
@@ -2712,6 +2714,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             logger.warn("[FOCUS_INIT] No se pudo registrar el panel para foco: '{}'", registryKey);
         }
     } // --- FIN de metodo registerFocusablePanel ---
+    
+    
+    public void setImageListManager(ImageListManager imageListManager) { this.imageListManager = imageListManager; }
     
     
 } // --- Fin de la clase GeneralController ---

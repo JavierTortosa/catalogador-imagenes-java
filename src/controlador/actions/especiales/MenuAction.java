@@ -16,7 +16,6 @@ import controlador.commands.AppActionCommands;
 import servicios.ConfigurationManager;
 import vista.builders.PopupMenuBuilder;   // Para construir el JPopupMenu
 import vista.config.MenuItemDefinition; // Para la estructura del menú
-import vista.config.ViewUIConfig;       // Para pasar al PopupMenuBuilder
 import vista.theme.ThemeManager;
 
 public class MenuAction extends AbstractAction {
@@ -25,7 +24,6 @@ public class MenuAction extends AbstractAction {
 
     private List<MenuItemDefinition> menuStructureToDisplay; // La estructura COMPLETA del menú principal
     private Map<String, Action> actionMapRef;              // El actionMap completo
-//    private ViewUIConfig uiConfigRef;                      // Para el PopupMenuBuilder
     private ConfigurationManager configManagerRef;         // 
     private ActionListener specialConfigActionListenerRef; //
     private ThemeManager themeManager;

@@ -700,8 +700,8 @@ public class ActionFactory {
         // Creamos un Runnable (un callback) que llama al método de sincronización del VisorController.
         // El VisorController es inyectado en ActionFactory a través del constructor, así que tenemos acceso.
         Runnable syncCallback = () -> {
-            if (this.generalController.getVisorController() != null) {
-                this.generalController.getVisorController().sincronizarEstadoVisualBotonesYRadiosZoom();
+        	if (this.zoomManager != null) {
+                this.zoomManager.sincronizarEstadoVisualBotonesYRadiosZoom();
             }
         };
 
@@ -903,7 +903,7 @@ public class ActionFactory {
     
     private Action createMostrarDialogoListaAction() {
    	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA);
-   	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.generalController.getVisorController());
+   	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.generalController.getVisorController(), this.viewManager);
    	} // --- Fin del método createMostrarDialogoListaAction ---
     
     
