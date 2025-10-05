@@ -11,14 +11,11 @@ import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.interfaces.IViewManager;
 import modelo.VisorModel;
-// No se necesita importar VisorView
 
 public class MostrarDialogoListaAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
 
-    private final VisorModel modelRef;
-    private final VisorController controllerRef;
     private final IViewManager viewManagerRef;
     
     public MostrarDialogoListaAction(
@@ -29,8 +26,6 @@ public class MostrarDialogoListaAction extends AbstractAction {
             IViewManager viewManager) {
     	
         super(name, icon);
-        this.modelRef = Objects.requireNonNull(model, "VisorModel no puede ser null");
-        this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");
         this.viewManagerRef = Objects.requireNonNull(viewManager, "ViewManager no puede ser null");
 
         putValue(Action.SHORT_DESCRIPTION, "Mostrar un diálogo con la lista de imágenes cargadas");

@@ -54,8 +54,6 @@ public class ConfigurationManager
 	        "proyecto"// Ahora "interfaz" es la sección principal
 	);
 	
-	//--------------------------------------------------------------------------------------------------------------
-	//FIXME comentar este bloque para eliminar el singleton de configurationManager -1
 	private static ConfigurationManager instance = null;
 	public static synchronized ConfigurationManager getInstance() {
 	    if (instance == null) {
@@ -67,17 +65,13 @@ public class ConfigurationManager
 	    }
 	    return instance;
 	}
-	//FIXME recordar volver public el constructor y modificar el bloque de "singleton de configurationmanager" -1
-	//--------------------------------------------------------------------------------------------------------------
 	
 	private ConfigurationManager() throws IOException
 	{
 
 		config = cargarConfiguracion();
 		
-		//LOG ConfigurationManager inicializado.
-		logger.debug("ConfigurationManager inicializado.");
-		logger.debug("!!! DEBUG: Mapa 'config' INICIALIZADO. HashCode: " + System.identityHashCode(config));
+		logger.debug("[ConfigurationManager] Mapa 'config' INICIALIZADO. HashCode: " + System.identityHashCode(config));
 		
 	}
 	
@@ -112,7 +106,7 @@ public class ConfigurationManager
 	        }
 	    }
 
-	 // LOG --- ¡NUEVO BLOQUE DE DEBUG! ---
+	 // log --- ¡NUEVO BLOQUE DE DEBUG! ---
 	    logger.info("--- DEBUG PRE-SINCRONIZACIÓN ---");
 	    logger.debug("Tamaño de DEFAULT_CONFIG: " + DEFAULT_CONFIG.size());
 	    logger.debug("Tamaño de loadedConfig (del archivo): " + loadedConfig.size());
@@ -206,7 +200,7 @@ public class ConfigurationManager
 
 		logger.debug("!!! DEBUG: Guardando mapa. HashCode del mapa recibido: " + System.identityHashCode(configAGuardar));
 		
-		// LOG DETALLADO: Inicio y verificación del valor a guardar ---
+		// log DETALLADO: Inicio y verificación del valor a guardar ---
         logger.debug("[ConfigurationManager guardarConfiguracion] === INICIO GUARDADO ===");
         logger.debug("[ConfigurationManager guardarConfiguracion] Intentando guardar en: " + CONFIG_FILE_PATH);
         String temaEnMapaAGuardar = configAGuardar.get(ConfigKeys.TEMA_NOMBRE);
@@ -239,7 +233,6 @@ public class ConfigurationManager
 		// Crear una copia del mapa para poder eliminar claves mientras se procesan
 		Map<String, String> configPendiente = new HashMap<>(configAGuardar);
 
-		//LOG Guardando configuración (preservando estructura) en
 		logger.debug("Guardando configuración (preservando estructura) en " + CONFIG_FILE_PATH);
 		logger.debug("Claves a guardar/actualizar: " + configPendiente.size());
 
@@ -557,10 +550,38 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.INFOBAR_INF_MENSAJES_APP_VISIBLE, "true");
 
 	    defaults.put(ConfigKeys.GRID_MOSTRAR_NOMBRES_STATE, "true");
+	    defaults.put(ConfigKeys.GRID_MOSTRAR_ESTADO_STATE, "true");
 	    defaults.put(ConfigKeys.GRID_THUMBNAIL_WIDTH, "120");
 	    defaults.put(ConfigKeys.GRID_THUMBNAIL_HEIGHT, "120");
 	    
+	    defaults.put("interfaz.menu.vista.barra_de_botones.seleccionado.visible", "true");
+	    defaults.put("interfaz.herramientas.botonesOrdenLista.visible", "true");
+
+	    defaults.put("proyectos.estado.recuperacion_pendiente", "true");
 	    
+	    defaults.put("interfaz.menu.vista.barra_de_menu.seleccionado.visible", "true");
+	    defaults.put("interfaz.menu.vista.imagenes_en_miniatura.seleccionado.visible", "true");
+	    defaults.put("interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado.visible", "true");
+	    
+	    defaults.put("interfaz.boton.barra_estado.control_modoZoom.visible", "true");
+	    defaults.put("interfaz.boton.barra_estado.mantener_proporciones.visible", "true");
+	    defaults.put("interfaz.boton.barra_estado.subcarpetas.visible", "true");
+	    defaults.put("interfaz.boton.barra_estado.vista_toggle_always_on_top.visible", "true");
+	    defaults.put("interfaz.boton.barra_estado.zoom_manual_toggle.visible", "true");
+	    
+	    defaults.put("interfaz.boton.botonesOrdenLista.filtro_activo.visible", "true");
+	    defaults.put("interfaz.boton.botonesOrdenLista.filtro_toggleLiveFilter.visible", "true");
+	    defaults.put("interfaz.boton.botonesOrdenLista.orden_carpeta_anterior.visible", "true");
+	    defaults.put("interfaz.boton.botonesOrdenLista.orden_carpeta_raiz.visible", "true");
+	    defaults.put("interfaz.boton.botonesOrdenLista.orden_carpeta_siguiente.visible", "true");
+	    defaults.put("interfaz.boton.botonesOrdenLista.orden_ciclo.visible", "true");
+	    
+	    defaults.put("interfaz.boton.orden_lista.filtro_activo.visible", "true");
+	    defaults.put("interfaz.boton.orden_lista.filtro_toggleLiveFilter.visible", "true");
+	    defaults.put("interfaz.boton.orden_lista.orden_carpeta_anterior.visible", "true");
+	    defaults.put("interfaz.boton.orden_lista.orden_carpeta_raiz.visible", "true");
+	    defaults.put("interfaz.boton.orden_lista.orden_carpeta_siguiente.visible", "true");
+	    defaults.put("interfaz.boton.orden_lista.orden_ciclo.visible", "true");
 	    // --- 5. VISIBILIDAD DINÁMICA DE TOOLBARS Y BOTONES ---
 	    UIDefinitionService uiDefs = new UIDefinitionService();
 	    
@@ -787,7 +808,7 @@ public class ConfigurationManager
         // Actualiza el valor en el mapa 'config' en memoria
         setString(ConfigKeys.TEMA_NOMBRE, nuevoTema.trim()); // setString ya imprime un log
 
-        //LOG [ConfigurationManager setTemaActualYGuardar] Valor de: 
+        //log [ConfigurationManager setTemaActualYGuardar] Valor de: 
         String valorEnMemoria = config.get(ConfigKeys.TEMA_NOMBRE);
         logger.debug("[ConfigurationManager setTemaActualYGuardar] Valor de '" + ConfigKeys.TEMA_NOMBRE + "' en memoria ANTES de guardar: '" + valorEnMemoria + "'");
         if (!nuevoTema.trim().equals(valorEnMemoria)) {

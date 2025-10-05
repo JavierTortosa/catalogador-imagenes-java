@@ -7,8 +7,8 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+//import org.slf4j.Logger;
+//import org.slf4j.LoggerFactory;
 
 import controlador.GeneralController;
 import controlador.commands.AppActionCommands;
@@ -16,7 +16,7 @@ import controlador.commands.AppActionCommands;
 public class EliminarProyectoAction extends AbstractAction {
 
     private static final long serialVersionUID = 1L;
-    private static final Logger logger = LoggerFactory.getLogger(EliminarProyectoAction.class);
+//    private static final Logger logger = LoggerFactory.getLogger(EliminarProyectoAction.class);
     
     private final GeneralController generalController;
 

@@ -62,11 +62,15 @@ public class InfobarImageManager implements ThemeChangeListener{
      * Se asegura de que la actualización se realice en el Event Dispatch Thread (EDT).
      */
     public void actualizar() {
-        if (!SwingUtilities.isEventDispatchThread()) {
+    	
+    	logger.info("actualizar() Activado");
+        
+    	if (!SwingUtilities.isEventDispatchThread()) {
             SwingUtilities.invokeLater(this::actualizarBarraInfoSuperior);
         } else {
             actualizarBarraInfoSuperior();
         }
+    	
     } // --- Fin del método actualizar ---
 
     /**
@@ -329,33 +333,4 @@ public class InfobarImageManager implements ThemeChangeListener{
     } // ---FIN de metodo [applyCustomStatusBarStyle]---
     
     
-//    /**
-//     * Aplica el estilo de fondo y borde a la barra de estado superior.
-//     * Lee el color personalizado del UIManager y lo aplica. Si no existe,
-//     * restaura el estilo por defecto del tema actual.
-//     */
-//    private void applyCustomStatusBarStyle() {
-//        JPanel panel = registry.get("panel.info.superior");
-//        if (panel == null) return;
-//
-//        // Buscamos el color personalizado definido en los .properties
-//        Color customBackgroundColor = UIManager.getColor(ThemeManager.KEY_STATUSBAR_BACKGROUND);
-//
-//        if (customBackgroundColor != null) {
-//            // Si el tema actual define este color (ej: "Púrpura Misterioso"), lo usamos.
-//            panel.setBackground(customBackgroundColor);
-//            // Aplicamos un borde del MISMO color para crear el efecto de "marco rojo".
-//            panel.setBorder(new LineBorder(customBackgroundColor, 2)); 
-//        } else {
-//            // Si el tema NO define el color (ej: "Cyan Light"), restauramos el estilo
-//            // por defecto de FlatLaf para este panel.
-//            panel.setBackground(UIManager.getColor("Panel.background"));
-//            panel.setBorder(UIManager.getBorder("Panel.border"));
-//        }
-//        
-//        panel.revalidate();
-//        panel.repaint();
-//    } // ---FIN de metodo [applyCustomStatusBarStyle]---
-    
-
 } // --- Fin de la clase InfobarImageManager ---

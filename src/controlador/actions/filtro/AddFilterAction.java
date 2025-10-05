@@ -33,7 +33,10 @@ public class AddFilterAction extends AbstractAction {
         // Por ahora, asumimos que todos los filtros son sobre el nombre del archivo.
         FilterSource filterSource = FilterSource.FILENAME;
         
-        generalController.solicitarAnadirFiltro(filterSource, filterType);
+//        generalController.solicitarAnadirFiltro(filterSource, filterType);
+        
+        generalController.solicitarAnadirFiltro();
+        
     } // --- Fin del método actionPerformed ---
 
 } // --- Fin de la clase AddFilterAction ---

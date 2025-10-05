@@ -22,9 +22,9 @@ public class VisorV2 {
      */
     public static final void main(String[] args) {
     	
-    	version = "V2.4.21";
+    	version = "V2.4.30";
     	
-        System.out.println("Iniciando Visor de Imágenes V."+ version);
+        System.out.println("Iniciando Visor de Imágenes "+ version);
 
         UIManager.put("MenuBar.windowBindings", new Object[] {});
         
@@ -46,26 +46,20 @@ public class VisorV2 {
 		//TODO HACER SALTO DE CARPETA
 			//Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta
 	    //TODO CTRL + SHIFT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR
-	    //TODO Pasar las imagenes rapido con la rueda del raton no debe mostrar las imagenes, 
-			//solo un placebo que parezca que estan pasando imagenes pero en realidad no se ve nada
-		//TODO buscar por nombre de archivo en la carpeta actual y si le doy la ruta que cambie la lista en funcion de esa nueva imagen (si existe)
 
 	// PROYECTO
+	    //FIXME borrar una imagne permanentemente no añade "*" y no lo considera un cambio pendiente de guardar
+    
 		//TODO hacer que el salto de pagina avance o retroceda los items que se estipulan en el config, ahora lo hace pero de la lista general, no en la lista
 			//especifica, si movemos items a descartes pasa del item 0 al 10 pero si en medio no hay items porque estan en descartes va al item 10 igual
     	//TODO permitir la seleccion multiple en modo proyecto
 		//TODO permitir seleccionar varios archivos con el raton + shift por ej. para enviarlos a descartes o a exportar
-		//TODO ajustar opciones del menu para que se activen o desactiven las que son o no relevantes en modo proyecto
 		//TODO añadir la opcion de poder agregar al proyecto un archivo sin imagen (se puede crear una imagen que tenga el texto que le introduzca el usuario)
 		//TODO añadir una imagen al proyecto arrastrando desde la carpeta de windows
 		//TODO importar un txt que contenga ruta/nombre y poder añadir ese txt o crear nuevo proyecto con base a ese txt
 		//TODO hacer que la lista de imagenes cargada pueda copiar las imagenes al portapapeles para enviar por whatsapp por ej....
-    	//TODO Que pasa cuando 2 archivos con el mismo nombre se exportan a una carpeta?
-    	//TODO poner un mensaje en la status bar cuando se guarda el proyecto
-
 
 	//TOOLBAR
-		//FIXME hacer los iconos mas pequeños
     	//FIXME mejorar claridad entre toolbars
     
 	
@@ -85,8 +79,6 @@ public class VisorV2 {
     // TODO antes de exportar, que muestre una pantalla de confirmacion (se van a exportar estas imagenes con estos archivos asociados a esta carpeta
     // FIXME permitir buscar a mano una imagen que ha cambiado de nombre 
 
-    // FIXME al intentar cerrar el programa sin haber guardado el proyecto falla. cuando te pregunta para cerrar, si dices si, debe guardar y salir, si dices no, salir y si dices cancelar ni guarda ni sale
-    // FIXME cuando llevas un rato trabajando, se va relentizando el renderizado de las imagenes
     
     // CARROUSEL
     

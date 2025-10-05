@@ -2,9 +2,11 @@ package controlador;
 
 import java.awt.Color;
 import java.awt.KeyboardFocusManager;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +23,6 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
@@ -37,13 +38,17 @@ import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
 import controlador.managers.tree.FolderTreeManager;
+import controlador.factory.ActionFactory;
 import controlador.utils.ComponentRegistry;
+
 import modelo.VisorModel;
+
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager;
 import servicios.image.ThumbnailService;
 import servicios.zoom.ZoomModeEnum;
+
 import vista.VisorView;
 import vista.builders.MenuBarBuilder;
 import vista.builders.ProjectBuilder;
@@ -61,54 +66,53 @@ public class AppInitializer {
 	private static final Logger logger = LoggerFactory.getLogger(AppInitializer.class);
 
     // --- Campos de la clase (Dependencias a gestionar) ---
-    private final VisorController controller;
+	
+    private final VisorController 		controller;
     
-    private VisorModel model;
-    private ConfigurationManager configuration;
-    private ThemeManager themeManager;
-    private IconUtils iconUtils;
-    private ThumbnailService thumbnailServiceGlobal;
-    private ThumbnailService gridThumbnailService;
-    private ProjectManager projectManagerService;
-    private ComponentRegistry registry;
+    private VisorModel 					model;
+    private ConfigurationManager 		configuration;
+    private ThemeManager 				themeManager;
+    private IconUtils 					iconUtils;
+    private ThumbnailService 			thumbnailServiceGlobal;
+    private ThumbnailService 			gridThumbnailService;
+    private ProjectManager 				projectManagerService;
+    private ComponentRegistry 			registry;
     
     // Controladores y Coordinadores
-    private ProjectController projectController;
-    private GeneralController generalController;
-    private ListCoordinator listCoordinator;
-    private ProjectListCoordinator projectListCoordinator;
+    private ProjectController 			projectController;
+    private GeneralController 			generalController;
+    private ListCoordinator 			listCoordinator;
+    private ProjectListCoordinator 		projectListCoordinator;
     
     // Managers
-    private ConfigApplicationManager configAppManager;
-    private ZoomManager zoomManager;
-    private EditionManager editionManager;
-    private FileOperationsManager fileOperationsManager;
-    private InfobarImageManager infobarImageManager;
-    private InfobarStatusManager statusBarManager;
-    private ToolbarManager toolbarManager;
-    private ViewManager viewManager;
-    private BackgroundControlManager backgroundControlManager;
-    private CarouselManager carouselManager;
-    private DisplayModeManager displayModeManager;
-    private FolderNavigationManager folderNavManager;
-    private FolderTreeManager folderTreeManager;
-    private FilterManager filterManager;
+    private ConfigApplicationManager 	configAppManager;
+    private ZoomManager 				zoomManager;
+    private EditionManager 				editionManager;
+    private FileOperationsManager 		fileOperationsManager;
+    private InfobarImageManager 		infobarImageManager;
+    private InfobarStatusManager 		statusBarManager;
+    private ToolbarManager 				toolbarManager;
+    private ViewManager 				viewManager;
+    private BackgroundControlManager	 backgroundControlManager;
+    private CarouselManager 			carouselManager;
+    private DisplayModeManager 			displayModeManager;
+    private FolderNavigationManager 	folderNavManager;
+    private FolderTreeManager 			folderTreeManager;
+    private FilterManager 				filterManager;
     
     // UI y Factorías
-    private ActionFactory actionFactory;
-    private Map<String, Action> actionMap;
-    private VisorView view;
-    private ProjectBuilder projectBuilder;
-    private ViewBuilder viewBuilder;
-    private ToolbarBuilder toolbarBuilder;
-    private MenuBarBuilder menuBuilder;
+    private ActionFactory 				actionFactory;
+    private VisorView 					view;
+    private ProjectBuilder 				projectBuilder;
+    private ViewBuilder 				viewBuilder;
+    private ToolbarBuilder 				toolbarBuilder;
+    private MenuBarBuilder 				menuBuilder;
     
-    private vista.builders.PopupMenuBuilder popupMenuBuilder;
-    
-    private List<ThumbnailPreviewer> activePreviewers;
-    private VisorController controllerRefParaNotificacion;
+    private Map<String, Action> 		actionMap;
+    private List<ThumbnailPreviewer> 	activePreviewers;
 
-    private final String appVersion;
+    private final String 				appVersion;
+    
     
     public AppInitializer(VisorController controller, String version) {
         this.controller = Objects.requireNonNull(controller, "VisorController no puede ser null en AppInitializer");
@@ -179,25 +183,28 @@ public class AppInitializer {
         // UI Builders y Servicios de UI
         UIDefinitionService uiDefSvc = new UIDefinitionService();
         
-        this.popupMenuBuilder = new vista.builders.PopupMenuBuilder(this.themeManager, this.configuration, this.controller);
-        
+        logger.info("Inicializando Botones");
         this.toolbarBuilder = new ToolbarBuilder(this.themeManager, this.iconUtils, this.controller, configuration.getInt("iconos.ancho", 24), configuration.getInt("iconos.alto", 24), this.registry);
         this.toolbarManager = new ToolbarManager(this.registry, this.configuration, this.toolbarBuilder, uiDefSvc, this.model);
         
+        logger.info("Inicializando Controllador de Proyectos");
         // Usar la ÚNICA instancia de projectController
         this.projectBuilder = new ProjectBuilder(this.registry, this.model, this.themeManager, this.generalController, this.toolbarManager, this.projectController);
         
+        logger.info("Inicializando Construccion del Visor");
         // Usar el projectBuilder del campo de la clase (this.projectBuilder) para el ViewBuilder
         this.viewBuilder = new ViewBuilder(this.registry, this.model, this.themeManager, this.configuration, this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService, this.projectBuilder);
         
         this.menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager, this.registry, this.themeManager);
 
+        logger.info("Cargando configuracion inicial");
         // Managers dependientes de UI
         this.configAppManager = new ConfigApplicationManager(this.model, this.configuration, this.themeManager, this.registry);
         
         this.infobarImageManager = new InfobarImageManager(this.model, this.registry, this.configuration);
         this.backgroundControlManager = new BackgroundControlManager(registry, this.themeManager, this.viewManager, this.configuration, this.iconUtils, BorderFactory.createLineBorder(Color.GRAY), BorderFactory.createCompoundBorder(BorderFactory.createLineBorder(Color.CYAN, 2), BorderFactory.createLineBorder(Color.BLACK)));
 
+        logger.info("Inicializando Acciones");
         // Factoría de Acciones (ActionFactory)
         Map<String, ActionFactory.IconInfo> iconMap = new java.util.HashMap<>();
         uiDefSvc.generateModularToolbarStructure().forEach(toolbarDef -> {
@@ -270,6 +277,7 @@ public class AppInitializer {
         zoomManager.setConfiguration(this.configuration);
         zoomManager.setViewManager(this.viewManager);
         zoomManager.setListCoordinator(this.listCoordinator);
+        zoomManager.setInfobarImageManager(this.infobarImageManager);
         
         zoomManager.setConfigApplicationManager(this.configAppManager);
         
@@ -287,11 +295,9 @@ public class AppInitializer {
         listCoordinator.setContextSensitiveActions(this.actionFactory.getContextSensitiveActions());
 
         projectController.setProjectManager(this.projectManagerService);
-        projectController.setViewManager(this.viewManager);
         projectController.setRegistry(this.registry);
         projectController.setZoomManager(this.zoomManager);
         projectController.setModel(this.model);
-        projectController.setListCoordinator(this.listCoordinator);
         
         projectController.setProjectListCoordinator(this.projectListCoordinator);
         projectController.setDisplayModeManager(this.displayModeManager);
@@ -423,6 +429,40 @@ public class AppInitializer {
                 
                 this.controller.configurarAtajosTecladoGlobales();
                 this.generalController.configurarListenersDeEntradaGlobal();
+                
+                
+             // --- INICIO: AÑADIR LISTENER INTERACTIVO A LA LISTA DE FILTROS ---
+                JList<controlador.managers.filter.FilterCriterion> filterList = registry.get("list.filtrosActivos");
+                if (filterList != null) {
+                    filterList.addMouseListener(new java.awt.event.MouseAdapter() {
+                        @Override
+                        public void mouseClicked(java.awt.event.MouseEvent e) {
+                            int index = filterList.locationToIndex(e.getPoint());
+                            if (index == -1) {
+                                return;
+                            }
+
+                            // Aseguramos que la fila clickeada sea la seleccionada
+                            if (filterList.getSelectedIndex() != index) {
+                                filterList.setSelectedIndex(index);
+                            }
+                            
+                            controlador.managers.filter.FilterCriterion criterion = filterList.getModel().getElementAt(index);
+                            
+                            // Delegamos toda la lógica de qué hacer con el clic al GeneralController
+                            if (generalController != null) {
+                                generalController.handleFilterListClick(e, criterion);
+                            }
+                        } // ---FIN de metodo mouseClicked---
+                    });
+                    logger.debug("    -> Listener interactivo añadido a 'list.filtrosActivos'.");
+                } else {
+                    logger.warn("WARN [AppInitializer]: No se pudo encontrar 'list.filtrosActivos' en el registro para añadir el listener interactivo.");
+                }
+             // --- FIN: AÑADIR LISTENER INTERACTIVO A LA LISTA DE FILTROS ---
+                
+                
+                
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.generalController);
                 KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this.generalController);
                 this.controller.configurarListenersVistaInternal();
@@ -579,10 +619,6 @@ public class AppInitializer {
     } // ---FIN de metodo sincronizarVisibilidadInicialUI---
     
 
-    private void cargarDatosIniciales() {
-        cargarDatosIniciales(null);
-    } // ---FIN de metodo cargarDatosIniciales (convenience)---
-    
     private void cargarDatosIniciales(Runnable onComplete) {
         String imagenInicialKey = configuration.getString(ConfigKeys.INICIO_IMAGEN, null);
         if (this.model.getCarpetaRaizActual() != null) {
@@ -690,9 +726,6 @@ public class AppInitializer {
         System.exit(1); 
     } // ---FIN de metodo manejarErrorFatalInicializacion---
 
-    public void setControllerParaNotificacion(VisorController controller) {
-        this.controllerRefParaNotificacion = controller;
-    } // ---FIN de metodo setControllerParaNotificacion---
     
 } // ---FIN de la clase AppInitializer---
 

@@ -171,13 +171,20 @@ public class ZoomManager implements IZoomManager {
     
     @Override
     public void aplicarZoomConRueda(java.awt.event.MouseWheelEvent e) {
+    	
         if (model == null || !model.isZoomHabilitado() || model.getCurrentImage() == null) return;
+        
         double zoomActual = model.getZoomFactor();
         double nuevoZoom = (e.getWheelRotation() < 0) ? zoomActual * 1.1 : zoomActual / 1.1;
+        
         ImageDisplayPanel panel = getActiveDisplayPanel();
+        
         if (panel == null) return;
+        
         java.awt.Point puntoRatonEnPanel = e.getPoint();
+        
         if (model.isZoomToCursorEnabled()) {
+        	
             double panelW = panel.getWidth(), panelH = panel.getHeight();
             double imgW = model.getCurrentImage().getWidth(), imgH = model.getCurrentImage().getHeight();
             double offsetXActual = model.getImageOffsetX(), offsetYActual = model.getImageOffsetY();
@@ -190,7 +197,9 @@ public class ZoomManager implements IZoomManager {
             double nuevoOffsetY = puntoRatonEnPanel.y - yBaseNuevo - (ratioY * imgH * nuevoZoom);
             model.setImageOffsetX((int) nuevoOffsetX);
             model.setImageOffsetY((int) nuevoOffsetY);
+            
         }
+        
         model.setZoomFactor(nuevoZoom);
         refrescarVistaSincrono();
         
@@ -201,7 +210,6 @@ public class ZoomManager implements IZoomManager {
         if (model.getCurrentZoomMode() == ZoomModeEnum.MAINTAIN_CURRENT_ZOOM || model.getCurrentZoomMode() == ZoomModeEnum.USER_SPECIFIED_PERCENTAGE) {
             if (statusBarManager != null) statusBarManager.actualizar();
         }
-        
         
     } // --- Fin del método aplicarZoomConRueda ---
     

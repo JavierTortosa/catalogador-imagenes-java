@@ -20,14 +20,10 @@ public class ToggleZoomManualAction extends AbstractAction {
 	
     private static final long serialVersionUID = 1L;
 
-    private final IZoomManager zoomManager;
-    private final VisorModel model;
     private final VisorController visorController;
 
     public ToggleZoomManualAction(String name, Icon icon, IZoomManager zoomManager, VisorController visorController, VisorModel model) {
         super(name, icon);
-        this.zoomManager = Objects.requireNonNull(zoomManager);
-        this.model = Objects.requireNonNull(model);
         this.visorController = Objects.requireNonNull(visorController);
         
         putValue(Action.ACTION_COMMAND_KEY, controlador.commands.AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);

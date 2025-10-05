@@ -12,7 +12,7 @@
         </encoder>
     </appender>
 
-    <!-- Appender #2: PARA TODO LO DEMÁS (WARN, INFO, DEBUG). Lo mandamos a System.out. -->
+    <!-- Appender #2: PARA  T O D O  LO DEMÁS (WARN, INFO, DEBUG). Lo mandamos a System.out. -->
     <appender name="CONSOLE_OUT" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.out</target>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
@@ -27,7 +27,7 @@
         </encoder>
     </appender>
 
-    <root level="debug">
+    <root level="DEBUG">
         <appender-ref ref="CONSOLE_OUT" /> <!-- Gestiona DEBUG, INFO, WARN -->
         <appender-ref ref="CONSOLE_ERR" /> <!-- Gestiona ERROR -->
     </root>

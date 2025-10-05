@@ -34,7 +34,9 @@ public class SetCarouselSpeedAction extends AbstractAction {
             String menuText, 
             int targetDelayMs) {
         
+    	
         super(menuText); // El texto que aparecerá en el JMenuItem
+        
         this.model = model;
         this.carouselManager = carouselManager;
         this.targetDelayMs = targetDelayMs;
@@ -42,6 +44,9 @@ public class SetCarouselSpeedAction extends AbstractAction {
 
     @Override
     public void actionPerformed(ActionEvent e) {
+    	
+    	logger.debug ("SetCarouselSpeedAction activado ");
+    	
         // 1. Actualizar el modelo directamente con el valor objetivo
         model.setCarouselDelay(targetDelayMs);
 

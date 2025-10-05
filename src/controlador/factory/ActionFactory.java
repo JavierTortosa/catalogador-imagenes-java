@@ -101,7 +101,7 @@ import controlador.managers.DisplayModeManager;
 import controlador.managers.FileOperationsManager;
 import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
-import controlador.managers.interfaces.ICarouselListCoordinator;
+//import controlador.managers.interfaces.ICarouselListCoordinator;
 import controlador.managers.interfaces.IEditionManager;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IProjectManager;
@@ -145,12 +145,8 @@ public class ActionFactory {
     private final ThemeManager themeManager;
     
     private CarouselManager carouselManager;
-    private ICarouselListCoordinator carouselListCoordinator;
     private List<ContextSensitiveAction> carouselContextSensitiveActions;
     
-    
-    // private final EditionManager editionManager; // Descomentar cuando se implemente y se inyecte
-    private final IProjectManager projectService; // Servicio de persistencia de proyectos
     private IListCoordinator listCoordinator;
     private IEditionManager editionManager;
 
@@ -239,7 +235,6 @@ public class ActionFactory {
         this.contextSensitiveActions 	= new ArrayList<>(); 
         
         this.listCoordinator 			= Objects.requireNonNull(listCoordinator, "IListCoordinator no puede ser null en ActionFactory");
-        this.projectService 			= Objects.requireNonNull(projectService, "IProjectManager (servicio) no puede ser null");
         
         // 2.3. Asignar mapa de iconos.
         this.comandoToIconKeyMap 		= Objects.requireNonNull(comandoToIconInfoMap, "comandoToIconInfoMap no puede ser null");
@@ -371,7 +366,6 @@ public class ActionFactory {
         
         
         // 3.6. Crear y registrar Actions de Vista (Toggles de UI)
-//        actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_LOCATION_BAR, createToggleLocationBarAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_INFERIOR, createToggleStatusBarAction());
         actionMap.put(AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR, createToggleInfoBarAction());
         
@@ -1150,7 +1144,6 @@ public class ActionFactory {
     } // --- Fin del método createLocateAssociatedFileAction
     
     private Action createToggleExportViewAction() {
-    	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL);
         return new ToggleExportViewAction(this.projectControllerRef);
     } // ---FIN de metodo [createToggleExportViewAction]---
     
@@ -1508,7 +1501,7 @@ public class ActionFactory {
             // Solo actualizamos si se encontró un nuevo icono.
             // Algunas acciones pueden no tener icono por diseño.
             
-            // LOG DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR
+            // log DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR
             if (comando.equals(AppActionCommands.CMD_VISTA_SWITCH_TO_VISUALIZADOR)) {
                 logger.debug("DEBUG TEMA: Actualizando icono para 'MODO VISUALIZADOR'. Icono obtenido: " + (nuevoIcono != null ? nuevoIcono.toString() : "NULL"));
                 IconInfo info = this.comandoToIconKeyMap.get(comando);
@@ -1544,7 +1537,6 @@ public class ActionFactory {
     public void setDisplayModeManager(DisplayModeManager displayModeManager){ this.displayModeManager = displayModeManager; }
 
 	public CarouselManager getCarouselManager() {return this.carouselManager;}
-    public void setCarouselListCoordinator(ICarouselListCoordinator coordinator) {this.carouselListCoordinator = coordinator;}    
     public List<ContextSensitiveAction> getCarouselContextSensitiveActions() {return Collections.unmodifiableList(this.carouselContextSensitiveActions);}
     
     public void setFileOperationsManager(FileOperationsManager fileOperationsManager) {

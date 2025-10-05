@@ -406,16 +406,8 @@ public class VisorModel {
     public void setProjectExportPanelVisible(boolean isVisible) {this.isProjectExportPanelVisible = isVisible;}
     public Path getRutaProyectoActivoConNombre() {return rutaProyectoActivoConNombre;}
     public void setRutaProyectoActivoConNombre(Path rutaProyectoActivoConNombre) {this.rutaProyectoActivoConNombre = rutaProyectoActivoConNombre;}
-    
     public SortDirection getSortDirection() {return sortDirection;}
-    public void setSortDirection(SortDirection newSortDirection) {
-        SortDirection oldSortDirection = this.sortDirection;
-        this.sortDirection = newSortDirection;
-        // (Opcional pero recomendado) Si usas PropertyChangeSupport para notificar a la UI:
-        // firePropertyChange("sortDirection", oldSortDirection, newSortDirection);
-    } // --- FIN del metodo setSortDirection ---
-    
-    
+    public void setSortDirection(SortDirection newSortDirection) {this.sortDirection = newSortDirection;}
     
 } // --- FIN DE LA CLASE VisorModel ---
 

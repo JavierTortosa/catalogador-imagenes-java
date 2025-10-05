@@ -1,8 +1,5 @@
 package servicios.image;
 
-//import java.awt.Graphics2D;
-//import java.awt.RenderingHints;
-
 import net.coobird.thumbnailator.Thumbnails;
 import net.coobird.thumbnailator.resizers.configurations.Antialiasing;
 import net.coobird.thumbnailator.resizers.configurations.Rendering;
@@ -35,8 +32,6 @@ public class ThumbnailService {
 
 	private final Cache<String, ImageIcon> mapaMiniaturasCacheadas;
     private final ExecutorService executor; //  Para generación asíncrona
-    
-//    private final Object HINT_INTERPOLACION = RenderingHints.VALUE_INTERPOLATION_BILINEAR;
     
     @FunctionalInterface
     public interface ThumbnailListener {
@@ -181,4 +176,4 @@ public class ThumbnailService {
         mapaMiniaturasCacheadas.invalidate(claveUnica);
     } // end of eliminarDelCache
     
-} // end of class
+} // end of class ThumbnailService

@@ -38,6 +38,7 @@ public class PopupMenuBuilder {
             ConfigurationManager configManager,         
             ActionListener specialConfigActionListener  
     ) {
+    	logger.debug("[PopupMenuBuilder] Iniciando...");
         this.themeManager = Objects.requireNonNull(themeManager, "ViewUIConfig no puede ser nulo en PopupMenuBuilder");
         this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser nulo en PopupMenuBuilder");
         this.specialConfigActionListenerRef = Objects.requireNonNull(specialConfigActionListener, "specialConfigActionListener no puede ser nulo en PopupMenuBuilder");

@@ -52,6 +52,9 @@ public class ProjectBuilder implements ThemeChangeListener {
 
     public ProjectBuilder(ComponentRegistry registry, VisorModel model, ThemeManager themeManager,
             GeneralController generalController, ToolbarManager toolbarManager, ProjectController projectController) {
+    	
+    	logger.info("[ProjectBuilder] Iniciando...");
+    	
         this.registry = Objects.requireNonNull(registry, "Registry no puede ser null en ProjectBuilder");
         this.model = Objects.requireNonNull(model, "VisorModel no puede ser null en ProjectBuilder");
         this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser null en ProjectBuilder");

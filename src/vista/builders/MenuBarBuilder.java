@@ -65,6 +65,9 @@ public class MenuBarBuilder {
     		ComponentRegistry registry,
     		ThemeManager themeManager
     		) {
+    	
+    	logger.info ("[MenuBarBuilder] Iniciando...");
+    			
         this.menuItemsPorNombre = new HashMap<>();
         this.menuBar = new JMenuBar();
         this.controllerRef = Objects.requireNonNull(controller, "VisorController no puede ser null");

@@ -112,34 +112,52 @@ public class FilterManager {
         // Iteramos sobre CADA filtro en la lista de filtros activos.
         for (FilterCriterion filter : activeFilters) {
             
-            // Determinamos sobre qué texto vamos a buscar (nombre de archivo o ruta)
-            String targetString = (filter.getSource() == FilterSource.FILENAME) ? fileName : folderPath;
+            // Determinamos sobre qué texto vamos a buscar (nombre de archivo, carpeta o tag)
+            String targetString;
+            switch (filter.getSourceType()) {
+                case FOLDER:
+                    targetString = folderPath;
+                    break;
+                case TAG:
+                    // TODO: Obtener los tags de la imagen 'itemKey' desde la base de datos
+                    // y comprobar si alguno coincide con filter.getValue().
+                    // Por ahora, para que no falle, lo tratamos como si no coincidiera.
+                    targetString = ""; 
+                    break;
+                case TEXT:
+                default:
+                    targetString = fileName;
+                    break;
+            }
+            
             String filterValue = filter.getValue().toLowerCase();
+            if (filterValue.isEmpty()) {
+                continue; // Ignoramos filtros con valor vacío
+            }
 
-            // Verificamos la condición del filtro
+            // Verificamos si el texto objetivo contiene el valor del filtro.
             boolean conditionMet = targetString.contains(filterValue);
 
-            // --- INICIO DE LA LÓGICA AND/Y NO ---
+            // --- INICIO DE LA NUEVA LÓGICA UNIFICADA ---
             
-            // CASO 1: Es un filtro POSITIVO (+) y la condición NO se cumple.
-            // Si el archivo NO contiene el texto que debería, lo descartamos inmediatamente.
-            if (filter.getType() == FilterType.CONTAINS && !conditionMet) {
-                return false; // No cumple una de las condiciones OBLIGATORIAS.
+            // CASO 1: Es un filtro de tipo AÑADIR (ADD) y la condición NO se cumple.
+            // Si la imagen NO contiene el texto que debería, la descartamos inmediatamente.
+            if (filter.getLogic() == FilterCriterion.Logic.ADD && !conditionMet) {
+                return false; // No cumple una de las condiciones obligatorias.
             }
 
-            // CASO 2: Es un filtro NEGATIVO (-) y la condición SÍ se cumple.
-            // Si el archivo SÍ contiene el texto que NO debería, lo descartamos inmediatamente.
-            if (filter.getType() == FilterType.DOES_NOT_CONTAIN && conditionMet) {
+            // CASO 2: Es un filtro de tipo EXCLUIR (NOT) y la condición SÍ se cumple.
+            // Si la imagen SÍ contiene el texto que NO debería, la descartamos inmediatamente.
+            if (filter.getLogic() == FilterCriterion.Logic.NOT && conditionMet) {
                 return false; // Contiene algo prohibido.
             }
-            // --- FIN DE LA LÓGICA AND/Y NO ---
+            // --- FIN DE LA NUEVA LÓGICA UNIFICADA ---
         }
 
-        // Si el bucle termina, significa que el archivo ha sobrevivido a TODAS las reglas.
-        // Por lo tanto, es un archivo válido.
+        // Si el bucle termina, significa que la imagen ha pasado todas las reglas de filtro.
         return true;
 
-    } // --- Fin del método passesAllFilters ---
+    } // ---FIN de metodo passesAllFilters---
     
     
     /**

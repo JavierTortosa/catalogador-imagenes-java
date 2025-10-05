@@ -124,7 +124,6 @@ public class ListContext {
         this.selectedImageKey = otroContexto.getSelectedImageKey();
         this.mostrarSoloCarpetaActual = otroContexto.isMostrarSoloCarpetaActual();
         
-        // LOG [ListContext.clonarDesde] Clonando 'mostrarSoloCarpetaActual'. Valor:
         logger.debug("    [ListContext.clonarDesde] Clonando 'mostrarSoloCarpetaActual'. Valor: " + this.mostrarSoloCarpetaActual);
         
         this.nombreListaActiva = otroContexto.getNombreListaActiva();

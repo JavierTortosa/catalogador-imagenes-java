@@ -80,7 +80,7 @@ public class ConfigApplicationManager {
         aplicarConfiguracionAlModelo();
         
         // 2. AHORA sembramos los colores custom si es necesario.
-        seedInitialCustomColors(); 
+//        seedInitialCustomColors(); 
         
         // Ahora, este método solo se encarga de aplicar la configuración,
         // no de la sincronización visual, que ocurrirá más tarde.
@@ -352,48 +352,6 @@ public class ConfigApplicationManager {
         
         logger.debug("  [ConfigAppManager] Sincronización de UI final completada.");
     } // --- Fin del método sincronizarUIFinal ---
-    
-    
-    /**
-     * Revisa si los colores personalizados de fondo existen en la configuración.
-     * Si no existen (porque es el primer arranque o se borró el config), 
-     * los "siembra" en el mapa de configuración EN MEMORIA con los colores 
-     * por defecto de los otros temas disponibles.
-     */
-    private void seedInitialCustomColors() {
-        logger.debug("  [ConfigAppManager] Verificando y sembrando colores de fondo por defecto...");
-
-        // Lista de las claves que vamos a revisar.
-        List<String> colorKeys = List.of(
-            ConfigKeys.BACKGROUND_CUSTOM_COLOR_1,
-            ConfigKeys.BACKGROUND_CUSTOM_COLOR_2,
-            ConfigKeys.BACKGROUND_CUSTOM_COLOR_3,
-            ConfigKeys.BACKGROUND_CUSTOM_COLOR_4
-        );
-
-        // Obtenemos la lista ordenada de temas y quitamos el actual para tener los "otros".
-        List<Tema> otrosTemas = new java.util.ArrayList<>(themeManager.getTemasDisponibles());
-        otrosTemas.remove(themeManager.getTemaActual());
-
-        for (int i = 0; i < colorKeys.size(); i++) {
-            String key = colorKeys.get(i);
-            
-            // Usamos containsKey() para una comprobación de solo lectura.
-            if (!config.getConfigMap().containsKey(key)) {
-                
-                if (i < otrosTemas.size()) {
-                    Color colorPorDefecto = otrosTemas.get(i).colorFondoSecundario();
-                    
-                    // "Sembramos" el valor en el mapa de configuración en memoria.
-                    // Este es el ÚNICO lugar (fuera de la acción del usuario) donde se escribe en config.
-                    config.setColor(key, colorPorDefecto);
-                    
-                    logger.debug("    -> SEMBRADO: La clave '" + key + "' se ha inicializado en memoria con el color del tema '" + otrosTemas.get(i).nombreInterno() + "'.");
-                }
-            }
-        }
-
-    } // --- FIN DEL Metodo seedInitialCustomColors ---
     
 
     public void actualizarEstadoControlesZoom(boolean zoomManualActivado, boolean resetHabilitado) {

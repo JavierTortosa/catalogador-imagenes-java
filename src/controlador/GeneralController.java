@@ -101,6 +101,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private String persistente_punteroOriginalKey;
     private boolean persistente_activo = false;
     private FilterSource filtroActivoSource = FilterSource.FILENAME;
+    private FilterCriterion tornadoCriterion;
     
     
     // --- Checkpoint para el TORNADO (se mantiene igual) ---
@@ -121,6 +122,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private javax.swing.border.Border unfocusedBorder;
     private List<javax.swing.JComponent> focusablePanels;
     private TitledBorder borderListaArchivosOriginal;
+    private javax.swing.Timer filterDebounceTimer;
     
     /**
      * Constructor de GeneralController.
@@ -200,7 +202,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             }
         });
         
-        
         sincronizarEstadoBotonesDeModo();
         
         SwingUtilities.invokeLater(() -> {
@@ -213,12 +214,39 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             }
 
             searchField.addActionListener(e -> { if (!model.isLiveFilterActive()) { buscarSiguienteCoincidencia(); } });
-            searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
-                public void insertUpdate(javax.swing.event.DocumentEvent e) { actualizarFiltro(); }
-                public void removeUpdate(javax.swing.event.DocumentEvent e) { actualizarFiltro(); }
-                public void changedUpdate(javax.swing.event.DocumentEvent e) { actualizarFiltro(); }
-            });
+            
+            
+	         // --- INICIO: LÓGICA DE DEBOUNCING PARA FILTRO EN VIVO ---
+	         // 1. Creamos el Timer. Se disparará 300ms después de la última pulsación de tecla.
+	         filterDebounceTimer = new javax.swing.Timer(300, (e) -> {
+	             // Esto se ejecuta cuando el usuario ha dejado de teclear.
+	             // Llamamos al método de filtrado real.
+	             actualizarFiltro(); 
+	         });
+	         filterDebounceTimer.setRepeats(false); // Importante: solo se ejecuta una vez por ráfaga de eventos.
+	
+	         // 2. Modificamos el DocumentListener para que REINICIE el Timer en lugar de filtrar.
+	         
+	         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
+	        	 
+	             private void handleTextChange() {
+	                 if (model.isLiveFilterActive()) {
+	                     filterDebounceTimer.restart(); // Cada pulsación de tecla reinicia el temporizador.
+	                 }
+	                 
+	                 sincronizarEstadoControlesTornado();
+	             }
+	             
+	             public void insertUpdate(javax.swing.event.DocumentEvent e) { handleTextChange(); }
+	             public void removeUpdate(javax.swing.event.DocumentEvent e) { handleTextChange(); }
+	             public void changedUpdate(javax.swing.event.DocumentEvent e) { handleTextChange(); }
+	         });
+	         
+	         // --- FIN: LÓGICA DE DEBOUNCING ---
+            
             configurePlaceholderText(searchField);
+            
+            sincronizarEstadoControlesTornado();
 
             fileList.addListSelectionListener(e -> {
                 if (e.getValueIsAdjusting()) return;
@@ -482,7 +510,14 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         // --- APAGADO DE SERVICIOS ---
         visorController.apagarExecutorServiceOrdenadamente();
         
-        logger.info("--- Apagado limpio completado. Saliendo de la JVM. ---");
+        logger.info("--- Apagado limpio completado. Saliendo de la JVM. ---\n\n");
+        
+//        logger.warn("PRUEBA WARN");
+//        logger.info("PRUEBA INFO");
+//        logger.debug("PRUEBA DEBUG");
+//        logger.error("PRUEBA ERROR");
+        
+        
         System.exit(0);
     } // ---FIN de metodo handleApplicationShutdown---
     
@@ -847,7 +882,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 // Leemos el estado del contexto de lista ACTUALMENTE ACTIVO en el modelo.
                 // model.isMostrarSoloCarpetaActual() ya es inteligente y devuelve el del contexto correcto.
             	
-            	//LOG [DEBUG-SYNC] Modo:
+            	//log [DEBUG-SYNC] Modo:
             	logger.debug("  [DEBUG-SYNC] Modo: " + modoActual + ", Valor de isMostrarSoloCarpetaActual() en modelo: " + model.isMostrarSoloCarpetaActual());
             	
                 boolean estadoModeloSubcarpetas = !model.isMostrarSoloCarpetaActual(); 
@@ -1699,7 +1734,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         	visorController.aplicarZoomConRueda(e);
         }
         
-        //LOG [GeneralController] Delegando aplicarZoomConRueda
+        //log [GeneralController] Delegando aplicarZoomConRueda
         logger.debug("[GeneralController] Delegando aplicarZoomConRueda a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo aplicarZoomConRueda ---
@@ -1717,7 +1752,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         	visorController.aplicarPan(deltaX, deltaY);
         }
         
-        //LOG [GeneralController] Delegando aplicarPan
+        //log [GeneralController] Delegando aplicarPan
         logger.debug("[GeneralController] Delegando aplicarPan a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo aplicarPan ---
@@ -1738,7 +1773,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         	visorController.iniciarPaneo(e);
         }
         
-        //LOG [GeneralController] Delegando iniciarPaneo
         logger.debug("[GeneralController] Delegando iniciarPaneo a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo iniciarPaneo ---
@@ -1762,7 +1796,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
         
         
-        //LOG [GeneralController] Delegando continuarPaneo
         logger.debug("[GeneralController] Delegando continuarPaneo a " + model.getCurrentWorkMode());
     
     }// --- FIN del metodo continuarPaneo ---
@@ -2253,7 +2286,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     /**
      * Reacciona a los cambios en el campo de texto cuando el filtro en vivo está activo.
-     * Crea un criterio de filtro temporal y le pide al FilterManager que aplique los filtros.
+     * Gestiona un criterio de filtro temporal (Tornado) sin destruir los filtros persistentes.
      */
     private void actualizarFiltro() {
         if (!model.isLiveFilterActive() || this.masterModelSinFiltro == null) return;
@@ -2262,51 +2295,59 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         if (searchField == null) return;
         String searchText = searchField.getText().equals("Texto a buscar...") ? "" : searchField.getText();
 
-        // 1. Preparamos el FilterManager con la regla de filtro actual
-        filterManager.clearFilters();
-        if (!searchText.isBlank()) {
-            filterManager.addFilter(new FilterCriterion(searchText, FilterSource.FILENAME, FilterType.CONTAINS));
+        // 1. Gestionar el ciclo de vida del criterio Tornado
+        // Si ya existía un filtro Tornado, lo eliminamos del manager antes de crear uno nuevo.
+        if (this.tornadoCriterion != null) {
+            filterManager.removeFilter(this.tornadoCriterion);
+            this.tornadoCriterion = null;
         }
 
-        // 2. Generamos el contenido filtrado a partir de nuestra copia maestra
+        // Si hay texto, creamos y añadimos el nuevo filtro Tornado.
+        if (!searchText.isBlank()) {
+            this.tornadoCriterion = new FilterCriterion(searchText, FilterSource.FILENAME, FilterType.CONTAINS);
+            filterManager.addFilter(this.tornadoCriterion);
+        }
+
+        // 2. Generamos el contenido filtrado a partir de nuestra copia maestra.
+        // Ahora FilterManager aplicará los filtros persistentes + el nuevo filtro Tornado.
         DefaultListModel<String> filteredContent = filterManager.applyFilters(this.masterModelSinFiltro);
 
         // 3. Obtenemos el modelo de lista QUE ESTÁ EN USO y modificamos su contenido
         DefaultListModel<String> modeloEnUso = model.getModeloLista();
         modeloEnUso.clear();
-        // --- LÍNEA CORREGIDA ---
         modeloEnUso.addAll(Collections.list(filteredContent.elements()));
-        
+
         // 4. Reiniciamos el coordinador.
         visorController.getListCoordinator().reiniciarYSeleccionarIndice(modeloEnUso.isEmpty() ? -1 : 0);
             
-        
     } // --- Fin del método actualizarFiltro ---
     
 
     /**
-     * Restaura la JList de nombres para que muestre el modelo maestro original.
+     * Restaura la JList de nombres y limpia el estado del filtro Tornado.
      */
     private void limpiarFiltro() {
         if (this.masterModelSinFiltro == null) return;
 
-        // 1. Obtenemos el modelo de lista QUE ESTÁ EN USO
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // 1. Si existe un filtro Tornado activo, lo eliminamos del gestor.
+        if (this.tornadoCriterion != null && filterManager != null) {
+            filterManager.removeFilter(this.tornadoCriterion);
+            this.tornadoCriterion = null;
+        }
+        // --- FIN DE LA MODIFICACIÓN ---
+
+        // 2. Obtenemos el modelo de lista QUE ESTÁ EN USO
         DefaultListModel<String> modeloEnUso = model.getModeloLista();
         
-        // 2. Restauramos su contenido a partir de nuestra copia maestra
+        // 3. Restauramos su contenido a partir de nuestra copia maestra
         modeloEnUso.clear();
-        // --- LÍNEA CORREGIDA ---
-        
         modeloEnUso.addAll(Collections.list(this.masterModelSinFiltro.elements()));
         
-        // 3. Le decimos al coordinador que vuelva al índice que teníamos guardado.
+        // 4. Le decimos al coordinador que vuelva al índice que teníamos guardado.
         visorController.getListCoordinator().reiniciarYSeleccionarIndice(this.indiceSeleccionadoAntesDeFiltrar);
 
-        // 4. Limpiamos nuestra copia de seguridad.
-        if (filterManager != null) {
-            filterManager.clearFilters();
-        }
-        
+        // 5. Limpiamos nuestra copia de seguridad.
         this.masterModelSinFiltro = null;
         this.indiceSeleccionadoAntesDeFiltrar = -1;
         
@@ -2347,6 +2388,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         gestionarFiltroPersistente();
     } // --- Fin del método solicitarEliminarFiltroSeleccionado ---
 
+    
     /**
      * Es llamado por la ClearAllFiltersAction. Limpia todos los filtros activos.
      */
@@ -2355,6 +2397,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     	limpiarEstadoFiltroRapidoSiActivo();
     	
         filterManager.clearFilters();
+        this.tornadoCriterion = null; // Aseguramos que la referencia se anule también.
         gestionarFiltroPersistente();
         
     } // --- Fin del método solicitarLimpiarTodosLosFiltros ---
@@ -2398,41 +2441,46 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         // Actualiza la UI de la lista de filtros (esto siempre es necesario)
         JList<FilterCriterion> filterListUI = registry.get("list.filtrosActivos");
         if (filterListUI != null) {
-            DefaultListModel<FilterCriterion> modelUI = new DefaultListModel<>();
+            // --- INICIO DE LA CORRECCIÓN ---
+            // Obtenemos el modelo que YA tiene la JList.
+            DefaultListModel<FilterCriterion> modelUI;
+            if (filterListUI.getModel() instanceof DefaultListModel) {
+                modelUI = (DefaultListModel<FilterCriterion>) filterListUI.getModel();
+            } else {
+                // Si por alguna razón no tiene un DefaultListModel, creamos uno y lo asignamos.
+                modelUI = new DefaultListModel<>();
+                filterListUI.setModel(modelUI);
+            }
+            
+            // Limpiamos el modelo existente y añadimos los filtros actualizados.
+            // Esto notifica correctamente a la JList para que se repinte.
+            modelUI.clear();
             modelUI.addAll(filterManager.getActiveFilters());
-            filterListUI.setModel(modelUI);
+            // --- FIN DE LA CORRECCIÓN ---
         }
 
-        // Si hay filtros, activamos el modo persistente y filtramos
+        // El resto del método se queda exactamente igual.
         if (filterManager.isFilterActive()) {
-            // Si el modo persistente no está activo, lo activamos y guardamos el checkpoint.
             if (!persistente_activo) {
                 this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
                 this.persistente_punteroOriginalKey = model.getSelectedImageKey();
                 this.persistente_activo = true;
             }
-
-            // Filtramos SIEMPRE sobre la lista guardada
             DefaultListModel<String> listaFiltrada = filterManager.applyFilters(this.persistente_listaMaestraOriginal);
             actualizarListaVisibleConResultado(listaFiltrada, 0, false);
-
-        } else { // Si no hay filtros, restauramos
+        } else { 
             if (persistente_activo) {
-                // Restauramos la lista guardada
                 DefaultListModel<String> listaRestaurada = this.persistente_listaMaestraOriginal;
                 int indiceOriginal = (persistente_punteroOriginalKey != null) 
                                    ? listaRestaurada.indexOf(persistente_punteroOriginalKey) : -1;
                 final int indiceFinal = (indiceOriginal != -1) ? indiceOriginal : 0;
-                
                 actualizarListaVisibleConResultado(listaRestaurada, indiceFinal, true);
-                
-                // Reseteamos el estado del checkpoint
                 this.persistente_listaMaestraOriginal = null;
                 this.persistente_punteroOriginalKey = null;
                 this.persistente_activo = false;
             }
         }
-    } // --- Fin del método refrescarConFiltrosPersistentes ---
+    } // ---FIN de metodo refrescarConFiltrosPersistentes---
     
     
     /**
@@ -2492,34 +2540,70 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     public void solicitarPersistenciaDeFiltroRapido() {
         logger.debug("[GeneralController] Solicitud para AÑADIR filtro rápido a persistentes...");
 
-        // 1. Obtener el texto del filtro rápido
+        // 1. Validaciones (se mantienen igual)
+        if (!model.isLiveFilterActive()) {
+            logger.warn("  -> Acción ignorada: El filtro Tornado no está activo.");
+            return;
+        }
         javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
         if (searchField == null || searchField.getText().isBlank() || searchField.getText().equals("Texto a buscar...")) {
+            logger.warn("  -> Acción ignorada: El campo de texto del Tornado está vacío.");
             return;
         }
         String textoFiltro = searchField.getText();
 
-        // 2. Limpiar el estado del Tornado (pero SIN TOCAR LA LISTA VISIBLE)
-        if (model.isLiveFilterActive()) {
-            model.setLiveFilterActive(false);
-            Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
-            if (liveFilterAction != null) {
-                liveFilterAction.putValue(Action.SELECTED_KEY, false);
-                if (configAppManager != null) {
-                    configAppManager.actualizarAspectoBotonToggle(liveFilterAction, false);
-                }
-            }
-        }
-        SwingUtilities.invokeLater(() -> searchField.setText(""));
+        // 2. Desactivar el filtro Tornado.
+        //    Llamamos a onLiveFilterStateChanged(false), que se encarga de:
+        //    a) Poner model.setLiveFilterActive(false).
+        //    b) Llamar a limpiarFiltro(), que restaura la lista principal a como estaba ANTES del Tornado.
+        //    c) Actualizar el estado del botón del Tornado.
+        onLiveFilterStateChanged(false);
 
-        // 3. Añadir el nuevo criterio al FilterManager
-        FilterCriterion nuevoFiltroPersistente = new FilterCriterion(textoFiltro, FilterSource.FILENAME, FilterType.CONTAINS);
-        filterManager.addFilter(nuevoFiltroPersistente);
+        // 3. AÑADIR el nuevo criterio al FilterManager.
+        //    Esta es la operación clave que pedías.
+        filterManager.addFilter(new FilterCriterion(textoFiltro, FilterCriterion.FilterSource.FILENAME, FilterCriterion.FilterType.CONTAINS));
 
-        // 4. Llamar a la función de refresco.
+        // 4. Llamar a la función de refresco de filtros persistentes.
+        //    Esta función ahora leerá la lista de filtros actualizada (los antiguos + el nuevo)
+        //    y la aplicará sobre la lista principal (que fue restaurada en el paso 2).
         refrescarConFiltrosPersistentes();
 
-    } // --- Fin del método solicitarPersistenciaDeFiltroRapido ---
+        // 5. Limpiar el campo de texto y sincronizar los botones.
+        SwingUtilities.invokeLater(() -> searchField.setText(""));
+        sincronizarEstadoControlesTornado();
+
+        logger.debug("[GeneralController] Filtro Tornado AÑADIDO a persistentes con éxito.");
+    } // ---FIN de metodo solicitarPersistenciaDeFiltroRapido---
+    
+    
+    /**
+     * Sincroniza el estado (habilitado/deshabilitado) de los botones relacionados
+     * con el filtro Tornado basándose en el estado actual de la aplicación.
+     */
+    private void sincronizarEstadoControlesTornado() {
+        if (actionMap == null || model == null || registry == null) {
+            return;
+        }
+
+        Action toggleTornadoAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
+        Action persistTornadoAction = actionMap.get(AppActionCommands.CMD_FILTRO_ACTIVO);
+        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+        
+        if (toggleTornadoAction == null || persistTornadoAction == null || searchField == null) {
+            return;
+        }
+
+        boolean isTornadoActive = model.isLiveFilterActive();
+        String searchText = searchField.getText();
+        boolean hasText = !searchText.isBlank() && !searchText.equals("Texto a buscar...");
+
+        // Regla 1: El botón "Persistir" solo se habilita si el Tornado está activo Y hay texto.
+        persistTornadoAction.setEnabled(isTornadoActive && hasText);
+        
+        // Regla 2: El botón para activar/desactivar el Tornado está siempre habilitado.
+        toggleTornadoAction.setEnabled(true); 
+
+    } // ---FIN de metodo sincronizarEstadoControlesTornado---
     
     
     /**
@@ -2548,11 +2632,103 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
         if (configAppManager != null && liveFilterAction != null) {
             configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
+            sincronizarEstadoControlesTornado();
         }
         
     } // --- Fin del método onLiveFilterStateChanged ---
     
+    
+    public void handleFilterListClick(java.awt.event.MouseEvent e, controlador.managers.filter.FilterCriterion criterion) {
+        JList<controlador.managers.filter.FilterCriterion> filterList = registry.get("list.filtrosActivos");
+        if (filterList == null || criterion == null) {
+            return;
+        }
 
+        int index = filterList.getSelectedIndex();
+        if (index == -1) return;
+
+        // Obtenemos una instancia del renderer para usarla para los cálculos
+        vista.renderers.FilterCriterionCellRenderer renderer = (vista.renderers.FilterCriterionCellRenderer) filterList.getCellRenderer()
+                .getListCellRendererComponent(filterList, criterion, index, true, true);
+
+        // Obtenemos los límites (x, y, ancho, alto) de la celda completa
+        java.awt.Rectangle cellBounds = filterList.getCellBounds(index, index);
+        
+        // Obtenemos las coordenadas del clic RELATIVAS a la celda (no a la lista)
+        int clickX = e.getX() - cellBounds.x;
+
+        // Ahora comprobamos si el clic está DENTRO de los límites de cada label
+        if (renderer.getDeleteLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
+            // --- Clic en la zona de BORRAR ---
+            int confirm = javax.swing.JOptionPane.showConfirmDialog(viewManager.getView(),
+                    "¿Deseas eliminar este filtro?", "Confirmar Eliminación", javax.swing.JOptionPane.YES_NO_OPTION);
+            if (confirm == javax.swing.JOptionPane.YES_OPTION) {
+                filterManager.removeFilter(criterion);
+                gestionarFiltroPersistente();
+            }
+
+        } else if (renderer.getLogicLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
+            // --- Clic en la zona de LÓGICA ---
+            criterion.setLogic(criterion.getLogic() == controlador.managers.filter.FilterCriterion.Logic.ADD
+                    ? controlador.managers.filter.FilterCriterion.Logic.NOT
+                    : controlador.managers.filter.FilterCriterion.Logic.ADD);
+            filterList.repaint();
+            gestionarFiltroPersistente();
+
+        } else if (renderer.getTypeLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
+            // --- Clic en la zona de TIPO ---
+            javax.swing.JPopupMenu typeMenu = new javax.swing.JPopupMenu();
+            for (controlador.managers.filter.FilterCriterion.SourceType type : controlador.managers.filter.FilterCriterion.SourceType.values()) {
+                javax.swing.JMenuItem item = new javax.swing.JMenuItem(type.getDisplayName());
+                item.addActionListener(ae -> {
+                    criterion.setSourceType(type);
+                    filterList.repaint();
+                    gestionarFiltroPersistente();
+                });
+                typeMenu.add(item);
+            }
+            typeMenu.show(filterList, e.getX(), e.getY());
+
+        } else if (renderer.getValueLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
+            // --- Clic en la zona de VALOR ---
+            String newValue = null;
+            switch (criterion.getSourceType()) {
+                case TEXT:
+                    newValue = javax.swing.JOptionPane.showInputDialog(viewManager.getView(), "Introduce el texto a buscar:", criterion.getValue());
+                    break;
+                case FOLDER:
+                    javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
+                    chooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
+                    if (chooser.showOpenDialog(viewManager.getView()) == javax.swing.JFileChooser.APPROVE_OPTION) {
+                        newValue = chooser.getSelectedFile().getAbsolutePath();
+                    }
+                    break;
+                case TAG:
+                    // TODO: Aquí iría la lógica para mostrar un selector de tags
+                    javax.swing.JOptionPane.showMessageDialog(viewManager.getView(), "El selector de etiquetas aún no está implementado.");
+                    break;
+            }
+
+            if (newValue != null && !newValue.equals(criterion.getValue())) {
+                criterion.setValue(newValue); // Ahora podemos hacer esto porque 'value' ya no es final
+                filterList.repaint();
+                gestionarFiltroPersistente();
+            }
+        }
+    } // ---FIN de metodo handleFilterListClick---
+    
+
+    public void solicitarAnadirFiltro() { // Ya no recibe parámetros
+        limpiarEstadoFiltroRapidoSiActivo();
+        
+        // Añade un criterio nuevo con valores por defecto al FilterManager
+        filterManager.addFilter(new FilterCriterion());
+        
+        // Refresca la UI para que se muestre la nueva fila editable
+        gestionarFiltroPersistente(); 
+    } // ---FIN de metodo solicitarAnadirFiltro---
+    
+    
     public JPopupMenu crearMenuContextualParaArbol() {
         JPopupMenu menu = new JPopupMenu();
         
@@ -2717,6 +2893,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     
     public void setImageListManager(ImageListManager imageListManager) { this.imageListManager = imageListManager; }
+    
+    
+    
     
     
 } // --- Fin de la clase GeneralController ---

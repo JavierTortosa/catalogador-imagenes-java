@@ -38,9 +38,7 @@ import controlador.interfaces.ContextSensitiveAction;
 import controlador.interfaces.IModoController;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.ExportQueueManager;
-import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IProjectManager;
-import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
 import controlador.utils.DesktopUtils;
@@ -83,8 +81,6 @@ public class ProjectController implements IModoController {
     
     private IProjectManager projectManager;
     private IZoomManager zoomManager;
-    private IViewManager viewManager;
-    private IListCoordinator listCoordinator; 
     
     private Map<String, Action> actionMap;
     private Map<String, ExportItem> exportItemMap = new HashMap<>();
@@ -95,7 +91,6 @@ public class ProjectController implements IModoController {
         logger.debug("[ProjectController] Instancia creada.");
         this.exportQueueManager = new ExportQueueManager();
     } // --- Fin del método ProjectController (constructor) ---
-
     
     
     void configurarListeners() {
@@ -764,7 +759,6 @@ public void notificarCambioEnProyecto() {
     	if (zoomManager != null) {
     	    zoomManager.aplicarZoomConRueda(e);
     	    if (generalController != null && generalController.getVisorController() != null) {
-//    	        generalController.getVisorController().sincronizarEstadoVisualBotonesYRadiosZoom();
     	    	zoomManager.sincronizarEstadoVisualBotonesYRadiosZoom();
     	    }
     	}
@@ -2510,11 +2504,10 @@ public void notificarCambioEnProyecto() {
     	this.generalController = Objects.requireNonNull(generalController, "GeneralController no puede ser null en ProjectController");
     }
     
-    public void setViewManager(IViewManager viewManager) { this.viewManager = Objects.requireNonNull(viewManager); }
+    
     public void setProjectManager(IProjectManager projectManager) {this.projectManager = Objects.requireNonNull(projectManager);}
     public void setRegistry(ComponentRegistry registry) { this.registry = Objects.requireNonNull(registry); }
     public void setZoomManager(IZoomManager zoomManager) { this.zoomManager = Objects.requireNonNull(zoomManager); }
-    public void setListCoordinator(IListCoordinator listCoordinator) { this.listCoordinator = Objects.requireNonNull(listCoordinator); }
     public void setView(VisorView view) { this.view = Objects.requireNonNull(view); }
     public void setActionMap(Map<String, Action> actionMap) { this.actionMap = Objects.requireNonNull(actionMap); }
     public void setModel(VisorModel model) { this.model = Objects.requireNonNull(model); }
@@ -2528,6 +2521,9 @@ public void notificarCambioEnProyecto() {
 
     public GeneralController getGeneralController() {return this.generalController;}
     public Map<String, Action> getActionMap() {return this.actionMap;}
+
+    
+    
     
 } // --- FIN de la clase ProjectController ---
 

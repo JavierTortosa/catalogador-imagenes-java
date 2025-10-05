@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.ToolbarManager;
+import controlador.managers.filter.FilterCriterion;
 import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -90,6 +91,8 @@ public class ViewBuilder{
             ThumbnailService gridThumbnailService,
             ProjectBuilder projectBuilder
         ){
+    	
+    	logger.info ("[ViewBuilder] Iniciando...");
     	
         this.registry = registry;
         this.model = model;
@@ -414,26 +417,20 @@ public class ViewBuilder{
     } // --- Fin del método createMainSplitPane ---
     
     
-    private JPanel createLeftSplitComponent(VisorView mainFrame) { // <-- Acepta el frame
-    	
+    private JPanel createLeftSplitComponent(VisorView mainFrame) {
         JPanel panelListaArchivos = new JPanel(new BorderLayout());
         TitledBorder borderLista = BorderFactory.createTitledBorder("Archivos: 0");
         panelListaArchivos.setBorder(borderLista);
         registry.register("panel.izquierdo.listaArchivos", panelListaArchivos);
 
-        // =========================================================================
-        // === AQUÍ ESTÁ LA LÓGICA CLAVE ===
-        // Usamos los setters de VisorView para darle las referencias directas.
         mainFrame.setPanelListaArchivos(panelListaArchivos);
         mainFrame.setBorderListaArchivos(borderLista);
-        // =========================================================================
         
         JList<String> fileList = new JList<>(model.getModeloLista());
         fileList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         fileList.setCellRenderer(new NombreArchivoRenderer(themeManager, model));
         registry.register("list.nombresArchivo", fileList, "WHEEL_NAVIGABLE");
         
-        // ... (el resto del método se queda exactamente igual)
         JScrollPane scrollPaneLista = new JScrollPane(fileList);
         registry.register("scroll.nombresArchivo", scrollPaneLista);
         panelListaArchivos.add(scrollPaneLista, BorderLayout.CENTER);
@@ -466,18 +463,41 @@ public class ViewBuilder{
         TitledBorder borderFiltros = BorderFactory.createTitledBorder("Filtros Activos");
         panelFiltros.setBorder(borderFiltros);
         registry.register("panel.izquierdo.filtros", panelFiltros);
+        
         JList<controlador.managers.filter.FilterCriterion> filterList = new JList<>();
+        javax.swing.Icon deleteIcon = iconUtils.getScaledCommonIcon("status-remove-bold.png", 12, 12);
+        filterList.setCellRenderer(new vista.renderers.FilterCriterionCellRenderer(deleteIcon));
         filterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         registry.register("list.filtrosActivos", filterList, "WHEEL_NAVIGABLE");
+
         JScrollPane scrollPaneFiltros = new JScrollPane(filterList);
         registry.register("scroll.filtrosActivos", scrollPaneFiltros);
         panelFiltros.add(scrollPaneFiltros, BorderLayout.CENTER);
+        
+        // --- INICIO DE LA MODIFICACIÓN ---
+        // Creamos un panel contenedor para el JTextField y la barra de herramientas.
+        JPanel filterControlPanel = new JPanel(new BorderLayout());
+        filterControlPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
+
+        // 1. Creamos y registramos el JTextField explícitamente aquí.
+        javax.swing.JTextField filterTextField = new javax.swing.JTextField();
+        filterTextField.setToolTipText("Texto para el nuevo filtro");
+        registry.register("textfield.filtro.texto", filterTextField);
+        filterControlPanel.add(filterTextField, BorderLayout.CENTER);
+
+        // 2. Obtenemos la JToolBar "barra_filtros" (que ya no contendrá el JTextField).
         JToolBar filterToolbar = toolbarManager.getToolbar("barra_filtros");
         if (filterToolbar != null) {
             filterToolbar.setFloatable(false);
-            filterToolbar.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
-            panelFiltros.add(filterToolbar, BorderLayout.NORTH); 
+            filterToolbar.setBorder(null); // Le quitamos el borde para que se integre.
+            // La añadimos al ESTE (derecha) del panel de control.
+            filterControlPanel.add(filterToolbar, BorderLayout.EAST);
         }
+        
+        // 3. Añadimos el panel de control completo (JTextField + Toolbar) al NORTE del panel de filtros.
+        panelFiltros.add(filterControlPanel, BorderLayout.NORTH);
+        // --- FIN DE LA MODIFICACIÓN ---
+
         tabbedPaneIzquierdo.addTab("Filtros", panelFiltros);
         
         JPanel panelIzquierdoContenedor = new JPanel(new BorderLayout());
@@ -485,7 +505,7 @@ public class ViewBuilder{
         registry.register("panel.izquierdo.contenedorPrincipal", panelIzquierdoContenedor);
         
         return panelIzquierdoContenedor;
-    } // --- Fin del método createLeftSplitComponent ---
+    } // ---FIN de metodo createLeftSplitComponent---
     
 
     private JPanel createRightSplitComponent() {
@@ -807,4 +827,8 @@ public class ViewBuilder{
         this.projectBuilder = Objects.requireNonNull(projectBuilder, "ProjectBuilder no puede ser null en ViewBuilder");
     }
     
+    @FunctionalInterface
+    interface FilterInteractionListener {
+        void onFilterClicked(java.awt.event.MouseEvent e, controlador.managers.filter.FilterCriterion criterion, int index);
+    }
 } // --- FIN de la clase ViewBuilder ---

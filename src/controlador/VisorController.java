@@ -71,7 +71,7 @@ import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
-// --- Imports de Modelo, Servicios y Vista ---
+
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
@@ -179,7 +179,6 @@ public class VisorController implements IModoController, ActionListener, ThemeCh
         
         this.modeloMiniaturasVisualizador = new DefaultListModel<>();
         this.modeloMiniaturasCarrusel = new DefaultListModel<>();
-//        this.imageListManager = new ImageListManager(this);
         
     } // --- FIN CONSTRUCTOR ---
     
@@ -2914,18 +2913,5 @@ public class VisorController implements IModoController, ActionListener, ThemeCh
 // *********************************************************************** FIN CLASE ANIDADA DE CONTROL DE MINIATURAS VISIBLES
 // ***************************************************************************************************************************    
 
-     
-  // ***************************************************************************************************************************
-  // ***************************************************************************************************************************
-  // ***************************************************************************************************************************
-     
-  // 			    								FIXME METODOS A ELIMINAR
-     
-  // ***************************************************************************************************************************
-  // ***************************************************************************************************************************
-  // ***************************************************************************************************************************
-     
-     
-     
      
 } // --- FIN CLASE VisorController ---

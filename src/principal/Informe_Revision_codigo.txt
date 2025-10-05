@@ -1,0 +1,183 @@
+============================================================
+==                                                        ==
+==          INFORME FINAL DE REVISION DE CODIGO           ==
+==                Proyecto: VisorImagenes V2              ==
+==                       05/10/2025                       ==
+============================================================
+
+FECHA: [La fecha en que lo copies]
+
+--------------------------------------------------------------------------------
+1. RESUMEN EJECUTIVO Y PUNTOS FUERTES GLOBALES
+--------------------------------------------------------------------------------
+
+La aplicacion "VisorImagenes V2" presenta una arquitectura de software robusta, bien disenada y significativamente mas avanzada que un proyecto estandar de Java/Swing. La base del codigo es de alta calidad y demuestra un profundo entendimiento de los principios de diseno de software.
+
+PUNTOS FUERTES DESTACADOS:
+*   ARQUITECTURA DE ARRANQUE: El uso de una clase `AppInitializer` dedicada que orquesta la creacion y el "cableado" de componentes en fases es un modelo a seguir. Previene problemas de dependencias circulares y hace que el inicio de la aplicacion sea predecible y depurable.
+*   DESACOPLAMIENTO: El `ComponentRegistry` es una pieza clave que desacopla eficazmente las clases, permitiendo que los controladores y servicios accedan a los componentes de la UI sin tener referencias directas a la vista. Esto mejora drasticamente la mantenibilidad y la capacidad de realizar pruebas.
+*   SEPARACION DE RESPONSABILIDADES (SRP): La distincion entre Controladores (orquestacion), Modelo (estado), Vista (presentacion) y Servicios (logica de negocio/persistencia) es clara en la mayoria de los modulos.
+*   GESTION DE ESTADO: La logica para manejar el estado del proyecto en `ProjectManager`, incluyendo la deteccion de cambios ("dirty checking") mediante copias profundas y la recuperacion de sesion, es de nivel profesional.
+*   FLEXIBILIDAD DE LA UI: El sistema de construccion de barras de herramientas basado en definiciones (`UIDefinitionService` -> `ToolbarBuilder` -> `ToolbarManager`) es extremadamente flexible y esta perfectamente alineado con el objetivo de una futura configuracion centralizada ("MegaConfig").
+
+CONCLUSION GENERAL:
+El proyecto esta en una posicion excelente. Las siguientes sugerencias no son correcciones de errores criticos, sino refinamientos arquitectonicos disenados para mejorar aun mas la claridad, el mantenimiento y la adherencia a los principios de diseno de software a medida que el proyecto crece.
+
+
+--------------------------------------------------------------------------------
+2. SUGERENCIAS DE MEJORA DETALLADAS
+--------------------------------------------------------------------------------
+
+==================================================
+== MODULO 1: ESTRUCTURA PRINCIPAL (`GeneralController`, `VisorView`)
+==================================================
+
+>> SUGERENCIA 1.1: REFACTORIZAR `GeneralController` APLICANDO EL PRINCIPIO DE RESPONSABILIDAD UNICA (SRP)
+
+   DIAGNOSTICO:
+   La clase `GeneralController` es actualmente un "dios objeto" que acumula multiples responsabilidades no relacionadas directamente:
+   1. Orquestador de modos de trabajo (su funcion principal).
+   2. Gestor completo de la logica y estado de los filtros (persistentes y en vivo).
+   3. Manejador de entrada global (teclado y rueda del raton para toda la aplicacion).
+   4. Gestor de foco de la UI (dibuja bordes en componentes activos).
+   Esto la convierte en una clase muy grande y compleja, donde cambios en una funcionalidad (filtros) pueden afectar accidentalmente a otra (foco).
+
+   RECOMENDACION:
+   Dividir las responsabilidades de `GeneralController` en clases mas pequenas y cohesivas.
+
+   PASOS SUGERIDOS:
+   *   PASO A: Crear una nueva clase `controlador.handlers.GlobalInputHandler`.
+       1. Haz que esta clase implemente `KeyEventDispatcher` y `PropertyChangeListener` (para el foco).
+       2. Mueve los metodos `dispatchKeyEvent` y `propertyChange` de `GeneralController` a esta nueva clase.
+       3. Mueve la logica de creacion del `masterWheelListener` (del metodo `configurarListenersDeEntradaGlobal`) a esta nueva clase.
+       4. En `AppInitializer`, instancia `GlobalInputHandler`, inyectale sus dependencias (model, registry, etc.) y registralo en el `KeyboardFocusManager` y como listener de componentes.
+
+   *   PASO B: Centralizar TODA la logica de filtros en `FilterManager`.
+       1. Mueve los siguientes campos de estado de `GeneralController` a `FilterManager`:
+          - `persistente_listaMaestraOriginal`, `persistente_punteroOriginalKey`, `persistente_activo`.
+          - `masterModelSinFinito`, `indiceSeleccionadoAntesDeFiltrar`.
+       2. Mueve los metodos de logica de `GeneralController` a `FilterManager`:
+          - `gestionarFiltroPersistente()`, `refrescarConFiltrosPersistentes()`, `actualizarListaVisibleConResultado()`.
+          - `onLiveFilterStateChanged()` (se puede renombrar a `setLiveFilterActive(boolean)`).
+          - `actualizarFiltro()`, `limpiarFiltro()`.
+       3. `FilterManager` necesitara dependencias como `ListCoordinator` y `VisorModel`. Inyectalas desde `AppInitializer`.
+       4. `GeneralController` ahora solo delegara las llamadas. Ej: `public void onLiveFilterStateChanged(boolean b) { filterManager.setLiveFilterActive(b); }`.
+
+   BENEFICIO:
+   `GeneralController` se reducira significativamente en tamano y complejidad, enfocandose unicamente en la orquestacion de alto nivel. La logica de entrada y de filtros estara encapsulada en clases especializadas, mas faciles de entender, mantener y probar de forma aislada.
+
+---
+
+>> SUGERENCIA 1.2: ELIMINAR ESTADO DE IMAGEN DUPLICADO EN `VisorView`
+
+   DIAGNOSTICO:
+   La clase `VisorView` almacena campos como `imagenReescaladaView`, `zoomFactorView`, `imageOffsetXView`, etc. Esta informacion es una copia del estado que ya existe y es gestionado por `VisorModel` y sus `ZoomContext`. Esto introduce un riesgo de desincronizacion de datos.
+
+   RECOMENDACION:
+   El `VisorModel` debe ser siempre la unica fuente de la verdad. El componente responsable de pintar la imagen (`ImageDisplayPanel`) debe leer esta informacion directamente del modelo en el momento de pintar, en lugar de recibirla de la `VisorView`.
+
+   PASOS SUGERIDOS:
+   1. Elimina los campos `imagenReescaladaView`, `zoomFactorView`, `imageOffsetXView`, `imageOffsetYView` de la clase `VisorView`.
+   2. Elimina el metodo `getImagenReescaladaView()`.
+   3. Modifica el metodo `paintComponent` de la clase `ImageDisplayPanel`. Dentro de este metodo, obten los datos necesarios directamente de la referencia a `VisorModel` que ya tiene:
+      `BufferedImage img = model.getCurrentImage();`
+      `double zoom = model.getZoomFactor();`
+      `int offsetX = model.getImageOffsetX();`
+      // ... y usa estos valores para realizar el pintado.
+
+   BENEFICIO:
+   Se elimina la duplicacion de estado, lo que simplifica el codigo y elimina una fuente potencial de errores de sincronizacion visual. La arquitectura se adhiere mas estrictamente al patron MVC.
+
+
+==================================================
+== MODULO 2: VISUALIZADOR (`VisorController`, `ImageDisplayPanel`)
+==================================================
+
+>> SUGERENCIA 2.1: ELIMINAR LA IMPLEMENTACION DE `ActionListener` EN `VisorController`
+
+   DIAGNOSTICO:
+   `VisorController` implementa la interfaz `ActionListener` y contiene un gran metodo `actionPerformed` con una estructura `switch` para manejar multiples comandos. Este es un anti-patron conocido como "God Object", que concentra demasiada logica dispar en un solo lugar.
+
+   RECOMENDACION:
+   Utilizar plenamente el sistema de `Action` de Swing, donde cada clase `Action` encapsula la logica para un comando especifico. El `VisorController` no deberia ser un `ActionListener` generico.
+
+   PASOS SUGERIDOS:
+   1. Para cada `case` dentro del `switch` en `actionPerformed`, asegurate de que existe una clase de Accion correspondiente (ej. `AplicarModoZoomAction`, `MostrarDialogoAyudaAction`, etc.) en tu `ActionFactory`. La mayoria ya las tienes.
+   2. Modifica `MenuBarBuilder` y `ToolbarBuilder`. En lugar de hacer `componente.addActionListener(controllerRef)`, asigna la accion directamente: `componente.setAction(actionMap.get(comandoCanonico))`.
+   3. Una vez que todos los `case` del `switch` hayan sido migrados a sus propias clases `Action`, el metodo `actionPerformed` en `VisorController` quedara vacio.
+   4. Elimina `implements ActionListener` de la declaracion de la clase `VisorController` y borra el metodo `actionPerformed`.
+
+   BENEFICIO:
+   La logica de cada accion estara contenida en su propia clase, haciendo el codigo mas organizado, legible y facil de mantener (Principio de Responsabilidad Unica). `VisorController` se simplifica y se centra en la orquestacion.
+
+---
+
+>> SUGERENCIA 2.2: MEJORAR FLUIDEZ DE PANEO/ZOOM CON RENDERIZADO DINAMICO
+
+   DIAGNOSTICO:
+   El `ImageDisplayPanel` siempre utiliza una interpolacion de alta calidad (`RenderingHints.VALUE_INTERPOLATION_BILINEAR`) para reescalar la imagen. Aunque produce una imagen nitida, puede causar una ligera perdida de fluidez durante interacciones rapidas como el paneo arrastrando el raton o el zoom con la rueda.
+
+   RECOMENDACION:
+   Implementar un cambio de calidad de renderizado dinamico: usar un algoritmo mas rapido durante la interaccion y uno de alta calidad al finalizar.
+
+   PASOS SUGERIDOS:
+   1. Anade un flag a `ImageDisplayPanel`: `private boolean isInteracting = false;` y un metodo publico `public void setInteracting(boolean interacting)`.
+   2. En la clase que maneja los eventos del raton para el paneo (probablemente `ZoomManager` o `GlobalInputHandler` despues de la refactorizacion), llama a `displayPanel.setInteracting(true)` en el evento `mousePressed` y a `displayPanel.setInteracting(false); displayPanel.repaint();` en el evento `mouseReleased`.
+   3. Dentro del metodo `paintComponent` de `ImageDisplayPanel`, anade esta logica:
+      `if (isInteracting) {`
+      `    g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_NEAREST_NEIGHBOR); // Muy rapido`
+      `} else {`
+      `    g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR); // Buena calidad`
+      `}`
+
+   BENEFICIO:
+   Mejora tangible en la percepcion de fluidez de la aplicacion durante las interacciones con la imagen, especialmente con imagenes de alta resolucion.
+
+==================================================
+== MODULO 3: PROYECTOS (`ProjectController`, `ProjectManager`)
+==================================================
+
+>> SUGERENCIA 3.1: EXTRAER LA LOGICA DE GESTION DE LA UI DE EXPORTACION DE `ProjectController`
+
+   DIAGNOSTICO:
+   `ProjectController` contiene una cantidad significativa de logica especifica de la UI relacionada con el panel de exportacion, principalmente en el metodo `actualizarEstadoExportacionUI()`. Este metodo realiza tareas de presentacion como deteccion de conflictos, formateo de mensajes de estado, habilitacion/deshabilitacion de botones y resaltado de componentes.
+
+   RECOMENDACION:
+   Crear un nuevo manager cuya unica responsabilidad sea gestionar la UI del panel de exportacion.
+
+   PASOS SUGERIDOS:
+   1. Crea una nueva clase: `controlador.managers.ExportUIManager`.
+   2. Mueve el metodo completo `actualizarEstadoExportacionUI()` y sus metodos de ayuda (como `actualizarTooltipAccion`) de `ProjectController` a `ExportUIManager`.
+   3. El constructor de `ExportUIManager` debe recibir las dependencias que necesita (registry, actionMap, exportQueueManager). `AppInitializer` se encargara de instanciarlo y cablearlo.
+   4. En `ProjectController`, reemplaza el cuerpo del antiguo metodo con una unica llamada: `exportUIManager.updateUI();`.
+
+   BENEFICIO:
+   `ProjectController` se simplifica y se enfoca en la orquestacion del flujo de trabajo, mientras que `ExportUIManager` encapsula todos los detalles de la presentacion, mejorando la cohesion y la separacion de responsabilidades.
+
+---
+
+>> SUGERENCIA 3.2: REFINAR NOMENCLATURA EN `ProjectManager`
+
+   DIAGNOSTICO:
+   El nombre del metodo `notificarModificacion()` es ambiguo. Su funcion real es "comprobar si hay cambios y, si el estado de 'sucio' ha cambiado, notificar a los listeners". El nombre actual sugiere que siempre notifica, lo cual no es cierto.
+
+   RECOMENDACION:
+   Renombrar el metodo para que describa con mas precision su comportamiento.
+
+   PASOS SUGERIDOS:
+   1. Renombra el metodo `notificarModificacion()` a `checkForChangesAndNotify()` o `updateDirtyStatusAndNotify()`.
+   2. Usa la funcion de refactorizacion de tu IDE para actualizar todas las llamadas a este metodo automaticamente.
+
+   BENEFICIO:
+   El codigo se vuelve mas autodocumentado. Un desarrollador que vea la llamada al nuevo metodo entendera inmediatamente su proposito sin necesidad de leer su implementacion.
+
+
+--------------------------------------------------------------------------------
+3. CONCLUSION FINAL
+--------------------------------------------------------------------------------
+
+El proyecto "VisorImagenes V2" esta construido sobre una base arquitectonica excepcionalmente solida. Las sugerencias presentadas en este informe son refinamientos para llevar esa base a un nivel aun mayor de claridad, mantenibilidad y adherencia a los principios de diseno de software.
+
+La aplicacion de estas mejoras de forma incremental fortalecera el codigo a largo plazo y facilitara enormemente la adicion de nuevas funcionalidades, como el "MegaConfig".
+
+¡Excelente trabajo y mucho exito en los siguientes pasos del desarrollo!
