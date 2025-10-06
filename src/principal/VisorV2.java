@@ -22,7 +22,7 @@ public class VisorV2 {
      */
     public static final void main(String[] args) {
     	
-    	version = "V2.4.30";
+    	version = "V2.4.45";
     	
         System.out.println("Iniciando Visor de Imágenes "+ version);
 

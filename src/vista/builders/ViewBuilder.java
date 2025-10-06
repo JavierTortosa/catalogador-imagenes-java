@@ -521,16 +521,30 @@ public class ViewBuilder{
 
         // 2. Crear el panel para la vista SINGLE_IMAGE (el que ya tenías).
         ImageDisplayPanel singleImageViewPanel = new ImageDisplayPanel(this.themeManager, this.model);
-        registry.register("panel.display.imagen", singleImageViewPanel); 
+        registry.register("panel.display.imagen", singleImageViewPanel);
         registry.register("label.imagenPrincipal", singleImageViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
-        
+
         TitledBorder border = BorderFactory.createTitledBorder("");
         singleImageViewPanel.setBorder(border);
 
-	    // =========================================================================
-	    // === INICIO DE LA MODIFICACIÓN (LA LÍNEA CLAVE) ===
-	    // =========================================================================
-		
+        // --- INICIO DE LA CORRECCIÓN DE FOCO ---
+        // 1. Hacemos que el panel pueda recibir el foco.
+        singleImageViewPanel.setFocusable(true);
+
+        // 2. Creamos un MouseListener para solicitar el foco al hacer clic.
+        java.awt.event.MouseAdapter focusRequester = new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                singleImageViewPanel.requestFocusInWindow();
+            }
+        };
+
+        // 3. Añadimos el listener TANTO al panel contenedor COMO a su JLabel interno.
+        //            Esto asegura que el foco se pida sin importar dónde exactamente se haga clic.
+        singleImageViewPanel.addMouseListener(focusRequester);
+        singleImageViewPanel.getInternalLabel().addMouseListener(focusRequester);
+        // --- FIN DE LA CORRECCIÓN DE FOCO ---
+        
 	    // 3. Crear una instancia ÚNICA del ThumbnailPreviewer para el grid.
         //    Le pasamos null como JList porque se usará con múltiples listas,
         //    y le pasamos TODAS las dependencias necesarias.
@@ -541,10 +555,6 @@ public class ViewBuilder{
 	    // 4. Crear una instancia del GridDisplayPanel, pasándole AHORA el previewer.
 	    GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, this.gridThumbnailService, this.themeManager, this.iconUtils, gridPreviewer, this.registry);
 		
-	    // =========================================================================
-	    // === FIN DE LA MODIFICACIÓN ===
-	    // =========================================================================
-        
 	    registry.register("panel.display.grid", gridViewPanel);
 	    JList<String> gridList = gridViewPanel.getGridList(); 
 	    registry.register("list.grid", gridList, "WHEEL_NAVIGABLE");

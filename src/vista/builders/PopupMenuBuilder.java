@@ -17,6 +17,7 @@ import javax.swing.JRadioButtonMenuItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.commands.AppActionCommands;
 import servicios.ConfigurationManager;
 import vista.config.MenuItemDefinition;
 import vista.config.MenuItemType;
@@ -24,66 +25,73 @@ import vista.theme.Tema;
 import vista.theme.ThemeManager;
 
 public class PopupMenuBuilder {
-	
-	private static final Logger logger = LoggerFactory.getLogger(PopupMenuBuilder.class);
-	
-	private ThemeManager themeManager;
+
+    private static final Logger logger = LoggerFactory.getLogger(PopupMenuBuilder.class);
+
+    private ThemeManager themeManager;
     private ButtonGroup currentRadioGroup;
-    private ConfigurationManager configManagerRef;         
-    private ActionListener specialConfigActionListenerRef; 
+    private ConfigurationManager configManagerRef;
+    private Map<String, Action> actionMap; // Movido a campo de instancia
 
-    // --- CONSTRUCTOR MODIFICADO ---
+    /**
+     * Constructor que ya NO requiere un ActionListener de fallback.
+     * @param themeManager El gestor de temas para aplicar estilos.
+     * @param configManager El gestor de configuración.
+     */
     public PopupMenuBuilder(
-    		ThemeManager themeManager,
-            ConfigurationManager configManager,         
-            ActionListener specialConfigActionListener  
+            ThemeManager themeManager,
+            ConfigurationManager configManager
     ) {
-    	logger.debug("[PopupMenuBuilder] Iniciando...");
-        this.themeManager = Objects.requireNonNull(themeManager, "ViewUIConfig no puede ser nulo en PopupMenuBuilder");
+        logger.debug("[PopupMenuBuilder] Iniciando...");
+        this.themeManager = Objects.requireNonNull(themeManager, "ThemeManager no puede ser nulo en PopupMenuBuilder");
         this.configManagerRef = Objects.requireNonNull(configManager, "ConfigurationManager no puede ser nulo en PopupMenuBuilder");
-        this.specialConfigActionListenerRef = Objects.requireNonNull(specialConfigActionListener, "specialConfigActionListener no puede ser nulo en PopupMenuBuilder");
-    }
+    } // ---FIN de metodo PopupMenuBuilder (constructor)---
 
+    /**
+     * Construye un JPopupMenu completo con menús anidados a partir de una estructura de definiciones.
+     * @param definitions La estructura de menú a construir.
+     * @param actionMap El mapa de acciones de la aplicación.
+     * @return El JPopupMenu construido.
+     */
     public JPopupMenu buildPopupMenuWithNestedMenus(List<MenuItemDefinition> definitions, Map<String, Action> actionMap) {
-    	JPopupMenu popupMenu = new JPopupMenu();
-    	
-    	Tema temaActual = themeManager.getTemaActual();
-    	if (temaActual != null) {
+        JPopupMenu popupMenu = new JPopupMenu();
+        this.actionMap = Objects.requireNonNull(actionMap); // Almacenar el actionMap
+
+        Tema temaActual = themeManager.getTemaActual();
+        if (temaActual != null) {
             popupMenu.setBackground(temaActual.colorFondoSecundario());
         }
-    	
-        addItemsToMenuComponent(popupMenu, definitions, actionMap, temaActual);
-        return popupMenu;
-    }
 
+        addItemsToMenuComponent(popupMenu, definitions, temaActual);
+        return popupMenu;
+    } // ---FIN de metodo buildPopupMenuWithNestedMenus---
+
+    /**
+     * Método recursivo que añade ítems a un componente de menú (JPopupMenu o JMenu).
+     * @param parentMenuComponent El componente padre al que añadir los ítems.
+     * @param items La lista de definiciones de ítems para este nivel.
+     * @param temaActual El tema actual para aplicar estilos.
+     */
     private void addItemsToMenuComponent(
-    		JComponent parentMenuComponent, 
-    		List<MenuItemDefinition> items, 
-    		Map<String, Action> actionMap,
-    		Tema temaActual
-    		) {
-    	
+            JComponent parentMenuComponent,
+            List<MenuItemDefinition> items,
+            Tema temaActual
+    ) {
         for (MenuItemDefinition def : items) {
             MenuItemType type = def.tipo();
-            String comandoOClave = def.actionCommand(); // Clave de la definición (puede ser AppActionCommand o clave de config)
-            
-            // Intentar obtener la Action del mapa principal si hay un comandoOClave
-            Action action = (comandoOClave != null) ? actionMap.get(comandoOClave) : null;
-            
-            // Determinar el texto a mostrar
-            // Prioridad 1: Nombre de la Action (si existe y tiene nombre)
-            // Prioridad 2: Texto definido en MenuItemDefinition
-            // Prioridad 3: Cadena vacía para evitar null
-            String text = def.textoMostrado(); // Empezar con el texto de la definición
+            String comandoOClave = def.actionCommand();
+            Action action = (comandoOClave != null) ? this.actionMap.get(comandoOClave) : null;
+
+            String text = def.textoMostrado();
             if (action != null && action.getValue(Action.NAME) != null) {
                 String actionName = (String) action.getValue(Action.NAME);
-                if (actionName != null && !actionName.isBlank()) { // Si la Action tiene un nombre válido
-                    text = actionName; // Usar el nombre de la Action
+                if (actionName != null && !actionName.isBlank()) {
+                    text = actionName;
                 }
             }
-            if (text == null) text = ""; // Asegurar que text no sea null
+            if (text == null) text = "";
 
-            JMenuItem menuItem = null; // Variable para el JMenuItem que se creará
+            JMenuItem menuItem = null;
 
             switch (type) {
                 case SEPARATOR:
@@ -92,101 +100,86 @@ public class PopupMenuBuilder {
                     } else if (parentMenuComponent instanceof JPopupMenu) {
                         ((JPopupMenu) parentMenuComponent).addSeparator();
                     }
-                    // No se crea 'menuItem', así que el 'if (menuItem != null)' de abajo lo omitirá
-                    break; // Importante salir aquí
+                    break;
 
                 case RADIO_GROUP_START:
                     currentRadioGroup = new ButtonGroup();
-                    // No se crea 'menuItem'
-                    break; // Importante salir aquí
+                    break;
 
                 case RADIO_GROUP_END:
                     currentRadioGroup = null;
-                    // No se crea 'menuItem'
-                    break; // Importante salir aquí
+                    break;
 
                 case ITEM:
-                    menuItem = new JMenuItem(text); // Crear JMenuItem con el texto determinado
+                    menuItem = new JMenuItem(text);
                     if (action != null) {
-                        // Si se encontró una Action en el actionMap principal, asignarla.
                         menuItem.setAction(action);
-                    } else if (comandoOClave != null) {
-                        // No hay Action directa, pero hay un comandoOClave.
-                        // Asumimos que será manejado por el specialConfigActionListenerRef (VisorController)
-                        // usando el comandoOClave como ActionCommand.
-                        menuItem.setActionCommand(comandoOClave);
-                        menuItem.addActionListener(this.specialConfigActionListenerRef);
-                        menuItem.setEnabled(true); // Asegurar que esté habilitado
-                        logger.debug("  [PopupMenuBuilder] ITEM '" + text + "' (sin Action directa) configurado para specialListener. Comando: " + comandoOClave);
+                    } else {
+                        // No hay Action directa, asignar la de "funcionalidad pendiente"
+                        Action pendiente = this.actionMap.get(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE);
+                        if (pendiente != null) {
+                            menuItem.setAction(pendiente);
+                            menuItem.setText(text); // Restaurar texto por si la action lo cambia
+                            menuItem.setActionCommand(comandoOClave); // Guardar comando original para el mensaje
+                        } else {
+                            menuItem.setEnabled(false); // Fallback si ni siquiera hay acción pendiente
+                        }
                     }
-                    // Si action es null Y comandoOClave es null, el JMenuItem será solo texto, sin acción.
                     break;
 
                 case CHECKBOX_ITEM:
                     JCheckBoxMenuItem cbMenuItem = new JCheckBoxMenuItem(text);
-                    menuItem = cbMenuItem; // Asignar a la variable genérica
+                    menuItem = cbMenuItem;
 
                     if (action != null) {
-                        // Caso 1: Hay una Action directa para este checkbox (ej. ToggleThemeAction)
                         cbMenuItem.setAction(action);
                     } else if (comandoOClave != null && comandoOClave.startsWith("interfaz.boton.")) {
-                        // Caso 2: Es un checkbox de "Visualizar Botón de Toolbar"
-                        // Su comandoOClave es la clave de config del botón de la toolbar (ej. "interfaz.boton.edicion...")
-                        cbMenuItem.setActionCommand(comandoOClave); // El ActionCommand será la clave del botón
-                        
-                        // Leer el estado inicial 'selected' desde ConfigurationManager
-                        // Asumimos que la clave para la visibilidad del botón es "comandoOClave.visible"
+                        // Lógica original para visibilidad de botones, pero sin ActionListener
+                        cbMenuItem.setActionCommand(comandoOClave);
                         String configKeyVisibilidadBotonToolbar = comandoOClave + ".visible";
-                        boolean botonEsVisible = false; // Default si configManagerRef es null
-                        if (this.configManagerRef != null) {
-                            botonEsVisible = this.configManagerRef.getBoolean(configKeyVisibilidadBotonToolbar, true);
-                        } else {
-                            logger.warn("WARN [PopupMenuBuilder]: configManagerRef es null. No se puede leer estado inicial para checkbox: " + text);
-                        }
+                        boolean botonEsVisible = configManagerRef.getBoolean(configKeyVisibilidadBotonToolbar, true);
                         cbMenuItem.setSelected(botonEsVisible);
                         
-                        // Añadir el specialConfigActionListenerRef (VisorController)
-                        if (this.specialConfigActionListenerRef != null) {
-                            cbMenuItem.addActionListener(this.specialConfigActionListenerRef);
+                        // Asignar acción pendiente en lugar de listener
+                        Action pendiente = this.actionMap.get(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE);
+                        if (pendiente != null) {
+                            cbMenuItem.setAction(pendiente);
+                            cbMenuItem.setText(text);
+                            cbMenuItem.setActionCommand(comandoOClave);
                         } else {
-                             logger.warn("WARN [PopupMenuBuilder]: specialConfigActionListenerRef es null. Checkbox '" + text + "' podría no ser funcional.");
+                            cbMenuItem.setEnabled(false);
                         }
-                        cbMenuItem.setEnabled(true); // Asegurar que esté habilitado
-                        logger.debug("  [PopupMenuBuilder] Checkbox (Visibilidad Botón) '" + text + "' configurado. Comando: " + comandoOClave + ", Estado Inicial: " + botonEsVisible);
-
-                    } else if (comandoOClave != null) {
-                        // Caso 3: Es otro tipo de checkbox sin Action directa y no es de "Visualizar Botón"
-                        logger.warn("WARN [PopupMenuBuilder]: No se encontró Action (ni es config especial de botón) para CHECKBOX: " + comandoOClave + " | (Texto: " + text + ")");
-                        cbMenuItem.setEnabled(false);
+                        logger.debug("  [PopupMenuBuilder] Checkbox (Visibilidad Botón) '" + text + "' configurado sin Action directa. Comando: " + comandoOClave);
+                    } else {
+                        // Otro tipo de checkbox sin Action directa
+                        Action pendiente = this.actionMap.get(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE);
+                        if (pendiente != null) {
+                            cbMenuItem.setAction(pendiente);
+                            cbMenuItem.setText(text);
+                            cbMenuItem.setActionCommand(comandoOClave);
+                        } else {
+                            cbMenuItem.setEnabled(false);
+                        }
                     }
-                    // Si action es null Y comandoOClave es null, es un checkbox solo visual (raro).
                     break;
 
                 case RADIO_BUTTON_ITEM:
                     JRadioButtonMenuItem rbMenuItem = new JRadioButtonMenuItem(text);
-                    menuItem = rbMenuItem; // Asignar a la variable genérica
+                    menuItem = rbMenuItem;
 
                     if (action != null) {
-                        // Caso 1: Hay una Action directa para este radio (ej. AplicarModoZoomAction)
                         rbMenuItem.setAction(action);
-                    } else if (comandoOClave != null) {
-                        // Caso 2: RadioButton sin Action directa, manejado por specialConfigActionListenerRef (VisorController)
-                        rbMenuItem.setActionCommand(comandoOClave);
-                        if (this.specialConfigActionListenerRef != null) {
-                            rbMenuItem.addActionListener(this.specialConfigActionListenerRef);
+                    } else {
+                        // No hay Action directa, asignar la de "funcionalidad pendiente"
+                        Action pendiente = this.actionMap.get(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE);
+                        if (pendiente != null) {
+                            rbMenuItem.setAction(pendiente);
+                            rbMenuItem.setText(text);
+                            rbMenuItem.setActionCommand(comandoOClave);
                         } else {
-                            logger.warn("WARN [PopupMenuBuilder]: specialConfigActionListenerRef es null. Radio '" + text + "' podría no ser funcional.");
+                            rbMenuItem.setEnabled(false);
                         }
-                        rbMenuItem.setEnabled(true); // Asegurar que esté habilitado
-
-                        // Establecer el estado 'selected' inicial es complejo aquí sin la clave de config.
-                        // Si la Action no lo maneja, y el VisorController lo hace,
-                        // el estado inicial podría no ser el correcto hasta la primera interacción,
-                        // o necesitar una sincronización explícita después de construir el popup.
-                        // Por ahora, dejamos que el ButtonGroup gestione la selección si otros radios SÍ tienen Action.
-                        logger.debug("  [PopupMenuBuilder] RADIO '" + text + "' (sin Action directa) configurado para specialListener. Comando: " + comandoOClave);
                     }
-                    // Si action es null Y comandoOClave es null, es un radio solo visual (raro).
 
                     if (currentRadioGroup != null) {
                         currentRadioGroup.add(rbMenuItem);
@@ -195,26 +188,20 @@ public class PopupMenuBuilder {
 
                 case MAIN_MENU:
                 case SUB_MENU:
-                    JMenu subMenu = new JMenu(text); // Un MAIN_MENU en un JPopupMenu se trata como un JMenu normal
-                    menuItem = subMenu; // Asignar para applyStyle y añadirlo
-                    // Los JMenu (contenedores) generalmente no tienen 'action' o 'comandoOClave' funcional propio.
-                    // Si tuvieran una Action aquí (raro para un JMenu), se podría asignar, pero no es lo usual.
-                    // subMenu.setAction(action); // Si fuera necesario, pero menuItem.setAction() no funciona bien para JMenu para texto
-                    
+                    JMenu subMenu = new JMenu(text);
+                    menuItem = subMenu;
                     if (def.subItems() != null && !def.subItems().isEmpty()) {
-                        addItemsToMenuComponent(subMenu, def.subItems(), actionMap, temaActual); // Llamada recursiva
+                        addItemsToMenuComponent(subMenu, def.subItems(), temaActual); // Llamada recursiva
                     }
                     break;
+                    
                 default:
                     logger.warn("WARN [PopupMenuBuilder]: Tipo de MenuItemType no manejado: " + type + " para texto: " + text);
-                    // No se crea 'menuItem'
-                    break; // Importante salir aquí
+                    break;
             }
 
-            // Añadir el menuItem al componente padre SI se creó uno
             if (menuItem != null) {
-            	
-            	applyMenuItemStyle(menuItem, temaActual); // Aplicar estilo ANTES de añadirlo
+                applyMenuItemStyle(menuItem, temaActual);
                 if (parentMenuComponent instanceof JMenu) {
                     ((JMenu) parentMenuComponent).add(menuItem);
                 } else if (parentMenuComponent instanceof JPopupMenu) {
@@ -222,14 +209,18 @@ public class PopupMenuBuilder {
                 }
             }
         }
-    }
-    
+    } // ---FIN de metodo addItemsToMenuComponent---
+
+    /**
+     * Aplica el estilo del tema actual a un JMenuItem.
+     * @param menuItem El ítem al que aplicar el estilo.
+     * @param tema El tema actual.
+     */
     private void applyMenuItemStyle(JMenuItem menuItem, Tema tema) {
         if (tema != null && menuItem != null) {
             menuItem.setBackground(tema.colorFondoSecundario());
             menuItem.setForeground(tema.colorTextoPrimario());
         }
-    } // --- Fin del método applyMenuItemStyle ---
-    
-} // --- FIN de la clase PopupMenuBuilder
+    } // ---FIN de metodo applyMenuItemStyle---
 
+} // --- FIN de la clase PopupMenuBuilder ---

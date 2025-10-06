@@ -59,11 +59,6 @@ public interface IModoController {
      */
     void iniciarPaneo(MouseEvent e);
 
-    /**
-     * Continúa una operación de paneo mientras el ratón se arrastra.
-     * @param e El MouseEvent original (normalmente mouseDragged).
-     */
-    void continuarPaneo(MouseEvent e);
     
     /**
      * Solicita al controlador de modo que ejecute su lógica de refresco principal.

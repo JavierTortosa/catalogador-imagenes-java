@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.VisorController;
+import controlador.commands.AppActionCommands;
 import controlador.utils.ComponentRegistry;
 import servicios.ConfigKeys;
 import vista.components.DPadComponent;
@@ -257,9 +258,15 @@ public class ToolbarBuilder {
             if (associatedAction != null) {
                 abstractButtonComponent.setAction(associatedAction);
             } else {
-                abstractButtonComponent.setActionCommand(definition.comandoCanonico());
-                abstractButtonComponent.addActionListener(this.controllerRef);
+                // Si no hay acción específica, usamos la de "funcionalidad pendiente".
+                Action pendiente = this.actionMap.get(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE);
+                if (pendiente != null) {
+                    abstractButtonComponent.setAction(pendiente);
+                    // Guardamos el comando original para que el mensaje sepa qué funcionalidad es.
+                    abstractButtonComponent.setActionCommand(definition.comandoCanonico());
+                }
             }
+            
             abstractButtonComponent.setText(null);
 
             

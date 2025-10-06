@@ -506,13 +506,19 @@ public class ActionFactory {
         registerAction(AppActionCommands.CMD_TREE_OPEN_FOLDER, createOpenFolderAction());
         registerAction(AppActionCommands.CMD_TREE_DRILL_DOWN_FOLDER, createDrillDownFolderAction());
         
+        // --- Acciones Simples
+        registerAction(AppActionCommands.CMD_CONFIG_GUARDAR, createSaveConfigurationAction());
+        registerAction(AppActionCommands.CMD_CONFIG_CARGAR_INICIAL, createRestoreDefaultConfigAction());
+        registerAction(AppActionCommands.CMD_ZOOM_PERSONALIZADO, createSetCustomZoomAction());
+        registerAction(AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION, createShowVersionAction());
+        registerAction(AppActionCommands.CMD_ESPECIAL_REFRESCAR_UI, createRefreshUIAction());
+        
         
         // Acciones para otros WorkModes futuros, si los tienes definidos en UIDefinitionService.
 
         
     } // --- FIN del metodo createCoreActions ---
     
-
 	/**
      * Crea las acciones que SÍ dependen de la 'view'.
      */
@@ -564,7 +570,6 @@ public class ActionFactory {
         // Actions que dependen del 'actionMap' completo para construir menús emergentes.
     } // --- FIN del metodo createViewDependentActions ---
     
-    
     private Action createSwitchDisplayModeAction(DisplayMode displayMode, String commandKey, String displayName) {
         // 1. Obtenemos el icono como ya hacías
         ImageIcon icon = getIconForCommand(commandKey);
@@ -590,8 +595,6 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createSwitchDisplayModeAction ---
     
-    
-    
     private Action createSwitchWorkModeAction(WorkMode workMode, String commandKey, String displayName) {
         ImageIcon icon = getIconForCommand(commandKey);
         return new SwitchWorkModeAction(generalController, workMode, displayName, icon, displayName, null, commandKey);
@@ -612,6 +615,7 @@ public class ActionFactory {
     /**
      * 4.1. Crea la Action genérica para funcionalidades pendientes.
      */
+ // *********************************************************************************************************************************************************
     private Action createFuncionalidadPendienteAction() {
         return new AbstractAction("Funcionalidad Pendiente") {
             private static final long serialVersionUID = 1L;
@@ -636,9 +640,11 @@ public class ActionFactory {
     } // --- FIN del metodo createFuncionalidadPendienteAction ---
 
     
+    
     /**
      * 4.2. Helper para obtener el ImageIcon para un comando dado.
      */
+ // *********************************************************************************************************************************************************
     private ImageIcon getIconForCommand(String appCommand) {
         // Buscamos la información completa del icono en el nuevo mapa
         IconInfo info = this.comandoToIconKeyMap.get(appCommand);
@@ -660,20 +666,22 @@ public class ActionFactory {
         }
         return null; 
     } // --- Fin del método getIconForCommand ---
-
     
-    // --- 4.3. Métodos Create para Actions de Zoom ---
+    
+    
+    /*
+     * --- 4.3. Métodos Create para Actions de Zoom ---
+     */
+ // *********************************************************************************************************************************************************
     private Action createToggleZoomManualAction() { 
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE);
         return new ToggleZoomManualAction("Activar Zoom Manual", icon, this.zoomManager, this.generalController.getVisorController(), this.model);
     } // --- Fin del método createToggleZoomManualAction ---
     
-    
     private Action createResetZoomAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_RESET);
         return new ResetZoomAction("Resetear Zoom", icon, this.zoomManager);
     } // --- Fin del método createResetZoomAction ---
-    
     
     private Action createToggleZoomToCursorAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR);
@@ -686,7 +694,6 @@ public class ActionFactory {
         
         return action;
     } // --- Fin del método createToggleZoomToCursorAction ---
-    
     
     private Action createAplicarModoZoomAction(String commandKey, String displayName, ZoomModeEnum modo) {
         ImageIcon icon = getIconForCommand(commandKey);
@@ -704,8 +711,12 @@ public class ActionFactory {
         
     } // --- Fin del método createAplicarModoZoomAction ---
     
+
     
-    // --- 4.4. Métodos Create para Actions de Navegación ---
+    /*
+     * --- 4.4. Métodos Create para Actions de Navegación ---
+     */
+ // *********************************************************************************************************************************************************
     private Action createFirstImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_PRIMERA);
         // Cambiamos la dependencia de listCoordinator a generalController (que implementa IModoController)
@@ -713,7 +724,6 @@ public class ActionFactory {
         this.contextSensitiveActions.add(action); // Registramos la acción para que se actualice su estado
         return action;
     } // --- Fin del método createFirstImageAction ---
-    
     
     private Action createPreviousImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_ANTERIOR);
@@ -723,7 +733,6 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createPreviousImageAction ---
     
-    
     private Action createNextImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_SIGUIENTE);
         // Cambiamos la dependencia
@@ -731,7 +740,6 @@ public class ActionFactory {
         this.contextSensitiveActions.add(action); // La registramos
         return action;
     } // --- Fin del método createNextImageAction ---
-    
     
     private Action createLastImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_NAV_ULTIMA);
@@ -741,20 +749,22 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createLastImageAction ---
     
-    
     private Action createToggleNavegacionCircularAction() {
         return new ToggleNavegacionCircularAction("Alternar Navegación Circular", null, this.configuration, this.model, this.generalController.getVisorController(), ConfigKeys.COMPORTAMIENTO_NAVEGACION_CIRCULAR,AppActionCommands.CMD_TOGGLE_WRAP_AROUND);
     } // --- Fin del método createToggleNavegacionCircularAction ---
 
-
-    // --- 4.5. Métodos Create para Actions de Edición (usarán EditionManager) ---
+    
+    
+    /*
+     *  --- 4.5. Métodos Create para Actions de Edición (usarán EditionManager) ---
+     */
+ // *********************************************************************************************************************************************************
     private Action createRotateRightAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ROTAR_DER);
         RotateRightAction action = new RotateRightAction(this.editionManager, this.model, "Girar Derecha", icon);
         this.contextSensitiveActions.add(action); 
         return action;
     } // --- Fin del método createRotateRightAction ---
-    
     
     private Action createRotateLeftAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ROTAR_IZQ);
@@ -763,14 +773,12 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createRotateLeftAction ---
     
-    
     private Action createFlipHorizontalAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_VOLTEAR_H);
     	FlipHorizontalAction action = new FlipHorizontalAction(this.editionManager, this.model, "Voltear Horizontal", icon);
         this.contextSensitiveActions.add(action); 
         return action;
     } // --- Fin del método createFlipHorizontalAction ---
-    
     
     private Action createFlipVerticalAction() {
     	ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_VOLTEAR_V);
@@ -779,7 +787,6 @@ public class ActionFactory {
         return action;
     } // --- Fin del método createFlipVerticalAction ---
     
-    
     private Action createCropAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_RECORTAR);
         CropAction action = new CropAction(this.editionManager, this.model, "Recortar", icon);
@@ -787,26 +794,27 @@ public class ActionFactory {
         this.contextSensitiveActions.add(action);
         return action;
     } // --- Fin del método createCropAction ---
-
     
-    // --- 4.6. Métodos Create para Actions de Archivo (usarán FileOperationsManager o lógica interna) ---
+    
+    
+    /*
+     *  --- 4.6. Métodos Create para Actions de Archivo (usarán FileOperationsManager o lógica interna) ---
+     */
+ // *********************************************************************************************************************************************************
     private Action createOpenFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ARCHIVO_ABRIR);
         return new OpenFileAction("Abrir Carpeta...", icon, this.fileOperationsManager, this.model, this.generalController);
     } // --- Fin del método createOpenFileAction ---
-    
     
     private Action createDeleteAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_ELIMINAR);
         return new DeleteAction("Eliminar Imagen", icon, this.fileOperationsManager, this.model);
     } // --- Fin del método createDeleteAction ---
     
-    
     private Action createRefreshAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_REFRESCAR); 
         return new RefreshAction("Refrescar", icon, this.generalController);
     } // --- Fin del método createRefreshAction ---
-    
     
     private Action createLocateFileAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_IMAGEN_LOCALIZAR);
@@ -816,7 +824,11 @@ public class ActionFactory {
     } // --- Fin del método createLocateFileAction ---    
 
     
-    // --- 4.7. Métodos Create para Actions de Vista (Toggles UI) ---
+    
+    /*
+     *  --- 4.7. Métodos Create para Actions de Vista (Toggles UI) --- 
+     */
+ // *********************************************************************************************************************************************************
     private Action createToggleMenuBarAction() {
         return new ToggleUIElementVisibilityAction(
             this.viewManager,
@@ -827,7 +839,7 @@ public class ActionFactory {
             AppActionCommands.CMD_VISTA_TOGGLE_MENU_BAR
         );
     } // --- Fin del método createToggleMenuBarAction ---
-
+    
     private Action createToggleToolBarAction() {
         return new ToggleUIElementVisibilityAction( // <-- Usamos la Action genérica
             this.viewManager,
@@ -838,7 +850,7 @@ public class ActionFactory {
             AppActionCommands.CMD_VISTA_TOGGLE_TOOL_BAR
         );
     } // --- Fin del método createToggleToolBarAction ---
-
+    
     private Action createToggleFileListAction() {
         return new ToggleUIElementVisibilityAction( // <-- Usamos la Action genérica
             this.viewManager,
@@ -849,7 +861,7 @@ public class ActionFactory {
             AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST
         );
     } // --- Fin del método createToggleFileListAction ---
-
+    
     private Action createToggleThumbnailsAction() {
         return new ToggleUIElementVisibilityAction( // <-- Usamos la Action genérica
             this.viewManager,
@@ -862,44 +874,25 @@ public class ActionFactory {
     } // --- Fin del método createToggleThumbnailsAction ---
     
     private Action createToggleStatusBarAction() {
-    	return new ToggleUIElementVisibilityAction(
-    	        this.viewManager,
-    	        this.configuration,
-    	        "Barra de Estado",
-    	        ConfigKeys.INFOBAR_INF_VISIBLE,
-    	        "barra_de_estado",
-    	        //"REFRESH_INFO_BAR_INFERIOR",
-    	        AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_INFERIOR
-    	    );
+    	return new ToggleUIElementVisibilityAction(this.viewManager,this.configuration,"Barra de Estado",ConfigKeys.INFOBAR_INF_VISIBLE,"barra_de_estado",AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_INFERIOR);
     } // --- Fin del método createToggleLocationBarAction ---
     
     private Action createToggleInfoBarAction() {
-    	return new ToggleUIElementVisibilityAction(
-    	        this.viewManager,
-    	        this.configuration,
-    	        "Barra de Información",
-    	        ConfigKeys.INFOBAR_SUP_VISIBLE,
-    	        "barra_de_info_imagen", // <-- El ID que pusimos en el switch del ViewManager
-    	        AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR
-    	    );
+    	return new ToggleUIElementVisibilityAction(this.viewManager,this.configuration,"Barra de Información",ConfigKeys.INFOBAR_SUP_VISIBLE,"barra_de_info_imagen", AppActionCommands.CMD_VISTA_TOGGLE_INFOBAR_SUPERIOR);
     } // --- Fin del método createToggleLocationBarAction ---
-    
     
     private Action createToggleCheckeredBackgroundAction() {
     		return new ToggleCheckeredBackgroundAction("Fondo a Cuadros", null, this.viewManager, this.configuration, "interfaz.menu.vista.fondo_a_cuadros.seleccionado", AppActionCommands.CMD_VISTA_TOGGLE_CHECKERED_BG);
    	} // --- Fin del método createToggleCheckeredBackgroundAction ---
     
-    
     private Action createToggleAlwaysOnTopAction() {
    	    return new ToggleAlwaysOnTopAction("Mantener Ventana Siempre Encima", null, this.viewManager, this.configuration, "interfaz.menu.vista.mantener_ventana_siempre_encima.seleccionado", controlador.commands.AppActionCommands.CMD_VISTA_TOGGLE_ALWAYS_ON_TOP);
    	} // --- Fin del método createToggleAlwaysOnTopAction ---
-    
     
     private Action createMostrarDialogoListaAction() {
    	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_MOSTRAR_DIALOGO_LISTA);
    	    return new MostrarDialogoListaAction("Mostrar Lista de Imágenes", icon, this.model, this.generalController.getVisorController(), this.viewManager);
    	} // --- Fin del método createMostrarDialogoListaAction ---
-    
     
     private Action createToggleFullScreenAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_VISTA_PANTALLA_COMPLETA);
@@ -907,19 +900,26 @@ public class ActionFactory {
         
     } // --- Fin del método createToggleFullScreenAction ---
     
-    
     private Action createToggleMiniatureTextAction() {
     	return new ToggleMiniatureTextAction("Mostrar Nombres en Miniaturas", null, this.configuration, this.view, ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, AppActionCommands.CMD_VISTA_TOGGLE_MINIATURE_TEXT);
     } // --- Fin del método createToggleMiniatureTextAction ---
     
 
-    // --- 4.8. Métodos Create para Actions de Tema ---
+    
+    /*
+     *  --- 4.8. Métodos Create para Actions de Tema --- 
+     */
+ // *********************************************************************************************************************************************************
     private Action createToggleThemeAction(String themeNameInternal, String displayNameForMenu, String commandKey) {
         return new ToggleThemeAction(this.themeManager, this.generalController.getVisorController(), themeNameInternal, displayNameForMenu, commandKey);
     } // --- Fin del método createToggleThemeAction ---
-   
     
-    // --- 4.9. Métodos Create para Actions de Toggle Generales ---
+    
+    
+    /*
+     *  --- 4.9. Métodos Create para Actions de Toggle Generales ---
+     */
+ // *********************************************************************************************************************************************************
     private Action createToggleSubfoldersAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SUBCARPETAS);
         return new ToggleSubfoldersAction("Alternar Subcarpetas", icon, this.model, this.generalController);
@@ -929,21 +929,24 @@ public class ActionFactory {
     	ImageIcon icon = null; 
     	return new SetSubfolderReadModeAction(displayName, icon, this.generalController, this.model,representaModoIncluirSubcarpetas, commandKey);
     } // --- Fin del método createSetSubfolderReadModeAction ---
-        
     
     private Action createToggleProporcionesAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_MANTENER_PROPORCIONES);
         return new ToggleProporcionesAction("Mantener Proporciones", icon, this.model, this.generalController.getVisorController());
     } // --- Fin del método createToggleProporcionesAction ---
     
-    
     private Action createToggleSyncAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_TOGGLE_SYNC_VISOR_CARRUSEL);
         return new ToggleSyncAction("Sincronizar Visor/Carrusel", icon, this.model, this.configuration, this.generalController);
     } // --- Fin del método createToggleSyncAction ---
-   
     
-    // --- 4.10. Métodos Create para Actions de Proyecto ---
+    
+
+    /*
+     *  --- 4.10. Métodos Create para Actions de Proyecto --- 
+     */
+ // *********************************************************************************************************************************************************
+    
     private Action createToggleMarkImageAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
         // Ahora pasamos la referencia al GeneralController, no al VisorController.
@@ -980,12 +983,10 @@ public class ActionFactory {
         };
     } // --- FIN del método createVaciarDescartesAction ---
 
-    
     private Action createGestionarProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_GESTIONAR);
         return new GestionarProyectoAction(this.generalController, "Ver Proyecto", icon);
     } // --- Fin del método createGestionarProyectoAction ---
-    
     
     private Action createNuevoProyectoAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_PROYECTO_NUEVO);
@@ -1013,18 +1014,15 @@ public class ActionFactory {
         return new EliminarProyectoAction(this.generalController, "Eliminar Proyecto...", icon);
     } // ---FIN de metodo createEliminarProyectoAction---
     
-    
     private Action createMoveToDiscardsAction() {
         // Esta acción no necesita icono ya que es para un menú contextual
         return new MoveToDiscardsAction(this.generalController, this.model);
     } // --- FIN del método createMoveToDiscardsAction ---
-
     
     private Action createRestoreFromDiscardsAction() {
         // Esta acción no necesita icono
         return new RestoreFromDiscardsAction(this.generalController, this.generalController.getVisorController().getComponentRegistry());
     } // --- FIN del método createRestoreFromDiscardsAction ---
-    
     
     private Action createAssignFileAction() {
         return new AbstractAction("Asignar archivo manualmente...") {
@@ -1034,7 +1032,6 @@ public class ActionFactory {
             }
         };
     } // --- Fin del método createAssignFileAction ---
-
     
     private Action createOpenLocationAction() {
         return new AbstractAction("Abrir ubicación de la imagen") {
@@ -1044,13 +1041,11 @@ public class ActionFactory {
             }
         };
     } // --- Fin del método createOpenLocationAction ---
-
     
     private Action createRemoveFromQueueAction() {
         // Usamos la nueva clase dedicada en lugar de la anónima.
         return new RemoveFromExportQueueAction(generalController.getProjectController());
     } // --- Fin del método createRemoveFromQueueAction ---
-    
     
     private Action createToggleIgnoreCompressedAction() {
         // Ahora usamos nuestra nueva clase dedicada, que es sensible al contexto
@@ -1058,9 +1053,6 @@ public class ActionFactory {
         this.contextSensitiveActions.add(action); // ¡Muy importante registrarla!
         return action;
     } // --- Fin del método createToggleIgnoreCompressedAction ---
-    
-   
-
     
     /**
      * Crea la acción para eliminar permanentemente una imagen del proyecto.
@@ -1080,7 +1072,6 @@ public class ActionFactory {
         };
     } // --- Fin del método createEliminarDeProyectoAction ---
     
-    
     /**
      * Crea la acción para relocalizar una imagen no encontrada.
      * Es sensible al contexto.
@@ -1091,7 +1082,6 @@ public class ActionFactory {
         this.contextSensitiveActions.add(action); // ¡Importante! Registrarla como sensible al contexto.
         return action;
     } // --- Fin del método createRelocateImageAction ---
-    
     
     private Action createIniciarExportacionAction() {
         // Obtenemos un icono (ej. un 'play' o un 'exportar')
@@ -1108,7 +1098,6 @@ public class ActionFactory {
         action.setEnabled(false);
         return action;
     } // --- Fin del método createIniciarExportacionAction ---
-    
     
     /**
      * Crea la acción para seleccionar la carpeta de destino de la exportación.
@@ -1157,22 +1146,29 @@ public class ActionFactory {
     } // ---FIN de metodo [createToggleExportDetailsAction]---
     
     
-    // --- 4.11. Métodos Create para Actions Especiales ---
+    
+    /*
+     *  --- 4.11. Métodos Create para Actions Especiales --- 
+     */
+    // *********************************************************************************************************************************************************
      private Action createMenuAction() { 
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_MENU);
          UIDefinitionService uiDefService = new UIDefinitionService();
          List<MenuItemDefinition> fullMenuStructure = uiDefService.generateMenuStructure();
-         return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.themeManager, this.configuration, this.generalController.getVisorController());
+         return new MenuAction("Menú Principal", icon, fullMenuStructure, this.actionMap, this.themeManager, this.configuration);
      } // --- Fin del método createMenuAction ---
-     
      
      private Action createHiddenButtonsAction() {
          ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ESPECIAL_BOTONES_OCULTOS);
-         return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration, this.generalController.getVisorController() );
+         return new HiddenButtonsAction("Más Opciones", icon, this.actionMap, this.themeManager, this.configuration);//, this.generalController.getVisorController() );
      } // --- Fin del método createHiddenButtonsAction ---
-
      
-     // --- 4.12. Métodos Create para Actions de Paneo ---
+     
+     
+     /*
+      *  --- 4.12. Métodos Create para Actions de Paneo --- 
+      */
+  // *********************************************************************************************************************************************************
      private Action createPanActionAbsolute(String command, Direction direction) {
          PanAction action = new PanAction(generalController, command, direction);
          
@@ -1183,7 +1179,6 @@ public class ActionFactory {
          this.contextSensitiveActions.add(action);
          return action;
      } // --- Fin del método createPanActionAbsolute ---
-
      
      private Action createPanActionIncremental(String command, Direction direction) {
          PanAction action = new PanAction(generalController, command, direction, INCREMENTAL_PAN_AMOUNT);
@@ -1199,8 +1194,11 @@ public class ActionFactory {
      } // --- Fin del método createPanActionIncremental ---
 
      
-     // --- 4.13. Métodos Create para Actions de Control de Fondo ---
      
+     /*
+      *  --- 4.13. Métodos Create para Actions de Control de Fondo ---
+      */
+  // *********************************************************************************************************************************************************     
      private Action createSetBackgroundColorAction(String command, String themeKey, String name) {
 	    Action action = new AbstractAction(name) {
 	        private static final long serialVersionUID = 1L;
@@ -1216,7 +1214,6 @@ public class ActionFactory {
 	    action.putValue(Action.ACTION_COMMAND_KEY, command);
 	    return action;
 	} // --- Fin del método createSetBackgroundColorAction ---
-     
      
 	private Action createSetCheckeredBackgroundAction(String name){
 		Action action = new AbstractAction(name){
@@ -1234,7 +1231,6 @@ public class ActionFactory {
 		
 	}// --- Fin del método createSetCheckeredBackgroundAction ---
  
-	
 	private Action createRequestCustomColorAction(String name) {
 	    Action action = new AbstractAction(name) {
 	        private static final long serialVersionUID = 1L;
@@ -1249,7 +1245,6 @@ public class ActionFactory {
 	    return action;
 	} // --- Fin del método createRequestCustomColorAction ---
 	
-	
 	private Action createNavegarCarpetaAnteriorAction() {
 	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ORDEN_CARPETA_ANTERIOR);
 	    // Instanciamos la nueva clase
@@ -1259,7 +1254,6 @@ public class ActionFactory {
 	    return action;
 	} // --- FIN del metodo createNavegarCarpetaAnteriorAction ---
 
-	
 	private Action createNavegarCarpetaSiguienteAction() {
 	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ORDEN_CARPETA_SIGUIENTE);
 	    // Instanciamos la nueva clase
@@ -1269,7 +1263,6 @@ public class ActionFactory {
 	    return action;
 	    
 	} // --- FIN del metodo createNavegarCarpetaSiguienteAction ---
-
 	
 	private Action createNavegarCarpetaRaizAction() {
 	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_ORDEN_CARPETA_RAIZ);
@@ -1283,7 +1276,6 @@ public class ActionFactory {
 	    return action;
 	    
 	} // --- FIN del metodo createNavegarCarpetaRaizAction ---
-	
 	
 	private Action createToggleLiveFilterAction() {
 	    ImageIcon icon = getIconForCommand(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
@@ -1351,7 +1343,6 @@ public class ActionFactory {
 
 	    return action;
 	} // --- FIN del metodo createCycleSortAction ---
-
 		
 	private Action createOpenFolderAction() {
 	    // Pasa el GeneralController en lugar del FolderTreeManager
@@ -1364,8 +1355,11 @@ public class ActionFactory {
 	} // --- Fin del método createDrillDownFolderAction ---
 	
 	
-	// Acciones de la toolbar del GRID
-	
+
+	/*
+	 * --- 4.14. Acciones de la toolbar del GRID
+	 */
+  // *********************************************************************************************************************************************************
 	private Action createSetGridTextAction() {
         return new AbstractAction("Añadir/Editar Etiqueta") {
             private static final long serialVersionUID = 1L;
@@ -1413,7 +1407,6 @@ public class ActionFactory {
             }
         };
     } // ---FIN de metodo ---
-	
     
     private Action createToggleGridStateAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_GRID_SHOW_STATE);
@@ -1422,7 +1415,6 @@ public class ActionFactory {
         model.setGridMuestraEstado(initialState);
         return new ToggleGridStateAction("Mostrar Estado", icon, model, registry);
     } // ---FIN de metodo---
-    
     
     private Action createVerAtajosAction() {
         return new AbstractAction("Ver Atajos de Teclado...") {
@@ -1438,7 +1430,6 @@ public class ActionFactory {
         };
     } // ---FIN de metodo createVerAtajosAction---
     
-    
     private Action createShowHelpAction() {
         // Esta acción depende de la vista, pero la creamos en la fase "Core"
         // y le pasamos la referencia a la vista que ya tenemos.
@@ -1447,9 +1438,99 @@ public class ActionFactory {
     } // ---FIN de metodo createShowHelpAction---
     
 	
-	// *********************************************** 
-    // --- SECCIÓN 5: GETTERS Y SETTERS ---
-	// ***********************************************	
+    
+    /*
+     * 4.15 Acciones Simples 
+     */
+ // *********************************************************************************************************************************************************
+    private Action createSaveConfigurationAction() {
+        return new AbstractAction("Guardar Configuración Actual") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (generalController != null) {
+                    generalController.handleSaveConfiguration();
+                }
+            }
+        };
+    } // ---FIN de metodo createSaveConfigurationAction---
+
+    private Action createRestoreDefaultConfigAction() {
+        return new AbstractAction("Restaurar Configuración Inicial") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (generalController != null && generalController.getVisorController() != null && generalController.getVisorController().getConfigApplicationManager() != null) {
+                    generalController.getVisorController().getConfigApplicationManager().restaurarConfiguracionPredeterminada();
+                }
+            }
+        };
+    } // ---FIN de metodo createRestoreDefaultConfigAction---
+
+    private Action createSetCustomZoomAction() {
+        return new AbstractAction("Establecer Zoom %...") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (view != null && zoomManager != null) {
+                    String input = JOptionPane.showInputDialog(
+                        view,
+                        "Introduce el porcentaje de zoom deseado (ej: 150):",
+                        "Establecer Zoom Personalizado",
+                        JOptionPane.PLAIN_MESSAGE
+                    );
+                    if (input != null && !input.trim().isEmpty()) {
+                        try {
+                            double percentValue = Double.parseDouble(input.replace('%', ' ').trim());
+                            if (percentValue >= 1 && percentValue <= 5000) {
+                                zoomManager.solicitarZoomPersonalizado(percentValue);
+                            } else {
+                                JOptionPane.showMessageDialog(view, "Porcentaje inválido.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(view, "Entrada inválida.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                }
+            }
+        };
+    } // ---FIN de metodo createSetCustomZoomAction---
+
+    private Action createShowVersionAction() {
+        return new AbstractAction("Acerca de...") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+            	String version = (generalController != null && generalController.getVisorController() != null) ? generalController.getVisorController().getVersion() : "N/A";
+                String nombreApp = "Visor de Imágenes V2";
+                String autor = "(c) 2024 Javier Tortosa";
+                String mensaje = nombreApp + "\nVersión: " + version + "-MVC-SyncLists\n" + autor;
+                String tituloDialogo = "Acerca de " + nombreApp;
+                JOptionPane.showMessageDialog(view, mensaje, tituloDialogo, JOptionPane.INFORMATION_MESSAGE);
+            }
+        };
+    } // ---FIN de metodo createShowVersionAction---
+
+    private Action createRefreshUIAction() {
+        return new AbstractAction("Refrescar UI") {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (viewManager != null) {
+                    viewManager.ejecutarRefrescoCompletoUI();
+                }
+            }
+        };
+    } // ---FIN de metodo createRefreshUIAction---
+    
+    
+    
+ // *********************************************************************************************************************************************************
+    
+    
+// *********************************************************************************************************************************************************
+// 																	--- SECCIÓN 5: GETTERS Y SETTERS ---
+// *********************************************************************************************************************************************************	
 	
     public Map<String, Action> getActionMap() {
          return this.actionMap; 

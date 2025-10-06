@@ -46,22 +46,18 @@ El proyecto esta en una posicion excelente. Las siguientes sugerencias no son co
    Dividir las responsabilidades de `GeneralController` en clases mas pequenas y cohesivas.
 
    PASOS SUGERIDOS:
-   *   PASO A: Crear una nueva clase `controlador.handlers.GlobalInputHandler`.
-       1. Haz que esta clase implemente `KeyEventDispatcher` y `PropertyChangeListener` (para el foco).
-       2. Mueve los metodos `dispatchKeyEvent` y `propertyChange` de `GeneralController` a esta nueva clase.
-       3. Mueve la logica de creacion del `masterWheelListener` (del metodo `configurarListenersDeEntradaGlobal`) a esta nueva clase.
-       4. En `AppInitializer`, instancia `GlobalInputHandler`, inyectale sus dependencias (model, registry, etc.) y registralo en el `KeyboardFocusManager` y como listener de componentes.
+[x]   *   PASO A: Crear una nueva clase `controlador.handlers.GlobalInputManagerr`.
 
-   *   PASO B: Centralizar TODA la logica de filtros en `FilterManager`.
-       1. Mueve los siguientes campos de estado de `GeneralController` a `FilterManager`:
+[x]   *   PASO B: Centralizar TODA la logica de filtros en `FilterManager`.
+      [x] 1. Mueve los siguientes campos de estado de `GeneralController` a `FilterManager`:
           - `persistente_listaMaestraOriginal`, `persistente_punteroOriginalKey`, `persistente_activo`.
           - `masterModelSinFinito`, `indiceSeleccionadoAntesDeFiltrar`.
-       2. Mueve los metodos de logica de `GeneralController` a `FilterManager`:
+      [x] 2. Mueve los metodos de logica de `GeneralController` a `FilterManager`:
           - `gestionarFiltroPersistente()`, `refrescarConFiltrosPersistentes()`, `actualizarListaVisibleConResultado()`.
           - `onLiveFilterStateChanged()` (se puede renombrar a `setLiveFilterActive(boolean)`).
           - `actualizarFiltro()`, `limpiarFiltro()`.
-       3. `FilterManager` necesitara dependencias como `ListCoordinator` y `VisorModel`. Inyectalas desde `AppInitializer`.
-       4. `GeneralController` ahora solo delegara las llamadas. Ej: `public void onLiveFilterStateChanged(boolean b) { filterManager.setLiveFilterActive(b); }`.
+      [x] 3. `FilterManager` necesitara dependencias como `ListCoordinator` y `VisorModel`. Inyectalas desde `AppInitializer`.
+      [x] 4. `GeneralController` ahora solo delegara las llamadas. Ej: `public void onLiveFilterStateChanged(boolean b) { filterManager.setLiveFilterActive(b); }`.
 
    BENEFICIO:
    `GeneralController` se reducira significativamente en tamano y complejidad, enfocandose unicamente en la orquestacion de alto nivel. La logica de entrada y de filtros estara encapsulada en clases especializadas, mas faciles de entender, mantener y probar de forma aislada.
@@ -71,15 +67,15 @@ El proyecto esta en una posicion excelente. Las siguientes sugerencias no son co
 >> SUGERENCIA 1.2: ELIMINAR ESTADO DE IMAGEN DUPLICADO EN `VisorView`
 
    DIAGNOSTICO:
-   La clase `VisorView` almacena campos como `imagenReescaladaView`, `zoomFactorView`, `imageOffsetXView`, etc. Esta informacion es una copia del estado que ya existe y es gestionado por `VisorModel` y sus `ZoomContext`. Esto introduce un riesgo de desincronizacion de datos.
+ [x]  La clase `VisorView` almacena campos como `imagenReescaladaView`, `zoomFactorView`, `imageOffsetXView`, etc. Esta informacion es una copia del estado que ya existe y es gestionado por `VisorModel` y sus `ZoomContext`. Esto introduce un riesgo de desincronizacion de datos.
 
    RECOMENDACION:
    El `VisorModel` debe ser siempre la unica fuente de la verdad. El componente responsable de pintar la imagen (`ImageDisplayPanel`) debe leer esta informacion directamente del modelo en el momento de pintar, en lugar de recibirla de la `VisorView`.
 
    PASOS SUGERIDOS:
-   1. Elimina los campos `imagenReescaladaView`, `zoomFactorView`, `imageOffsetXView`, `imageOffsetYView` de la clase `VisorView`.
-   2. Elimina el metodo `getImagenReescaladaView()`.
-   3. Modifica el metodo `paintComponent` de la clase `ImageDisplayPanel`. Dentro de este metodo, obten los datos necesarios directamente de la referencia a `VisorModel` que ya tiene:
+ [x]  1. Elimina los campos `imagenReescaladaView`, `zoomFactorView`, `imageOffsetXView`, `imageOffsetYView` de la clase `VisorView`.
+ [x]  2. Elimina el metodo `getImagenReescaladaView()`.
+ [x]  3. Modifica el metodo `paintComponent` de la clase `ImageDisplayPanel`. Dentro de este metodo, obten los datos necesarios directamente de la referencia a `VisorModel` que ya tiene:
       `BufferedImage img = model.getCurrentImage();`
       `double zoom = model.getZoomFactor();`
       `int offsetX = model.getImageOffsetX();`
@@ -96,19 +92,19 @@ El proyecto esta en una posicion excelente. Las siguientes sugerencias no son co
 >> SUGERENCIA 2.1: ELIMINAR LA IMPLEMENTACION DE `ActionListener` EN `VisorController`
 
    DIAGNOSTICO:
-   `VisorController` implementa la interfaz `ActionListener` y contiene un gran metodo `actionPerformed` con una estructura `switch` para manejar multiples comandos. Este es un anti-patron conocido como "God Object", que concentra demasiada logica dispar en un solo lugar.
+ [x]  `VisorController` implementa la interfaz `ActionListener` y contiene un gran metodo `actionPerformed` con una estructura `switch` para manejar multiples comandos. Este es un anti-patron conocido como "God Object", que concentra demasiada logica dispar en un solo lugar.
 
    RECOMENDACION:
-   Utilizar plenamente el sistema de `Action` de Swing, donde cada clase `Action` encapsula la logica para un comando especifico. El `VisorController` no deberia ser un `ActionListener` generico.
+ [x]  Utilizar plenamente el sistema de `Action` de Swing, donde cada clase `Action` encapsula la logica para un comando especifico. El `VisorController` no deberia ser un `ActionListener` generico.
 
    PASOS SUGERIDOS:
-   1. Para cada `case` dentro del `switch` en `actionPerformed`, asegurate de que existe una clase de Accion correspondiente (ej. `AplicarModoZoomAction`, `MostrarDialogoAyudaAction`, etc.) en tu `ActionFactory`. La mayoria ya las tienes.
-   2. Modifica `MenuBarBuilder` y `ToolbarBuilder`. En lugar de hacer `componente.addActionListener(controllerRef)`, asigna la accion directamente: `componente.setAction(actionMap.get(comandoCanonico))`.
-   3. Una vez que todos los `case` del `switch` hayan sido migrados a sus propias clases `Action`, el metodo `actionPerformed` en `VisorController` quedara vacio.
-   4. Elimina `implements ActionListener` de la declaracion de la clase `VisorController` y borra el metodo `actionPerformed`.
+ [x]  1. Para cada `case` dentro del `switch` en `actionPerformed`, asegurate de que existe una clase de Accion correspondiente (ej. `AplicarModoZoomAction`, `MostrarDialogoAyudaAction`, etc.) en tu `ActionFactory`. La mayoria ya las tienes.
+ [x]  2. Modifica `MenuBarBuilder` y `ToolbarBuilder`. En lugar de hacer `componente.addActionListener(controllerRef)`, asigna la accion directamente: `componente.setAction(actionMap.get(comandoCanonico))`.
+ [x]  3. Una vez que todos los `case` del `switch` hayan sido migrados a sus propias clases `Action`, el metodo `actionPerformed` en `VisorController` quedara vacio.
+ [x]  4. Elimina `implements ActionListener` de la declaracion de la clase `VisorController` y borra el metodo `actionPerformed`.
 
    BENEFICIO:
-   La logica de cada accion estara contenida en su propia clase, haciendo el codigo mas organizado, legible y facil de mantener (Principio de Responsabilidad Unica). `VisorController` se simplifica y se centra en la orquestacion.
+ [x]  La logica de cada accion estara contenida en su propia clase, haciendo el codigo mas organizado, legible y facil de mantener (Principio de Responsabilidad Unica). `VisorController` se simplifica y se centra en la orquestacion.
 
 ---
 
@@ -180,4 +176,74 @@ El proyecto "VisorImagenes V2" esta construido sobre una base arquitectonica exc
 
 La aplicacion de estas mejoras de forma incremental fortalecera el codigo a largo plazo y facilitara enormemente la adicion de nuevas funcionalidades, como el "MegaConfig".
 
-¡Excelente trabajo y mucho exito en los siguientes pasos del desarrollo!
+
+
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+
+
+
+
+## ANÁLISIS DE MEJORAS POTENCIALES PARA EL CÓDIGO ##
+
+Basado en el análisis del código, estos son los puntos que representan oportunidades de mejora para hacer el proyecto más robusto, mantenible y escalable.
+
+---
+### 1. Arquitectura y Diseño ###
+
+*   **El Punto: El "Dios Controlador" (`VisorController`)**
+    *   **Observación:** `VisorController` tiene una cantidad muy grande de responsabilidades, siguiendo el patrón "God Object".
+    *   **La Mejora:** Continuar delegando responsabilidades a clases especializadas (Managers). `VisorController` debe evolucionar hacia un rol de puro orquestador.
+    *   **Sugerencia Concreta:**
+        1.  **Crear un `GlobalKeyboardManager`:** Centralizar toda la lógica del `KeyEventDispatcher` y los atajos de teclado globales.
+        2.  **Crear un `ContextMenuManager`:** Centralizar la lógica para crear y mostrar los `JPopupMenu` de la aplicación.
+        3.  **Delegar más a `GeneralController`:** Podría ser el responsable de orquestar la sincronización completa de la UI cuando se cambia de modo.
+
+*   **El Punto: Inyección de Dependencias Manual**
+    *   **Observación:** `AppInitializer` realiza un "cableado" manual de todas las dependencias, lo cual es propenso a errores de `NullPointerException` si se olvida alguna inyección en el futuro.
+    *   **La Mejora (A Largo Plazo):** Considerar el uso de un framework de Inyección de Dependencias (DI) como Google Guice o Dagger.
+    *   **Beneficio:** Reduce drásticamente el código de inicialización, previene errores en tiempo de ejecución por dependencias no satisfechas y hace que la arquitectura sea más explícita y fácil de seguir.
+
+---
+### 2. Rendimiento ###
+
+*   **El Punto: Creación de Miniaturas "Just-in-Time"**
+    *   **Observación:** La creación de una miniatura ocurre la primera vez que se necesita, lo que puede causar un pequeño "tirón" (stuttering) al hacer scroll rápido por imágenes nuevas.
+    *   **La Mejora:** Implementar un sistema de **pre-cacheo persistente en segundo plano**.
+    *   **Sugerencia Concreta:**
+        1.  Al abrir una carpeta por primera vez, lanzar un `SwingWorker` de baja prioridad que genere todas las miniaturas.
+        2.  Guardar estas miniaturas en un directorio de caché persistente en el disco (ej. `~/.miVisorImagenesApp/cache/thumbnails/`).
+        3.  En arranques posteriores, `ThumbnailService` cargaría las miniaturas desde este caché de disco, lo cual es mucho más rápido que generarlas desde el archivo original.
+
+---
+### 3. Mantenibilidad y Legibilidad ###
+
+*   **El Punto: "Magic Strings" para el Registro de Componentes**
+    *   **Observación:** El uso de claves de texto libre (ej. `registry.get("list.grid.proyecto")`) es propenso a errores de tipeo que el compilador no puede detectar.
+    *   **La Mejora:** Centralizar todas las claves en una clase de constantes.
+    *   **Sugerencia Concreta:**
+        *   Crear una clase `public final class ComponentRegistryKeys`.
+        *   Definir constantes estáticas: `public static final String LIST_GRID_PROYECTO = "list.grid.proyecto";`.
+        *   Usar `registry.get(ComponentRegistryKeys.LIST_GRID_PROYECTO)` en el código.
+        *   **Beneficio:** Autocompletado del IDE, prevención de errores y refactorización segura.
+
+*   **El Punto: `actionPerformed` en `VisorController`**
+    *   **Observación:** `VisorController` todavía maneja la lógica para algunos `JMenuItem` que no tienen una clase `Action` dedicada.
+    *   **La Mejora:** Adherirse estrictamente al principio de "una clase `Action` por cada acción del usuario".
+    *   **Sugerencia Concreta:**
+        *   Revisar el `switch` en `actionPerformed` y crear las clases `Action` que falten (ej. `ShowVersionAction`, `RestoreDefaultConfigAction`).
+        *   **Beneficio:** El código se vuelve más cohesivo y los controladores se mantienen más limpios y enfocados.
+
+---
+### 4. Experiencia de Usuario (UX) ###
+
+*   **El Punto: Feedback al Usuario**
+    *   **Observación:** La aplicación se beneficiaría de un feedback más consistente tras las acciones del usuario.
+    *   **La Mejora:** Sistematizar el uso de la barra de estado para notificaciones.
+    *   **Sugerencia Concreta:**
+        1.  Utilizar `InfobarStatusManager.mostrarMensajeTemporal()` para confirmar acciones exitosas (Guardado, Copiado, etc.).
+        2.  Reservar los `JOptionPane` para preguntas o errores que requieran la atención del usuario.
+

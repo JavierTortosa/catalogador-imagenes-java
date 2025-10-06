@@ -1,4 +1,4 @@
-package vista.builders;
+	package vista.builders;
 
 import java.awt.Component;
 import java.awt.event.ActionListener;
@@ -45,7 +45,6 @@ public class MenuBarBuilder {
     // --- Estado Interno del Builder ---
     private Map<String, Action> actionMap; // Mapa Comando CORTO (AppActionCommands) -> Action
     private ButtonGroup currentButtonGroup = null;
-    private ActionListener controllerGlobalActionListener; // Para ítems sin Action propia
 
     // --- Clases internas
     private final ConfigurationManager configuration;
@@ -80,21 +79,7 @@ public class MenuBarBuilder {
         // currentButtonGroup se inicializa a null y se gestiona durante la construcción.
     } // --- Fin del método MenuBarBuilder (constructor) ---
 
-    /**
-     * Establece el ActionListener global que se usará para los JMenuItems
-     * que no tengan una Action específica asociada. Típicamente, este será
-     * el VisorController.
-     *
-     * @param listener El ActionListener a utilizar.
-     */
-    public void setControllerGlobalActionListener(ActionListener listener) {
-        this.controllerGlobalActionListener = listener;
-        if (listener != null) {
-            logger.debug("[MenuBarBuilder] ControllerGlobalActionListener establecido: " + listener.getClass().getName());
-        } else {
-            logger.debug("[MenuBarBuilder] ADVERTENCIA: ControllerGlobalActionListener establecido a null.");
-        }
-    }
+    
 
     /**
      * Construye la barra de menú completa basada en la estructura de definiciones explícita.
@@ -123,8 +108,6 @@ public class MenuBarBuilder {
         // 1.3. Log de inicio del proceso de construcción.
         logger.debug("--- MenuBarBuilder: Iniciando construcción de JMenuBar ---");
         logger.debug("  [MenuBarBuilder] ActionMap recibido con " + (this.actionMap != null ? this.actionMap.size() : "null") + " acciones.");
-        logger.debug("  [MenuBarBuilder] controllerGlobalActionListener: " +
-                           (this.controllerGlobalActionListener != null ? "PRESENTE (" + this.controllerGlobalActionListener.getClass().getSimpleName() + ")" : "AUSENTE"));
 
         // 1.4. Validar la estructura de menú de entrada.
         //      Si no hay definiciones, no se puede construir nada.
@@ -506,25 +489,22 @@ public class MenuBarBuilder {
         if (comandoOClave != null && !comandoOClave.isBlank()) {
             Action action = (this.actionMap != null) ? this.actionMap.get(comandoOClave) : null;
 
-            // --- INICIO DE LA LÓGICA MEJORADA ---
             if (action != null) {
-                // Si encontramos una Action pre-creada, la usamos directamente.
                 item.setAction(action);
-                
-                // Forzamos el texto del menú por si es diferente al de la Action.
                 if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
                     item.setText(itemDef.textoMostrado());
                 }
             } else {
-                // Si NO hay Action, volvemos al comportamiento original.
-                item.setActionCommand(comandoOClave);
-                item.setText(itemDef.textoMostrado());
-                if (this.controllerGlobalActionListener != null) {
-                    item.addActionListener(this.controllerGlobalActionListener);
+                // Si no se encuentra una acción específica, asignamos la de "funcionalidad pendiente".
+                // Esto elimina la necesidad del ActionListener global.
+                Action pendiente = this.actionMap.get(AppActionCommands.CMD_FUNCIONALIDAD_PENDIENTE);
+                if (pendiente != null) {
+                    item.setAction(pendiente);
+                    item.setText(itemDef.textoMostrado());
+                    // Guardamos el comando original para que el mensaje de "pendiente" sea informativo.
+                    item.setActionCommand(comandoOClave);
                 }
             }
-            // --- FIN DE LA LÓGICA MEJORADA ---
-
         } else {
             if (itemDef.textoMostrado() != null && !itemDef.textoMostrado().isBlank()) {
                 item.setText(itemDef.textoMostrado());

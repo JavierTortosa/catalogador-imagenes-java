@@ -33,7 +33,6 @@ public class HiddenButtonsAction extends AbstractAction {
     // Podríamos tener una lista de los COMANDOS de los botones que podrían ir aquí
     // private List<String> overflowButtonCommands; 
     private ConfigurationManager configManagerRef;         // <--- NUEVO CAMPO
-    private ActionListener specialConfigActionListenerRef;
 
     // Constructor REFACTORIZADO
     public HiddenButtonsAction(
@@ -42,8 +41,8 @@ public class HiddenButtonsAction extends AbstractAction {
             ImageIcon icon,
             Map<String, Action> actionMap, // Para obtener las actions de los botones
             ThemeManager themeManager,         // Para el builder
-            ConfigurationManager configManager,         
-            ActionListener specialConfigActionListener
+            ConfigurationManager configManager         
+//            ActionListener specialConfigActionListener
             // List<String> overflowButtonCommands // Opcional: lista de comandos a mostrar
             
     ) {
@@ -54,7 +53,6 @@ public class HiddenButtonsAction extends AbstractAction {
         this.themeManager = Objects.requireNonNull(themeManager, "ViewUIConfig no puede ser nulo");
         
         this.configManagerRef = Objects.requireNonNull(configManager);
-        this.specialConfigActionListenerRef = Objects.requireNonNull(specialConfigActionListener);
         // this.overflowButtonCommands = overflowButtonCommands != null ? overflowButtonCommands : new ArrayList<>();
 
         putValue(Action.SHORT_DESCRIPTION, "Mostrar acciones adicionales o botones que no caben");
@@ -109,8 +107,8 @@ public class HiddenButtonsAction extends AbstractAction {
         // --- Construir y mostrar el JPopupMenu ---
         PopupMenuBuilder popupBuilder = new PopupMenuBuilder(
         		this.themeManager,
-                this.configManagerRef,
-                this.specialConfigActionListenerRef
+                this.configManagerRef
+//                this.specialConfigActionListenerRef
             );
         
         JPopupMenu popupMenu = popupBuilder.buildPopupMenuWithNestedMenus(itemsParaPopup, this.actionMapRef);

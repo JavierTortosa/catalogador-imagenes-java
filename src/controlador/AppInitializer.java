@@ -2,11 +2,9 @@ package controlador;
 
 import java.awt.Color;
 import java.awt.KeyboardFocusManager;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +21,7 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.factory.ActionFactory;
 import controlador.managers.BackgroundControlManager;
 import controlador.managers.CarouselManager;
 import controlador.managers.ConfigApplicationManager;
@@ -31,6 +30,7 @@ import controlador.managers.EditionManager;
 import controlador.managers.FileOperationsManager;
 import controlador.managers.FilterManager;
 import controlador.managers.FolderNavigationManager;
+import controlador.managers.GlobalInputManager;
 import controlador.managers.ImageListManager;
 import controlador.managers.InfobarImageManager;
 import controlador.managers.InfobarStatusManager;
@@ -38,17 +38,13 @@ import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
 import controlador.managers.tree.FolderTreeManager;
-import controlador.factory.ActionFactory;
 import controlador.utils.ComponentRegistry;
-
 import modelo.VisorModel;
-
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager;
 import servicios.image.ThumbnailService;
 import servicios.zoom.ZoomModeEnum;
-
 import vista.VisorView;
 import vista.builders.MenuBarBuilder;
 import vista.builders.ProjectBuilder;
@@ -99,6 +95,7 @@ public class AppInitializer {
     private FolderNavigationManager 	folderNavManager;
     private FolderTreeManager 			folderTreeManager;
     private FilterManager 				filterManager;
+    private GlobalInputManager  		globalInputManager;
     
     // UI y Factorías
     private ActionFactory 				actionFactory;
@@ -165,6 +162,7 @@ public class AppInitializer {
         // --- INICIO DE LA CORRECCIÓN ---
         // Controladores, Coordinadores y Managers (en orden de dependencia)
         this.generalController = new GeneralController();
+        this.globalInputManager = new GlobalInputManager();
         this.projectController = new ProjectController(); // Crear la ÚNICA instancia aquí
         this.projectController.setGeneralController(this.generalController);
         
@@ -319,6 +317,10 @@ public class AppInitializer {
         generalController.setFilterManager(this.filterManager);
         generalController.setFolderNavigationManager(this.folderNavManager);
         generalController.setFolderTreeManager(this.folderTreeManager);
+        
+        // Inyectar dependencias en FilterManager para que pueda operar de forma autónoma
+        this.filterManager.setVisorController(this.controller);
+        this.filterManager.setRegistry(this.registry);
 
         java.util.function.Consumer<java.nio.file.Path> onFolderSelectedCallback = (p) -> this.generalController.solicitarCargaDesdeNuevaRaiz(p);
         fileOperationsManager.setModel(this.model);
@@ -327,7 +329,6 @@ public class AppInitializer {
         fileOperationsManager.setOnNuevaCarpetaSeleccionadaCallback(onFolderSelectedCallback);
         
         themeManager.setConfigApplicationManager(this.configAppManager);
-        menuBuilder.setControllerGlobalActionListener(this.controller);
         configAppManager.setBackgroundControlManager(this.backgroundControlManager);
         toolbarManager.setBackgroundControlManager(this.backgroundControlManager);
         actionFactory.setCarouselManager(carouselManager);
@@ -338,6 +339,7 @@ public class AppInitializer {
         this.model.addMasterListChangeListener(this.generalController);
         
         logger.debug(" -> Cableado de dependencias completado.");
+        
     } // ---FIN de metodo wireDependencies---
 
     /**
@@ -357,6 +359,15 @@ public class AppInitializer {
                 // 3.2: Inicializar acciones y crear el mapa de acciones
                 this.actionFactory.initializeCoreActions();
                 this.actionMap = this.actionFactory.getActionMap();
+                
+                // 	--- Inyección de dependencias en el GlobalInputManager (AHORA SÍ) ---
+                this.globalInputManager.setModel(this.model);
+                this.globalInputManager.setRegistry(this.registry);
+                this.globalInputManager.setActionMap(this.actionMap); // actionMap ya está creado
+                this.globalInputManager.setModoController(this.generalController);
+                this.globalInputManager.setVisorController(this.controller);
+                this.globalInputManager.setProjectController(this.projectController);
+                
                 this.zoomManager.setActionMap(this.actionMap);
                 this.toolbarBuilder.setActionMap(this.actionMap);
                 this.viewBuilder.setActionMap(this.actionMap);
@@ -428,7 +439,7 @@ public class AppInitializer {
                 if (this.projectManagerService != null) this.projectManagerService.initialize();
                 
                 this.controller.configurarAtajosTecladoGlobales();
-                this.generalController.configurarListenersDeEntradaGlobal();
+                this.globalInputManager.configurarListeners();
                 
                 
              // --- INICIO: AÑADIR LISTENER INTERACTIVO A LA LISTA DE FILTROS ---
@@ -463,11 +474,12 @@ public class AppInitializer {
                 
                 
                 
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.generalController);
-                KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this.generalController);
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(this.globalInputManager);
+                KeyboardFocusManager.getCurrentKeyboardFocusManager().addPropertyChangeListener("focusOwner", this.globalInputManager);
                 this.controller.configurarListenersVistaInternal();
                 this.controller.configurarMenusContextuales();
                 this.projectController.configurarListeners();
+                this.globalInputManager.initialize();
                 this.generalController.initialize();
                 
                 instalarPreviewers();
@@ -726,6 +738,5 @@ public class AppInitializer {
         System.exit(1); 
     } // ---FIN de metodo manejarErrorFatalInicializacion---
 
-    
 } // ---FIN de la clase AppInitializer---
 

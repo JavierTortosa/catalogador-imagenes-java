@@ -1,16 +1,9 @@
 package controlador;
 
 import java.awt.Component;
-import java.awt.KeyEventDispatcher;
-import java.awt.KeyboardFocusManager;
-import java.awt.event.ActionEvent;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
-import java.beans.PropertyChangeListener;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,22 +14,13 @@ import java.util.Map;
 import java.util.Objects;
 
 import javax.swing.Action;
-import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenu;
-import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,7 +59,7 @@ import vista.panels.ImageDisplayPanel;
  * y gestiona el estado global de la aplicación, como el modo de trabajo actual y la
  * habilitación/deshabilitación de la UI correspondiente.
  */
-public class GeneralController implements IModoController, KeyEventDispatcher, PropertyChangeListener, modelo.MasterListChangeListener, servicios.ProjectStateListener {
+public class GeneralController implements IModoController, modelo.MasterListChangeListener, servicios.ProjectStateListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(GeneralController.class);
 	
@@ -95,33 +79,14 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     private FilterManager filterManager;
     private ImageListManager imageListManager;
     
- // Checkpoint para el FILTRO PERSISTENTE ---
-    // Guardará la lista original cargada desde el disco, nuestra fuente de verdad.
-    private DefaultListModel<String> persistente_listaMaestraOriginal;
-    private String persistente_punteroOriginalKey;
-    private boolean persistente_activo = false;
-    private FilterSource filtroActivoSource = FilterSource.FILENAME;
-    private FilterCriterion tornadoCriterion;
-    
-    
-    // --- Checkpoint para el TORNADO (se mantiene igual) ---
-    private DefaultListModel<String> masterModelSinFiltro;
-    private int indiceSeleccionadoAntesDeFiltrar = -1;
-    
-    
     private javax.swing.border.Border sortButtonActiveBorder;
     private javax.swing.border.Border sortButtonInactiveBorder;
     
     private Map<String, Action> actionMap;
     private boolean sortBordersInitialized = false;
-    private int lastMouseX, lastMouseY;
     
     private volatile boolean isChangingSubfolderMode = false;
-    
-    private javax.swing.border.Border focusedBorder;
-    private javax.swing.border.Border unfocusedBorder;
-    private List<javax.swing.JComponent> focusablePanels;
-    private TitledBorder borderListaArchivosOriginal;
+
     private javax.swing.Timer filterDebounceTimer;
     
     /**
@@ -135,73 +100,9 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     
     public void initialize() {
-        logger.debug("[GeneralController] Inicializado.");
         
-        this.focusablePanels = new ArrayList<>();
-        int thickness = 2;
-        this.unfocusedBorder = javax.swing.BorderFactory.createEmptyBorder(thickness, thickness, thickness, thickness);
-        this.focusedBorder = javax.swing.BorderFactory.createLineBorder(new java.awt.Color(255, 153, 51), thickness);
-
-        
-        // --- Paneles Globales y Contenedores Principales ---
-        registerFocusablePanel("tabbedpane.izquierdo");
-        registerFocusablePanel("scroll.miniaturas");
-        registerFocusablePanel("panel.derecho.visor"); // Contenedor del visor de imagen/grid
-
-        // --- Pestaña 'Lista' ---
-        // Registramos solo el JList. El foco va directamente a él.
-        registerFocusablePanel("panel.izquierdo.listaArchivos");
-        registerFocusablePanel("list.nombresArchivo"); 
-        
-        registerFocusablePanel("scroll.nombresArchivo");
-        
-        // --- Pestaña 'Carpetas' ---
-        // Registramos el JTree y su ScrollPane para capturar todo el foco del área.
-        registerFocusablePanel("scroll.arbol");
-        registerFocusablePanel("tree.carpetas");
-
-        // --- Pestaña 'Filtros' ---
-        // Registramos el JList y su ScrollPane.
-        registerFocusablePanel("panel.izquierdo.filtros");
-        registerFocusablePanel("list.filtrosActivos");
-        registerFocusablePanel("scroll.filtrosActivos");
-        
-        // --- Componentes del Visor (Lado Derecho) ---
-        // Registramos los JScrollPane que contienen los grids. El JList interno ya está cubierto por el foco del scroll.
-        registerFocusablePanel("panel.display.grid.proyecto");
-        
-        registerFocusablePanel("scroll.grid.visualizador");
-        registerFocusablePanel("scroll.grid.proyecto");
-
-        // --- Paneles del Modo Proyecto ---
-        registerFocusablePanel("tabbedpane.proyecto.herramientas");
-        registerFocusablePanel("scroll.proyecto.nombres");
-        registerFocusablePanel("scroll.proyecto.descartes");
-        
-        // Área de Exportación (jerárquico)
-        registerFocusablePanel("panel.proyecto.exportacion.completo"); 
-        registerFocusablePanel("scroll.tabla.exportacion");
-        registerFocusablePanel("panel.exportacion.detalles");
-        
-        // TextBox
-        registerFocusablePanel("textfield.filtro.orden");
-        registerFocusablePanel("textfield.export.destino");
-        registerFocusablePanel("textfield.filtro.texto");
-        
-        // boton del panel exportar/Mostrar detalles
-        registerFocusablePanel("interfaz.boton.acciones_exportacion.export_detalles_seleccion");
-        
-        
-        SwingUtilities.invokeLater(() -> {
-            JPanel panelLista = registry.get("panel.izquierdo.listaArchivos");
-            if (panelLista != null && panelLista.getBorder() instanceof TitledBorder) {
-                this.borderListaArchivosOriginal = (TitledBorder) panelLista.getBorder();
-                logger.debug("[FOCUS_INIT] TitledBorder original de la lista de archivos capturado con éxito.");
-            } else {
-                logger.warn("[FOCUS_INIT] No se pudo capturar el TitledBorder para 'panel.izquierdo.listaArchivos'.");
-            }
-        });
-        
+    	logger.debug("[GeneralController] Inicializado.");
+    	
         sincronizarEstadoBotonesDeModo();
         
         SwingUtilities.invokeLater(() -> {
@@ -221,7 +122,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 	         filterDebounceTimer = new javax.swing.Timer(300, (e) -> {
 	             // Esto se ejecuta cuando el usuario ha dejado de teclear.
 	             // Llamamos al método de filtrado real.
-	             actualizarFiltro(); 
+	        	 filterManager.actualizarFiltro(); 
 	         });
 	         filterDebounceTimer.setRepeats(false); // Importante: solo se ejecuta una vez por ráfaga de eventos.
 	
@@ -272,24 +173,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             });
             
             logger.debug("[GeneralController] Listeners de búsqueda/filtro configurados correctamente.");
-            
-            if(registry.get("panel.exportacion.detalles") instanceof JPanel) {
-                JPanel detailPanel = registry.get("panel.exportacion.detalles");
-                // Recorremos los componentes del detailPanel para encontrar el JScrollPane
-                for(Component comp : detailPanel.getComponents()) {
-                    // El JScrollPane está dentro de un 'centerPanel'
-                    if (comp instanceof JPanel) {
-                         for(Component innerComp : ((JPanel)comp).getComponents()){
-                            // Lo identificamos por el nombre que le pusimos
-                            if (innerComp instanceof JScrollPane && "scroll.detalles.exportacion".equals(innerComp.getName())) {
-                                focusablePanels.add((JScrollPane) innerComp);
-                                logger.info("[FOCUS_INIT] JScrollPane de detalles de exportación registrado para foco.");
-                                break; // Encontrado, salimos del bucle interno
-                            }
-                         }
-                    }
-                }
-            }
             
             if (projectController != null && projectController.getProjectManager() != null) {
                 projectController.getProjectManager().addProjectStateListener(this);
@@ -920,72 +803,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // ---FIN de metodo onProjectStateChanged---
     
     
-    @Override
-    public void propertyChange(java.beans.PropertyChangeEvent evt) {
-        if ("focusOwner".equals(evt.getPropertyName())) {
-            Component newFocusOwner = (Component) evt.getNewValue();
-
-          // --- INICIO DEL CÓDIGO DE DIAGNÓSTICO PROFUNDO ---
-          if (newFocusOwner != null) {
-              logger.debug("--- [DIAGNÓSTICO DE FOCO PROFUNDO] ---");
-              logger.debug("Componente con foco directo: {}", newFocusOwner.getClass().getName());
-
-              int level = 0;
-              for (Component c = newFocusOwner; c != null; c = c.getParent()) {
-                  String borderInfo = (c instanceof JComponent && ((JComponent) c).getBorder() != null)
-                                    ? ((JComponent) c).getBorder().getClass().getSimpleName()
-                                    : "sin borde";
-                  
-                  logger.debug("  -> Nivel {}: Clase: {} | Nombre: {} | Borde: {}",
-                               level++,
-                               c.getClass().getName(),
-                               c.getName(),
-                               borderInfo);
-
-                  // Si llegamos a la ventana principal, paramos.
-                  if (c instanceof JFrame) break;
-              }
-              logger.debug("--- [FIN DEL DIAGNÓSTICO] ---");
-          }
-          // --- FIN DEL CÓDIGO DE DIAGNÓSTICO PROFUNDO ---
-
-            java.awt.Color accentColor = javax.swing.UIManager.getColor("Component.accentColor");
-            if (accentColor == null) accentColor = new java.awt.Color(255, 153, 51);
-            this.focusedBorder = javax.swing.BorderFactory.createLineBorder(accentColor, 2);
-
-            // Obtenemos el panel de la lista de archivos para tratarlo de forma especial
-            JPanel panelListaArchivos = registry.get("panel.izquierdo.listaArchivos");
-
-            for (javax.swing.JComponent panel : focusablePanels) {
-                boolean debeTenerFoco = (newFocusOwner != null && (panel == newFocusOwner || SwingUtilities.isDescendingFrom(newFocusOwner, panel)));
-
-                // === INICIO DE LA MODIFICACIÓN 3 (LÓGICA PRINCIPAL) ===
-                
-                // Si estamos procesando el panel de la lista Y tenemos su TitledBorder original...
-                if (panel == panelListaArchivos && this.borderListaArchivosOriginal != null) {
-                    
-                    if (debeTenerFoco) {
-                        // Creamos un borde compuesto: el foco por fuera, el título por dentro.
-                        panel.setBorder(BorderFactory.createCompoundBorder(focusedBorder, this.borderListaArchivosOriginal));
-                    } else {
-                        // Creamos un borde compuesto con el borde "vacío" por fuera.
-                        panel.setBorder(BorderFactory.createCompoundBorder(unfocusedBorder, this.borderListaArchivosOriginal));
-                    }
-
-                } else {
-                    // Para todos los demás paneles, usamos la lógica original de reemplazar el borde.
-                    panel.setBorder(debeTenerFoco ? focusedBorder : unfocusedBorder);
-                }
-
-                // === FIN DE LA MODIFICACIÓN 3 ===
-
-                // ... (tu lógica de repaint se queda igual)
-                if (panel instanceof JScrollPane) {
-                    //...
-                }
-            }
-        }
-    } // --- FIN del metodo propertyChange ---
+    
     
     
     /**
@@ -1283,22 +1101,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         }
         
         // Lógica para limitar el paneo dentro de los límites de la imagen/panel
-        // La imagen se dibuja a partir de (xBase + offsetX, yBase + offsetY)
-        // xBase/yBase son los offsets para centrar la imagen si no hay paneo.
         double xBaseCentered = (double) (panelWidth - imageScaledWidth) / 2;
         double yBaseCentered = (double) (panelHeight - imageScaledHeight) / 2;
-
-        // Calcular los límites máximos y mínimos para los offsets
-        // (xBase + offsetX) debe estar entre (panelWidth - imageScaledWidth) y 0
-        // Para que el borde izquierdo de la imagen no vaya más allá del borde izquierdo del panel (0),
-        // y el borde derecho de la imagen no vaya más allá del borde derecho del panel (panelWidth).
-        
-        // minXOffset: (panelWidth - imageScaledWidth) - xBaseCentered
-        // maxXOffset: 0 - xBaseCentered
-        
-        // Límites de paneo (el borde de la imagen no debe ir más allá del borde del panel)
-        // minOffset: Lo más a la izquierda/arriba que puede ir el *inicio* de la imagen (relativo al panel)
-        // maxOffset: Lo más a la derecha/abajo que puede ir el *inicio* de la imagen (relativo al panel)
 
         // Si la imagen es más grande que el panel:
         if (imageScaledWidth > panelWidth) {
@@ -1355,120 +1159,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     
     
     /**
-     * Configura los listeners globales de teclado y ratón para la aplicación,
-     * utilizando un sistema de etiquetado para desacoplar el controlador de la vista.
-     * Añade un MouseWheelListener universal a todos los componentes etiquetados
-     * como "WHEEL_NAVIGABLE" en el ComponentRegistry.
-     */
-    public void configurarListenersDeEntradaGlobal() {
-        logger.debug("[GeneralController] Configurando listeners de entrada globales para todos los modos...");
-
-        // --- Definición del Master Mouse Wheel Listener (Lógica Centralizada) ---
-        java.awt.event.MouseWheelListener masterWheelListener = e -> {
-            // Obtenemos las referencias a TODOS los componentes relevantes una sola vez, al principio del evento.
-            JLabel etiquetaImagenVisualizador = registry.get("label.imagenPrincipal");
-            JLabel etiquetaImagenProyecto = registry.get("label.proyecto.imagen");
-            JLabel etiquetaImagenCarrusel = registry.get("label.carousel.imagen");
-            JTable tablaExportacion = registry.get("tabla.exportacion");
-
-            // Detección de la ubicación del cursor
-            boolean sobreLaImagen = (e.getComponent() == etiquetaImagenVisualizador) ||
-                                    (e.getComponent() == etiquetaImagenProyecto) ||
-                                    (e.getComponent() == etiquetaImagenCarrusel);
-            
-            boolean sobreTablaExportacion = (tablaExportacion != null && SwingUtilities.isDescendingFrom(e.getComponent(), tablaExportacion));
-            
-            // --- LÓGICA DE PRIORIDADES ---
-
-            // PRIORIDAD 1: Navegación especial por bloque con Ctrl+Alt
-            if (e.isControlDown() && e.isAltDown()) {
-                if (e.getWheelRotation() < 0) this.navegarBloqueAnterior();
-                else this.navegarBloqueSiguiente();
-                e.consume();
-                return;
-            }
-
-            // PRIORIDAD 2: Si estamos sobre la IMAGEN
-            if (sobreLaImagen) {
-                // Y el MODO ZOOM MANUAL está ACTIVO...
-                if (model.isZoomHabilitado()) {
-                    // ...la rueda hace zoom o paneo rápido.
-                    if (e.isShiftDown()) {
-                        this.aplicarPan(-e.getWheelRotation() * 30, 0);
-                    } else if (e.isControlDown()) {
-                        this.aplicarPan(0, e.getWheelRotation() * 30);
-                    } else {
-                        this.aplicarZoomConRueda(e);
-                    }
-                } else {
-                    // Si el zoom manual está DESACTIVADO, la rueda navega por la lista.
-                    this.navegarSiguienteOAnterior(e.getWheelRotation());
-                }
-                e.consume();
-                return;
-            }
-            
-            // PRIORIDAD 3: Si estamos sobre la tabla de exportación en modo Proyecto
-            if (sobreTablaExportacion && model.getCurrentWorkMode() == WorkMode.PROYECTO) {
-                projectController.navegarTablaExportacionConRueda(e);
-                e.consume();
-                return;
-            }
-
-            // PRIORIDAD 4 (Por defecto): Navegación normal para otras listas (Nombres, Miniaturas)
-            this.navegarSiguienteOAnterior(e.getWheelRotation());
-            e.consume();
-        };
-
-        // --- Añadir el Master Wheel Listener a todos los componentes etiquetados ---
-        List<Component> componentesConRueda = registry.getComponentsByTag("WHEEL_NAVIGABLE");
-        logger.debug("[GeneralController] Encontrados " + componentesConRueda.size() + " componentes etiquetados como 'WHEEL_NAVIGABLE'.");
-        for (Component c : componentesConRueda) {
-            // Limpiamos listeners antiguos para evitar duplicados
-            for (java.awt.event.MouseWheelListener mwl : c.getMouseWheelListeners()) {
-                c.removeMouseWheelListener(mwl);
-            }
-            c.addMouseWheelListener(masterWheelListener);
-        }
-
-        // --- Listeners de clic y arrastre para paneo ---
-        MouseAdapter paneoMouseAdapter = new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent ev) {
-                GeneralController.this.iniciarPaneo(ev);
-            }
-        };
-        MouseMotionAdapter paneoMouseMotionAdapter = new MouseMotionAdapter() {
-            @Override
-            public void mouseDragged(MouseEvent ev) {
-                GeneralController.this.continuarPaneo(ev);
-            }
-        };
-        
-        // Obtenemos los componentes y aplicamos los listeners de paneo
-        Component etiquetaVisor = registry.get("label.imagenPrincipal");
-        Component etiquetaProyecto = registry.get("label.proyecto.imagen");
-        Component etiquetaCarrusel = registry.get("label.carousel.imagen");
-
-        if (etiquetaVisor != null) {
-            etiquetaVisor.addMouseListener(paneoMouseAdapter);
-            etiquetaVisor.addMouseMotionListener(paneoMouseMotionAdapter);
-        }
-        if (etiquetaProyecto != null) {
-            etiquetaProyecto.addMouseListener(paneoMouseAdapter);
-            etiquetaProyecto.addMouseMotionListener(paneoMouseMotionAdapter);
-        }
-        if (etiquetaCarrusel != null) {
-            etiquetaCarrusel.addMouseListener(paneoMouseAdapter);
-            etiquetaCarrusel.addMouseMotionListener(paneoMouseMotionAdapter);
-        }
-
-        logger.debug("[GeneralController] Listeners de entrada globales configurados.");
-        
-    } // --- Fin del método configurarListenersDeEntradaGlobal ---
-    
-    
-    /**
      * Delega una solicitud de refresco al controlador del modo de trabajo activo.
      */
     public void solicitarRefrescoDelModoActivo() {
@@ -1482,155 +1172,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // ---FIN del metodo solicitarRefrescoDelModoActivo ---
     
     
-    /**
-     * Implementación del método de la interfaz KeyEventDispatcher.
-     * [VERSIÓN DEFINITIVA] Intercepta los atajos del NUMPAD aquí para tener control total
-     * y evitar conflictos con el InputMap global.
-     *
-     * @param e El KeyEvent a procesar.
-     * @return true si el evento fue consumido, false para continuar.
-     */
-    @Override
-    public boolean dispatchKeyEvent(KeyEvent e) {
-        if (e.getID() != KeyEvent.KEY_PRESSED) {
-            return false;
-        }
-
-        // =========================================================================
-        // === INICIO DE LA SOLUCIÓN DEFINITIVA: MANEJO DE ATAJOS NUMPAD ===
-        // Esta es ahora la ÚNICA fuente de verdad para los atajos numéricos.
-        // =========================================================================
-        String command = null;
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_NUMPAD1: command = AppActionCommands.CMD_ZOOM_TIPO_AJUSTAR; break;
-            case KeyEvent.VK_NUMPAD2: command = AppActionCommands.CMD_ZOOM_TIPO_AUTO; break;
-            case KeyEvent.VK_NUMPAD3: command = AppActionCommands.CMD_ZOOM_TIPO_ANCHO; break;
-            case KeyEvent.VK_NUMPAD4: command = AppActionCommands.CMD_ZOOM_TIPO_ALTO; break;
-            case KeyEvent.VK_NUMPAD5: command = AppActionCommands.CMD_ZOOM_TIPO_RELLENAR; break;
-            case KeyEvent.VK_NUMPAD6: command = AppActionCommands.CMD_ZOOM_TIPO_FIJO; break;
-            case KeyEvent.VK_NUMPAD7: command = AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO; break;
-            case KeyEvent.VK_NUMPAD8: command = AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE; break;
-            case KeyEvent.VK_NUMPAD9: command = AppActionCommands.CMD_ZOOM_RESET; break;
-        }
-        
-        // Si se encontró un comando asociado a una tecla del Numpad...
-        if (command != null) {
-            Action action = actionMap.get(command);
-            if (action != null && action.isEnabled()) {
-                // Ejecutamos la acción, consumimos el evento y terminamos.
-                action.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, command));
-                e.consume();
-                return true; // Muy importante: detenemos el procesamiento aquí.
-            }
-        }
-        // =========================================================================
-        // === FIN DE LA SOLUCIÓN DEFINITIVA ===
-        // Si no se pulsó una tecla del Numpad, el código continúa y procesa
-        // el resto de tus atajos y lógica de navegación.
-        // =========================================================================
-
-
-        // Atajos que solo funcionan en Modo Proyecto y Vista Grid
-        if (model.getCurrentWorkMode() == WorkMode.PROYECTO && model.getCurrentDisplayMode() == DisplayMode.GRID) {
-            Action action = null;
-            if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_T) action = actionMap.get(AppActionCommands.CMD_GRID_SET_TEXT);
-            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_DELETE) action = actionMap.get(AppActionCommands.CMD_GRID_REMOVE_TEXT);
-            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_ADD) action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA);
-            else if (e.isControlDown() && e.getKeyCode() == KeyEvent.VK_SUBTRACT) action = actionMap.get(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA);
-            
-            if (action != null) {
-                action.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, null));
-                e.consume();
-                return true;
-            }
-        }
-        
-        // PRIORIDAD 1: Manejar la BARRA ESPACIADORA de forma global.
-        if (e.getKeyCode() == KeyEvent.VK_SPACE) {
-            Component focusOwner = e.getComponent();
-            if (focusOwner instanceof javax.swing.text.JTextComponent) {
-                return false;
-            }
-            Action toggleMarkAction = actionMap.get(AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA);
-            if (toggleMarkAction != null && toggleMarkAction.isEnabled()) {
-                toggleMarkAction.actionPerformed(new ActionEvent(e.getSource(), ActionEvent.ACTION_PERFORMED, AppActionCommands.CMD_PROYECTO_TOGGLE_MARCA));
-                return true; 
-            }
-        }
-        
-        // --- MANEJO ESPECIAL Y SEGURO DE LA TECLA ALT ---
-        if (e.getKeyCode() == KeyEvent.VK_ALT) {
-            Component source = e.getComponent();
-            if (source instanceof javax.swing.text.JTextComponent) {
-                return false;
-            }
-            if (visorController != null && visorController.getView() != null && visorController.getView().getJMenuBar() != null) {
-                JMenuBar menuBar = visorController.getView().getJMenuBar();
-                if (menuBar.isSelected()) {
-                    menuBar.getSelectionModel().clearSelection();
-                } else {
-                    if (menuBar.getMenuCount() > 0) {
-                        JMenu primerMenu = menuBar.getMenu(0);
-                        if (primerMenu != null) primerMenu.doClick();
-                    }
-                }
-                e.consume();
-                return true;
-            }
-        }
-        
-        // Continuación de la lógica de navegación por teclado (movido de VisorController)
-        if (model == null || registry == null) {
-            return false;
-        }
-
-        Component focusOwner = KeyboardFocusManager.getCurrentKeyboardFocusManager().getFocusOwner();
-        if (focusOwner == null) {
-            return false;
-        }
-
-        JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-        JList<String> listaNombres = registry.get("list.nombresArchivo");
-
-        boolean focoEnAreaMiniaturas = (scrollMiniaturas != null && SwingUtilities.isDescendingFrom(focusOwner, scrollMiniaturas));
-        boolean focoEnListaNombres = (listaNombres != null && SwingUtilities.isDescendingFrom(focusOwner, listaNombres));
-
-        if (focoEnAreaMiniaturas || focoEnListaNombres) {
-            boolean consumed = false;
-            switch (e.getKeyCode()) {
-                case KeyEvent.VK_UP: case KeyEvent.VK_LEFT:
-                    this.navegarAnterior();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_DOWN: case KeyEvent.VK_RIGHT:
-                    this.navegarSiguiente();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_HOME:
-                    this.navegarPrimero();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_END:
-                    this.navegarUltimo();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_PAGE_UP:
-                    this.navegarBloqueAnterior();
-                    consumed = true;
-                    break;
-                case KeyEvent.VK_PAGE_DOWN:
-                    this.navegarBloqueSiguiente();
-                    consumed = true;
-                    break;
-            }
-            if (consumed) {
-                e.consume();
-                return true;
-            }
-        }
-        
-        return false;
-    }// --- Fin del método dispatchKeyEvent ---
+    
     
     
 
@@ -1709,19 +1251,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- FIN del metodo navegarBloqueSiguiente ---
     
 
-    /**
-     * Helper para la navegación con rueda del ratón en listas (si no hay modificadores).
-     * Mueve el selector de la lista en lugar del scroll.
-     * Lógica movida de VisorController.
-     */
-    private void navegarSiguienteOAnterior(int wheelRotation) { // MÉTODO AÑADIDO (HELPER PRIVADO)
-        if (wheelRotation < 0) { // Rueda hacia arriba
-            navegarAnterior();
-        } else { // Rueda hacia abajo
-            navegarSiguiente();
-        }
     
-    }// --- FIN del metodo navegarSiguienteOAnterior ---
     
 
     @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
@@ -1758,48 +1288,21 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     }// --- FIN del metodo aplicarPan ---
     
 
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
+    @Override
     public void iniciarPaneo(MouseEvent e) {
-        // En GeneralController, almacenamos lastMouseX/Y para el cálculo de delta en continuarPaneo.
-        // Luego delegamos al controlador de modo, quien llamará al ZoomManager para iniciar el paneo.
-        this.lastMouseX = e.getX(); // MODIFICACIÓN CLAVE: GeneralController mantiene el estado del ratón para el paneo
-        this.lastMouseY = e.getY(); // MODIFICACIÓN CLAVE
-
+        // La lógica de guardar las coordenadas ahora vive en GlobalInputManager.
+        // Este método solo delega la notificación al controlador de modo activo.
         if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
             visorController.iniciarPaneo(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
             projectController.iniciarPaneo(e);
         } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
-        	visorController.iniciarPaneo(e);
+            visorController.iniciarPaneo(e);
         }
         
-        logger.debug("[GeneralController] Delegando iniciarPaneo a " + model.getCurrentWorkMode());
-    
-    }// --- FIN del metodo iniciarPaneo ---
+        logger.debug("[GeneralController] Delegando notificación de iniciarPaneo a {}", model.getCurrentWorkMode());
+    } // --- FIN del metodo iniciarPaneo ---
 
-    
-    @Override // ESTO ES UNA IMPLEMENTACIÓN DE LA INTERFAZ IModoController
-    public void continuarPaneo(MouseEvent e) {
-        // Calculamos el delta de movimiento y actualizamos lastMouseX/Y aquí.
-        int deltaX = e.getX() - this.lastMouseX; // MODIFICACIÓN CLAVE
-        int deltaY = e.getY() - this.lastMouseY; // MODIFICACIÓN CLAVE
-        this.lastMouseX = e.getX();
-        this.lastMouseY = e.getY();
-
-        // Luego delegamos la acción de aplicar el pan con los deltas calculados.
-        if (model.getCurrentWorkMode() == VisorModel.WorkMode.VISUALIZADOR) {
-            visorController.aplicarPan(deltaX, deltaY);
-        } else if (model.getCurrentWorkMode() == VisorModel.WorkMode.PROYECTO) {
-            projectController.aplicarPan(deltaX, deltaY);
-        }else if (model.getCurrentWorkMode() == VisorModel.WorkMode.CARROUSEL) {
-        	visorController.aplicarPan(deltaX, deltaY);
-        }
-        
-        
-        logger.debug("[GeneralController] Delegando continuarPaneo a " + model.getCurrentWorkMode());
-    
-    }// --- FIN del metodo continuarPaneo ---
-    
     
     /**
      * Notifica a todas las acciones sensibles al contexto para que actualicen su estado 'enabled'.
@@ -1950,15 +1453,15 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     public void solicitarCargaDesdeNuevaRaiz(Path nuevaCarpeta, String claveASeleccionar) {
         logger.debug("--->>> [GeneralController] Solicitud para cargar desde nueva raíz: " + nuevaCarpeta);
 
-        if (persistente_activo) {
-            logger.info("[GC] Carga de nueva carpeta. Limpiando estado de filtro persistente.");
-            filterManager.clearFilters();
-            persistente_activo = false;
-            persistente_punteroOriginalKey = null;
+        // --- INICIO DE LA CORRECCIÓN ---
+        // 1. Delegar el reseteo de CUALQUIER tipo de filtro (persistente o en vivo) al FilterManager.
+        if (filterManager.isFilterActive()) {
+             filterManager.resetPersistentFilterState();
         }
         if (model.isLiveFilterActive()) {
             onLiveFilterStateChanged(false);
         }
+        // --- FIN DE LA CORRECCIÓN ---
 
         if (nuevaCarpeta == null || !Files.isDirectory(nuevaCarpeta)) { return; }
         if (model == null || visorController == null || displayModeManager == null) { return; }
@@ -1969,12 +1472,8 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         Runnable accionPostCarga = () -> {
             logger.debug("  [Callback Post-Carga de Nueva Raíz] Tarea de carga finalizada.");
             
-            if (model != null && model.getModeloLista() != null) {
-                this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
-                logger.info("[GC] Contexto Maestro Inmutable capturado. Tamaño: " + this.persistente_listaMaestraOriginal.getSize());
-            } else {
-                this.persistente_listaMaestraOriginal = null;
-            }
+            // La lógica de capturar la lista maestra original se ha movido al FilterManager.
+            // Ya no es necesario hacerlo aquí.
             
             this.sincronizarTodaLaUIConElModelo();
             
@@ -1993,16 +1492,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         this.imageListManager.cargarListaImagenes(claveASeleccionar, accionPostCarga);
         
     } // --- Fin del método solicitarCargaDesdeNuevaRaiz (con preselección) ---
-    
-    
-    private DefaultListModel<String> clonarModelo(DefaultListModel<String> original) {
-        if (original == null) return null;
-        DefaultListModel<String> copia = new DefaultListModel<>();
-        for (int i = 0; i < original.getSize(); i++) {
-            copia.addElement(original.getElementAt(i));
-        }
-        return copia;
-    }// --- Fin del método helper clonarModelo ---
     
     
     
@@ -2285,73 +1774,21 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
 
     
     /**
-     * Reacciona a los cambios en el campo de texto cuando el filtro en vivo está activo.
-     * Gestiona un criterio de filtro temporal (Tornado) sin destruir los filtros persistentes.
+     * Es llamado por la ToggleLiveFilterAction. Delega el cambio de estado
+     * al FilterManager y luego sincroniza la UI de los controles relacionados.
+     * @param isSelected El nuevo estado del modo filtro.
      */
-    private void actualizarFiltro() {
-        if (!model.isLiveFilterActive() || this.masterModelSinFiltro == null) return;
-
-        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
-        if (searchField == null) return;
-        String searchText = searchField.getText().equals("Texto a buscar...") ? "" : searchField.getText();
-
-        // 1. Gestionar el ciclo de vida del criterio Tornado
-        // Si ya existía un filtro Tornado, lo eliminamos del manager antes de crear uno nuevo.
-        if (this.tornadoCriterion != null) {
-            filterManager.removeFilter(this.tornadoCriterion);
-            this.tornadoCriterion = null;
-        }
-
-        // Si hay texto, creamos y añadimos el nuevo filtro Tornado.
-        if (!searchText.isBlank()) {
-            this.tornadoCriterion = new FilterCriterion(searchText, FilterSource.FILENAME, FilterType.CONTAINS);
-            filterManager.addFilter(this.tornadoCriterion);
-        }
-
-        // 2. Generamos el contenido filtrado a partir de nuestra copia maestra.
-        // Ahora FilterManager aplicará los filtros persistentes + el nuevo filtro Tornado.
-        DefaultListModel<String> filteredContent = filterManager.applyFilters(this.masterModelSinFiltro);
-
-        // 3. Obtenemos el modelo de lista QUE ESTÁ EN USO y modificamos su contenido
-        DefaultListModel<String> modeloEnUso = model.getModeloLista();
-        modeloEnUso.clear();
-        modeloEnUso.addAll(Collections.list(filteredContent.elements()));
-
-        // 4. Reiniciamos el coordinador.
-        visorController.getListCoordinator().reiniciarYSeleccionarIndice(modeloEnUso.isEmpty() ? -1 : 0);
-            
-    } // --- Fin del método actualizarFiltro ---
-    
-
-    /**
-     * Restaura la JList de nombres y limpia el estado del filtro Tornado.
-     */
-    private void limpiarFiltro() {
-        if (this.masterModelSinFiltro == null) return;
-
-        // --- INICIO DE LA MODIFICACIÓN ---
-        // 1. Si existe un filtro Tornado activo, lo eliminamos del gestor.
-        if (this.tornadoCriterion != null && filterManager != null) {
-            filterManager.removeFilter(this.tornadoCriterion);
-            this.tornadoCriterion = null;
-        }
-        // --- FIN DE LA MODIFICACIÓN ---
-
-        // 2. Obtenemos el modelo de lista QUE ESTÁ EN USO
-        DefaultListModel<String> modeloEnUso = model.getModeloLista();
+    public void onLiveFilterStateChanged(boolean isSelected) {
+        // 1. Delegar la lógica de negocio al manager
+        filterManager.setLiveFilterActive(isSelected);
         
-        // 3. Restauramos su contenido a partir de nuestra copia maestra
-        modeloEnUso.clear();
-        modeloEnUso.addAll(Collections.list(this.masterModelSinFiltro.elements()));
-        
-        // 4. Le decimos al coordinador que vuelva al índice que teníamos guardado.
-        visorController.getListCoordinator().reiniciarYSeleccionarIndice(this.indiceSeleccionadoAntesDeFiltrar);
-
-        // 5. Limpiamos nuestra copia de seguridad.
-        this.masterModelSinFiltro = null;
-        this.indiceSeleccionadoAntesDeFiltrar = -1;
-        
-    } // --- Fin del método limpiarFiltro ---
+        // 2. Mantener la lógica de sincronización de UI en el controlador
+        Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
+        if (configAppManager != null && liveFilterAction != null) {
+            configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
+            sincronizarEstadoControlesTornado();
+        }
+    } // --- Fin del método onLiveFilterStateChanged ---
     
     
     /**
@@ -2360,17 +1797,19 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
      * @param type El tipo de filtro (CONTAINS o DOES_NOT_CONTAIN).
      */
     public void solicitarAnadirFiltro(FilterSource source, FilterType type) {
-    	
-    	limpiarEstadoFiltroRapidoSiActivo();
-    	
+        limpiarEstadoFiltroRapidoSiActivo();
+        
         javax.swing.JTextField tf = registry.get("textfield.filtro.texto");
         if (tf == null || tf.getText().isBlank()) return;
         
-        filterManager.addFilter(new FilterCriterion(tf.getText(), this.filtroActivoSource, type));
+        // --- INICIO CORRECCIÓN ---
+        // Obtenemos el tipo de filtro activo DESDE el FilterManager
+        filterManager.addFilter(new FilterCriterion(tf.getText(), filterManager.getFiltroActivoSource(), type));
+        // --- FIN CORRECCIÓN ---
         
         tf.setText("");
         
-        gestionarFiltroPersistente();
+        filterManager.gestionarFiltroPersistente();
 
     } // --- Fin del método solicitarAnadirFiltro ---
 
@@ -2385,7 +1824,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         if (filterList == null || filterList.getSelectedValue() == null) return;
 
         filterManager.removeFilter(filterList.getSelectedValue());
-        gestionarFiltroPersistente();
+        filterManager.gestionarFiltroPersistente();
     } // --- Fin del método solicitarEliminarFiltroSeleccionado ---
 
     
@@ -2397,8 +1836,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     	limpiarEstadoFiltroRapidoSiActivo();
     	
         filterManager.clearFilters();
-        this.tornadoCriterion = null; // Aseguramos que la referencia se anule también.
-        gestionarFiltroPersistente();
+        filterManager.gestionarFiltroPersistente();
         
     } // --- Fin del método solicitarLimpiarTodosLosFiltros ---
     
@@ -2426,110 +1864,15 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- Fin del método limpiarEstadoFiltroRapidoSiActivo ---
     
     
-    private void gestionarFiltroPersistente() {
-        // Su única responsabilidad ahora es llamar al método de refresco.
-        // Toda la lógica de checkpoint está ahora dentro de refrescarConFiltrosPersistentes.
-        refrescarConFiltrosPersistentes();
-    } // --- Fin del método gestionarFiltroPersistente ---
-    
-    
-    /**
-     * NUEVO MÉTODO CENTRALIZADO
-     * La única función que aplica el filtro persistente y actualiza la UI.
-     */
-    private void refrescarConFiltrosPersistentes() {
-        // Actualiza la UI de la lista de filtros (esto siempre es necesario)
-        JList<FilterCriterion> filterListUI = registry.get("list.filtrosActivos");
-        if (filterListUI != null) {
-            // --- INICIO DE LA CORRECCIÓN ---
-            // Obtenemos el modelo que YA tiene la JList.
-            DefaultListModel<FilterCriterion> modelUI;
-            if (filterListUI.getModel() instanceof DefaultListModel) {
-                modelUI = (DefaultListModel<FilterCriterion>) filterListUI.getModel();
-            } else {
-                // Si por alguna razón no tiene un DefaultListModel, creamos uno y lo asignamos.
-                modelUI = new DefaultListModel<>();
-                filterListUI.setModel(modelUI);
-            }
-            
-            // Limpiamos el modelo existente y añadimos los filtros actualizados.
-            // Esto notifica correctamente a la JList para que se repinte.
-            modelUI.clear();
-            modelUI.addAll(filterManager.getActiveFilters());
-            // --- FIN DE LA CORRECCIÓN ---
-        }
-
-        // El resto del método se queda exactamente igual.
-        if (filterManager.isFilterActive()) {
-            if (!persistente_activo) {
-                this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
-                this.persistente_punteroOriginalKey = model.getSelectedImageKey();
-                this.persistente_activo = true;
-            }
-            DefaultListModel<String> listaFiltrada = filterManager.applyFilters(this.persistente_listaMaestraOriginal);
-            actualizarListaVisibleConResultado(listaFiltrada, 0, false);
-        } else { 
-            if (persistente_activo) {
-                DefaultListModel<String> listaRestaurada = this.persistente_listaMaestraOriginal;
-                int indiceOriginal = (persistente_punteroOriginalKey != null) 
-                                   ? listaRestaurada.indexOf(persistente_punteroOriginalKey) : -1;
-                final int indiceFinal = (indiceOriginal != -1) ? indiceOriginal : 0;
-                actualizarListaVisibleConResultado(listaRestaurada, indiceFinal, true);
-                this.persistente_listaMaestraOriginal = null;
-                this.persistente_punteroOriginalKey = null;
-                this.persistente_activo = false;
-            }
-        }
-    } // ---FIN de metodo refrescarConFiltrosPersistentes---
-    
-    
     /**
      * Cambia el tipo de filtro que se usará al añadir un nuevo criterio.
      * Es llamado por las Actions de los JToggleButtons de tipo de filtro.
      * @param nuevoSource El nuevo FilterSource a establecer como activo.
      */
     public void solicitarCambioTipoFiltro(FilterSource nuevoSource) {
-        if (this.filtroActivoSource != nuevoSource) {
-            this.filtroActivoSource = nuevoSource;
-            logger.debug("[GeneralController] Tipo de filtro activo cambiado a: {}", nuevoSource);
-            
-            // Aquí podrías añadir una notificación en la barra de estado si quisieras
-            // statusBarManager.mostrarMensajeTemporal("Filtrar por: " + nuevoSource.toString(), 2000);
-        }
+        // La lógica y el estado ahora son gestionados por FilterManager
+        filterManager.setFiltroActivoSource(nuevoSource);
     } // --- Fin del método solicitarCambioTipoFiltro ---
-    
-    
-    /**
-     * Actualiza la JList visible modificando el contenido de su modelo actual
-     * y reinicia el coordinador en la posición deseada.
-     * @param nuevaLista El nuevo contenido para la lista.
-     * @param indiceASeleccionar El índice que se debe seleccionar tras la actualización.
-     */
-    private void actualizarListaVisibleConResultado(DefaultListModel<String> nuevaLista, int indiceASeleccionar, boolean resetearCheckpoint) {
-        DefaultListModel<String> modeloEnUso = model.getModeloLista();
-        
-        final int finalIndice = indiceASeleccionar;
-
-        SwingUtilities.invokeLater(() -> {
-            // Técnica Tornado: modificar el modelo existente.
-            modeloEnUso.clear();
-            modeloEnUso.addAll(Collections.list(nuevaLista.elements()));
-            
-            // Actualizar el título
-            String titulo = filterManager.isFilterActive() ? "Archivos (Filtro): " : "Archivos: ";
-            visorController.getView().setTituloPanelIzquierdo(titulo + modeloEnUso.getSize());
-            
-            // Reiniciar el coordinador
-            visorController.getListCoordinator().reiniciarYSeleccionarIndice(finalIndice);
-            
-            if (resetearCheckpoint) {
-                logger.info("[GC] Reseteando estado del checkpoint persistente...");
-                this.persistente_listaMaestraOriginal = null;
-                this.persistente_punteroOriginalKey = null;
-                this.persistente_activo = false;
-            }
-        });
-    } // --- Fin del método actualizarListaVisibleConResultado ---
     
     
     /**
@@ -2566,7 +1909,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         // 4. Llamar a la función de refresco de filtros persistentes.
         //    Esta función ahora leerá la lista de filtros actualizada (los antiguos + el nuevo)
         //    y la aplicará sobre la lista principal (que fue restaurada en el paso 2).
-        refrescarConFiltrosPersistentes();
+        filterManager.refrescarConFiltrosPersistentes();
 
         // 5. Limpiar el campo de texto y sincronizar los botones.
         SwingUtilities.invokeLater(() -> searchField.setText(""));
@@ -2606,38 +1949,6 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // ---FIN de metodo sincronizarEstadoControlesTornado---
     
     
-    /**
-     * Es llamado por la ToggleLiveFilterAction cuando el estado del filtro cambia.
-     * Orquesta la actualización de la UI aplicando o limpiando el filtro.
-     * @param isSelected El nuevo estado del modo filtro.
-     */
-    public void onLiveFilterStateChanged(boolean isSelected) {
-        model.setLiveFilterActive(isSelected);
-        logger.debug("[GeneralController] Modo Filtro en Vivo cambiado a: {}", isSelected);
-        
-        if (isSelected) {
-            // Guardamos el estado original ANTES de aplicar el primer filtro
-            this.masterModelSinFiltro = new DefaultListModel<>();
-            DefaultListModel<String> modeloActual = model.getModeloLista();
-            for(int i = 0; i < modeloActual.getSize(); i++){
-                this.masterModelSinFiltro.addElement(modeloActual.getElementAt(i));
-            }
-            this.indiceSeleccionadoAntesDeFiltrar = visorController.getListCoordinator().getOfficialSelectedIndex();
-            
-            actualizarFiltro(); // Aplicar filtro con el texto actual
-        } else {
-            limpiarFiltro(); // Volver a la lista maestra
-        }
-        
-        Action liveFilterAction = actionMap.get(AppActionCommands.CMD_FILTRO_TOGGLE_LIVE_FILTER);
-        if (configAppManager != null && liveFilterAction != null) {
-            configAppManager.actualizarAspectoBotonToggle(liveFilterAction, isSelected);
-            sincronizarEstadoControlesTornado();
-        }
-        
-    } // --- Fin del método onLiveFilterStateChanged ---
-    
-    
     public void handleFilterListClick(java.awt.event.MouseEvent e, controlador.managers.filter.FilterCriterion criterion) {
         JList<controlador.managers.filter.FilterCriterion> filterList = registry.get("list.filtrosActivos");
         if (filterList == null || criterion == null) {
@@ -2664,7 +1975,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                     "¿Deseas eliminar este filtro?", "Confirmar Eliminación", javax.swing.JOptionPane.YES_NO_OPTION);
             if (confirm == javax.swing.JOptionPane.YES_OPTION) {
                 filterManager.removeFilter(criterion);
-                gestionarFiltroPersistente();
+                filterManager.gestionarFiltroPersistente();
             }
 
         } else if (renderer.getLogicLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
@@ -2673,7 +1984,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                     ? controlador.managers.filter.FilterCriterion.Logic.NOT
                     : controlador.managers.filter.FilterCriterion.Logic.ADD);
             filterList.repaint();
-            gestionarFiltroPersistente();
+            filterManager.gestionarFiltroPersistente();
 
         } else if (renderer.getTypeLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
             // --- Clic en la zona de TIPO ---
@@ -2683,7 +1994,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
                 item.addActionListener(ae -> {
                     criterion.setSourceType(type);
                     filterList.repaint();
-                    gestionarFiltroPersistente();
+                    filterManager.gestionarFiltroPersistente();
                 });
                 typeMenu.add(item);
             }
@@ -2712,7 +2023,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
             if (newValue != null && !newValue.equals(criterion.getValue())) {
                 criterion.setValue(newValue); // Ahora podemos hacer esto porque 'value' ya no es final
                 filterList.repaint();
-                gestionarFiltroPersistente();
+                filterManager.gestionarFiltroPersistente();
             }
         }
     } // ---FIN de metodo handleFilterListClick---
@@ -2725,7 +2036,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
         filterManager.addFilter(new FilterCriterion());
         
         // Refresca la UI para que se muestre la nueva fila editable
-        gestionarFiltroPersistente(); 
+        filterManager.gestionarFiltroPersistente(); 
     } // ---FIN de metodo solicitarAnadirFiltro---
     
     
@@ -2834,7 +2145,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     }
     
     public FilterSource getFiltroActivoSource() {
-        return this.filtroActivoSource;
+        return filterManager.getFiltroActivoSource();
     } // --- Fin del método getFiltroActivoSource ---
 
 
@@ -2882,20 +2193,7 @@ public class GeneralController implements IModoController, KeyEventDispatcher, P
     } // --- Fin del método onMasterListChanged ---
     
     
-    private void registerFocusablePanel(String registryKey) {
-        javax.swing.JComponent panel = registry.get(registryKey);
-        if (panel != null) {
-            focusablePanels.add(panel);
-        } else {
-            logger.warn("[FOCUS_INIT] No se pudo registrar el panel para foco: '{}'", registryKey);
-        }
-    } // --- FIN de metodo registerFocusablePanel ---
-    
-    
     public void setImageListManager(ImageListManager imageListManager) { this.imageListManager = imageListManager; }
-    
-    
-    
     
     
 } // --- Fin de la clase GeneralController ---

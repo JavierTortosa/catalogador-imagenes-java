@@ -1,4 +1,3 @@
-
 1. - OBJETIVO DE ESTA SESIÓN:
 [Aquí describes qué quieres lograr hoy. Ej: "Implementar la lógica para que el botón 'Exportar a PDF' genere un archivo con los datos de la tabla de clientes."]
 
@@ -1575,72 +1574,7 @@ Este documento describe el flujo de datos y los mecanismos de seguridad implemen
 ==================================================================================================================================================================      
 
 
-## ANÁLISIS DE MEJORAS POTENCIALES PARA EL CÓDIGO ##
 
-Basado en el análisis del código, estos son los puntos que representan oportunidades de mejora para hacer el proyecto más robusto, mantenible y escalable.
-
----
-### 1. Arquitectura y Diseño ###
-
-*   **El Punto: El "Dios Controlador" (`VisorController`)**
-    *   **Observación:** `VisorController` tiene una cantidad muy grande de responsabilidades, siguiendo el patrón "God Object".
-    *   **La Mejora:** Continuar delegando responsabilidades a clases especializadas (Managers). `VisorController` debe evolucionar hacia un rol de puro orquestador.
-    *   **Sugerencia Concreta:**
-        1.  **Crear un `GlobalKeyboardManager`:** Centralizar toda la lógica del `KeyEventDispatcher` y los atajos de teclado globales.
-        2.  **Crear un `ContextMenuManager`:** Centralizar la lógica para crear y mostrar los `JPopupMenu` de la aplicación.
-        3.  **Delegar más a `GeneralController`:** Podría ser el responsable de orquestar la sincronización completa de la UI cuando se cambia de modo.
-
-*   **El Punto: Inyección de Dependencias Manual**
-    *   **Observación:** `AppInitializer` realiza un "cableado" manual de todas las dependencias, lo cual es propenso a errores de `NullPointerException` si se olvida alguna inyección en el futuro.
-    *   **La Mejora (A Largo Plazo):** Considerar el uso de un framework de Inyección de Dependencias (DI) como Google Guice o Dagger.
-    *   **Beneficio:** Reduce drásticamente el código de inicialización, previene errores en tiempo de ejecución por dependencias no satisfechas y hace que la arquitectura sea más explícita y fácil de seguir.
-
----
-### 2. Rendimiento ###
-
-*   **El Punto: Creación de Miniaturas "Just-in-Time"**
-    *   **Observación:** La creación de una miniatura ocurre la primera vez que se necesita, lo que puede causar un pequeño "tirón" (stuttering) al hacer scroll rápido por imágenes nuevas.
-    *   **La Mejora:** Implementar un sistema de **pre-cacheo persistente en segundo plano**.
-    *   **Sugerencia Concreta:**
-        1.  Al abrir una carpeta por primera vez, lanzar un `SwingWorker` de baja prioridad que genere todas las miniaturas.
-        2.  Guardar estas miniaturas en un directorio de caché persistente en el disco (ej. `~/.miVisorImagenesApp/cache/thumbnails/`).
-        3.  En arranques posteriores, `ThumbnailService` cargaría las miniaturas desde este caché de disco, lo cual es mucho más rápido que generarlas desde el archivo original.
-
----
-### 3. Mantenibilidad y Legibilidad ###
-
-*   **El Punto: "Magic Strings" para el Registro de Componentes**
-    *   **Observación:** El uso de claves de texto libre (ej. `registry.get("list.grid.proyecto")`) es propenso a errores de tipeo que el compilador no puede detectar.
-    *   **La Mejora:** Centralizar todas las claves en una clase de constantes.
-    *   **Sugerencia Concreta:**
-        *   Crear una clase `public final class ComponentRegistryKeys`.
-        *   Definir constantes estáticas: `public static final String LIST_GRID_PROYECTO = "list.grid.proyecto";`.
-        *   Usar `registry.get(ComponentRegistryKeys.LIST_GRID_PROYECTO)` en el código.
-        *   **Beneficio:** Autocompletado del IDE, prevención de errores y refactorización segura.
-
-*   **El Punto: `actionPerformed` en `VisorController`**
-    *   **Observación:** `VisorController` todavía maneja la lógica para algunos `JMenuItem` que no tienen una clase `Action` dedicada.
-    *   **La Mejora:** Adherirse estrictamente al principio de "una clase `Action` por cada acción del usuario".
-    *   **Sugerencia Concreta:**
-        *   Revisar el `switch` en `actionPerformed` y crear las clases `Action` que falten (ej. `ShowVersionAction`, `RestoreDefaultConfigAction`).
-        *   **Beneficio:** El código se vuelve más cohesivo y los controladores se mantienen más limpios y enfocados.
-
----
-### 4. Experiencia de Usuario (UX) ###
-
-*   **El Punto: Feedback al Usuario**
-    *   **Observación:** La aplicación se beneficiaría de un feedback más consistente tras las acciones del usuario.
-    *   **La Mejora:** Sistematizar el uso de la barra de estado para notificaciones.
-    *   **Sugerencia Concreta:**
-        1.  Utilizar `InfobarStatusManager.mostrarMensajeTemporal()` para confirmar acciones exitosas (Guardado, Copiado, etc.).
-        2.  Reservar los `JOptionPane` para preguntas o errores que requieran la atención del usuario.
-
-*   **El Punto: Responsividad en Entradas de Texto (Filtros)**
-    *   **Observación:** Aplicar un filtro en cada pulsación de tecla puede ser lento con listas grandes.
-    *   **La Mejora:** Implementar un "debounce" en la entrada del filtro para mejorar la fluidez.
-    *   **Sugerencia Concreta:**
-        *   Usar un `javax.swing.Timer` que se reinicia con cada pulsación de tecla.
-        *   El filtro solo se aplica cuando el usuario deja de escribir durante un breve periodo (ej. 300ms), evitando trabajo innecesario durante la escritura rápida.
         
 **********************************************************************************************************************************************
 

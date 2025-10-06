@@ -226,6 +226,20 @@ public class ProjectBuilder implements ThemeChangeListener {
         registry.register("panel.proyecto.display", singleImageViewPanel);
         registry.register("label.proyecto.imagen", singleImageViewPanel.getInternalLabel(), "WHEEL_NAVIGABLE");
         singleImageViewPanel.setBorder(BorderFactory.createTitledBorder(""));
+
+        // --- INICIO DE LA CORRECCIÓN DE FOCO PARA MODO PROYECTO ---
+        singleImageViewPanel.setFocusable(true);
+
+        java.awt.event.MouseAdapter focusRequester = new java.awt.event.MouseAdapter() {
+            @Override
+            public void mousePressed(java.awt.event.MouseEvent e) {
+                singleImageViewPanel.requestFocusInWindow();
+            }
+        };
+
+        singleImageViewPanel.addMouseListener(focusRequester);
+        singleImageViewPanel.getInternalLabel().addMouseListener(focusRequester);
+        // --- FIN DE LA CORRECCIÓN DE FOCO ---
         
         // Creamos el listener una sola vez para reutilizarlo
         java.awt.event.MouseAdapter sharedContextMenuListener = new java.awt.event.MouseAdapter() {

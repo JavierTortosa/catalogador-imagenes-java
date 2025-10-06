@@ -781,12 +781,12 @@ public void notificarCambioEnProyecto() {
     } // --- Fin del método iniciarPaneo ---
 
     
-    @Override
-    public void continuarPaneo(java.awt.event.MouseEvent e) {
-        if (zoomManager != null && model.isZoomHabilitado()) {
-            zoomManager.continuarPaneo(e);
-        }
-    } // --- Fin del método continuarPaneo ---
+//    @Override
+//    public void continuarPaneo(java.awt.event.MouseEvent e) {
+//        if (zoomManager != null && model.isZoomHabilitado()) {
+//            zoomManager.continuarPaneo(e);
+//        }
+//    } // --- Fin del método continuarPaneo ---
     
     
     @Override

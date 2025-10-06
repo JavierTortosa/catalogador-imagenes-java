@@ -58,10 +58,6 @@ public class VisorView extends JFrame {
     private int miniaturaScrollPaneHeight;
     
     // --- Estado Interno de la Vista (para pintura, etc.) ---
-    private Image imagenReescaladaView; // Usada por paintComponent de etiquetaImagen
-    private double zoomFactorView = 1.0;
-    private int imageOffsetXView = 0;
-    private int imageOffsetYView = 0;
     private boolean fondoACuadrosActivado = false;
     
     private controlador.VisorController controller;
@@ -213,22 +209,18 @@ public class VisorView extends JFrame {
      * actual, cualquier icono de error, o texto de carga.
      * El paintComponent dibujará el fondo (a cuadros o sólido).
      */
-    public void limpiarImagenMostrada() {
-        if (this.etiquetaImagen == null) return;
+     public void limpiarImagenMostrada() {
+    	    if (this.etiquetaImagen == null) return;
 
-        // this.errorAlCargarImagenActual = false; // Si usas un flag para paintComponent
-        this.imagenReescaladaView = null; // No hay imagen para paintComponent
-        this.zoomFactorView = 1.0;
-        this.imageOffsetXView = 0;
-        this.imageOffsetYView = 0;
+    	    // Limpiar cualquier texto o icono de error/carga del JLabel
+    	    this.etiquetaImagen.setText(null);
+    	    this.etiquetaImagen.setIcon(null);
 
-        // Limpiar cualquier texto o icono de error/carga del JLabel
-        this.etiquetaImagen.setText(null);
-        this.etiquetaImagen.setIcon(null);
-
-        this.etiquetaImagen.repaint(); // paintComponent dibujará el fondo
-        
-    } // Fin del metodo limpiarImagenMostrada 
+    	    // Pedir repintado. El panel de imagen leerá del modelo y, al no haber imagen,
+    	    // dibujará solo el fondo.
+    	    this.etiquetaImagen.repaint();
+    	    
+    	} // Fin del metodo limpiarImagenMostrada
 
 
     /**
@@ -360,7 +352,6 @@ public class VisorView extends JFrame {
         String mensajeAMostrar = (mensaje != null && !mensaje.trim().isEmpty()) ? mensaje : "Cargando...";
 
         // 2. Modificar el estado interno de la vista (esto es correcto, ya que afecta al paintComponent).
-        this.imagenReescaladaView = null; // No hay imagen para dibujar mientras se carga.
 
         // 3. Modificar el componente JLabel obtenido del registro.
         etiquetaImagen.setIcon(null);
@@ -506,11 +497,6 @@ public class VisorView extends JFrame {
         }
     } // --- FIN del metodo addEtiquetaImagenMouseMotionListener
     
-    public Image getImagenReescaladaView() {
-        return this.imagenReescaladaView;
-    } // --- FIN del metodo getImagenReescaladaView
-
-   
     // Getters para la barra de botones
     public JPanel getPanelDeBotones() {return this.panelDeBotones; }
     public Map<String, JToolBar> getToolbars() {return this.barrasDeHerramientas;}

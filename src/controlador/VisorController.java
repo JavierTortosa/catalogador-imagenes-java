@@ -7,7 +7,6 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -32,16 +31,13 @@ import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.InputMap;
-import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -71,7 +67,6 @@ import controlador.managers.interfaces.IListCoordinator;
 import controlador.managers.interfaces.IViewManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
-
 import modelo.VisorModel;
 import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
@@ -92,7 +87,7 @@ import vista.util.IconUtils;
  * Controlador principal para el Visor de Imágenes (Versión con 2 JList sincronizadas).
  * Orquesta la interacción entre Modelo y Vista, maneja acciones y lógica de negocio.
  */
-public class VisorController implements IModoController, ActionListener, ThemeChangeListener  {
+public class VisorController implements IModoController, ThemeChangeListener {
 	
 	private static final Logger logger = LoggerFactory.getLogger(VisorController.class);
 
@@ -1670,177 +1665,7 @@ public class VisorController implements IModoController, ActionListener, ThemeCh
      }// FIN del metodo cambiarTemaYNotificar
        
 
-    /**
-     * Manejador central de eventos para componentes que NO utilizan directamente
-     * el sistema de Actions de Swing (p.ej., JMenuItems a los que se les añadió
-     * 'this' como ActionListener en addFallbackListeners por MenuBarBuilder)
-     * o para acciones muy específicas que no justificaban una clase Action separada.
-     *
-     * Prioriza el manejo de los checkboxes para la visibilidad de los botones de la toolbar.
-     * Si no es uno de esos, pasa a un switch para otros comandos fallback.
-     *
-     * @param e El ActionEvent generado por el componente Swing.
-     */
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        // 1. --- LOGG INICIAL DETALLADO ---
-        //     Ayuda a depurar qué componente y comando dispararon el evento.
-        logActionInfo(e);
-
-        // 2. --- OBTENER INFORMACIÓN DEL EVENTO ---
-        Object source = e.getSource();         // El JMenuItem que fue clickeado.
-        String command = e.getActionCommand(); // El ActionCommand configurado para ese JMenuItem.
-
-        // 2.1. Validar que el comando no sea nulo.
-        if (command == null) {
-            logger.warn("WARN [VisorController.actionPerformed]: ActionCommand es null para la fuente: " +
-                               (source != null ? source.getClass().getSimpleName() : "null") +
-                               ". No se puede procesar.");
-            return;
-        }
-        
-        // 4. --- MANEJO DE OTROS COMANDOS (FALLBACK GENERAL o para ítems de menú que usan VisorController como listener directo) ---
-        //    Si el código llega aquí, el evento NO FUE de un checkbox de "Visualizar Botones Toolbar".
-        //    El 'command' aquí será el AppActionCommands.CMD_... si el JMenuItem fue configurado
-        //    con un comando de ese tipo pero SIN una Action directa del actionMap.
-        logger.debug("[VC.actionPerformed General Switch] Procesando comando fallback/directo: '" + command + "'");
-
-        // Manejo genérico para todos los comandos de cambio de tema.
-        if (command.startsWith(AppActionCommands.CMD_TEMA_PREFIX)) {
-            // Extraemos el ID del tema del comando.
-            // Ej: "cmd.tema.custom_deepoceanmejorado" -> "custom_deepoceanmejorado"
-            String themeId = command.substring(AppActionCommands.CMD_TEMA_PREFIX.length());
-            
-            logger.debug("    -> Acción: Cambiar Tema. ID extraído: '{}'", themeId);
-            
-            // Llamamos al ThemeManager para que aplique el tema.
-            // El 'true' es para que se repinte la UI y se notifique a los listeners.
-            if (this.themeManager != null) {
-                this.themeManager.setTemaActual(themeId, true);
-            } else {
-                logger.error("ERROR: ThemeManager es nulo. No se puede cambiar el tema.");
-            }
-            // No necesitamos un 'break' porque este if está fuera del switch.
-            return; // Hemos manejado la acción, podemos salir del método.
-        }
-        
-        switch (command) {
-            // 4.1. --- Configuración ---
-	        case AppActionCommands.CMD_CONFIG_GUARDAR:
-	            logger.debug("    -> Acción: Guardar Configuración Actual");
-	            // ¡OJO! Este método ahora solo guarda la configuración, no el estado del proyecto.
-	            if (generalController != null) {
-	                // Creamos un nuevo método en GeneralController para esto
-	                generalController.handleSaveConfiguration(); 
-	            }
-	            break;
-            case AppActionCommands.CMD_CONFIG_CARGAR_INICIAL:
-            	
-            	logger.debug("    -> Acción: Restaurar Configuración por Defecto");
-                // <<< CAMBIO CLAVE >>>
-                if (this.configAppManager != null) {
-                    this.configAppManager.restaurarConfiguracionPredeterminada();
-                    // La notificación al usuario ya puede estar dentro del método del manager.
-                } else {
-                    logger.error("ERROR: ConfigApplicationManager es nulo. No se puede restaurar la configuración.");
-                }
-                break;
-            	
-            // 4.2. --- Zoom ---
-            case AppActionCommands.CMD_ZOOM_PERSONALIZADO: // Para "Establecer Zoom %..." del menú
-                logger.debug("    -> Acción: Establecer Zoom % desde Menú");
-                if (view != null && zoomManager != null) {
-                    String input = JOptionPane.showInputDialog(
-                        view,
-                        "Introduce el porcentaje de zoom deseado (ej: 150):",
-                        "Establecer Zoom Personalizado",
-                        JOptionPane.PLAIN_MESSAGE
-                    );
-
-                    if (input != null && !input.trim().isEmpty()) {
-                        try {
-                            double percentValue = Double.parseDouble(input.replace('%', ' ').trim());
-                            if (percentValue >= 1 && percentValue <= 5000) {
-                                // Llamamos directamente al método orquestador del ZoomManager.
-                                zoomManager.solicitarZoomPersonalizado(percentValue);
-                            } else {
-                                JOptionPane.showMessageDialog(view, "Porcentaje inválido.", "Error de Entrada", JOptionPane.ERROR_MESSAGE);
-                            }
-                        } catch (NumberFormatException ex) {
-                            JOptionPane.showMessageDialog(view, "Entrada inválida.", "Error de Formato", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }
-                }
-                break;
-
-            // 4.3. --- Carga de Carpetas/Subcarpetas (Radios del Menú) ---
-            //     Estas Actions (SetSubfolderReadModeAction) son responsables de su propia lógica.
-            //     Es muy raro que este 'case' se active si las Actions están bien asignadas.
-            //     Esto actuaría como un fallback si, por alguna razón, el ActionListener
-            //     del JRadioButtonMenuItem fuera 'this' (VisorController) en lugar de su Action.
-            case AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA:
-                logger.debug("    -> Acción (Fallback Radio): Mostrar Solo Carpeta Actual");
-                if (actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA) != null) {
-                    actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_SOLO_CARPETA).actionPerformed(
-                        new ActionEvent(source, ActionEvent.ACTION_PERFORMED, command)
-                    );
-                }
-                break;
-            case AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS:
-                logger.debug("    -> Acción (Fallback Radio): Mostrar Imágenes de Subcarpetas");
-                if (actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS) != null) {
-                    actionMap.get(AppActionCommands.CMD_CONFIG_CARGA_CON_SUBCARPETAS).actionPerformed(
-                        new ActionEvent(source, ActionEvent.ACTION_PERFORMED, command)
-                    );
-                }
-                break;
-
-            // 4.4. --- Comandos de Imagen (Placeholders) ---
-            case AppActionCommands.CMD_IMAGEN_RENOMBRAR:
-                logger.debug("    TODO: Implementar Cambiar Nombre Imagen");
-                break;
-            case AppActionCommands.CMD_IMAGEN_MOVER_PAPELERA:
-                logger.debug("    TODO: Implementar Mover a Papelera");
-                break;
-            case AppActionCommands.CMD_IMAGEN_FONDO_ESCRITORIO:
-                logger.debug("    TODO: Implementar Fondo Escritorio");
-                break;
-            case AppActionCommands.CMD_IMAGEN_FONDO_BLOQUEO:
-                logger.debug("    TODO: Implementar Imagen Bloqueo");
-                break;
-            case AppActionCommands.CMD_IMAGEN_PROPIEDADES:
-                logger.debug("    TODO: Implementar Propiedades Imagen");
-                break;
-            // 4.5. --- Ayuda ---
-            case AppActionCommands.CMD_CONFIG_MOSTRAR_VERSION:
-                logger.debug("    -> Acción: Mostrar Versión");
-                mostrarVersion();
-                break;
-            case AppActionCommands.CMD_ESPECIAL_REFRESCAR_UI:
-            	logger.debug("    -> Acción: Refrescar UI (Delegando a ViewManager)");
-                if (this.viewManager != null) {
-                    this.viewManager.ejecutarRefrescoCompletoUI();
-                } else {
-                    logger.error("ERROR: ViewManager es nulo. No se puede refrescar la UI.");
-                }
-                break;
-                
-            // 4.6. --- Default Case ---
-            default:
-                // Si un JMenuItem (que no sea un JMenu contenedor) tiene este VisorController
-                // como ActionListener y su ActionCommand no coincide con ninguno de los 'case' anteriores.
-                if (source instanceof JMenuItem && !(source instanceof JMenu)) {
-                    logger.warn("  WARN [VisorController.actionPerformed]: Comando fallback no manejado explícitamente: '" + command +
-                                       "' originado por: " + source.getClass().getSimpleName() +
-                                       " con texto: '" + ((JMenuItem)source).getText() + "'");
-                }
-                break;
-        } // Fin del switch general
-        
-    } // --- FIN actionPerformed ---
-
-    
-    /**
+     /**
      * Sincroniza explícitamente el estado visual de los JCheckBoxMenuItems que controlan
      * la visibilidad de los botones de la toolbar.
      * Se asegura de que su estado "seleccionado" coincida con la configuración de visibilidad
@@ -1883,173 +1708,6 @@ public class VisorController implements IModoController, ActionListener, ThemeCh
         }
         logger.debug("[VisorController] Sincronización de checkboxes de visibilidad finalizada.");
     } // --- FIN del método sincronizarEstadoVisualCheckboxesDeBotones ---
-    
-    
-    /**
-     * Muestra un diálogo simple (JOptionPane) con información básica
-     * sobre la versión de la aplicación.
-     * El número de versión y el autor están actualmente hardcodeados,
-     * pero podrían leerse de un archivo de propiedades o de metadatos del MANIFEST.
-     */
-    private void mostrarVersion() {
-        // 1. Definir la información a mostrar
-        //    TODO: Considerar leer estos valores de un archivo externo o MANIFEST.MF
-        String nombreApp = "Visor de Imágenes V2";
-        String version = this.version +"-MVC-SyncLists"; // Ejemplo de número de versión
-        String autor = "(c) 2024 Javier Tortosa"; // ¡Tu nombre aquí!
-        String mensaje = nombreApp + "\nVersión: " + version + "\n" + autor;
-        String tituloDialogo = "Acerca de " + nombreApp;
-
-        // 2. Log (Opcional)
-        logger.debug("[Controller] Mostrando diálogo de versión...");
-
-        // 3. Mostrar el JOptionPane
-        //    - Usamos view.getFrame() como componente padre para centrar el diálogo.
-        //    - message: El texto a mostrar.
-        //    - title: El título de la ventana del diálogo.
-        //    - messageType: El icono a mostrar (INFORMATION_MESSAGE es un icono 'i').
-        JOptionPane.showMessageDialog(
-            (view != null ? view : null), // Componente padre (o null si view no existe)
-            mensaje,                                 // Mensaje a mostrar
-            tituloDialogo,                           // Título de la ventana
-            JOptionPane.INFORMATION_MESSAGE          // Tipo de icono
-        );
-
-        // 4. Log final (Opcional)
-        // logger.debug("  -> Diálogo de versión cerrado.");
-
-    } // --- FIN mostrarVersion ---
-    
-       
-    /**
-     * Imprime en la consola información detallada sobre un ActionEvent recibido.
-     * Útil para depurar y entender qué componente/acción generó un evento.
-     * Intenta obtener la clase de la fuente, el comando de acción, la clave larga
-     * de configuración asociada (si se encuentra) y el nombre del icono (si es un botón).
-     *
-     * @param e El ActionEvent a analizar.
-     */
-    public void logActionInfo(ActionEvent e) {
-        if (e == null) {
-            logger.debug("--- Acción Detectada (Evento Nulo) ---");
-            return;
-        }
-
-        Object source = e.getSource();
-        String commandFromEvent = e.getActionCommand(); // Comando del evento
-        String sourceClass = (source != null) ? source.getClass().getSimpleName() : "null";
-        String sourceId = (source != null) ? " (ID: " + System.identityHashCode(source) + ")" : "";
-
-        // Información adicional a obtener
-        String longConfigKey = findLongKeyForComponent(source);
-        String assignedActionClass = "NINGUNA";
-        String canonicalCommand = "(No aplicable o no encontrado)";
-
-        if (source instanceof AbstractButton) {
-            AbstractButton comp = (AbstractButton) source;
-            Action assignedAction = comp.getAction(); // Obtener Action asignada
-
-            if (assignedAction != null) {
-                assignedActionClass = assignedAction.getClass().getName();
-                Object cmdValue = assignedAction.getValue(Action.ACTION_COMMAND_KEY);
-                if (cmdValue instanceof String) {
-                    canonicalCommand = (String) cmdValue;
-                } else {
-                    canonicalCommand = "(Action sin ACTION_COMMAND_KEY)";
-                }
-            } else {
-                 // Si no hay Action, el comando canónico "esperado" sería el ActionCommand del componente
-                 canonicalCommand = commandFromEvent;
-            }
-        } else {
-             // Si no es un AbstractButton, el comando canónico podría ser el del evento
-             canonicalCommand = commandFromEvent;
-        }
-
-        // Imprimir log formateado
-        logger.info("--- DEBUG: Acción Detectada ---");
-        logger.debug("  > Fuente        : " + sourceClass + sourceId);
-        logger.debug("  > Event Command : " + (commandFromEvent != null ? "'" + commandFromEvent + "'" : "null"));
-        logger.debug("  > Config Key    : " + (longConfigKey != null ? "'" + longConfigKey + "'" : "(No encontrada)"));
-        logger.debug("  > Comando Canon.: " + (canonicalCommand != null ? "'" + canonicalCommand + "'" : "(null)"));
-        logger.debug("  > Action Class  : " + assignedActionClass);
-        logger.debug("------------------------------");
-    }// ---FIN logActionInfo
-    
-
-    /**
-     * Busca en los mapas de botones y menús de la vista para encontrar la
-     * clave de configuración larga asociada a un componente Swing dado.
-     * @param source El componente (JButton, JMenuItem, etc.).
-     * @return La clave larga de configuración (ej. "interfaz.boton.movimiento.Siguiente_48x48")
-     *         o null si no se encuentra o la vista/mapas no están inicializados.
-     */
-    public String findLongKeyForComponent(Object source) {
-        // Validar dependencias
-        if (view == null || !(source instanceof Component)) {
-             // logger.warn("WARN [findLongKey]: Vista nula o fuente no es Componente."); // Log opcional
-            return null;
-        }
-        Component comp = (Component) source;
-
-        // Buscar en botones
-        if (this.botonesPorNombre != null) {
-            for (Map.Entry<String, AbstractButton> entry : this.botonesPorNombre.entrySet()) {
-                if (entry.getValue() == comp) {
-                    return entry.getKey();
-                }
-            }
-        }
-
-        // Buscar en menús
-        if (this.menuItemsPorNombre != null) {
-            for (Map.Entry<String, JMenuItem> entry : this.menuItemsPorNombre.entrySet()) {
-                 if (entry.getValue() == comp) {
-                     return entry.getKey();
-                 }
-            }
-        }
-
-        // Si no se encontró en ninguno de los mapas
-        // logger.debug("INFO [findLongKey]: No se encontró clave larga para: " + source.getClass().getSimpleName()); // Log opcional
-        return null;
-    }
-
-     /**
-     * Intenta inferir el nombre del archivo de icono asociado a un JButton.
-     * Es una heurística simple basada en la clave larga del componente.
-     * @param source El componente fuente (se espera que sea un JButton).
-     * @return El nombre inferido del archivo PNG del icono (ej. "Siguiente_48x48.png")
-     *         o null si no es un JButton, no tiene icono, o no se puede inferir.
-     */
-    public String findIconNameForComponent(Object source) {
-         if (source instanceof JButton) {
-             JButton button = (JButton) source;
-             Icon icon = button.getIcon(); // Obtener el icono actual del botón
-
-             // Proceder solo si el icono es un ImageIcon (no otros tipos de Icon)
-             if (icon instanceof ImageIcon) {
-                 // Intentar obtener la clave larga para inferir el nombre
-                 String longKey = findLongKeyForComponent(source);
-                  if (longKey != null && longKey.startsWith("interfaz.boton.")) {
-                      // Separar la clave por puntos
-                     String[] parts = longKey.split("\\.");
-                     // Si tenemos suficientes partes (interfaz.boton.categoria.nombreBoton)
-                     if (parts.length >= 4) {
-                          // La última parte debería ser el nombre base del icono
-                          return parts[parts.length - 1] + ".png"; // Asumir extensión .png
-                     }
-                 }
-                 // Si no se pudo inferir desde la clave, devolver un mensaje genérico
-                  // return "(Icono: " + ((ImageIcon) icon).getDescription() + ")"; // Opcional: usar descripción si la tiene
-                 return "(Icono presente, nombre no inferido)";
-             }
-             // Si no tiene icono ImageIcon
-             // else { return "(Sin ImageIcon)"; }
-         }
-         // Si no es un JButton
-         return null;
-    }// fin findIconNameForComponent
     
 
     private void cargarVisorNormal() {
@@ -2641,7 +2299,7 @@ public class VisorController implements IModoController, ActionListener, ThemeCh
     public GeneralController getGeneralController() {return this.generalController;}
     public ImageListManager getImageListManager() { return this.imageListManager; }
     public InfobarImageManager getInfobarImageManager() { return this.infobarImageManager; }
-    
+    public String getVersion() {return this.version;}
     
     /**
      * Devuelve el modelo de lista de miniaturas correcto según el modo de trabajo actual.
