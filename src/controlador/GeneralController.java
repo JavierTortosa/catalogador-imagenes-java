@@ -1,6 +1,10 @@
 package controlador;
 
 import java.awt.Component;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
@@ -16,10 +20,12 @@ import java.util.Objects;
 import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
@@ -82,6 +88,7 @@ public class GeneralController implements IModoController, modelo.MasterListChan
     private javax.swing.border.Border sortButtonActiveBorder;
     private javax.swing.border.Border sortButtonInactiveBorder;
     
+    private Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIconsMap;
     private Map<String, Action> actionMap;
     private boolean sortBordersInitialized = false;
     
@@ -1951,92 +1958,63 @@ public class GeneralController implements IModoController, modelo.MasterListChan
     
     public void handleFilterListClick(java.awt.event.MouseEvent e, controlador.managers.filter.FilterCriterion criterion) {
         JList<controlador.managers.filter.FilterCriterion> filterList = registry.get("list.filtrosActivos");
-        if (filterList == null || criterion == null) {
-            return;
-        }
+        if (filterList == null || criterion == null) return;
 
-        int index = filterList.getSelectedIndex();
+        int index = filterList.locationToIndex(e.getPoint());
         if (index == -1) return;
 
-        // Obtenemos una instancia del renderer para usarla para los cálculos
-        vista.renderers.FilterCriterionCellRenderer renderer = (vista.renderers.FilterCriterionCellRenderer) filterList.getCellRenderer()
-                .getListCellRendererComponent(filterList, criterion, index, true, true);
+        Component rendererComponent = filterList.getCellRenderer().getListCellRendererComponent(filterList, criterion, index, true, true);
+        if (!(rendererComponent instanceof vista.renderers.FilterCriterionCellRenderer)) return;
+        vista.renderers.FilterCriterionCellRenderer renderer = (vista.renderers.FilterCriterionCellRenderer) rendererComponent;
 
-        // Obtenemos los límites (x, y, ancho, alto) de la celda completa
         java.awt.Rectangle cellBounds = filterList.getCellBounds(index, index);
-        
-        // Obtenemos las coordenadas del clic RELATIVAS a la celda (no a la lista)
         int clickX = e.getX() - cellBounds.x;
+        int clickY = e.getY() - cellBounds.y;
 
-        // Ahora comprobamos si el clic está DENTRO de los límites de cada label
-        if (renderer.getDeleteLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
-            // --- Clic en la zona de BORRAR ---
+        // --- Lógica de clic SIMPLIFICADA ---
+
+        if (renderer.getDeleteLabel().getBounds().contains(clickX, clickY)) {
+            // Clic en BORRAR
             int confirm = javax.swing.JOptionPane.showConfirmDialog(viewManager.getView(),
                     "¿Deseas eliminar este filtro?", "Confirmar Eliminación", javax.swing.JOptionPane.YES_NO_OPTION);
             if (confirm == javax.swing.JOptionPane.YES_OPTION) {
                 filterManager.removeFilter(criterion);
                 filterManager.gestionarFiltroPersistente();
             }
-
-        } else if (renderer.getLogicLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
-            // --- Clic en la zona de LÓGICA ---
+        } else if (renderer.getLogicLabel().getBounds().contains(clickX, clickY)) {
+            // Clic en LÓGICA
             criterion.setLogic(criterion.getLogic() == controlador.managers.filter.FilterCriterion.Logic.ADD
                     ? controlador.managers.filter.FilterCriterion.Logic.NOT
                     : controlador.managers.filter.FilterCriterion.Logic.ADD);
             filterList.repaint();
             filterManager.gestionarFiltroPersistente();
-
-        } else if (renderer.getTypeLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
-            // --- Clic en la zona de TIPO ---
-            javax.swing.JPopupMenu typeMenu = new javax.swing.JPopupMenu();
-            for (controlador.managers.filter.FilterCriterion.SourceType type : controlador.managers.filter.FilterCriterion.SourceType.values()) {
-                javax.swing.JMenuItem item = new javax.swing.JMenuItem(type.getDisplayName());
-                item.addActionListener(ae -> {
-                    criterion.setSourceType(type);
-                    filterList.repaint();
-                    filterManager.gestionarFiltroPersistente();
-                });
-                typeMenu.add(item);
-            }
-            typeMenu.show(filterList, e.getX(), e.getY());
-
-        } else if (renderer.getValueLabel().getBounds().contains(clickX, e.getY() - cellBounds.y)) {
-            // --- Clic en la zona de VALOR ---
-            String newValue = null;
-            switch (criterion.getSourceType()) {
-                case TEXT:
-                    newValue = javax.swing.JOptionPane.showInputDialog(viewManager.getView(), "Introduce el texto a buscar:", criterion.getValue());
-                    break;
-                case FOLDER:
-                    javax.swing.JFileChooser chooser = new javax.swing.JFileChooser();
-                    chooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
-                    if (chooser.showOpenDialog(viewManager.getView()) == javax.swing.JFileChooser.APPROVE_OPTION) {
-                        newValue = chooser.getSelectedFile().getAbsolutePath();
-                    }
-                    break;
-                case TAG:
-                    // TODO: Aquí iría la lógica para mostrar un selector de tags
-                    javax.swing.JOptionPane.showMessageDialog(viewManager.getView(), "El selector de etiquetas aún no está implementado.");
-                    break;
-            }
-
-            if (newValue != null && !newValue.equals(criterion.getValue())) {
-                criterion.setValue(newValue); // Ahora podemos hacer esto porque 'value' ya no es final
-                filterList.repaint();
+        }
+        // No hay más interacciones en la fila. Clicar en el tipo o el valor ya no hace nada.
+        
+    } // ---FIN de metodo handleFilterListClick---
+    
+    
+    public void solicitarAnadirFiltro() {
+        limpiarEstadoFiltroRapidoSiActivo();
+        
+        // 1. Crear una instancia de nuestro nuevo diálogo.
+        vista.dialogos.FilterDialog dialog = new vista.dialogos.FilterDialog(
+            (JFrame) viewManager.getView(), 
+            this.typeIconsMap
+        );
+        
+        // 2. Mostrar el diálogo y esperar a que el usuario lo cierre.
+        FilterCriterion newCriterion = dialog.showDialog();
+        
+        // 3. Si el usuario pulsó "Aceptar" (el resultado no es null)...
+        if (newCriterion != null) {
+            // ...y el valor no está vacío...
+            if (newCriterion.getValue() != null && !newCriterion.getValue().isBlank()) {
+                // ...lo añadimos al manager y refrescamos.
+                filterManager.addFilter(newCriterion);
                 filterManager.gestionarFiltroPersistente();
             }
         }
-    } // ---FIN de metodo handleFilterListClick---
-    
-
-    public void solicitarAnadirFiltro() { // Ya no recibe parámetros
-        limpiarEstadoFiltroRapidoSiActivo();
-        
-        // Añade un criterio nuevo con valores por defecto al FilterManager
-        filterManager.addFilter(new FilterCriterion());
-        
-        // Refresca la UI para que se muestre la nueva fila editable
-        filterManager.gestionarFiltroPersistente(); 
     } // ---FIN de metodo solicitarAnadirFiltro---
     
     
@@ -2194,7 +2172,7 @@ public class GeneralController implements IModoController, modelo.MasterListChan
     
     
     public void setImageListManager(ImageListManager imageListManager) { this.imageListManager = imageListManager; }
-    
+    public void setTypeIconsMap(Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIconsMap) {this.typeIconsMap = typeIconsMap;}
     
 } // --- Fin de la clase GeneralController ---
 

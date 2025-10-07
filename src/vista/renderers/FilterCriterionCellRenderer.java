@@ -1,101 +1,92 @@
 package vista.renderers;
 
+import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
-
-import javax.swing.BorderFactory;
+import java.util.Map;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.ListCellRenderer;
-
+import javax.swing.UIManager;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
 import controlador.managers.filter.FilterCriterion;
-import vista.util.UnderlineBorder;
 
-/**
- * Renderer para JList que muestra un FilterCriterion como una fila interactiva.
- * Utiliza JLabels con bordes de subrayado para simular componentes editables.
- */
 public class FilterCriterionCellRenderer extends JPanel implements ListCellRenderer<FilterCriterion> {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 5L; // Nueva versión
     
     private final JLabel logicLabel;
     private final JLabel typeLabel;
     private final JLabel valueLabel;
     private final JLabel deleteLabel;
 
-    public FilterCriterionCellRenderer(Icon deleteIcon) {
-        setLayout(new FlowLayout(FlowLayout.LEFT, 5, 2));
+    private final Map<FilterCriterion.Logic, Icon> logicIcons;
+    private final Map<FilterCriterion.SourceType, Icon> typeIcons;
+
+    public FilterCriterionCellRenderer(Map<FilterCriterion.Logic, Icon> logicIcons,
+                                       Map<FilterCriterion.SourceType, Icon> typeIcons,
+                                       Icon deleteIcon) {
+        
+        this.logicIcons = logicIcons;
+        this.typeIcons = typeIcons;
+
+        setLayout(new BorderLayout(5, 0));
         setOpaque(true);
+        setBorder(new EmptyBorder(2, 2, 2, 2));
 
         logicLabel = new JLabel();
-        // Le pasamos el color del texto del componente y un grosor de 1px
-        logicLabel.setBorder(new UnderlineBorder(this.getForeground(), 1));
-        
         typeLabel = new JLabel();
-        typeLabel.setBorder(new UnderlineBorder(this.getForeground(), 1));
+        deleteLabel = new JLabel(deleteIcon);
+        
+        JPanel leftIconsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 2, 0));
+        leftIconsPanel.setOpaque(false);
+        leftIconsPanel.add(logicLabel);
+        leftIconsPanel.add(typeLabel);
 
         valueLabel = new JLabel();
-        valueLabel.setBorder(new UnderlineBorder(this.getForeground(), 1));
-        valueLabel.setPreferredSize(new java.awt.Dimension(120, 20)); // Ancho preferido para que no se encoja
+        valueLabel.setBorder(new CompoundBorder(
+            UIManager.getBorder("TextField.border"),
+            new EmptyBorder(0, 4, 0, 4)
+        ));
+        valueLabel.setOpaque(true);
 
-        deleteLabel = new JLabel(deleteIcon);
-        deleteLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 0)); // Espacio a la izquierda
-
-        add(logicLabel);
-        add(typeLabel);
-        add(valueLabel);
-        add(deleteLabel);
+        add(leftIconsPanel, BorderLayout.WEST);
+        add(valueLabel, BorderLayout.CENTER);
+        add(deleteLabel, BorderLayout.EAST);
     } // ---FIN de metodo FilterCriterionCellRenderer---
 
     @Override
     public Component getListCellRendererComponent(JList<? extends FilterCriterion> list, FilterCriterion criterion,
             int index, boolean isSelected, boolean cellHasFocus) {
-        
-        // Configurar los valores de los labels a partir del objeto criterion
-        logicLabel.setText(criterion.getLogic().getDisplayName());
-        typeLabel.setText(criterion.getSourceType().getDisplayName());
-        valueLabel.setText(criterion.getValue().isEmpty() ? "(clic para editar)" : criterion.getValue());
 
-        // Gestionar colores de seleccion y fondo
+        logicLabel.setIcon(logicIcons.get(criterion.getLogic()));
+        logicLabel.setToolTipText(criterion.getLogic().getDisplayName());
+        
+        typeLabel.setIcon(typeIcons.get(criterion.getSourceType()));
+        typeLabel.setToolTipText(criterion.getSourceType().getDisplayName());
+        
+        valueLabel.setText(criterion.getValue());
+
         if (isSelected) {
             setBackground(list.getSelectionBackground());
             setForeground(list.getSelectionForeground());
+            valueLabel.setBackground(list.getSelectionBackground());
+            valueLabel.setForeground(list.getSelectionForeground());
         } else {
             setBackground(list.getBackground());
             setForeground(list.getForeground());
+            valueLabel.setBackground(UIManager.getColor("TextField.background"));
+            valueLabel.setForeground(UIManager.getColor("TextField.foreground"));
         }
-        
-        // Aplicamos el color de texto a cada label individualmente.
-        logicLabel.setForeground(getForeground());
-        typeLabel.setForeground(getForeground());
-        valueLabel.setForeground(getForeground());
-        
-        // Actualizamos el color del borde subrayado para que coincida con el texto
-        logicLabel.setBorder(new UnderlineBorder(getForeground(), 1));
-        typeLabel.setBorder(new UnderlineBorder(getForeground(), 1));
-        valueLabel.setBorder(new UnderlineBorder(getForeground(), 1));
 
         return this;
     } // ---FIN de metodo getListCellRendererComponent---
     
-    
-    public JLabel getLogicLabel() {
-        return logicLabel;
-    } // ---FIN de metodo getLogicLabel---
-
-    public JLabel getTypeLabel() {
-        return typeLabel;
-    } // ---FIN de metodo getTypeLabel---
-
-    public JLabel getValueLabel() {
-        return valueLabel;
-    } // ---FIN de metodo getValueLabel---
-
-    public JLabel getDeleteLabel() {
-        return deleteLabel;
-    } // ---FIN de metodo getDeleteLabel---
-    
+    public JLabel getLogicLabel() { return logicLabel; } // ---FIN de metodo getLogicLabel---
+    public JLabel getTypeLabel() { return typeLabel; } // ---FIN de metodo getTypeLabel---
+    public JLabel getDeleteLabel() { return deleteLabel; } // ---FIN de metodo getDeleteLabel---
+    public JLabel getValueLabel() { return valueLabel; } // ---FIN de metodo getValueLabel---
 
 } // --- FIN de la clase FilterCriterionCellRenderer ---

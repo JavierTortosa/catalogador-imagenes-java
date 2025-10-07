@@ -38,6 +38,7 @@ public class ImageListManager {
     private static final Logger logger = LoggerFactory.getLogger(ImageListManager.class);
 
     // --- Dependencias ---
+    private FilterManager filterManager;
     private final VisorController visorController;
     private final VisorModel model;
     private final VisorView view;
@@ -207,6 +208,14 @@ public class ImageListManager {
                     
                     model.setMasterListAndNotify(nuevoModeloListaPrincipal, mapaResultado, visorController);
 
+                    // --- INICIO DE LA MODIFICACIÓN CRÍTICA ---
+                    // Notificamos al FilterManager cuál es la nueva lista maestra absoluta.
+                    // Esta es ahora la única "fuente de la verdad" para todos los filtros.
+                    if (this.filterManager != null) {
+                        this.filterManager.setAbsoluteMasterList(nuevoModeloListaPrincipal);
+                    }
+                    // --- FIN DE LA MODIFICACIÓN CRÍTICA ---
+                    
                     if (view != null) {
                         view.setListaImagenesModel(model.getModeloLista());
                         view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
@@ -424,6 +433,9 @@ public class ImageListManager {
 
      } // --- FIN precalentarCacheMiniaturasAsync ---
 
+     public void setFilterManager(FilterManager filterManager) {
+         this.filterManager = filterManager;
+     } // ---FIN de metodo setFilterManager---
 
 } // --- FIN de clase ImageListManager ---
 

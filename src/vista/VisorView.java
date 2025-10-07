@@ -2,7 +2,6 @@ package vista;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Image;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -70,7 +69,10 @@ public class VisorView extends JFrame {
     private final ComponentRegistry registry;
     private JLabel etiquetaImagen; 
     private TitledBorder borderListaArchivos;
+    private TitledBorder borderFiltrosActivos;
     private JPanel panelListaArchivos;
+    private JPanel panelFiltrosActivos;
+    
     
     private DefaultListModel<String> modeloListaMiniaturas;
     
@@ -241,6 +243,21 @@ public class VisorView extends JFrame {
             logger.warn("WARN [setTituloPanelIzquierdo]: La referencia al TitledBorder (borderListaArchivos) es nula.");
         }
     } // Fin del metodo setTituloPanelIzquierdo
+    
+    /**
+     * Actualiza el título del panel de filtros activos.
+     * @param nuevoTitulo El nuevo texto para el borde del panel.
+     */
+    public void setTituloPanelFiltros(String nuevoTitulo) {
+        if (this.borderFiltrosActivos != null) {
+            this.borderFiltrosActivos.setTitle(nuevoTitulo);
+            if (this.panelFiltrosActivos != null) {
+                this.panelFiltrosActivos.repaint();
+            }
+        } else {
+            logger.warn("WARN [setTituloPanelFiltros]: La referencia al TitledBorder (borderFiltrosActivos) es nula.");
+        }
+    } // ---FIN de metodo setTituloPanelFiltros---
     
     
     public void setJMenuBarVisible(boolean visible) {
@@ -504,6 +521,8 @@ public class VisorView extends JFrame {
 	public DefaultListModel<String> getModeloListaMiniaturas(){ return this.modeloListaMiniaturas; }
 	public void setBorderListaArchivos(TitledBorder border) {this.borderListaArchivos = border;}
     public void setPanelListaArchivos(JPanel panel) {this.panelListaArchivos = panel;}
+    public void setBorderFiltrosActivos(TitledBorder border) {this.borderFiltrosActivos = border;}
+    public void setPanelFiltrosActivos(JPanel panel) {this.panelFiltrosActivos = panel;}
     
     public void setController(controlador.VisorController controller) { this.controller = controller; }
     public controlador.VisorController getController() { return this.controller; }

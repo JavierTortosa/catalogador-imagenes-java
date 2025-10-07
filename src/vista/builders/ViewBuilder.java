@@ -13,6 +13,7 @@ import java.util.Objects;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
+import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -69,6 +70,11 @@ public class ViewBuilder{
     private ToolbarManager toolbarManager;
 
     private FolderTreeManager folderTreeManager;
+    
+    private Map<controlador.managers.filter.FilterCriterion.Logic, javax.swing.Icon> logicIcons;
+    private Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIcons;
+    private javax.swing.Icon deleteIcon;
+    
     
     /**
      * Constructor modificado para aceptar AMBOS servicios de miniaturas.
@@ -418,6 +424,9 @@ public class ViewBuilder{
     
     
     private JPanel createLeftSplitComponent(VisorView mainFrame) {
+        // --- 1. Creación de los paneles individuales (sin cambios) ---
+        
+        // Panel para la Pestaña "Lista"
         JPanel panelListaArchivos = new JPanel(new BorderLayout());
         TitledBorder borderLista = BorderFactory.createTitledBorder("Archivos: 0");
         panelListaArchivos.setBorder(borderLista);
@@ -442,66 +451,101 @@ public class ViewBuilder{
             panelListaArchivos.add(ordenToolbar, BorderLayout.NORTH);
         }
 
-        javax.swing.JTabbedPane tabbedPaneIzquierdo = new javax.swing.JTabbedPane();
-        registry.register("tabbedpane.izquierdo", tabbedPaneIzquierdo);
-
-        tabbedPaneIzquierdo.addTab("Lista", panelListaArchivos);
-        
+        // Panel para la Pestaña "Carpetas"
+        JPanel panelArbol = null;
         if (this.folderTreeManager != null) {
-            JPanel panelArbol = this.folderTreeManager.crearPanelDelArbol();
+            panelArbol = this.folderTreeManager.crearPanelDelArbol();
             registry.register("panel.izquierdo.arbol", panelArbol);
             registry.register("tree.carpetas", this.folderTreeManager.getTree());
-            tabbedPaneIzquierdo.addTab("Carpetas", panelArbol);
         } else {
             logger.error("[ViewBuilder] FolderTreeManager es nulo. No se puede construir la pestaña de carpetas.");
-            JPanel panelError = new JPanel();
-            panelError.add(new JLabel("Error al crear vista de árbol"));
-            tabbedPaneIzquierdo.addTab("Carpetas", panelError);
+            panelArbol = new JPanel();
+            panelArbol.add(new JLabel("Error al crear vista de árbol"));
         }
         
+        // Panel para la zona de Filtros (que ahora irá abajo)
         JPanel panelFiltros = new JPanel(new BorderLayout());
         TitledBorder borderFiltros = BorderFactory.createTitledBorder("Filtros Activos");
         panelFiltros.setBorder(borderFiltros);
         registry.register("panel.izquierdo.filtros", panelFiltros);
         
+        // Guardamos las referencias en VisorView para poder actualizar el título dinámicamente
+        mainFrame.setPanelFiltrosActivos(panelFiltros);
+        mainFrame.setBorderFiltrosActivos(borderFiltros);
+        
+        
         JList<controlador.managers.filter.FilterCriterion> filterList = new JList<>();
-        javax.swing.Icon deleteIcon = iconUtils.getScaledCommonIcon("status-remove-bold.png", 12, 12);
-        filterList.setCellRenderer(new vista.renderers.FilterCriterionCellRenderer(deleteIcon));
+        
+        
+        // --- Carga de iconos y nuevo renderer ---
+        if (this.logicIcons != null && this.typeIcons != null && this.deleteIcon != null) {
+        	filterList.setCellRenderer(new vista.renderers.FilterCriterionCellRenderer(this.logicIcons, this.typeIcons, this.deleteIcon));
+            filterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+
+        } else {
+            logger.error("¡Iconos para el renderer de filtros no fueron inyectados en ViewBuilder!");
+        }
+        
+//        int iconSize = 16; // Tamaño estándar para iconos en una lista.
+//        
+//        // 1. Cargar todos los iconos necesarios.
+//        Icon deleteIcon = iconUtils.getScaledCommonIcon("status-remove-bold.png", iconSize, iconSize);
+//        
+//        // 2. Crear y poblar el mapa de iconos de LÓGICA.
+//        Map<FilterCriterion.Logic, Icon> logicIcons = new java.util.EnumMap<>(FilterCriterion.Logic.class);
+//        logicIcons.put(FilterCriterion.Logic.ADD, iconUtils.getScaledCommonIcon("tab-add_48x48.png", iconSize, iconSize));
+//        logicIcons.put(FilterCriterion.Logic.NOT, iconUtils.getScaledCommonIcon("tab-substr_48x48.png", iconSize, iconSize));
+//
+//        // 3. Crear y poblar el mapa de iconos de TIPO.
+//        Map<FilterCriterion.SourceType, Icon> typeIcons = new java.util.EnumMap<>(FilterCriterion.SourceType.class);
+//        typeIcons.put(FilterCriterion.SourceType.TEXT, iconUtils.getScaledCommonIcon("tag_texto_48x48.png", iconSize, iconSize));
+//        typeIcons.put(FilterCriterion.SourceType.FOLDER, iconUtils.getScaledCommonIcon("tag_carpeta_48x48.png", iconSize, iconSize));
+//        typeIcons.put(FilterCriterion.SourceType.TAG, iconUtils.getScaledCommonIcon("tag_tags_48x48.png", iconSize, iconSize));
+//
+//        // 4. Instanciar el nuevo renderer pasándole los mapas de iconos.
+//        filterList.setCellRenderer(new vista.renderers.FilterCriterionCellRenderer(logicIcons, typeIcons, deleteIcon));
+        
         filterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         registry.register("list.filtrosActivos", filterList, "WHEEL_NAVIGABLE");
 
+        
         JScrollPane scrollPaneFiltros = new JScrollPane(filterList);
         registry.register("scroll.filtrosActivos", scrollPaneFiltros);
         panelFiltros.add(scrollPaneFiltros, BorderLayout.CENTER);
         
-        // --- INICIO DE LA MODIFICACIÓN ---
-        // Creamos un panel contenedor para el JTextField y la barra de herramientas.
-        JPanel filterControlPanel = new JPanel(new BorderLayout());
-        filterControlPanel.setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
-
-        // 1. Creamos y registramos el JTextField explícitamente aquí.
-        javax.swing.JTextField filterTextField = new javax.swing.JTextField();
-        filterTextField.setToolTipText("Texto para el nuevo filtro");
-        registry.register("textfield.filtro.texto", filterTextField);
-        filterControlPanel.add(filterTextField, BorderLayout.CENTER);
-
-        // 2. Obtenemos la JToolBar "barra_filtros" (que ya no contendrá el JTextField).
         JToolBar filterToolbar = toolbarManager.getToolbar("barra_filtros");
         if (filterToolbar != null) {
             filterToolbar.setFloatable(false);
-            filterToolbar.setBorder(null); // Le quitamos el borde para que se integre.
-            // La añadimos al ESTE (derecha) del panel de control.
-            filterControlPanel.add(filterToolbar, BorderLayout.EAST);
+            // Le damos un borde para que no quede pegado a los bordes del panel
+            filterToolbar.setBorder(BorderFactory.createEmptyBorder(2, 0, 2, 0));
+            panelFiltros.add(filterToolbar, BorderLayout.NORTH);
         }
         
-        // 3. Añadimos el panel de control completo (JTextField + Toolbar) al NORTE del panel de filtros.
-        panelFiltros.add(filterControlPanel, BorderLayout.NORTH);
-        // --- FIN DE LA MODIFICACIÓN ---
+        // --- 2. Reestructuración de la Interfaz ---
+        
+        // El JTabbedPane ahora solo contendrá las pestañas superiores.
+        javax.swing.JTabbedPane tabbedPaneSuperior = new javax.swing.JTabbedPane();
+        registry.register("tabbedpane.izquierdo", tabbedPaneSuperior); // Mantenemos la clave por compatibilidad
+        
+        tabbedPaneSuperior.addTab("Lista", panelListaArchivos);
+        tabbedPaneSuperior.addTab("Carpetas", panelArbol);
+        
+        // Creamos el JSplitPane vertical que será el nuevo layout principal
+        JSplitPane splitPaneIzquierdoVertical = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
+        splitPaneIzquierdoVertical.setTopComponent(tabbedPaneSuperior);   // Arriba van las pestañas
+        splitPaneIzquierdoVertical.setBottomComponent(panelFiltros);      // Abajo va el panel de filtros
+        splitPaneIzquierdoVertical.setResizeWeight(0.75); // Da el 75% del espacio a la parte superior
+        splitPaneIzquierdoVertical.setContinuousLayout(true);
+        splitPaneIzquierdoVertical.setBorder(null);
+        registry.register("splitpane.izquierdo.vertical", splitPaneIzquierdoVertical);
 
-        tabbedPaneIzquierdo.addTab("Filtros", panelFiltros);
+        // --- 3. Ensamblaje Final ---
         
         JPanel panelIzquierdoContenedor = new JPanel(new BorderLayout());
-        panelIzquierdoContenedor.add(tabbedPaneIzquierdo, BorderLayout.CENTER);
+        
+        // El contenedor principal ahora alberga el JSplitPane en lugar del JTabbedPane
+        panelIzquierdoContenedor.add(splitPaneIzquierdoVertical, BorderLayout.CENTER);
+        
         registry.register("panel.izquierdo.contenedorPrincipal", panelIzquierdoContenedor);
         
         return panelIzquierdoContenedor;
@@ -837,8 +881,18 @@ public class ViewBuilder{
         this.projectBuilder = Objects.requireNonNull(projectBuilder, "ProjectBuilder no puede ser null en ViewBuilder");
     }
     
+    public void setFilterRendererIcons(Map<controlador.managers.filter.FilterCriterion.Logic, javax.swing.Icon> logicIcons,
+        Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIcons, javax.swing.Icon deleteIcon) {
+    	
+			this.logicIcons = logicIcons;
+			this.typeIcons = typeIcons;
+			this.deleteIcon = deleteIcon;
+			
+    } // ---FIN de metodo setFilterRendererIcons---
+    
     @FunctionalInterface
     interface FilterInteractionListener {
         void onFilterClicked(java.awt.event.MouseEvent e, controlador.managers.filter.FilterCriterion criterion, int index);
     }
+    
 } // --- FIN de la clase ViewBuilder ---

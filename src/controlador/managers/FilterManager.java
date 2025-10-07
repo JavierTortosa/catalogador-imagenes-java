@@ -47,7 +47,10 @@ public class FilterManager {
 	private int indiceSeleccionadoAntesDeFiltrar = -1;
 	private FilterCriterion tornadoCriterion;
 	private FilterSource filtroActivoSource = FilterSource.FILENAME;    
-    
+	private javax.swing.SwingWorker<DefaultListModel<String>, Void> liveFilterWorker;
+	private InfobarStatusManager statusBarManager;
+	private DefaultListModel<String> absoluteMasterList = new DefaultListModel<>();
+	
     public FilterManager(VisorModel model) {
         this.model = model;
     } // --- Fin del constructor FilterManager ---
@@ -245,6 +248,10 @@ public class FilterManager {
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null en FilterManager");
     } // ---FIN de metodo setRegistry---
     
+    public void setStatusBarManager(InfobarStatusManager statusBarManager) {
+        this.statusBarManager = Objects.requireNonNull(statusBarManager, "InfobarStatusManager no puede ser null en FilterManager");
+    } // ---FIN de metodo setStatusBarManager---
+    
     /**
      * Establece el tipo de fuente por defecto para los nuevos filtros que se añadan.
      * @param nuevoSource El nuevo FilterSource a usar.
@@ -263,6 +270,20 @@ public class FilterManager {
     public FilterSource getFiltroActivoSource() {
         return this.filtroActivoSource;
     } // ---FIN de metodo getFiltroActivoSource---
+    
+    
+    /**
+     * Establece la lista maestra absoluta y sin filtrar.
+     * Este método debe ser llamado CADA VEZ que se carga una nueva carpeta.
+     * Almacena un clon para asegurar que la fuente de verdad no sea modificada externamente.
+     * @param masterList La nueva lista completa de archivos.
+     */
+    public void setAbsoluteMasterList(DefaultListModel<String> masterList) {
+        this.absoluteMasterList = clonarModelo(masterList);
+        logger.info("[FilterManager] Nueva lista maestra absoluta establecida con {} elementos.", this.absoluteMasterList.getSize());
+    } // ---FIN de metodo setAbsoluteMasterList---
+    
+    
     
 // **********************************************************************************************************************************************************
     
@@ -307,7 +328,6 @@ public class FilterManager {
     } // --- Fin del método gestionarFiltroPersistente ---
 
     public void refrescarConFiltrosPersistentes() {
-        // Aseguramos que las dependencias estén inyectadas antes de usarlas
         Objects.requireNonNull(registry, "Registry no ha sido inyectado en FilterManager");
 
         JList<FilterCriterion> filterListUI = registry.get("list.filtrosActivos");
@@ -323,26 +343,35 @@ public class FilterManager {
             modelUI.addAll(getActiveFilters());
         }
 
+        DefaultListModel<String> listaResultado;
+        int indiceASeleccionar = 0;
+
         if (isFilterActive()) {
             if (!persistente_activo) {
-                this.persistente_listaMaestraOriginal = clonarModelo(model.getModeloLista());
+                // Guardamos el puntero, pero la lista la leemos de la fuente de la verdad
                 this.persistente_punteroOriginalKey = model.getSelectedImageKey();
                 this.persistente_activo = true;
             }
-            DefaultListModel<String> listaFiltrada = applyFilters(this.persistente_listaMaestraOriginal);
-            actualizarListaVisibleConResultado(listaFiltrada, 0, false);
-        } else { 
+            // SIEMPRE filtramos desde la lista maestra absoluta
+            listaResultado = applyFilters(this.absoluteMasterList);
+
+        } else { // No hay filtros activos
+            // Restauramos la lista maestra absoluta
+            listaResultado = this.absoluteMasterList;
+            
             if (persistente_activo) {
-                DefaultListModel<String> listaRestaurada = this.persistente_listaMaestraOriginal;
                 int indiceOriginal = (persistente_punteroOriginalKey != null) 
-                                   ? listaRestaurada.indexOf(persistente_punteroOriginalKey) : -1;
-                final int indiceFinal = (indiceOriginal != -1) ? indiceOriginal : 0;
-                actualizarListaVisibleConResultado(listaRestaurada, indiceFinal, true);
-                this.persistente_listaMaestraOriginal = null;
+                                   ? listaResultado.indexOf(persistente_punteroOriginalKey) : -1;
+                indiceASeleccionar = (indiceOriginal != -1) ? indiceOriginal : 0;
+                
+                // Limpiamos el estado del filtro persistente
                 this.persistente_punteroOriginalKey = null;
                 this.persistente_activo = false;
             }
         }
+        
+        actualizarListaVisibleConResultado(listaResultado, indiceASeleccionar, !isFilterActive());
+        
     } // ---FIN de metodo refrescarConFiltrosPersistentes---
 
     private void actualizarListaVisibleConResultado(DefaultListModel<String> nuevaLista, int indiceASeleccionar, boolean resetearCheckpoint) {
@@ -377,7 +406,8 @@ public class FilterManager {
         logger.debug("[FilterManager] Modo Filtro en Vivo cambiado a: {}", isSelected);
         
         if (isSelected) {
-            this.masterModelSinFinito = clonarModelo(model.getModeloLista());
+            // ¡CORRECCIÓN CLAVE! El backup para el filtro en vivo TAMBIÉN se toma de la lista maestra absoluta.
+            this.masterModelSinFinito = clonarModelo(this.absoluteMasterList);
             this.indiceSeleccionadoAntesDeFiltrar = visorController.getListCoordinator().getOfficialSelectedIndex();
             actualizarFiltro();
         } else {
@@ -386,30 +416,99 @@ public class FilterManager {
     } // --- Fin del método setLiveFilterActive ---
 
     public void actualizarFiltro() {
-        if (!model.isLiveFilterActive() || this.masterModelSinFinito == null) return;
+        if (!model.isLiveFilterActive() || this.masterModelSinFinito == null) {
+            return;
+        }
         Objects.requireNonNull(registry, "Registry no ha sido inyectado en FilterManager");
 
-        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
-        if (searchField == null) return;
-        String searchText = searchField.getText().equals("Texto a buscar...") ? "" : searchField.getText();
-
-        if (this.tornadoCriterion != null) {
-            removeFilter(this.tornadoCriterion);
-            this.tornadoCriterion = null;
+        // 1. Cancelar cualquier filtro anterior que aún se esté ejecutando.
+        if (liveFilterWorker != null && !liveFilterWorker.isDone()) {
+            liveFilterWorker.cancel(true);
         }
 
-        if (!searchText.isBlank()) {
-            this.tornadoCriterion = new FilterCriterion(searchText, FilterSource.FILENAME, FilterType.CONTAINS);
-            addFilter(this.tornadoCriterion);
+        // --- INICIO MODIFICACIÓN: Mostrar mensaje de "Filtrando..." ---
+        if (statusBarManager != null) {
+            statusBarManager.mostrarMensaje("Filtrando...");
         }
+        // --- FIN MODIFICACIÓN ---
+        
+        // 2. Crear un nuevo SwingWorker para la tarea de filtrado.
+        liveFilterWorker = new javax.swing.SwingWorker<DefaultListModel<String>, Void>() {
+            
+            @Override
+            protected DefaultListModel<String> doInBackground() throws Exception {
+                // ESTO SE EJECUTA EN UN HILO DE FONDO (SEGURO PARA TAREAS LARGAS)
+                
+                javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+                if (searchField == null) return new DefaultListModel<>(); // Devuelve lista vacía si hay error
+                
+                String searchText = searchField.getText();
+                if (searchText.equals("Texto a buscar...")) {
+                    searchText = "";
+                }
 
-        DefaultListModel<String> filteredContent = applyFilters(this.masterModelSinFinito);
-        DefaultListModel<String> modeloEnUso = model.getModeloLista();
-        modeloEnUso.clear();
-        modeloEnUso.addAll(java.util.Collections.list(filteredContent.elements()));
+                // La lógica de negocio para determinar qué filtrar permanece igual
+                if (tornadoCriterion != null) {
+                    removeFilter(tornadoCriterion);
+                    tornadoCriterion = null;
+                }
 
-        visorController.getListCoordinator().reiniciarYSeleccionarIndice(modeloEnUso.isEmpty() ? -1 : 0);
+                if (!searchText.isBlank()) {
+                    tornadoCriterion = new FilterCriterion(searchText, FilterSource.FILENAME, FilterType.CONTAINS);
+                    addFilter(tornadoCriterion);
+                }
+
+                // La parte pesada: aplicar los filtros a la lista maestra de ~12,000 elementos
+                return applyFilters(masterModelSinFinito);
+            } // --- Fin del método doInBackground ---
+
+            @Override
+            protected void done() {
+                // ESTO SE EJECUTA DE VUELTA EN EL EDT (SEGURO PARA ACTUALIZAR LA UI)
+                try {
+                    if (isCancelled()) {
+                        logger.debug("[FilterManager] Tarea de filtrado en vivo cancelada.");
+                        // No limpiamos el mensaje aquí para evitar parpadeos si se lanza un nuevo filtro inmediatamente
+                        return;
+                    }
+
+                    DefaultListModel<String> filteredContent = get(); // Obtiene el resultado del doInBackground
+                    
+                    DefaultListModel<String> modeloEnUso = model.getModeloLista();
+                    modeloEnUso.clear();
+                    modeloEnUso.addAll(java.util.Collections.list(filteredContent.elements()));
+
+                    visorController.getListCoordinator().reiniciarYSeleccionarIndice(modeloEnUso.isEmpty() ? -1 : 0);
+                    
+                    // --- INICIO MODIFICACIÓN: Mostrar mensaje con el resultado ---
+                    if (statusBarManager != null) {
+                        javax.swing.JTextField searchField = registry.get("textfield.filtro.orden");
+                        String searchText = (searchField != null) ? searchField.getText() : "";
+                        
+                        if (searchText.isBlank() || searchText.equals("Texto a buscar...")) {
+                            statusBarManager.mostrarMensajeTemporal("Filtro limpiado. Mostrando " + masterModelSinFinito.getSize() + " elementos.", 3000);
+                        } else {
+                            statusBarManager.mostrarMensajeTemporal("Filtro aplicado. " + filteredContent.getSize() + " resultados.", 3000);
+                        }
+                    }
+                    // --- FIN MODIFICACIÓN ---
+                    
+                } catch (Exception e) {
+                    if (!(e instanceof java.util.concurrent.CancellationException)) {
+                        logger.error("Error al finalizar la tarea de filtrado en vivo", e);
+                        if (statusBarManager != null) {
+                            statusBarManager.mostrarMensajeTemporal("Error al aplicar el filtro.", 3000);
+                        }
+                    }
+                }
+            } // --- Fin del método done ---
+        };
+
+        // 3. Ejecutar el worker.
+        liveFilterWorker.execute();
+        
     } // --- Fin del método actualizarFiltro ---
+    
 
     public void limpiarFiltro() {
         if (this.masterModelSinFinito == null) return;

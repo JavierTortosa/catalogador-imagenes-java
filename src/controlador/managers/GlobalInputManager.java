@@ -61,7 +61,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
     private javax.swing.border.Border unfocusedBorder;
     private List<javax.swing.JComponent> focusablePanels;
     private TitledBorder borderListaArchivosOriginal;
-
+    private TitledBorder borderFiltrosActivosOriginal;
     
     private int lastMouseX, lastMouseY;
     
@@ -123,7 +123,7 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
         registerFocusablePanel("panel.exportacion.detalles");
         registerFocusablePanel("textfield.filtro.orden");
         registerFocusablePanel("textfield.export.destino");
-        registerFocusablePanel("textfield.filtro.texto");
+//        registerFocusablePanel("textfield.filtro.texto");
         registerFocusablePanel("interfaz.boton.acciones_exportacion.export_detalles_seleccion");
         
         SwingUtilities.invokeLater(() -> {
@@ -131,6 +131,12 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             if (panelLista != null && panelLista.getBorder() instanceof TitledBorder) {
                 this.borderListaArchivosOriginal = (TitledBorder) panelLista.getBorder();
             }
+            
+            JPanel panelFiltros = registry.get("panel.izquierdo.filtros");
+            if (panelFiltros != null && panelFiltros.getBorder() instanceof TitledBorder) {
+                this.borderFiltrosActivosOriginal = (TitledBorder) panelFiltros.getBorder();
+            }
+            
             if(registry.get("panel.exportacion.detalles") instanceof JPanel) {
                 JPanel detailPanel = registry.get("panel.exportacion.detalles");
                 for(Component comp : detailPanel.getComponents()) {
@@ -364,6 +370,10 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             this.focusedBorder = javax.swing.BorderFactory.createLineBorder(accentColor, 2);
 
             JPanel panelListaArchivos = registry.get("panel.izquierdo.listaArchivos");
+            
+            // --- INICIO DE LA MODIFICACIÓN ---
+            JPanel panelFiltrosActivos = registry.get("panel.izquierdo.filtros");
+            // --- FIN DE LA MODIFICACIÓN ---
 
             for (javax.swing.JComponent panel : focusablePanels) {
                 boolean debeTenerFoco = (newFocusOwner != null && (panel == newFocusOwner || SwingUtilities.isDescendingFrom(newFocusOwner, panel)));
@@ -371,6 +381,13 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
                 if (panel == panelListaArchivos && this.borderListaArchivosOriginal != null) {
                     if (debeTenerFoco) panel.setBorder(BorderFactory.createCompoundBorder(focusedBorder, this.borderListaArchivosOriginal));
                     else panel.setBorder(BorderFactory.createCompoundBorder(unfocusedBorder, this.borderListaArchivosOriginal));
+                
+                // --- INICIO DE LA MODIFICACIÓN ---
+                } else if (panel == panelFiltrosActivos && this.borderFiltrosActivosOriginal != null) {
+                    if (debeTenerFoco) panel.setBorder(BorderFactory.createCompoundBorder(focusedBorder, this.borderFiltrosActivosOriginal));
+                    else panel.setBorder(BorderFactory.createCompoundBorder(unfocusedBorder, this.borderFiltrosActivosOriginal));
+                // --- FIN DE LA MODIFICACIÓN ---
+
                 } else {
                     panel.setBorder(debeTenerFoco ? focusedBorder : unfocusedBorder);
                 }

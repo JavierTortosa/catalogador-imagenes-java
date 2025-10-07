@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.Icon;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -37,6 +38,7 @@ import controlador.managers.InfobarStatusManager;
 import controlador.managers.ToolbarManager;
 import controlador.managers.ViewManager;
 import controlador.managers.ZoomManager;
+import controlador.managers.filter.FilterCriterion;
 import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -338,6 +340,28 @@ public class AppInitializer {
         actionFactory.setDisplayModeManager(this.displayModeManager);
         this.model.addMasterListChangeListener(this.generalController);
         
+        if (this.viewBuilder != null) {
+            int iconSize = 16;
+            Map<FilterCriterion.Logic, Icon> logicIcons = new java.util.EnumMap<>(FilterCriterion.Logic.class);
+            logicIcons.put(FilterCriterion.Logic.ADD, this.iconUtils.getScaledCommonIcon("tab-add_48x48.png", iconSize, iconSize));
+            logicIcons.put(FilterCriterion.Logic.NOT, this.iconUtils.getScaledCommonIcon("tab-substr_48x48.png", iconSize, iconSize));
+
+            Map<FilterCriterion.SourceType, Icon> typeIcons = new java.util.EnumMap<>(FilterCriterion.SourceType.class);
+            typeIcons.put(FilterCriterion.SourceType.TEXT, this.iconUtils.getScaledCommonIcon("tag_texto_48x48.png", iconSize, iconSize));
+            typeIcons.put(FilterCriterion.SourceType.FOLDER, this.iconUtils.getScaledCommonIcon("tag_carpeta_48x48.png", iconSize, iconSize));
+            typeIcons.put(FilterCriterion.SourceType.TAG, this.iconUtils.getScaledCommonIcon("tag_tags_48x48.png", iconSize, iconSize));
+
+            Icon deleteIcon = this.iconUtils.getScaledCommonIcon("status-remove-bold.png", iconSize, iconSize);
+
+            // Pasamos los mapas al ViewBuilder para que pueda construir el renderer.
+            this.viewBuilder.setFilterRendererIcons(logicIcons, typeIcons, deleteIcon);
+            
+            // Pasamos el mapa de tipos al GeneralController para que pueda construir el menú contextual.
+            if (this.generalController != null) {
+                this.generalController.setTypeIconsMap(typeIcons);
+            }
+        }
+        
         logger.debug(" -> Cableado de dependencias completado.");
         
     } // ---FIN de metodo wireDependencies---
@@ -400,6 +424,7 @@ public class AppInitializer {
                 this.controller.setStatusBarManager(this.statusBarManager);
                 this.zoomManager.setStatusBarManager(this.statusBarManager);
                 this.generalController.setStatusBarManager(this.statusBarManager);
+                this.filterManager.setStatusBarManager(this.statusBarManager);
                 this.displayModeManager.setInfobarStatusManager(this.statusBarManager);
                 this.statusBarManager.setController(this.controller);
                 
@@ -418,8 +443,10 @@ public class AppInitializer {
                 this.projectListCoordinator.addMasterSelectionChangeListener(this.displayModeManager);
                 
                 ImageListManager imageListManager = new ImageListManager(this.controller);
+                imageListManager.setFilterManager(this.filterManager);
                 this.controller.setImageListManager(imageListManager);
                 this.generalController.setImageListManager(imageListManager);
+                
                 
                 // 3.7: Ensamblaje final de la UI
                 logger.debug("    -> Ensamblando UI: Menús, Toolbars, Listeners...");
@@ -446,6 +473,7 @@ public class AppInitializer {
                 JList<controlador.managers.filter.FilterCriterion> filterList = registry.get("list.filtrosActivos");
                 if (filterList != null) {
                     filterList.addMouseListener(new java.awt.event.MouseAdapter() {
+                    	
                         @Override
                         public void mouseClicked(java.awt.event.MouseEvent e) {
                             int index = filterList.locationToIndex(e.getPoint());
@@ -464,9 +492,12 @@ public class AppInitializer {
                             if (generalController != null) {
                                 generalController.handleFilterListClick(e, criterion);
                             }
+                            
                         } // ---FIN de metodo mouseClicked---
+                        
                     });
                     logger.debug("    -> Listener interactivo añadido a 'list.filtrosActivos'.");
+                    
                 } else {
                     logger.warn("WARN [AppInitializer]: No se pudo encontrar 'list.filtrosActivos' en el registro para añadir el listener interactivo.");
                 }
@@ -479,6 +510,31 @@ public class AppInitializer {
                 this.controller.configurarListenersVistaInternal();
                 this.controller.configurarMenusContextuales();
                 this.projectController.configurarListeners();
+                
+//                if (this.viewBuilder != null) {
+//                    // Creamos los mapas de iconos aquí, en el orquestador.
+//                    int iconSize = 16;
+//                    Map<FilterCriterion.Logic, Icon> logicIcons = new java.util.EnumMap<>(FilterCriterion.Logic.class);
+//                    logicIcons.put(FilterCriterion.Logic.ADD, this.iconUtils.getScaledCommonIcon("tab-add_48x48.png", iconSize, iconSize));
+//                    logicIcons.put(FilterCriterion.Logic.NOT, this.iconUtils.getScaledCommonIcon("tab-substr_48x48.png", iconSize, iconSize));
+//
+//                    Map<FilterCriterion.SourceType, Icon> typeIcons = new java.util.EnumMap<>(FilterCriterion.SourceType.class);
+//                    typeIcons.put(FilterCriterion.SourceType.TEXT, this.iconUtils.getScaledCommonIcon("tag_texto_48x48.png", iconSize, iconSize));
+//                    typeIcons.put(FilterCriterion.SourceType.FOLDER, this.iconUtils.getScaledCommonIcon("tag_carpeta_48x48.png", iconSize, iconSize));
+//                    typeIcons.put(FilterCriterion.SourceType.TAG, this.iconUtils.getScaledCommonIcon("tag_tags_48x48.png", iconSize, iconSize));
+//
+//                    Icon deleteIcon = this.iconUtils.getScaledCommonIcon("status-remove-bold.png", iconSize, iconSize);
+//
+//                    // Pasamos los mapas al ViewBuilder para que pueda construir el renderer.
+//                    this.viewBuilder.setFilterRendererIcons(logicIcons, typeIcons, deleteIcon);
+//                    
+//                    // Pasamos el mapa de tipos al GeneralController para que pueda construir el menú contextual.
+//                    if (this.generalController != null) {
+//                        this.generalController.setTypeIconsMap(typeIcons);
+//                    }
+//                }
+                // --- FIN DE LA MODIFICACIÓN ---
+                
                 this.globalInputManager.initialize();
                 this.generalController.initialize();
                 
