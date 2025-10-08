@@ -36,7 +36,6 @@ import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode;
-import vista.panels.ImageDisplayPanel;
 
 /**
  * Gestor centralizado para los eventos de entrada globales de la aplicación.

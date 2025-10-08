@@ -271,10 +271,25 @@ public class ProjectBuilder implements ThemeChangeListener {
         ThumbnailPreviewer projectGridPreviewer = new ThumbnailPreviewer(null, this.model, this.themeManager, null, this.registry);
         GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, generalController.getVisorController().getServicioMiniaturas(), this.themeManager, generalController.getVisorController().getIconUtils(), projectGridPreviewer, projectController.getProjectManager(), this.projectController, this.registry);
         
+        // --- INICIO DE LA MODIFICACIÓN: Componer toolbars para el grid de proyecto ---
         if (this.toolbarManager != null) {
-            JToolBar gridToolbar = this.toolbarManager.getToolbar("barra_grid");
-            if (gridToolbar != null) gridViewPanel.setToolbar(gridToolbar);
+            // 1. Obtenemos las dos toolbars que necesita este grid.
+            JToolBar proyectoToolbar = this.toolbarManager.getToolbar("barra_grid_proyecto");
+            JToolBar tamanoToolbar = this.toolbarManager.getToolbar("barra_grid_tamano");
+
+            // 2. Las añadimos a una lista.
+            java.util.List<JToolBar> toolbarsParaGrid = new java.util.ArrayList<>();
+            if (proyectoToolbar != null) toolbarsParaGrid.add(proyectoToolbar);
+            if (tamanoToolbar != null) toolbarsParaGrid.add(tamanoToolbar);
+
+            // 3. Pasamos la lista completa al panel del grid usando el nuevo método.
+            if (!toolbarsParaGrid.isEmpty()) {
+                gridViewPanel.setToolbars(toolbarsParaGrid);
+            }
         }
+        // --- FIN DE LA MODIFICACIÓN ---
+        
+        
         registry.register("panel.display.grid.proyecto", gridViewPanel);
         JList<String> gridList = gridViewPanel.getGridList(); // Obtenemos la JList interna
         registry.register("list.grid.proyecto", gridList, "WHEEL_NAVIGABLE");

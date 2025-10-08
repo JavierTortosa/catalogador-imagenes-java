@@ -788,19 +788,31 @@ public class UIDefinitionService {
 			,new ToolbarButtonDefinition(AppActionCommands.CMD_FILTRO_CLEAR_ALL,			"40010-filter_clear_48x48.png","Limpiar Todos los Filtros","barra_filtros",ButtonType.NORMAL)
              
         );
+
+		// --- BARRA DE ZOOM PARA MINIATURAS (HORIZONTAL) ---
+		List<ToolbarComponentDefinition> botones_zoom_miniaturas = List.of(
+			    new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA, "50003-agrandar_miniatura_48x48.png", "Agrandar Miniaturas", "barra_zoom_miniaturas", ButtonType.NORMAL),
+			    new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA, "50004-reducir_miniatura_48x48.png", "Reducir Miniaturas", "barra_zoom_miniaturas", ButtonType.NORMAL)
+			);
 		
 		
-		// --- BARRA DE BOTONES Grid Control ---
-		List<ToolbarComponentDefinition> botonesGrid = List.of(
-			 new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL, 		"21005-iniciar_exportación.png", "Iniciar Exportación", "barra_grid")
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SET_TEXT,				"50001-add_texto_48x48.png", "Añadir/Modificar Etiqueta","barra_grid",ButtonType.NORMAL)
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_REMOVE_TEXT, 			"50002-subst_texto_48x48.png", "Borrar Etiqueta","barra_grid",ButtonType.NORMAL)
-			,new SeparatorDefinition()
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA, 		"50003-agrandar_miniatura_48x48.png", "Agrandar Miniatura","barra_grid",ButtonType.NORMAL)
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA, 	"50004-reducir_miniatura_48x48.png", "Reducir Miniatura","barra_grid",ButtonType.NORMAL)
-			,new SeparatorDefinition()
-			,new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SHOW_STATE,				"50005-mostrar_estado_48x48.png", "Mostrar Estado","barra_grid",ButtonType.TOGGLE)
-         );
+		// --- BARRA DE BOTONES Grid Control general
+		List<ToolbarComponentDefinition> botones_grid_tamano = List.of(
+			    new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_UP_MINIATURA, "50003-agrandar_miniatura_48x48.png", "Agrandar Miniatura", "barra_grid_tamano", ButtonType.NORMAL),
+			    new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SIZE_DOWN_MINIATURA, "50004-reducir_miniatura_48x48.png", "Reducir Miniatura", "barra_grid_tamano", ButtonType.NORMAL)
+			);
+				
+		// --- BARRA DE BOTONES Grid Control de proyecto---
+		List<ToolbarComponentDefinition> botones_grid_proyecto = List.of(
+			    new ToolbarButtonDefinition(AppActionCommands.CMD_EXPORT_ASSIGN_PANNEL, "21005-iniciar_exportación.png", "Panel de Control de Asignaciones", "barra_grid_proyecto", ButtonType.TOGGLE),
+			    new SeparatorDefinition(),
+			    new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SHOW_STATE, "50005-mostrar_estado_48x48.png", "Mostrar Estado", "barra_grid_proyecto", ButtonType.TOGGLE),
+			    new SeparatorDefinition(),
+			    new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_SET_TEXT, "50001-add_texto_48x48.png", "Añadir/Modificar Etiqueta", "barra_grid_proyecto", ButtonType.NORMAL),
+			    new ToolbarButtonDefinition(AppActionCommands.CMD_GRID_REMOVE_TEXT, "50002-subst_texto_48x48.png", "Borrar Etiqueta", "barra_grid_proyecto", ButtonType.NORMAL)
+			);
+		
+		
 		
 		// --- BARRA DE CONTROL DE IMAGEN INFERIOR (CONSOLIDADA: D-Pad, Colores, Cuadros, Paleta) ---
 		// -- ICONOS INTERNOS DEL DPAD
@@ -886,42 +898,70 @@ public class UIDefinitionService {
         
         
         // --- DEFINICION DE TOOLBAR ---
+        
+        
+        
         return List.of(
-        	    // Grupo Izquierda
-        	    new ToolbarDefinition("navegacion", "Navegación", 			 10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL), List.copyOf(botonesNavegacion), ToolbarAlignment.LEFT),
+       	    // Grupo Izquierda
+        		
+        		// Flechas de navegacion
+        	    new ToolbarDefinition("navegacion", "Navegación", 			 					 10, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.CARROUSEL), List.copyOf(botonesNavegacion), ToolbarAlignment.LEFT)
 
-        	    // Grupo Centro
-        	    new ToolbarDefinition("edicion", "Edición", 				 20, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesEdicion), ToolbarAlignment.CENTER),
-        	    new ToolbarDefinition("zoom", "Zoom", 						 30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), List.copyOf(botonesZoom), ToolbarAlignment.CENTER),
-        	    new ToolbarDefinition("vista", "Vista", 					 40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), List.copyOf(botonesVista), ToolbarAlignment.CENTER),
+       	    // Grupo Centro
         	    
-        	    // Grupo Derecha
-        	    new ToolbarDefinition("control", "Utilidades", 				 50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), List.copyOf(botonesUtils), ToolbarAlignment.RIGHT),
-        	    new ToolbarDefinition("proyecto", "Acciones de Proyecto", 	 90, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesProyectoEnProyecto), ToolbarAlignment.RIGHT),
-        	    new ToolbarDefinition("proyecto_vista", "Proyecto (Vista)",  60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL), List.copyOf(botonesProyectoEnVista), ToolbarAlignment.RIGHT),
+        	    // Botones de edicion de imagen
+        	    ,new ToolbarDefinition("edicion", "Edición", 				 					 20, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesEdicion), ToolbarAlignment.CENTER)
+
+        	    // Botones de modos de zoom
+        	    ,new ToolbarDefinition("zoom", "Zoom", 						 					 30, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), List.copyOf(botonesZoom), ToolbarAlignment.CENTER)
         	    
-        	    new ToolbarDefinition("toggle", "Toggles", 					 70, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesToggle), ToolbarAlignment.RIGHT),
+        	    // Botones de DisplayMode
+        	    ,new ToolbarDefinition("vista", "Vista", 					 					 40, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS), List.copyOf(botonesVista), ToolbarAlignment.CENTER)
         	    
-        	    new ToolbarDefinition("sincronizacion", "Sincronización",    75, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSincronizacion), ToolbarAlignment.RIGHT),
-//        	    new ToolbarDefinition("botones_syncro", "Sincronizacion", 	 75, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSync), ToolbarAlignment.RIGHT),
+        	    // Cambio tamaño de miniaturas
+        	    ,new ToolbarDefinition("barra_zoom_miniaturas", "Zoom de Miniaturas", 			 50, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botones_zoom_miniaturas, ToolbarAlignment.CENTER)
+
         	    
-        	    new ToolbarDefinition("modo", "Modo", 						 80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION), List.copyOf(botonesModo), ToolbarAlignment.RIGHT),
-        	    new ToolbarDefinition("especiales", "Apoyo", 				100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.EDICION, WorkMode.CARROUSEL), List.copyOf(botonesApoyo), ToolbarAlignment.RIGHT),
+        	   // Grupo Derecha
+        	
+        	    // Botones de Refresco, Localizar, Borrar
+        	    ,new ToolbarDefinition("control", "Utilidades", 				 				 60, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), List.copyOf(botonesUtils), ToolbarAlignment.RIGHT)
         	    
-        	    // Toolbars específicas del modo Carrusel
-        	    new ToolbarDefinition("carrousel", "Carrousel", 			110, EnumSet.of(WorkMode.CARROUSEL), List.copyOf(botonesCarrousel), ToolbarAlignment.CENTER),
-        	    new ToolbarDefinition("velocidad_carrousel", "Velocidad", 	120, EnumSet.of(WorkMode.CARROUSEL), botonesVelocidadCarrousel, ToolbarAlignment.CENTER),
+        	    // Botones de gestion de Proyecto
+        	    ,new ToolbarDefinition("proyecto", "Acciones de Proyecto", 	 					 70, EnumSet.of(WorkMode.PROYECTO), List.copyOf(botonesProyectoEnProyecto), ToolbarAlignment.RIGHT)
+
+        	    //Botones de Marcar, Zoom y Reset
+        	    ,new ToolbarDefinition("proyecto_vista", "Proyecto (Vista)",  					 80, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.DATOS, WorkMode.CARROUSEL), List.copyOf(botonesProyectoEnVista), ToolbarAlignment.RIGHT)
+        	    
+        	    
+        	    // Botones de ver subcarpetas, mantener proporciones, pantalla completa
+        	    ,new ToolbarDefinition("toggle", "Toggles", 									 90, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesToggle), ToolbarAlignment.RIGHT)
+        	    
+        	    // Boton de sincronizacion Visor / Carrousel
+        	    ,new ToolbarDefinition("sincronizacion", "Sincronización",    					100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSincronizacion), ToolbarAlignment.RIGHT)
+//        	    ,new ToolbarDefinition("botones_syncro", "Sincronizacion", 	 					100, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.CARROUSEL), List.copyOf(botonesSync), ToolbarAlignment.RIGHT)
+        	    
+
+        	    // Botones de WorkMode
+        	    ,new ToolbarDefinition("modo", "Modo", 											110, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.CARROUSEL, WorkMode.EDICION), List.copyOf(botonesModo), ToolbarAlignment.RIGHT)
+        	    
+        	    // Selector de carpetas, Menu principal, Botones ocultos
+        	    ,new ToolbarDefinition("especiales", "Apoyo", 									120, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO, WorkMode.DATOS, WorkMode.EDICION, WorkMode.CARROUSEL), List.copyOf(botonesApoyo), ToolbarAlignment.RIGHT)
+
+        	    
+    	    // Toolbars específicas del modo Carrusel
+        	    ,new ToolbarDefinition("carrousel", "Carrousel", 								130, EnumSet.of(WorkMode.CARROUSEL), List.copyOf(botonesCarrousel), ToolbarAlignment.CENTER)
+        	    ,new ToolbarDefinition("velocidad_carrousel", "Velocidad", 						140, EnumSet.of(WorkMode.CARROUSEL), botonesVelocidadCarrousel, ToolbarAlignment.CENTER)
         	    
         	    // Barras especiales
-        	    new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 	500, EnumSet.of(WorkMode.PROYECTO), componentesExportacion, ToolbarAlignment.FREE),
-        	    
-        	    new ToolbarDefinition("acciones_det_exportacion", "Detalles de Exportación",520, EnumSet.of(WorkMode.PROYECTO), componentesDetallesExportacion, ToolbarAlignment.FREE),
-        	    
-        	    new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 	550, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.FREE),
-        	    new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 		600, EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE),
-        	    new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 				700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, ToolbarAlignment.FREE),
-        	    new ToolbarDefinition("barra_filtros", "Herramientas de Filtro",			800, EnumSet.allOf(WorkMode.class), componentesFiltro, ToolbarAlignment.FREE),
-        	    new ToolbarDefinition("barra_grid", "Herramientas de Grid", 				900, EnumSet.of(WorkMode.PROYECTO), botonesGrid, ToolbarAlignment.FREE)
+        	    ,new ToolbarDefinition("acciones_exportacion", "Acciones de Exportación", 		1500, EnumSet.of(WorkMode.PROYECTO), componentesExportacion, ToolbarAlignment.FREE)
+        	    ,new ToolbarDefinition("acciones_det_exportacion", "Detalles de Exportación",	1550, EnumSet.of(WorkMode.PROYECTO), componentesDetallesExportacion, ToolbarAlignment.FREE)
+        	    ,new ToolbarDefinition("controles_imagen_inferior", "Controles de Imagen", 		1600, EnumSet.of(WorkMode.VISUALIZADOR), List.copyOf(botonesControlesImagenInferior), ToolbarAlignment.FREE)
+        	    ,new ToolbarDefinition("barra_estado_controles", "Controles de Estado", 		1650, EnumSet.allOf(WorkMode.class), componentesBarraEstado, ToolbarAlignment.FREE)
+        	    ,new ToolbarDefinition("botonesOrdenLista", "Orden de Lista", 					1700, EnumSet.allOf(WorkMode.class), botonesOrdenLista, ToolbarAlignment.FREE)
+        	    ,new ToolbarDefinition("barra_filtros", "Herramientas de Filtro",				1750, EnumSet.allOf(WorkMode.class), componentesFiltro, ToolbarAlignment.FREE)
+//        	    ,new ToolbarDefinition("barra_grid_tamano", "Controles de Tamaño de Grid", 		1850, EnumSet.of(WorkMode.VISUALIZADOR, WorkMode.PROYECTO), botones_grid_tamano, ToolbarAlignment.FREE)
+        	    ,new ToolbarDefinition("barra_grid_proyecto", "Controles de Proyecto de Grid", 	1900, EnumSet.of(WorkMode.PROYECTO), botones_grid_proyecto, ToolbarAlignment.FREE)
         	);
         
         

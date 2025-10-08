@@ -55,6 +55,8 @@ public interface IListCoordinator {
     
     int getOfficialSelectedIndex();
     
+    
+    
 } // --- Fin de la interfaz IListCoordinator ---
 
 

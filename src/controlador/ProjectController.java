@@ -781,19 +781,22 @@ public void notificarCambioEnProyecto() {
     } // --- Fin del método iniciarPaneo ---
 
     
-//    @Override
-//    public void continuarPaneo(java.awt.event.MouseEvent e) {
-//        if (zoomManager != null && model.isZoomHabilitado()) {
-//            zoomManager.continuarPaneo(e);
-//        }
-//    } // --- Fin del método continuarPaneo ---
-    
-    
     @Override
     public void solicitarRefresco() {
         logger.debug("[ProjectController] Solicitud de refresco recibida. Llamando a refrescarListasDeProyecto...");
         refrescarListasDeProyecto();
     } // --- Fin del método solicitarRefresco ---
+    
+    
+    @Override
+    public void aumentarTamanoMiniaturas() {
+        cambiarTamanoGrid(1.2); // Aumenta un 20%
+    } // ---FIN de metodo aumentarTamanoMiniaturas---
+
+    @Override
+    public void reducirTamanoMiniaturas() {
+        cambiarTamanoGrid(0.8); // Reduce un 20%
+    } // ---FIN de metodo reducirTamanoMiniaturas---
     
     
     public void poblarListaDescartes() {

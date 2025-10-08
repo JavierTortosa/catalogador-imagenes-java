@@ -2,6 +2,7 @@ package vista;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
@@ -17,6 +18,7 @@ import javax.swing.JList;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
@@ -73,7 +75,6 @@ public class VisorView extends JFrame {
     private JPanel panelListaArchivos;
     private JPanel panelFiltrosActivos;
     
-    
     private DefaultListModel<String> modeloListaMiniaturas;
     
     // --- BORDES PARA EL ESTADO DE SYNC ---
@@ -116,6 +117,7 @@ public class VisorView extends JFrame {
         this.miniaturaScrollPaneHeight = miniaturaPanelHeight;
         this.modeloListaMiniaturas = new DefaultListModel<>();
 
+        
         // Inicializar mapas vacíos. Se poblarán desde fuera.
         this.menuItemsPorNombre = new HashMap<>();
         this.barrasDeHerramientas = new HashMap<>();
@@ -473,6 +475,7 @@ public class VisorView extends JFrame {
         listaMiniaturas.revalidate();
         listaMiniaturas.repaint();
 
+        
         logger.debug("[VisorView] Refresco de renderers de miniaturas completado.");
     } // --- FIN del metodo solicitarRefrescoRenderersMiniaturas ---
     
@@ -490,6 +493,64 @@ public class VisorView extends JFrame {
             listaMiniaturas.addListSelectionListener(listener);
         }
     } // --- FIN del metodo addListaMiniaturasSelectionListener
+    
+    /**
+     * Orquesta una actualización completa del layout y contenido de la barra de miniaturas.
+     * Es llamado cuando el tamaño de las miniaturas cambia en tiempo real.
+     * [VERSIÓN CORREGIDA PARA USAR VARIABLES EXISTENTES]
+     */
+    public void actualizarLayoutBarraMiniaturas() {
+        logger.info("--- [VisorView] Iniciando actualización de layout de la barra de miniaturas ---");
+
+        // 1. Obtener los componentes visuales clave desde el registro
+        JList<String> thumbnailList = this.registry.get("list.miniaturas");
+        JScrollPane scrollPane = this.registry.get("scroll.miniaturas");
+
+        if (thumbnailList == null || scrollPane == null) {
+            logger.error("  -> ERROR: No se puede actualizar la barra de miniaturas, componentes no encontrados en el registro.");
+            return;
+        }
+
+        // 2. Leer los NUEVOS valores de tamaño desde la configuración (usando la variable 'configurationManagerRef')
+        int nuevoAnchoMiniatura = this.configurationManagerRef.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40);
+        int nuevoAltoMiniatura = this.configurationManagerRef.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, 40);
+        boolean mostrarNombres = this.configurationManagerRef.getBoolean(ConfigKeys.VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE, true);
+
+        // 3. Crear un NUEVO renderer con los nuevos tamaños (usando las variables 'servicioThumbs', 'themeManagerRef', 'iconUtilsRef')
+        MiniaturaListCellRenderer nuevoRenderer = new MiniaturaListCellRenderer(
+            this.servicioThumbs,
+            this.model,
+            this.themeManagerRef,
+            this.iconUtilsRef,
+            nuevoAnchoMiniatura,
+            nuevoAltoMiniatura,
+            mostrarNombres
+        );
+
+        // 4. Reconfigurar la JList con el nuevo renderer y los nuevos tamaños de celda
+        thumbnailList.setCellRenderer(nuevoRenderer);
+        thumbnailList.setFixedCellWidth(nuevoRenderer.getAnchoCalculadaDeCelda());
+        thumbnailList.setFixedCellHeight(nuevoRenderer.getAlturaCalculadaDeCelda());
+        logger.debug("  -> JList reconfigurada. Nuevo tamaño de celda: {}x{}", nuevoRenderer.getAnchoCalculadaDeCelda(), nuevoRenderer.getAlturaCalculadaDeCelda());
+
+        // 5. Recalcular y establecer la nueva altura del JScrollPane
+        int nuevaAlturaScrollPane = nuevoRenderer.getAlturaCalculadaDeCelda() + 20; // 20px de margen para el borde y la barra de scroll
+        Dimension newSize = new Dimension(scrollPane.getWidth(), nuevaAlturaScrollPane);
+        scrollPane.setPreferredSize(newSize);
+        scrollPane.setMaximumSize(newSize);
+        logger.debug("  -> Nueva altura preferida del JScrollPane: {}", nuevaAlturaScrollPane);
+
+        // 6. Forzar al layout contenedor a que se reajuste
+        JPanel visualizerPanel = this.registry.get("panel.workmode.visualizador");
+        if (visualizerPanel != null) {
+            visualizerPanel.revalidate();
+            visualizerPanel.repaint();
+            logger.debug("  -> Revalidate/Repaint llamado en 'panel.workmode.visualizador'.");
+        }
+        
+        logger.info("--- [VisorView] Actualización de layout de barra de miniaturas completada. ---");
+       
+    } // --- FIN metodo actualizarLayoutBarraMiniaturas ---
 
     public void addEtiquetaImagenMouseWheelListener(java.awt.event.MouseWheelListener listener) {
         // etiquetaImagen SÍ es un campo de VisorView, por lo que este método puede quedar igual.

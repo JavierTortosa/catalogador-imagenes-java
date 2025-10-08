@@ -20,7 +20,7 @@ import javax.swing.event.ChangeListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import modelo.MasterListChangeListener; // <<< AÑADIR IMPORT
+import modelo.MasterListChangeListener; 
 import modelo.VisorModel;
 import servicios.image.ThumbnailService;
 

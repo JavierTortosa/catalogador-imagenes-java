@@ -1,10 +1,6 @@
 package controlador;
 
 import java.awt.Component;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
 import java.awt.image.BufferedImage;
@@ -25,7 +21,6 @@ import javax.swing.JList;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
-import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
@@ -379,17 +374,39 @@ public class GeneralController implements IModoController, modelo.MasterListChan
             logger.info("  -> Usuario eligió no guardar. Creando sesión de recuperación...");
             Path recoveryPath = pm.guardarSesionDeRecuperacion();
             if (recoveryPath != null) {
-                // Usamos la nueva clave específica para la recuperación.
                 configuration.setString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE, recoveryPath.toAbsolutePath().toString());
             }
         } else {
-            // Si no hay recuperación pendiente, nos aseguramos de que la clave esté vacía.
             configuration.setString(ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE, "");
         }
         
+        // --- INICIO DE LA CORRECCIÓN DEFINITIVA: Guardar SIEMPRE el estado del CONTEXTO DEL VISUALIZADOR ---
+        if (model != null && configuration != null) {
+            logger.debug("  -> Guardando estado de la sesión de exploración (desde el contexto del Visualizador)...");
+            
+            // Obtenemos explícitamente el contexto del visualizador, sin importar el modo activo.
+            ListContext visualizadorContext = model.getVisualizadorListContext();
+            
+            if (visualizadorContext != null) {
+                Path ultimaCarpeta = visualizadorContext.getCarpetaRaizContexto();
+                String ultimaImagenKey = visualizadorContext.getSelectedImageKey();
+
+                String carpetaParaGuardar = (ultimaCarpeta != null) ? ultimaCarpeta.toAbsolutePath().toString() : "";
+                configuration.setString(ConfigKeys.INICIO_CARPETA, carpetaParaGuardar);
+                logger.debug("    -> {} actualizada a: {}", ConfigKeys.INICIO_CARPETA, carpetaParaGuardar);
+
+                String imagenParaGuardar = (ultimaImagenKey != null) ? ultimaImagenKey : "";
+                configuration.setString(ConfigKeys.INICIO_IMAGEN, imagenParaGuardar);
+                logger.debug("    -> {} actualizada a: {}", ConfigKeys.INICIO_IMAGEN, imagenParaGuardar);
+            } else {
+                logger.warn("  -> No se pudo obtener el contexto del visualizador para guardar el estado de la sesión.");
+            }
+        }
+        // --- FIN DE LA CORRECCIÓN DEFINITIVA ---
+        
         // --- GUARDADO FINAL DE CONFIGURACIÓN ---
         logger.debug("  -> Guardando estado final de la ventana y configuración...");
-        visorController.guardarEstadoVentanaEnConfig(); // Le pedimos al VisorController que guarde el estado de su ventana
+        visorController.guardarEstadoVentanaEnConfig(); 
         
         try {
             configuration.guardarConfiguracion(configuration.getConfig());
@@ -401,12 +418,6 @@ public class GeneralController implements IModoController, modelo.MasterListChan
         visorController.apagarExecutorServiceOrdenadamente();
         
         logger.info("--- Apagado limpio completado. Saliendo de la JVM. ---\n\n");
-        
-//        logger.warn("PRUEBA WARN");
-//        logger.info("PRUEBA INFO");
-//        logger.debug("PRUEBA DEBUG");
-//        logger.error("PRUEBA ERROR");
-        
         
         System.exit(0);
     } // ---FIN de metodo handleApplicationShutdown---
@@ -1165,6 +1176,30 @@ public class GeneralController implements IModoController, modelo.MasterListChan
 //  ************************************************************************************** IMPLEMENTACION INTERFAZ IModoController
     
     
+    
+    @Override
+    public void aumentarTamanoMiniaturas() {
+        logger.debug("[GeneralController] Delegando 'aumentarTamanoMiniaturas' al controlador del modo: {}", model.getCurrentWorkMode());
+        if (model.isEnModoProyecto()) {
+            projectController.aumentarTamanoMiniaturas();
+        } else {
+            // Sirve tanto para VISUALIZADOR como para CARROUSEL
+            visorController.aumentarTamanoMiniaturas();
+        }
+    } // ---FIN de metodo aumentarTamanoMiniaturas---
+
+    @Override
+    public void reducirTamanoMiniaturas() {
+        logger.debug("[GeneralController] Delegando 'reducirTamanoMiniaturas' al controlador del modo: {}", model.getCurrentWorkMode());
+        if (model.isEnModoProyecto()) {
+            projectController.reducirTamanoMiniaturas();
+        } else {
+            // Sirve tanto para VISUALIZADOR como para CARROUSEL
+            visorController.reducirTamanoMiniaturas();
+        }
+    } // ---FIN de metodo reducirTamanoMiniaturas---
+    
+    
     /**
      * Delega una solicitud de refresco al controlador del modo de trabajo activo.
      */
@@ -1177,6 +1212,19 @@ public class GeneralController implements IModoController, modelo.MasterListChan
             visorController.ejecutarRefrescoCompleto();
         }
     } // ---FIN del metodo solicitarRefrescoDelModoActivo ---
+    
+    public void solicitarAumentoTamanoMiniaturas() {
+        logger.debug("[GeneralController] Enrutando solicitud para aumentar tamaño de miniaturas.");
+        // Llama al método de la interfaz IModoController.
+        // El método de abajo se encargará de delegar al controlador correcto.
+        aumentarTamanoMiniaturas();
+    } // ---FIN de metodo solicitarAumentoTamanoMiniaturas---
+
+    public void solicitarReduccionTamanoMiniaturas() {
+        logger.debug("[GeneralController] Enrutando solicitud para reducir tamaño de miniaturas.");
+        // Llama al método de la interfaz IModoController.
+        reducirTamanoMiniaturas();
+    } // ---FIN de metodo solicitarReduccionTamanoMiniaturas---
     
     
     

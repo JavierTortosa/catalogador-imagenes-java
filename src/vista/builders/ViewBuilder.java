@@ -13,7 +13,6 @@ import java.util.Objects;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.Icon;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -34,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.ToolbarManager;
-import controlador.managers.filter.FilterCriterion;
 import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -486,28 +484,8 @@ public class ViewBuilder{
             logger.error("¡Iconos para el renderer de filtros no fueron inyectados en ViewBuilder!");
         }
         
-//        int iconSize = 16; // Tamaño estándar para iconos en una lista.
-//        
-//        // 1. Cargar todos los iconos necesarios.
-//        Icon deleteIcon = iconUtils.getScaledCommonIcon("status-remove-bold.png", iconSize, iconSize);
-//        
-//        // 2. Crear y poblar el mapa de iconos de LÓGICA.
-//        Map<FilterCriterion.Logic, Icon> logicIcons = new java.util.EnumMap<>(FilterCriterion.Logic.class);
-//        logicIcons.put(FilterCriterion.Logic.ADD, iconUtils.getScaledCommonIcon("tab-add_48x48.png", iconSize, iconSize));
-//        logicIcons.put(FilterCriterion.Logic.NOT, iconUtils.getScaledCommonIcon("tab-substr_48x48.png", iconSize, iconSize));
-//
-//        // 3. Crear y poblar el mapa de iconos de TIPO.
-//        Map<FilterCriterion.SourceType, Icon> typeIcons = new java.util.EnumMap<>(FilterCriterion.SourceType.class);
-//        typeIcons.put(FilterCriterion.SourceType.TEXT, iconUtils.getScaledCommonIcon("tag_texto_48x48.png", iconSize, iconSize));
-//        typeIcons.put(FilterCriterion.SourceType.FOLDER, iconUtils.getScaledCommonIcon("tag_carpeta_48x48.png", iconSize, iconSize));
-//        typeIcons.put(FilterCriterion.SourceType.TAG, iconUtils.getScaledCommonIcon("tag_tags_48x48.png", iconSize, iconSize));
-//
-//        // 4. Instanciar el nuevo renderer pasándole los mapas de iconos.
-//        filterList.setCellRenderer(new vista.renderers.FilterCriterionCellRenderer(logicIcons, typeIcons, deleteIcon));
-        
         filterList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         registry.register("list.filtrosActivos", filterList, "WHEEL_NAVIGABLE");
-
         
         JScrollPane scrollPaneFiltros = new JScrollPane(filterList);
         registry.register("scroll.filtrosActivos", scrollPaneFiltros);
@@ -598,6 +576,22 @@ public class ViewBuilder{
 		
 	    // 4. Crear una instancia del GridDisplayPanel, pasándole AHORA el previewer.
 	    GridDisplayPanel gridViewPanel = new GridDisplayPanel(this.model, this.gridThumbnailService, this.themeManager, this.iconUtils, gridPreviewer, this.registry);
+	    
+	 // --- INICIO DE LA MODIFICACIÓN: Añadir la toolbar de tamaño al grid del visualizador ---
+	    if (this.toolbarManager != null) {
+	        // 1. Obtenemos solo la toolbar de tamaño.
+	        JToolBar tamanoToolbar = this.toolbarManager.getToolbar("barra_grid_tamano");
+
+	        // 2. La metemos en una lista.
+	        java.util.List<JToolBar> toolbarsParaGrid = new java.util.ArrayList<>();
+	        if (tamanoToolbar != null) toolbarsParaGrid.add(tamanoToolbar);
+
+	        // 3. Pasamos la lista (con un solo elemento) al panel del grid.
+	        if (!toolbarsParaGrid.isEmpty()) {
+	            gridViewPanel.setToolbars(toolbarsParaGrid);
+	        }
+	    }
+	    // --- FIN DE LA MODIFICACIÓN ---
 		
 	    registry.register("panel.display.grid", gridViewPanel);
 	    JList<String> gridList = gridViewPanel.getGridList(); 

@@ -13,8 +13,8 @@ import javax.swing.SwingUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.ProjectController; // <<< IMPORT NECESARIO
-import controlador.ProjectListCoordinator; // <<< IMPORT NECESARIO
+import controlador.ProjectController;
+import controlador.ProjectListCoordinator;
 import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
 import modelo.MasterListChangeListener;
@@ -22,11 +22,8 @@ import modelo.MasterSelectionChangeListener;
 import modelo.VisorModel;
 import modelo.VisorModel.DisplayMode;
 import modelo.VisorModel.WorkMode; // <<< IMPORT NECESARIO
-import servicios.ConfigurationManager;
-import servicios.image.ThumbnailService;
 import vista.theme.Tema;
 import vista.theme.ThemeChangeListener;
-import vista.theme.ThemeManager;
 
 public class DisplayModeManager implements ThemeChangeListener, MasterListChangeListener, MasterSelectionChangeListener {
 
@@ -36,18 +33,16 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
     // === CAMPOS ORIGINALES RESTAURADOS (SIN SIMPLIFICAR) ===
     // =========================================================================
     private VisorModel model;
-    private ViewManager viewManager;
     private ComponentRegistry registry;
     private IListCoordinator listCoordinator;
     private Map<String, Action> actionMap;
-    private ConfigurationManager configuration;
-    private ThemeManager themeManager;
-    private ToolbarManager toolbarManager;
-    private ConfigApplicationManager configApplicationManager;
-    private ThumbnailService gridThumbnailService;
+    
     private InfobarStatusManager infobarStatusManager;
-    private ProjectController projectController; // Restaurado
-    private ProjectListCoordinator projectListCoordinator; // Añadido para el grid de proyecto
+    private ProjectController projectController; 
+    private ProjectListCoordinator projectListCoordinator; 
+
+
+    
     // =========================================================================
 
     // --- Estado ---
@@ -261,17 +256,13 @@ public class DisplayModeManager implements ThemeChangeListener, MasterListChange
 
     // --- Setters para Inyección de Dependencias (RESTAURADOS Y COMPLETOS) ---
     public void setModel(VisorModel model) { this.model = model; }
-    public void setViewManager(ViewManager viewManager) { this.viewManager = viewManager; }
     public void setRegistry(ComponentRegistry registry) { this.registry = registry; }
     public void setListCoordinator(IListCoordinator listCoordinator) { this.listCoordinator = listCoordinator; }
     public void setActionMap(Map<String, Action> actionMap) { this.actionMap = actionMap; }
-    public void setConfiguration(ConfigurationManager configuration) { this.configuration = configuration; }
-    public void setThemeManager(ThemeManager themeManager) { this.themeManager = themeManager; }
-    public void setToolbarManager(ToolbarManager toolbarManager) { this.toolbarManager = toolbarManager; }
-    public void setConfigApplicationManager(ConfigApplicationManager configApplicationManager) { this.configApplicationManager = configApplicationManager; }
-    public void setGridThumbnailService(ThumbnailService gridThumbnailService) { this.gridThumbnailService = gridThumbnailService; }
     public void setInfobarStatusManager(InfobarStatusManager infobarStatusManager) { this.infobarStatusManager = infobarStatusManager; }
     public void setProjectController(ProjectController projectController) { this.projectController = projectController; }
     public void setProjectListCoordinator(ProjectListCoordinator projectListCoordinator) { this.projectListCoordinator = projectListCoordinator; }
 
-} // end of class
+
+} // end of class DisplayModeManager
+

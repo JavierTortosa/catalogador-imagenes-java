@@ -429,16 +429,10 @@ public class AppInitializer {
                 this.statusBarManager.setController(this.controller);
                 
                 this.displayModeManager.setModel(this.model);
-                this.displayModeManager.setViewManager(this.viewManager);
                 this.displayModeManager.setRegistry(this.registry);
                 this.displayModeManager.setActionMap(this.actionMap);
-                this.displayModeManager.setConfiguration(this.configuration);
-                this.displayModeManager.setThemeManager(this.themeManager);
-                this.displayModeManager.setToolbarManager(this.toolbarManager);
-                this.displayModeManager.setConfigApplicationManager(this.configAppManager);
-                this.displayModeManager.setGridThumbnailService(this.gridThumbnailService);
                 this.displayModeManager.initializeListeners();
-                
+
                 this.listCoordinator.addMasterSelectionChangeListener(this.displayModeManager);
                 this.projectListCoordinator.addMasterSelectionChangeListener(this.displayModeManager);
                 

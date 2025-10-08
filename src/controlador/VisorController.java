@@ -75,6 +75,7 @@ import servicios.ProjectManager;
 import servicios.image.ThumbnailService;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
+import vista.panels.GridDisplayPanel;
 import vista.panels.ImageDisplayPanel;
 import vista.renderers.MiniaturaListCellRenderer;
 import vista.theme.Tema;
@@ -1499,6 +1500,84 @@ public class VisorController implements IModoController, ThemeChangeListener {
         ejecutarRefrescoCompleto();
     }
     
+    @Override
+    public void aumentarTamanoMiniaturas() {
+        final int STEP = 10;
+        final int MAX_SIZE = 300;
+
+        if (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
+            int currentWidth = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
+            int newWidth = Math.min(currentWidth + STEP, MAX_SIZE);
+            configuration.setString(ConfigKeys.GRID_THUMBNAIL_WIDTH, String.valueOf(newWidth));
+            configuration.setString(ConfigKeys.GRID_THUMBNAIL_HEIGHT, String.valueOf(newWidth));
+            GridDisplayPanel gridVisor = registry.get("panel.display.grid");
+            if (gridVisor != null) gridVisor.setGridCellSize(newWidth, newWidth);
+        } else {
+            // --- CIRUGÍA PARA LA BARRA DE MINIATURAS ---
+            // 1. Calcular y guardar el nuevo tamaño en la configuración
+            int currentNormWidth = configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 70);
+            int newNormWidth = Math.min(currentNormWidth + STEP, MAX_SIZE);
+            configuration.setString(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, String.valueOf(newNormWidth));
+            configuration.setString(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, String.valueOf(newNormWidth));
+
+            // 2. Limpiar la caché de imágenes viejas
+            if (servicioMiniaturas != null) {
+                servicioMiniaturas.limpiarCache();
+            }
+
+            // 3. (Paso crucial) Llamar al nuevo método en la VISTA para que actualice TODO el layout
+            if (view != null) {
+                view.actualizarLayoutBarraMiniaturas();
+            }
+            
+            // 4. (Paso final, ahora sí en el orden correcto)
+            //    Actualizar el contenido del viewport de miniaturas. Esto se hace al final,
+            //    cuando la UI ya tiene sus nuevas dimensiones.
+            if (listCoordinator instanceof ListCoordinator) {
+                ((ListCoordinator) listCoordinator).forzarActualizacionDeTiraDeMiniaturas();
+            }
+        }
+    } // ---FIN de metodo aumentarTamanoMiniaturas---
+    
+
+    @Override
+    public void reducirTamanoMiniaturas() {
+        final int STEP = 10;
+        final int MIN_SIZE = 40;
+
+        if (model.getCurrentDisplayMode() == VisorModel.DisplayMode.GRID) {
+            int currentWidth = configuration.getInt(ConfigKeys.GRID_THUMBNAIL_WIDTH, 120);
+            int newWidth = Math.max(currentWidth - STEP, MIN_SIZE);
+            configuration.setString(ConfigKeys.GRID_THUMBNAIL_WIDTH, String.valueOf(newWidth));
+            configuration.setString(ConfigKeys.GRID_THUMBNAIL_HEIGHT, String.valueOf(newWidth));
+            GridDisplayPanel gridVisor = registry.get("panel.display.grid");
+            if (gridVisor != null) gridVisor.setGridCellSize(newWidth, newWidth);
+        } else {
+            // --- CIRUGÍA PARA LA BARRA DE MINIATURAS ---
+            // 1. Calcular y guardar el nuevo tamaño en la configuración
+            int currentNormWidth = configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 70);
+            int newNormWidth = Math.max(currentNormWidth - STEP, MIN_SIZE);
+            configuration.setString(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, String.valueOf(newNormWidth));
+            configuration.setString(ConfigKeys.MINIATURAS_TAMANO_NORM_ALTO, String.valueOf(newNormWidth));
+
+            // 2. Limpiar la caché de imágenes viejas
+            if (servicioMiniaturas != null) {
+                servicioMiniaturas.limpiarCache();
+            }
+
+            // 3. (Paso crucial) Llamar al nuevo método en la VISTA para que actualice TODO el layout
+            if (view != null) {
+                view.actualizarLayoutBarraMiniaturas();
+            }
+            
+            // 4. (Paso final, ahora sí en el orden correcto)
+            //    Actualizar el contenido del viewport de miniaturas.
+            if (listCoordinator instanceof ListCoordinator) {
+                ((ListCoordinator) listCoordinator).forzarActualizacionDeTiraDeMiniaturas();
+            }
+        }
+        
+    } // ---FIN de metodo reducirTamanoMiniaturas---
     
      
 // **************************************************************************************************** FIN DE IModoController     

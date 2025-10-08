@@ -354,238 +354,105 @@ HOJA DE RUTA PARA IMPLEMENTAR LOS MODOS DE VISUALIZACIÓN DEL VISOR
 ------------------------------------------------------------------
 
 
-OBJETIVO PRINCIPAL: Ofrecer al usuario diversas formas de explorar y interactuar con las imágenes, optimizadas para diferentes flujos de trabajo (revisión rápida, comparación, detallado, organización).
+OBJETIVO: Reflejar el estado real de la aplicación tras la revisión exhaustiva del código. Este documento sirve como guía para el desarrollo futuro.
 
-*** CONCEPTOS CLAVE PARA LA ARQUITECTURA DE MODOS ***
-
-1.  Modo de Aplicación (AppMode):
-    *   Define el contexto de trabajo principal: VISUALIZADOR, PROYECTO, DATOS, EDICION, ETC.
-    *   Afecta la visibilidad y comportamiento de acciones, paneles laterales y menús/toolbars activas.
-
-2.  Modo de Visualización de Contenido (DisplayMode):
-    *   Define cómo se presentan las imágenes en el área central de la aplicación: SINGLE_IMAGE, GRID, CAROUSEL, POLAROID.
-    *   Cuando el DisplayMode cambia, la parte central de la VisorView (probablemente usando un CardLayout) cambia de panel.
-
-3.  Configuraciones de Vista (ViewConfiguration):
-    *   Son ajustes que se aplican sobre cualquier DisplayMode.
-    *   Ejemplos: FULL_SCREEN, SHOW_SUBFOLDERS, THUMBNAIL_SIZE, PANNING_ACTIVE.
-    *   Estos son toggles o sliders que modifican el aspecto o comportamiento, pero no cambian el tipo de contenido que se muestra en el centro.
-
-La cuestión de si el modo grid es un modo de trabajo o de visualización:
-El GRID es un Modo de Visualización de Contenido (DisplayMode). No es un "modo de trabajo" (AppMode) en sí mismo, pero es un excelente modo para realizar trabajo. Las acciones que hagas en el GRID (marcar, recortar, añadir tags) son las mismas acciones que harías en SINGLE_IMAGE, pero aplicadas a múltiples elementos o con un flujo de trabajo distinto.
+******************************************************************
+***               TAREAS PENDIENTES (TRABAJO POR HACER)          ***
+******************************************************************
 
 ---
-
 ### FASE 1: REFINAMIENTO DE NAVEGACIÓN Y UX FUNDAMENTALES
-(Consolida y pule el DisplayMode.SINGLE_IMAGE y establece bases para otros modos)
-
-1.  **Persistencia del Estado de Visualización:** YA IMPLEMENTADO
-    *   **Objetivo:** Al cerrar la aplicación, guardar la ruta de la última imagen vista y la carpeta actual. Al iniciar, intentar cargarla.
-    *   **Detalles:**
-        *   `VisorController`: En el ShutdownHook, obtener `model.getSelectedImagePath()` y `model.getCurrentFolderPath()`.
-        *   `ConfigService` (o tu `Config` clase): Métodos `saveLastImagePath(path)` y `loadLastImagePath()`.
-        *   `AppInitializer`: Al inicio, después de cargar la configuración, si hay una `lastImagePath` válida, usar `controller.loadImage(lastImagePath)`.
-    *   **[TODO - VISUALIZADOR] no se guarda la imagen con la que cerramos la aplicacion**
-    *   **Impacto UX:** Mejora la comodidad, el usuario retoma donde lo dejó.
-
-2.  **Salto de Carpeta (Folder Skipping):**
-    *   **Objetivo:** Permitir al usuario saltar a la siguiente/anterior carpeta en la jerarquía actual (misma profundidad).
-    *   **Detalles:**
-        *   `VisorController`: Implementar `jumpToNextFolder()` y `jumpToPreviousFolder()`.
-        *   `FileNavigationService` (nueva clase o en `VisorModel`): Un método para obtener una lista ordenada de todas las carpetas hermanas del directorio actual.
-        *   Manejar límites: si no hay siguiente/anterior.
-        *   UI: Añadir botones en la barra de herramientas o ítems de menú específicos.
-    *   **[TODO - VISUALIZADOR] HACER SALTO DE CARPETA:** Cuando estamos viendo una carpeta que vemos que no nos cuadra, poder saltar todas las imagenes de esa carpeta.
-    *   **Impacto UX:** Agiliza la navegación cuando una carpeta entera no es relevante.
-
-3.  **Control de Paneo con Atajos de Teclado (Ctrl+Alt):** YA IMPLEMENTADO
-    *   **Objetivo:** Activar/desactivar el modo de paneo manteniendo `Ctrl + Alt` pulsados, cambiando el cursor.
-    *   **Detalles:**
-        *   `VisorView` (el panel de imagen): Implementar `KeyListener` para `keyPressed` y `keyReleased`.
-        *   `VisorController`: Un campo `isPanningHotkeyPressed` y un método `setCursorForPanning(boolean active)`.
-        *   El `MouseMotionListener` para el paneo solo actuará si `isPanningHotkeyPressed` es `true`.
-    *   **[TODO - VISUALIZADOR] CTRL + ALT DEBE ACTIVAR EL MODO PANEO Y DESACTIVARLO CUANDO SE DEJA DE PULSAR**
-    *   **Impacto UX:** Control más intuitivo y rápido sobre el paneo.
-
-4.  **Desactivación Visual de Carga Rápida (Debounced Image Loading):**
-    *   **Objetivo:** Al pasar rápidamente las imágenes con la rueda del ratón, evitar cargar la imagen completa de cada una, mostrando un "placeholder" hasta que el usuario se detenga.
-    *   **Detalles:**
-        *   `VisorController`: `MouseWheelListener`. En lugar de cargar la imagen, reiniciar un `javax.swing.Timer`.
-        *   Mientras el temporizador está activo, el `VisorView` puede mostrar un "placebo" visual (ej. el nombre del archivo de destino, un icono de carga, o mantener la imagen anterior).
-        *   Cuando el temporizador se dispara (usuario dejó de mover la rueda), se ejecuta la carga de la imagen real en un `SwingWorker`.
-    *   **[TODO - VISUALIZADOR] Pasar las imagenes rapido con la rueda del raton no debe mostrar las imagenes, solo un placebo que parezca que estan pasando imagenes pero en realidad no se ve nada**
-    *   **Impacto UX:** Mejora drásticamente la fluidez al navegar, elimina la sensación de "congelamiento".
-
-5.  **Ajuste Dinámico del Tamaño de Miniaturas:**
-    *   **Objetivo:** Botones o un slider para agrandar/encoger el tamaño de las miniaturas en la barra lateral y que se ajusten al espacio disponible.
-    *   **Detalles:**
-        *   `ConfigService`: Guardar `miniaturaDefaultSize` (o similar).
-        *   `VisorController`: Métodos `increaseThumbnailSize()`, `decreaseThumbnailSize()`.
-        *   `VisorView` (panel de miniaturas): Al cambiar el tamaño, recalcular el número de miniaturas por fila/columna y cómo se distribuyen. `revalidate()` y `repaint()`.
-        *   UI: Botones en la toolbar (ej. `ZoomInMiniaturasAction`, `ZoomOutMiniaturasAction`).
-    *   **[TODO - VISUALIZADOR] añadir botones de agrandar o encoger las miniaturas y que se ajuste a la pantalla**
-    *   **Impacto UX:** Permite al usuario optimizar el espacio de miniaturas según su preferencia.
-
-6.  **Menú Contextual (Popup Menu):** YA IMPLEMENTADO
-    *   **Objetivo:** Acceso rápido a acciones comunes.
-    *   **Detalles:**
-        *   Crear un `JPopupMenu` con `JMenuItem`s que reutilicen tus `Action`s existentes (`ToggleMarkImageAction`, `ShowInExplorerAction`).
-        *   Añadir `MouseListener` a los componentes relevantes (`JPanel` de la imagen principal, listas de nombres/miniaturas).
-        *   En `mouseReleased(MouseEvent e)` (o `mousePressed`): `if (e.isPopupTrigger()) { popupMenu.show(e.getComponent(), e.getX(), e.getY()); }`.
-        *   **Ítems esenciales:**
-            *   "Marcar/Desmarcar Imagen" (reutiliza `CMD_PROYECTO_TOGGLE_MARCA`).
-            *   "Mostrar Ubicación en Explorador" (`java.awt.Desktop.getDesktop().open(new File(imagePath).getParentFile());`).
-            *   "Activar/Desactivar Paneo" (un `JCheckBoxMenuItem` que refleje el estado de `isPanningActive`).
-    *   **[TODO - VISUALIZADOR] añadir el popup menu:** -marcar imagen, mostrar ubicacion de imagen, modo paneo,
-    *   **Impacto UX:** Mayor eficiencia y descubrimiento de funciones.
-
-7.  **Vista de Árbol de Carpetas (Folder Tree):**
-    *   **Objetivo:** Reemplazar o complementar la lista de nombres de archivos con un `JTree` que muestre la jerarquía de carpetas.
-    *   **Detalles:**
-        *   `VisorView`: Incorporar un `JTree` en el panel izquierdo (al lado o en lugar de la lista de nombres/miniaturas).
-        *   `DirectoryTreeModel` (nueva clase): Un `TreeModel` personalizado que carga los nodos del árbol perezosamente (`lazy loading`) para evitar la lentitud al explorar directorios con miles de subcarpetas.
-        *   `TreeSelectionListener`: Al seleccionar una carpeta en el árbol, el `VisorController` carga el contenido de esa carpeta.
-    *   **[TODO - VISUALIZADOR] mostrar arbol de carpetas**
-    *   **Impacto UX:** Navegación por el sistema de archivos mucho más visual e intuitiva.
-
 ---
 
+*   **Ajuste Dinámico del Tamaño de Miniaturas**
+    *   **ESTADO:** PENDIENTE (EN PROGRESO)
+    *   **NOTA:** Se ha decidido que los botones de control de tamaño vivirán en la barra de herramientas "Vista" para mantener la consistencia en todos los modos. La definición de la UI (`UIDefinitionService`) ha sido actualizada para reflejar esto.
+    *   **PLAN DE ACCIÓN RESTANTE:**
+        1. Implementar la lógica en las `Actions` (`Increase/DecreaseThumbnailSizeAction` en `ActionFactory`) para que sean "inteligentes".
+        2. La lógica debe comprobar el `WorkMode` y `DisplayMode` actuales para decidir si redimensionar:
+           - El Grid del Modo Proyecto.
+           - El Grid del Modo Visualizador.
+           - La barra de miniaturas horizontal del Modo Visualizador.
+
+
+---
 ### FASE 2: IMPLEMENTACIÓN DE NUEVOS `DisplayMode`S
-(Aquí es donde se cambian los paneles en el área central de la aplicación).
-
-1.  **`DisplayMode.GRID` (Vista de Cuadrícula):** YA IMPLEMENTADO
-    *   **Motivación:** Ver muchos modelos a la vez, facilitar la comparación y la selección masiva.
-    *   **Detalles:**
-        *   **Cambio de Panel:** Cuando se activa este modo, el `VisorView` cambia su `CardLayout` para mostrar un `JScrollPane` que contiene un panel personalizado para la cuadrícula.
-        *   **Renderizado Eficiente (CRÍTICO):** No crear un `JLabel` por cada imagen. Se recomienda:
-            *   Un `JList` con un `ListCellRenderer` personalizado que dibuja una fila de miniaturas y maneja el `wrap` (más sencillo de implementar).
-            *   O un `JPanel` personalizado con un `LayoutManager` que dibuja solo las miniaturas visibles (`virtualized scrolling`, más complejo pero más flexible).
-        *   **Tamaño de Miniaturas del Grid:**
-            *   Botones `CMD_GRID_ZOOM_IN`, `CMD_GRID_ZOOM_OUT` para ajustar el tamaño de las celdas de la cuadrícula (ej. de 2x2 a 16x16 o más). Esto afecta cuántas imágenes se ven. Guardar la preferencia en `ConfigService`.
-        *   **Navegación:**
-            *   `AvPag` / `RePag`: Operarán sobre la lista *actualmente visible* del `DisplayMode.GRID`, avanzando por el número de imágenes configurado.
-            *   Teclas de flecha: Navegar entre las celdas de la cuadrícula.
-        *   **Selección Múltiple:** Habilitar `ListSelectionModel.MULTIPLE_INTERVAL_SELECTION` para la lista subyacente que representa la cuadrícula. Permitirá Shift+Click y Ctrl+Click.
-        *   **Marcado en Grupo:** El botón "Marcar" o el menú contextual operaría sobre *todas* las imágenes seleccionadas.
-    *   **[TODO - PROYECTO] permitir la seleccion multiple en modo proyecto**
-    *   **[TODO - PROYECTO] permitir seleccionar varios archivos con el raton + shift por ej. para enviarlos a descartes o a exportar**
-    *   **Impacto UX:** Poder comparar y seleccionar masivamente reduce drásticamente el tiempo de exploración para kits de modelos.
-
-2.  **`DisplayMode.CAROUSEL` (Carrusel/Filmstrip):** YA IMPLEMENTADO
-    *   **Motivación:** Revisión rápida de nuevo material sin clasificar, ideal para una primera pasada y marcación inicial.
-    *   **Detalles:**
-        *   **Cambio de Panel:** Panel con la imagen principal grande y una tira horizontal de miniaturas abajo (o arriba).
-        *   **Tira de Miniaturas:** Un `JScrollPane` horizontal que contiene un `JPanel` con un `FlowLayout` o personalizado para renderizar la tira. La carga de estas miniaturas también debe ser eficiente (cache y virtualización si la tira es muy larga).
-        *   **Sincronización:** La miniatura central en la tira es la imagen principal. Al navegar la imagen principal, la tira se desplaza para mantener la miniatura centrada. Al hacer clic en una miniatura, la imagen principal cambia.
-        *   **Flujo de Trabajo:** Muy natural para "escaneo y marcar". Puedes ver las imágenes adyacentes al mismo tiempo que la principal.
-    *   **Impacto UX:** Muy eficiente para una revisión inicial y categorización rápida.
-
-3.  **`DisplayMode.POLAROID` (Modo Polaroid):**
-    *   **Motivación:** Una forma más estética y relajada de visualizar imágenes, no tan centrada en la funcionalidad de trabajo.
-    *   **Detalles:**
-        *   **Cambio de Panel:** Un panel que renderiza la imagen principal con un marco blanco y una ligera inclinación.
-        *   **Implementación:** Dibujar un `Rectangle2D` para el marco y aplicar una transformación `AffineTransform` para la rotación ligera al dibujar la imagen.
-        *   **Interacciones:** Podría tener las mismas interacciones básicas que `SINGLE_IMAGE` (navegación, zoom), pero quizás con menos botones visibles para mantener la "limpieza".
-    *   **Impacto UX:** Ofrece un respiro visual y un modo de "disfrute" de la colección.
-
 ---
 
+*   **Selección Múltiple en Modo Grid de Proyecto**
+    *   **ESTADO:** PENDIENTE
+    *   **NOTA:** El modo Grid funciona, pero actualmente solo permite la selección de un único elemento.
+    *   **PLAN DE ACCIÓN:**
+        1. Cambiar el `ListSelectionModel` del grid a `MULTIPLE_INTERVAL_SELECTION`.
+        2. Refactorizar las acciones del modo proyecto (ej. "Mover a Descartes") para que puedan operar sobre una lista de elementos seleccionados (`getSelectedValuesList()`) en lugar de uno solo.
+
+*   **`DisplayMode.POLAROID` (Modo Polaroid)**
+    *   **ESTADO:** PENDIENTE (BAJA PRIORIDAD)
+    *   **NOTA:** Se mantiene como una mejora estética para el futuro. No es una prioridad para la funcionalidad principal.
+
+
+---
 ### FASE 3: CONFIGURACIONES DE VISTA Y MANTENIMIENTO DEL ESTADO
-(Estas opciones se aplican a cualquier `DisplayMode` activo).
-
-1.  **Modo Pantalla Completa (`ViewConfiguration.FULL_SCREEN`):** (no confundir con el pantalla completa de la aplicacion)
-    *   **Objetivo:** Maximizar el espacio de visualización para cualquier `DisplayMode`.
-    *   **Detalles:**
-        *   `VisorView.toggleFullScreen()`: Ocultar/mostrar `JMenuBar`, `JToolBar`s, panel izquierdo (listas/árbol), barra de estado. `JFrame.setExtendedState(JFrame.MAXIMIZED_BOTH)` o `JFrame.getGraphicsConfiguration().getDevice().setFullScreenWindow(frame)`.
-        *   `VisorController`: Maneja el `boolean isFullScreen` en `VisorModel`.
-    *   **[TODO - VISUALIZADOR] modo pantalla completa:** Es una forma de configurar la pantalla más que un modo en sí mismo, y se puede combinar con el modo grid.
-    *   **Impacto UX:** Experiencia inmersiva para cualquier tipo de visualización.
-
-2.  **Visibilidad de Componentes de UI (`ViewConfiguration`s):**
-    *   **Objetivo:** Dar control al usuario sobre qué elementos de la interfaz son visibles.
-    *   **Detalles:**
-        *   `ConfigService`: Guardar el estado de visibilidad de `menuBarVisible`, `toolbarVisible`, `leftPanelVisible`, `thumbnailBarVisible`, `statusBarVisible`.
-        *   `VisorView`: Métodos para mostrar/ocultar estos componentes (`jMenuBar.setVisible()`, `jToolBar.setVisible()`, `jSplitPane.setDividerSize(0)` para ocultar un panel, etc.).
-        *   UI: `JCheckBoxMenuItem`s en el menú "Vista" o en la `MegaConfig` (futuro).
-    *   **Impacto UX:** Permite al usuario personalizar la interfaz para sus preferencias y el tamaño de su pantalla.
-
-3.  **Ajuste del Comportamiento de Acciones según `AppMode` y `DisplayMode`:**
-    *   **Objetivo:** Que los botones y menús se comporten de forma inteligente.
-    *   **Detalles:**
-        *   Cada `Action` (ej. "Marcar Imagen", "Explorar Carpeta") en su `actionPerformed()` debe consultar el `currentAppMode` y `currentDisplayMode` para decidir su lógica.
-        *   **Ejemplo "Marcar Imagen":**
-            *   Si `AppMode == VISUALIZADOR`: Marca/desmarca en el proyecto activo temporal.
-            *   Si `AppMode == PROYECTO` (`DisplayMode` puede ser `SINGLE_IMAGE` o `GRID`): Mueve la imagen (o la selección) a "Descartes" o "Proyecto" según dónde esté actualmente.
-        *   **[TODO - PROYECTO] hacer que el boton de marcar imagen en modo proyecto mueva la imagen a descartes o viceversa**
-        *   **Ejemplo "Selector de Carpeta/Archivo":**
-            *   Si `AppMode == VISUALIZADOR`: Abre `JFileChooser` para seleccionar un *directorio*.
-            *   Si `AppMode == PROYECTO`: Abre `JFileChooser` para seleccionar un *archivo de proyecto* (`.prj`).
-        *   **[TODO - PROYECTO] ajustar los botones que se tienen que ver o modificar el comportamiento entre visualizador y proyecto:**
-            *   -Marcar Imagen: debe desmarcar la imagen en modo proyecto y por lo tanto eliminarla del proyecto o debe mandar la imagen a descartes
-            *   -Selector de Carpeta: en modo proyecto se deberia usar para abrir un proyecto, no para iniciar la exploracion de imagenes como en el visualizador
-        *   **[TODO - PROYECTO] ajustar opciones del menu para que se activen o desactiven las que son o no relevantes en modo proyecto**
-        *   **Habilitar/Deshabilitar Acciones:** La visibilidad y `isEnabled()` de los botones y `JMenuItem`s deben actualizarse cada vez que `currentAppMode` o `currentDisplayMode` cambian.
-    *   **Impacto UX:** Interfaz intuitiva y coherente, donde las acciones tienen sentido en el contexto actual.
-
 ---
 
+*   **Comportamiento Contextual del Selector de Archivos (Botón "Abrir")**
+    *   **ESTADO:** PENDIENTE
+    *   **NOTA:** La acción "Abrir" de la barra de herramientas principal no es sensible al contexto.
+    *   **PLAN DE ACCIÓN:** Modificar la `Action` "Abrir" para que:
+        - En Modo Visualizador, abra un selector de DIRECTORIOS.
+        - En Modo Proyecto, abra un selector de ARCHIVOS para proyectos (`.prj`).
+
+*   **Habilitación/Deshabilitación Contextual de Acciones**
+    *   **ESTADO:** PENDIENTE
+    *   **NOTA:** Algunas acciones/menús del modo Visualizador siguen activos en el modo Proyecto, donde no tienen sentido (ej. "Cargar Subcarpetas").
+    *   **PLAN DE ACCIÓN:** Crear un método en `GeneralController` que se llame al cambiar de modo y que actualice el estado `setEnabled(false)` de las acciones que no son relevantes para el contexto actual.
+
+
+---
 ### FASE 4: EDICIÓN Y MANEJO AVANZADO DE ARCHIVOS
-(Esta fase es crucial para el tipo de imágenes que manejas).
-
-1.  **Herramienta de Recorte (Cropping Tool):**
-    *   **Objetivo:** Permitir al usuario seleccionar una o varias áreas rectangulares para recortar.
-    *   **Detalles:**
-        *   **UI de Selección:** Un `JPanel` transparente superpuesto a la imagen principal. `MouseListener` para dibujar un rectángulo de selección (clic, arrastrar, soltar). Permitir redimensionar el rectángulo.
-        *   **Modo de Recorte:** Un botón en la toolbar (`CMD_EDITAR_RECORTAR`) que activa/desactiva este modo. Cuando está activo, la imagen principal no se panearía/zoomearía con el ratón, sino que se controlaría el rectángulo de selección.
-        *   **Acciones de Recorte:**
-            *   `CMD_RECORTAR_GUARDAR_COMO_NUEVA`: Guarda la selección como una nueva imagen.
-            *   `CMD_RECORTAR_SOBREESCRIBIR_ORIGINAL`: Reemplaza la imagen original con el recorte (pedir confirmación).
-            *   `CMD_RECORTAR_EXTRAER_MULTIPLES_SELECCIONES`: Permite definir múltiples rectángulos de recorte en la misma imagen. Se procesan y se guardan como archivos separados (ej. `nombre_original_001.png`). Esto debe hacerse en un `SwingWorker` con `JProgressBar`.
-    *   **Impacto UX:** Herramienta fundamental para segmentar las imágenes de modelos múltiples, especialmente para tu "locura" de cortar.
-
-2.  **Operaciones Básicas de Imagen (Rotación, Espejo):**
-    *   **Objetivo:** Rotar 90º (izq/der), espejo horizontal/vertical.
-    *   **Detalles:**
-        *   `ImageProcessingService` (nueva clase): Métodos para aplicar transformaciones a un `BufferedImage`.
-        *   `VisorController`: Métodos que llaman al servicio, actualizan el `model` y la `view`.
-        *   UI: Botones en la toolbar (`CMD_ROTAR_IZQ`, `CMD_ROTAR_DER`, `CMD_ESPEJO_H`, `CMD_ESPEJO_V`).
-    *   **Impacto UX:** Permite corregir la orientación de las imágenes.
-
-3.  **Gestión del Guardado Post-Edición:**
-    *   **Objetivo:** Opciones claras para guardar los cambios de edición.
-    *   **Detalles:**
-        *   Si la imagen está editada (`model.isImageModified = true`), mostrar un indicador visual (ej. asterisco en el título de la ventana).
-        *   Al intentar cerrar la aplicación o cambiar de imagen/carpeta: preguntar al usuario si desea guardar los cambios, descartarlos o cancelar.
-        *   Opciones de guardado: "Guardar" (sobrescribir), "Guardar como..." (crear una nueva copia), "Descartar cambios".
-    *   **Impacto UX:** Previene la pérdida de trabajo.
-
-4.  **Exportación de Proyectos con Mover vs. Copiar:**
-    *   **Objetivo:** Controlar si los archivos de un proyecto se copian o se mueven al exportar.
-    *   **Detalles:**
-        *   En el diálogo/proceso de exportación del `ProjectSelectionManager`, añadir una opción para "Mover archivos originales" vs. "Copiar archivos originales".
-        *   Lógica: `Files.move()` vs `Files.copy()`.
-        *   **Actualización BD/Proyecto (CRÍTICO):** Si se "mueven", las rutas en el proyecto y, eventualmente, en la base de datos, ¡deberán actualizarse a la nueva ubicación!
-    *   **[TODO - PROYECTO] exportar el proyecto copiando archivos de imagen y comprimidos a una carpeta de trabajo (con todo lo que ello conlleva por si no existe un archivo con el mismo nombre, poder asignar un archivo comprimido a una imgen, etc....)** (Ya lo tienes casi implementado, solo faltaría el botón de mover).
-    *   **Impacto UX:** Mayor flexibilidad para organizar los archivos físicos de los proyectos.
-
-5.  **Barras de Progreso para Operaciones Largas:**
-    *   **Objetivo:** Informar al usuario sobre el progreso de tareas que toman tiempo (ej. escaneo inicial de subcarpetas, carga de archivos asociados, exportación/movimiento masivo).
-    *   **Detalles:**
-        *   Utilizar `SwingWorker` y `JProgressBar` (`JDialog` modal).
-    *   **[TODO - PROYECTO] cuando busca los archivos asociados deberia aparecer un progressbar indicando que esta buscando los archivos asociados....**
-    *   **Impacto UX:** La aplicación se siente más profesional y responsiva.
-
 ---
 
-### *** TODOS RESTANTES ESPECÍFICOS DEL MODO PROYECTO (Fuera de esta Hoja de Ruta del Visualizador) ***
+*   **Opción de "Mover" en Flujo de Trabajo de Ingestión (Exportación)**
+    *   **ESTADO:** PENDIENTE
+    *   **NOTA:** La exportación por COPIA de archivos funciona. La funcionalidad de MOVER archivos está pendiente y se ha identificado como parte de un futuro "modo datos" para la ingesta de nuevos lotes.
 
-Estos son puntos clave que ya mencionaste y que son más específicos de la gestión de proyectos que de la visualización en sí, por lo que serán abordados en la hoja de ruta del Modo Proyecto.
+*   **Barra de Progreso para Búsqueda de Archivos Asociados**
+    *   **ESTADO:** PENDIENTE
+    *   **NOTA:** El `TaskProgressDialog` existe y se usa correctamente para la *exportación* de archivos. Sin embargo, la *búsqueda inicial de archivos asociados* al preparar la cola de exportación se ejecuta en el hilo principal y carece de barra de progreso, lo que puede congelar la UI.
+    *   **PLAN DE ACCIÓN:** Envolver la lógica de `ExportQueueManager.prepararColaDesdeSeleccion()` en un `SwingWorker` y mostrar el `TaskProgressDialog` durante su ejecución.
 
-*   **[TODO - PROYECTO] hacer que el salto de pagina avance o retroceda los items que se estipulan en el config, ahora lo hace pero de la lista general, no en la lista especifica, si movemos items a descartes pasa del item 0 al 10 pero si en medio no hay items porque estan en descartes va al item 10 igual**
-    *   (Esto requiere que la paginación opere sobre la lista *filtrada/activa* del proyecto, descartes, etc.)
-*   **[TODO - PROYECTO] implementar la barra de multiproyectos**
+*   **Herramienta de Recorte (Cropping Tool) y Gestión de Guardado**
+    *   **ESTADO:** POSPUESTO (BAJA PRIORIDAD)
+    *   **NOTA:** Se considera un subproyecto complejo y no es prioritario para la funcionalidad principal de catalogación y gestión.
 
----
+
+******************************************************************
+***         TAREAS COMPLETADAS O DESCARTADAS (HISTORIAL)       ***
+******************************************************************
+
+*   **Persistencia del Estado de Visualización:** COMPLETADO. La aplicación ahora guarda y carga correctamente la última carpeta e imagen vistas en el modo Visualizador, independientemente del modo en que se cierre la app.
+
+*   **Salto de Carpeta (Folder Skipping):** DESCARTADO. Se ha determinado que la funcionalidad es obsoleta y no necesaria.
+
+*   **Control de Paneo con Atajos de Teclado (Ctrl+Alt):** DESCARTADO. La tecla `Alt` entra en conflicto con la funcionalidad estándar de menús de Swing, y la funcionalidad es redundante con el atajo `Numpad 8` que ya activa el modo de paneo.
+
+*   **Desactivación Visual de Carga Rápida (Debounced Loading):** COMPLETADO. Se confirmó que el sistema existente de carga asíncrona con cancelación de tareas (`Future.cancel()`) en `VisorController` cumple eficazmente el objetivo de mantener la fluidez durante la navegación rápida.
+
+*   **Menú Contextual (Popup Menu):** COMPLETADO. Se ha verificado que la funcionalidad está implementada y es correcta.
+
+*   **Vista de Árbol de Carpetas (Folder Tree):** COMPLETADO. Se ha verificado que la funcionalidad ya existe en el código, contradiciendo la antigua hoja de ruta.
+
+*   **`DisplayMode.CAROUSEL` (Carrusel/Filmstrip):** COMPLETADO. La funcionalidad está implementada y se ha reclasificado correctamente como un `WorkMode` (modo de trabajo) en sí mismo.
+
+*   **Modo Pantalla Completa:** COMPLETADO. Se ha verificado que la funcionalidad existe y está correctamente implementada a través del `ViewManager`.
+
+*   **Visibilidad de Componentes de UI:** COMPLETADO. El sistema para mostrar/ocultar paneles y barras de herramientas a través de `ToggleUIElementVisibilityAction` está implementado y funciona como se espera.
+
+*   **Comportamiento Contextual de "Marcar Imagen":** COMPLETADO. Se ha verificado que la lógica de la acción "Marcar" cambia correctamente entre el modo Visualizador (marcar/desmarcar) y el modo Proyecto (mover a descartes/restaurar).
+
+*   **Operaciones Básicas de Imagen (Rotación, Espejo):** COMPLETADO. Confirmado por el usuario.
+
+*   **Exportación de Proyectos por Copia:** COMPLETADO. El `ExportWorker` implementa correctamente la lógica para copiar archivos de imagen y asociados a una carpeta de destino.
 
 
 **********************************************************************************************************************************************

@@ -59,10 +59,19 @@ public interface IModoController {
      */
     void iniciarPaneo(MouseEvent e);
 
-    
     /**
      * Solicita al controlador de modo que ejecute su lógica de refresco principal.
      */
     void solicitarRefresco();
+    
+    /**
+     * Aumenta el tamaño de las miniaturas en el contexto del modo actual.
+     */
+    void aumentarTamanoMiniaturas();
+
+    /**
+     * Reduce el tamaño de las miniaturas en el contexto del modo actual.
+     */
+    void reducirTamanoMiniaturas();
     
 } // --- FIN de la interfaz IModoController ---

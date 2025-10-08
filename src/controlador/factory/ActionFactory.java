@@ -1389,24 +1389,26 @@ public class ActionFactory {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (projectControllerRef != null) {
-                    projectControllerRef.cambiarTamanoGrid(1.2); // Aumenta un 20%
+                if (generalController != null) {
+                    // La Action solo delega la llamada.
+                    generalController.solicitarAumentoTamanoMiniaturas();
                 }
             }
         };
-    } // ---FIN de metodo ---
+    } // ---FIN de metodo createGridSizeUpAction ---
 
     private Action createGridSizeDownAction() {
         return new AbstractAction("Reducir Tamaño Miniatura") {
             private static final long serialVersionUID = 1L;
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (projectControllerRef != null) {
-                    projectControllerRef.cambiarTamanoGrid(0.8); // Reduce un 20%
+                if (generalController != null) {
+                    // La Action solo delega la llamada.
+                    generalController.solicitarReduccionTamanoMiniaturas();
                 }
             }
         };
-    } // ---FIN de metodo ---
+    } // ---FIN de metodo createGridSizeDownAction ---
     
     private Action createToggleGridStateAction() {
         ImageIcon icon = getIconForCommand(AppActionCommands.CMD_GRID_SHOW_STATE);

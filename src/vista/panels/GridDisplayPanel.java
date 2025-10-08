@@ -3,6 +3,7 @@ package vista.panels;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.util.List;
 
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -31,7 +32,6 @@ public class GridDisplayPanel extends JPanel {
     private static final long serialVersionUID = 1L;
     private JList<String> gridList;
     private JPanel toolbarContainer;
-//    private ComponentRegistry registry;
     
     /**
      * Constructor para el MODO VISUALIZADOR.
@@ -47,7 +47,7 @@ public class GridDisplayPanel extends JPanel {
     ) {
         // Llama al constructor principal pasando 'null' para el projectManager.
         this(model, gridThumbnailService, themeManager, iconUtils, gridPreviewer, null, null, registry);
-    } // ---FIN de metodo ---
+    } // ---FIN de constructor GridDisplayPanel ---
 
     /**
      * Constructor principal y extendido para el MODO PROYECTO.
@@ -106,11 +106,11 @@ public class GridDisplayPanel extends JPanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(20);
         
         add(scrollPane, BorderLayout.CENTER);
-    } // ---FIN de metodo ---
+    } // ---FIN de Constructor GridDisplayPanel ---
 
     public JList<String> getGridList() {
         return gridList;
-    } // ---FIN de metodo ---
+    } // ---FIN de metodo getGridList ---
 
     public void setGridCellSize(int nuevoAncho, int nuevoAlto) {
         if (gridList != null) {
@@ -120,27 +120,51 @@ public class GridDisplayPanel extends JPanel {
             gridList.repaint();
             logger.debug("Tamaño de celda del grid actualizado a: {}x{}", nuevoAncho, nuevoAlto);
         }
-    } // ---FIN de metodo ---
+    } // ---FIN de metodo setGridCellSize ---
     
-    public void setToolbar(JToolBar toolbar) {
-        toolbarContainer.removeAll();
-        if (toolbar != null) {
-        	
-            // 1. Creamos un panel "envoltorio" que usa FlowLayout.
-            //    FlowLayout.RIGHT alinea todos los componentes que contiene a la derecha.
-            JPanel wrapperPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0)); // 0, 0 para quitar espacios
+    
+    public void setToolbars(List<JToolBar> toolbars) {
+        toolbarContainer.removeAll(); // Limpiamos el contenedor
+        if (toolbars != null && !toolbars.isEmpty()) {
+            
+            // Creamos un panel "envoltorio" que usa FlowLayout para alinear las barras.
+            // FlowLayout.RIGHT las alineará a la derecha.
+            JPanel wrapperPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 5, 0)); // 5px de espacio horizontal, 0 vertical
             wrapperPanel.setOpaque(false); // Hacemos el envoltorio transparente
 
-            // 2. Añadimos la toolbar al envoltorio.
-            wrapperPanel.add(toolbar);
+            // Añadimos cada toolbar de la lista al panel envoltorio.
+            for (JToolBar toolbar : toolbars) {
+                wrapperPanel.add(toolbar);
+            }
             
-            // 3. Añadimos el envoltorio (y no la toolbar directamente) al contenedor principal.
+            // Añadimos el envoltorio (que contiene todas las toolbars) al contenedor principal.
             toolbarContainer.add(wrapperPanel, BorderLayout.CENTER);
-
         }
         
         toolbarContainer.revalidate();
         toolbarContainer.repaint();
-    } // ---FIN de metodo ---
+    } // ---FIN de metodo setToolbars---
+    
+    
+//    public void setToolbar(JToolBar toolbar) {
+//        toolbarContainer.removeAll();
+//        if (toolbar != null) {
+//        	
+//            // 1. Creamos un panel "envoltorio" que usa FlowLayout.
+//            //    FlowLayout.RIGHT alinea todos los componentes que contiene a la derecha.
+//            JPanel wrapperPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0)); // 0, 0 para quitar espacios
+//            wrapperPanel.setOpaque(false); // Hacemos el envoltorio transparente
+//
+//            // 2. Añadimos la toolbar al envoltorio.
+//            wrapperPanel.add(toolbar);
+//            
+//            // 3. Añadimos el envoltorio (y no la toolbar directamente) al contenedor principal.
+//            toolbarContainer.add(wrapperPanel, BorderLayout.CENTER);
+//
+//        }
+//        
+//        toolbarContainer.revalidate();
+//        toolbarContainer.repaint();
+//    } // ---FIN de metodo setToolbar ---
 
 } // --- FIN de clase ---
