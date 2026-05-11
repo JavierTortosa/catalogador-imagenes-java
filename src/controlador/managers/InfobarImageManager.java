@@ -102,23 +102,36 @@ public class InfobarImageManager implements ThemeChangeListener{
 
 
     private void actualizarNombreArchivo() {
-        JLabel label = registry.get("label.info.nombreArchivo");
-        if (label == null) return;
+        javax.swing.JTextField pathField = registry.get("textfield.info.rutaImagen");
+        JLabel fileLabel = registry.get("label.info.nombreArchivo");
+        if (pathField == null || fileLabel == null) return;
 
         boolean esVisible = configuration.getBoolean(ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_VISIBLE, true);
-        if (label.isVisible() != esVisible) label.setVisible(esVisible);
+        if (pathField.isVisible() != esVisible) pathField.setVisible(esVisible);
+        if (fileLabel.isVisible() != esVisible) fileLabel.setVisible(esVisible);
 
         if (esVisible) {
-            String display = "N/A";
-            Path ruta = (model.getSelectedImageKey() != null) ? model.getRutaCompleta(model.getSelectedImageKey()) : null;
-            if (ruta != null) {
-                String formato = configuration.getString(ConfigKeys.INFOBAR_SUP_NOMBRE_RUTA_FORMATO, "solo_nombre");
-                display = "ruta_completa".equalsIgnoreCase(formato) ? ruta.toString() : ruta.getFileName().toString();
+            String pathDisplay = "Ruta: N/A";
+            String fileDisplay = "Archivo: N/A";
+
+            String selectedKey = model.getSelectedImageKey();
+            if (selectedKey != null) {
+                Path fullPath = model.getRutaCompleta(selectedKey);
+                if (fullPath != null) {
+                    Path folderPath = fullPath.getParent();
+                    Path fileName = fullPath.getFileName();
+                    
+                    pathDisplay = "Ruta: " + (folderPath != null ? folderPath.toString() + "\\" : "");
+                    fileDisplay = "Archivo: " + (fileName != null ? fileName.toString() : "");
+                }
             } else if (model.getCarpetaRaizActual() != null) {
-                display = "Carpeta: " + model.getCarpetaRaizActual().getFileName().toString();
+                pathDisplay = "Carpeta: " + model.getCarpetaRaizActual().toString();
             }
-            label.setText(display);
-            label.setToolTipText(display);
+
+            pathField.setText(pathDisplay);
+            pathField.setToolTipText(pathDisplay);
+            fileLabel.setText(fileDisplay);
+            fileLabel.setToolTipText(fileDisplay);
         }
     } // --- Fin del método actualizarNombreArchivo ---
 

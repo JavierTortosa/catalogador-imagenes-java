@@ -39,7 +39,7 @@
         <tr><td colspan="2"><hr class="separator"></td></tr>
         <tr>
             <td class="icon-cell"><img src="ICON_PLACEHOLDER_21005-iniciar_exportación.png"></td>
-            <td><strong>Mostrar/Ocultar Panel de Herramientas:</strong> Alterna la visibilidad del panel inferior derecho que contiene las pestañas de Exportar y Etiquetar.</td>
+            <td><strong>Panel de Control de Asignaciones:</strong> (Atajo: disponible también en el menú <em>Proyecto</em>). Muestra u oculta el panel de exportación y gestión de asignaciones, donde podrás preparar, asignar archivos comprimidos y lanzar la copia final de tu proyecto. Consulta la <a href="proyecto_exportar.html">Guía del Panel de Exportación</a> para más detalles.</td>
         </tr>
         <tr><td colspan="2"><hr class="separator"></td></tr>
         <tr>
@@ -75,9 +75,26 @@
     
     <h2>Menús Contextuales (Clic Derecho)</h2>
     <p>Hacer clic derecho en diferentes áreas ofrece acciones rápidas:</p>
+
+    <h3>Sobre la lista «Selección Actual»</h3>
     <ul>
-        <li><strong>Sobre una lista (Selección/Descartes):</strong> Ofrece acciones para mover, restaurar, eliminar o localizar la imagen.</li>
-        <li><strong>Sobre la tabla de exportación:</strong> Proporciona atajos para las acciones más comunes como asignar, ignorar o quitar de la cola.</li>
+        <li><strong>Mover a Descartes:</strong> Envía el elemento seleccionado a la lista de Descartes.</li>
+        <li><strong>Localizar Archivo:</strong> Abre el explorador en la carpeta que contiene el archivo.</li>
+        <li><strong>Añadir Archivos al Proyecto:</strong> Abre un diálogo para añadir directamente uno o más archivos a la lista de Selección. Admite imágenes (<code>.jpg</code>, <code>.png</code>, <code>.gif</code>, <code>.bmp</code>) y también archivos sin imagen como modelos 3D (<code>.stl</code>, <code>.obj</code>, <code>.3mf</code>) o comprimidos (<code>.zip</code>, <code>.rar</code>, <code>.7z</code>).</li>
+    </ul>
+
+    <h3>Sobre la lista «Descartes»</h3>
+    <ul>
+        <li><strong>Restaurar a Selección:</strong> Devuelve el elemento a la lista de Selección Actual.</li>
+        <li><strong>Localizar Archivo:</strong> Abre el explorador en la carpeta que contiene el archivo.</li>
+        <li><strong>Vaciar Descartes:</strong> Elimina del proyecto todos los elementos de la lista de Descartes de una sola vez (no borra los archivos del disco).</li>
+        <li><strong>Añadir Archivos al Proyecto:</strong> Igual que en Selección — permite añadir archivos de cualquier tipo soportado directamente a la lista.</li>
+        <li><strong>Eliminar Permanentemente:</strong> <span class="warning">¡Cuidado!</span> Elimina el archivo del disco de forma permanente, sin posibilidad de recuperación desde la papelera.</li>
+    </ul>
+
+    <h3>Sobre la tabla de exportación</h3>
+    <ul>
+        <li>Proporciona atajos para las acciones más comunes: asignar archivo comprimido, ignorar comprimido, mover a Descartes o quitar de la cola.</li>
     </ul>
 
 </body>

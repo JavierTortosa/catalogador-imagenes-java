@@ -1,35 +1,66 @@
 <configuration>
 
-    <!-- Appender #1: SOLO PARA ERRORES. Lo mandamos a System.err para que Eclipse lo pinte de ROJO. -->
-    <appender name="CONSOLE_ERR" class="ch.qos.logback.core.ConsoleAppender">
-        <target>System.err</target>
-        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+    <!-- =========================================================== -->
+    <!-- APPENDER: ERROR  →  rojo negrita                            -->
+    <!-- =========================================================== -->
+    <appender name="CONSOLE_ERROR" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
         </filter>
         <encoder>
-            <!-- Patrón SIN colores, porque el color lo pone Eclipse al ser System.err -->
-            <pattern>%-5level %logger{36} - %msg%n</pattern>
+            <pattern>%boldRed(%-5level %logger{36} - %msg%n)</pattern>
         </encoder>
     </appender>
 
-    <!-- Appender #2: PARA  T O D O  LO DEMÁS (WARN, INFO, DEBUG). Lo mandamos a System.out. -->
-    <appender name="CONSOLE_OUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- =========================================================== -->
+    <!-- APPENDER: WARN   →  amarillo                                -->
+    <!-- =========================================================== -->
+    <appender name="CONSOLE_WARN" class="ch.qos.logback.core.ConsoleAppender">
         <target>System.out</target>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
-            <!-- Bloqueamos los ERROR para que no se dupliquen -->
+            <level>WARN</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+        <encoder>
+            <pattern>%yellow(%-5level %logger{36} - %msg%n)</pattern>
+        </encoder>
+    </appender>
+
+    <!-- =========================================================== -->
+    <!-- APPENDER: INFO / DEBUG / TRACE  →  azul / cyan / blanco    -->
+    <!-- (se excluyen ERROR y WARN para que no se dupliquen)         -->
+    <!-- =========================================================== -->
+    <appender name="CONSOLE_INFO" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.out</target>
+        <!-- Excluir ERROR -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>ERROR</level>
+            <onMatch>DENY</onMatch>
+            <onMismatch>NEUTRAL</onMismatch>
+        </filter>
+        <!-- Excluir WARN  -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>WARN</level>
             <onMatch>DENY</onMatch>
             <onMismatch>ACCEPT</onMismatch>
         </filter>
         <encoder>
-            <!-- Aquí usamos highlight, y AHORA SÍ debería funcionar el amarillo para WARN -->
-            <pattern>%highlight(%-5level %logger{36} - %msg%n){ERROR=red, WARN=yellow, INFO=green, DEBUG=cyan, TRACE=white}</pattern>
+            <!-- INFO en azul, DEBUG/TRACE en cyan (el nivel define el color) -->
+            <pattern>%blue(%-5level) %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
 
-    <root level="DEBUG">
-        <appender-ref ref="CONSOLE_OUT" /> <!-- Gestiona DEBUG, INFO, WARN -->
-        <appender-ref ref="CONSOLE_ERR" /> <!-- Gestiona ERROR -->
+    <!-- =========================================================== -->
+    <!-- ROOT: nivel mínimo INFO. Añade DEBUG si necesitas depurar.  -->
+    <!-- =========================================================== -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE_ERROR" />
+        <appender-ref ref="CONSOLE_WARN"  />
+        <appender-ref ref="CONSOLE_INFO"  />
     </root>
 
 </configuration>

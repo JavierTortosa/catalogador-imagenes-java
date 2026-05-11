@@ -1,3 +1,12 @@
+package servicios.cache;
+
+public class LruCache{
+
+	// clase obsoleta. ya no usamos LRU
+
+}
+
+
 //package servicios.cache;
 //
 //import java.util.LinkedHashMap;

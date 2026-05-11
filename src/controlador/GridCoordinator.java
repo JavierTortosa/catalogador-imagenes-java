@@ -176,7 +176,7 @@ public class GridCoordinator implements MasterListChangeListener {
             pathsForCache.add(visorModel.getRutaCompleta(key));
         }
 
-        precacheThumbnailsAsync(pathsForCache);
+        precacheThumbnailsAsync(keysForView, pathsForCache);
         
         gridViewModel.clear();
         gridViewModel.addAll(keysForView);
@@ -235,7 +235,7 @@ public class GridCoordinator implements MasterListChangeListener {
         });
     } // --- Fin del método syncSelectionFromMaster ---
     
-    private void precacheThumbnailsAsync(List<Path> paths) {
+    private void precacheThumbnailsAsync(List<String> keys, List<Path> paths) {
         if (gridThumbnailService == null || paths.isEmpty() || precacheExecutor == null || precacheExecutor.isShutdown()) return;
 
         if (lastPrecacheTask != null && !lastPrecacheTask.isDone()) {
@@ -244,13 +244,14 @@ public class GridCoordinator implements MasterListChangeListener {
 
         this.lastPrecacheTask = precacheExecutor.submit(() -> {
             try {
-                for (Path p : paths) {
+                for (int i = 0; i < paths.size(); i++) {
+                    Path p = paths.get(i);
+                    String key = keys.get(i); // Usar la clave original de la lista maestra
                     if (Thread.currentThread().isInterrupted()) {
                         logger.debug("[GridCoordinator] Tarea de precarga cancelada, deteniendo procesamiento.");
                         return; // Salir del bucle si nos han cancelado.
                     }
                     if (p != null) {
-                        String key = p.getFileName().toString();
                         // La llamada que ya tenías para crear la miniatura
                         gridThumbnailService.obtenerOCrearMiniatura(p, key, 128, 128, true);
                     }

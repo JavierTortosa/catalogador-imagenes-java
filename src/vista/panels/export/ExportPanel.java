@@ -178,6 +178,16 @@ public class ExportPanel extends JPanel {
             destinationPanel.add(this.txtCarpetaDestino, BorderLayout.CENTER);
         }
         
+        // 1c. El botón del selector de carpetas
+        javax.swing.Action selectFolderAction = projectController.getActionMap().get("cmd.export.seleccionar.carpeta");
+        if (selectFolderAction != null) {
+            javax.swing.JButton btnSelectFolder = new javax.swing.JButton(selectFolderAction);
+            btnSelectFolder.setText(""); // Ocultamos el texto para que solo se vea el icono
+            btnSelectFolder.setToolTipText("Seleccionar Carpeta de Destino");
+            btnSelectFolder.setFocusPainted(false);
+            destinationPanel.add(btnSelectFolder, java.awt.BorderLayout.EAST);
+        }
+        
         southPanel.add(destinationPanel, BorderLayout.CENTER); // Añadimos el panel completo al centro
 
         // 2. El label de resumen (ahora en el SUR)

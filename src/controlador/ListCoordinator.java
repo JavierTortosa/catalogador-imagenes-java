@@ -288,7 +288,9 @@ public class ListCoordinator extends AbstractListCoordinator {
     public void reiniciarYSeleccionarIndice(int desiredIndex) {
 
         // MÉTODO REFORZADO: Resetea el estado interno y limpia las vistas
-        this.officialSelectedIndex = -1; 
+        // Usamos -2 para asegurar que el posterior seleccionarImagenPorIndice(-1)
+        // sea detectado como un cambio y se ejecute la limpieza de la UI.
+        this.officialSelectedIndex = -2; 
         
         JList<String> listaNombres = registry.get("list.nombresArchivo");
         if (listaNombres != null) listaNombres.clearSelection();

@@ -64,7 +64,7 @@ public class FilterDialog extends JDialog {
         
         btnTypeTag = new javax.swing.JToggleButton("Etiqueta", typeIcons.get(FilterCriterion.SourceType.TAG));
         btnTypeTag.setToolTipText("Filtrar por etiqueta (no implementado)");
-        btnTypeTag.setEnabled(false);
+//        btnTypeTag.setEnabled(false);
 
         typeGroup.add(btnTypeTexto);
         typeGroup.add(btnTypeCarpeta);
@@ -186,21 +186,49 @@ public class FilterDialog extends JDialog {
             // --- FIN DE LA VALIDACIÓN ---
 
             // Si todas las validaciones pasan, procedemos a crear el criterio.
-            FilterCriterion.SourceType type;
+            FilterCriterion.SourceType sourceType;
+            FilterCriterion.FilterSource source; // El enum antiguo (Nombre corregido)
+            FilterCriterion.FilterType filterType; 
+
             if (btnTypeCarpeta.isSelected()) {
-                type = FilterCriterion.SourceType.FOLDER;
+                sourceType = FilterCriterion.SourceType.FOLDER;
+                source = FilterCriterion.FilterSource.FOLDER_PATH;
             } else if (btnTypeTag.isSelected()) {
-                type = FilterCriterion.SourceType.TAG;
+                sourceType = FilterCriterion.SourceType.TAG;
+                source = FilterCriterion.FilterSource.DATABASE_TAGS;
             } else {
-                type = FilterCriterion.SourceType.TEXT;
+                sourceType = FilterCriterion.SourceType.TEXT;
+                source = FilterCriterion.FilterSource.FILENAME;
             }
 
             FilterCriterion.Logic logic = rbLogicAdd.isSelected() ? FilterCriterion.Logic.ADD : FilterCriterion.Logic.NOT;
+            filterType = (logic == FilterCriterion.Logic.ADD) ? FilterCriterion.FilterType.CONTAINS : FilterCriterion.FilterType.DOES_NOT_CONTAIN;
+
+            // Usamos el constructor original que inicializa todos los campos para compatibilidad
+            resultCriterion = new FilterCriterion(valor, source, filterType);
             
-            resultCriterion = new FilterCriterion();
-            resultCriterion.setValue(valor);
-            resultCriterion.setSourceType(type);
+            // Y luego ajustamos los campos más nuevos si es necesario (aunque el constructor ya lo hace)
+            resultCriterion.setSourceType(sourceType);
             resultCriterion.setLogic(logic);
+            
+//            FilterCriterion.SourceType type;
+//            if (btnTypeCarpeta.isSelected()) {
+//                type = FilterCriterion.SourceType.FOLDER;
+//            } else if (btnTypeTag.isSelected()) {
+//                type = FilterCriterion.SourceType.TAG;
+//            } else {
+//                type = FilterCriterion.SourceType.TEXT;
+//            }
+//
+//            FilterCriterion.Logic logic = rbLogicAdd.isSelected() ? FilterCriterion.Logic.ADD : FilterCriterion.Logic.NOT;
+//            
+//            resultCriterion = new FilterCriterion();
+//            resultCriterion.setValue(valor);
+//            resultCriterion.setSourceType(type);
+//            resultCriterion.setLogic(logic);
+            
+            
+            
             
             dispose(); // Cierra el diálogo
         });

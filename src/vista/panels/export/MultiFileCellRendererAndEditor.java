@@ -76,11 +76,15 @@ public class MultiFileCellRendererAndEditor extends AbstractCellEditor implement
 
             if (files.isEmpty()) {
                 displayText = "- Ninguno -";
-            } else if (files.size() == 1) {
-                displayText = files.get(0).getFileName().toString();
             } else {
-                displayText = String.format("%s (y %d más...)", files.get(0).getFileName().toString(), files.size() - 1);
-                buttonVisible = true;
+                Path fn0 = files.get(0).getFileName();
+                String s0 = (fn0 != null) ? fn0.toString() : files.get(0).toString();
+                if (files.size() == 1) {
+                    displayText = s0;
+                } else {
+                    displayText = String.format("%s (y %d más...)", s0, files.size() - 1);
+                    buttonVisible = true;
+                }
             }
         } else {
             displayText = (value != null) ? value.toString() : "";

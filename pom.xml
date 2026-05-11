@@ -10,7 +10,7 @@
   </properties>
 
   <dependencies>
-  
+
   	<!-- ======================================================= -->
     <!-- === LIBRERÍA PARA LEER METADATOS (EXIF)             === -->
     <!-- ======================================================= -->
@@ -91,8 +91,6 @@
 	    <version>${twelvemonkeys.version}</version>
 	</dependency>
 
-	<!-- Puedes añadir más plugins si los necesitas (PCX, ICO, etc.) -->
-  
   <!-- ======================================================= -->
   <!-- FlatLaf + Flatlaf-Extras-->
   <!-- ======================================================= -->
@@ -162,10 +160,10 @@
     <!-- ======================================================= -->
     <!-- Driver JDBC para la base de datos embebida SQLite -->
     <dependency>
-        <groupId>org.xerial</groupId>
-        <artifactId>sqlite-jdbc</artifactId>
-        <version>3.45.3.0</version>
-    </dependency>
+    	<groupId>org.xerial</groupId>
+    	<artifactId>sqlite-jdbc</artifactId>
+    	<version>3.50.3.0</version> 
+	</dependency>
 
     <!-- Librería para interactuar con la BBDD de forma más fluida -->
     <dependency>
@@ -199,43 +197,53 @@
         </excludes>
       </resource>
     </resources>
+    
     <plugins>
-    <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.13.0</version>
-        <configuration>
-            <release>21</release>
-            <!-- 
-               Esta sección le dice a Maven que trate las dependencias como módulos
-               y las añada al module-path automáticamente. Es la forma moderna y correcta.
-            -->
-            
-        </configuration>
-    </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.13.0</version>
+            <configuration>
+                <release>21</release>
+            </configuration>
+        </plugin>
 
-    <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>3.5.2</version>
-        <executions>
-            <execution>
-                <phase>package</phase>
-                <goals>
-                    <goal>shade</goal>
-                </goals>
-                <configuration>
-                    <outputDirectory>D:/Descargas/VisorV2</outputDirectory>
-                    <finalName>VisorV2</finalName>
-                    <transformers>
-                        <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                            <mainClass>principal.VisorV2</mainClass>
-                        </transformer>
-                    </transformers>
-                </configuration>
-            </execution>
-        </executions>
-    </plugin>
-</plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-shade-plugin</artifactId>
+            <version>3.5.2</version>
+            <executions>
+                <execution>
+                    <phase>package</phase>
+                    <goals>
+                        <goal>shade</goal>
+                    </goals>
+                    <configuration>
+                        <outputDirectory>D:/Descargas/VisorV2</outputDirectory>
+                        <finalName>VisorV2</finalName>
+                        <transformers>
+                            <!-- Transformer 1: Para la clase principal -->
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                <mainClass>principal.VisorV2</mainClass>
+                            </transformer>
+                            <!-- Transformer 2: CRÍTICO para que funcionen TwelveMonkeys y SQLite en el JAR -->
+                            <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                        </transformers>
+                        <!-- Filtro para evitar errores de firmas de seguridad al fusionar los JARs -->
+                        <filters>
+                            <filter>
+                                <artifact>*:*</artifact>
+                                <excludes>
+                                    <exclude>META-INF/*.SF</exclude>
+                                    <exclude>META-INF/*.DSA</exclude>
+                                    <exclude>META-INF/*.RSA</exclude>
+                                </excludes>
+                            </filter>
+                        </filters>
+                    </configuration>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
   </build>
 </project>

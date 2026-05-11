@@ -73,7 +73,11 @@ public class ExportQueueManager {
                                                                      .map(java.nio.file.Paths::get)
                                                                      .collect(Collectors.toList());
                         itemNuevo.setRutasArchivosAsociados(pathsGuardados);
-                        itemNuevo.setEstadoArchivoComprimido(ExportStatus.ASIGNADO_MANUAL);
+                        if (config.getStatus() != null) {
+                            itemNuevo.setEstadoArchivoComprimido(config.getStatus());
+                        } else {
+                            itemNuevo.setEstadoArchivoComprimido(ExportStatus.ASIGNADO_MANUAL);
+                        }
                     } else if (config.isIgnoreCompressed()) {
                         itemNuevo.setEstadoArchivoComprimido(ExportStatus.IGNORAR_COMPRIMIDO);
                     } else {
@@ -120,13 +124,16 @@ public class ExportQueueManager {
         }
 
         // Usamos el nuevo método para obtener un nombre base más limpio.
-        String nombreBaseImagen = obtenerNombreBase(rutaImagen.getFileName().toString());
+        Path fnImg = rutaImagen.getFileName();
+        String sImg = (fnImg != null) ? fnImg.toString() : rutaImagen.toString();
+        String nombreBaseImagen = obtenerNombreBase(sImg);
 
         try (Stream<Path> stream = Files.list(directorio)) {
             List<Path> candidatos = stream
                 .filter(path -> Files.isRegularFile(path) && !path.equals(rutaImagen))
                 .filter(path -> {
-                    String nombreCandidato = path.getFileName().toString();
+                    Path fn = path.getFileName();
+                    String nombreCandidato = (fn != null) ? fn.toString() : path.toString();
                     // La condición clave: el nombre del candidato debe EMPEZAR con el nombre base de la imagen
                     // y tener una extensión comprimida. Esto captura "nombre.zip", "nombre.part1.rar", etc.
                     return nombreCandidato.toLowerCase().startsWith(nombreBaseImagen.toLowerCase()) && 
@@ -194,13 +201,16 @@ public class ExportQueueManager {
         // 1. Poblar el mapa con todos los archivos que se exportarán.
         for (ExportItem item : colaDeExportacion) {
             // Añadir la imagen principal
-            String imageName = item.getRutaImagen().getFileName().toString().toLowerCase();
+            Path pImg = item.getRutaImagen();
+            Path fnImg = pImg.getFileName();
+            String imageName = ((fnImg != null) ? fnImg.toString() : pImg.toString()).toLowerCase();
             nameTracker.computeIfAbsent(imageName, k -> new java.util.ArrayList<>()).add(item);
 
             // Añadir todos los archivos asociados
             if (item.getRutasArchivosAsociados() != null) {
                 for (java.nio.file.Path asociado : item.getRutasArchivosAsociados()) {
-                    String asociadoName = asociado.getFileName().toString().toLowerCase();
+                    Path fnAsc = asociado.getFileName();
+                    String asociadoName = ((fnAsc != null) ? fnAsc.toString() : asociado.toString()).toLowerCase();
                     nameTracker.computeIfAbsent(asociadoName, k -> new java.util.ArrayList<>()).add(item);
                 }
             }

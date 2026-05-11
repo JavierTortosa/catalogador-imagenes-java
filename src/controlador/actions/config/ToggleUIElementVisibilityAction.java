@@ -54,8 +54,8 @@ public class ToggleUIElementVisibilityAction extends AbstractAction implements I
 
         // --- LÓGICA DE CORRECCIÓN ---
         // Determinar la clave de visibilidad completa y la clave base.
-        if (configKey != null && configKey.endsWith(".visible")) {
-            // Si la clave ya termina en .visible, la usamos tal cual.
+        if (configKey != null && (configKey.endsWith(".visible") || configKey.endsWith(".seleccionado"))) {
+            // Si la clave ya termina en .visible o .seleccionado, la usamos tal cual.
             this.configKeyBase = configKey; 
         } else {
             // Si no, asumimos que es una clave base y le añadimos el sufijo.

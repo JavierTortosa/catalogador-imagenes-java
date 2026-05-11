@@ -15,11 +15,15 @@
         Este panel vertical a la izquierda contiene tus dos listas de trabajo principales. La lista que tiene el foco (con el fondo más claro) es la que está activa.
     </p>
     <ul>
-        <li><b>Selección Actual:</b> Es la lista principal de imágenes que has marcado. Las imágenes aquí son las candidatas para ser exportadas.</li>
+        <li><b>Selección Actual:</b> Es la lista principal de imágenes que has marcado. Las imágenes aquí son las candidatas para ser exportadas. Además de imágenes, también puede contener <strong>archivos sin imagen</strong> (modelos 3D como <code>.stl</code>, <code>.obj</code>, <code>.3mf</code>, o comprimidos como <code>.zip</code>, <code>.rar</code>), que se añaden mediante la opción <em>Añadir Archivos al Proyecto</em> del menú contextual.</li>
         <li><b>Descartes:</b> Funciona como una "papelera de reciclaje" interna del proyecto. Si una imagen de tu selección ya no te interesa, puedes moverla aquí. Desde Descartes, puedes restaurarla a la selección o eliminarla permanentemente del proyecto.</li>
     </ul>
     <p class="note">
         <strong>Nota:</strong> Las imágenes que ya no existen en el disco se mostrarán tachadas y en rojo, dándote una indicación visual inmediata de que falta un archivo.
+    </p>
+
+    <p class="note">
+        <strong>Archivos sin imagen:</strong> Si la lista contiene un archivo no soportado como imagen (<code>.stl</code>, <code>.zip</code>, etc.), al seleccionarlo el área de visualización mostrará un <strong>icono de marcador</strong> con el nombre del archivo en lugar de una imagen. Estos archivos se gestionan igual que las imágenes: pueden asignárseles comprimidos en el Panel de Exportación y ser copiados al destino.
     </p>
     
     <h3>2. Área de Visualización (Centro/Derecha Superior)</h3>

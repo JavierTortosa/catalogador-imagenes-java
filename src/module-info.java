@@ -26,6 +26,8 @@ module VisorImagenes {
 	requires metadata.extractor;
 	requires com.github.benmanes.caffeine;
 	requires net.coobird.thumbnailator;
+	
+	requires java.sql;
     // NO HAY NADA MÁS AQUÍ. SE ACABARON LOS REQUIRES.
 
     

@@ -1,0 +1,39 @@
+En lugar de tener 1000 opciones en el menu de configuracion, vamos a crear una pantalla en la que podamos configurar todas las opciones del programa
+esta pantalla deberia tener el mismo sistema que tiene nuestra ayuda por ej. una columna a la izquierda con las caracteristicas principales y a la derecha las opciones de esa caracteristica
+
+MENU DE CONFIGURACION:
+----------------------
+ideas para el menu del megaconfig
+(en mayusculas la opcion del menu y a continuacion : explicacion de la idea)
+
+
+GENERAL
+
+	NAVEGACION CIRCULAR : muestra el primer archivo despues del ultimo y el ultimo antes del primero al mover con las flechas
+	
+HERRAMIENTAS: todas las barras de botones y cuales se ven o no 
+	
+PANELES DE DATOS (STATUS BARS):	decide que informacion se muestra o no
+	
+	IMAGEN STATUS BAR : muestra toda la informacion de la imagen
+	STATUS BAR: barra de abajo con la informacion de la aplicacion
+	
+	INTERFAZ DE USUARIO
+		ORDEN DE LOS PANELES: mostrar una pantalla donde podamos configurar la interfaz, igual nos interesa que las status bar esten juntas o que la barra de miniaturas este arriba en vez de abajo
+		
+TEMA:	cambios de color y configuracion personalizada
+	
+	COLORES CLAROS	: temas claros establecidos por flatlaf
+	COLORES OSCUROS : temas oscuros establecidos por flatlaf
+	DEGRADADOS : temas con degradadds establecidos por flatlaf
+	PERSONALIZADOS INTERNOS : temas personalizados por codigo 
+	PERSONALIZADOS : temas creados por el usuario
+	
+	PERSONALIZACION: sistema de creacion de un tema por el usuario. debe mostrar una pantalla con todos los aspectos que se pueden modificar
+	
+GUARDAR CONFIGURACION ACTUAL : guarda la configuracion que tenemos en memoria en el config.cfg
+RESTAURAR CONFIGURACION INICIAL : carga de nuevo la configuracion del config.cfg al inicio de la sesion y aplica esa configuracion
+ACERCA DE: version del programa
+
+
+El menu de vista es algo que activamos/desactivamos en esta sesion, no tiene efectos de config

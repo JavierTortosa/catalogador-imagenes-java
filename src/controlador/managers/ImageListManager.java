@@ -3,6 +3,7 @@ package controlador.managers;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -13,14 +14,12 @@ import javax.swing.Action;
 import javax.swing.DefaultListModel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import controlador.GeneralController;
 import controlador.VisorController;
 import controlador.commands.AppActionCommands;
 import controlador.managers.FilterManager.FilterResult;
@@ -28,6 +27,10 @@ import controlador.managers.interfaces.IListCoordinator;
 import controlador.utils.ComponentRegistry;
 import controlador.worker.BuscadorArchivosWorker;
 import modelo.VisorModel;
+import modelo.VisorModel.WorkMode;
+import modelo.datos.ImagenInfo;
+import servicios.db.ImagenDAO;
+import servicios.db.TagDAO;
 import servicios.image.ThumbnailService;
 import vista.VisorView;
 import vista.dialogos.TaskProgressDialog;
@@ -48,11 +51,15 @@ public class ImageListManager {
     private final InfobarStatusManager statusBarManager;
     private final ComponentRegistry registry;
     private final Map<String, Action> actionMap;
-    private final GeneralController generalController;
+    
+//    private final GeneralController generalController;
     
     // --- Estado Interno ---
     private Future<?> cargaImagenesFuture;
+    private boolean isSyncing = false;
 
+    private final ImagenDAO imagenDAO;
+    private final TagDAO tagDAO;
 
     /**
      * Constructor que inicializa el gestor de la lista de imágenes con todas sus dependencias.
@@ -71,196 +78,208 @@ public class ImageListManager {
         this.statusBarManager = visorController.getStatusBarManager();
         this.registry = visorController.getComponentRegistry();
         this.actionMap = visorController.getActionMap();
-        this.generalController = visorController.getGeneralController();
+        
+        this.imagenDAO = new ImagenDAO();
+        this.tagDAO = new TagDAO(); 
+        
+//        this.generalController = visorController.getGeneralController();
+        
     } // --- FIN de constructor ImageListManager ---
     
     
     /**
-     * Carga o recarga la lista de imágenes desde disco para una carpeta específica,
-     * utilizando un SwingWorker para no bloquear el EDT. Muestra un diálogo de
-     * progreso durante la carga. Una vez cargada la lista: 
-     * - Actualiza el modelo principal de datos (`VisorModel`). 
-     * - Actualiza las JList en la vista (`VisorView`). 
-     * - Inicia el precalentamiento ASÍNCRONO y DIRIGIDO del caché de miniaturas. 
-     * - Selecciona una imagen específica (si se proporciona `claveImagenAMantener`) 
-     *   o la primera imagen de la lista. 
-     * - Ejecuta un callback opcional al finalizar con éxito.
+     * Carga la lista de imágenes DESDE LA BASE DE DATOS para una carpeta específica.
+     * VERSIÓN FINAL REVISADA: Es una operación de SOLO LECTURA. No inicia
+     * sincronización bajo ninguna circunstancia para evitar bucles.
      *
-     * @param claveImagenAMantener La clave única (ruta relativa) de la imagen que
-     *                             se intentará seleccionar después de que la lista
-     *                             se cargue. Si es `null`, se seleccionará la
-     *                             primera imagen (índice 0).
-     * @param alFinalizarConExito Un objeto Runnable cuya lógica se ejecutará en el EDT
-     *                            después de que la carga y el procesamiento de la lista
-     *                            hayan finalizado con éxito. Puede ser `null`.
+     * @param claveImagenAMantener La clave (ruta relativa) de la imagen a seleccionar.
+     * @param alFinalizarConExito Un Runnable a ejecutar en el EDT al finalizar con éxito.
      */
     public void cargarListaImagenes(String claveImagenAMantener, Runnable alFinalizarConExito) {
-        logger.debug("-->>> INICIO ImageListManager.cargarListaImagenes | Mantener Clave: " + claveImagenAMantener);
+        if (isSyncing) {
+            logger.warn("Llamada a cargarListaImagenes ignorada porque una sincronización está en progreso.");
+            return;
+        }
+        logger.debug("-->>> INICIO ImageListManager.cargarListaImagenes (MODO LECTURA ESTRICTO) | Mantener Clave: {}", claveImagenAMantener);
 
-        if (visorController.getConfigurationManager() == null || model == null || executorService == null || executorService.isShutdown() || view == null) {
-            logger.error("ERROR [cargarListaImagenes]: Dependencias nulas o Executor apagado.");
+        if (visorController.getConfigurationManager() == null || model == null || view == null || imagenDAO == null) {
+            logger.error("ERROR [cargarListaImagenes BD]: Dependencias nulas.");
             if (view != null) SwingUtilities.invokeLater(visorController.getViewManager()::limpiarUI);
             return;
         }
 
-        if (cargaImagenesFuture != null && !cargaImagenesFuture.isDone()) {
-            logger.debug("  -> Cancelando tarea de carga de lista anterior...");
-            cargaImagenesFuture.cancel(true);
-        }
+        Path pathDeInicio = model.getCarpetaRaizActual();
 
-        final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
-        int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
-        Path pathDeInicioWalk = model.getCarpetaRaizActual();
-
-        if (pathDeInicioWalk == null || !Files.isDirectory(pathDeInicioWalk)) {
-            logger.warn("[cargarListaImagenes] No se puede cargar: Carpeta de inicio inválida o nula: " + pathDeInicioWalk);
+        if (pathDeInicio == null || !Files.isDirectory(pathDeInicio)) {
+            logger.warn("[cargarListaImagenes BD] Carpeta de inicio inválida: {}", pathDeInicio);
             visorController.getViewManager().limpiarUI();
-            if (statusBarManager != null) {
-                statusBarManager.mostrarMensaje("No hay una carpeta válida seleccionada. Usa 'Archivo -> Abrir Carpeta'.");
-            }
+            if (statusBarManager != null) statusBarManager.mostrarMensaje("No hay una carpeta válida seleccionada.");
             return;
         }
-        
-        if (this.thumbnailService != null) {
-            this.thumbnailService.limpiarCache();
+
+        List<ImagenInfo> imagenesDesdeBD = imagenDAO.getImagenesInFolder(pathDeInicio);
+
+        // A partir de aquí, el método simplemente procesa la lista 'imagenesDesdeBD',
+        // incluso si está vacía. El bloque que causaba el bucle ha sido eliminado.
+
+        logger.debug("    -> Restaurando visibilidad de paneles (vía ViewManager).");
+        if (visorController != null && visorController.getViewManager() != null) {
+            visorController.getViewManager().asegurarVisibilidadPanelesBase();
         }
         
-        final TaskProgressDialog dialogo = new TaskProgressDialog(view, "Cargando Imágenes", "Escaneando carpeta de imágenes...");
-        final BuscadorArchivosWorker worker = new BuscadorArchivosWorker(
-            pathDeInicioWalk,
-            depth,
-            pathDeInicioWalk,
-            this::esArchivoImagenSoportado,
-            dialogo
-        );
-        dialogo.setWorkerAsociado(worker);
-        this.cargaImagenesFuture = worker;
-
-        worker.addPropertyChangeListener(evt -> {
-            if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
+        DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
+        Map<String, Path> nuevoMapaDeRutas = new java.util.HashMap<>();
+        
+        List<String> clavesOrdenadas = new ArrayList<>();
+        Path carpetaRaizParaRelativizar = model.getCarpetaRaizActual();
+        if (carpetaRaizParaRelativizar == null) {
+        	carpetaRaizParaRelativizar = Paths.get(""); 
+        }
+        
+        for (ImagenInfo imgInfo : imagenesDesdeBD) {
+            try {
+                Path rutaCompleta = imgInfo.getRutaCompletaAsPath();
+                Path rutaRelativa = carpetaRaizParaRelativizar.relativize(rutaCompleta);
+                String claveUnica = rutaRelativa.toString().replace("\\", "/");
                 
-                if (worker.isCancelled()) {
-                    logger.debug("    -> Tarea CANCELADA por el usuario.");
-                    dialogo.setFinalMessageAndClose("Carga cancelada.", false, 1500);
-                    if (statusBarManager != null) {
-                        statusBarManager.mostrarMensaje("Carga cancelada por el usuario.");
-                    }
-                    return;
+                clavesOrdenadas.add(claveUnica);
+                nuevoMapaDeRutas.put(claveUnica, rutaCompleta);
+            } catch (Exception e) {
+                 logger.error("Error al relativizar la ruta {} contra la raíz {}", imgInfo.getRutaCompleta(), carpetaRaizParaRelativizar, e);
+            }
+        }
+        java.util.Collections.sort(clavesOrdenadas);
+        nuevoModeloListaPrincipal.addAll(new java.util.Vector<>(clavesOrdenadas));
+
+        if (statusBarManager != null) statusBarManager.limpiarMensaje();
+        
+        model.setMasterListAndNotify(nuevoModeloListaPrincipal, nuevoMapaDeRutas, visorController);
+
+        if (this.filterManager != null) {
+            this.filterManager.setAbsoluteMasterList(nuevoModeloListaPrincipal);
+        }
+        
+        if (view != null) {
+            view.setListaImagenesModel(model.getModeloLista());
+            view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
+        }
+        
+        int indiceCalculado = -1;
+        if (claveImagenAMantener != null && !claveImagenAMantener.isEmpty()) {
+            indiceCalculado = model.getModeloLista().indexOf(claveImagenAMantener);
+        }
+        if (indiceCalculado == -1 && !model.getModeloLista().isEmpty()) {
+            indiceCalculado = 0;
+        }
+
+        if (listCoordinator != null) {
+            listCoordinator.reiniciarYSeleccionarIndice(indiceCalculado);
+        }
+
+        if (alFinalizarConExito != null) {
+            alFinalizarConExito.run();
+        }
+        logger.debug("-->>> FIN ImageListManager.cargarListaImagenes (MODO LECTURA ESTRICTO)");
+    } // --- fin del metodo cargarListaImagenes ---
+    
+    
+    /**
+     * Inicia un proceso en segundo plano para sincronizar el contenido de una carpeta en disco
+     * con la base de datos. TODO EL PROCESO (lectura y escritura) se hace en background.
+     * 
+     * @return true si se inició el proceso de sincronización, false en caso contrario.
+     */
+    public boolean sincronizarCarpetaConBD() {
+    	
+    	isSyncing = true;
+    	
+    	// --- INICIO DEPURACIÓN ---
+        System.out.println("ImageListManager: Se ha recibido la orden de sincronizar.");
+        final Path pathDeInicio = model.getCarpetaRaizActual();
+        System.out.println("La carpeta que voy a sincronizar es: " + pathDeInicio);
+        // --- FIN DEPURACIÓN ---
+    	
+        if (model == null || executorService == null || executorService.isShutdown()) {
+            logger.error("ERROR [sincronizarCarpetaConBD]: Dependencias nulas o Executor apagado.");
+            isSyncing = false;
+            return false;
+        }
+
+        if (pathDeInicio == null || !Files.isDirectory(pathDeInicio)) {
+            logger.warn("[sincronizarCarpetaConBD] Carpeta de inicio inválida: {}", pathDeInicio);
+            isSyncing = false;
+            return false;
+        }
+        
+        final boolean mostrarSoloCarpeta = model.isMostrarSoloCarpetaActual();
+        final int depth = mostrarSoloCarpeta ? 1 : Integer.MAX_VALUE;
+
+        final TaskProgressDialog dialogoBusqueda = new TaskProgressDialog(view, "Sincronizando Carpeta", "Paso 1/2: Buscando archivos en disco...");
+        final BuscadorArchivosWorker buscador = new BuscadorArchivosWorker(pathDeInicio, depth, pathDeInicio, this::esArchivoImagenSoportado, dialogoBusqueda);
+        dialogoBusqueda.setWorkerAsociado(buscador);
+        
+        buscador.addPropertyChangeListener(evt -> {
+            if ("state".equals(evt.getPropertyName()) && SwingWorker.StateValue.DONE.equals(evt.getNewValue())) {
+                dialogoBusqueda.dispose(); // Cerramos el primer diálogo
+                if (buscador.isCancelled()) {
+                	isSyncing = false; 
+                	return;
                 }
 
                 try {
-                    Map<String, Path> mapaResultado = worker.get();
-
-                    if (mapaResultado == null || mapaResultado.isEmpty()) {
-                        logger.info("    -> La búsqueda no encontró imágenes soportadas. Entrando en estado de bienvenida final.");
-                        dialogo.setFinalMessageAndClose("La carpeta no contiene imágenes.", false, 2000);
-                        
-                        visorController.getViewManager().limpiarUI(); 
-                        
-                        if (listCoordinator != null) {
-                            listCoordinator.forzarActualizacionEstadoAcciones();
+                    Map<String, Path> archivosEnDisco = buscador.get();
+                    if (archivosEnDisco == null || archivosEnDisco.isEmpty()) {
+                        logger.info("No se encontraron imágenes en disco para sincronizar.");
+                        // Aun así, eliminamos los huérfanos que pudieran quedar en la BD
+                        eliminarHuerfanosDeBD(pathDeInicio, new java.util.HashSet<>());
+                        SwingUtilities.invokeLater(() -> recargarListaDesdeBDSinSincronizar(null, null));
+                        isSyncing = false;
+                        return;
+                    }
+                    
+                    // Guardamos el conjunto de rutas absolutas que SÍ existen en disco.
+                    final java.util.Set<String> rutasEnDisco = new java.util.HashSet<>();
+                    for (Path p : archivosEnDisco.values()) {
+                        rutasEnDisco.add(p.toAbsolutePath().normalize().toString());
+                    }
+                    
+                    // Paso 2/2: Indexar los archivos encontrados en disco.
+                    List<Path> archivosAIndexar = new ArrayList<>(archivosEnDisco.values());
+                    
+                    TaskProgressDialog dialogoIndexacion = new TaskProgressDialog(view, "Sincronizando Base de Datos", "Paso 2/2: Actualizando base de datos...");
+                    controlador.worker.IndexationWorker indexerWorker = new controlador.worker.IndexationWorker(archivosAIndexar, pathDeInicio, dialogoIndexacion);
+                    
+                    // Cuando el IndexationWorker termine: 1) limpiamos huérfanos, 2) recargamos la lista.
+                    indexerWorker.addPropertyChangeListener(propChangeEvent -> {
+                        if ("state".equals(propChangeEvent.getPropertyName()) && SwingWorker.StateValue.DONE.equals(propChangeEvent.getNewValue())) {
+                            dialogoIndexacion.dispose();
+                            // Paso 3/3 (en background): borrar registros de BD cuyo archivo ya no existe.
+                            eliminarHuerfanosDeBD(pathDeInicio, rutasEnDisco);
+                            SwingUtilities.invokeLater(() -> {
+                                recargarListaDesdeBDSinSincronizar(model.getSelectedImageKey(), null);
+                                isSyncing = false;
+                            });
                         }
-                        
-                        if (statusBarManager != null) {
-                            statusBarManager.mostrarMensaje("La carpeta no contiene imágenes. Abre otra para empezar.");
-                        }
-                        
-                        return; 
-                    }
+                    });
 
-                    dialogo.closeDialog();
-                    
-                    if (statusBarManager != null) statusBarManager.limpiarMensaje();
-                    
-                    logger.debug("    -> Restaurando visibilidad de paneles según la configuración del usuario.");
-                    if (registry != null && actionMap != null) {
-                        
-                        Action fileListAction = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_FILE_LIST);
-                        if (fileListAction != null) {
-                            boolean shouldBeVisible = Boolean.TRUE.equals(fileListAction.getValue(Action.SELECTED_KEY));
-                            JPanel panelIzquierdo = registry.get("panel.izquierdo.contenedorPrincipal");
-                            if (panelIzquierdo != null) {
-                                panelIzquierdo.setVisible(shouldBeVisible);
-                                if (shouldBeVisible) {
-                                    JSplitPane splitPane = registry.get("splitpane.main");
-                                    if (splitPane != null) {
-                                        splitPane.setDividerLocation(0.25);
-                                    }
-                                }
-                            }
-                        }
-
-                        Action thumbnailsAction = actionMap.get(AppActionCommands.CMD_VISTA_TOGGLE_THUMBNAILS);
-                        if (thumbnailsAction != null) {
-                            boolean shouldBeVisible = Boolean.TRUE.equals(thumbnailsAction.getValue(Action.SELECTED_KEY));
-                            JScrollPane scrollMiniaturas = registry.get("scroll.miniaturas");
-                            if (scrollMiniaturas != null) {
-                                scrollMiniaturas.setVisible(shouldBeVisible);
-                            }
-                        }
-                    }
-
-                    List<String> clavesOrdenadas = new ArrayList<>(mapaResultado.keySet());
-                    java.util.Collections.sort(clavesOrdenadas);
-
-                    DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
-                    nuevoModeloListaPrincipal.addAll(new java.util.Vector<>(clavesOrdenadas));
-                    
-                    model.setMasterListAndNotify(nuevoModeloListaPrincipal, mapaResultado, visorController);
-
-                    // --- INICIO DE LA MODIFICACIÓN CRÍTICA ---
-                    // Notificamos al FilterManager cuál es la nueva lista maestra absoluta.
-                    // Esta es ahora la única "fuente de la verdad" para todos los filtros.
-                    if (this.filterManager != null) {
-                        this.filterManager.setAbsoluteMasterList(nuevoModeloListaPrincipal);
-                    }
-                    // --- FIN DE LA MODIFICACIÓN CRÍTICA ---
-                    
-                    if (view != null) {
-                        view.setListaImagenesModel(model.getModeloLista());
-                        view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
-                    }
-                    
-                    int indiceCalculado = -1;
-                    if (claveImagenAMantener != null && !claveImagenAMantener.isEmpty()) {
-                        indiceCalculado = model.getModeloLista().indexOf(claveImagenAMantener);
-                    }
-                    if (indiceCalculado == -1 && !model.getModeloLista().isEmpty()) {
-                        indiceCalculado = 0;
-                    }
-
-                    if (listCoordinator != null && indiceCalculado != -1) {
-                        listCoordinator.reiniciarYSeleccionarIndice(indiceCalculado);
-                    }
-
-                    if (alFinalizarConExito != null) {
-                        alFinalizarConExito.run();
-                    }
+                    dialogoIndexacion.setWorkerAsociado(indexerWorker);
+                    indexerWorker.execute();
+                    dialogoIndexacion.setVisible(true);
 
                 } catch (Exception e) {
-                    logger.error("    -> ERROR durante la ejecución del worker: " + e.getMessage(), e);
-                    dialogo.setFinalMessageAndClose("Error durante la carga.", true, 2500);
-                    visorController.getViewManager().limpiarUI();
-                    
-                    if (statusBarManager != null) {
-                        statusBarManager.mostrarMensaje("Error al leer la carpeta. Consulta los logs para más detalles.");
-                    }
-                } finally {
-                    if (cargaImagenesFuture == worker) {
-                        cargaImagenesFuture = null;
-                    }
+                    logger.error("Error al finalizar el worker de búsqueda durante la sincronización", e);
+                    isSyncing = false;
                 }
             }
         });
 
-        worker.execute();
-        SwingUtilities.invokeLater(() -> {
-            if (dialogo != null) {
-                dialogo.setVisible(true);
-            }
-        });
+        buscador.execute();
+        dialogoBusqueda.setVisible(true);
         
-    } // --- fin del metodo cargarListaImagenes ---
+        return true;
+        
+    } // --- fin del metodo sincronizarCarpetaConBD ---
+    
     
     /**
      * Carga una nueva "lista maestra" en el modelo a partir de un resultado de filtro precalculado.
@@ -436,6 +455,129 @@ public class ImageListManager {
      public void setFilterManager(FilterManager filterManager) {
          this.filterManager = filterManager;
      } // ---FIN de metodo setFilterManager---
+     
+     /**
+      * Versión "segura" y de solo lectura para cargar la lista desde la BD.
+      * NUNCA inicia una sincronización, garantizando que no haya bucles.
+      * Se usa como callback después de procesos de escritura en la BD.
+      * 
+      * @param claveImagenAMantener La clave de la imagen a seleccionar.
+      * @param alFinalizarConExito Runnable a ejecutar al final.
+      */
+     private void recargarListaDesdeBDSinSincronizar(String claveImagenAMantener, Runnable alFinalizarConExito) {
+         logger.debug("-->>> INICIO ImageListManager.recargarListaDesdeBDSinSincronizar (SEGURO) | Clave: {}", claveImagenAMantener);
+
+         Path pathDeInicio = model.getCarpetaRaizActual();
+         if (pathDeInicio == null || !Files.isDirectory(pathDeInicio)) {
+             visorController.getViewManager().limpiarUI();
+             return;
+         }
+
+         List<ImagenInfo> imagenesDesdeBD = imagenDAO.getImagenesInFolder(pathDeInicio);
+         
+         // El resto del código es idéntico a cargarListaImagenes
+         DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
+         Map<String, Path> nuevoMapaDeRutas = new java.util.HashMap<>();
+         
+         List<String> clavesOrdenadas = new ArrayList<>();
+         Path carpetaRaizParaRelativizar = model.getCarpetaRaizActual();
+         if (carpetaRaizParaRelativizar == null) {
+         	carpetaRaizParaRelativizar = Paths.get(""); 
+         }
+         
+         for (ImagenInfo imgInfo : imagenesDesdeBD) {
+             try {
+                 Path rutaCompleta = imgInfo.getRutaCompletaAsPath();
+                 Path rutaRelativa = carpetaRaizParaRelativizar.relativize(rutaCompleta);
+                 String claveUnica = rutaRelativa.toString().replace("\\", "/");
+                 
+                 clavesOrdenadas.add(claveUnica);
+                 nuevoMapaDeRutas.put(claveUnica, rutaCompleta);
+             } catch (Exception e) {
+                  logger.error("Error al relativizar la ruta {} contra la raíz {}", imgInfo.getRutaCompleta(), carpetaRaizParaRelativizar, e);
+             }
+         }
+         java.util.Collections.sort(clavesOrdenadas);
+         nuevoModeloListaPrincipal.addAll(new java.util.Vector<>(clavesOrdenadas));
+
+         model.setMasterListAndNotify(nuevoModeloListaPrincipal, nuevoMapaDeRutas, visorController);
+
+         if (this.filterManager != null) {
+             this.filterManager.setAbsoluteMasterList(nuevoModeloListaPrincipal);
+         }
+         
+         if (view != null) {
+             view.setListaImagenesModel(model.getModeloLista());
+             view.setTituloPanelIzquierdo("Archivos: " + model.getModeloLista().getSize());
+         }
+         
+         int indiceCalculado = -1;
+         if (claveImagenAMantener != null && !claveImagenAMantener.isEmpty()) {
+             indiceCalculado = model.getModeloLista().indexOf(claveImagenAMantener);
+         }
+         if (indiceCalculado == -1 && !model.getModeloLista().isEmpty()) {
+             indiceCalculado = 0;
+         }
+
+         
+         
+      // --- INICIO DE LA MODIFICACIÓN FINAL ---
+         // Comprobamos en qué modo estamos para no usar el ListCoordinator del Visualizador
+         // cuando estamos en el Modo Datos.
+         if (model.getCurrentWorkMode() == WorkMode.DATOS) {
+             // En el Modo Datos, no hay imagen principal que seleccionar, así que
+             // simplemente nos aseguramos de que el grid se actualice. El listener
+             // `onMasterListChanged` en GeneralController ya hace esto.
+             logger.debug("Recarga finalizada en Modo Datos. La actualización del grid es manejada por el listener.");
+         } else {
+             // Si estamos en cualquier otro modo (como Visualizador), usamos el ListCoordinator.
+             if (listCoordinator != null) {
+                 listCoordinator.reiniciarYSeleccionarIndice(indiceCalculado);
+             }
+         }
+         
+         if (alFinalizarConExito != null) {
+             alFinalizarConExito.run();
+         }
+         // --- FIN DE LA MODIFICACIÓN FINAL ---
+         
+         
+         
+         // 10. Restaurar la visibilidad de los paneles según la configuración
+        if (visorController != null && visorController.getViewManager() != null) {
+            visorController.getViewManager().asegurarVisibilidadPanelesBase();
+        }
+
+        logger.debug("-->>> FIN ImageListManager.recargarListaDesdeBDSinSincronizar (SEGURO)");
+     } // ---FIN de metodo [recargarListaDesdeBDSinSincronizar]---
+
+     /**
+      * Identifica y elimina de la base de datos aquellos registros de imágenes que
+      * ya no existen físicamente en el disco dentro de la carpeta especificada.
+      *
+      * @param carpetaRaiz  La carpeta donde buscar huérfanos.
+      * @param rutasEnDisco El conjunto de rutas (normalizadas) que SÍ existen en disco.
+      */
+     private void eliminarHuerfanosDeBD(Path carpetaRaiz, java.util.Set<String> rutasEnDisco) {
+         if (imagenDAO == null || carpetaRaiz == null) return;
+
+         logger.debug("[ImageListManager] Buscando registros huérfanos en la BD para: {}", carpetaRaiz);
+         List<ImagenInfo> imagenesEnBD = imagenDAO.getImagenesInFolder(carpetaRaiz);
+         int borrados = 0;
+
+         for (ImagenInfo img : imagenesEnBD) {
+             String rutaBD = img.getRutaCompletaAsPath().toAbsolutePath().normalize().toString();
+             if (!rutasEnDisco.contains(rutaBD)) {
+                 logger.debug("  -> Eliminando registro huérfano (no existe en disco): {}", img.getRutaCompleta());
+                 imagenDAO.deleteImagen(img.getId());
+                 borrados++;
+             }
+         }
+
+         if (borrados > 0) {
+             logger.info("[ImageListManager] Sincronización completa: {} registros eliminados de la BD.", borrados);
+         }
+     }
 
 } // --- FIN de clase ImageListManager ---
 

@@ -35,6 +35,9 @@ public class ProjectModel {
     // como un archivo de recuperación temporal. Es nulo en un guardado normal.
     private String originalProjectPath;
     
+    // --- Configuración de Exportación Global ---
+    private String exportDestinationFolder;
+    
     
     // --- Constructor ---
     public ProjectModel() {
@@ -122,6 +125,14 @@ public class ProjectModel {
     public void setOriginalProjectPath(String originalProjectPath) {
         this.originalProjectPath = originalProjectPath;
     } // ---FIN de metodo setOriginalProjectPath---
+    
+    public String getExportDestinationFolder() {
+        return exportDestinationFolder;
+    } // ---FIN de metodo getExportDestinationFolder---
+
+    public void setExportDestinationFolder(String exportDestinationFolder) {
+        this.exportDestinationFolder = exportDestinationFolder;
+    } // ---FIN de metodo setExportDestinationFolder---
     
     
     @Override

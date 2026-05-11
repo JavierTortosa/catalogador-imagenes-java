@@ -19,6 +19,9 @@ import controlador.managers.filter.FilterCriterion.FilterSource;
 import controlador.managers.filter.FilterCriterion.FilterType;
 import modelo.VisorModel;
 
+import servicios.db.TagDAO;
+import java.util.stream.Collectors;
+
 /**
  * Gestiona la lógica de búsqueda y el conjunto de reglas de filtrado activas.
  */
@@ -51,8 +54,11 @@ public class FilterManager {
 	private InfobarStatusManager statusBarManager;
 	private DefaultListModel<String> absoluteMasterList = new DefaultListModel<>();
 	
+	private final TagDAO tagDAO;
+	
     public FilterManager(VisorModel model) {
         this.model = model;
+        this.tagDAO = new TagDAO();
     } // --- Fin del constructor FilterManager ---
 
     public void addFilter(FilterCriterion newFilter) {
@@ -98,50 +104,100 @@ public class FilterManager {
 
     
     public DefaultListModel<String> applyFilters(DefaultListModel<String> masterListModel) {
-        DefaultListModel<String> filteredModel = new DefaultListModel<>();
-        if (masterListModel == null) return filteredModel;
+        if (masterListModel == null) return new DefaultListModel<>();
 
         if (!isFilterActive()) {
+            DefaultListModel<String> unfilteredModel = new DefaultListModel<>();
             for(int i = 0; i < masterListModel.getSize(); i++){
-                filteredModel.addElement(masterListModel.getElementAt(i));
+                unfilteredModel.addElement(masterListModel.getElementAt(i));
             }
-            return filteredModel;
+            return unfilteredModel;
         }
 
-        for (int i = 0; i < masterListModel.getSize(); i++) {
-            String itemKey = masterListModel.getElementAt(i);
-            if (passesAllFilters(itemKey)) {
-                filteredModel.addElement(itemKey);
+        // --- INICIO DE LA NUEVA LÓGICA DE FILTRADO ---
+
+        // 1. Separar los filtros: unos irán a la BBDD, otros se aplicarán en memoria.
+        List<FilterCriterion> dbTagFilters = activeFilters.stream()
+            .filter(f -> f.getSourceType() == FilterCriterion.SourceType.TAG)
+            .collect(Collectors.toList());
+            
+        List<FilterCriterion> memoryFilters = activeFilters.stream()
+            .filter(f -> f.getSourceType() != FilterCriterion.SourceType.TAG)
+            .collect(Collectors.toList());
+
+        DefaultListModel<String> baseModelForFiltering;
+
+        // 2. Si hay filtros de BBDD, ejecutar esa búsqueda PRIMERO.
+        if (!dbTagFilters.isEmpty()) {
+            // Extraemos solo los valores (nombres de los tags) a buscar.
+            List<String> tagNamesToSearch = dbTagFilters.stream()
+                .map(FilterCriterion::getValue)
+                .collect(Collectors.toList());
+            
+            // Obtenemos las rutas de la BBDD.
+            List<String> pathsFromDb = tagDAO.findImagePathsByTagNames(tagNamesToSearch);
+            
+            // Creamos un mapa inverso de ruta -> clave para una búsqueda rápida.
+            Map<String, String> pathToKeyMap = new HashMap<>();
+            for (int i = 0; i < masterListModel.size(); i++) {
+                String key = masterListModel.getElementAt(i);
+                Path path = model.getRutaCompleta(key);
+                if (path != null) {
+                    pathToKeyMap.put(path.toString(), key);
+                }
+            }
+
+            // Construimos un nuevo modelo solo con los resultados de la BBDD.
+            baseModelForFiltering = new DefaultListModel<>();
+            for (String pathString : pathsFromDb) {
+                String key = pathToKeyMap.get(pathString);
+                if (key != null) {
+                    baseModelForFiltering.addElement(key);
+                }
+            }
+            logger.debug("Filtro de BBDD aplicado. {} resultados iniciales.", baseModelForFiltering.getSize());
+
+        } else {
+            // Si no hay filtros de BBDD, partimos de la lista maestra completa.
+            baseModelForFiltering = masterListModel;
+        }
+        
+        // 3. Ahora, aplicamos los filtros en memoria (FILENAME, FOLDER_PATH) sobre el resultado anterior.
+        DefaultListModel<String> finalFilteredModel = new DefaultListModel<>();
+        for (int i = 0; i < baseModelForFiltering.getSize(); i++) {
+            String itemKey = baseModelForFiltering.getElementAt(i);
+            // passesMemoryFilters ahora solo se preocupa de los filtros de texto.
+            if (passesMemoryFilters(itemKey, memoryFilters)) {
+                finalFilteredModel.addElement(itemKey);
             }
         }
         
-        logger.debug("Filtros aplicados. {} resultados de {} totales.", filteredModel.getSize(), masterListModel.getSize());
-        return filteredModel;
+        logger.debug("Filtros aplicados. {} resultados finales de {} totales.", finalFilteredModel.getSize(), masterListModel.getSize());
+        return finalFilteredModel;
+        
     } // --- Fin del método applyFilters ---
+    
 
-    private boolean passesAllFilters(String itemKey) {
+    private boolean passesMemoryFilters(String itemKey, List<FilterCriterion> memoryFilters) {
+        if (memoryFilters.isEmpty()) {
+            return true; // Si no hay filtros de memoria, pasa siempre.
+        }
+
         Path filePath = model.getRutaCompleta(itemKey);
         if (filePath == null) { 
             return false;
         }
         
-        String fileName = filePath.getFileName().toString().toLowerCase();
+        String fileName = (filePath.getFileName() != null) ? filePath.getFileName().toString().toLowerCase() : "";
         String folderPath = (filePath.getParent() != null) ? filePath.getParent().toString().toLowerCase() : "";
 
-        // Iteramos sobre CADA filtro en la lista de filtros activos.
-        for (FilterCriterion filter : activeFilters) {
+        for (FilterCriterion filter : memoryFilters) {
             
-            // Determinamos sobre qué texto vamos a buscar (nombre de archivo, carpeta o tag)
             String targetString;
+            // Este switch ahora es más simple.
             switch (filter.getSourceType()) {
                 case FOLDER:
                     targetString = folderPath;
-                    break;
-                case TAG:
-                    // TODO: Obtener los tags de la imagen 'itemKey' desde la base de datos
-                    // y comprobar si alguno coincide con filter.getValue().
-                    // Por ahora, para que no falle, lo tratamos como si no coincidiera.
-                    targetString = ""; 
                     break;
                 case TEXT:
                 default:
@@ -151,32 +207,38 @@ public class FilterManager {
             
             String filterValue = filter.getValue().toLowerCase();
             if (filterValue.isEmpty()) {
-                continue; // Ignoramos filtros con valor vacío
+                continue;
             }
 
-            // Verificamos si el texto objetivo contiene el valor del filtro.
-            boolean conditionMet = targetString.contains(filterValue);
+            boolean conditionMet;
+            if (filter.getSourceType() == FilterCriterion.SourceType.FOLDER) {
+                // Normalización para carpetas: asegurar consistencia de barras y quitar barras finales
+                String normTarget = targetString.replace("/", "\\");
+                if (normTarget.endsWith("\\") && normTarget.length() > 3) { // >3 para no romper raíces como "C:\"
+                    normTarget = normTarget.substring(0, normTarget.length() - 1);
+                }
+                
+                String normFilter = filterValue.replace("/", "\\");
+                if (normFilter.endsWith("\\") && normFilter.length() > 3) {
+                    normFilter = normFilter.substring(0, normFilter.length() - 1);
+                }
+                
+                conditionMet = normTarget.contains(normFilter);
+            } else {
+                conditionMet = targetString.contains(filterValue);
+            }
 
-            // --- INICIO DE LA NUEVA LÓGICA UNIFICADA ---
-            
-            // CASO 1: Es un filtro de tipo AÑADIR (ADD) y la condición NO se cumple.
-            // Si la imagen NO contiene el texto que debería, la descartamos inmediatamente.
             if (filter.getLogic() == FilterCriterion.Logic.ADD && !conditionMet) {
-                return false; // No cumple una de las condiciones obligatorias.
+                return false;
             }
 
-            // CASO 2: Es un filtro de tipo EXCLUIR (NOT) y la condición SÍ se cumple.
-            // Si la imagen SÍ contiene el texto que NO debería, la descartamos inmediatamente.
             if (filter.getLogic() == FilterCriterion.Logic.NOT && conditionMet) {
-                return false; // Contiene algo prohibido.
+                return false;
             }
-            // --- FIN DE LA NUEVA LÓGICA UNIFICADA ---
         }
 
-        // Si el bucle termina, significa que la imagen ha pasado todas las reglas de filtro.
         return true;
-
-    } // ---FIN de metodo passesAllFilters---
+    } // ---FIN de metodo passesMemoryFilters---
     
     
     /**

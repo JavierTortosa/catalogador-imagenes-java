@@ -499,7 +499,8 @@ public class ProjectManager implements IProjectManager {
     
     public String getNombreProyectoActivo() {
         if (this.archivoProyectoActivo != null) {
-            String fileName = this.archivoProyectoActivo.getFileName().toString();
+            Path projFileNamePath = this.archivoProyectoActivo.getFileName();
+            String fileName = (projFileNamePath != null) ? projFileNamePath.toString() : this.archivoProyectoActivo.toString();
             if (fileName.toLowerCase().endsWith(".prj")) {
                 return fileName;
             }
@@ -664,24 +665,26 @@ public class ProjectManager implements IProjectManager {
     } // --- Fin del método gestionarSeleccionProyecto ---
     
     
-    public void marcarImagenInterno(Path rutaAbsoluta) {
+    @Override
+    public void marcarImagen(Path rutaAbsoluta) {
         if (rutaAbsoluta == null) return;
         String clave = rutaAbsoluta.toString().replace("\\", "/");
         // putIfAbsent devuelve null si la clave no existía, indicando que hubo un cambio.
         if (this.currentProject.getSelectedImages().putIfAbsent(clave, "") == null) { // <--- CAMBIO: null por ""
             notificarModificacion();
         }
-    } // --- Fin del método marcarImagenInterno ---
+    } // --- Fin del método marcarImagen ---
 
     
-    public void desmarcarImagenInterno(Path rutaAbsoluta) {
+    @Override
+    public void desmarcarImagen(Path rutaAbsoluta) {
         if (rutaAbsoluta == null) return;
         String clave = rutaAbsoluta.toString().replace("\\", "/");
         // remove devuelve el valor anterior si existía, indicando que hubo un cambio.
         if (this.currentProject.getSelectedImages().remove(clave) != null) {
             notificarModificacion();
         }
-    } // --- Fin del método desmarcarImagenInterno ---
+    } // --- Fin del método desmarcarImagen ---
     
     
     @Override
@@ -695,10 +698,10 @@ public class ProjectManager implements IProjectManager {
     @Override
     public boolean alternarMarcaImagen(Path rutaAbsolutaImagen) {
         if (estaMarcada(rutaAbsolutaImagen)) {
-            desmarcarImagenInterno(rutaAbsolutaImagen);
+            desmarcarImagen(rutaAbsolutaImagen);
             return false;
         } else {
-            marcarImagenInterno(rutaAbsolutaImagen);
+            marcarImagen(rutaAbsolutaImagen);
             return true;
         }
     } // --- Fin del método alternarMarcaImagen ---
@@ -904,5 +907,49 @@ public class ProjectManager implements IProjectManager {
     }// ---FIN de metodo setModel
     
     
+    @Override
+    public void relocalizarImagen(Path oldPath, Path newPath) {
+        if (oldPath == null || newPath == null)
+            return;
+        String oldClave = oldPath.toString().replace("\\", "/");
+        String newClave = newPath.toString().replace("\\", "/");
+
+        if (oldClave.equals(newClave))
+            return;
+
+        boolean modificado = false;
+
+        // 1. Migrar de SelectedImages (mantiene la etiqueta)
+        if (this.currentProject.getSelectedImages().containsKey(oldClave)) {
+            String etiqueta = this.currentProject.getSelectedImages().remove(oldClave);
+            this.currentProject.getSelectedImages().put(newClave, etiqueta);
+            modificado = true;
+        }
+
+        // 2. Migrar de DiscardedImages
+        if (this.currentProject.getDiscardedImages().contains(oldClave)) {
+            this.currentProject.getDiscardedImages().remove(oldClave);
+            if (!this.currentProject.getDiscardedImages().contains(newClave)) {
+                this.currentProject.getDiscardedImages().add(newClave);
+            }
+            modificado = true;
+        }
+
+        // 3. Migrar de ExportConfigs
+        if (this.currentProject.getExportConfigs().containsKey(oldClave)) {
+            modelo.proyecto.ExportConfig config = this.currentProject.getExportConfigs().remove(oldClave);
+            this.currentProject.getExportConfigs().put(newClave, config);
+            modificado = true;
+        }
+
+        if (modificado) {
+            notificarModificacion();
+            logger.info("[ProjectManager] Imagen relocalizada con éxito: {} -> {}", oldClave, newClave);
+        } else {
+            logger.warn("[ProjectManager] No se pudo relocalizar la imagen '{}' porque no se encontró en el proyecto.",
+                    oldClave);
+        }
+    } // --- Fin del método relocalizarImagen ---
+
 } // --- FIN de la clase ProjectManager ---
 

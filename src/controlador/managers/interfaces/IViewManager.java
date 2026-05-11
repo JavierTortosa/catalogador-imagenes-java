@@ -109,7 +109,14 @@ public interface IViewManager {
     
     
     void limpiarUI();
-    
+
+    /**
+     * Asegura que los paneles base de la interfaz (lista de archivos y miniaturas)
+     * recuperen su visibilidad si el estado de limpieza (Welcome Screen) ha terminado,
+     * respetando siempre las preferencias del usuario guardadas en la configuración.
+     */
+    void asegurarVisibilidadPanelesBase();
+
 } // --- FIN de la interfaz IViewManager ---
 
 

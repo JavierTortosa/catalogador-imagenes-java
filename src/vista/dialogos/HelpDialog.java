@@ -64,26 +64,23 @@ public class HelpDialog extends JDialog {
 
         top.add(new DefaultMutableTreeNode(new HelpPageInfo("Bienvenida", "index.html")));
 
-        DefaultMutableTreeNode visualizadorFolder = new DefaultMutableTreeNode("Modo Visualizador");
-        visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Introducción", "visualizador.html")));
+        DefaultMutableTreeNode visualizadorFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Visualizador", "visualizador.html"));
         visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Panel de Navegación", "visualizador_panel_izquierdo.html")));
         visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Área Principal y Vistas", "visualizador_area_principal.html")));
         visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Sistema de Zoom", "visualizador_zoom.html")));
         visualizadorFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barras de Información", "visualizador_barras_info.html")));
         top.add(visualizadorFolder);
         
-        DefaultMutableTreeNode proyectoFolder = new DefaultMutableTreeNode("Modo Proyecto");
-        proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Introducción", "proyecto.html")));
+        DefaultMutableTreeNode proyectoFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Proyecto", "proyecto.html"));
         proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Controles y Pestañas", "proyecto_controles.html")));
         proyectoFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("El Panel de Exportación", "proyecto_exportar.html")));
         top.add(proyectoFolder);
 
-        DefaultMutableTreeNode carruselFolder = new DefaultMutableTreeNode("Modo Carrusel");
-        carruselFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Introducción", "carrusel.html")));
+        DefaultMutableTreeNode carruselFolder = new DefaultMutableTreeNode(new HelpPageInfo("Modo Carrusel", "carrusel.html"));
         carruselFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Controles", "carrusel_controles.html")));
         top.add(carruselFolder);
         
-        DefaultMutableTreeNode uiRefFolder = new DefaultMutableTreeNode("Referencia de UI");
+        DefaultMutableTreeNode uiRefFolder = new DefaultMutableTreeNode(new HelpPageInfo("Referencia de UI", "summary_ui.html"));
         uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barras de Herramientas", "toolbars_autogen.html")));
         uiRefFolder.add(new DefaultMutableTreeNode(new HelpPageInfo("Barra de Menús", "menus_autogen.html")));
         top.add(uiRefFolder);
@@ -172,17 +169,34 @@ public class HelpDialog extends JDialog {
     } // --- Fin del método loadStaticHelpPage ---
 
     private String replaceIconPlaceholders(String htmlContent) {
-        UIDefinitionService service = new UIDefinitionService();
-        for (ToolbarDefinition toolbarDef : service.generateModularToolbarStructure()) {
-            for (ToolbarComponentDefinition compDef : toolbarDef.componentes()) {
-                if (compDef instanceof ToolbarButtonDefinition buttonDef && buttonDef.claveIcono() != null && !buttonDef.claveIcono().isBlank()) {
-                    String placeholder = "ICON_PLACEHOLDER_" + buttonDef.claveIcono();
-                    String iconUrl = getIconUrl("black", buttonDef.claveIcono());
-                    htmlContent = htmlContent.replace(placeholder, iconUrl);
-                }
+        // Regex para encontrar todos los ICON_PLACEHOLDER_ seguido de un nombre de archivo .png
+        // Acepta letras, números, guiones, puntos y espacios (para el caso del icono con espacios)
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile("ICON_PLACEHOLDER_([\\p{L}\\p{N}._\\- ]+\\.png)");
+        java.util.regex.Matcher matcher = pattern.matcher(htmlContent);
+        
+        StringBuilder sb = new StringBuilder();
+        int lastEnd = 0;
+        while (matcher.find()) {
+            sb.append(htmlContent, lastEnd, matcher.start());
+            String iconName = matcher.group(1);
+            
+            // Caso especial para el icono que no existe pero se pide en la ayuda
+            if ("info.png".equalsIgnoreCase(iconName)) {
+                iconName = "8003-datos_48x48.png";
             }
+            
+            String iconUrl = getIconUrl("black", iconName);
+            if (!iconUrl.isEmpty()) {
+                sb.append(iconUrl);
+            } else {
+                // Si no se encuentra, dejamos el placeholder original o una advertencia
+                logger.warn("No se pudo resolver el placeholder de icono: ICON_PLACEHOLDER_{}", iconName);
+                sb.append(matcher.group(0)); 
+            }
+            lastEnd = matcher.end();
         }
-        return htmlContent;
+        sb.append(htmlContent.substring(lastEnd));
+        return sb.toString();
     } // --- Fin del método replaceIconPlaceholders ---
 
     private String getIconUrl(String themeFolder, String iconName) {

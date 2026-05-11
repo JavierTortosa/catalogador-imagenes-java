@@ -1,6 +1,7 @@
 package vista.renderers;
 
 import java.awt.Component;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import javax.swing.DefaultListCellRenderer;
@@ -65,7 +66,9 @@ public class NombreArchivoRenderer extends DefaultListCellRenderer {
         // 1. Establecer el texto de la celda (tu lógica original)
         if (value != null) {
             try {
-                setText(Paths.get(value.toString()).getFileName().toString());
+                Path p = Paths.get(value.toString());
+                Path fn = p.getFileName();
+                setText((fn != null) ? fn.toString() : p.toString());
             } catch (Exception e) {
                 setText(value.toString());
             }

@@ -141,7 +141,8 @@ public class GridCellRenderer implements ListCellRenderer<String> {
                 }
             }
             if (textoParaMostrar == null && this.showNamesDefault) {
-                textoParaMostrar = rutaCompleta.getFileName().toString();
+                Path fileNamePath = rutaCompleta.getFileName();
+                textoParaMostrar = (fileNamePath != null) ? fileNamePath.toString() : rutaCompleta.toString();
             }
         }
 

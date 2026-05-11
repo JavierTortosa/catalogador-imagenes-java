@@ -1,20 +1,19 @@
 package servicios.image;
 
-import net.coobird.thumbnailator.Thumbnails;
-import net.coobird.thumbnailator.resizers.configurations.Antialiasing;
-import net.coobird.thumbnailator.resizers.configurations.Rendering;
-
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService; 
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities; 
+import javax.swing.SwingUtilities;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +21,9 @@ import org.slf4j.LoggerFactory;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+import net.coobird.thumbnailator.Thumbnails;
+import net.coobird.thumbnailator.resizers.configurations.Antialiasing;
+import net.coobird.thumbnailator.resizers.configurations.Rendering;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import utils.ImageUtils; 
@@ -33,6 +35,9 @@ public class ThumbnailService {
 	private final Cache<String, ImageIcon> mapaMiniaturasCacheadas;
     private final ExecutorService executor; //  Para generación asíncrona
     
+    private final Set<Path> invalidImagePaths;
+    private ImageIcon brokenImageIcon;
+    
     @FunctionalInterface
     public interface ThumbnailListener {
         void onThumbnailCreated(String key);
@@ -42,13 +47,10 @@ public class ThumbnailService {
         ConfigurationManager config = ConfigurationManager.getInstance();
         int tamanoMaximoCache = config.getInt(ConfigKeys.MINIATURAS_CACHE_MAX_SIZE, 200);
         
-        // Usamos el "builder" de Caffeine para construir nuestra caché.
-        // Es muy legible y nos permitiría añadir más reglas en el futuro (como expiración por tiempo).
         this.mapaMiniaturasCacheadas = Caffeine.newBuilder()
-                .maximumSize(tamanoMaximoCache) // Le decimos el tamaño máximo de elementos
-                .build();                       // Y la construimos.
+                .maximumSize(tamanoMaximoCache)
+                .build();
         
-        // Inicializar el ExecutorService
         int numThreads = Math.max(1, Runtime.getRuntime().availableProcessors() / 2);
         this.executor = Executors.newFixedThreadPool(numThreads, (r) -> {
             Thread t = new Thread(r, "ThumbnailGeneratorThread");
@@ -56,8 +58,23 @@ public class ThumbnailService {
             return t;
         });
         
+        // --- INICIO DE LA CORRECCIÓN ---
+        // Inicializamos el nuevo caché de fallos de forma segura para hilos.
+        this.invalidImagePaths = Collections.synchronizedSet(new HashSet<>());
+        
+        // Cargamos el icono de imagen rota una sola vez.
+        try {
+            this.brokenImageIcon = new ImageIcon(ImageIO.read(Objects.requireNonNull(
+                getClass().getResource("/iconos/comunes/imagen-rota.png"))));
+        } catch (Exception e) {
+            logger.error("No se pudo cargar el icono de 'imagen-rota.png'. Se usará null como fallback.", e);
+            this.brokenImageIcon = null;
+        }
+        // --- FIN DE LA CORRECCIÓN ---
+        
         logger.debug("[ThumbnailService] Servicio inicializado. LruCache (tamaño: {}) y Executor (threads: {}) creados.", tamanoMaximoCache, numThreads);
-    } // end of constructor
+    } // ---FIN de constructor [ThumbnailService]---
+    
     
     /**
      * MÉTODO ORIGINAL SOBRECARGADO (SIN TOCARLO)
@@ -118,48 +135,59 @@ public class ThumbnailService {
      * MÉTODO HELPER PRIVADO (extraído de tu método original para reutilizar)
      */
     private ImageIcon generarYEscalarMiniatura(Path rutaArchivo, String claveUnica, int anchoObjetivo, int altoObjetivo) {
+        // --- INICIO DE LA LÓGICA DE CACHÉ DE FALLOS ---
+        // 1. Comprobar si esta ruta ya está en nuestra lista negra.
+        if (invalidImagePaths.contains(rutaArchivo)) {
+            // Si ya sabemos que es inválida, devolvemos el icono de imagen rota.
+            // Es importante que este icono ya esté escalado a un tamaño razonable para que no desfigure la UI.
+            // Por ahora, lo devolvemos tal cual. Si causa problemas de tamaño, lo ajustaremos.
+            return brokenImageIcon;
+        }
+        // --- FIN DE LA LÓGICA DE CACHÉ DE FALLOS ---
+
         try {
-            // 1. Validaciones iniciales (igual que antes)
             if (!Files.exists(rutaArchivo)) {
-                logger.error("[ThumbnailService] ERROR: El archivo no existe: {}", rutaArchivo);
-                return null;
+                logger.warn("[ThumbnailService] El archivo no existe: {}", rutaArchivo);
+                invalidImagePaths.add(rutaArchivo); // Añadir a la lista negra
+                return brokenImageIcon;
             }
             
-            // Thumbnailator puede leer directamente de un File, lo que es muy eficiente.
-            // Primero, aplicamos nuestra corrección de orientación EXIF.
             BufferedImage imagenOriginal = ImageIO.read(rutaArchivo.toFile());
+            
             if (imagenOriginal == null) {
-                logger.error("[ThumbnailService] ERROR: ImageIO.read devolvió null para: {}", rutaArchivo);
-                return null;
+                logger.warn("[ThumbnailService] ImageIO.read devolvió null (archivo inválido o corrupto) para: {}", rutaArchivo);
+                invalidImagePaths.add(rutaArchivo); // Añadir a la lista negra.
+                return brokenImageIcon;             // Devolver el icono de imagen rota.
             }
+
             BufferedImage imagenCorregida = ImageUtils.correctImageOrientation(imagenOriginal, rutaArchivo);
 
-            // 2. Lógica de escalado con Thumbnailator
             boolean mantenerProporcion = (altoObjetivo <= 0);
             int anchoFinal = Math.max(1, anchoObjetivo);
-            // Si no mantenemos proporción, el alto es el objetivo, si no, lo calculamos.
             int altoFinal = mantenerProporcion ? Integer.MAX_VALUE : Math.max(1, altoObjetivo);
 
-            // 3. Creación de la miniatura usando la API fluida de Thumbnailator
             BufferedImage imagenEscalada = Thumbnails.of(imagenCorregida)
-                    .size(anchoFinal, altoFinal)                // Establece el tamaño máximo
-                    .keepAspectRatio(mantenerProporcion)         // Indica si mantener la proporción o no
-                    .rendering(Rendering.QUALITY)              // Equivalente a VALUE_RENDER_QUALITY
-                    .antialiasing(Antialiasing.ON)             // Equivalente a VALUE_ANTIALIAS_ON
-                    .asBufferedImage();                          // Obtiene el resultado como BufferedImage
+                    .size(anchoFinal, altoFinal)
+                    .keepAspectRatio(mantenerProporcion)
+                    .rendering(Rendering.QUALITY)
+                    .antialiasing(Antialiasing.ON)
+                    .asBufferedImage();
 
             return new ImageIcon(imagenEscalada);
 
         } catch (IOException e) {
-            logger.error("[ThumbnailService] ERROR DE E/S al procesar: {}. Mensaje: {}", rutaArchivo, e.getMessage());
-            return null;
+            logger.warn("[ThumbnailService] ERROR DE E/S al procesar: {}. Mensaje: {}", rutaArchivo, e.getMessage());
+            invalidImagePaths.add(rutaArchivo);
+            return brokenImageIcon;
         } catch (OutOfMemoryError oom) {
             logger.error("[ThumbnailService] ERROR CRÍTICO: OutOfMemoryError al procesar: {}", rutaArchivo);
+            invalidImagePaths.add(rutaArchivo);
             limpiarCache();
-            return null;
+            return brokenImageIcon;
         } catch (Exception e) {
             logger.error("[ThumbnailService] ERROR INESPERADO al crear miniatura para: {}. Mensaje: {}", rutaArchivo, e.getMessage(), e);
-            return null;
+            invalidImagePaths.add(rutaArchivo);
+            return brokenImageIcon;
         }
     } // ---FIN de metodo generarYEscalarMiniatura---
     
@@ -175,5 +203,5 @@ public class ThumbnailService {
         // `invalidate` es el método equivalente en Caffeine a `remove`.
         mapaMiniaturasCacheadas.invalidate(claveUnica);
     } // end of eliminarDelCache
-    
+   
 } // end of class ThumbnailService

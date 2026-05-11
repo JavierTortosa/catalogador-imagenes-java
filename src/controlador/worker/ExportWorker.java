@@ -52,28 +52,40 @@ public class ExportWorker extends SwingWorker<String, String> {
                 return "Cancelado por el usuario.";
             }
 
+            List<Path> archivosAsociados = null;
+            if (item.getEstadoArchivoComprimido() != modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO) {
+                archivosAsociados = item.getRutasArchivosAsociados();
+            }
+            
+            Path carpetaDestinoFinal = carpetaDestino;
+            boolean agruparEnSubcarpeta = archivosAsociados != null && archivosAsociados.size() > 1;
+            
+            if (agruparEnSubcarpeta) {
+                String nombreArchivo = item.getRutaImagen().getFileName().toString();
+                int dotIndex = nombreArchivo.lastIndexOf('.');
+                String nombreCarpeta = (dotIndex == -1) ? nombreArchivo : nombreArchivo.substring(0, dotIndex);
+                carpetaDestinoFinal = carpetaDestino.resolve(nombreCarpeta);
+                if (!Files.exists(carpetaDestinoFinal)) {
+                    Files.createDirectories(carpetaDestinoFinal);
+                }
+            }
+
             // --- 2a. Copiar el archivo de imagen ---
             publish("Copiando imagen: " + item.getRutaImagen().getFileName());
-            copyFile(item.getRutaImagen());
+            copyFile(item.getRutaImagen(), carpetaDestinoFinal);
             filesCopied++;
             setProgress((int) ((double) filesCopied / totalFilesToCopy * 100));
 
             // --- 2b. Copiar TODOS los archivos asociados (si procede) ---
-            if (item.getEstadoArchivoComprimido() != modelo.proyecto.ExportStatus.IGNORAR_COMPRIMIDO) {
-                
-                // Usamos el método correcto que devuelve la LISTA de archivos.
-                List<Path> archivosAsociados = item.getRutasArchivosAsociados();
-                
-                if (archivosAsociados != null && !archivosAsociados.isEmpty()) {
-                    // ¡EL BUCLE CLAVE! Iteramos sobre CADA archivo en la lista.
-                    for (Path archivoAExportar : archivosAsociados) {
-                        if (isCancelled()) return "Cancelado por el usuario.";
-                        
-                        publish("Copiando asociado: " + archivoAExportar.getFileName());
-                        copyFile(archivoAExportar);
-                        filesCopied++;
-                        setProgress((int) ((double) filesCopied / totalFilesToCopy * 100));
-                    }
+            if (archivosAsociados != null && !archivosAsociados.isEmpty()) {
+                // ¡EL BUCLE CLAVE! Iteramos sobre CADA archivo en la lista.
+                for (Path archivoAExportar : archivosAsociados) {
+                    if (isCancelled()) return "Cancelado por el usuario.";
+                    
+                    publish("Copiando asociado: " + archivoAExportar.getFileName());
+                    copyFile(archivoAExportar, carpetaDestinoFinal);
+                    filesCopied++;
+                    setProgress((int) ((double) filesCopied / totalFilesToCopy * 100));
                 }
             }
         }
@@ -81,8 +93,8 @@ public class ExportWorker extends SwingWorker<String, String> {
     } // --- Fin del método doInBackground ---
     
     
-    private void copyFile(Path source) throws IOException {
-        Path destination = carpetaDestino.resolve(source.getFileName());
+    private void copyFile(Path source, Path destinoDirectorio) throws IOException {
+        Path destination = destinoDirectorio.resolve(source.getFileName());
         Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
     } // --- Fin del método copyFile ---
 

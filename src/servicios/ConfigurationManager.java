@@ -554,14 +554,11 @@ public class ConfigurationManager
 	    defaults.put(ConfigKeys.GRID_THUMBNAIL_WIDTH, "120");
 	    defaults.put(ConfigKeys.GRID_THUMBNAIL_HEIGHT, "120");
 	    
-	    defaults.put("interfaz.menu.vista.barra_de_botones.seleccionado.visible", "true");
 	    defaults.put("interfaz.herramientas.botonesOrdenLista.visible", "true");
 
 	    defaults.put("proyectos.estado.recuperacion_pendiente", "true");
 	    
-	    defaults.put("interfaz.menu.vista.barra_de_menu.seleccionado.visible", "true");
-	    defaults.put("interfaz.menu.vista.imagenes_en_miniatura.seleccionado.visible", "true");
-	    defaults.put("interfaz.menu.vista.mostrar_ocultar_la_lista_de_archivos.seleccionado.visible", "true");
+
 	    
 	    defaults.put("interfaz.boton.barra_estado.control_modoZoom.visible", "true");
 	    defaults.put("interfaz.boton.barra_estado.mantener_proporciones.visible", "true");

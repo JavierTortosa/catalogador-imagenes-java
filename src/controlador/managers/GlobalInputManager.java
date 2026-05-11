@@ -277,7 +277,8 @@ public class GlobalInputManager implements KeyEventDispatcher, PropertyChangeLis
             case KeyEvent.VK_NUMPAD6: command = AppActionCommands.CMD_ZOOM_TIPO_FIJO; break;
             case KeyEvent.VK_NUMPAD7: command = AppActionCommands.CMD_ZOOM_TIPO_ESPECIFICADO; break;
             case KeyEvent.VK_NUMPAD8: command = AppActionCommands.CMD_ZOOM_MANUAL_TOGGLE; break;
-            case KeyEvent.VK_NUMPAD9: command = AppActionCommands.CMD_ZOOM_RESET; break;
+            case KeyEvent.VK_NUMPAD9: command = AppActionCommands.CMD_ZOOM_TOGGLE_TO_CURSOR; break;
+            case KeyEvent.VK_NUMPAD0: command = AppActionCommands.CMD_ZOOM_RESET; break;
         }
         
         if (command != null) {

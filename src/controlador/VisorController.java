@@ -11,6 +11,7 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -72,6 +73,7 @@ import modelo.VisorModel.WorkMode;
 import servicios.ConfigKeys;
 import servicios.ConfigurationManager;
 import servicios.ProjectManager;
+import servicios.db.DatabaseManager;
 import servicios.image.ThumbnailService;
 import vista.VisorView;
 import vista.config.ViewUIConfig;
@@ -205,7 +207,8 @@ public class VisorController implements IModoController, ThemeChangeListener {
                     // Comprobamos si el archivo del proyecto con nombre realmente existe.
                     Path proyectoPath = Paths.get(ultimoProyecto);
                     if (Files.exists(proyectoPath)) {
-                        nombreProyectoParaDialogo = "'" + proyectoPath.getFileName().toString() + "'";
+                        Path projFileName = proyectoPath.getFileName();
+                        nombreProyectoParaDialogo = "'" + (projFileName != null ? projFileName.toString() : proyectoPath.toString()) + "'";
                         rutaProyectoACargar = proyectoPath;
                     } else {
                         logger.warn("El último proyecto guardado ({}) ya no existe. Se ignorará.", ultimoProyecto);
@@ -484,6 +487,12 @@ public class VisorController implements IModoController, ThemeChangeListener {
      */
     public void shutdownApplication() {
         logger.info("--- [VisorController] Solicitud de cierre de aplicación recibida, delegando a GeneralController ---");
+        
+        // --- INICIO DE LA MODIFICACIÓN: Cierre de la conexión a la BD ---
+        logger.info("Cerrando la conexión a la base de datos...");
+        DatabaseManager.getInstance().closeConnection();
+        // --- FIN DE LA MODIFICACIÓN ---
+        
         if (generalController != null) {
             generalController.handleApplicationShutdown();
         } else {
@@ -712,9 +721,83 @@ public class VisorController implements IModoController, ThemeChangeListener {
             logger.warn("WARN [configurarMenusContextuales]: 'list.grid' no encontrado en el registro.");
         }
         // --- FIN DEL NUEVO BLOQUE PARA EL GRID ---
+
+        configurarMenusContextualesRuta();
         
         logger.debug("  [VisorController] Menús Contextuales configurados.");
     } // --- FIN del metodo configurarMenusContextuales ---
+
+    /**
+     * Configura los menús contextuales para las rutas copiables en las barras de estado.
+     */
+    private void configurarMenusContextualesRuta() {
+        javax.swing.JTextField tfRutaSup = registry.get("textfield.info.rutaImagen");
+        javax.swing.JTextField tfCarpetaInf = registry.get("textfield.estado.carpetaRaiz");
+
+        if (tfRutaSup != null) {
+            tfRutaSup.addMouseListener(new PathPopupListener(tfRutaSup));
+        }
+        if (tfCarpetaInf != null) {
+            tfCarpetaInf.addMouseListener(new PathPopupListener(tfCarpetaInf));
+        }
+    }
+
+    /**
+     * Listener específico para las rutas que ofrece copiar y filtrar.
+     */
+    private class PathPopupListener extends MouseAdapter {
+        private final javax.swing.JTextField textField;
+
+        public PathPopupListener(javax.swing.JTextField textField) {
+            this.textField = textField;
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) { maybeShow(e); }
+        @Override
+        public void mouseReleased(MouseEvent e) { maybeShow(e); }
+
+        private void maybeShow(MouseEvent e) {
+            if (e.isPopupTrigger()) {
+                JPopupMenu menu = new JPopupMenu();
+                
+                String textoRaw = textField.getText();
+                // Limpiar prefijos si existen ("Carpeta: ", "Ruta: ")
+                final String rutaLimpia = textoRaw.replaceFirst("^(Carpeta: |Ruta: )", "").trim();
+
+                JMenuItem copiarItem = new JMenuItem("Copiar ruta");
+                copiarItem.addActionListener(al -> {
+                    java.awt.datatransfer.StringSelection selection = new java.awt.datatransfer.StringSelection(rutaLimpia);
+                    Toolkit.getDefaultToolkit().getSystemClipboard().setContents(selection, null);
+                });
+                menu.add(copiarItem);
+
+                menu.addSeparator();
+
+                JMenuItem addPosItem = new JMenuItem("Añadir a filtros (+)");
+                addPosItem.addActionListener(al -> {
+                    if (generalController != null) {
+                        generalController.solicitarAnadirFiltroSilencioso(rutaLimpia, 
+                            controlador.managers.filter.FilterCriterion.FilterSource.FOLDER_PATH, 
+                            controlador.managers.filter.FilterCriterion.FilterType.CONTAINS);
+                    }
+                });
+                menu.add(addPosItem);
+
+                JMenuItem addNegItem = new JMenuItem("Añadir a filtros (-)");
+                addNegItem.addActionListener(al -> {
+                    if (generalController != null) {
+                        generalController.solicitarAnadirFiltroSilencioso(rutaLimpia, 
+                            controlador.managers.filter.FilterCriterion.FilterSource.FOLDER_PATH, 
+                            controlador.managers.filter.FilterCriterion.FilterType.DOES_NOT_CONTAIN);
+                    }
+                });
+                menu.add(addNegItem);
+
+                menu.show(e.getComponent(), e.getX(), e.getY());
+            }
+        }
+    }
 
     
     /**
@@ -963,8 +1046,11 @@ public class VisorController implements IModoController, ThemeChangeListener {
 
         // 3. Definir el callback para REAPLICAR el filtro después de la carga
         Runnable accionPostCarga = () -> {
-            logger.debug("    -> [Callback post-refresco] Sincronizando UI...");
+            logger.debug("    -> [Callback post-refresco] Sincronizando UI y iniciando indexación...");
             generalController.sincronizarTodaLaUIConElModelo();
+            
+            // El refresco ya se ha encargado de verificar la indexación arriba.
+            // No es necesario llamar a iniciarIndexacionEnSegundoPlano aquí.
             
             if (finalTextoFiltro != null) {
                 logger.debug("    -> Reaplicando filtro Tornado con texto: '{}'", finalTextoFiltro);
@@ -976,6 +1062,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
                 }
             }
         };
+
 
         // 4. Iniciar la recarga de la lista, pasando nuestro callback especial.
         logger.debug("  -> Recargando lista de imágenes para la carpeta: {}", carpetaActual);
@@ -1012,7 +1099,14 @@ public class VisorController implements IModoController, ThemeChangeListener {
         if (indiceSeleccionado == -1) {
             model.setCurrentImage(null);
             model.setSelectedImageKey(null);
-            displayPanel.limpiar();
+            
+            // Si la lista está vacía pero tenemos una carpeta seleccionada, mostramos mensaje de "carpeta vacía"
+            if (model.getModeloLista().isEmpty() && model.getCarpetaRaizActual() != null) {
+                displayPanel.mostrarMensajeCarpetaVacia(model.getCarpetaRaizActual());
+            } else {
+                displayPanel.limpiar();
+            }
+            
             if (listCoordinator != null) {
                 listCoordinator.forzarActualizacionEstadoAcciones();
             }
@@ -1095,11 +1189,19 @@ public class VisorController implements IModoController, ThemeChangeListener {
                     actualizarEstadoVisualBotonMarcarYBarraEstado(estaMarcada, rutaCompleta);
 
                 } else { 
-                    // --- Caso de Error de Carga ---
+                    // --- Caso de Error de Carga o No Imagen ---
                     model.setCurrentImage(null);
-                    if (iconUtils != null) {
-                         ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
-                         displayPanel.mostrarError("Error al cargar: \n" + rutaCompleta.getFileName().toString(), errorIcon);
+                    
+                    if (!isImageFile(rutaCompleta)) {
+                        // Es un archivo que no es imagen (ej: STL, ZIP, etc) -> Mostrar placeholder
+                        displayPanel.mostrarPlaceholderArchivoSinImagen(rutaCompleta);
+                    } else {
+                        // Es una imagen pero falló la carga (corrupta, etc)
+                        if (iconUtils != null) {
+                             ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
+                             Path fileNamePath = rutaCompleta.getFileName();
+                             displayPanel.mostrarError("Error al cargar: \n" + (fileNamePath != null ? fileNamePath.toString() : rutaCompleta.toString()), errorIcon);
+                        }
                     }
                     actualizarEstadoVisualBotonMarcarYBarraEstado(false, null);
                 }
@@ -1204,7 +1306,8 @@ public class VisorController implements IModoController, ThemeChangeListener {
                     model.setCurrentImage(null);
                     if (iconUtils != null) {
                          ImageIcon errorIcon = iconUtils.getScaledCommonIcon("imagen-rota.png", 128, 128);
-                         displayPanel.mostrarError("Error al cargar: \n" + finalPath.getFileName().toString(), errorIcon);
+                         Path fileNamePath = finalPath.getFileName();
+                         displayPanel.mostrarError("Error al cargar: \n" + (fileNamePath != null ? fileNamePath.toString() : finalPath.toString()), errorIcon);
                     }
                 }
                 if (infobarImageManager != null) infobarImageManager.actualizar();
@@ -1371,14 +1474,16 @@ public class VisorController implements IModoController, ThemeChangeListener {
 // ***************************************************************************************************************************
 
 // ***************************************************************************************************************************
-// ******************************************************************************************************************* ARCHIVO     
+// ************************************************************************************************************* BASE DE DATOS     
      
+
 
      
      
      
+     
 	
-// ************************************************************************************************************ FIN DE ARCHIVO
+// ****************************************************************************************************** FIN DE BASE DE DATOS
 // ***************************************************************************************************************************
 
 // ***************************************************************************************************************************
@@ -1787,8 +1892,8 @@ public class VisorController implements IModoController, ThemeChangeListener {
         }
         logger.debug("[VisorController] Sincronización de checkboxes de visibilidad finalizada.");
     } // --- FIN del método sincronizarEstadoVisualCheckboxesDeBotones ---
-    
 
+    
     private void cargarVisorNormal() {
 	    String folderInit = configuration.getString("inicio.carpeta", "");
 	    Path folderPath = null;
@@ -1807,14 +1912,24 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	    }
 
 	    if (carpetaValida) {
-	        String imagenInicialKey = configuration.getString("inicio.imagen", null);
-	        imageListManager.cargarListaImagenes(imagenInicialKey, null);
+	        // --- NUEVO: Usar la lógica unificada de carga y sincronización ---
+	        if (generalController != null) {
+	            generalController.solicitarCargaDesdeNuevaRaiz(folderPath);
+	        } else {
+	            // Fallback si generalController no está listo (no debería pasar)
+	            String imagenInicialKey = configuration.getString("inicio.imagen", null);
+	            imageListManager.cargarListaImagenes(imagenInicialKey, () -> {
+	                SwingUtilities.invokeLater(this::sincronizarComponentesDeModoVisualizador);
+	            });
+	        }
+	        
+
 	    } else {
 	        SwingUtilities.invokeLater(viewManager::limpiarUI);
 	    }
 	} // ---FIN de metodo cargarVisorNormal---
-  
-  
+    
+
 	/**
 	 * Calcula dinámicamente el número de miniaturas a mostrar antes y después de la
 	 * miniatura central, basándose en el ancho disponible del viewport del
@@ -1943,6 +2058,14 @@ public class VisorController implements IModoController, ThemeChangeListener {
 		if (statusBarManager != null)
 		{
 			statusBarManager.actualizar();
+		}
+
+		// --- 4. Actualizar el marco visual en el panel único (SINGLE) ---
+		if (registry != null) {
+			Object panelObj = registry.get("panel.display.imagen");
+			if (panelObj instanceof vista.panels.ImageDisplayPanel) {
+				((vista.panels.ImageDisplayPanel) panelObj).setImagenMarcada(estaMarcada);
+			}
 		}
 
 		logger.debug("  [Controller] Estado visual de 'Marcar' actualizado. Marcada: " + estaMarcada);
@@ -2186,8 +2309,12 @@ public class VisorController implements IModoController, ThemeChangeListener {
 	        {"2", "Tamaño Original (100%)"},
 	        {"3", "Ajustar a Ancho"},
 	        {"4", "Ajustar a Alto"},
+	        {"5", "Rellenar Pantalla"},
+	        {"6", "Mantener Zoom Actual"},
+	        {"7", "Zoom Personalizado %"},
 	        {"8", "Activar/Desactivar Paneo"},
-	        {"9", "Resetear Zoom"}
+	        {"9", "Zoom al Cursor"},
+	        {"0", "Resetear Zoom"}
 	    }));
 	    columna2.add(Box.createVerticalStrut(15));
 
@@ -2651,4 +2778,14 @@ public class VisorController implements IModoController, ThemeChangeListener {
 // ***************************************************************************************************************************    
 
      
+    /**
+     * Comprueba si un archivo es una imagen basándose en su extensión.
+     */
+    private boolean isImageFile(Path path) {
+        if (path == null) return false;
+        String name = path.getFileName().toString().toLowerCase();
+        return name.endsWith(".jpg") || name.endsWith(".jpeg") || name.endsWith(".png") 
+               || name.endsWith(".gif") || name.endsWith(".bmp") || name.endsWith(".webp");
+    }
+
 } // --- FIN CLASE VisorController ---

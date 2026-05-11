@@ -131,7 +131,8 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
         if (this.mostrarNombresConfigurado) {
             String nombreParaMostrar = "N/A";
             if (rutaCompleta != null) {
-                nombreParaMostrar = rutaCompleta.getFileName().toString();
+                Path fileNamePath = rutaCompleta.getFileName();
+                nombreParaMostrar = (fileNamePath != null) ? fileNamePath.toString() : rutaCompleta.toString();
             } else if (value != null) {
                 nombreParaMostrar = value;
             }

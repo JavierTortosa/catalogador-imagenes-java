@@ -122,7 +122,10 @@ public class ZoomManager implements IZoomManager {
 
         if (model.getCurrentImage() == null) {
             ImageDisplayPanel panelActivo = getActiveDisplayPanel();
-            if (panelActivo != null) panelActivo.limpiar();
+            // Solo limpiamos si no estamos mostrando un placeholder de "sin imagen" (Preservar vista)
+            if (panelActivo != null && !panelActivo.isPlaceholderSinImagen()) {
+                panelActivo.limpiar();
+            }
             
             if (onComplete != null) SwingUtilities.invokeLater(onComplete);
             

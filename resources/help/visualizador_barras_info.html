@@ -7,50 +7,79 @@
 </head>
 <body>
 
-    <h1><img src="ICON_PLACEHOLDER_info.png" class="header-icon">Barras de Información y Estado</h1>
+    <h1><img src="ICON_PLACEHOLDER_8003-datos_48x48.png" class="header-icon">Barras de Información y Estado</h1>
     <p>
-        El visor cuenta con dos barras de información, una superior y una inferior, que proporcionan datos en tiempo real sobre la imagen seleccionada y el estado de la aplicación. Puedes mostrar u ocultar cada una de estas barras desde el menú <strong>Vista</strong>.
+        El visor cuenta con dos barras de información interactivas que proporcionan datos en tiempo real sobre la imagen seleccionada y la carpeta de trabajo actual. Puedes mostrar u ocultar cada una de estas barras desde el menú <strong>Vista</strong>.
     </p>
 
     <h2>Barra de Información Superior (Info. de Imagen)</h2>
     <p>
-        Esta barra muestra detalles técnicos del archivo de imagen actual:
+        Esta barra se centra en la <strong>imagen que estás viendo</strong> en ese momento. Muestra:
     </p>
     <ul>
-        <li><strong>Nombre Archivo:</strong> Muestra el nombre del archivo o la ruta completa (configurable en el menú <strong>Configuración > Paneles de Datos</strong>).</li>
-        <li><strong>Dim:</strong> Las dimensiones de la imagen en píxeles (Ancho x Alto).</li>
-        <li><strong>Tam:</strong> El tamaño del archivo en disco (KB, MB, etc.).</li>
-        <li><strong>Fch:</strong> La fecha y hora de la última modificación del archivo.</li>
-        <li><strong>Idx:</strong> El índice de la imagen actual dentro de la lista total de imágenes cargadas (ej. "5/250").</li>
-        <li><strong>%Z:</strong> El porcentaje de zoom real al que se está renderizando la imagen en pantalla.</li>
-        <li><strong>Modo:</strong> El nombre del modo de zoom automático que está activo.</li>
-        <li><strong>Fmt:</strong> El formato del archivo (JPG, PNG, WEBP, etc.).</li>
+        <li><strong>Ruta de la Imagen:</strong> Muestra la carpeta donde se encuentra físicamente el archivo actual.</li>
+        <li><strong>Nombre Archivo:</strong> Muestra el nombre del archivo de imagen.</li>
+        <li><strong>Datos Técnicos:</strong> 
+            <ul>
+                <li><strong>Dim:</strong> Dimensiones originales en píxeles.</li>
+                <li><strong>Tam:</strong> Tamaño del archivo en disco.</li>
+                <li><strong>Fch:</strong> Fecha de última modificación.</li>
+                <li><strong>Idx:</strong> Posición de la imagen en la lista actual (ej. 5/100).</li>
+                <li><strong>%Z:</strong> Nivel de zoom real aplicado en pantalla.</li>
+                <li><strong>Fmt:</strong> Formato del archivo (JPG, PNG, etc.).</li>
+            </ul>
+        </li>
     </ul>
 
     <hr>
     
-    <h2>Barra de Estado Inferior (Estado de la Aplicación)</h2>
+    <h2>Barra de Estado Inferior (Estado y Carpeta Raíz)</h2>
     <p>
-        Esta barra muestra la ruta del archivo y contiene controles interactivos sobre el estado global del visualizador.
+        Esta barra muestra información sobre la <strong>sesión de trabajo</strong> y controles globales:
     </p>
     <ul>
-        <li><strong>Ruta del Archivo:</strong> Muestra la ruta completa o solo el nombre del archivo seleccionado.</li>
+        <li><strong>Carpeta Raíz:</strong> Muestra la ruta de la carpeta que tienes abierta actualmente. Es la ubicación "base" desde la que se cargan todas las imágenes.</li>
         <li>
-            <strong>Iconos de Estado:</strong>
+            <strong>Indicadores de Estado:</strong>
             <ul>
-                <li><img src="ICON_PLACEHOLDER_3001-zoom_48x48.png" class="inline-icon"> Indica si el <strong>Zoom Manual</strong> está activado.</li>
-                <li><img src="ICON_PLACEHOLDER_7001-subcarpetas_48x48.png" class="inline-icon"> Indica si la <strong>lectura de subcarpetas</strong> está activada.</li>
-                <li><img src="ICON_PLACEHOLDER_7002-mantener_proporciones_48x48.png" class="inline-icon"> Indica si se están <strong>manteniendo las proporciones</strong> de la imagen.</li>
+                <li><img src="ICON_PLACEHOLDER_3001-zoom_48x48.png" class="inline-icon"> Estado del <strong>Zoom Manual</strong>.</li>
+                <li><img src="ICON_PLACEHOLDER_7001-subcarpetas_48x48.png" class="inline-icon"> Estado de la <strong>Lectura de Subcarpetas</strong>.</li>
+                <li><img src="ICON_PLACEHOLDER_7002-mantener_proporciones_48x48.png" class="inline-icon"> Estado de <strong>Mantener Proporciones</strong>.</li>
             </ul>
         </li>
         <li>
             <strong>Controles de Zoom:</strong>
             <ul>
-                <li><strong>Z: 100%:</strong> Muestra el porcentaje de zoom personalizado. Haz clic para abrir un menú de porcentajes predefinidos o introducir uno manualmente.</li>
-                <li><img src="ICON_PLACEHOLDER_3005-escalar_para_ajustar_48x48.png" class="inline-icon"> Muestra el icono del modo de zoom automático actual. Haz clic para abrir un menú y cambiar de modo.</li>
+                <li><strong>Z: 100%:</strong> Zoom personalizado. Haz clic para abrir un menú de niveles fijos.</li>
+                <li><img src="ICON_PLACEHOLDER_3005-escalar_para_ajustar_48x48.png" class="inline-icon"> Selector de <strong>Modo de Zoom Automático</strong>.</li>
             </ul>
         </li>
-        <li><strong>Área de Mensajes:</strong> Muestra información contextual, como "[MARCADA]" si la imagen pertenece al proyecto, o notificaciones temporales de la aplicación.</li>
+        <li><strong>Área de Mensajes:</strong> Notificaciones del sistema (ej. "[MARCADA]" si pertenece a un proyecto).</li>
     </ul>
+
+    <hr>
+
+    <h2>Interactividad en las Rutas</h2>
+    <p>
+        Tanto el campo de ruta de la barra superior como el de la barra inferior son <strong>interactivos</strong>. Al hacer clic derecho sobre ellos, aparecerá un menú especial:
+    </p>
+    <table class="controls-table">
+        <tr>
+            <td><strong>Copiar Ruta:</strong></td>
+            <td>Copia la ruta completa al portapapeles, limpia de prefijos.</td>
+        </tr>
+        <tr>
+            <td><strong>Añadir como Filtro (+):</strong></td>
+            <td>Establece un filtro positivo para que solo se muestren imágenes dentro de esa carpeta.</td>
+        </tr>
+        <tr>
+            <td><strong>Añadir como Filtro (-):</strong></td>
+            <td>Establece un filtro negativo para ocultar todas las imágenes de esa carpeta.</td>
+        </tr>
+    </table>
+    <div style="background-color: #f0f7ff; border-left: 5px solid #0078d7; padding: 10px; margin-top: 15px;">
+        <strong>Nota:</strong> Los filtros añadidos desde aquí son <strong>persistentes</strong> y aparecerán en tu pestaña de "Filtros" del panel izquierdo.
+    </div>
+
 </body>
 </html>

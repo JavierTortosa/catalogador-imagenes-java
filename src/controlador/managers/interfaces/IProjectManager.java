@@ -93,13 +93,13 @@ public interface IProjectManager {
      * Marca una imagen para el proyecto actual.
      * @param rutaAbsoluta El Path absoluto de la imagen.
      */
-    void marcarImagenInterno(Path rutaAbsoluta);
+    void marcarImagen(Path rutaAbsoluta);
 
     /**
      * Desmarca una imagen del proyecto actual.
      * @param rutaAbsoluta El Path absoluto de la imagen.
      */
-    void desmarcarImagenInterno(Path rutaAbsoluta);
+    void desmarcarImagen(Path rutaAbsoluta);
 
     /**
      * Verifica si una imagen (dada por su Path absoluto) está actualmente marcada en la SELECCIÓN PRINCIPAL.
@@ -196,5 +196,13 @@ public interface IProjectManager {
      * @return La ruta del archivo de recuperación creado.
      */
     Path guardarSesionDeRecuperacion();
+    
+    /**
+     * Actualiza la ruta de una imagen en el proyecto, migrando todos sus metadatos
+     * (etiquetas, configuraciones de exportación, etc.) de la ruta antigua a la nueva.
+     * @param oldPath La ruta antigua (que ya no existe o se quiere cambiar).
+     * @param newPath La nueva ruta del archivo en el disco.
+     */
+    void relocalizarImagen(Path oldPath, Path newPath);
     
 } // --- FIN de la interfaz IProjectManager ---

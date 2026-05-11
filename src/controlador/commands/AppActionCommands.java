@@ -96,6 +96,8 @@ public interface AppActionCommands {
 //    public static final String CMD_SYNC_TOGGLE					= "cmd.sync.toggle";
 //    public static final String CMD_SYNC_SAFE						= "cmd.sync.safe";
     public static final String CMD_TOGGLE_SYNC_VISOR_CARRUSEL		= "cmd.toggle.sync_visor_carrusel";
+    public static final String CMD_TOGGLE_SYNC_COLECCION_CARPETA	= "cmd.toggle.sync_coleccion_carpeta";
+    public static final String CMD_COLECCION_AÑADIR_CARPETA_ACTUAL 	= "cmd.coleccion.añadir_carpeta_actual";
     
  // --- Zoom ---
     public static final String CMD_ZOOM_ACERCAR 					= "cmd.zoom.acercar"; 					// (Asumiendo Action futura)
@@ -165,6 +167,8 @@ public interface AppActionCommands {
 	    public static final String CMD_PROYECTO_VACIAR_DESCARTES 	= "cmd.proyecto.vaciar_descartes";
 	    public static final String CMD_PROYECTO_RESTAURAR_DE_DESCARTES = "cmd.proyecto.restaurar_de_descartes";
 	    public static final String CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE = "cmd.proyecto.eliminar";
+	    public static final String CMD_PROYECTO_ANADIR_ARCHIVOS 	= "cmd.proyecto.anadir_archivos";
+	    
 	    
  // --- Vista (Toggles de UI) ---
 	    public static final String CMD_VISTA_SINGLE					= "cmd.vista.single";				// Para Vista de 1 imagen

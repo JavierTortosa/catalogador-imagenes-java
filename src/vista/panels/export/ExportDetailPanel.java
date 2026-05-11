@@ -102,7 +102,8 @@ public class ExportDetailPanel extends JPanel {
             if (removeAction != null) removeAction.setEnabled(false);
             if (locateAction != null) locateAction.setEnabled(false);
         } else {
-            titleLabel.setText("Detalles para: " + item.getRutaImagen().getFileName().toString());
+            Path fn = item.getRutaImagen().getFileName();
+            titleLabel.setText("Detalles para: " + (fn != null ? fn.toString() : item.getRutaImagen().toString()));
             associatedFilesModel.clear();
             if (item.getRutasArchivosAsociados() != null) {
                 for (Path p : item.getRutasArchivosAsociados()) {

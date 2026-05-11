@@ -59,9 +59,12 @@ public class MultiLineCellRenderer extends JPanel implements TableCellRenderer {
             if (files.isEmpty()) {
                 displayText = "- Ninguno -";
             } else if (files.size() == 1) {
-                displayText = files.get(0).getFileName().toString();
+                Path fn = files.get(0).getFileName();
+                displayText = (fn != null) ? fn.toString() : files.get(0).toString();
             } else {
-                displayText = String.format("%s (y %d más...)", files.get(0).getFileName().toString(), files.size() - 1);
+                Path fn0 = files.get(0).getFileName();
+                String s0 = (fn0 != null) ? fn0.toString() : files.get(0).toString();
+                displayText = String.format("%s (y %d más...)", s0, files.size() - 1);
                 buttonVisible = true;
             }
         } else {

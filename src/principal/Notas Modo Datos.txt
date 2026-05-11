@@ -1,0 +1,826 @@
+Apuntes para el modo Datos
+--------------------------
+
+Tecnologias a usar:
+
+SQLite-JDBC: Para tener una base de datos sin complicaciones.
+JDBI: Para hablar con esa base de datos sin volverte loco.
+
+
+NOTAS: Requisitos para el modo datos
+------------------------------------
+
+Objetivo del modo datos:
+1. ayudar al visualizador a buscar imagenes dentro de todos los discos duros y todas las subcarpetas
+2. para esta ayuda implementa un modo de etiquetas por imagen (tag) que tiene 2 partes
+	1. TAG's automaticos: vienen dados por los nombres de las carpetas donde esta el archivo
+	2. TAG's manuales: a traves del modo proyecto, tendremos la oportunidad de seleccionar varios archivos o no y asignar un tag comun personalizado
+3. mantener actualizada la base de datos de tags con los posibles movimientos de los archivos entre carpetas
+4. detectar archivos duplicados en carpetas distintas como una opcion de mantenimiento de la base de datos y de los propios datos (imagen/stl)
+
+
+Como interactua el modo datos con el resto de la aplicacion:
+------------------------------------------------------------
+
+Con el visualizador:
+-el visualizador incorpora un sistema de filtros, dentro de estos filtros hay uno que es añadir un filtrado de la lista actual por 
+tags (positivo o negativo)
+
+Con el proyecto:
+-se supone que el proyecto es sobre un tema concreto, podemos usar el sistema de marcado de imagenes para añadirlas al proyecto para asignar un tag 
+a esas imaenes de ese proyecto
+
+
+Requisitos imprescindibles:
+---------------------------
+- no puede relentizar la aplicacion en ningun caso, en caso de tener que relentizar la aplicacion se debe avisar al usuario o poner un boton que 
+sea el usuario que ponga en marcha ese proceso
+- la base de datos tiene que estar actualizada, pero sobre todo cuando estamos hablando de filtrado de list
+- debe tener un panel de control de tags que sea sencillo trabajar con los tags y la gestion de 25000 imagenes
+- debemos poder ver las imagenes que tenemos disponibles en un tag concreto (crea una lista con ese tag directamente)
+
+
+Observaciones de la IA despues de revisar los archivos de notas (no codigo) 
+---------------------------------------------------------------------------
+
+Tras leer tus notas y el diagnóstico de los problemas, aquí tienes mi opinión técnica y algunas ideas para simplificar y robustecer el "Modo Datos",
+ centrándome en que sea útil para gestionar esos 3 discos duros externos.
+
+1. El gran cambio: De "Ruta" a "Identidad Única"
+Tu diagnóstico es correcto: la ruta no puede ser la clave primaria.
+Si mueves una carpeta de un disco a otro, el programa debería "reconocer" que son los mismos archivos y mantener los tags.
+Propuesta de Simplificación:
+En lugar de un HASH (que tardaría horas en calcular para 25.000 ZIPs), usa una Huella Digital (Fingerprint) combinada:
+nombre_archivo + tamaño_en_bytes.
+Es extremadamente raro que dos modelos 3D distintos pesen exactamente los mismos bytes y se llamen igual. Es mucho más rápido de calcular que 
+un SHA-256.
+
+2. Gestión de Discos (El problema de los Discos Externos)
+Para que el programa sepa qué disco está conectado, necesitas una tabla de Volúmenes.
+Cada disco duro tiene un "Serial Number" único (o puedes crear un archivo oculto .id_visor en la raíz de cada disco).
+La base de datos guarda: ID_DISCO + RUTA_RELATIVA.
+Resultado: Si el disco pasa de ser la unidad E: a la F:, el programa lo detecta por el ID de volumen y simplemente actualiza el prefijo de la 
+ruta, sin perder ni un solo tag.
+
+3. Ideas para Mejorar el Rendimiento (Indexación)
+Para manejar 25.000 archivos sin que la UI se congele:
+Transacciones (Crucial): Como bien pusiste en tus notas, pasar de insertar uno a uno a insertar en bloques de 1000 con BEGIN TRANSACTION y COMMIT 
+reducirá el tiempo de indexación de minutos a segundos.
+Modo "Desconectado" (Offline Browsing): Esta es la mejor mejora que puedes hacer. Si guardas las miniaturas en una carpeta local del PC (no en el 
+disco externo), podrías buscar y filtrar tus 26.000 modelos aunque los discos duros estén desenchufados. Al encontrar lo que quieres, el programa 
+te dice: "Por favor, conecta el Disco Duro B".
+
+4. Simplificación del Esquema de Base de Datos
+No te compliques con jerarquías de tags infinitas al principio. Mantén la base de datos "plana" pero eficiente:
+Tabla Imagenes: id, fingerprint (nombre+tamaño), id_disco, ruta_relativa, fecha_adicion.
+Tabla Tags: id, nombre_tag.
+Tabla Imagen_Tags: id_imagen, id_tag.
+Tabla Discos: id, numero_serie_volumen, nombre_personalizado (ej: "Cine y Fantasía").
+
+5. El concepto de "Ingesta" (Staging)
+Me parece muy inteligente tu nota sobre separar el Explorador de la Colección.
+Explorador: Miras carpetas. Es rápido, no guarda nada.
+Colección (Modo Datos): Solo lo que tú decidas "Importar".
+Idea de mejora: Añade un botón de "Importar automáticamente" que escanee una carpeta y asigne tags basados en el nombre de las subcarpetas, 
+pero que te permita revisarlos antes de dar el "OK" definitivo a la base de datos.
+
+
+
+Hojas de ruta extraidas de IA:
+------------------------------
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+								--- HOJA DE RUTA TÉCNICA PARA LA IMPLEMENTACIÓN DEL "MODO DATOS" V2.0 ---
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Basada en el análisis del código del 24 de mayo de 2024.
+
+--- RESUMEN DE LA ARQUITECTURA ---
+
+El objetivo es integrar una base de datos SQLite como la fuente principal de información,
+reemplazando la lectura directa del sistema de archivos para la visualización normal.
+Esto permitirá un potente sistema de etiquetado (tags), filtrado y gestión de la colección.
+
+- El "Modo Datos" será un panel de administración para la gestión detallada de la BD.
+- El "Modo Visualizador" se potenciará con filtros basados en tags.
+- El "Modo Proyecto" evolucionará para gestionar lotes de imágenes, permitiendo
+  tanto la catalogación y movimiento de archivos nuevos como la preparación de
+  proyectos para impresión.
+
+--- PLAN DE IMPLEMENTACIÓN POR FASES ---
+
+=================================================================================
+FASE 1: CONSTRUCCIÓN DE LA CAPA DE PERSISTENCIA (EL NÚCLEO)
+=================================================================================
+Objetivo: Crear la base de datos y las clases Java para interactuar con ella (capa DAO).
+
+1.  AÑADIR DEPENDENCIA JDBC DE SQLITE:
+    -   En `pom.xml`, añadir la dependencia `org.xerial:sqlite-jdbc`.
+
+2.  CREAR MODELO DE DOMINIO (POJOs):
+    -   Crear un nuevo paquete `modelo.datos`.
+    -   Crear `ImagenInfo.java`: Representará una fila de la tabla `imagenes`.
+        -   Atributos: id (long), rutaCompleta (String), nombreArchivo (String),
+          fechaModificacion (long), etc.
+    -   Crear `Tag.java`: Representará un tag.
+        -   Atributos: id (long), nombre (String).
+
+3.  CREAR CAPA DE ACCESO A DATOS (DAO):
+    -   Crear un nuevo paquete `servicios.db`.
+    -   Crear `DatabaseManager.java`:
+        -   Responsable de la conexión única (Singleton) al archivo SQLite.
+        -   Tendrá un método `initializeDatabase()` que cree las tablas si no existen
+          usando `CREATE TABLE IF NOT EXISTS ...`:
+            -   `imagenes` (id PK, ruta TEXT UNIQUE, nombre_archivo TEXT, ...).
+            -   `tags` (id PK, nombre TEXT UNIQUE).
+            -   `imagen_tags` (imagen_id FK, tag_id FK, PRIMARY KEY(imagen_id, tag_id)).
+    -   Crear `ImagenDAO.java`:
+        -   Contendrá los métodos para operaciones CRUD sobre las imágenes.
+        -   Ejemplos: `addImage(ImagenInfo img)`, `updateImagePath(long id, String newPath)`,
+          `findImageByPath(String path)`, `getImagesInFolder(Path root, int depth)`,
+          `getImagesByTags(List<Tag> include, List<Tag> exclude)`.
+    -   Crear `TagDAO.java`:
+        -   Contendrá los métodos para gestionar los tags.
+        -   Ejemplos: `addTag(Tag t)`, `findTagByName(String name)`, `getAllTags()`,
+          `assignTagToImage(long imageId, long tagId)`.
+
+=================================================================================
+FASE 2: INTEGRACIÓN DE LA CARGA DE DATOS Y SINCRONIZACIÓN
+=================================================================================
+Objetivo: Modificar el flujo de carga para que consulte la BD y añadir un mecanismo
+de sincronización con el disco.
+
+1.  MODIFICAR `ImageListManager.cargarListaImagenes`:
+    -   La lógica principal cambiará: en lugar de llamar a `BuscadorArchivosWorker`,
+      ahora llamará a `imagenDAO.getImagesInFolder(...)` para obtener la lista
+      de imágenes desde la base de datos.
+    -   El resultado (`List<ImagenInfo>`) se transformará al formato que el
+      `VisorModel` espera (`DefaultListModel<String>` y `Map<String, Path>`).
+    -   El código que usa `BuscadorArchivosWorker` se aislará en un nuevo método
+      para ser usado exclusivamente por la sincronización.
+
+2.  CREAR EL FLUJO DE SINCRONIZACIÓN:
+    -   Crear una nueva `Action` (ej. `SyncFolderAction`) que será invocada desde un menú/botón.
+    -   Esta acción llamará a un nuevo método en `ImageListManager`, por ejemplo, `sincronizarCarpetaConBD()`.
+    -   Este método:
+        a.  Ejecuta `BuscadorArchivosWorker` para obtener la lista de archivos REALES en disco.
+        b.  Obtiene del DAO la lista de archivos REGISTRADOS en la BD para esa misma carpeta.
+        c.  Compara ambas listas:
+            -   Archivos en disco pero no en BD -> Se añaden a la BD (`imagenDAO.addImage()`).
+            -   Archivos en BD pero no en disco -> Se marcan como "huérfanos" o se eliminan.
+        d.  Al finalizar, llama a `cargarListaImagenes()` para refrescar la vista
+            con los datos actualizados de la BD.
+
+=================================================================================
+FASE 3: IMPLEMENTACIÓN DEL FILTRADO POR TAGS
+=================================================================================
+Objetivo: Conectar la UI de filtrado con la nueva capa DAO para realizar búsquedas
+potentes.
+
+1.  MODIFICAR `FilterManager`:
+    -   Su responsabilidad cambiará de filtrar una lista en memoria a construir
+      una consulta para la BD.
+    -   Crear un método como `applyFilters(List<Tag> include, List<Tag> exclude)`
+      que llamará a `imagenDAO.getImagesByTags(...)`.
+    -   El resultado (`List<ImagenInfo>`) se usará para crear un `FilterResult` que se
+      pasará a `ImageListManager.cargarListaDesdeFiltro`.
+
+2.  CREAR UI DE FILTRADO:
+    -   El diálogo de filtros (`FilterDialog` o uno nuevo) obtendrá la lista de
+      todos los `tags` disponibles desde `tagDAO.getAllTags()` para poblar los
+      componentes de la UI (checkboxes, listas, etc.).
+
+=================================================================================
+FASE 4: EVOLUCIÓN DEL MODO PROYECTO (COPIAR vs. MOVER)
+=================================================================================
+Objetivo: Ampliar la funcionalidad de exportación del `ProjectController` para soportar
+el movimiento de archivos y la actualización de la BD.
+
+1.  MODIFICAR `ProjectController` (o crear un `FileOperationManager`):
+    -   La lógica de "exportación" actual (que es una copia) se mantendrá.
+    -   Se añadirá una nueva acción/botón para "Mover a Colección".
+    -   Esta nueva acción invocará un método que:
+        a.  Realiza la operación de movimiento de archivo físico (`Files.move`).
+        b.  **PUNTO CRÍTICO:** Si el movimiento es exitoso, debe llamar
+            inmediatamente a `imagenDAO.updateImagePath(imageId, nuevaRuta)`
+            para actualizar la ubicación en la base de datos. La operación debe ser
+            atómica o, al menos, robusta.
+        c.  Debe gestionar posibles conflictos de nombres de archivo (preguntar al
+            usuario, renombrar, etc.).
+
+=================================================================================
+FASE 5: INTERFAZ DE ADMINISTRACIÓN (MODO DATOS)
+=================================================================================
+Objetivo: Crear la UI para gestionar tags y metadatos a bajo nivel.
+
+1.  DISEÑAR EL PANEL DEL MODO DATOS:
+    -   Crear un nuevo `JPanel` que se mostrará con el `CardLayout`.
+    -   Componentes principales:
+        -   Una tabla/lista para mostrar todas las imágenes de la BD.
+        -   Un panel de detalles que muestre la imagen seleccionada y sus metadatos.
+        -   Un área para ver, añadir y eliminar los `tags` de la imagen seleccionada.
+        -   Un gestor de `tags` global para renombrar, eliminar o crear jerarquías de tags.
+
+2.  CONECTAR LA UI CON EL DAO:
+    -   Todas las acciones en esta UI (añadir tag, cambiar un metadato) invocarán
+      directamente a los métodos correspondientes en `ImagenDAO` y `TagDAO`.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+--- FIN DE LA HOJA DE RUTA ---
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+-------------------------------------------------------------------------
+--- HOJA DE RUTA REVISADA PARA LA FASE 2.2 ---
+-------------------------------------------------------------------------
+
+OBJETIVO GENERAL DE LA FASE: Dar al usuario el poder de curar y enriquecer
+los datos de la base de datos de forma manual, y construir la infraestructura
+para una gestión de etiquetas jerárquica y potente.
+
+=========================================================================
+--- FASE 2.1: IMPLEMENTAR EL ÁRBOL DE TAGS (Base Técnica) ---
+=========================================================================
+OBJETIVO: Transformar la lista plana de tags en una estructura de árbol
+jerárquica. Esta es la base fundamental para el resto de la Fase 2.
+
+1.  ACTUALIZAR ESQUEMA DE BASE DE DATOS:
+    -   Modificar la tabla `tags`.
+    -   Añadir una nueva columna: `parent_id` (INTEGER).
+    -   Esta columna tendrá una `FOREIGN KEY` que apunta a `tags(id)`.
+    -   Un `parent_id` de `NULL` o `0` indicará que es un tag raíz.
+
+2.  ACTUALIZAR LA CAPA DE ACCESO A DATOS (DAO y Servicios):
+    -   `DatabaseManager`: Añadir una sentencia `ALTER TABLE` para añadir la
+      columna `parent_id` si no existe. Esto asegura la migración en
+      sistemas existentes.
+    -   `TagDAO`:
+        -   Modificar `addTag(name)` para que acepte un `parentId` opcional.
+        -   Crear método `getRootTags()` (que busca `WHERE parent_id IS NULL`).
+        -   Crear método `getChildTags(parentId)` (que busca `WHERE parent_id = ?`).
+    -   `IndexationService`: Refactorizar la lógica de "Etiquetado por Carpeta"
+      para que construya la jerarquía. Al procesar "Warhammer/Skaven/img.jpg",
+      debe crear "Warhammer" como raíz, y luego "Skaven" como hijo de "Warhammer".
+
+3.  ACTUALIZAR LA INTERFAZ DE USUARIO (Modo Datos):
+    -   `DataBuilder`: Reemplazar la `JList` ("list.datamode.alltags") por un
+      `JTree` ("tree.datamode.alltags").
+    -   Crear una nueva clase `TagTreeModel` (que implemente `javax.swing.tree.TreeModel`).
+      Este modelo usará los nuevos métodos del `TagDAO` para poblar el árbol,
+      idealmente con carga "perezosa" (lazy loading) para no cargar toda la
+      jerarquía de golpe.
+
+4.  ACTUALIZAR EL CONTROLADOR (Modo Datos):
+    -   `DataController`:
+        -   En lugar de poblar una JList, creará y asignará el `TagTreeModel` al `JTree`.
+        -   Cambiar el listener de `ListSelectionListener` a `TreeSelectionListener`.
+        -   Al seleccionar un nodo en el árbol, debe cargar en el grid de la
+          derecha todas las imágenes que tengan ESE tag O CUALQUIERA de sus tags hijos.
+
+---
+RESULTADO ESPERADO DE LA FASE 2.1: Al entrar en el Modo Datos, el panel
+izquierdo muestra un árbol con los tags organizados según la estructura de
+carpetas. Al hacer clic en un tag padre (ej. "Warhammer"), el grid muestra
+todas las imágenes de "Warhammer" y de sus subcarpetas ("Skaven", "Elfos", etc.).
+
+=========================================================================
+--- FASE 2.2: IMPLEMENTAR EL ETIQUETADO MANUAL INDIVIDUAL ---
+=========================================================================
+OBJETIVO: Permitir al usuario añadir y quitar etiquetas a una única imagen
+seleccionada, creando así los datos manualmente.
+
+1.  CONECTAR EL `TagManagementPanel`:
+    -   Modificar `DataController`: Añadir un `ListSelectionListener` al grid
+      de imágenes (`list.datamode.grid`).
+    -   Cuando se selecciona UNA imagen en el grid:
+        1.  `DataController` pide al `DataManager` los tags de esa imagen.
+        2.  `DataController` pasa la lista de `Tag`s al `TagManagementPanel`
+            usando su método `setTags()`.
+
+2.  IMPLEMENTAR LÓGICA DE AÑADIR/QUITAR TAGS:
+    -   Configurar los "callbacks" `onAddTag` y `onRemoveTag` en el `TagManagementPanel`
+      desde el `DataController`.
+    -   Cuando el usuario escribe "orco" y pulsa "+":
+        1.  El `TagManagementPanel` invoca el callback `onAddTag("orco")`.
+        2.  `DataController` recibe la llamada.
+        3.  Llama a `DataManager` para:
+            a. Añadir el tag "orco" a la tabla `tags` si no existe (como tag raíz).
+            b. Vincular el nuevo tag a la imagen seleccionada en `image_tags`.
+    -   Cuando el usuario pulsa "x" en un tag existente:
+        1.  El `TagManagementPanel` invoca `onRemoveTag(tagObject)`.
+        2.  `DataController` llama a `DataManager` para eliminar la fila
+            correspondiente de la tabla `image_tags`.
+    -   En ambos casos, tras la operación en la BBDD, `DataController` debe
+      refrescar la vista (volver a pedir los tags de la imagen y repoblar el
+      `TagManagementPanel`).
+
+---
+RESULTADO ESPERADO DE LA FASE 2.2: El usuario puede seleccionar una imagen en
+el grid, ver sus etiquetas actuales abajo, añadir nuevas etiquetas (como "orco")
+escribiendo en el campo de texto, y eliminar etiquetas existentes pulsando la "x".
+
+=========================================================================
+--- FASE 2.3: IMPLEMENTAR LA GESTIÓN DE LA "BIBLIOTECA" DE TAGS ---
+=========================================================================
+OBJETIVO: Dar al usuario control total sobre la estructura y nombres de
+sus etiquetas.
+
+1.  AÑADIR MENÚ CONTEXTUAL AL ÁRBOL DE TAGS:
+    -   En `DataController`, añadir un `MouseListener` al `JTree` de la izquierda
+      para mostrar un `JPopupMenu` al hacer clic derecho.
+
+2.  IMPLEMENTAR ACCIONES DEL MENÚ CONTEXTUAL:
+    -   **"Renombrar Tag"**: Abre un diálogo para cambiar el nombre del tag
+      seleccionado. `DataController` llama a `TagDAO` para hacer un `UPDATE`
+      en la tabla `tags`.
+    -   **"Eliminar Tag"**: Pide confirmación y elimina el tag de la tabla `tags`.
+      Gracias a `ON DELETE CASCADE`, todos los vínculos en `image_tags` se
+      borrarán automáticamente. Se debe impedir borrar si el tag tiene hijos.
+    -   **"Crear Nuevo Tag Raíz"**: Abre un diálogo para crear un nuevo tag
+      sin padre.
+    -   **"Crear Sub-Tag"**: Abre un diálogo para crear un nuevo tag que será
+      hijo del tag seleccionado en el árbol.
+    -   **(Opcional) "Mover Tag"**: Implementar drag-and-drop en el `JTree` para
+      reorganizar la jerarquía (cambiar el `parent_id` de un tag).
+
+---
+RESULTADO ESPERADO DE LA FASE 2.3: El usuario puede organizar su biblioteca
+de etiquetas directamente desde el árbol: renombrar "skavens" a "skaven",
+crear nuevas categorías como "Personajes" o "Terreno", y eliminar etiquetas
+que ya no usa.
+
+=========================================================================
+--- FASE 2.4: IMPLEMENTAR EL ETIQUETADO EN BLOQUE ---
+=========================================================================
+OBJETIVO: Agilizar drásticamente el proceso de etiquetado permitiendo
+aplicar cambios a múltiples imágenes a la vez.
+
+1.  HABILITAR SELECCIÓN MÚLTIPLE:
+    -   En `DataBuilder`, configurar el `GridDisplayPanel` del Modo Datos para
+      permitir la selección múltiple (`setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)`).
+
+2.  ADAPTAR `DataController` Y `TagManagementPanel`:
+    -   Modificar el `ListSelectionListener` del grid en `DataController`.
+    -   Si `getSelectedValuesList().size() > 1`:
+        1.  Pedir al `DataManager` los tags **comunes** a todas las imágenes seleccionadas.
+        2.  Pasar esos tags comunes al `TagManagementPanel`.
+        3.  (Opcional) `TagManagementPanel` podría mostrar los tags comunes
+            normalmente y los no comunes de forma diferente (ej. atenuados o con
+            un indicador "[mezclado]").
+    -   Adaptar la lógica de "Añadir Tag": al pulsar "+", el `DataController` debe
+      iterar sobre TODAS las imágenes seleccionadas y vincularles el nuevo tag.
+    -   Adaptar la lógica de "Quitar Tag": al pulsar "x", el `DataController` debe
+      iterar sobre TODAS las imágenes seleccionadas y desvincularles ese tag.
+
+---
+RESULTADO ESPERADO DE LA FASE 2.4: El usuario puede seleccionar 50 imágenes de
+orcos en el grid, escribir "orco" una sola vez en el `TagManagementPanel`, pulsar
+"+" y todas las 50 imágenes quedarán etiquetadas como "orco".
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+--- FIN DE LA HOJA DE RUTA ---
+--------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------
+--- HOJA DE RUTA MODO DATOS: HOJA DE RUTA TÉCNICA V3.0: EL GESTOR DE COLECCIONES ---
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+Basada en la arquitectura definida el 26 de mayo de 2024.
+
+--- FILOSOFÍA CENTRAL ---
+
+El objetivo es evolucionar la aplicación de un "Visor de Carpetas con Base de Datos" a un verdadero "Gestor de Colecciones". La arquitectura se basará en una separación estricta entre la LECTURA de datos (exploración) y la ESCRITURA de datos (ingesta en la colección). La indexación dejará de ser automática y se convertirá en una acción manual y deliberada por parte del usuario.
+
+El Modo Visor operará bajo un modelo de datos dual, permitiendo al usuario cambiar fluidamente entre explorar una carpeta física y navegar por la totalidad de su colección centralizada.
+
+--- DEFINICIÓN DE CONCEPTOS CLAVE ---
+
+1.  LA COLECCIÓN:
+    -   Es el conjunto de todas las imágenes registradas en la base de datos central (`visor_collection.db`).
+    -   Actúa como un ÍNDICE MAESTRO que referencia archivos que pueden estar distribuidos en múltiples discos duros.
+    -   Es la única fuente de verdad para los tags y metadatos permanentes.
+    -   Las operaciones sobre la Colección son persistentes.
+
+2.  EL EXPLORADOR (Modo Visor - "Vista Carpeta"):
+    -   Es un modo de LECTURA-SÓLO para visualizar el contenido de una carpeta física del disco duro.
+    -   NO realiza ninguna escritura en la base de datos central.
+    -   Cualquier tag o estructura que genere es temporal y vive solo en memoria para esa sesión.
+    -   Es la "zona de preparación" (staging area) para decidir qué contenido es digno de ser añadido a la Colección.
+
+3.  LA BIBLIOTECA (Modo Visor - "Vista Colección"):
+    -   Es la vista principal de la Colección.
+    -   Carga los datos directamente desde la base de datos central, resultando en una carga ultrarrápida que no requiere escanear discos.
+    -   Permite buscar, filtrar y organizar la totalidad de las imágenes catalogadas.
+
+4.  LA INGESTA (Acción "Añadir a la Colección"):
+    -   Es la acción MANUAL y EXPLÍCITA que transfiere una imagen (o un conjunto de ellas) desde el contexto del Explorador a la Colección permanente.
+    -   Este es el ÚNICO momento en que el `IndexationService` escribe en la base de datos central.
+
+--- PLAN DE IMPLEMENTACIÓN POR FASES ---
+
+=================================================================================
+FASE 1: EL GRAN DESACOPLAMIENTO (Controlar la Escritura)
+=================================================================================
+Objetivo: Transformar el Modo Visor en una herramienta de solo lectura, dando al usuario el control total sobre cuándo se modifica la Colección.
+
+1.1. DESACTIVAR LA INDEXACIÓN AUTOMÁTICA:
+    -   Localizar el punto de entrada de la indexación (probablemente en `BuscadorArchivosWorker` o `ImageListManager`).
+    -   Eliminar o comentar la llamada al `IndexationService` para que el simple hecho de abrir una carpeta NUNCA modifique la base de datos.
+
+1.2. CREAR LA ACCIÓN DE INGESTA MANUAL:
+    -   Crear una nueva `Action` (ej. `AddFolderToCollectionAction`).
+    -   Añadir un botón en la UI del Modo Datos ("Añadir a la Colección").
+    -   La lógica de la acción será:
+        a. Obtener la carpeta que se está visualizando actualmente.
+        b. Iniciar un proceso (posiblemente en un `SwingWorker`) que recorra los archivos de esa carpeta y llame a `IndexationService.indexImageAndTags` para cada uno.
+
+RESULTADO ESPERADO: La aplicación ya no etiqueta nada automáticamente. La Colección solo crece cuando el usuario pulsa explícitamente el nuevo botón.
+
+=================================================================================
+FASE 2: LA DUALIDAD DEL VISOR (Leer desde Dos Fuentes)
+=================================================================================
+Objetivo: Implementar la capacidad del Modo Visor para cambiar su fuente de datos entre una carpeta física y la Colección completa.
+
+2.1. CREAR EL CONMUTADOR EN LA UI:
+    -   Añadir un `JToggleButton` o similar en una barra de herramientas del Modo Visor con los estados "Explorador de Archivos" y "Biblioteca de la Colección".
+    -   Vincular su estado a una nueva propiedad en `VisorModel` (ej. `boolean isCollectionViewActive`).
+
+2.2. IMPLEMENTAR LA LÓGICA DE CARGA DESDE LA COLECCIÓN:
+    -   Crear un nuevo método en `ImageListManager`: `cargarListaDesdeColeccion()`.
+    -   Este método NO escaneará el disco. Llamará a un nuevo método en `ImagenDAO` (ej. `getAllImages()`) para obtener todos los `ImagenInfo` de la BD.
+    -   Construirá el `DefaultListModel` y el mapa de rutas a partir de esa consulta.
+
+2.3. ORQUESTAR EL CAMBIO DE VISTA:
+    -   Modificar el `GeneralController` o `VisorController` para que, al pulsar el conmutador, llame al método de carga apropiado (`cargarListaDesdeCarpeta()` o `cargarListaDesdeColeccion()`) y actualice la vista.
+
+RESULTADO ESPERADO: El usuario puede, con un solo clic, cambiar entre ver el contenido de una carpeta específica y ver instantáneamente toda su colección catalogada.
+
+=================================================================================
+FASE 3: EL SÚPER-FILTRO Y METADATOS ADICIONALES
+=================================================================================
+Objetivo: Enriquecer el modelo de datos y la UI de filtrado para explotar todo el potencial de la Colección.
+
+3.1. AÑADIR FECHA DE ADICIÓN:
+    -   En `DatabaseManager`: `ALTER TABLE imagenes ADD COLUMN fecha_añadido INTEGER;`.
+    -   En `ImagenInfo.java`: Añadir el campo `private long fechaAñadido;` con sus getters/setters.
+    -   En `IndexationService`: Al crear un nuevo `ImagenInfo`, establecer `imagenInfo.setFechaAñadido(System.currentTimeMillis());` antes de guardarlo.
+
+3.2. EVOLUCIONAR LA UI DE FILTROS (`FilterDialog`):
+    -   Añadir un grupo de `JRadioButton` para la fuente del filtro: "Aplicar a: [ ] Carpeta Actual / [x] Colección Completa".
+    -   Añadir componentes de selección de fecha (ej. `JDatePicker` o similar) para filtrar por el campo `fecha_añadido`.
+
+3.3. ACTUALIZAR LA LÓGICA DE `FilterManager`:
+    -   El `FilterManager` leerá el estado de los nuevos controles.
+    -   Si la fuente es "Colección Completa", deberá construir una consulta SQL más compleja que incorpore los filtros de tags Y de fecha, y pasarla al `ImagenDAO`.
+    -   Si la fuente es "Carpeta Actual", seguirá funcionando como hasta ahora (filtrando la lista en memoria).
+
+RESULTADO ESPERADO: El usuario puede realizar búsquedas complejas y potentes en toda su colección, como "muéstrame todos los 'elfos' que no sean 'elfos oscuros', añadidos en los últimos 30 días".
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+--- FIN HOJA DE RUTA MODO DATOS: HOJA DE RUTA TÉCNICA V3.0: EL GESTOR DE COLECCIONES ---
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+--------------------------------------------------------------------------------------------------------------------------------------------------
+--- HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS DEPRECATED---
+--------------------------------------------------------------------------------------------------------------------------------------------------
+
+Fase 1: Diseño y Arquitectura de la Base de Datos
+
+1. Diseñar la estructura de la BD:
+   - Tabla imagenes:
+     - id (PK, autoincrement)
+     - ruta (String, path completo en disco)
+     - nombre_archivo (String)
+     - fecha_modificacion
+     - carpeta (posiblemente desglosada o sólo la carpeta padre)
+     - Otros metadatos útiles (tamaño, dimensiones, etc.)
+   - Tabla tags:
+     - id (PK)
+     - nombre_tag (único)
+   - Tabla intermedia imagen_tags (muchos a muchos):
+     - imagen_id (FK a imagenes)
+     - tag_id (FK a tags)
+   - Tabla proyectos (opcional, para vincular proyectos con imágenes):
+     - id
+     - nombre_proyecto
+     - Otros metadatos del proyecto
+   - Tabla intermedia proyecto_imagen (muchos a muchos):
+     - proyecto_id
+     - imagen_id
+
+2. Elegir la tecnología para la BD:
+   - Recomendación: SQLite (ligera, embebida, sin servidor, perfecta para escritorio).
+   - Usar JDBC para conexión.
+
+3. Crear capa de acceso a datos (DAO):
+   - Clases Java que abstraen el acceso a la BD para:
+     - Añadir/modificar/eliminar imágenes
+     - Añadir/modificar/eliminar tags
+     - Relacionar imágenes y tags
+     - Consultas (búsquedas, filtros)
+
+Fase 2: Población inicial y sincronización
+
+1. Escaneo inicial del directorio raíz:
+   - Leer todas las imágenes en disco (recursivo).
+   - Insertar sus rutas y metadatos en la tabla imagenes si no existen.
+   - Crear tags automáticos basados en la estructura de carpetas.
+     - Ejemplo: si una imagen está en /figuras/cine/star wars/droides/, asignar tags: figuras, cine, star wars, droides.
+   - Esto puede hacerse con un proceso batch o incremental.
+
+2. Sincronización periódica:
+   - Controlar si imágenes han sido añadidas, eliminadas o movidas.
+   - Actualizar base de datos en consecuencia.
+   - Marcar imágenes huérfanas (en BD pero no en disco) para revisión.
+
+Fase 3: Sistema de Tags
+
+1. Crear UI para gestión de tags:
+   - Añadir tags individuales a una imagen.
+   - Añadir tags masivos a selección de imágenes (desde modo Proyecto o desde modo Datos).
+   - Eliminar tags de imágenes.
+
+2. Tags en modo Proyecto:
+   - Al seleccionar imágenes en proyecto, poder asignar un tag común a todas.
+   - Esto ayudará a alimentar la BD sin procesar imagen por imagen.
+
+3. Tags en modo Datos:
+   - Sistema para filtrar imágenes por tags positivos y negativos.
+   - Buscar imágenes sin tags (huérfanas).
+   - Ordenar imágenes por tags (por ejemplo: mostrar primero imágenes con determinado tag).
+
+4. Persistencia y consistencia:
+   - Asegurar que cada cambio en tags se refleje inmediatamente en la BD.
+   - Actualizar la UI en tiempo real.
+
+Fase 4: Filtros y Búsquedas Avanzadas en Visualizador
+
+1. Integración de filtros en visualizador:
+   - Filtros positivos: solo imágenes con estos tags.
+   - Filtros negativos: excluir imágenes con estos tags.
+   - Combinación de filtros (AND, OR, NOT).
+
+2. Mostrar resultados filtrados en lista de nombres y miniaturas.
+
+3. Opciones de ordenación:
+   - Por nombre, fecha, carpeta, o tags.
+
+4. Visualización en modo datos:
+   - Permitir previsualizar imágenes dentro del modo Datos (lista/miniaturas + imagen seleccionada).
+
+Fase 5: Control y Gestión de Imágenes Huérfanas y Sin Tags
+
+1. Detectar imágenes en BD que no existen en disco (huérfanas).
+   - Mostrar alertas o listado para limpiar BD.
+
+2. Detectar imágenes sin tags.
+   - Mostrar para facilitar etiquetado.
+
+3. Opciones para etiquetar rápido o eliminar registros huérfanos.
+
+Fase 6: Movimiento y Reubicación de Archivos desde Modo Proyecto
+
+1. UI para seleccionar imágenes y destino de carpeta:
+   - Confirmación de movimiento masivo.
+   - Posibilidad de crear subcarpetas destino automáticamente.
+
+2. Actualizar en BD las rutas de las imágenes movidas.
+
+3. Actualizar tags si la carpeta destino implica nuevos tags automáticos.
+
+4. Mantener histórico (log) de movimientos.
+
+Fase 7: Validación y Control de Acceso a Datos
+
+1. No se requiere autentificación, pero sí:
+   - Verificación de integridad en cada acceso a BD.
+   - Manejo de excepciones si los datos no existen o están corruptos.
+
+2. Sincronización con disco:
+   - Validar que las rutas en BD coincidan con disco.
+
+3. Opciones de reparación automática o manual.
+
+Extras Recomendados
+
+- Cache de consultas frecuentes para acelerar filtros y búsquedas.
+- Indexación de tags en BD para consultas rápidas.
+- Exportación/Importación de proyectos con sus tags.
+- Interfaz para asignar múltiples tags a la vez con autocompletado.
+- Vista previa rápida al pasar el cursor sobre tags o imágenes.
+
+Resumen
+
+| Paso | Qué Implementar | Impacto en otros modos |
+|-------|-----------------|-----------------------|
+| 1 | BD estructurada y DAO | Base de datos central |
+| 2 | Escaneo inicial y sincronización | Población de datos, base para búsquedas |
+| 3 | Gestión y asignación de tags | En proyecto y datos, alimenta filtros |
+| 4 | Filtros en visualizador y modo datos | Navegación rápida y específica |
+| 5 | Control huérfanos y sin tags | Limpieza y etiquetado |
+| 6 | Movimiento archivos desde proyecto | Reubicación, actualización BD |
+| 7 | Control acceso y validación | Robustez del sistema |
+
+
+-------------------------------------------------------------------------
+--- FIN DE LA HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS ---
+-------------------------------------------------------------------------
+
+
+
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+
+-------------------------------------------------------------------------
+--- HOJA DE RUTA REVISADA PARA IMPLEMENTAR EL MODO DATOS (v2.1) ---
+-------------------------------------------------------------------------
+
+Basado en un enfoque pragmático y por fases para obtener valor rápidamente
+y construir hacia una solución robusta y anti-frágil.
+
+=========================================================================
+--- FASE 1: NÚCLEO DE BÚSQUEDA Y FILTRADO INICIAL ---
+=========================================================================
+OBJETIVO: Tener una base de datos funcional que permita el filtrado básico
+por tags en el Modo Visualizador. Esto proporciona el 80% del valor
+buscado con el mínimo de complejidad inicial.
+
+1.  DISEÑO INICIAL DE BASE DE DATOS (Simplificado y Temporal):
+    - Se usará SQLite como motor de base de datos.
+    - Se utilizará la RUTA COMPLETA del archivo como identificador único
+      temporalmente. Somos conscientes de su fragilidad, pero permite un
+      arranque rápido.
+
+    - TABLA `images`:
+        - id (INTEGER, PK, Autoincremental)
+        - path (TEXT, UNIQUE): Ruta completa y absoluta al archivo.
+        - filename (TEXT)
+        - date_added (INTEGER): Timestamp de cuándo se añadió.
+
+    - TABLA `tags`:
+        - id (INTEGER, PK, Autoincremental)
+        - name (TEXT, UNIQUE): El nombre de la etiqueta (ej: "skaven").
+
+    - TABLA `image_tags` (Tabla de Unión):
+        - image_id (INTEGER, FK a images.id)
+        - tag_id (INTEGER, FK a tags.id)
+        - PRIMARY KEY (image_id, tag_id)
+
+
+2.  CREAR LA INFRAESTRUCTURA DE ACCESO A DATOS (DAO):
+    - Clase `DatabaseManager.java` (en `servicios`):
+        - Implementará el patrón Singleton.
+        - Se encargará de la conexión con el archivo de la BBDD SQLite.
+        - La ruta al archivo .db se definirá en `config.cfg`.
+        - **Creación Automática:** Al arrancar, si el archivo .db no existe,
+          el `DatabaseManager` lo creará automáticamente.
+        - Método `init()`: Conecta y llama a la creación de tablas.
+        - Método `createTablesIfNotExists()`: Ejecutará el SQL para crear
+          las 3 tablas de la Fase 1 usando la sintaxis
+          `CREATE TABLE IF NOT EXISTS ...`. Esto asegura que en un
+          ordenador nuevo la BBDD se genere sola, y en uno existente no
+          se produzcan errores.
+    - Clase `DataAccessObject.java` (o similar, en `servicios.db`):
+        - Utilizará JDBI para abstraer las consultas SQL.
+        - Tendrá métodos como `addImage(path)`, `addTag(name)`,
+          `linkTagToImage(imageId, tagId)`, `findImagesByTags([...])`.
+
+3.  CREAR EL SERVICIO DE ESCANEO E INDEXACIÓN:
+    - Clase `ScannerService.java` (en `servicios`):
+        - Método `scanAndIndexFolder(Path rootFolder)`:
+            - Recorrerá recursivamente la carpeta especificada.
+            - Para cada imagen encontrada:
+                1. La añadirá a la tabla `images` si su `path` no existe.
+                2. Implementará el "Etiquetado Automático por Carpeta":
+                   - Extraerá los nombres de las carpetas de la ruta
+                     (ej: de "F:/figuras/juegos/bloodbowl", extraerá
+                     "figuras", "juegos", "bloodbowl").
+                   - Añadirá cada nombre de carpeta como un tag en la tabla
+                     `tags` si no existe.
+                   - Vinculará estos tags a la imagen en la tabla `image_tags`.
+
+4.  INTEGRAR LA BÚSQUEDA EN LA LÓGICA DE LA APLICACIÓN:
+    - Modificar `FilterManager.java`:
+        - Añadir un nuevo tipo de filtro: `FilterType.DATABASE_TAGS`.
+        - Cuando se aplique este filtro, en lugar de operar sobre la
+          lista en memoria, llamará al `DataAccessObject` para obtener
+          la lista de rutas de imágenes que coincidan con los tags.
+    - Modificar `VisorController.java` y `GeneralController.java`:
+        - El resultado de la búsqueda en la BBDD (la lista de rutas) se
+          cargará en el `VisorModel` como la nueva "lista maestra" a visualizar.
+
+---
+RESULTADO ESPERADO DE LA FASE 1: El usuario puede indexar una carpeta.
+Después, puede usar un campo de búsqueda en la UI para filtrar las
+26,000 imágenes por los tags generados automáticamente, viendo los
+resultados al instante en el visualizador. La aplicación es portable a
+un nuevo PC, donde creará la BBDD vacía al primer arranque.
+
+=========================================================================
+--- FASE 2: ETIQUETADO MANUAL Y SINCRONIZACIÓN ---
+=========================================================================
+OBJETIVO: Dar al usuario el poder de curar y enriquecer los datos de la
+base de datos, y mantenerla actualizada con los cambios en el disco.
+
+1.  IMPLEMENTAR LA INTERFAZ DE ETIQUETADO:
+    - En la UI del Modo Visualizador/Datos, añadir:
+        - Un área para mostrar los tags de la imagen seleccionada.
+        - Un campo de texto para añadir nuevos tags.
+        - Un botón para eliminar tags existentes de una imagen.
+    - Implementar el "Etiquetado en Bloque" desde el Modo Proyecto:
+        - Añadir una acción/botón en el Modo Proyecto.
+        - Al pulsarlo, un diálogo permitirá introducir uno o más tags que
+          se aplicarán a TODAS las imágenes actualmente en la lista de
+          selección del proyecto.
+
+2.  IMPLEMENTAR UN GESTOR DE TAGS CENTRALIZADO (Modo Datos):
+    - Crear una nueva vista/panel para la gestión global de tags.
+    - Funcionalidades:
+        - Ver todas las etiquetas existentes en la BBDD.
+        - Renombrar un tag (se actualizará en todas las imágenes).
+        - Eliminar un tag (se desvinculará de todas las imágenes).
+        - Fusionar tags (ej: "skavens" y "skaven" en uno solo).
+
+3.  CREAR UN SERVICIO DE SINCRONIZACIÓN BÁSICO:
+    - Añadir una acción "Sincronizar Discos" en el menú.
+    - Al ejecutarla, el `ScannerService` volverá a recorrer las carpetas
+      raíz configuradas.
+    - Lógica:
+        - Detectará archivos nuevos y los añadirá a la BBDD.
+        - Detectará archivos que estaban en la BBDD pero ya no están en
+          el disco, marcándolos como "huérfanos" (con un flag en la
+          tabla `images`).
+
+---
+RESULTADO ESPERADO DE LA FASE 2: El usuario puede corregir y ampliar
+el etiquetado automático, mejorando drásticamente la calidad de los
+resultados de búsqueda. La base de datos se mantiene razonablemente
+actualizada con el sistema de archivos.
+
+=========================================================================
+--- FASE 3: MIGRACIÓN AL SISTEMA ANTI-FRÁGIL (HASHES) ---
+=========================================================================
+OBJETIVO: Hacer que la base de datos sea resiliente a movimientos,
+renombres de archivos y cambios en la estructura de carpetas, y manejar
+correctamente las complejas asociaciones entre imágenes y archivos de modelo.
+
+1.  MIGRACIÓN DEL ESQUEMA DE LA BASE DE DATOS:
+    - Añadir las nuevas tablas al `DatabaseManager`: `resources`, `locations`,
+      y `resource_associations`.
+    - Crear un script de migración (un método en `DatabaseManager`) que:
+        - Lea todos los datos de la antigua tabla `images`.
+        - Para cada imagen, calcule su HASH.
+        - Cree una entrada en la tabla `resources` con el hash.
+        - Cree una entrada en la tabla `locations` con la ruta.
+        - Migre las relaciones de tags a la nueva tabla `resource_tags`.
+        - Finalmente, eliminar la antigua tabla `images`.
+
+2.  REFACTORIZAR LA LÓGICA DE LA APLICACIÓN:
+    - El `ScannerService` ahora calculará hashes y poblará las tablas
+      `resources` y `locations`. Su lógica de "sincronización" será más
+      compleja: detectará archivos movidos (mismo hash, nueva location).
+    - Todas las consultas del `DataAccessObject` y del `FilterManager`
+      ahora se basarán en los `resource_id` en lugar de en los `path`.
+      El `path` se obtendrá de la tabla `locations` solo al final, para
+      mostrar la imagen.
+
+3.  IMPLEMENTAR LA ASOCIACIÓN IMAGEN-ARCHIVO:
+    - Añadir lógica en el `ScannerService` para identificar no solo
+      imágenes, sino también archivos (`.zip`, `.rar`, `.stl`...).
+    - Estos también se añadirán como entradas en la tabla `resources`.
+    - Lógica de asociación (heurística inicial):
+        - Si una imagen (`img.png`) y un zip (`img.zip`) están en la
+          misma carpeta y comparten el mismo nombre base, crear una
+          entrada en `resource_associations`.
+    - Añadir una interfaz en el Modo Proyecto para que el usuario pueda
+      corregir o crear estas asociaciones manualmente.
+
+---
+RESULTADO ESPERADO DE LA FASE 3: La aplicación se vuelve extremadamente
+robusta. El usuario puede reorganizar sus discos duros sin miedo a
+perder todo el trabajo de etiquetado. La función "Búsqueda y Rescate"
+ahora funciona a la perfección, encontrando los zips/stls asociados a
+una imagen sin importar dónde estén.
+
+-------------------------------------------------------------------------
+--- FIN DE LA HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS 2.1 ---
+-------------------------------------------------------------------------
+
+
+
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+
+ 																* * * * *
+ 																
+**********************************************************************************************************************************************
+**********************************************************************************************************************************************
+

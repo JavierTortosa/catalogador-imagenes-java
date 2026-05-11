@@ -12,7 +12,8 @@ public class FilterCriterion {
     // --- ENUMS ORIGINALES (SIN MODIFICAR) ---
     public enum FilterSource {
         FILENAME,
-        FOLDER_PATH
+        FOLDER_PATH,
+        DATABASE_TAGS
     } // --- Fin del enum FilterSource ---
 
     public enum FilterType {

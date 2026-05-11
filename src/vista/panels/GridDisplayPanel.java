@@ -15,7 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.ProjectController;
-import controlador.managers.interfaces.IProjectManager; // <<< AÑADIR IMPORT
+import controlador.managers.interfaces.IProjectManager; 
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigurationManager;
@@ -64,6 +64,7 @@ public class GridDisplayPanel extends JPanel {
             ComponentRegistry registry
     ) {
         super(new BorderLayout());
+        
         logger.debug("Creando un nuevo GridDisplayPannel");
         
         toolbarContainer = new JPanel(new BorderLayout());
@@ -146,25 +147,7 @@ public class GridDisplayPanel extends JPanel {
     } // ---FIN de metodo setToolbars---
     
     
-//    public void setToolbar(JToolBar toolbar) {
-//        toolbarContainer.removeAll();
-//        if (toolbar != null) {
-//        	
-//            // 1. Creamos un panel "envoltorio" que usa FlowLayout.
-//            //    FlowLayout.RIGHT alinea todos los componentes que contiene a la derecha.
-//            JPanel wrapperPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0)); // 0, 0 para quitar espacios
-//            wrapperPanel.setOpaque(false); // Hacemos el envoltorio transparente
-//
-//            // 2. Añadimos la toolbar al envoltorio.
-//            wrapperPanel.add(toolbar);
-//            
-//            // 3. Añadimos el envoltorio (y no la toolbar directamente) al contenedor principal.
-//            toolbarContainer.add(wrapperPanel, BorderLayout.CENTER);
-//
-//        }
-//        
-//        toolbarContainer.revalidate();
-//        toolbarContainer.repaint();
-//    } // ---FIN de metodo setToolbar ---
-
+    
+    
+    
 } // --- FIN de clase ---

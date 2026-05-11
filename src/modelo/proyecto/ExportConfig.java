@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import modelo.proyecto.ExportStatus;
+
 /**
  * Representa la configuración de exportación guardada para una única imagen en un proyecto.
  * Esta clase está diseñada para ser parte del ProjectModel y ser serializada a JSON.
@@ -26,6 +28,11 @@ public class ExportConfig {
      * Corresponde al estado "IGNORAR_COMPRIMIDO".
      */
     private boolean ignoreCompressed = false;
+
+    /**
+     * El estado del archivo (ej. ASIGNADO_AUTOMATICAMENTE, ASIGNADO_MANUAL, etc.)
+     */
+    private ExportStatus status;
 
     // --- ARCHIVOS ASOCIADOS ---
 
@@ -61,6 +68,14 @@ public class ExportConfig {
         this.ignoreCompressed = ignoreCompressed;
     } // ---FIN de metodo setIgnoreCompressed---
 
+    public ExportStatus getStatus() {
+        return status;
+    } // ---FIN de metodo getStatus---
+
+    public void setStatus(ExportStatus status) {
+        this.status = status;
+    } // ---FIN de metodo setStatus---
+
     public List<String> getAssociatedFiles() {
         // Garantiza que nunca devolvemos null, crucial para la deserialización desde JSON antiguos.
         if (this.associatedFiles == null) {
@@ -75,7 +90,7 @@ public class ExportConfig {
     
     @Override
     public int hashCode() {
-        return Objects.hash(associatedFiles, exportEnabled, ignoreCompressed);
+        return Objects.hash(associatedFiles, exportEnabled, ignoreCompressed, status);
     } // ---FIN de metodo hashCode---
 
     @Override
@@ -85,6 +100,7 @@ public class ExportConfig {
         ExportConfig other = (ExportConfig) obj;
         return exportEnabled == other.exportEnabled && 
                ignoreCompressed == other.ignoreCompressed && 
+               status == other.status &&
                Objects.equals(associatedFiles, other.associatedFiles);
     } // ---FIN de metodo equals---
 

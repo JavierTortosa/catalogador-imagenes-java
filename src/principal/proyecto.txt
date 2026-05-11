@@ -1,3 +1,51 @@
+PROMPT DE CONTEXTO — Proyecto VisorImagenes / ModelTag
+
+Soy un programador aprendiz de Java (nivel básico, 160h de curso). Estoy desarrollando una aplicación Java Swing llamada ModelTag para gestionar ~25.000+ imágenes de archivos 3D (STL/ZIP/RAR) distribuidos en 3 discos duros externos.
+
+Ruta del proyecto (Maven/Eclipse):
+D:\Programacion\Eclipse\Workspace 2024-12R\VisorImagenes
+
+Estado de la aplicación:
+•  Visualizador ✅ — Funcional y estable (zoom múltiple, miniaturas, filtros +/-, navegación, temas FlatLaf, carrusel, grid, pantalla completa)
+•  Gestor de Proyectos ✅ — Funcional (marcar imágenes, descartes, exportar con detección de archivos asociados, guardar/cargar .prj)
+•  Editor de imagen ⚠️ — Básico (rotar, flip). Recorte de collages pendiente de diseñar
+•  Base de datos (modo DATOS) ⚠️ — Estructura SQLite creada pero con problemas de rendimiento. Tablas: imagenes, tags, imagen_tags
+
+Arquitectura: MVC con ~100+ archivos .java. Paquetes: controlador, modelo, servicios, vista, utils, principal. Usa: SLF4J/Logback, TwelveMonkeys ImageIO, Caffeine cache, Thumbnailator, SQLite-JDBC.
+
+Problema principal de la BD:
+1. La identidad de archivos se basa en ruta_completa (UNIQUE) → al mover archivos se pierden los tags manuales
+2. Sin transacciones en la indexación → lentísimo con 25.000 archivos
+3. Sin índices en columnas de búsqueda frecuente
+4. Sin concepto de "disco" → no sabe qué disco está conectado
+5. Los discos externos no están siempre enchufados
+
+Diagnóstico acordado (pom.xml y BD):
+•  pom.xml tiene sqlite-jdbc duplicado (v3.50.3.0 y v3.45.3.0) y JDBI (no usado, quitar)
+•  Falta BEGIN TRANSACTION/COMMIT en IndexationService
+•  Faltan índices en la tabla imagenes
+•  Hay que rediseñar la identidad de archivos (nombre+tamaño en vez de ruta)
+
+Plan de trabajo acordado:
+1. Limpiar pom.xml ← PENDIENTE, empezar aquí
+2. Añadir índices a la BD
+3. Añadir transacciones a la indexación
+4. Rediseñar identidad de archivos (el cambio gordo)
+
+Mis reglas de trabajo (IMPORTANTES):
+•  NO asumas el funcionamiento de ninguna clase sin leerla primero
+•  Dame métodos/bloques completos, no líneas sueltas
+•  Problema → acuerdo en la causa → acuerdo en la solución → implementar paso a paso, clase a clase
+•  Añade comentario de cierre al final de cada método y clase (// ---FIN de metodo [nombre]---)
+•  No hagas cambios en 20 clases de golpe
+
+Lee el proyecto desde la ruta indicada y empezamos por el punto 1 del plan.
+
+
+
+
+
+
 1. - OBJETIVO DE ESTA SESIÓN:
 [Aquí describes qué quieres lograr hoy. Ej: "Implementar la lógica para que el botón 'Exportar a PDF' genere un archivo con los datos de la tabla de clientes."]
 
@@ -360,20 +408,6 @@ OBJETIVO: Reflejar el estado real de la aplicación tras la revisión exhaustiva
 ***               TAREAS PENDIENTES (TRABAJO POR HACER)          ***
 ******************************************************************
 
----
-### FASE 1: REFINAMIENTO DE NAVEGACIÓN Y UX FUNDAMENTALES
----
-
-*   **Ajuste Dinámico del Tamaño de Miniaturas**
-    *   **ESTADO:** PENDIENTE (EN PROGRESO)
-    *   **NOTA:** Se ha decidido que los botones de control de tamaño vivirán en la barra de herramientas "Vista" para mantener la consistencia en todos los modos. La definición de la UI (`UIDefinitionService`) ha sido actualizada para reflejar esto.
-    *   **PLAN DE ACCIÓN RESTANTE:**
-        1. Implementar la lógica en las `Actions` (`Increase/DecreaseThumbnailSizeAction` en `ActionFactory`) para que sean "inteligentes".
-        2. La lógica debe comprobar el `WorkMode` y `DisplayMode` actuales para decidir si redimensionar:
-           - El Grid del Modo Proyecto.
-           - El Grid del Modo Visualizador.
-           - La barra de miniaturas horizontal del Modo Visualizador.
-
 
 ---
 ### FASE 2: IMPLEMENTACIÓN DE NUEVOS `DisplayMode`S
@@ -454,6 +488,7 @@ OBJETIVO: Reflejar el estado real de la aplicación tras la revisión exhaustiva
 
 *   **Exportación de Proyectos por Copia:** COMPLETADO. El `ExportWorker` implementa correctamente la lógica para copiar archivos de imagen y asociados a una carpeta de destino.
 
+*   **Ajuste Dinámico del Tamaño de Miniaturas**
 
 **********************************************************************************************************************************************
 **********************************************************************************************************************************************
@@ -463,349 +498,6 @@ OBJETIVO: Reflejar el estado real de la aplicación tras la revisión exhaustiva
 **********************************************************************************************************************************************
 **********************************************************************************************************************************************
 
-
-
--------------------------------------------------------------------------
---- HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS ---
--------------------------------------------------------------------------
-
-Fase 1: Diseño y Arquitectura de la Base de Datos
-
-1. Diseñar la estructura de la BD:
-   - Tabla imagenes:
-     - id (PK, autoincrement)
-     - ruta (String, path completo en disco)
-     - nombre_archivo (String)
-     - fecha_modificacion
-     - carpeta (posiblemente desglosada o sólo la carpeta padre)
-     - Otros metadatos útiles (tamaño, dimensiones, etc.)
-   - Tabla tags:
-     - id (PK)
-     - nombre_tag (único)
-   - Tabla intermedia imagen_tags (muchos a muchos):
-     - imagen_id (FK a imagenes)
-     - tag_id (FK a tags)
-   - Tabla proyectos (opcional, para vincular proyectos con imágenes):
-     - id
-     - nombre_proyecto
-     - Otros metadatos del proyecto
-   - Tabla intermedia proyecto_imagen (muchos a muchos):
-     - proyecto_id
-     - imagen_id
-
-2. Elegir la tecnología para la BD:
-   - Recomendación: SQLite (ligera, embebida, sin servidor, perfecta para escritorio).
-   - Usar JDBC para conexión.
-
-3. Crear capa de acceso a datos (DAO):
-   - Clases Java que abstraen el acceso a la BD para:
-     - Añadir/modificar/eliminar imágenes
-     - Añadir/modificar/eliminar tags
-     - Relacionar imágenes y tags
-     - Consultas (búsquedas, filtros)
-
-Fase 2: Población inicial y sincronización
-
-1. Escaneo inicial del directorio raíz:
-   - Leer todas las imágenes en disco (recursivo).
-   - Insertar sus rutas y metadatos en la tabla imagenes si no existen.
-   - Crear tags automáticos basados en la estructura de carpetas.
-     - Ejemplo: si una imagen está en /figuras/cine/star wars/droides/, asignar tags: figuras, cine, star wars, droides.
-   - Esto puede hacerse con un proceso batch o incremental.
-
-2. Sincronización periódica:
-   - Controlar si imágenes han sido añadidas, eliminadas o movidas.
-   - Actualizar base de datos en consecuencia.
-   - Marcar imágenes huérfanas (en BD pero no en disco) para revisión.
-
-Fase 3: Sistema de Tags
-
-1. Crear UI para gestión de tags:
-   - Añadir tags individuales a una imagen.
-   - Añadir tags masivos a selección de imágenes (desde modo Proyecto o desde modo Datos).
-   - Eliminar tags de imágenes.
-
-2. Tags en modo Proyecto:
-   - Al seleccionar imágenes en proyecto, poder asignar un tag común a todas.
-   - Esto ayudará a alimentar la BD sin procesar imagen por imagen.
-
-3. Tags en modo Datos:
-   - Sistema para filtrar imágenes por tags positivos y negativos.
-   - Buscar imágenes sin tags (huérfanas).
-   - Ordenar imágenes por tags (por ejemplo: mostrar primero imágenes con determinado tag).
-
-4. Persistencia y consistencia:
-   - Asegurar que cada cambio en tags se refleje inmediatamente en la BD.
-   - Actualizar la UI en tiempo real.
-
-Fase 4: Filtros y Búsquedas Avanzadas en Visualizador
-
-1. Integración de filtros en visualizador:
-   - Filtros positivos: solo imágenes con estos tags.
-   - Filtros negativos: excluir imágenes con estos tags.
-   - Combinación de filtros (AND, OR, NOT).
-
-2. Mostrar resultados filtrados en lista de nombres y miniaturas.
-
-3. Opciones de ordenación:
-   - Por nombre, fecha, carpeta, o tags.
-
-4. Visualización en modo datos:
-   - Permitir previsualizar imágenes dentro del modo Datos (lista/miniaturas + imagen seleccionada).
-
-Fase 5: Control y Gestión de Imágenes Huérfanas y Sin Tags
-
-1. Detectar imágenes en BD que no existen en disco (huérfanas).
-   - Mostrar alertas o listado para limpiar BD.
-
-2. Detectar imágenes sin tags.
-   - Mostrar para facilitar etiquetado.
-
-3. Opciones para etiquetar rápido o eliminar registros huérfanos.
-
-Fase 6: Movimiento y Reubicación de Archivos desde Modo Proyecto
-
-1. UI para seleccionar imágenes y destino de carpeta:
-   - Confirmación de movimiento masivo.
-   - Posibilidad de crear subcarpetas destino automáticamente.
-
-2. Actualizar en BD las rutas de las imágenes movidas.
-
-3. Actualizar tags si la carpeta destino implica nuevos tags automáticos.
-
-4. Mantener histórico (log) de movimientos.
-
-Fase 7: Validación y Control de Acceso a Datos
-
-1. No se requiere autentificación, pero sí:
-   - Verificación de integridad en cada acceso a BD.
-   - Manejo de excepciones si los datos no existen o están corruptos.
-
-2. Sincronización con disco:
-   - Validar que las rutas en BD coincidan con disco.
-
-3. Opciones de reparación automática o manual.
-
-Extras Recomendados
-
-- Cache de consultas frecuentes para acelerar filtros y búsquedas.
-- Indexación de tags en BD para consultas rápidas.
-- Exportación/Importación de proyectos con sus tags.
-- Interfaz para asignar múltiples tags a la vez con autocompletado.
-- Vista previa rápida al pasar el cursor sobre tags o imágenes.
-
-Resumen
-
-| Paso | Qué Implementar | Impacto en otros modos |
-|-------|-----------------|-----------------------|
-| 1 | BD estructurada y DAO | Base de datos central |
-| 2 | Escaneo inicial y sincronización | Población de datos, base para búsquedas |
-| 3 | Gestión y asignación de tags | En proyecto y datos, alimenta filtros |
-| 4 | Filtros en visualizador y modo datos | Navegación rápida y específica |
-| 5 | Control huérfanos y sin tags | Limpieza y etiquetado |
-| 6 | Movimiento archivos desde proyecto | Reubicación, actualización BD |
-| 7 | Control acceso y validación | Robustez del sistema |
-
-
--------------------------------------------------------------------------
---- FIN DE LA HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS ---
--------------------------------------------------------------------------
-
-
-
-**********************************************************************************************************************************************
-**********************************************************************************************************************************************
-
- 																* * * * *
- 																
-**********************************************************************************************************************************************
-**********************************************************************************************************************************************
-
-
--------------------------------------------------------------------------
---- HOJA DE RUTA REVISADA PARA IMPLEMENTAR EL MODO DATOS (v2.1) ---
--------------------------------------------------------------------------
-
-Basado en un enfoque pragmático y por fases para obtener valor rápidamente
-y construir hacia una solución robusta y anti-frágil.
-
-=========================================================================
---- FASE 1: NÚCLEO DE BÚSQUEDA Y FILTRADO INICIAL ---
-=========================================================================
-OBJETIVO: Tener una base de datos funcional que permita el filtrado básico
-por tags en el Modo Visualizador. Esto proporciona el 80% del valor
-buscado con el mínimo de complejidad inicial.
-
-1.  DISEÑO INICIAL DE BASE DE DATOS (Simplificado y Temporal):
-    - Se usará SQLite como motor de base de datos.
-    - Se utilizará la RUTA COMPLETA del archivo como identificador único
-      temporalmente. Somos conscientes de su fragilidad, pero permite un
-      arranque rápido.
-
-    - TABLA `images`:
-        - id (INTEGER, PK, Autoincremental)
-        - path (TEXT, UNIQUE): Ruta completa y absoluta al archivo.
-        - filename (TEXT)
-        - date_added (INTEGER): Timestamp de cuándo se añadió.
-
-    - TABLA `tags`:
-        - id (INTEGER, PK, Autoincremental)
-        - name (TEXT, UNIQUE): El nombre de la etiqueta (ej: "skaven").
-
-    - TABLA `image_tags` (Tabla de Unión):
-        - image_id (INTEGER, FK a images.id)
-        - tag_id (INTEGER, FK a tags.id)
-        - PRIMARY KEY (image_id, tag_id)
-
-
-2.  CREAR LA INFRAESTRUCTURA DE ACCESO A DATOS (DAO):
-    - Clase `DatabaseManager.java` (en `servicios`):
-        - Implementará el patrón Singleton.
-        - Se encargará de la conexión con el archivo de la BBDD SQLite.
-        - La ruta al archivo .db se definirá en `config.cfg`.
-        - **Creación Automática:** Al arrancar, si el archivo .db no existe,
-          el `DatabaseManager` lo creará automáticamente.
-        - Método `init()`: Conecta y llama a la creación de tablas.
-        - Método `createTablesIfNotExists()`: Ejecutará el SQL para crear
-          las 3 tablas de la Fase 1 usando la sintaxis
-          `CREATE TABLE IF NOT EXISTS ...`. Esto asegura que en un
-          ordenador nuevo la BBDD se genere sola, y en uno existente no
-          se produzcan errores.
-    - Clase `DataAccessObject.java` (o similar, en `servicios.db`):
-        - Utilizará JDBI para abstraer las consultas SQL.
-        - Tendrá métodos como `addImage(path)`, `addTag(name)`,
-          `linkTagToImage(imageId, tagId)`, `findImagesByTags([...])`.
-
-3.  CREAR EL SERVICIO DE ESCANEO E INDEXACIÓN:
-    - Clase `ScannerService.java` (en `servicios`):
-        - Método `scanAndIndexFolder(Path rootFolder)`:
-            - Recorrerá recursivamente la carpeta especificada.
-            - Para cada imagen encontrada:
-                1. La añadirá a la tabla `images` si su `path` no existe.
-                2. Implementará el "Etiquetado Automático por Carpeta":
-                   - Extraerá los nombres de las carpetas de la ruta
-                     (ej: de "F:/figuras/juegos/bloodbowl", extraerá
-                     "figuras", "juegos", "bloodbowl").
-                   - Añadirá cada nombre de carpeta como un tag en la tabla
-                     `tags` si no existe.
-                   - Vinculará estos tags a la imagen en la tabla `image_tags`.
-
-4.  INTEGRAR LA BÚSQUEDA EN LA LÓGICA DE LA APLICACIÓN:
-    - Modificar `FilterManager.java`:
-        - Añadir un nuevo tipo de filtro: `FilterType.DATABASE_TAGS`.
-        - Cuando se aplique este filtro, en lugar de operar sobre la
-          lista en memoria, llamará al `DataAccessObject` para obtener
-          la lista de rutas de imágenes que coincidan con los tags.
-    - Modificar `VisorController.java` y `GeneralController.java`:
-        - El resultado de la búsqueda en la BBDD (la lista de rutas) se
-          cargará en el `VisorModel` como la nueva "lista maestra" a visualizar.
-
----
-RESULTADO ESPERADO DE LA FASE 1: El usuario puede indexar una carpeta.
-Después, puede usar un campo de búsqueda en la UI para filtrar las
-26,000 imágenes por los tags generados automáticamente, viendo los
-resultados al instante en el visualizador. La aplicación es portable a
-un nuevo PC, donde creará la BBDD vacía al primer arranque.
-
-=========================================================================
---- FASE 2: ETIQUETADO MANUAL Y SINCRONIZACIÓN ---
-=========================================================================
-OBJETIVO: Dar al usuario el poder de curar y enriquecer los datos de la
-base de datos, y mantenerla actualizada con los cambios en el disco.
-
-1.  IMPLEMENTAR LA INTERFAZ DE ETIQUETADO:
-    - En la UI del Modo Visualizador/Datos, añadir:
-        - Un área para mostrar los tags de la imagen seleccionada.
-        - Un campo de texto para añadir nuevos tags.
-        - Un botón para eliminar tags existentes de una imagen.
-    - Implementar el "Etiquetado en Bloque" desde el Modo Proyecto:
-        - Añadir una acción/botón en el Modo Proyecto.
-        - Al pulsarlo, un diálogo permitirá introducir uno o más tags que
-          se aplicarán a TODAS las imágenes actualmente en la lista de
-          selección del proyecto.
-
-2.  IMPLEMENTAR UN GESTOR DE TAGS CENTRALIZADO (Modo Datos):
-    - Crear una nueva vista/panel para la gestión global de tags.
-    - Funcionalidades:
-        - Ver todas las etiquetas existentes en la BBDD.
-        - Renombrar un tag (se actualizará en todas las imágenes).
-        - Eliminar un tag (se desvinculará de todas las imágenes).
-        - Fusionar tags (ej: "skavens" y "skaven" en uno solo).
-
-3.  CREAR UN SERVICIO DE SINCRONIZACIÓN BÁSICO:
-    - Añadir una acción "Sincronizar Discos" en el menú.
-    - Al ejecutarla, el `ScannerService` volverá a recorrer las carpetas
-      raíz configuradas.
-    - Lógica:
-        - Detectará archivos nuevos y los añadirá a la BBDD.
-        - Detectará archivos que estaban en la BBDD pero ya no están en
-          el disco, marcándolos como "huérfanos" (con un flag en la
-          tabla `images`).
-
----
-RESULTADO ESPERADO DE LA FASE 2: El usuario puede corregir y ampliar
-el etiquetado automático, mejorando drásticamente la calidad de los
-resultados de búsqueda. La base de datos se mantiene razonablemente
-actualizada con el sistema de archivos.
-
-=========================================================================
---- FASE 3: MIGRACIÓN AL SISTEMA ANTI-FRÁGIL (HASHES) ---
-=========================================================================
-OBJETIVO: Hacer que la base de datos sea resiliente a movimientos,
-renombres de archivos y cambios en la estructura de carpetas, y manejar
-correctamente las complejas asociaciones entre imágenes y archivos de modelo.
-
-1.  MIGRACIÓN DEL ESQUEMA DE LA BASE DE DATOS:
-    - Añadir las nuevas tablas al `DatabaseManager`: `resources`, `locations`,
-      y `resource_associations`.
-    - Crear un script de migración (un método en `DatabaseManager`) que:
-        - Lea todos los datos de la antigua tabla `images`.
-        - Para cada imagen, calcule su HASH.
-        - Cree una entrada en la tabla `resources` con el hash.
-        - Cree una entrada en la tabla `locations` con la ruta.
-        - Migre las relaciones de tags a la nueva tabla `resource_tags`.
-        - Finalmente, eliminar la antigua tabla `images`.
-
-2.  REFACTORIZAR LA LÓGICA DE LA APLICACIÓN:
-    - El `ScannerService` ahora calculará hashes y poblará las tablas
-      `resources` y `locations`. Su lógica de "sincronización" será más
-      compleja: detectará archivos movidos (mismo hash, nueva location).
-    - Todas las consultas del `DataAccessObject` y del `FilterManager`
-      ahora se basarán en los `resource_id` en lugar de en los `path`.
-      El `path` se obtendrá de la tabla `locations` solo al final, para
-      mostrar la imagen.
-
-3.  IMPLEMENTAR LA ASOCIACIÓN IMAGEN-ARCHIVO:
-    - Añadir lógica en el `ScannerService` para identificar no solo
-      imágenes, sino también archivos (`.zip`, `.rar`, `.stl`...).
-    - Estos también se añadirán como entradas en la tabla `resources`.
-    - Lógica de asociación (heurística inicial):
-        - Si una imagen (`img.png`) y un zip (`img.zip`) están en la
-          misma carpeta y comparten el mismo nombre base, crear una
-          entrada en `resource_associations`.
-    - Añadir una interfaz en el Modo Proyecto para que el usuario pueda
-      corregir o crear estas asociaciones manualmente.
-
----
-RESULTADO ESPERADO DE LA FASE 3: La aplicación se vuelve extremadamente
-robusta. El usuario puede reorganizar sus discos duros sin miedo a
-perder todo el trabajo de etiquetado. La función "Búsqueda y Rescate"
-ahora funciona a la perfección, encontrando los zips/stls asociados a
-una imagen sin importar dónde estén.
-
--------------------------------------------------------------------------
---- FIN DE LA HOJA DE RUTA PARA IMPLEMENTAR EL MODO DATOS 2.1 ---
--------------------------------------------------------------------------
-
-
-
-**********************************************************************************************************************************************
-**********************************************************************************************************************************************
-
- 																* * * * *
- 																
-**********************************************************************************************************************************************
-**********************************************************************************************************************************************
 
 
 
@@ -829,10 +521,10 @@ FASE 1: REFINAMIENTO DE NAVEGACIÓN Y UX FUNDAMENTALES
     - [v] Modificar los listeners de `mouseDragged` para que activen el paneo si `isZoomHabilitado()` O `isPanHotkeyPressed` es true.
     - [v] Implementar la lógica para cambiar el cursor del ratón a una mano (Cursor.HAND_CURSOR) cuando las teclas están presionadas.
 
-[ ] 1.3: Navegación Fluida con Carga Retardada (Debounced Loading)
-    - [ ] En GeneralController (o donde se gestione la rueda del ratón), en lugar de llamar a `navegarSiguiente/Anterior` directamente, reiniciar un `javax.swing.Timer`.
-    - [ ] Cuando el Timer se dispare (el usuario ha parado), ejecutar la lógica de cambio de imagen.
-    - [ ] (Opcional) Mostrar un "placeholder" o simplemente no hacer nada visualmente mientras la rueda se mueve rápido.
+[x] 1.3: Navegación Fluida con Carga Retardada (Debounced Loading)
+    - [x] En GeneralController (o donde se gestione la rueda del ratón), en lugar de llamar a `navegarSiguiente/Anterior` directamente, reiniciar un `javax.swing.Timer`.
+    - [x] Cuando el Timer se dispare (el usuario ha parado), ejecutar la lógica de cambio de imagen.
+    - [x] (Opcional) Mostrar un "placeholder" o simplemente no hacer nada visualmente mientras la rueda se mueve rápido.
 
 [v] 1.4: Persistencia de la Última Imagen Vista
     - [v] En `VisorController.guardarConfiguracionActual()`, asegurarse de guardar `model.getSelectedImageKey()` en una clave de config (ej. `inicio.imagen`).
@@ -845,12 +537,12 @@ FASE 1: REFINAMIENTO DE NAVEGACIÓN Y UX FUNDAMENTALES
     - [ ] El `VisorController` llamará a este servicio y luego a `cargarListaImagenes` con la nueva ruta.
     - [ ] Añadir botones y atajos para estas nuevas acciones.
 
-[ ] 1.6: Ajuste Dinámico del Tamaño de Miniaturas
-    - [ ] Crear Actions `IncreaseThumbnailSizeAction` y `DecreaseThumbnailSizeAction`.
-    - [ ] Estas acciones modificarán valores en `ConfigurationManager` (ej. `miniaturas.tamano.normal.ancho`).
-    - [ ] El `ListCoordinator` o `VisorController`, al detectar este cambio, debe forzar una recreación del `MiniaturaListCellRenderer` y un `revalidate/repaint` de la `JList` de miniaturas.
+[v] 1.6: Ajuste Dinámico del Tamaño de Miniaturas
+    - [v] Crear Actions `IncreaseThumbnailSizeAction` y `DecreaseThumbnailSizeAction`.
+    - [v] Estas acciones modificarán valores en `ConfigurationManager` (ej. `miniaturas.tamano.normal.ancho`).
+    - [v] El `ListCoordinator` o `VisorController`, al detectar este cambio, debe forzar una recreación del `MiniaturaListCellRenderer` y un `revalidate/repaint` de la `JList` de miniaturas.
 
-[ ] 1.7: Vista de Árbol de Carpetas (Folder Tree)
+[v] 1.7: Vista de Árbol de Carpetas (Folder Tree)
     - [v] Crear una vista alternativa para el panel izquierdo que contenga un `JTree`.
     - [v] Implementar un `TreeModel` personalizado que cargue los directorios de forma perezosa (lazy loading) para un buen rendimiento.
     - [v] Añadir un `TreeSelectionListener` que actualice la carpeta raíz del `VisorModel` y recargue las imágenes cuando se selecciona una nueva carpeta.
@@ -864,11 +556,11 @@ FASE 2: IMPLEMENTACIÓN DE NUEVOS MODOS DE VISUALIZACIÓN (DisplayMode)
     - [v] Crear la clase `GridDisplayPanel.java` (usando `JList` con `HORIZONTAL_WRAP` y `JScrollPane`).
     - [v] Crear `GridCellRenderer.java`, un `ListCellRenderer` que dibuje una miniatura con su nombre debajo. Debe usar la lógica SMART_FIT para escalar la miniatura dentro de la celda.
     - [v] Crear nuevas Actions `GridZoomInAction` y `GridZoomOutAction` que llamen a métodos en `GridDisplayPanel` para cambiar el número de columnas/tamaño de celda.
-    - [ ] Añadir una barra de herramientas inferior al `GridDisplayPanel` para estos nuevos controles.
+    - [x] Añadir una barra de herramientas inferior al `GridDisplayPanel` para estos nuevos controles.
     - [ ] Habilitar la selección múltiple en la `JList` interna.
     - [v] Adaptar las acciones (ej. "Marcar") para que operen sobre todos los elementos seleccionados en el grid.
 
-[ ] 2.2: Implementar DisplayMode.CAROUSEL (Carrusel/Filmstrip)
+[x] 2.2: Implementar DisplayMode.CAROUSEL (Carrusel/Filmstrip)
     - [v] Crear la clase `CarouselDisplayPanel.java`.
     - [v] El panel tendrá un `ImageDisplayPanel` grande en el centro y un `JScrollPane` horizontal (la tira) en la parte inferior.
     - [v] La tira de miniaturas puede ser una `JList` en modo `HORIZONTAL_WRAP` con una sola fila de alto (`setVisibleRowCount(1)`).
@@ -907,7 +599,7 @@ FASE 3: AJUSTES DE COMPORTAMIENTO POR CONTEXTO (WorkMode)
     
 /*
 ************************************
-* MEGACOMENTARIO PARAA CARGA Y ORDEN
+* MEGACOMENTARIO PARA CARGA Y ORDEN
 ************************************
 
 
@@ -1063,103 +755,6 @@ Cuando estés listo, puedes ir abordando cada fase. ¡No dudes en preguntar si a
 **********************************************************************************************************************************************
 
 
-HOJA DE RUTA: IMPLEMENTACIÓN DEL MODO DE VISUALIZACIÓN GRID
-
-Versión: 1.0
-Fecha: 23/05/2024
-Proyecto: Visor/Catalogador de Imágenes
-
-======================================================================
-== OBJETIVO GENERAL
-======================================================================
-Implementar un modo de visualización "Grid" (cuadrícula) completamente funcional y reutilizable, que permita al usuario ver múltiples imágenes a la vez, realizar selecciones múltiples y sirva como base para futuras operaciones por lotes. La implementación debe integrarse de forma nativa en la arquitectura existente (MVC, Managers, ComponentRegistry, Model-driven UI).
-
-======================================================================
-== FASE 1: CONSTRUCCIÓN DE LOS COMPONENTES DE LA VISTA (UI)
-======================================================================
-
-1.1. Creación del Panel de Visualización del Grid:
-    - Nombre del archivo: `vista/panels/GridDisplayPanel.java`
-    - Heredará de: `JPanel` con `BorderLayout`.
-    - Componente principal interno: `JList<String>` configurado para actuar como un grid (`setLayoutOrientation(JList.HORIZONTAL_WRAP)` y `setVisibleRowCount(-1)`).
-    - El `JList` estará contenido en un `JScrollPane`.
-    - Responsabilidades:
-        - Mostrar una cuadrícula de celdas.
-        - Ser "tonto" en cuanto a datos: recibe una lista de claves de imagen y la muestra.
-        - Exponer su `JList` interna a través de un método `getGridList()` para que los controladores puedan interactuar con ella.
-
-1.2. Creación del Renderer de Celdas del Grid:
-    - Nombre del archivo: `vista/renderers/GridCellRenderer.java`
-    - Heredará de: `JPanel` e implementará `ListCellRenderer<String>`.
-    - Se basará en el diseño y la lógica de `MiniaturaListCellRenderer.java`.
-    - Responsabilidades:
-        - Dibujar una única celda del grid.
-        - Mostrar una miniatura de un tamaño predefinido (ej. 128x128).
-        - Obtener la miniatura a través del `ThumbnailService` existente. Se decidirá si estas miniaturas más grandes se cachean o no (propuesta inicial: no cachear para proteger el LruCache, confiando en la velocidad del escalado).
-        - Mostrar el nombre del archivo debajo de la miniatura, con gestión de saltos de línea para nombres largos (usando HTML).
-        - Gestionar la apariencia visual de la selección (color de fondo, borde).
-
-1.3. Integración en `ViewBuilder.java`:
-    - Localizar el método `createRightSplitComponent()`.
-    - Reemplazar el `JPanel` placeholder de "VISTA_GRID" por una instancia real de `new GridDisplayPanel(...)`.
-    - Registrar el nuevo panel en `ComponentRegistry` con la clave `"panel.display.grid"`.
-    - Registrar la `JList` interna del panel en `ComponentRegistry` con la clave `"list.grid"`.
-
-======================================================================
-== FASE 2: LÓGICA DE CONTROL Y SINCRONIZACIÓN
-======================================================================
-
-2.1. Orquestación del Cambio de Modo (en `GeneralController` o similar):
-    - Se creará un método (ej. `switchToDisplayMode(DisplayMode newMode)`) que centralice la lógica.
-    - Responsabilidades de este método al cambiar a MODO_GRID:
-        a. Poblar el Grid: Obtener la lista de claves de imagen del `VisorModel` (`model.getCurrentListContext().getModeloLista()`) y pasarla al `GridDisplayPanel` (`gridDisplayPanel.setImageKeys(...)`).
-        b. Cambiar la Vista: Llamar a `viewManager.cambiarAVista("container.displaymodes", "VISTA_GRID")`.
-        c. Sincronizar Selección: Obtener el índice actual del `VisorModel` (`model.getIndiceActual()`) y usarlo para seleccionar y hacer visible el elemento correspondiente en el `GridDisplayPanel`.
-        d. Gestionar Visibilidad de Paneles (Lógica Inteligente):
-            - Ocultar automáticamente la barra de miniaturas inferior (`scroll.miniaturas`) llamando al `ViewManager`.
-            - Actualizar el estado del `JCheckBoxMenuItem` de "Mostrar Miniaturas" en el menú para que aparezca desmarcado.
-            - Guardar el nuevo estado de visibilidad de las miniaturas en el archivo `config.cfg`.
-        e. Persistir el Modo: Guardar el nuevo modo de visualización en `config.cfg` (ej. `ui.displaymode.lastUsed = "GRID"`).
-
-2.2. Interacción del Usuario con el Grid:
-    - Se añadirá un `ListSelectionListener` a la `JList` del `GridDisplayPanel`.
-    - Evento de Clic Simple/Selección:
-        - El listener notificará al `ListCoordinator` del nuevo índice seleccionado (`listCoordinator.seleccionarImagenPorIndice(newIndex)`).
-        - El `ListCoordinator` se encargará de actualizar el modelo y sincronizar las otras vistas (si estuvieran visibles), como la lista de nombres.
-    - Evento de Doble Clic:
-        - Se añadirá un `MouseListener` a la `JList`.
-        - Al detectar un doble clic, se cambiará de vuelta al modo de imagen única (`switchToDisplayMode(DisplayMode.SINGLE_IMAGE)`), mostrando la imagen en la que se hizo clic.
-
-2.3. Sincronización Inversa (del `ListCoordinator` al `Grid`):
-    - Se modificará el `ListCoordinator` (o un método que lo use) para que, además de sincronizar las listas existentes, también sincronice la selección en el grid si este está visible.
-    - `listCoordinator.seleccionarImagenPorIndice()` llamará, indirectamente, a `sincronizarSeleccionJList(registry.get("list.grid"), index)`.
-
-======================================================================
-== FASE 3: FUNCIONALIDADES AVANZADAS Y REQUISITOS ESPECÍFICOS
-======================================================================
-
-3.1. Selección Múltiple (Estilo Explorador de Windows):
-    - Se configurará la `JList` del `GridDisplayPanel` con `setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION)`.
-    - Se aplicará la misma configuración a la `JList` de la lista de nombres (`list.nombresArchivo`) para añadir esta funcionalidad también en la vista principal.
-
-3.2. Adaptación de Acciones para Procesamiento por Lotes:
-    - Las acciones existentes (ej. "Marcar", "Descartar", "Exportar") deberán ser modificadas.
-    - Su lógica deberá comprobar el modo de visualización actual.
-    - Si el modo es `GRID`, la acción deberá operar sobre la lista de elementos seleccionados (`gridList.getSelectedValuesList()`) en lugar de sobre el único índice del modelo.
-
-3.3. Barra de Herramientas Específica para el Grid (Post-implementación inicial):
-    - Se diseñará y añadirá un `JToolBar` en la zona sur del `GridDisplayPanel`.
-    - Contendrá controles para:
-        - Aumentar/reducir el tamaño de las celdas (zoom del grid).
-        - Navegación por páginas (siguiente/anterior), utilizando el valor de `salto de bloque` ya existente en la configuración.
-
-3.4. Previsualización con Doble Clic (Post-implementación inicial):
-    - En lugar de cambiar de modo, se podría implementar que el doble clic abra un `JDialog` modal.
-    - Este diálogo contendría una instancia de `ImageDisplayPanel` para mostrar la imagen en un tamaño mayor, permitiendo zoom y paneo sin salir del modo Grid. Esta es una alternativa al punto 2.2.
-
-======================================================================
-== FIN DEL INFORME
-======================================================================
 
 
 **********************************************************************************************************************************************
@@ -1172,43 +767,7 @@ Implementar un modo de visualización "Grid" (cuadrícula) completamente funcion
 
 
 
-============================================================
-CLASES INVOLUCRADAS EN EL SISTEMA DE LA BARRA DE MINIATURAS
-============================================================
-
---- Capa de la Vista (El "Cómo se ve") ---
-
-1. vista.builders.ViewBuilder
-   Funcion: Es el "arquitecto". Construye la JList y el JScrollPane de la barra de miniaturas y le asigna el MiniaturaListCellRenderer.
-
-2. vista.renderers.MiniaturaListCellRenderer
-   Funcion: Es el "pintor". Se encarga de dibujar cada celda individual de la lista, solicitando la imagen al ThumbnailService y aplicando los colores y bordes del tema actual.
-
-
---- Capa del Controlador (La "Lógica") ---
-
-3. controlador.ListCoordinator
-   Funcion: Es el "director de orquesta". Gestiona la lógica del "viewport" (qué miniaturas mostrar) y mantiene sincronizadas la selección en la lista de nombres, la barra de miniaturas y la imagen principal.
-
-4. controlador.VisorController
-   Funcion: Es el "controlador general". Inicia la carga de la lista de imágenes y sirve de nexo entre la vista, el modelo y los coordinadores/servicios.
-
-
---- Capa del Modelo (Los "Datos") ---
-
-5. modelo.VisorModel
-   Funcion: Es la "fuente de la verdad". Contiene la lista maestra completa con las rutas de todas las imágenes y el estado de la selección actual.
-
-
---- Capa de Servicios (Los "Trabajadores") ---
-
-6. servicios.image.ThumbnailService
-   Funcion: Es la "fábrica de miniaturas". Carga las imágenes desde el disco, las redimensiona al tamaño correcto y las guarda en un caché para un acceso rápido.
-
-7. servicios.cache.LruCache
-   Funcion: Es el "gestor de memoria" del ThumbnailService. Implementa el caché que almacena las miniaturas, descartando automáticamente las más antiguas para evitar un consumo excesivo de memoria.
-   
-**********************************************************************************************************************************************   
+ 
 **********************************************************************************************************************************************
 
  																* * * * *
@@ -1473,10 +1032,96 @@ Este documento describe el flujo de datos y los mecanismos de seguridad implemen
 
 **********************************************************************************************************************************************
 **********************************************************************************************************************************************
-**********************************************************************************************************************************************
+
 															TAREAS TERMINADAS
+															
 **********************************************************************************************************************************************
 **********************************************************************************************************************************************
+
+
+**********************************************************************************************************************************************  
+
+============================================================
+CLASES INVOLUCRADAS EN EL SISTEMA DE LA BARRA DE MINIATURAS
+============================================================
+
+INFORME DE FUNCIONAMIENTO DEL SISTEMA DE MINIATURAS
+=====================================================
+
+Este documento describe la arquitectura y el flujo de datos del sistema de visualización de miniaturas, tanto para la Barra de Miniaturas inferior como para el Grid Principal, con el fin de servir como referencia técnica rápida.
+
+---
+1. CADENA DE LLAMADAS PARA EL CAMBIO DE TAMAÑO DE MINIATURAS
+---
+
+El proceso se inicia cuando el usuario interactúa con los botones de zoom (+/-).
+
+1.1. **ACCIÓN (ActionFactory):**
+    - Métodos: `createGridSizeUpAction()` y `createGridSizeDownAction()`.
+    - Lógica: Estas `Action`s son simples delegados. Su único propósito es llamar a los métodos correspondientes en `GeneralController`.
+    - Métodos llamados: `generalController.solicitarAumentoTamanoMiniaturas()` y `generalController.solicitarReduccionTamanoMiniaturas()`.
+
+1.2. **ORQUESTADOR (GeneralController):**
+    - Métodos: `aumentarTamanoMiniaturas()` y `reducirTamanoMiniaturas()`.
+    - Lógica: Actúa como un "router". Comprueba el `WorkMode` (modo de trabajo) actual del `VisorModel`.
+        - Si el modo es `PROYECTO`, delega la llamada a `projectController`.
+        - Si el modo es `VISUALIZADOR` o `CARROUSEL`, delega la llamada a `visorController`.
+
+1.3. **CONTROLADOR DE MODO (VisorController):**
+    - Métodos: `aumentarTamanoMiniaturas()` y `reducirTamanoMiniaturas()`.
+    - Lógica: Aquí reside la bifurcación clave. Comprueba el `DisplayMode` (modo de visualización) actual del `VisorModel`.
+        - Si el `DisplayMode` es `GRID`, ejecuta la lógica específica para redimensionar el Grid Principal (que funciona correctamente).
+        - Si el `DisplayMode` es `SINGLE_IMAGE` (o cualquier otro que no sea `GRID`), ejecuta la lógica para redimensionar la **Barra de Miniaturas inferior**.
+
+---
+2. ARQUITECTURA DE LA BARRA DE MINIATURAS
+---
+
+La Barra de Miniaturas no es un simple JList; es un sistema complejo con una "ventana virtual" para optimizar el rendimiento.
+
+2.1. **CREACIÓN DE COMPONENTES (ViewBuilder):**
+    - Método: `createThumbnailScrollPane()`.
+    - Componentes:
+        - `JScrollPane` ("scroll.miniaturas"): El contenedor principal de la barra.
+        - `JList` ("list.miniaturas"): Contenida dentro del `JScrollPane`, se crea con un modelo de datos vacío.
+    - Renderizador:
+        - Se crea una instancia de `MiniaturaListCellRenderer` y se asigna a la `JList`.
+        - En este punto, el renderer se inicializa con los tamaños de miniatura leídos del `ConfigurationManager`.
+
+2.2. **GESTIÓN DE DATOS (ListCoordinator):**
+    - Responsabilidad: Controla qué subconjunto de imágenes de la lista maestra se muestra en la barra.
+    - Método Clave: `actualizarTiraDeMiniaturas()`.
+    - Lógica de "Ventana Virtual":
+        1. No carga toda la lista de imágenes.
+        2. Calcula un rango (`inicio`, `fin`) de imágenes a mostrar alrededor de la imagen actualmente seleccionada. Este cálculo es dinámico y depende del ancho visible del `JScrollPane`.
+        3. Crea un `DefaultListModel` temporal (`modeloMiniaturas`) y lo puebla ÚNICAMENTE con las claves de las imágenes dentro de ese rango.
+        4. Asigna este modelo temporal a la `JList` de la barra.
+
+2.3. **RENDERIZADO Y CACHÉ (MiniaturaListCellRenderer y ThumbnailService):**
+    - Flujo de Renderizado:
+        1. Cuando la `JList` necesita dibujar una celda, llama a `getListCellRendererComponent()` en `MiniaturaListCellRenderer`.
+        2. El renderer recibe la clave de la imagen (ej: "foto1.jpg").
+        3. El renderer llama a `thumbnailService.obtenerOCrearMiniatura()`.
+    - Flujo de Caché:
+        1. `ThumbnailService` utiliza una caché de alto rendimiento (Caffeine) para almacenar los `ImageIcon` de las miniaturas ya generadas.
+        2. Si la miniatura para una clave dada está en la caché, la devuelve instantáneamente.
+        3. Si no está, `ThumbnailService` genera la miniatura a partir del archivo original, la guarda en la caché y luego la devuelve.
+        - El método `limpiarCache()` de `ThumbnailService` vacía este almacenamiento.
+
+---
+3. PERSISTENCIA DE LA CONFIGURACIÓN DE TAMAÑO
+---
+
+3.1. **GUARDADO (VisorController):**
+    - Cuándo: Dentro de los métodos `aumentar/reducirTamanoMiniaturas()`.
+    - Cómo: Se calcula el nuevo tamaño y se llama a `configuration.setString()` con las claves `ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO` y `...ALTO`.
+    - Persistencia: El `ConfigurationManager` guarda estos valores en memoria. El guardado final al archivo `config.cfg` se produce al cerrar la aplicación, gestionado por `GeneralController`.
+
+3.2. **CARGA (ViewBuilder):**
+    - Cuándo: Durante la inicialización de la UI, en `createThumbnailScrollPane()`.
+    - Cómo: Al crear la instancia inicial del `MiniaturaListCellRenderer`, se llama a `configuration.getInt()` para leer los tamaños guardados y pasarlos al constructor del renderer.
+   
+**********************************************************************************************************************************************  
 
 
 -------------------------------------------------------------------------

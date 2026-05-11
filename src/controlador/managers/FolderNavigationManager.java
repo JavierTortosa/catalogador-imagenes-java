@@ -58,7 +58,8 @@ public class FolderNavigationManager {
             logger.debug("  -> Carpeta padre encontrada: " + carpetaPadre);
             
             // La clave a seleccionar será el nombre de la carpeta de la que venimos.
-            String claveASeleccionar = carpetaActual.getFileName().toString();
+            Path fn = carpetaActual.getFileName();
+            String claveASeleccionar = (fn != null) ? fn.toString() : carpetaActual.toString();
             
             generalController.solicitarCargaDesdeNuevaRaiz(carpetaPadre, claveASeleccionar);
         } else {

@@ -72,6 +72,7 @@ public final class ConfigKeys {
     // --- CONSTANTES PARA CLAVES ÚNICAS (las que no se pueden generar) ---
 	    public static final String INICIO_CARPETA = "inicio.carpeta";
 	    public static final String INICIO_IMAGEN = "inicio.imagen";
+	    public static final String DATABASE_PATH = "database.path";
     
     public static final String VISTA_MOSTRAR_NOMBRES_MINIATURAS_STATE = menuState("vista", "mostrar_nombres_en_miniaturas");
     // ... aquí irían el resto de tus constantes de ConfigKeys que no siguen un patrón generable

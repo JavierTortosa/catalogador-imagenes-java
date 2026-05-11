@@ -4,6 +4,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,14 +45,18 @@ public class ProjectListCellRenderer extends DefaultListCellRenderer {
             // Usamos el caché para mejorar el rendimiento
             boolean exists = fileExistsCache.computeIfAbsent(pathString, p -> Files.exists(Paths.get(p)));
 
+            Path p = Paths.get(pathString);
+            Path fn = p.getFileName();
+            String fileName = (fn != null) ? fn.toString() : p.toString();
+
             if (exists) {
                 // El archivo existe, texto y apariencia normales
-                setText(Paths.get(pathString).getFileName().toString());
+                setText(fileName);
                 setFont(getFont().deriveFont(Font.PLAIN));
                 // Los colores de texto y fondo ya los gestiona la superclase
             } else {
                 // El archivo NO existe, aplicamos estilo de error
-                setText("<html><strike>" + Paths.get(pathString).getFileName().toString() + "</strike></html>");
+                setText("<html><strike>" + fileName + "</strike></html>");
                 setFont(getFont().deriveFont(Font.ITALIC));
                 
                 // --- INICIO DE LA MODIFICACIÓN ---

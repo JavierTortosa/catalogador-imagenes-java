@@ -1,5 +1,6 @@
 package vista.panels.export;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +66,10 @@ public class ExportTableModel extends AbstractTableModel {
         
         switch (columnIndex) {
 	        case 0: return item.isSeleccionadoParaExportar();
-	        case 1: return item.getRutaImagen().getFileName().toString();
+	        case 1: 
+                Path fPath = item.getRutaImagen();
+                Path fnPath = fPath.getFileName();
+                return (fnPath != null) ? fnPath.toString() : fPath.toString();
 	        case 2: return item; // Para el renderer de estado
 	        case 3: return item.getRutasArchivosAsociados(); // Devolvemos la lista de Paths
 	        case 4: return utils.StringUtils.formatFileSize(item.getTotalSize());
