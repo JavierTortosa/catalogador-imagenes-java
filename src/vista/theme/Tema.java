@@ -25,7 +25,8 @@ public record Tema(
     Color colorBordeActivo,
     Color colorTextoActivo,
     Color colorBarraEstadoFondo,
-    Color colorBarraEstadoTexto
+    Color colorBarraEstadoTexto,
+    Color colorImagenMarcada
 ) {
     // Constructor para la carga inicial o temas sin .properties
     public Tema(String nombreInterno, String nombreDisplay) {
@@ -60,7 +61,10 @@ public record Tema(
             getColorFromPropsOrUIManager(customProps, "Component.accentColor"),
             getColorFromPropsOrUIManager(customProps, "List.selectionForeground"),
             getColorFromPropsOrUIManager(customProps, ThemeManager.KEY_STATUSBAR_BACKGROUND),
-            getColorFromPropsOrUIManager(customProps, ThemeManager.KEY_STATUSBAR_FOREGROUND)
+            getColorFromPropsOrUIManager(customProps, ThemeManager.KEY_STATUSBAR_FOREGROUND),
+            getColorFromPropsOrUIManager(customProps, "Visor.markedColor") != null ? 
+                getColorFromPropsOrUIManager(customProps, "Visor.markedColor") : 
+                (UIManager.getColor("Actions.Yellow") != null ? UIManager.getColor("Actions.Yellow") : new Color(255, 191, 0)) // Ámbar vibrante
         );
     } // ---FIN de metodo [Constructor Tema con Properties]---
 

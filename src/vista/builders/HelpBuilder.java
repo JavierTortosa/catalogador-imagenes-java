@@ -53,7 +53,7 @@ public class HelpBuilder {
         html.append("<p>").append(intro).append("</p>");
 
         Map<String, List<HelpTopic>> groupedByCategory = topics.values().stream()
-                .collect(Collectors.groupingBy(HelpTopic::category));
+                .collect(Collectors.groupingBy(HelpTopic::category, java.util.LinkedHashMap::new, Collectors.toList()));
 
         for (Map.Entry<String, List<HelpTopic>> entry : groupedByCategory.entrySet()) {
             buildCategorySection(html, entry.getKey(), entry.getValue());
@@ -80,6 +80,10 @@ public class HelpBuilder {
     } // --- Fin del método buildCategorySection ---
 
     private Map<String, HelpTopic> parseToolbarDefinitions(UIDefinitionService service) {
+        // Usamos una lista para permitir que el mismo comando aparezca en diferentes barras
+        // pero mantenemos la estructura de retorno para no romper buildHtmlForTopics (o la ajustamos)
+        // En realidad, buildHtmlForTopics usa topics.values(), así que podemos usar una lista 
+        // y fingir que es un mapa con claves únicas (ej: comando + categoría).
         Map<String, HelpTopic> tempTopics = new java.util.LinkedHashMap<>();
         for (ToolbarDefinition toolbarDef : service.generateModularToolbarStructure()) {
             for (ToolbarComponentDefinition compDef : toolbarDef.componentes()) {
@@ -87,7 +91,8 @@ public class HelpBuilder {
                     HelpTopic topic = new HelpTopic(
                         buttonDef.comandoCanonico(), buttonDef.textoTooltip(), buttonDef.claveIcono(), toolbarDef.titulo()
                     );
-                    tempTopics.put(topic.command(), topic);
+                    // Clave única combinando comando y categoría para evitar sobreescrituras
+                    tempTopics.put(topic.command() + "@" + topic.category(), topic);
                 }
             }
         }
@@ -105,9 +110,8 @@ public class HelpBuilder {
             String currentMenuName = (itemDef.textoMostrado() != null) ? itemDef.textoMostrado() : "";
             
             if (itemDef.actionCommand() != null && isCommandRelevant(itemDef.actionCommand())) {
-                tempTopics.computeIfAbsent(itemDef.actionCommand(), cmd -> 
-                    new HelpTopic(cmd, currentMenuName, null, category)
-                );
+                String uniqueKey = itemDef.actionCommand() + "@" + category;
+                tempTopics.put(uniqueKey, new HelpTopic(itemDef.actionCommand(), currentMenuName, null, category));
             }
             if (itemDef.subItems() != null && !itemDef.subItems().isEmpty()) {
                 parseMenuItemsRecursive(itemDef.subItems(), category.isEmpty() ? currentMenuName : category + " -> " + currentMenuName, tempTopics);

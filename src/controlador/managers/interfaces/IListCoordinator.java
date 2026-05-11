@@ -55,7 +55,10 @@ public interface IListCoordinator {
     
     int getOfficialSelectedIndex();
     
-    
+    /**
+     * Fuerza un refresco de la tira de miniaturas basándose en la selección actual.
+     */
+    void forzarActualizacionDeTiraDeMiniaturas();
     
 } // --- Fin de la interfaz IListCoordinator ---
 

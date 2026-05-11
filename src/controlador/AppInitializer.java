@@ -235,7 +235,7 @@ public class AppInitializer {
         // Usar el projectBuilder del campo de la clase (this.projectBuilder) para el
         // ViewBuilder
         this.viewBuilder = new ViewBuilder(this.registry, this.model, this.themeManager, this.configuration,
-                this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService, this.projectBuilder);
+                this.iconUtils, this.thumbnailServiceGlobal, this.gridThumbnailService, this.projectManagerService, this.projectBuilder);
 
         this.menuBuilder = new MenuBarBuilder(this.controller, this.configuration, this.viewManager, this.registry,
                 this.themeManager);
@@ -266,6 +266,8 @@ public class AppInitializer {
         // Registrar iconos huérfanos que no están en toolbars pero se usan en la UI
         iconMap.put(AppActionCommands.CMD_EXPORT_SELECCIONAR_CARPETA,
                 new ActionFactory.IconInfo("6001-selector_de_carpetas_48x48.png", IconScope.THEMED));
+        iconMap.put(AppActionCommands.CMD_AYUDA_MOSTRAR_GUIA,
+                new ActionFactory.IconInfo("6002-menu_48x48.png", IconScope.THEMED));
 
         // Pasar la ÚNICA instancia de projectController a la ActionFactory
         this.actionFactory = new ActionFactory(this.model, null, this.zoomManager, this.fileOperationsManager,
@@ -630,7 +632,7 @@ public class AppInitializer {
                     this.viewManager.initializeFocusBorders();
 
                 // 1. Prepara la acción que se ejecutará DESPUÉS de la carga inicial.
-                Runnable accionPostCarga = this::comprobarYRestaurarSesion;
+                Runnable accionPostCarga = null; // Desactivado el auto-restore al inicio
 
                 // 2. Llama a la carga de datos iniciales, pasándole la acción de recuperación
                 // como callback.

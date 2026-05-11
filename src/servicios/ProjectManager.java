@@ -951,5 +951,30 @@ public class ProjectManager implements IProjectManager {
         }
     } // --- Fin del método relocalizarImagen ---
 
+    @Override
+    public boolean hasPendingRecovery() {
+        Path p = getArchivoRecuperacionPath();
+        return Files.exists(p) && Files.isReadable(p);
+    }
+
+    @Override
+    public void eliminarSesionDeRecuperacion() {
+        try {
+            Path p = getArchivoRecuperacionPath();
+            if (Files.exists(p)) {
+                Files.delete(p);
+                logger.info("[ProjectManager] Archivo de recuperación eliminado: {}", p.getFileName());
+            }
+        } catch (IOException e) {
+            logger.warn("No se pudo eliminar el archivo de recuperación: {}", e.getMessage());
+        }
+    }
+
+    @Override
+    public Path getArchivoRecuperacionPath() {
+        String nombre = this.configManager.getString(ConfigKeys.PROYECTOS_ARCHIVO_RECUPERACION, "session_recovery.prj");
+        return this.carpetaBaseProyectos.resolve(nombre);
+    }
+
 } // --- FIN de la clase ProjectManager ---
 

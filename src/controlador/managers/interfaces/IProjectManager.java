@@ -195,6 +195,12 @@ public interface IProjectManager {
      *
      * @return La ruta del archivo de recuperación creado.
      */
+    /**
+     * Guarda el estado actual del proyecto en un archivo de recuperación.
+     * Almacena la ruta del proyecto original dentro del archivo de recuperación.
+     *
+     * @return La ruta del archivo de recuperación creado.
+     */
     Path guardarSesionDeRecuperacion();
     
     /**
@@ -204,5 +210,27 @@ public interface IProjectManager {
      * @param newPath La nueva ruta del archivo en el disco.
      */
     void relocalizarImagen(Path oldPath, Path newPath);
+
+    /**
+     * Comprueba si existe un archivo de recuperación pendiente en el disco.
+     * @return true si existe el archivo session_recovery.prj
+     */
+    boolean hasPendingRecovery();
+
+    /**
+     * Carga el proyecto desde el archivo de recuperación.
+     * @param rutaArchivoRecuperacion Path al archivo de recuperación.
+     */
+    void cargarDesdeRecuperacion(Path rutaArchivoRecuperacion) throws ProyectoIOException;
+
+    /**
+     * Elimina físicamente el archivo de recuperación del disco.
+     */
+    void eliminarSesionDeRecuperacion();
+
+    /**
+     * Obtiene la ruta completa al archivo de recuperación.
+     */
+    Path getArchivoRecuperacionPath();
     
 } // --- FIN de la interfaz IProjectManager ---

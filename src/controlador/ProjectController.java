@@ -1490,6 +1490,8 @@ public class ProjectController implements IModoController {
         }
 
         // 2. DETECTAR CONFLICTOS DE SOBRESCRITURA
+        boolean soloModificados = false;
+        boolean limpiarDestino = false;
         List<String> archivosEnConflicto = new ArrayList<>();
         for (ExportItem item : colaParaCopiar) {
             // Comprobar la imagen
@@ -1512,21 +1514,34 @@ public class ProjectController implements IModoController {
         }
 
         if (!archivosEnConflicto.isEmpty()) {
-            String listaConflictos = String.join("\n- ", archivosEnConflicto);
-            String mensaje = "El destino ya contiene archivos con los siguientes nombres:\n\n- " +
-                    listaConflictos +
-                    "\n\n¿Deseas reemplazar los archivos existentes?";
-
-            int confirmacion = JOptionPane.showConfirmDialog(
+            Object[] options = {"Sincronizar", "Sobrescribir", "Limpiar Carpeta", "Cancelar"};
+            int choice = JOptionPane.showOptionDialog(
                     view,
-                    mensaje,
-                    "Confirmar Sobrescribir Archivos",
-                    JOptionPane.YES_NO_OPTION,
-                    JOptionPane.WARNING_MESSAGE);
+                    "La carpeta de destino ya contiene " + archivosEnConflicto.size() + " de los archivos.\n" +
+                    "¿Cómo deseas proceder?\n\n" +
+                    "- Sincronizar: Solo añade lo que falta. Respeta lo que hay.\n" +
+                    "- Sobrescribir: Reemplaza archivos, pero deja el resto.\n" +
+                    "- Limpiar: Vacía la carpeta antes de exportar.",
+                    "Conflicto de archivos en mesa de trabajo",
+                    JOptionPane.DEFAULT_OPTION,
+                    JOptionPane.WARNING_MESSAGE,
+                    null,
+                    options,
+                    options[0]);
 
-            if (confirmacion != JOptionPane.YES_OPTION) {
-                logger.info("Exportación cancelada por el usuario debido a conflictos de sobrescritura.");
-                return; // El usuario eligió "No"
+            if (choice == 0) { // Sincronizar (Solo faltantes)
+                soloModificados = true;
+                logger.info("[ProjectController] Exportación: Sincronizar.");
+            } else if (choice == 1) { // Sobrescribir todo
+                soloModificados = false;
+                logger.info("[ProjectController] Exportación: Sobrescribir.");
+            } else if (choice == 2) { // Limpiar Carpeta
+                soloModificados = false;
+                limpiarDestino = true;
+                logger.info("[ProjectController] Exportación: Limpieza total previa.");
+            } else {
+                logger.info("[ProjectController] Exportación cancelada por el usuario.");
+                return; 
             }
         }
 
@@ -1537,7 +1552,7 @@ public class ProjectController implements IModoController {
                 view,
                 "Progreso de Exportación",
                 "Copiando archivos del proyecto...");
-        ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo);
+        ExportWorker worker = new ExportWorker(colaParaCopiar, carpetaDestino, dialogo, soloModificados, limpiarDestino);
 
         worker.addPropertyChangeListener(evt -> {
             if ("progress".equals(evt.getPropertyName())) {

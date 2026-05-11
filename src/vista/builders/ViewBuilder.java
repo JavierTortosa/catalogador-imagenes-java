@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import controlador.managers.ToolbarManager;
+import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.tree.FolderTreeManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
@@ -60,6 +61,7 @@ public class ViewBuilder {
     private final ThemeManager themeManager;
     private final ConfigurationManager configuration;
     private final IconUtils iconUtils;
+    private final IProjectManager projectManager;
 
     private final ThumbnailService thumbnailService;
     private final ThumbnailService gridThumbnailService;
@@ -76,18 +78,6 @@ public class ViewBuilder {
     private Map<controlador.managers.filter.FilterCriterion.SourceType, javax.swing.Icon> typeIcons;
     private javax.swing.Icon deleteIcon;
 
-    /**
-     * Constructor modificado para aceptar AMBOS servicios de miniaturas.
-     * 
-     * @param registry
-     * @param model
-     * @param themeManager
-     * @param configuration
-     * @param iconUtils
-     * @param thumbnailService     Servicio GLOBAL para la barra de miniaturas.
-     * @param gridThumbnailService Servicio DEDICADO para el GridDisplayPanel.
-     * @param projectBuilder
-     */
     public ViewBuilder(
             ComponentRegistry registry,
             VisorModel model,
@@ -96,6 +86,7 @@ public class ViewBuilder {
             IconUtils iconUtils,
             ThumbnailService thumbnailService,
             ThumbnailService gridThumbnailService,
+            IProjectManager projectManager,
             ProjectBuilder projectBuilder) {
 
         logger.info("[ViewBuilder] Iniciando...");
@@ -105,6 +96,8 @@ public class ViewBuilder {
         this.themeManager = themeManager;
         this.configuration = configuration;
         this.iconUtils = iconUtils;
+        this.projectManager = projectManager;
+        this.projectBuilder = projectBuilder;
         this.thumbnailService = Objects.requireNonNull(thumbnailService, "thumbnailService (global) no puede ser null");
         this.gridThumbnailService = Objects.requireNonNull(gridThumbnailService,
                 "gridThumbnailService no puede ser null");
@@ -133,7 +126,8 @@ public class ViewBuilder {
                 this.themeManager,
                 this.configuration,
                 this.registry,
-                this.iconUtils);
+                this.iconUtils,
+                this.projectManager);
         registry.register("frame.main", mainFrame);
         mainFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
@@ -404,6 +398,7 @@ public class ViewBuilder {
         MiniaturaListCellRenderer renderer = new MiniaturaListCellRenderer(
                 this.thumbnailService,
                 this.model,
+                this.projectManager,
                 this.themeManager,
                 this.iconUtils,
                 configuration.getInt(ConfigKeys.MINIATURAS_TAMANO_NORM_ANCHO, 40),

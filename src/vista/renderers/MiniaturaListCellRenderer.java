@@ -21,6 +21,7 @@ import javax.swing.border.Border;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.managers.interfaces.IProjectManager;
 import modelo.VisorModel;
 import servicios.image.ThumbnailService;
 import vista.theme.Tema;
@@ -42,6 +43,7 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
     private final JPanel panelContenedorIcono;
     private final ThumbnailService servicioMiniaturas;
     private final VisorModel modeloVisor;
+    private final IProjectManager projectManager;
     private final ThemeManager themeManager;
     private final IconUtils iconUtils;
     private final boolean mostrarNombresConfigurado;
@@ -53,6 +55,7 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
     public MiniaturaListCellRenderer(
             ThumbnailService servicioMiniaturas,
             VisorModel modeloVisor,
+            IProjectManager projectManager,
             ThemeManager themeManager,
             IconUtils iconUtils,
             int anchoMiniaturaDeseado,
@@ -61,6 +64,7 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
     ) {
         this.servicioMiniaturas = Objects.requireNonNull(servicioMiniaturas);
         this.modeloVisor = Objects.requireNonNull(modeloVisor);
+        this.projectManager = projectManager;
         this.themeManager = Objects.requireNonNull(themeManager);
         this.iconUtils = Objects.requireNonNull(iconUtils);
         this.mostrarNombresConfigurado = mostrarNombresConfig;
@@ -143,20 +147,42 @@ public class MiniaturaListCellRenderer extends JPanel implements ListCellRendere
             this.etiquetaNombre.setVisible(false);
         }
 
-        Border bordeNormal = BorderFactory.createEmptyBorder(3, 5, 3, 5);
-        Border bordeSeleccionado = BorderFactory.createCompoundBorder(
-                                    BorderFactory.createLineBorder(temaActual.colorBordeSeleccionActiva(), 2),
-                                    BorderFactory.createEmptyBorder(1, 3, 1, 3));
+        boolean isMarked = false;
+        if (rutaCompleta != null && projectManager != null) {
+            isMarked = projectManager.estaMarcada(rutaCompleta);
+        }
+
+        Border bordeFinal;
+        Border bordeVacioInterno = BorderFactory.createEmptyBorder(1, 3, 1, 3);
         
         if (isSelected) {
             setBackground(temaActual.colorSeleccionFondo());
             this.etiquetaNombre.setForeground(temaActual.colorSeleccionTexto());
-            setBorder(bordeSeleccionado);
+            
+            Border bordeFoco = BorderFactory.createLineBorder(temaActual.colorBordeSeleccionActiva(), 2);
+            
+            if (isMarked) {
+                // DOBRE MARCO: Azul (Foco) + Verde (Marcada)
+                Border bordeMarcado = BorderFactory.createLineBorder(temaActual.colorImagenMarcada(), 2);
+                bordeFinal = BorderFactory.createCompoundBorder(bordeFoco, bordeMarcado);
+            } else {
+                bordeFinal = BorderFactory.createCompoundBorder(bordeFoco, bordeVacioInterno);
+            }
         } else {
             setBackground(temaActual.colorFondoPrincipal());
             this.etiquetaNombre.setForeground(temaActual.colorTextoPrimario());
-            setBorder(bordeNormal);
+            
+            if (isMarked) {
+                // Solo borde de Marcada (Verde)
+                bordeFinal = BorderFactory.createCompoundBorder(
+                                BorderFactory.createLineBorder(temaActual.colorImagenMarcada(), 2),
+                                bordeVacioInterno);
+            } else {
+                bordeFinal = BorderFactory.createEmptyBorder(3, 5, 3, 5);
+            }
         }
+        
+        setBorder(bordeFinal);
         
         if (this.etiquetaIcono.getIcon() == null && this.etiquetaIcono.getText() != null) {
             this.etiquetaIcono.setForeground(Color.RED);

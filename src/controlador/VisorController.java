@@ -2550,6 +2550,7 @@ public class VisorController implements IModoController, ThemeChangeListener {
         MiniaturaListCellRenderer newRenderer = new MiniaturaListCellRenderer(
             this.servicioMiniaturas,
             this.model,
+            this.projectManager,
             this.themeManager,         // <--- Le pasamos el ThemeManager
             this.iconUtils,            // <--- Le pasamos el IconUtils
             thumbWidth,
@@ -2569,7 +2570,9 @@ public class VisorController implements IModoController, ThemeChangeListener {
             listaMin.repaint();
             logger.debug("      [EDT] Nuevo renderer asignado y lista de miniaturas actualizada.");
 
-            // ... (el resto de tu lógica de actualización del listCoordinator se mantiene)
+            if (this.listCoordinator != null) {
+                this.listCoordinator.forzarActualizacionDeTiraDeMiniaturas();
+            }
         });
 
         logger.debug("[VisorController] setMostrarNombresMiniaturas completado.");

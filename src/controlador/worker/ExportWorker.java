@@ -22,16 +22,26 @@ public class ExportWorker extends SwingWorker<String, String> {
     private final List<ExportItem> cola;
     private final Path carpetaDestino;
     private final TaskProgressDialog dialogo;
+    private final boolean soloModificados;
+    private final boolean limpiarDestino;
 
-    public ExportWorker(List<ExportItem> cola, Path carpetaDestino, TaskProgressDialog dialogo) {
+    public ExportWorker(List<ExportItem> cola, Path carpetaDestino, TaskProgressDialog dialogo, boolean soloModificados, boolean limpiarDestino) {
         this.cola = cola;
         this.carpetaDestino = carpetaDestino;
         this.dialogo = dialogo;
+        this.soloModificados = soloModificados;
+        this.limpiarDestino = limpiarDestino;
     } // --- Fin del método ExportWorker (constructor) ---
 
     
     @Override
     protected String doInBackground() throws Exception {
+        // --- 0. LIMPIEZA PREVIA (Si se ha solicitado) ---
+        if (limpiarDestino && Files.exists(carpetaDestino)) {
+            publish("Vaciando carpeta de destino...");
+            limpiarContenidoDirectorio(carpetaDestino);
+        }
+
         // --- 1. CÁLCULO DE PROGRESO PRECISO ---
         // Contamos cada imagen + CADA UNO de sus archivos asociados.
         int totalFilesToCopy = 0;
@@ -95,8 +105,30 @@ public class ExportWorker extends SwingWorker<String, String> {
     
     private void copyFile(Path source, Path destinoDirectorio) throws IOException {
         Path destination = destinoDirectorio.resolve(source.getFileName());
+        
+        if (soloModificados && Files.exists(destination)) {
+            // IMPORTANTE: En este flujo, el destino es la "mesa de trabajo". 
+            // Si el archivo ya existe, lo saltamos para NO machacar el trabajo del usuario.
+            logger.info("[ExportWorker] Preservando archivo existente en destino (mesa de trabajo): " + source.getFileName());
+            return; 
+        }
+        
         Files.copy(source, destination, StandardCopyOption.REPLACE_EXISTING);
     } // --- Fin del método copyFile ---
+
+    private void limpiarContenidoDirectorio(Path directorio) throws IOException {
+        try (java.util.stream.Stream<Path> stream = Files.walk(directorio)) {
+            stream.sorted(java.util.Comparator.reverseOrder())
+                .filter(p -> !p.equals(directorio)) // Evitamos borrar la propia carpeta raíz
+                .forEach(p -> {
+                    try {
+                        Files.delete(p);
+                    } catch (IOException e) {
+                        logger.error("No se pudo borrar: " + p, e);
+                    }
+                });
+        }
+    } // --- Fin del método limpiarContenidoDirectorio ---
 
     @Override
     protected void process(List<String> chunks) {

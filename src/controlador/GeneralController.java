@@ -19,6 +19,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.SwingUtilities;
@@ -609,6 +610,65 @@ public class GeneralController
 
         logger.debug("--- [GeneralController] TRANSICIÓN DE MODO COMPLETADA a {} ---\n", modoDestino);
     } // --- Fin del método cambiarModoDeTrabajo ---
+
+    /**
+     * Comprueba si existe una sesión de recuperación pendiente y gestiona la decisión del usuario.
+     * Es invocado cuando el usuario intenta realizar una acción que requiere el uso de proyectos.
+     * 
+     * @return {@code true} si se puede proceder con la acción original, 
+     *         {@code false} si el usuario canceló la operación de recuperación.
+     */
+    private boolean verificarYGestionarRecuperacion() {
+        IProjectManager pm = projectController.getProjectManager();
+        if (pm == null || !pm.hasPendingRecovery()) {
+            return true; // No hay nada que recuperar, flujo normal.
+        }
+
+        logger.info("[GeneralController] Detectada sesión de recuperación pendiente. Solicitando decisión al usuario...");
+
+        // Limpiamos la clave de configuración para que no vuelva a saltar en el futuro
+        configuration.setString(servicios.ConfigKeys.PROYECTO_RECUPERACION_PENDIENTE, "");
+        try {
+            configuration.guardarConfiguracion(configuration.getConfig());
+        } catch (java.io.IOException e) {
+            logger.error("Error al guardar la configuración tras limpiar la clave de recuperación.", e);
+        }
+
+        String[] opciones = {"Restaurar Sesión", "Empezar de Cero", "Cancelar"};
+        int seleccion = JOptionPane.showOptionDialog(
+                null,
+                "<html>Se ha detectado una sesión anterior con cambios sin guardar.<br>" +
+                "¿Deseas <b>restaurar</b> el trabajo de la sesión anterior o empezar un <b>proyecto nuevo</b>?</html>",
+                "Recuperación de Proyecto",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                opciones,
+                opciones[0]);
+
+        if (seleccion == 0) { // Restaurar Sesión
+            try {
+                pm.cargarDesdeRecuperacion(pm.getArchivoRecuperacionPath());
+                logger.info("  -> Sesión de recuperación restaurada con éxito.");
+                // Si restauramos con éxito, ya no hay recuperación pendiente (se borra al cargar o guardar)
+                pm.eliminarSesionDeRecuperacion(); 
+                return true;
+            } catch (Exception e) {
+                logger.error("Error al restaurar la sesión de recuperación.", e);
+                JOptionPane.showMessageDialog(null, "No se pudo restaurar la sesión anterior.", "Error de Recuperación", JOptionPane.ERROR_MESSAGE);
+                return false;
+            }
+        } else if (seleccion == 1) { // Empezar de Cero
+            logger.info("  -> El usuario decidió descartar la recuperación y empezar de cero.");
+            pm.eliminarSesionDeRecuperacion();
+            pm.nuevoProyecto(); // Aseguramos estado limpio
+            return true;
+        } else {
+            // Cancelar (seleccion == 2 o cerrar el diálogo)
+            logger.debug("  -> El usuario canceló el diálogo de recuperación.");
+            return false;
+        }
+    } // --- Fin del método verificarYGestionarRecuperacion ---
 
     /**
      * Método helper que gestiona el flujo cuando se intenta entrar en modo proyecto
@@ -1276,6 +1336,17 @@ public class GeneralController
     public void solicitudAlternarMarcaImagenActual() {
         logger.debug("[GeneralController] Recibida solicitud para alternar marca. Modo actual: "
                 + model.getCurrentWorkMode());
+        
+        // --- NUEVA LÓGICA DE SEGURIDAD: Recuperación de sesión ---
+        // Si no estamos en modo proyecto y hay una recuperación pendiente, preguntamos ANTES de marcar.
+        if (!model.isEnModoProyecto()) {
+            if (!verificarYGestionarRecuperacion()) {
+                logger.debug("  -> Acción de marcar cancelada por el usuario en el diálogo de recuperación.");
+                return;
+            }
+        }
+        // --------------------------------------------------------
+
         if (model.isEnModoProyecto()) {
             projectController.solicitudAlternarMarcaImagen();
         } else {
@@ -1284,10 +1355,19 @@ public class GeneralController
     } // --- Fin del método solicitudAlternarMarcaImagenActual ---
 
     public void solicitarEntrarEnModoProyecto() {
-        logger.debug("[GeneralController] Solicitud para entrar en modo proyecto. Delegando a cambiarModoDeTrabajo...");
-        // Toda la lógica compleja (comprobar si hay imágenes, pedir abrir archivo,
-        // etc.)
-        // ahora reside directamente en el método cambiarModoDeTrabajo.
+        logger.debug("[GeneralController] Solicitud para entrar en modo proyecto.");
+        
+        // --- NUEVA LÓGICA DE SEGURIDAD: Recuperación de sesión ---
+        if (!model.isEnModoProyecto()) {
+            if (!verificarYGestionarRecuperacion()) {
+                logger.debug("  -> Cambio a modo proyecto cancelado por el usuario en el diálogo de recuperación.");
+                // Sincronizar el estado de los botones (por si venimos de un ToggleButton)
+                sincronizarEstadoBotonesDeModo();
+                return;
+            }
+        }
+        // --------------------------------------------------------
+
         cambiarModoDeTrabajo(VisorModel.WorkMode.PROYECTO);
     } // --- Fin del método solicitarEntrarEnModoProyecto ---
 

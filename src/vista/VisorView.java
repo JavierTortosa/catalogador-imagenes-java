@@ -29,6 +29,7 @@ import javax.swing.border.TitledBorder; // Para panelIzquierdo
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import controlador.managers.interfaces.IProjectManager;
 import controlador.utils.ComponentRegistry;
 import modelo.VisorModel;
 import servicios.ConfigKeys;
@@ -67,6 +68,7 @@ public class VisorView extends JFrame {
     private Rectangle lastNormalBounds;
     private final ConfigurationManager configurationManagerRef; 
     private final IconUtils iconUtilsRef;
+    private final IProjectManager projectManager;
     
     private final ComponentRegistry registry;
     private JLabel etiquetaImagen; 
@@ -102,7 +104,8 @@ public class VisorView extends JFrame {
             ThemeManager themeManager,
             ConfigurationManager configurationManager,
             ComponentRegistry registry,
-            IconUtils iconUtils
+            IconUtils iconUtils,
+            IProjectManager projectManager
     ) {
         super("Visor/Catalogador de Imágenes");
         logger.debug("[VisorView Constructor SIMPLIFICADO] Iniciando...");
@@ -114,6 +117,7 @@ public class VisorView extends JFrame {
         this.configurationManagerRef = Objects.requireNonNull(configurationManager, "ConfigurationManager no puede ser null");
         this.registry = Objects.requireNonNull(registry, "ComponentRegistry no puede ser null");
         this.iconUtilsRef = Objects.requireNonNull(iconUtils, "IconUtils no puede ser null");
+        this.projectManager = projectManager;
         this.miniaturaScrollPaneHeight = miniaturaPanelHeight;
         this.modeloListaMiniaturas = new DefaultListModel<>();
 
@@ -461,6 +465,7 @@ public class VisorView extends JFrame {
         MiniaturaListCellRenderer newRenderer = new MiniaturaListCellRenderer(
             this.servicioThumbs,
             this.model,
+            this.projectManager,
             this.themeManagerRef,
             this.iconUtilsRef,
             thumbWidth,
@@ -520,6 +525,7 @@ public class VisorView extends JFrame {
         MiniaturaListCellRenderer nuevoRenderer = new MiniaturaListCellRenderer(
             this.servicioThumbs,
             this.model,
+            this.projectManager,
             this.themeManagerRef,
             this.iconUtilsRef,
             nuevoAnchoMiniatura,

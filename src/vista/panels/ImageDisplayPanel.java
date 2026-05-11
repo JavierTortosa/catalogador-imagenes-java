@@ -107,7 +107,7 @@ public class ImageDisplayPanel extends JPanel {
 
         // --- DIBUJAR FONDO ---
         if (fondoACuadros) {
-            // ... (tu código de fondo a cuadros se mantiene igual)
+
             Graphics2D g2dFondo = (Graphics2D) g.create();
             try {
                 for (int row = 0; row < panelAlto; row += TAMANO_CUADRO) {
@@ -200,8 +200,8 @@ public class ImageDisplayPanel extends JPanel {
                     colorBorde = Color.RED; // Marco rojo para archivos sin imagen
                 } else {
                     colorBorde = (themeManager != null && themeManager.getTemaActual() != null) 
-                        ? themeManager.getTemaActual().colorBordeSeleccionActiva() 
-                        : new Color(59, 142, 255); // Fallback
+                        ? themeManager.getTemaActual().colorImagenMarcada() 
+                        : new Color(255, 191, 0); // Fallback Ámbar
                 }
 
                 g2dBorder.setColor(colorBorde);
