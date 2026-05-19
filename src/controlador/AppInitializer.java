@@ -384,6 +384,7 @@ public class AppInitializer {
         this.viewBuilder.setDataBuilder(this.dataBuilder);
         this.generalController.setDataController(this.dataController);
         this.dataController.setProjectManager(this.projectManagerService);
+        this.dataController.setVisorController(this.controller);
         // --- FIN DE LA MODIFICACIÓN ---
 
         // Inyectar dependencias en FilterManager para que pueda operar de forma

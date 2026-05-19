@@ -53,6 +53,7 @@ public class DataController {
     private final DataManager dataManager;
     private IProjectManager projectManager;
     private InfobarStatusManager statusBarManager;
+    private VisorController visorController;
     private boolean isInitialized = false;
 
     public DataController(VisorModel model, ComponentRegistry registry, DataManager dataManager) {
@@ -64,6 +65,14 @@ public class DataController {
     public DataManager getDataManager() {
         return this.dataManager;
     } // ---FIN de metodo [getDataManager]---
+
+    /**
+     * Permite inyectar el VisorController principal para acceder a atajos y acciones globales.
+     * @param visorController La instancia del visor controller principal.
+     */
+    public void setVisorController(VisorController visorController) {
+        this.visorController = visorController;
+    } // ---FIN de metodo [setVisorController]---
 
     /**
      * Permite inyectar el ProjectManager para poder marcar imágenes desde el Modo Datos.
@@ -187,6 +196,8 @@ public class DataController {
         gridList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         gridList.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
+                String selectedKey = gridList.getSelectedValue();
+                model.setSelectedImageKey(selectedKey);
                 updateTagPanelSelection();
             }
         });
@@ -249,6 +260,41 @@ public class DataController {
             }
         });
         popup.add(menuItem);
+        
+        popup.addSeparator();
+
+        // 1. Opción "Localizar Archivo"
+        if (visorController != null && visorController.getActionMap() != null) {
+            javax.swing.Action localizarAction = visorController.getActionMap().get(controlador.commands.AppActionCommands.CMD_IMAGEN_LOCALIZAR);
+            if (localizarAction != null) {
+                popup.add(new JMenuItem(localizarAction));
+            }
+        }
+
+        // 2. Opción "Añadir Etiqueta..."
+        JMenuItem addTagItem = new JMenuItem("Añadir Etiqueta...");
+        addTagItem.addActionListener(actionEvent -> {
+            String tagName = JOptionPane.showInputDialog(
+                gridList.getTopLevelAncestor(),
+                "Escribe el nombre de la nueva etiqueta para asignar a las imágenes seleccionadas:",
+                "Añadir Etiqueta a Mano",
+                JOptionPane.PLAIN_MESSAGE
+            );
+            if (tagName != null && !tagName.trim().isEmpty()) {
+                String cleanTagName = tagName.trim();
+                dataManager.addTagToImages(selectedPaths, cleanTagName);
+                updateTagPanelSelection(); // Refrescar vista de tags de la imagen
+                initializeTagTree(); // Refrescar el árbol de tags
+                refreshAvailableTags(); // Refrescar el combo
+                
+                String mensaje = "Etiqueta '" + cleanTagName + "' añadida a " + selectedPaths.size() + " imagen(es)";
+                logger.info(mensaje);
+                if (statusBarManager != null) {
+                    statusBarManager.mostrarMensajeTemporal(mensaje, 3000);
+                }
+            }
+        });
+        popup.add(addTagItem);
         
         popup.show(gridList, e.getX(), e.getY());
     } // ---FIN de metodo [showGridContextMenu]---

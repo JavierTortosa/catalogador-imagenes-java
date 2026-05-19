@@ -22,7 +22,7 @@ public class VisorV2 {
      */
     public static final void main(String[] args) {
 
-        version = "V2.8.00";
+        version = "V2.8.50";
 // tab-add_48x48.png tab-substr_48x48.png
         System.out.println("Iniciando Visor de Imágenes " + version);
 
