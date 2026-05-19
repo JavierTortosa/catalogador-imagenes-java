@@ -27,6 +27,7 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTabbedPane;
+import java.util.LinkedHashMap;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
@@ -38,6 +39,8 @@ import controlador.interfaces.ContextSensitiveAction;
 import controlador.interfaces.IModoController;
 import controlador.managers.DisplayModeManager;
 import controlador.managers.ExportQueueManager;
+import controlador.managers.DataManager;
+import controlador.DataController;
 import controlador.managers.interfaces.IProjectManager;
 import controlador.managers.interfaces.IZoomManager;
 import controlador.utils.ComponentRegistry;
@@ -956,6 +959,10 @@ public class ProjectController implements IModoController {
     } // --- Fin del método refrescarListasDeProyecto ---
 
     public void solicitarPreparacionColaExportacion() {
+        solicitarPreparacionColaExportacion(false);
+    } // --- Fin del método solicitarPreparacionColaExportacion (sin params) ---
+
+    public void solicitarPreparacionColaExportacion(boolean forzarEscaneoDisco) {
         if (projectManager == null || exportQueueManager == null || registry == null) {
             logger.error("ERROR [solicitarPreparacionColaExportacion]: Dependencias nulas.");
             return;
@@ -963,6 +970,10 @@ public class ProjectController implements IModoController {
         List<Path> seleccionActual = projectManager.getImagenesMarcadas();
         Map<String, modelo.proyecto.ExportConfig> exportConfigs = projectManager.getCurrentProject().getExportConfigs();
         exportQueueManager.prepararColaDesdeSeleccion(seleccionActual, exportConfigs);
+
+        if (forzarEscaneoDisco) {
+            exportQueueManager.forzarRefrescoDeBusquedaEnDisco();
+        }
 
         actualizarMapaDeItemsExportacion(exportQueueManager.getColaDeExportacion());
 
@@ -2261,6 +2272,8 @@ public class ProjectController implements IModoController {
     public void refrescarVistaProyectoCompleta() {
         logger.info("[ProjectController] Iniciando refresco completo de la vista del proyecto...");
 
+        autoRelocalizarImagenesHuerfanas(); // Auto-curar rutas antes de poblar la interfaz
+
         poblarListasSeleccionYDescartes();
 
         if (isExportPanelVisible()) {
@@ -2303,6 +2316,7 @@ public class ProjectController implements IModoController {
         Action asignarAction = actionMap.get(AppActionCommands.CMD_EXPORT_ASIGNAR_ARCHIVO);
         Action ignorarAction = actionMap.get(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO);
         Action relocalizarAction = actionMap.get(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN);
+        Action limpiarHuerfanosAction = actionMap.get(AppActionCommands.CMD_EXPORT_LIMPIAR_NO_ENCONTRADOS);
         Action abrirUbicacionAction = actionMap.get(AppActionCommands.CMD_EXPORT_ABRIR_UBICACION);
 
         // Creamos el listener usando el método helper
@@ -2312,6 +2326,7 @@ public class ProjectController implements IModoController {
                 new javax.swing.JPopupMenu.Separator(),
                 ignorarAction,
                 relocalizarAction,
+                limpiarHuerfanosAction,
                 new javax.swing.JPopupMenu.Separator(),
                 abrirUbicacionAction);
 
@@ -2340,11 +2355,45 @@ public class ProjectController implements IModoController {
         int result = fileChooser.showOpenDialog(view);
         if (result == JFileChooser.APPROVE_OPTION) {
             Path nuevaRuta = fileChooser.getSelectedFile().toPath();
+            Path oldPath = item.getRutaImagen();
+
+            // Reemplazar en la cola de exportación
             ExportItem newItem = new ExportItem(nuevaRuta);
             exportQueueManager.buscarArchivoComprimidoAsociado(newItem);
             exportQueueManager.getColaDeExportacion().set(filaSeleccionada, newItem);
-            modelTabla.fireTableRowsUpdated(filaSeleccionada, filaSeleccionada);
-            actualizarEstadoExportacionUI();
+
+            // Reemplazar en el modelo del proyecto
+            ProjectModel projectModel = projectManager.getCurrentProject();
+            if (projectModel != null) {
+                String oldKey = oldPath.toString();
+                String newKey = nuevaRuta.toString();
+
+                // 1. Imagen seleccionada
+                if (projectModel.getSelectedImages().containsKey(oldKey)) {
+                    String tag = projectModel.getSelectedImages().remove(oldKey);
+                    projectModel.getSelectedImages().put(newKey, tag);
+                }
+
+                // 2. Imagen descartada
+                int discIdx = projectModel.getDiscardedImages().indexOf(oldKey);
+                if (discIdx != -1) {
+                    projectModel.getDiscardedImages().set(discIdx, newKey);
+                }
+
+                // 3. Configuración de exportación
+                String oldClaveExport = oldKey.replace("\\", "/");
+                String newClaveExport = newKey.replace("\\", "/");
+                if (projectModel.getExportConfigs().containsKey(oldClaveExport)) {
+                    modelo.proyecto.ExportConfig cfg = projectModel.getExportConfigs().remove(oldClaveExport);
+                    projectModel.getExportConfigs().put(newClaveExport, cfg);
+                }
+
+                projectManager.notificarModificacion();
+            }
+
+            // Refrescar toda la vista de proyecto
+            refrescarVistaProyectoCompleta();
+            logger.info("Imagen relocalizada manualmente con éxito de: {} -> {}", oldPath, nuevaRuta);
         }
     } // --- Fin del método solicitarRelocalizacionImagen ---
 
@@ -2375,6 +2424,178 @@ public class ProjectController implements IModoController {
             refrescarVistaProyectoCompleta();
         }
     } // ---FIN de metodo [solicitarMoverSeleccionadoAdescartes]---
+
+    /**
+     * Busca de forma proactiva imágenes en el proyecto que no existan en su ruta física guardada.
+     * Si las encuentra en la base de datos de catalogación bajo una nueva ruta (porque han sido movidas),
+     * actualiza sus rutas automáticamente en el modelo del proyecto y la interfaz de usuario.
+     */
+    public void autoRelocalizarImagenesHuerfanas() {
+        if (projectManager == null || projectManager.getCurrentProject() == null || generalController == null) {
+            return;
+        }
+
+        DataController dataCtrl = generalController.getDataController();
+        if (dataCtrl == null || dataCtrl.getDataManager() == null) {
+            return;
+        }
+
+        DataManager dm = dataCtrl.getDataManager();
+        ProjectModel modeloActual = projectManager.getCurrentProject();
+
+        boolean huboCambios = false;
+
+        // 1. Analizar imágenes seleccionadas en el proyecto
+        Map<String, String> seleccionadas = new HashMap<>(modeloActual.getSelectedImages());
+        Map<String, String> nuevasSeleccionadas = new LinkedHashMap<>();
+
+        for (Map.Entry<String, String> entry : seleccionadas.entrySet()) {
+            String pathStr = entry.getKey();
+            String etiqueta = entry.getValue();
+            Path path = Path.of(pathStr);
+
+            if (!Files.exists(path)) {
+                // El archivo ya no existe físicamente en el path original. Busquemos en la BD si se relocalizó.
+                String filename = path.getFileName().toString();
+                java.util.Optional<String> nuevoPathOpt = dm.findPathByFileName(filename);
+
+                if (nuevoPathOpt.isPresent()) {
+                    String nuevoPathStr = nuevoPathOpt.get();
+                    if (Files.exists(Path.of(nuevoPathStr))) {
+                        logger.info("¡AUTO-HEAL! Imagen relocalizada automáticamente en el proyecto de: {} -> {}", pathStr, nuevoPathStr);
+                        nuevasSeleccionadas.put(nuevoPathStr, etiqueta);
+                        huboCambios = true;
+
+                        // También migramos la configuración de exportación
+                        String claveVieja = pathStr.replace("\\", "/");
+                        String claveNueva = nuevoPathStr.replace("\\", "/");
+                        if (modeloActual.getExportConfigs().containsKey(claveVieja)) {
+                            modeloActual.getExportConfigs().put(claveNueva, modeloActual.getExportConfigs().remove(claveVieja));
+                        }
+                        continue;
+                    }
+                }
+            }
+            nuevasSeleccionadas.put(pathStr, etiqueta);
+        }
+
+        if (huboCambios) {
+            modeloActual.setSelectedImages(nuevasSeleccionadas);
+        }
+
+        // 2. Analizar imágenes descartadas en el proyecto
+        List<String> descartadas = new ArrayList<>(modeloActual.getDiscardedImages());
+        List<String> nuevasDescartadas = new ArrayList<>();
+        boolean huboCambiosDescartadas = false;
+
+        for (String pathStr : descartadas) {
+            Path path = Path.of(pathStr);
+
+            if (!Files.exists(path)) {
+                String filename = path.getFileName().toString();
+                java.util.Optional<String> nuevoPathOpt = dm.findPathByFileName(filename);
+
+                if (nuevoPathOpt.isPresent()) {
+                    String nuevoPathStr = nuevoPathOpt.get();
+                    if (Files.exists(Path.of(nuevoPathStr))) {
+                        logger.info("¡AUTO-HEAL! Imagen descartada relocalizada automáticamente en el proyecto de: {} -> {}", pathStr, nuevoPathStr);
+                        nuevasDescartadas.add(nuevoPathStr);
+                        huboCambiosDescartadas = true;
+
+                        // También migramos la configuración de exportación si la tuviera
+                        String claveVieja = pathStr.replace("\\", "/");
+                        String claveNueva = nuevoPathStr.replace("\\", "/");
+                        if (modeloActual.getExportConfigs().containsKey(claveVieja)) {
+                            modeloActual.getExportConfigs().put(claveNueva, modeloActual.getExportConfigs().remove(claveVieja));
+                        }
+                        continue;
+                    }
+                }
+            }
+            nuevasDescartadas.add(pathStr);
+        }
+
+        if (huboCambiosDescartadas) {
+            modeloActual.setDiscardedImages(nuevasDescartadas);
+            huboCambios = true;
+        }
+
+        if (huboCambios) {
+            logger.info("Auto-relocalización de imágenes huérfanas completada con éxito.");
+            projectManager.notificarModificacion();
+        }
+    }
+
+    /**
+     * Elimina permanentemente del proyecto todas las imágenes seleccionadas o descartadas
+     * que no existan físicamente en el disco y que no hayan podido ser auto-relocalizadas.
+     */
+    public void solicitarLimpiarImagenesNoEncontradas() {
+        if (projectManager == null || projectManager.getCurrentProject() == null) {
+            return;
+        }
+
+        ProjectModel modeloActual = projectManager.getCurrentProject();
+        List<String> aQuitarSeleccionadas = new ArrayList<>();
+        List<String> aQuitarDescartadas = new ArrayList<>();
+
+        // 1. Identificar seleccionadas no encontradas
+        for (String pathStr : modeloActual.getSelectedImages().keySet()) {
+            if (!Files.exists(Path.of(pathStr))) {
+                aQuitarSeleccionadas.add(pathStr);
+            }
+        }
+
+        // 2. Identificar descartadas no encontradas
+        for (String pathStr : modeloActual.getDiscardedImages()) {
+            if (!Files.exists(Path.of(pathStr))) {
+                aQuitarDescartadas.add(pathStr);
+            }
+        }
+
+        if (aQuitarSeleccionadas.isEmpty() && aQuitarDescartadas.isEmpty()) {
+            JOptionPane.showMessageDialog(view,
+                    "No se encontraron imágenes huérfanas en el proyecto.",
+                    "Limpieza de Proyecto",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        // Confirmar con el usuario
+        int total = aQuitarSeleccionadas.size() + aQuitarDescartadas.size();
+        int confirm = JOptionPane.showConfirmDialog(view,
+                "Se han detectado " + total + " imágenes en el proyecto que ya no existen en disco.\n" +
+                "¿Desea eliminarlas permanentemente del proyecto?\n\n" +
+                "Nota: Esta acción no borrará ningún archivo de su disco duro, solo limpiará el proyecto.",
+                "Confirmar Limpieza de Huérfanos",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Quitar de seleccionadas
+            for (String pathStr : aQuitarSeleccionadas) {
+                modeloActual.getSelectedImages().remove(pathStr);
+                // Limpiar export config
+                String claveExport = pathStr.replace("\\", "/");
+                modeloActual.getExportConfigs().remove(claveExport);
+            }
+
+            // Quitar de descartadas
+            modeloActual.getDiscardedImages().removeAll(aQuitarDescartadas);
+            for (String pathStr : aQuitarDescartadas) {
+                String claveExport = pathStr.replace("\\", "/");
+                modeloActual.getExportConfigs().remove(claveExport);
+            }
+
+            projectManager.notificarModificacion();
+            refrescarVistaProyectoCompleta();
+
+            JOptionPane.showMessageDialog(view,
+                    "Se han limpiado " + total + " imágenes huérfanas del proyecto con éxito.",
+                    "Limpieza Completada",
+                    JOptionPane.INFORMATION_MESSAGE);
+        }
+    }
 
     public void navegarTablaExportacionConRueda(java.awt.event.MouseWheelEvent e) {
         if (registry == null || model == null) {

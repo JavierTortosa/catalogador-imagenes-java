@@ -119,7 +119,17 @@ public class ImageListManager {
 
         List<ImagenInfo> imagenesDesdeBD = imagenDAO.getImagenesInFolder(pathDeInicio);
 
-        // A partir de aquí, el método simplemente procesa la lista 'imagenesDesdeBD',
+        if (model.isMostrarSoloCarpetaActual()) {
+            Path normalizedRaiz = pathDeInicio.toAbsolutePath().normalize();
+            List<ImagenInfo> filtradas = new ArrayList<>();
+            for (ImagenInfo img : imagenesDesdeBD) {
+                Path parent = img.getRutaCompletaAsPath().getParent();
+                if (parent != null && parent.toAbsolutePath().normalize().equals(normalizedRaiz)) {
+                    filtradas.add(img);
+                }
+            }
+            imagenesDesdeBD = filtradas;
+        }
         // incluso si está vacía. El bloque que causaba el bucle ha sido eliminado.
 
         logger.debug("    -> Restaurando visibilidad de paneles (vía ViewManager).");
@@ -477,6 +487,18 @@ public class ImageListManager {
          }
 
          List<ImagenInfo> imagenesDesdeBD = imagenDAO.getImagenesInFolder(pathDeInicio);
+
+         if (model.isMostrarSoloCarpetaActual()) {
+             Path normalizedRaiz = pathDeInicio.toAbsolutePath().normalize();
+             List<ImagenInfo> filtradas = new ArrayList<>();
+             for (ImagenInfo img : imagenesDesdeBD) {
+                 Path parent = img.getRutaCompletaAsPath().getParent();
+                 if (parent != null && parent.toAbsolutePath().normalize().equals(normalizedRaiz)) {
+                     filtradas.add(img);
+                 }
+             }
+             imagenesDesdeBD = filtradas;
+         }
          
          // El resto del código es idéntico a cargarListaImagenes
          DefaultListModel<String> nuevoModeloListaPrincipal = new DefaultListModel<>();
@@ -571,7 +593,18 @@ public class ImageListManager {
          List<ImagenInfo> imagenesEnBD = imagenDAO.getImagenesInFolder(carpetaRaiz);
          int borrados = 0;
 
+         Path normalizedRaiz = carpetaRaiz.toAbsolutePath().normalize();
          for (ImagenInfo img : imagenesEnBD) {
+             Path parent = img.getRutaCompletaAsPath().getParent();
+             if (parent != null) {
+                 Path normalizedParent = parent.toAbsolutePath().normalize();
+                 if (model.isMostrarSoloCarpetaActual() && !normalizedParent.equals(normalizedRaiz)) {
+                     // Si el modelo indica mostrar solo la carpeta actual, no borramos registros
+                     // de imágenes en subcarpetas porque simplemente no han sido escaneadas.
+                     continue;
+                 }
+             }
+
              String rutaBD = img.getRutaCompletaAsPath().toAbsolutePath().normalize().toString();
              if (!rutasEnDisco.contains(rutaBD)) {
                  logger.debug("  -> Eliminando registro huérfano (no existe en disco): {}", img.getRutaCompleta());

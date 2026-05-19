@@ -222,4 +222,21 @@ public class DataManager {
         }
     } // ---FIN de metodo [ensureAllDrivesRegistered]---
 
+    /**
+     * Obtiene las rutas completas de todas las imágenes registradas en la base de datos.
+     * @return Una lista de strings con las rutas.
+     */
+    public List<String> getAllImagePaths() {
+        return imagenDAO.getAllImagePaths();
+    }
+
+    /**
+     * Busca la ruta de una imagen a partir de su nombre de archivo.
+     * @param nombreArchivo El nombre de la imagen.
+     * @return Un Optional con el path como String si existe, o vacío.
+     */
+    public Optional<String> findPathByFileName(String nombreArchivo) {
+        return imagenDAO.findPathByFileName(nombreArchivo);
+    }
+
 } // --- FIN de clase DataManager ---

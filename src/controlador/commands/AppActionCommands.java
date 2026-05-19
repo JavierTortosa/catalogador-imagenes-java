@@ -150,6 +150,7 @@ public interface AppActionCommands {
 	    public static final String CMD_EXPORT_QUITAR_DE_COLA 		= "cmd.export.quitar_de_cola";
 	    public static final String CMD_EXPORT_IGNORAR_COMPRIMIDO 	= "cmd.export.ignorar_comprimido";
 	    public static final String CMD_EXPORT_RELOCALIZAR_IMAGEN 	= "cmd.export.relocalizar_imagen";
+	    public static final String CMD_EXPORT_LIMPIAR_NO_ENCONTRADOS = "cmd.export.limpiar_no_encontrados";
 	    public static final String CMD_EXPORT_REFRESH				= "cmd.export.refresh";
 	    public static final String CMD_INICIAR_EXPORTACION 			= "cmd.export.iniciar"; 
 	    public static final String CMD_EXPORT_SELECCIONAR_CARPETA 	= "cmd.export.seleccionar.carpeta";

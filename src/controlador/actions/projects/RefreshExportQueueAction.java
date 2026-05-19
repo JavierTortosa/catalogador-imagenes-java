@@ -16,7 +16,7 @@ public class RefreshExportQueueAction extends AbstractAction {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (projectController != null) {
-            projectController.solicitarPreparacionColaExportacion();
+            projectController.solicitarPreparacionColaExportacion(true);
         }
     } // ---FIN de metodo [actionPerformed]---
     

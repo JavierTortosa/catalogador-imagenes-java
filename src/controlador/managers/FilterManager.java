@@ -21,6 +21,9 @@ import modelo.VisorModel;
 
 import servicios.db.TagDAO;
 import java.util.stream.Collectors;
+import java.util.Set;
+import java.util.HashSet;
+import java.nio.file.Paths;
 
 /**
  * Gestiona la lógica de búsqueda y el conjunto de reglas de filtrado activas.
@@ -129,30 +132,82 @@ public class FilterManager {
 
         // 2. Si hay filtros de BBDD, ejecutar esa búsqueda PRIMERO.
         if (!dbTagFilters.isEmpty()) {
-            // Extraemos solo los valores (nombres de los tags) a buscar.
-            List<String> tagNamesToSearch = dbTagFilters.stream()
-                .map(FilterCriterion::getValue)
+            // Separamos positivos (+) y negativos (-)
+            List<FilterCriterion> positiveTags = dbTagFilters.stream()
+                .filter(f -> f.getLogic() == FilterCriterion.Logic.ADD)
                 .collect(Collectors.toList());
-            
-            // Obtenemos las rutas de la BBDD.
-            List<String> pathsFromDb = tagDAO.findImagePathsByTagNames(tagNamesToSearch);
-            
-            // Creamos un mapa inverso de ruta -> clave para una búsqueda rápida.
-            Map<String, String> pathToKeyMap = new HashMap<>();
-            for (int i = 0; i < masterListModel.size(); i++) {
-                String key = masterListModel.getElementAt(i);
-                Path path = model.getRutaCompleta(key);
-                if (path != null) {
-                    pathToKeyMap.put(path.toString(), key);
+                
+            List<FilterCriterion> negativeTags = dbTagFilters.stream()
+                .filter(f -> f.getLogic() == FilterCriterion.Logic.NOT)
+                .collect(Collectors.toList());
+
+            // Primero, obtenemos el conjunto de todas las rutas de imagen que tienen cada tag positivo
+            Set<String> matchingPositivePaths = null;
+            for (FilterCriterion pTag : positiveTags) {
+                List<String> paths = tagDAO.findImagePathsByTagNames(Collections.singletonList(pTag.getValue()));
+                Set<String> pathSet = new HashSet<>();
+                for (String p : paths) {
+                    try {
+                        pathSet.add(Paths.get(p).toAbsolutePath().normalize().toString());
+                    } catch (Exception ex) {
+                        pathSet.add(p);
+                    }
+                }
+                if (matchingPositivePaths == null) {
+                    matchingPositivePaths = pathSet;
+                } else {
+                    matchingPositivePaths.retainAll(pathSet); // Intersección: debe tener TODOS los tags positivos
                 }
             }
 
-            // Construimos un nuevo modelo solo con los resultados de la BBDD.
-            baseModelForFiltering = new DefaultListModel<>();
-            for (String pathString : pathsFromDb) {
-                String key = pathToKeyMap.get(pathString);
-                if (key != null) {
-                    baseModelForFiltering.addElement(key);
+            // Si hay tags positivos pero ninguno coincide, el resultado es vacío
+            if (matchingPositivePaths != null && matchingPositivePaths.isEmpty()) {
+                baseModelForFiltering = new DefaultListModel<>();
+            } else {
+                // Ahora, obtenemos el conjunto de todas las rutas de imagen que tienen los tags negativos
+                Set<String> matchingNegativePaths = new HashSet<>();
+                for (FilterCriterion nTag : negativeTags) {
+                    List<String> paths = tagDAO.findImagePathsByTagNames(Collections.singletonList(nTag.getValue()));
+                    for (String p : paths) {
+                        try {
+                            matchingNegativePaths.add(Paths.get(p).toAbsolutePath().normalize().toString());
+                        } catch (Exception ex) {
+                            matchingNegativePaths.add(p);
+                        }
+                    }
+                }
+
+                // Construimos el mapa de ruta -> clave de los archivos actualmente en la lista
+                Map<String, String> pathToKeyMap = new HashMap<>();
+                for (int i = 0; i < masterListModel.size(); i++) {
+                    String key = masterListModel.getElementAt(i);
+                    Path path = model.getRutaCompleta(key);
+                    if (path != null) {
+                        pathToKeyMap.put(path.toAbsolutePath().normalize().toString(), key);
+                    }
+                }
+
+                baseModelForFiltering = new DefaultListModel<>();
+                
+                // Si había tags positivos, filtramos sobre ellos
+                if (matchingPositivePaths != null) {
+                    for (String pathString : matchingPositivePaths) {
+                        if (pathToKeyMap.containsKey(pathString) && !matchingNegativePaths.contains(pathString)) {
+                            baseModelForFiltering.addElement(pathToKeyMap.get(pathString));
+                        }
+                    }
+                } else {
+                    // Si no había tags positivos, partimos de todos los archivos y excluimos los que tengan los tags negativos
+                    for (int i = 0; i < masterListModel.size(); i++) {
+                        String key = masterListModel.getElementAt(i);
+                        Path path = model.getRutaCompleta(key);
+                        if (path != null) {
+                            String normalizedPathStr = path.toAbsolutePath().normalize().toString();
+                            if (!matchingNegativePaths.contains(normalizedPathStr)) {
+                                baseModelForFiltering.addElement(key);
+                            }
+                        }
+                    }
                 }
             }
             logger.debug("Filtro de BBDD aplicado. {} resultados iniciales.", baseModelForFiltering.getSize());

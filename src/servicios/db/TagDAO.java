@@ -445,4 +445,21 @@ public class TagDAO {
         return false;
     } // ---FIN de metodo [updateTagName]---
 
+    /**
+     * Elimina todas las asociaciones de tags para una imagen específica.
+     * @param imagenId ID de la imagen.
+     * @return true si la eliminación tuvo éxito.
+     */
+    public boolean clearTagsForImage(long imagenId) {
+        String sql = "DELETE FROM imagen_tags WHERE imagen_id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setLong(1, imagenId);
+            pstmt.executeUpdate();
+            return true;
+        } catch (SQLException e) {
+            logger.error("Error al limpiar tags para la imagen ID " + imagenId, e);
+        }
+        return false;
+    }
+
 } // --- FIN de clase TagDAO ---

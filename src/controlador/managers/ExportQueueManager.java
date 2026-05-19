@@ -151,6 +151,7 @@ public class ExportQueueManager {
                 logger.debug(" -> Encontrados {} archivos asociados para {}", candidatos.size(), nombreBaseImagen);
             } else {
                 // Si la lista está vacía, no se encontró nada.
+                item.setRutasArchivosAsociados(new ArrayList<>());
                 item.setEstadoArchivoComprimido(ExportStatus.NO_ENCONTRADO);
             }
 
@@ -238,5 +239,29 @@ public class ExportQueueManager {
             logger.debug("[ExportQueueManager] Detección finalizada. No se encontraron conflictos de nombre.");
         }
     } // ---FIN de metodo [detectarColisionesDeNombres]---
+
+    /**
+     * Fuerza la búsqueda en disco de archivos asociados para todos los items
+     * de la cola que no hayan sido asignados manualmente o marcados para ignorar.
+     */
+    public void forzarRefrescoDeBusquedaEnDisco() {
+        logger.info("[ExportQueueManager] Forzando refresco de búsqueda en disco para toda la cola...");
+        for (ExportItem item : colaDeExportacion) {
+            ExportStatus est = item.getEstadoArchivoComprimido();
+            // Solo escaneamos de nuevo si no es manual, ignorar o error de imagen no encontrada
+            if (est != ExportStatus.ASIGNADO_MANUAL && 
+                est != ExportStatus.IGNORAR_COMPRIMIDO && 
+                est != ExportStatus.IMAGEN_NO_ENCONTRADA) {
+                
+                if (Files.exists(item.getRutaImagen()) && Files.isRegularFile(item.getRutaImagen())) {
+                    buscarArchivoComprimidoAsociado(item);
+                } else {
+                    item.setEstadoArchivoComprimido(ExportStatus.IMAGEN_NO_ENCONTRADA);
+                    item.setRutasArchivosAsociados(new ArrayList<>());
+                }
+            }
+        }
+        detectarColisionesDeNombres();
+    } // ---FIN de metodo [forzarRefrescoDeBusquedaEnDisco]---
 
 } // --- FIN de la clase ExportQueueManager ---

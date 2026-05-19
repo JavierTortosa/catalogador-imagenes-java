@@ -178,6 +178,97 @@ public class ImagenDAO {
     } // ---FIN de metodo [isFolderIndexed]---
 
     /**
+     * Obtiene las rutas completas de todas las imágenes de la base de datos.
+     * @return Una lista de strings con las rutas completas.
+     */
+    public List<String> getAllImagePaths() {
+        List<String> paths = new ArrayList<>();
+        String sql = "SELECT ruta_completa FROM imagenes ORDER BY nombre_archivo ASC";
+        try (Statement stmt = connection.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                paths.add(rs.getString("ruta_completa"));
+            }
+        } catch (SQLException e) {
+            logger.error("Error al obtener todas las rutas de imágenes.", e);
+        }
+        return paths;
+    }
+
+    /**
+     * Busca en la base de datos si existe una imagen con el mismo nombre y tamaño
+     * pero cuya ruta física en el disco ya no exista (candidato de archivo movido).
+     * @param nombreArchivo El nombre de la imagen.
+     * @param tamanoBytes El tamaño del archivo en bytes.
+     * @return Un Optional con el ImagenInfo del candidato, o vacío si no hay ninguno.
+     */
+    public Optional<ImagenInfo> findMovedCandidate(String nombreArchivo, long tamanoBytes) {
+        String sql = "SELECT * FROM imagenes WHERE nombre_archivo = ? AND tamano_bytes = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, nombreArchivo);
+            pstmt.setLong(2, tamanoBytes);
+            ResultSet rs = pstmt.executeQuery();
+            while (rs.next()) {
+                ImagenInfo img = mapResultSetToImagenInfo(rs);
+                // Si el archivo en la ubicación antigua de la BD ya no existe físicamente,
+                // significa que probablemente ha cambiado de ubicación.
+                try {
+                    if (!java.nio.file.Files.exists(java.nio.file.Path.of(img.getRutaCompleta()))) {
+                        return Optional.of(img);
+                    }
+                } catch (Exception ignore) {}
+            }
+        } catch (SQLException e) {
+            logger.error("Error al buscar candidato de movimiento para: " + nombreArchivo, e);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Busca la ruta de una imagen registrada en la BD a partir de su nombre de archivo exacto.
+     * Útil para auto-relocalización en proyectos.
+     * @param nombreArchivo El nombre del archivo (ej. "imagen.jpg").
+     * @return Un Optional con la ruta completa como String.
+     */
+    public Optional<String> findPathByFileName(String nombreArchivo) {
+        String sql = "SELECT ruta_completa FROM imagenes WHERE nombre_archivo = ? LIMIT 1";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, nombreArchivo);
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return Optional.of(rs.getString("ruta_completa"));
+            }
+        } catch (SQLException e) {
+            logger.error("Error al buscar ruta por nombre de archivo: " + nombreArchivo, e);
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Actualiza la información de ubicación y metadatos de una imagen que ha cambiado de posición.
+     */
+    public boolean updateMovedImagen(long id, String nuevaRuta, String nuevoNombre, String nuevaRutaRelativa, long nuevoDiscoId, long nuevaFechaMod) {
+        String sql = "UPDATE imagenes SET ruta_completa = ?, nombre_archivo = ?, ruta_relativa = ?, disco_id = ?, fecha_modificacion = ? WHERE id = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, nuevaRuta);
+            pstmt.setString(2, nuevoNombre);
+            pstmt.setString(3, nuevaRutaRelativa);
+            pstmt.setLong(4, nuevoDiscoId);
+            pstmt.setLong(5, nuevaFechaMod);
+            pstmt.setLong(6, id);
+            int affectedRows = pstmt.executeUpdate();
+            if (affectedRows > 0) {
+                logger.debug("Información de imagen reubicada actualizada para ID {}: {}", id, nuevaRuta);
+                return true;
+            }
+        } catch (SQLException e) {
+            logger.error("Error al actualizar la ruta de movimiento para imagen ID " + id, e);
+        }
+        return false;
+    }
+
+
+    /**
      * Método de ayuda para mapear una fila de un ResultSet a un objeto ImagenInfo.
      * @param rs El ResultSet posicionado en la fila correcta.
      * @return Un objeto ImagenInfo poblado.

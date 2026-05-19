@@ -41,6 +41,10 @@ public class DatabaseManager {
             
             try (Statement stmt = connection.createStatement()) {
                 stmt.execute("PRAGMA foreign_keys = ON;");
+                stmt.execute("PRAGMA journal_mode = WAL;");
+                stmt.execute("PRAGMA synchronous = NORMAL;");
+                stmt.execute("PRAGMA temp_store = MEMORY;");
+                stmt.execute("PRAGMA cache_size = -64000;"); // 64MB Cache de páginas
             }
             
             logger.info("Conexión a la base de datos establecida con éxito.");

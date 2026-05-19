@@ -59,6 +59,7 @@ import controlador.actions.orden.CycleSortAction;
 import controlador.actions.pan.PanAction;
 import controlador.actions.projects.AbrirProyectoAction;
 import controlador.actions.projects.AddAssociatedFileAction;
+import controlador.actions.projects.CleanMissingFilesAction;
 import controlador.actions.projects.DeleteAssociatedFileAction;
 import controlador.actions.projects.EliminarProyectoAction;
 import controlador.actions.projects.GestionarProyectoAction;
@@ -442,6 +443,7 @@ public class ActionFactory {
         actionMap.put(AppActionCommands.CMD_EXPORT_IGNORAR_COMPRIMIDO, createToggleIgnoreCompressedAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_ELIMINAR_PERMANENTEMENTE, createEliminarDeProyectoAction());
         actionMap.put(AppActionCommands.CMD_EXPORT_RELOCALIZAR_IMAGEN, createRelocateImageAction());
+        actionMap.put(AppActionCommands.CMD_EXPORT_LIMPIAR_NO_ENCONTRADOS, createCleanMissingFilesAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_LOCALIZAR_ARCHIVO, createLocalizarArchivoProyectoAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_ANADIR_ARCHIVOS, createAddFilesToProjectAction());
         actionMap.put(AppActionCommands.CMD_PROYECTO_VACIAR_DESCARTES, createVaciarDescartesAction());
@@ -1198,6 +1200,10 @@ public class ActionFactory {
         // Usamos la nueva clase dedicada en lugar de la anónima.
         return new RemoveFromExportQueueAction(generalController.getProjectController());
     } // --- Fin del método createRemoveFromQueueAction ---
+
+    private Action createCleanMissingFilesAction() {
+        return new CleanMissingFilesAction(generalController.getProjectController());
+    } // --- Fin del método createCleanMissingFilesAction ---
 
     private Action createToggleIgnoreCompressedAction() {
         // Ahora usamos nuestra nueva clase dedicada, que es sensible al contexto

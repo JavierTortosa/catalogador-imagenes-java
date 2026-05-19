@@ -49,6 +49,16 @@ public class IndexationService {
      */
     public void indexImageAndTags(Path imagePath, Path rootPath) {
         try {
+            // Comprobamos primero si el archivo ya está en la base de datos con su ruta actual exacta
+            Optional<ImagenInfo> existingImgOpt = imagenDAO.findImagenByPath(imagePath);
+            
+            if (existingImgOpt.isPresent()) {
+                // ESCENARIO 3: Si encuentra el archivo en su ruta actual, no hace nada. Todo está correcto.
+                logger.trace("La imagen ya existe y está correcta en la base de datos: {}", imagePath.getFileName());
+                return;
+            }
+
+            // Si llegamos aquí, el archivo no está en la base de datos bajo su ruta actual.
             // 0. Identificar el Disco
             Optional<String> serialOpt = volumeService.getVolumeSerialNumber(imagePath);
             Long discoId = null;
@@ -64,60 +74,81 @@ public class IndexationService {
                 }
             }
 
-            // 1. Crear el objeto ImagenInfo a partir del archivo
+            // 1. Obtener metadatos físicos
             BasicFileAttributes attrs = Files.readAttributes(imagePath, BasicFileAttributes.class);
-            ImagenInfo imagenInfo = new ImagenInfo();
-            imagenInfo.setRutaCompleta(imagePath.toString());
             Path fileNamePath = imagePath.getFileName();
-            imagenInfo.setNombreArchivo(fileNamePath != null ? fileNamePath.toString() : imagePath.toString());
-            imagenInfo.setFechaModificacion(attrs.lastModifiedTime().toMillis());
-            imagenInfo.setTamanoBytes(attrs.size());
-            imagenInfo.setDiscoId(discoId != null ? discoId : 0);
-            imagenInfo.setRutaRelativa(rootPath.relativize(imagePath).toString());
-            imagenInfo.setFechaAdicion(System.currentTimeMillis());
+            String nombreArchivo = fileNamePath != null ? fileNamePath.toString() : imagePath.toString();
+            long tamanoBytes = attrs.size();
+            long fechaModificacion = attrs.lastModifiedTime().toMillis();
+            long discoIdValue = discoId != null ? discoId : 0;
+            String rutaRelativa = rootPath.relativize(imagePath).toString();
 
-            // 2. Intentar añadir la imagen a la base de datos.
-            Optional<Long> newImageIdOpt = imagenDAO.addImagen(imagenInfo);
+            // ESCENARIO 1: Comprobar si el archivo ha cambiado de ubicación (mismo nombre y tamaño, pero ruta vieja ya no existe en disco)
+            Optional<ImagenInfo> movedCandidateOpt = imagenDAO.findMovedCandidate(nombreArchivo, tamanoBytes);
+            long imageIdToTag;
+            
+            if (movedCandidateOpt.isPresent()) {
+                ImagenInfo candidate = movedCandidateOpt.get();
+                imageIdToTag = candidate.getId();
+                logger.info("El archivo '{}' ha cambiado de ubicación. Se actualiza de '{}' a '{}'", 
+                            nombreArchivo, candidate.getRutaCompleta(), imagePath);
+                
+                // Actualizamos la ruta y los metadatos en la base de datos
+                imagenDAO.updateMovedImagen(imageIdToTag, imagePath.toString(), nombreArchivo, rutaRelativa, discoIdValue, fechaModificacion);
+                
+                // Limpiamos los tags antiguos de esta imagen ya que ha cambiado de directorio
+                tagDAO.clearTagsForImage(imageIdToTag);
+            } else {
+                // ESCENARIO 2: Si no ha cambiado de ubicación (es una imagen nueva), la añadimos normalmente
+                ImagenInfo imagenInfo = new ImagenInfo();
+                imagenInfo.setRutaCompleta(imagePath.toString());
+                imagenInfo.setNombreArchivo(nombreArchivo);
+                imagenInfo.setFechaModificacion(fechaModificacion);
+                imagenInfo.setTamanoBytes(tamanoBytes);
+                imagenInfo.setDiscoId(discoIdValue);
+                imagenInfo.setRutaRelativa(rutaRelativa);
+                imagenInfo.setFechaAdicion(System.currentTimeMillis());
 
-            if (newImageIdOpt.isPresent()) {
-                long newImageId = newImageIdOpt.get();
-                logger.debug("Nueva imagen para indexar jerárquicamente: {} (ID: {})", imagePath.getFileName(), newImageId);
+                Optional<Long> newImageIdOpt = imagenDAO.addImagen(imagenInfo);
+                if (newImageIdOpt.isPresent()) {
+                    imageIdToTag = newImageIdOpt.get();
+                    logger.debug("Nueva imagen indexada: {} (ID: {})", nombreArchivo, imageIdToTag);
+                } else {
+                    logger.error("No se pudo añadir la nueva imagen a la base de datos: {}", nombreArchivo);
+                    return;
+                }
+            }
 
-                // 3. Si la imagen es nueva, proceder con el etiquetado jerárquico.
-                Path relativePath = rootPath.relativize(imagePath);
-                Path parentPath = relativePath.getParent();
+            // Para ESCENARIO 1 y ESCENARIO 2, asignamos/re-asignamos los tags correspondientes de la nueva ruta
+            Path parentPath = imagePath.toAbsolutePath().normalize().getParent();
 
-                if (parentPath != null) {
-                    Long currentParentId = null; // Empezamos sin padre (tags raíz)
-                    Tag lastCreatedTag = null;   // El último tag creado en la jerarquía
+            if (parentPath != null) {
+                Long currentParentId = null; // Empezamos sin padre (tags raíz)
 
-                    // Iteramos por cada parte de la ruta (cada nombre de carpeta)
-                    for (Path folderNamePath : parentPath) {
-                        String tagName = folderNamePath.toString();
+                // Iteramos por cada parte de la ruta absoluta (cada nombre de carpeta)
+                for (int i = 0; i < parentPath.getNameCount(); i++) {
+                    String tagName = parentPath.getName(i).toString().trim();
 
-                        // Añadimos el tag a la BD, especificando su padre
-                        Optional<Tag> tagOpt = tagDAO.addTag(tagName, currentParentId);
-
-                        if (tagOpt.isPresent()) {
-                            Tag tag = tagOpt.get();
-                            // El ID de este tag será el padre del siguiente en la jerarquía
-                            currentParentId = tag.getId();
-                            lastCreatedTag = tag;
-                            logger.trace("  -> Tag en jerarquía procesado: '{}' (ID: {}, ParentID: {})", 
-                                         tag.getNombre(), tag.getId(), tag.getParentId());
-                        }
+                    // Omitir la carpeta principal que no aporta información selectiva
+                    if ("ARCHIVOS 3D".equalsIgnoreCase(tagName)) {
+                        continue;
                     }
 
-                    // 4. ASIGNAR SOLO EL ÚLTIMO TAG A LA IMAGEN.
-                    // La imagen pertenece a la categoría más específica (la última carpeta).
-                    if (lastCreatedTag != null) {
-                        tagDAO.assignTagToImage(newImageId, lastCreatedTag.getId());
-                        logger.debug("  -> Etiqueta final asignada a la imagen: '{}' (TagID: {})", 
-                                     lastCreatedTag.getNombre(), lastCreatedTag.getId());
+                    // Añadimos el tag a la BD, especificando su padre
+                    Optional<Tag> tagOpt = tagDAO.addTag(tagName, currentParentId);
+
+                    if (tagOpt.isPresent()) {
+                        Tag tag = tagOpt.get();
+                        // El ID de este tag será el padre del siguiente en la jerarquía
+                        currentParentId = tag.getId();
+                        
+                        // ASIGNAR ESTE TAG A LA IMAGEN (cada carpeta de la ruta es un tag en sí mismo)
+                        tagDAO.assignTagToImage(imageIdToTag, tag.getId());
+                        
+                        logger.trace("  -> Tag en jerarquía absoluta asignado a la imagen: '{}' (ID: {}, ParentID: {})", 
+                                     tag.getNombre(), tag.getId(), tag.getParentId());
                     }
                 }
-            } else {
-                 logger.trace("La imagen ya existe en la base de datos, omitiendo etiquetado: {}", imagePath.getFileName());
             }
 
         } catch (IOException e) {

@@ -126,18 +126,28 @@ public class FilterDialog extends JDialog {
 
         // --- LÓGICA DE EVENTOS ---
 
-        // Mostrar/ocultar el botón "..." si se selecciona tipo Carpeta
-        ActionListener typeListener = e -> btnBrowse.setVisible(btnTypeCarpeta.isSelected());
+        // Mostrar/ocultar el botón "..." si se selecciona tipo Carpeta o Etiqueta
+        ActionListener typeListener = e -> btnBrowse.setVisible(btnTypeCarpeta.isSelected() || btnTypeTag.isSelected());
         btnTypeTexto.addActionListener(typeListener);
         btnTypeCarpeta.addActionListener(typeListener);
         btnTypeTag.addActionListener(typeListener);
 
-        // Acción del botón "..." (JFileChooser)
+        // Acción del botón "..." (JFileChooser o TagSelectionDialog)
         btnBrowse.addActionListener(e -> {
-            JFileChooser chooser = new JFileChooser();
-            chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-            if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                txtValor.setText(chooser.getSelectedFile().getAbsolutePath());
+            if (btnTypeCarpeta.isSelected()) {
+                JFileChooser chooser = new JFileChooser();
+                chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+                if (chooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                    txtValor.setText(chooser.getSelectedFile().getAbsolutePath());
+                }
+            } else if (btnTypeTag.isSelected()) {
+                vista.VisorView mainView = (vista.VisorView) getOwner();
+                vista.util.IconUtils iconUtils = (mainView != null && mainView.getController() != null) ? mainView.getController().getIconUtils() : null;
+                TagSelectionDialog dialog = new TagSelectionDialog(this, iconUtils);
+                String selectedTag = dialog.showDialog();
+                if (selectedTag != null) {
+                    txtValor.setText(selectedTag);
+                }
             }
         });
 

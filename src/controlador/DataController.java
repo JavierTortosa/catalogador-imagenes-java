@@ -109,11 +109,12 @@ public class DataController {
         refreshDriveList();
         refreshAvailableTags(); // Recargar la lista de tags del combo
         
-        // Limpiamos el grid y el panel de tags por si había algo de una sesión anterior.
-        GridDisplayPanel gridPanel = registry.get("panel.datamode.grid");
-        if (gridPanel != null) {
-            gridPanel.getGridList().setModel(new DefaultListModel<>());
+        // Seleccionamos la raíz ("Biblioteca") por defecto para marcarla e indexar todas las imágenes en el grid
+        JTree allTagsTree = registry.get("tree.datamode.alltags");
+        if (allTagsTree != null) {
+            allTagsTree.setSelectionRow(0);
         }
+        
         TagManagementPanel tagPanel = registry.get("panel.datamode.tagmanagement");
         if (tagPanel != null) {
             tagPanel.clearPanel();
@@ -172,10 +173,12 @@ public class DataController {
             
             Object selectedNode = selectedPath.getLastPathComponent();
             
-            // Solo cargamos imágenes si el nodo seleccionado es un Tag.
+            // Solo cargamos imágenes si el nodo seleccionado es un Tag o es la raíz "Biblioteca"
             if (selectedNode instanceof Tag) {
                 Tag selectedTag = (Tag) selectedNode;
                 loadImagesForTag(selectedTag);
+            } else if ("Biblioteca".equals(selectedNode)) {
+                loadAllImages();
             }
         });
         
@@ -481,5 +484,42 @@ public class DataController {
             logger.debug("Grid del Modo Datos actualizado con {} elementos.", gridListModel.getSize());
         });
     } // ---FIN de metodo loadImagesForTag---
+
+    private void loadAllImages() {
+        JList<String> gridList = registry.get("list.datamode.grid");
+        if (gridList == null) {
+            logger.error("No se encontró 'list.datamode.grid' en el registro.");
+            return;
+        }
+
+        List<String> imagePaths = dataManager.getAllImagePaths();
+        
+        DefaultListModel<String> gridListModel = new DefaultListModel<>();
+        Map<String, Path> gridPathMap = new java.util.HashMap<>();
+
+        int duplicateKeyCounter = 0;
+        for (String pathStr : imagePaths) {
+            Path path = Paths.get(pathStr);
+            Path fn = path.getFileName();
+            String key = (fn != null) ? fn.toString() : path.toString();
+            
+            while (gridPathMap.containsKey(key)) {
+                duplicateKeyCounter++;
+                key = ((fn != null) ? fn.toString() : path.toString()) + " (" + duplicateKeyCounter + ")";
+            }
+
+            gridListModel.addElement(key);
+            gridPathMap.put(key, path);
+        }
+        
+        model.getRutaCompletaMap().clear();
+        model.getRutaCompletaMap().putAll(gridPathMap);
+
+        // Actualizamos el modelo de la JList directamente.
+        SwingUtilities.invokeLater(() -> {
+            gridList.setModel(gridListModel);
+            logger.debug("Grid del Modo Datos actualizado con todas las {} imágenes.", gridListModel.getSize());
+        });
+    } // ---FIN de metodo loadAllImages---
 
 } // --- FIN de clase DataController ---

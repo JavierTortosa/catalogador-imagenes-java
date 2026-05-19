@@ -34,17 +34,60 @@ public class IndexationWorker extends SwingWorker<Void, Integer> {
         progressDialog.setMensaje("Indexando archivos en la base de datos...");
         progressDialog.updateProgress(0, filesToIndex.size(), null);
         
-        int processedCount = 0;
-        for (Path file : filesToIndex) {
-            if (isCancelled()) {
-                logger.warn("Tarea de indexación cancelada por el usuario.");
-                break;
+        java.sql.Connection conn = null;
+        boolean originalAutoCommit = true;
+        
+        try {
+            conn = servicios.db.DatabaseManager.getInstance().getConnection();
+            if (conn != null) {
+                originalAutoCommit = conn.getAutoCommit();
+                conn.setAutoCommit(false); // Iniciar transacción
             }
+            
+            int processedCount = 0;
+            for (Path file : filesToIndex) {
+                if (isCancelled()) {
+                    logger.warn("Tarea de indexación cancelada por el usuario. Realizando rollback...");
+                    if (conn != null) {
+                        conn.rollback();
+                    }
+                    break;
+                }
 
-            indexationService.indexImageAndTags(file, rootPath);
-            processedCount++;
-            publish(processedCount); // Envía el progreso al EDT
+                indexationService.indexImageAndTags(file, rootPath);
+                processedCount++;
+                
+                // Realizar commit cada 1000 archivos para maximizar el rendimiento
+                if (conn != null && processedCount % 1000 == 0) {
+                    conn.commit();
+                }
+                
+                publish(processedCount); // Envía el progreso al EDT
+            }
+            
+            // Confirmar inserciones restantes si no fue cancelado
+            if (!isCancelled() && conn != null) {
+                conn.commit();
+            }
+            
+        } catch (Exception e) {
+            logger.error("Error durante el lote de indexación", e);
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (java.sql.SQLException ex) {
+                    logger.error("Error al hacer rollback de la transacción", ex);
+                }
+            }
+            throw e;
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(originalAutoCommit);
+                } catch (java.sql.SQLException ignore) {}
+            }
         }
+        
         return null;
     } // ---FIN de metodo [doInBackground]---
 
