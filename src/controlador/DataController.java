@@ -274,23 +274,51 @@ public class DataController {
         // 2. Opción "Añadir Etiqueta..."
         JMenuItem addTagItem = new JMenuItem("Añadir Etiqueta...");
         addTagItem.addActionListener(actionEvent -> {
-            String tagName = JOptionPane.showInputDialog(
+            JPanel panel = new JPanel(new java.awt.BorderLayout(5, 5));
+            panel.add(new javax.swing.JLabel("Escribe el nombre de la nueva etiqueta para asignar a las imágenes seleccionadas:"), java.awt.BorderLayout.NORTH);
+            
+            JPanel inputPanel = new JPanel(new java.awt.BorderLayout(5, 0));
+            javax.swing.JTextField txtTag = new javax.swing.JTextField();
+            txtTag.setColumns(20);
+            JButton btnBrowseLocal = new JButton("...");
+            btnBrowseLocal.setToolTipText("Buscar etiqueta existente en la biblioteca...");
+            
+            inputPanel.add(txtTag, java.awt.BorderLayout.CENTER);
+            inputPanel.add(btnBrowseLocal, java.awt.BorderLayout.EAST);
+            panel.add(inputPanel, java.awt.BorderLayout.CENTER);
+            
+            btnBrowseLocal.addActionListener(browseEvent -> {
+                java.awt.Frame mainFrame = (visorController != null) ? visorController.getView() : null;
+                vista.util.IconUtils iconUtils = (visorController != null) ? visorController.getIconUtils() : null;
+                vista.dialogos.TagSelectionDialog selectionDialog = new vista.dialogos.TagSelectionDialog(mainFrame, iconUtils);
+                String selected = selectionDialog.showDialog();
+                if (selected != null) {
+                    txtTag.setText(selected);
+                }
+            });
+            
+            int option = JOptionPane.showConfirmDialog(
                 gridList.getTopLevelAncestor(),
-                "Escribe el nombre de la nueva etiqueta para asignar a las imágenes seleccionadas:",
+                panel,
                 "Añadir Etiqueta a Mano",
+                JOptionPane.OK_CANCEL_OPTION,
                 JOptionPane.PLAIN_MESSAGE
             );
-            if (tagName != null && !tagName.trim().isEmpty()) {
-                String cleanTagName = tagName.trim();
-                dataManager.addTagToImages(selectedPaths, cleanTagName);
-                updateTagPanelSelection(); // Refrescar vista de tags de la imagen
-                initializeTagTree(); // Refrescar el árbol de tags
-                refreshAvailableTags(); // Refrescar el combo
-                
-                String mensaje = "Etiqueta '" + cleanTagName + "' añadida a " + selectedPaths.size() + " imagen(es)";
-                logger.info(mensaje);
-                if (statusBarManager != null) {
-                    statusBarManager.mostrarMensajeTemporal(mensaje, 3000);
+            
+            if (option == JOptionPane.OK_OPTION) {
+                String tagName = txtTag.getText();
+                if (tagName != null && !tagName.trim().isEmpty()) {
+                    String cleanTagName = tagName.trim();
+                    dataManager.addTagToImages(selectedPaths, cleanTagName);
+                    updateTagPanelSelection(); // Refrescar vista de tags de la imagen
+                    initializeTagTree(); // Refrescar el árbol de tags
+                    refreshAvailableTags(); // Refrescar el combo
+                    
+                    String mensaje = "Etiqueta '" + cleanTagName + "' añadida a " + selectedPaths.size() + " imagen(es)";
+                    logger.info(mensaje);
+                    if (statusBarManager != null) {
+                        statusBarManager.mostrarMensajeTemporal(mensaje, 3000);
+                    }
                 }
             }
         });
@@ -320,6 +348,16 @@ public class DataController {
                 updateTagPanelSelection(); // Refrescar vista
                 initializeTagTree(); // Refrescar conteos en el árbol
                 refreshAvailableTags(); // Refrescar el combo
+            }
+        });
+
+        tagPanel.setOnBrowseTags(() -> {
+            java.awt.Frame mainFrame = (visorController != null) ? visorController.getView() : null;
+            vista.util.IconUtils iconUtils = (visorController != null) ? visorController.getIconUtils() : null;
+            vista.dialogos.TagSelectionDialog dialog = new vista.dialogos.TagSelectionDialog(mainFrame, iconUtils);
+            String selected = dialog.showDialog();
+            if (selected != null) {
+                tagPanel.getComboNewTag().setSelectedItem(selected);
             }
         });
     } // ---FIN de metodo [setupTagManagementCallbacks]---

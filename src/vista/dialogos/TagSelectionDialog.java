@@ -100,6 +100,27 @@ public class TagSelectionDialog extends JDialog {
         configurarAtajosGlobales();
     } // --- FIN de constructor TagSelectionDialog ---
 
+    public TagSelectionDialog(java.awt.Frame owner, IconUtils iconUtils) {
+        super(owner, "Seleccionar Etiqueta de la Biblioteca", true);
+        this.tagDAO = new TagDAO();
+        this.tagMap = new HashMap<>();
+        this.iconUtils = iconUtils;
+
+        // Inicializar ventana
+        setSize(480, 550);
+        setMinimumSize(new Dimension(400, 450));
+        setLocationRelativeTo(owner);
+
+        // Cargar tags iniciales
+        cargarTagsDesdeBD();
+
+        // Inicializar componentes e interfaz
+        initUI();
+
+        // Configurar atajos de teclado globales (Escape para salir)
+        configurarAtajosGlobales();
+    } // --- FIN de constructor TagSelectionDialog ---
+
     private void cargarTagsDesdeBD() {
         try {
             this.allTags = tagDAO.getAllTags();

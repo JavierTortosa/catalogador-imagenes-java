@@ -168,6 +168,21 @@ public class FilterDialog extends JDialog {
                 return; // Detiene la ejecución y NO cierra el diálogo.
             }
 
+            // Regla 1.5: Si el tipo es "Etiqueta", el valor debe existir en la base de datos.
+            if (btnTypeTag.isSelected()) {
+                servicios.db.TagDAO tagDAO = new servicios.db.TagDAO();
+                String normalizado = valor.trim().toLowerCase();
+                if (tagDAO.findTagByName(normalizado).isEmpty()) {
+                    javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "La etiqueta '" + valor + "' no existe en la base de datos.\nUtiliza el botón '...' para seleccionar una existente.",
+                        "Etiqueta Inexistente",
+                        javax.swing.JOptionPane.WARNING_MESSAGE
+                    );
+                    return; // Detiene la ejecución y NO cierra el diálogo.
+                }
+            }
+
             // Regla 2: Si el tipo es "Carpeta", el valor debe ser una carpeta válida.
             if (btnTypeCarpeta.isSelected()) {
                 try {

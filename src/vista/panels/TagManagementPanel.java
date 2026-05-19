@@ -35,11 +35,13 @@ public class TagManagementPanel extends JPanel {
     private final JPanel tagsDisplayPanel;
     private final JComboBox<String> comboNewTag;
     private final JButton btnAddTag;
+    private final JButton btnBrowse;
     private final JScrollPane scrollPane;
 
     // Callbacks para notificar al controlador
     private Consumer<String> onAddTag;
     private Consumer<Tag> onRemoveTag;
+    private Runnable onBrowseTags;
 
     public TagManagementPanel() {
         super(new BorderLayout(5, 5));
@@ -64,11 +66,20 @@ public class TagManagementPanel extends JPanel {
         JTextField editorField = (JTextField) comboNewTag.getEditor().getEditorComponent();
         editorField.setColumns(15);
         
+        // Botones en el lado derecho
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 2, 0));
+        
+        btnBrowse = new JButton("...");
+        btnBrowse.setToolTipText("Buscar etiqueta en la biblioteca...");
+        
         btnAddTag = new JButton("+");
         btnAddTag.setToolTipText("Añadir etiqueta a la imagen seleccionada");
         
+        buttonsPanel.add(btnBrowse);
+        buttonsPanel.add(btnAddTag);
+        
         addTagPanel.add(comboNewTag, BorderLayout.CENTER);
-        addTagPanel.add(btnAddTag, BorderLayout.EAST);
+        addTagPanel.add(buttonsPanel, BorderLayout.EAST);
         
         add(scrollPane, BorderLayout.CENTER);
         add(addTagPanel, BorderLayout.SOUTH);
@@ -80,6 +91,12 @@ public class TagManagementPanel extends JPanel {
             if (!tagName.isEmpty() && onAddTag != null) {
                 onAddTag.accept(tagName);
                 comboNewTag.setSelectedItem(""); // Limpiar campo después de añadir
+            }
+        });
+        
+        btnBrowse.addActionListener(e -> {
+            if (onBrowseTags != null) {
+                onBrowseTags.run();
             }
         });
         
@@ -177,6 +194,10 @@ public class TagManagementPanel extends JPanel {
 
     public void setOnRemoveTag(Consumer<Tag> onRemoveTag) {
         this.onRemoveTag = onRemoveTag;
+    }
+    
+    public void setOnBrowseTags(Runnable onBrowseTags) {
+        this.onBrowseTags = onBrowseTags;
     }
     
     public JComboBox<String> getComboNewTag() {
